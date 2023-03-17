@@ -133,7 +133,7 @@ concatenated_wxyz = layers.Concatenate(axis = 1, name = 'all_concatenated')([w_s
                                                                              w_dilated_global_avg])
                                                                              #priors])
 
-# VarianceScaling for kernel initializer (look up??)
+# VarianceScaling for kernel initializer (look up?? )
 wxyz = layers.Dense(256, activation = 'relu', kernel_initializer = 'VarianceScaling')(concatenated_wxyz)
 wxyz = layers.Dense(128, activation = 'relu', kernel_initializer = 'VarianceScaling')(wxyz)
 wxyz = layers.Dense(64, activation = 'relu', kernel_initializer = 'VarianceScaling')(wxyz)

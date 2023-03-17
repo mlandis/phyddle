@@ -7,6 +7,7 @@ import scipy as sp
 import random
 import re
 import sys
+import argparse
 
 from collections import Counter
 from itertools import chain, combinations
@@ -670,11 +671,38 @@ def get_num_taxa(tre_fn, k, max_taxa):
         tree = read_tree_file(tre_fn)
         n_taxa_k = len(tree.get_leaves())
         if n_taxa_k > max_taxa:
-            warning_str = '- replicate {k} simulated n_taxa={nt} (max_taxa={mt})'.format(k=k,nt=n_taxa_k,mt=max_taxa)
-            print(warning_str)
+            #warning_str = '- replicate {k} simulated n_taxa={nt} (max_taxa={mt})'.format(k=k,nt=n_taxa_k,mt=max_taxa)
+            #print(warning_str)
             return max_taxa
     except ValueError:
-        warning_str = '- replicate {k} simulated n_taxa=0'.format(k=k)
-        print(warning_str)
+        #warning_str = '- replicate {k} simulated n_taxa=0'.format(k=k)
+        #print(warning_str)
         return 0
     return n_taxa_k
+
+
+def init_settings(settings):
+    
+    # argument parsing
+    parser = argparse.ArgumentParser(description='phyddle settings')
+    parser.add_argument('--name', dest='model_name', type=str, help='Model name')
+    parser.add_argument('--start_idx', dest='start_idx', type=int, help='Start index for range of replicates')
+    parser.add_argument('--end_idx', dest='end_idx', type=int, help='End index for range of replicates')
+    parser.add_argument('--cfg', dest='cfg', type=str, help='Model configuration file')
+    parser.add_argument('--use_parallel', action=argparse.BooleanOptionalAction, help='Use parallelization?')
+    args = parser.parse_args()
+
+    print(args)
+    # set arguments
+    if args.model_name != None:
+        settings['model_name'] = args.model_name
+    if args.start_idx != None:
+        settings['start_idx'] = args.start_idx
+    if args.end_idx != None:
+        settings['end_idx'] = args.end_idx
+    if args.cfg != None:
+        settings['cfg_fn'] = args.cfg
+    if args.use_parallel != None:
+        settings['use_parallel'] = args.use_parallel
+
+    return settings
