@@ -14,6 +14,10 @@ import string
 from itertools import chain, combinations
 import multiprocessing as mp
 from joblib import Parallel, delayed
+import time
+
+# start time
+start = time.time()
 
 # numpy printing format
 np.set_printoptions(floatmode='unique', suppress=True)
@@ -80,6 +84,7 @@ settings['rv_effect'] = rv_effect
 # generate GeoSSE events
 events = make_events(regions, states, states_inv)
 
+
 # main simulation function (looped)
 def sim_one(k):
     # update info for replicate
@@ -117,7 +122,13 @@ def sim_one(k):
         # collect summary statistics
         # ...
         # encode dataset
-        cblv,new_order = vectorize_tree(tre_fn, max_taxa=max_taxa, prob=1.0 )
+        try:
+            cblv,new_order = vectorize_tree(tre_fn, max_taxa=max_taxa, prob=1.0 )
+        except Exception as inst:
+            # NEED TO FIX apparent issue with vectorize tree
+            print(inst)
+            return 'negative dim?'
+
         cblvs = make_cblvs_geosse(cblv, taxon_states, new_order)
         cblvs_str = np.array2string(cblvs, separator=',', max_line_width=1e200, threshold=1e200, edgeitems=1e200)
         cblvs_str = cblvs_str.replace(' ','').replace('.,',',').strip('[].') + '\n'
@@ -145,6 +156,12 @@ else:
         res_k = sim_one(k)
         res.append(res_k)
         
+# end time
+end = time.time()
+delta_time = np.round(end-start, decimals=3)
+
+print('Elapsed time:', delta_time, 'seconds')
+
 
 ## other stuff to write?
 ## job summary
