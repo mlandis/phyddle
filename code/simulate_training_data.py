@@ -18,16 +18,12 @@ from joblib import Parallel, delayed
 # numpy printing format
 np.set_printoptions(floatmode='unique', suppress=True)
 
-
-# NOTE: let's add a settings file  & parser
-#       to specify state space, events, etc.
-
 # default settings
 settings = {}
 settings['model_name']     = 'geosse_v2'
 settings['start_idx']      = 0
 settings['end_idx']        = 99
-settings['cfg_file']       = None
+settings['cfg_file']       = None # TODO: add config file parser
 settings['use_parallel']   = False
 
 # non-default settings passed by argsparse
@@ -64,7 +60,7 @@ for i,v in enumerate(states):
 states_bits    = regions_to_binary(states, states_str, regions)
 
 # model settings
-model_type = 'iid'
+model_type = 'iid_simple'
 num_feature_layers = 2
 def rv_rate(size):
     return sp.stats.expon.rvs(size=size, loc=0., scale=0.1) 
@@ -84,10 +80,7 @@ settings['rv_effect'] = rv_effect
 # generate GeoSSE events
 events = make_events(regions, states, states_inv)
 
-#print('states ==> ', states, '\n')
-#print('states_bits ==> ', states_bits, '\n')
-#print('events ==>', events, '\n')
-
+# main simulation function (looped)
 def sim_one(k):
     # update info for replicate
     settings['out_path'] = out_path+"."+str(k)
@@ -152,9 +145,18 @@ else:
         res_k = sim_one(k)
         res.append(res_k)
         
+
+## other stuff to write?
+## job summary
 #write_to_file(param1_str, results_fn)
 #results = '\n'.join(res)
 
+## state spaces stuff
+#print('states ==> ', states, '\n')
+#print('states_bits ==> ', states_bits, '\n')
+#print('events ==>', events, '\n')
+
+# raw file de/compression?
 
 # done!
 print('...done!')

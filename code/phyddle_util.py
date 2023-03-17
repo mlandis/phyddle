@@ -384,6 +384,12 @@ def make_rates(regions, states, events, settings):
         r_d = rv_rate(size=(num_regions,num_regions))
         r_b = rv_rate(size=(num_regions,num_regions))
 
+    elif model_type == 'iid_simple':
+        r_e = np.repeat( rv_rate(size=1), num_regions )
+        r_w = np.repeat( rv_rate(size=1), num_regions )
+        r_d = np.repeat( rv_rate(size=1), num_regions*num_regions ).reshape(num_regions,num_regions)
+        r_b = np.repeat( rv_rate(size=1), num_regions*num_regions ).reshape(num_regions,num_regions)
+
     elif model_type == 'FIG':
         # generate base rates
         rho_e, rho_w, rho_d, rho_w = rv_rate(size=4)
