@@ -2,7 +2,7 @@
 
 import os
 
-model_dir = '../model/geosse_v1/'
+model_dir = '../model/geosse_v2/'
 sim_dir = model_dir + 'data/raw'
 train_dir = model_dir + 'data/train'
 prefix = 'sim'

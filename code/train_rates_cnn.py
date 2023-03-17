@@ -23,25 +23,25 @@ batch_size = 16
 
 # IO
 train_prefix = 'sim'
-train_model = 'geosse_v1'
+train_model = 'geosse_v2'
 model_dir = '../model/' + train_model
 train_dir = model_dir + '/data/train'
 
-model_prefix = train_prefix + '_' + str(batch_size) + '_' + str(num_epochs)
+model_prefix = train_prefix + '_batchsize' + str(batch_size) + '_numepoch' + str(num_epochs)
 model_csv_fn = model_dir + '/' + model_prefix + '.csv' 
 model_sav_fn = model_dir + '/' + model_prefix + '.hdf5'
-train_data_fn = train_dir + '/' + train_prefix + '_normalization_label_mean_sd.data.csv'
+train_data_fn = train_dir + '/' + train_prefix + '.data.csv'
 train_labels_fn = train_dir + '/' + train_prefix + '.labels.csv'
 
 # load data
 full_data,full_labels = cn.load_input(train_data_fn, train_labels_fn)
 param_names = full_labels[0,:]
-full_labels = full_labels[1:,:]
+full_labels = full_labels[1:,:].astype('float64')
 
 
 
 # data dimensions
-max_tips = 501
+max_tips = 501 # get width of input tensor
 num_chars = 3
 num_sample = full_data.shape[0]
 num_params = full_labels.shape[1]
@@ -51,10 +51,16 @@ num_params = full_labels.shape[1]
 #subsample_prop = full_data[:,(max_tips-1)*7] # why times 7?? I think this has to do with spare tree sampling
 #mu = full_data[:,(max_tips-3)*7] # not sure
 
+# subsample_prop : find subsample proportion stats from cblv file for epi phylogeo
+# use max_tips to split cblv input tensor from summary stats tensor
+
 # take logs of labels (rates)
+# for variance stabilization for heteroskedastic (variance grows with mean)
 full_labels = np.log(full_labels)
 
 # randomize data to ensure iid of batches
+# do not want to use exact same datapoints when iteratively improving
+# training/validation accuracy
 randomized_idx = np.random.permutation(full_data.shape[0])
 full_data = full_data[randomized_idx,:]
 full_labels = full_labels[randomized_idx,:]
@@ -64,16 +70,21 @@ full_data.shape = (num_sample,-1,2+num_chars)
 
 # create input subsets
 train_idx      = np.arange( num_test+num_validation, num_sample )
-validation_idx = np.arange( num_test, num_validation )
+validation_idx = np.arange( num_test, num_test+num_validation )
 test_idx       = np.arange( 0, num_test )
 
 # create & normalize label tensors
-labels = full_labels[:,:] # it was 5:12 previously, not sure why?? ignores regions 0 to 4?
+labels = full_labels[:,:] # 2nd column was 5:12 previously to exclude ancestral stem location
+
+# (option for diff schemes) try normalizing against 0 to 1
 norm_train_labels, train_label_means, train_label_sd = cn.normalize( labels[train_idx,:] )
 norm_validation_labels = cn.normalize(labels[validation_idx,:], (train_label_means, train_label_sd))
 norm_test_labels = cn.normalize(labels[test_idx,:], (train_label_means, train_label_sd))
 
+# potentially create new tensor that pulls info from both data and labels (Ammon advises put only in data)
+
 # create data tensors
+
 #full_treeLocation_tensor, full_prior_tensor = cn.create_data_tensors(data = full_data[0:num_sample,:], max_tips = max_tips, cblv_contains_mu_rho = False)
 #train_treeLocation_tensor, validation_treeLocation_tensor, test_treeLocation_tensor = cn.create_train_val_test_tensors(full_treeLocation_tensor, num_validation, num_test)
 #train_prior_tensor, validation_prior_tensor,  test_prior_tensor = cn.create_train_val_test_tensors(full_prior_tensor, num_validation, num_test)
@@ -88,6 +99,8 @@ test_treeLocation_tensor = full_data[test_idx,:]
 # Build CNN
 input_treeLocation_tensor = Input(shape = train_treeLocation_tensor.shape[1:3])
 
+# double-check this stuff
+# 64 patterns you expect to see, width of 3, stride (skip-size) of 1, padding zeroes so all windows are 'same'
 w_input = layers.Conv1D(64, 3, strides = 1, activation = 'relu', padding = 'same')(input_treeLocation_tensor)
 
 # convolutional layers
@@ -99,12 +112,12 @@ w_conv = layers.Conv1D(256, 7, activation = 'relu', padding = 'same')(w_conv)
 w_conv_global_avg = layers.GlobalAveragePooling1D(name = 'w_conv_global_avg')(w_conv)
 
 # stride layers
-w_stride = layers.Conv1D(64, 7, strides = 3, activation = 'relu', padding = 'same')(w_input)
+w_stride = layers.Conv1D(64, 7, strides = 3, activation = 'relu', padding = 'same')(input_treeLocation_tensor)
 w_stride = layers.Conv1D(96, 9, strides = 6, activation = 'relu', padding = 'same')(w_stride)
 w_stride_global_avg = layers.GlobalAveragePooling1D(name = 'w_stride_global_avg')(w_stride)
 
 # tree + geolocation dilated
-w_dilated = layers.Conv1D(32, 3, dilation_rate = 2, activation = 'relu', padding = "same")(w_input)
+w_dilated = layers.Conv1D(32, 3, dilation_rate = 2, activation = 'relu', padding = "same")(input_treeLocation_tensor)
 w_dilated = layers.Conv1D(64, 5, dilation_rate = 4, activation = 'relu', padding = "same")(w_dilated)
 w_dilated = layers.Conv1D(128, 7, dilation_rate = 8, activation = 'relu', padding = "same")(w_dilated)
 w_dilated_global_avg = layers.GlobalAveragePooling1D(name = 'w_dilated_global_avg')(w_dilated)
@@ -120,6 +133,7 @@ concatenated_wxyz = layers.Concatenate(axis = 1, name = 'all_concatenated')([w_s
                                                                              w_dilated_global_avg])
                                                                              #priors])
 
+# VarianceScaling for kernel initializer (look up??)
 wxyz = layers.Dense(256, activation = 'relu', kernel_initializer = 'VarianceScaling')(concatenated_wxyz)
 wxyz = layers.Dense(128, activation = 'relu', kernel_initializer = 'VarianceScaling')(wxyz)
 wxyz = layers.Dense(64, activation = 'relu', kernel_initializer = 'VarianceScaling')(wxyz)

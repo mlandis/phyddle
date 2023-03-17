@@ -30,7 +30,8 @@ from multiprocessing import Process
 np.set_printoptions(floatmode='unique', suppress=True)
 
 # IO
-out_dir    = '../model/geosse_v1/data/raw'
+model_name = 'geosse_v2'
+out_dir    = '../model/{model_name}/data/raw'.format(model_name=model_name)
 out_prefix = 'sim'
 out_path   = out_dir + '/' + out_prefix
 os.system('mkdir -p ' + out_dir)
@@ -54,9 +55,12 @@ states_bits    = regions_to_binary(states, states_str, regions)
 # model settings
 model_type = 'iid'
 num_feature_layers = 2
-def rv_rate(size): return sp.stats.expon.rvs(size=size, loc=0., scale=0.1) 
-def rv_effect(size): return sp.stats.norm.rvs(size=size, loc=0., scale=1.) 
-def rv_feature(size): return sp.stats.gamma.rvs(size=size, loc=2., scale=2.) 
+def rv_rate(size):
+    return sp.stats.expon.rvs(size=size, loc=0., scale=0.1) 
+def rv_effect(size):
+    return sp.stats.norm.rvs(size=size, loc=0., scale=1.) 
+def rv_feature(size):
+    return sp.stats.gamma.rvs(size=size, loc=2., scale=2.) 
 
 # generate settings container
 settings = { 'max_taxa': max_taxa,
@@ -110,6 +114,9 @@ for k in range(num_rep):
 
     # generate nexus file 0/1 ranges
     taxon_states = convert_geo_nex(nex_fn, tre_fn, geo_fn, states_bits)
+
+    # collect summary statistics
+    # ...
 
     # encode dataset
     cblv,new_order = vectorize_tree(tre_fn, max_taxa=max_taxa, prob=1.0 )
