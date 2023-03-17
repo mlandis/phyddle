@@ -1,0 +1,73 @@
+
+                        BEAST v2.7.3, 2002-2022
+             Bayesian Evolutionary Analysis Sampling Trees
+                       Designed and developed by
+ Remco Bouckaert, Alexei J. Drummond, Andrew Rambaut & Marc A. Suchard
+                                    
+                   Centre for Computational Evolution
+                         University of Auckland
+                       r.bouckaert@auckland.ac.nz
+                        alexei@cs.auckland.ac.nz
+                                    
+                   Institute of Evolutionary Biology
+                        University of Edinburgh
+                           a.rambaut@ed.ac.uk
+                                    
+                    David Geffen School of Medicine
+                 University of California, Los Angeles
+                           msuchard@ucla.edu
+                                    
+                      Downloads, Help & Resources:
+                           http://beast2.org/
+                                    
+  Source code distributed under the GNU Lesser General Public License:
+                   http://github.com/CompEvol/beast2
+                                    
+                           BEAST developers:
+   Alex Alekseyenko, Trevor Bedford, Erik Bloomquist, Joseph Heled, 
+ Sebastian Hoehna, Denise Kuehnert, Philippe Lemey, Wai Lok Sibon Li, 
+Gerton Lunter, Sidney Markowitz, Vladimir Minin, Michael Defoin Platel, 
+          Oliver Pybus, Tim Vaughan, Chieh-Hsi Wu, Walter Xie
+                                    
+                               Thanks to:
+          Roald Forsberg, Beth Shapiro and Korbinian Strimmer
+
+Random number seed: 1678999081604
+
+File: sim.31.xml seed: 1678999081604 threads: 1
+Loading package BEAST.base v2.7.3 MASTER v7.0.0 BEAST.app v2.7.3    
+Assembling model...
+Setting up populations... done.
+Setting up reactions... Extinction... Extinction... Extinction... Extirpation... Extirpation... Extirpation... Extirpation... Extirpation... Extirpation... Extirpation... Extirpation... Extirpation... WithinRegionSpeciation... WithinRegionSpeciation... WithinRegionSpeciation... WithinRegionSpeciation... WithinRegionSpeciation... WithinRegionSpeciation... WithinRegionSpeciation... WithinRegionSpeciation... WithinRegionSpeciation... WithinRegionSpeciation... WithinRegionSpeciation... WithinRegionSpeciation... Dispersal... Dispersal... Dispersal... Dispersal... Dispersal... Dispersal... Dispersal... Dispersal... Dispersal... BetweenRegionSpeciation... BetweenRegionSpeciation... BetweenRegionSpeciation... BetweenRegionSpeciation... BetweenRegionSpeciation... BetweenRegionSpeciation... done.
+Model assembled.
+Generating inheritance trajectory 1 of 1
+Simulation arrived at time 0.0
+Simulation arrived at time 0.26722719896133984
+Simulation arrived at time 0.3878188687409484
+Simulation arrived at time 1.1539458016706154
+Simulation arrived at time 1.3700364080010579
+Simulation arrived at time 1.6817046364515642
+Simulation arrived at time 1.9967014682065511
+Simulation arrived at time 6.369956823940644
+Simulation arrived at time 6.989616899248585
+Simulation arrived at time 8.289800339842289
+Simulation arrived at time 8.908341378712564
+Simulation arrived at time 9.972326306230851
+Post-simulation rejection condition met.
+Simulation arrived at time 0.0
+Simulation arrived at time 1.771711960469824
+Simulation arrived at time 2.8603159122159596
+Simulation arrived at time 3.315340328612555
+Simulation arrived at time 4.024594650529938
+Simulation arrived at time 5.276215231532591
+Simulation arrived at time 5.610632018180695
+Simulation arrived at time 5.623515584287372
+Simulation arrived at time 9.188011913653568
+Simulation arrived at time 9.82942113386085
+Post-simulation rejection condition met.
+Maximum number of post-simulation condition rejections exceeded.  Skipping simulation.
+Writing Newick output...
+Writing NEXUS output...
+Writing JSON output...
+Done.
+Done!

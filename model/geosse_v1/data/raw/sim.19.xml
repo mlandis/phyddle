@@ -1,0 +1,179 @@
+
+<beast version='2.0' namespace='master:master.model:master.steppers:master.conditions:master.postprocessors:master.outputs'>
+
+<run spec='InheritanceEnsemble'
+    verbosity='3'
+    nTraj='1'
+    nSamples='1'
+    samplePopulationSizes='false'
+    simulationTime='10'
+    maxConditionRejects='1'>
+
+<model spec='Model'>
+
+<populationType spec='PopulationType' typeName='X' id='X'/>
+<populationType spec='PopulationType' typeName='A' id='A'/>
+<populationType spec='PopulationType' typeName='B' id='B'/>
+<populationType spec='PopulationType' typeName='C' id='C'/>
+<populationType spec='PopulationType' typeName='AB' id='AB'/>
+<populationType spec='PopulationType' typeName='AC' id='AC'/>
+<populationType spec='PopulationType' typeName='BC' id='BC'/>
+<populationType spec='PopulationType' typeName='ABC' id='ABC'/>
+
+<reactionGroup spec='ReactionGroup' reactionGroupName='Extinction'>
+	<reaction spec='Reaction' reactionName='Extinction-A' rate='0.018732492597467326'>
+		A:1 -> X
+	</reaction>
+	<reaction spec='Reaction' reactionName='Extinction-B' rate='0.01310814491084794'>
+		B:1 -> X
+	</reaction>
+	<reaction spec='Reaction' reactionName='Extinction-C' rate='0.06808817664435025'>
+		C:1 -> X
+	</reaction>
+</reactionGroup>
+
+<reactionGroup spec='ReactionGroup' reactionGroupName='Extirpation'>
+	<reaction spec='Reaction' reactionName='Extirpation-AB,B' rate='0.018732492597467326'>
+		AB:1 -> B:1
+	</reaction>
+	<reaction spec='Reaction' reactionName='Extirpation-AB,A' rate='0.01310814491084794'>
+		AB:1 -> A:1
+	</reaction>
+	<reaction spec='Reaction' reactionName='Extirpation-AC,C' rate='0.018732492597467326'>
+		AC:1 -> C:1
+	</reaction>
+	<reaction spec='Reaction' reactionName='Extirpation-AC,A' rate='0.06808817664435025'>
+		AC:1 -> A:1
+	</reaction>
+	<reaction spec='Reaction' reactionName='Extirpation-BC,C' rate='0.01310814491084794'>
+		BC:1 -> C:1
+	</reaction>
+	<reaction spec='Reaction' reactionName='Extirpation-BC,B' rate='0.06808817664435025'>
+		BC:1 -> B:1
+	</reaction>
+	<reaction spec='Reaction' reactionName='Extirpation-ABC,BC' rate='0.018732492597467326'>
+		ABC:1 -> BC:1
+	</reaction>
+	<reaction spec='Reaction' reactionName='Extirpation-ABC,AC' rate='0.01310814491084794'>
+		ABC:1 -> AC:1
+	</reaction>
+	<reaction spec='Reaction' reactionName='Extirpation-ABC,AB' rate='0.06808817664435025'>
+		ABC:1 -> AB:1
+	</reaction>
+</reactionGroup>
+
+<reactionGroup spec='ReactionGroup' reactionGroupName='WithinRegionSpeciation'>
+	<reaction spec='Reaction' reactionName='WithinRegionSpeciation-A,A,A' rate='0.06638377107279328'>
+		A:1 -> A:1 + A:1
+	</reaction>
+	<reaction spec='Reaction' reactionName='WithinRegionSpeciation-B,B,B' rate='0.04048094096485005'>
+		B:1 -> B:1 + B:1
+	</reaction>
+	<reaction spec='Reaction' reactionName='WithinRegionSpeciation-C,C,C' rate='0.003833278477255283'>
+		C:1 -> C:1 + C:1
+	</reaction>
+	<reaction spec='Reaction' reactionName='WithinRegionSpeciation-AB,AB,A' rate='0.06638377107279328'>
+		AB:1 -> AB:1 + A:1
+	</reaction>
+	<reaction spec='Reaction' reactionName='WithinRegionSpeciation-AB,AB,B' rate='0.04048094096485005'>
+		AB:1 -> AB:1 + B:1
+	</reaction>
+	<reaction spec='Reaction' reactionName='WithinRegionSpeciation-AC,AC,A' rate='0.06638377107279328'>
+		AC:1 -> AC:1 + A:1
+	</reaction>
+	<reaction spec='Reaction' reactionName='WithinRegionSpeciation-AC,AC,C' rate='0.003833278477255283'>
+		AC:1 -> AC:1 + C:1
+	</reaction>
+	<reaction spec='Reaction' reactionName='WithinRegionSpeciation-BC,BC,B' rate='0.04048094096485005'>
+		BC:1 -> BC:1 + B:1
+	</reaction>
+	<reaction spec='Reaction' reactionName='WithinRegionSpeciation-BC,BC,C' rate='0.003833278477255283'>
+		BC:1 -> BC:1 + C:1
+	</reaction>
+	<reaction spec='Reaction' reactionName='WithinRegionSpeciation-ABC,ABC,A' rate='0.06638377107279328'>
+		ABC:1 -> ABC:1 + A:1
+	</reaction>
+	<reaction spec='Reaction' reactionName='WithinRegionSpeciation-ABC,ABC,B' rate='0.04048094096485005'>
+		ABC:1 -> ABC:1 + B:1
+	</reaction>
+	<reaction spec='Reaction' reactionName='WithinRegionSpeciation-ABC,ABC,C' rate='0.003833278477255283'>
+		ABC:1 -> ABC:1 + C:1
+	</reaction>
+</reactionGroup>
+
+<reactionGroup spec='ReactionGroup' reactionGroupName='Dispersal'>
+	<reaction spec='Reaction' reactionName='Dispersal-A,AB' rate='0.021640132603119776'>
+		A:1 -> AB:1
+	</reaction>
+	<reaction spec='Reaction' reactionName='Dispersal-A,AC' rate='0.024438992580646718'>
+		A:1 -> AC:1
+	</reaction>
+	<reaction spec='Reaction' reactionName='Dispersal-B,AB' rate='0.005090908824398707'>
+		B:1 -> AB:1
+	</reaction>
+	<reaction spec='Reaction' reactionName='Dispersal-B,BC' rate='0.09847157495016945'>
+		B:1 -> BC:1
+	</reaction>
+	<reaction spec='Reaction' reactionName='Dispersal-C,AC' rate='0.10526190293799731'>
+		C:1 -> AC:1
+	</reaction>
+	<reaction spec='Reaction' reactionName='Dispersal-C,BC' rate='0.01878737737103288'>
+		C:1 -> BC:1
+	</reaction>
+	<reaction spec='Reaction' reactionName='Dispersal-AB,ABC' rate='0.12291056753081617'>
+		AB:1 -> ABC:1
+	</reaction>
+	<reaction spec='Reaction' reactionName='Dispersal-AC,ABC' rate='0.040427509974152655'>
+		AC:1 -> ABC:1
+	</reaction>
+	<reaction spec='Reaction' reactionName='Dispersal-BC,ABC' rate='0.11035281176239602'>
+		BC:1 -> ABC:1
+	</reaction>
+</reactionGroup>
+
+<reactionGroup spec='ReactionGroup' reactionGroupName='BetweenRegionSpeciation'>
+	<reaction spec='Reaction' reactionName='BetweenRegionSpeciation-AB,A,B' rate='1.0'>
+		AB:1 -> A:1 + B:1
+	</reaction>
+	<reaction spec='Reaction' reactionName='BetweenRegionSpeciation-AC,A,C' rate='1.0'>
+		AC:1 -> A:1 + C:1
+	</reaction>
+	<reaction spec='Reaction' reactionName='BetweenRegionSpeciation-BC,B,C' rate='1.0'>
+		BC:1 -> B:1 + C:1
+	</reaction>
+	<reaction spec='Reaction' reactionName='BetweenRegionSpeciation-ABC,A,BC' rate='1.0'>
+		ABC:1 -> A:1 + BC:1
+	</reaction>
+	<reaction spec='Reaction' reactionName='BetweenRegionSpeciation-ABC,B,AC' rate='1.0'>
+		ABC:1 -> B:1 + AC:1
+	</reaction>
+	<reaction spec='Reaction' reactionName='BetweenRegionSpeciation-ABC,C,AB' rate='1.0'>
+		ABC:1 -> C:1 + AB:1
+	</reaction>
+</reactionGroup>
+
+
+</model>
+
+<initialState spec='InitState'>
+    <lineageSeedMultiple spec='MultipleIndividuals' copies='1' >
+            <population spec='Population' type='@B'/>
+    </lineageSeedMultiple>
+</initialState>
+
+<lineageEndCondition spec='LineageEndCondition' nLineages='999'
+    alsoGreaterThan='true' isRejection='false'/>
+
+<lineageEndCondition spec='LineageEndCondition' nLineages='0'
+    alsoGreaterThan='false' isRejection='false'/>
+
+<postSimCondition spec='LeafCountPostSimCondition' nLeaves='10'
+    exact='false' exceedCondition='true'/>
+
+<output spec='NewickOutput' collapseSingleChildNodes='true' fileName='../model/geosse_v1/data/raw/sim.19.tre'/>
+<output spec='NexusOutput' fileName='../model/geosse_v1/data/raw/sim.19.nex'/>
+<output spec='JsonOutput' fileName='../model/geosse_v1/data/raw/sim.19.json' />
+
+</run>
+</beast>
+    

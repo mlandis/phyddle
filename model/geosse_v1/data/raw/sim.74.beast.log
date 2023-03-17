@@ -1,0 +1,86 @@
+
+                        BEAST v2.7.3, 2002-2022
+             Bayesian Evolutionary Analysis Sampling Trees
+                       Designed and developed by
+ Remco Bouckaert, Alexei J. Drummond, Andrew Rambaut & Marc A. Suchard
+                                    
+                   Centre for Computational Evolution
+                         University of Auckland
+                       r.bouckaert@auckland.ac.nz
+                        alexei@cs.auckland.ac.nz
+                                    
+                   Institute of Evolutionary Biology
+                        University of Edinburgh
+                           a.rambaut@ed.ac.uk
+                                    
+                    David Geffen School of Medicine
+                 University of California, Los Angeles
+                           msuchard@ucla.edu
+                                    
+                      Downloads, Help & Resources:
+                           http://beast2.org/
+                                    
+  Source code distributed under the GNU Lesser General Public License:
+                   http://github.com/CompEvol/beast2
+                                    
+                           BEAST developers:
+   Alex Alekseyenko, Trevor Bedford, Erik Bloomquist, Joseph Heled, 
+ Sebastian Hoehna, Denise Kuehnert, Philippe Lemey, Wai Lok Sibon Li, 
+Gerton Lunter, Sidney Markowitz, Vladimir Minin, Michael Defoin Platel, 
+          Oliver Pybus, Tim Vaughan, Chieh-Hsi Wu, Walter Xie
+                                    
+                               Thanks to:
+          Roald Forsberg, Beth Shapiro and Korbinian Strimmer
+
+Random number seed: 1678999106709
+
+File: sim.74.xml seed: 1678999106709 threads: 1
+Loading package BEAST.base v2.7.3 MASTER v7.0.0 BEAST.app v2.7.3    
+Assembling model...
+Setting up populations... done.
+Setting up reactions... Extinction... Extinction... Extinction... Extirpation... Extirpation... Extirpation... Extirpation... Extirpation... Extirpation... Extirpation... Extirpation... Extirpation... WithinRegionSpeciation... WithinRegionSpeciation... WithinRegionSpeciation... WithinRegionSpeciation... WithinRegionSpeciation... WithinRegionSpeciation... WithinRegionSpeciation... WithinRegionSpeciation... WithinRegionSpeciation... WithinRegionSpeciation... WithinRegionSpeciation... WithinRegionSpeciation... Dispersal... Dispersal... Dispersal... Dispersal... Dispersal... Dispersal... Dispersal... Dispersal... Dispersal... BetweenRegionSpeciation... BetweenRegionSpeciation... BetweenRegionSpeciation... BetweenRegionSpeciation... BetweenRegionSpeciation... BetweenRegionSpeciation... done.
+Model assembled.
+Generating inheritance trajectory 1 of 1
+Simulation arrived at time 0.0
+Simulation arrived at time 0.006585654843222459
+Simulation arrived at time 0.0375435627900926
+Simulation arrived at time 0.29852780272364055
+Simulation arrived at time 0.8374907697288206
+Simulation arrived at time 2.5830592716691543
+Simulation arrived at time 3.3566877696704642
+Simulation arrived at time 3.965467764226306
+Simulation arrived at time 4.825472893302768
+Simulation arrived at time 4.920952495752923
+Simulation arrived at time 5.1580701630727095
+Simulation arrived at time 5.2869416337486115
+Simulation arrived at time 5.908710423386395
+Simulation arrived at time 6.03834464000294
+Simulation arrived at time 6.504672373171499
+Simulation arrived at time 6.8613380021547865
+Simulation arrived at time 6.949762747859848
+Simulation arrived at time 7.654027368664816
+Simulation arrived at time 8.311915816163664
+Simulation arrived at time 8.621439072249915
+Simulation arrived at time 8.937660521108182
+Post-simulation rejection condition met.
+Simulation arrived at time 0.0
+Simulation arrived at time 0.904871078361873
+Simulation arrived at time 1.0878836740196933
+Simulation arrived at time 1.480038707062236
+Simulation arrived at time 1.8732683768383436
+Simulation arrived at time 3.2575299665789603
+Simulation arrived at time 5.3203658942313155
+Simulation arrived at time 5.725287664590593
+Simulation arrived at time 6.429501744651498
+Simulation arrived at time 6.659253738396879
+Simulation arrived at time 6.808864443612445
+Simulation arrived at time 8.11876713250871
+Simulation arrived at time 8.687091095234956
+Simulation arrived at time 9.88760970385236
+Post-simulation rejection condition met.
+Maximum number of post-simulation condition rejections exceeded.  Skipping simulation.
+Writing Newick output...
+Writing NEXUS output...
+Writing JSON output...
+Done.
+Done!

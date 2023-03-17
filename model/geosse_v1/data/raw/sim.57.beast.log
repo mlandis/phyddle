@@ -1,0 +1,213 @@
+
+                        BEAST v2.7.3, 2002-2022
+             Bayesian Evolutionary Analysis Sampling Trees
+                       Designed and developed by
+ Remco Bouckaert, Alexei J. Drummond, Andrew Rambaut & Marc A. Suchard
+                                    
+                   Centre for Computational Evolution
+                         University of Auckland
+                       r.bouckaert@auckland.ac.nz
+                        alexei@cs.auckland.ac.nz
+                                    
+                   Institute of Evolutionary Biology
+                        University of Edinburgh
+                           a.rambaut@ed.ac.uk
+                                    
+                    David Geffen School of Medicine
+                 University of California, Los Angeles
+                           msuchard@ucla.edu
+                                    
+                      Downloads, Help & Resources:
+                           http://beast2.org/
+                                    
+  Source code distributed under the GNU Lesser General Public License:
+                   http://github.com/CompEvol/beast2
+                                    
+                           BEAST developers:
+   Alex Alekseyenko, Trevor Bedford, Erik Bloomquist, Joseph Heled, 
+ Sebastian Hoehna, Denise Kuehnert, Philippe Lemey, Wai Lok Sibon Li, 
+Gerton Lunter, Sidney Markowitz, Vladimir Minin, Michael Defoin Platel, 
+          Oliver Pybus, Tim Vaughan, Chieh-Hsi Wu, Walter Xie
+                                    
+                               Thanks to:
+          Roald Forsberg, Beth Shapiro and Korbinian Strimmer
+
+Random number seed: 1678999097013
+
+File: sim.57.xml seed: 1678999097013 threads: 1
+Loading package BEAST.base v2.7.3 MASTER v7.0.0 BEAST.app v2.7.3    
+Assembling model...
+Setting up populations... done.
+Setting up reactions... Extinction... Extinction... Extinction... Extirpation... Extirpation... Extirpation... Extirpation... Extirpation... Extirpation... Extirpation... Extirpation... Extirpation... WithinRegionSpeciation... WithinRegionSpeciation... WithinRegionSpeciation... WithinRegionSpeciation... WithinRegionSpeciation... WithinRegionSpeciation... WithinRegionSpeciation... WithinRegionSpeciation... WithinRegionSpeciation... WithinRegionSpeciation... WithinRegionSpeciation... WithinRegionSpeciation... Dispersal... Dispersal... Dispersal... Dispersal... Dispersal... Dispersal... Dispersal... Dispersal... Dispersal... BetweenRegionSpeciation... BetweenRegionSpeciation... BetweenRegionSpeciation... BetweenRegionSpeciation... BetweenRegionSpeciation... BetweenRegionSpeciation... done.
+Model assembled.
+Generating inheritance trajectory 1 of 1
+Simulation arrived at time 0.0
+Simulation arrived at time 0.398779624972306
+Simulation arrived at time 0.8568674163213058
+Simulation arrived at time 2.0653271834428777
+Simulation arrived at time 2.4037859999869586
+Simulation arrived at time 7.933458150966617
+Simulation arrived at time 8.968363667432827
+Post-simulation rejection condition met.
+Simulation arrived at time 0.0
+Simulation arrived at time 0.19523931007790216
+Simulation arrived at time 0.41497665532226674
+Simulation arrived at time 0.4165660087314397
+Simulation arrived at time 0.8590436679027429
+Simulation arrived at time 0.8844468673376565
+Simulation arrived at time 1.1572319599602499
+Simulation arrived at time 1.7770892839652577
+Simulation arrived at time 1.9716642210989268
+Simulation arrived at time 2.0710985623612257
+Simulation arrived at time 2.1043112249435376
+Simulation arrived at time 2.3023765075496287
+Simulation arrived at time 2.3201457835108825
+Simulation arrived at time 2.415515864580554
+Simulation arrived at time 2.7097367937332755
+Simulation arrived at time 2.7337470720632373
+Simulation arrived at time 2.8732278096149537
+Simulation arrived at time 3.0261120315721963
+Simulation arrived at time 3.2303992364763316
+Simulation arrived at time 3.2315429883669036
+Simulation arrived at time 3.7169950149276803
+Simulation arrived at time 3.741268011151888
+Simulation arrived at time 3.7838351252773035
+Simulation arrived at time 4.117787552865728
+Simulation arrived at time 4.158837457462868
+Simulation arrived at time 4.241234674819827
+Simulation arrived at time 4.300467427077225
+Simulation arrived at time 4.383163857800564
+Simulation arrived at time 4.533893722962417
+Simulation arrived at time 4.661143847761241
+Simulation arrived at time 4.723683681410252
+Simulation arrived at time 4.908325189837977
+Simulation arrived at time 5.026507430275221
+Simulation arrived at time 5.036265054076206
+Simulation arrived at time 5.151409377216733
+Simulation arrived at time 5.218451556482128
+Simulation arrived at time 5.360857170204762
+Simulation arrived at time 5.465168806061322
+Simulation arrived at time 5.465827388051073
+Simulation arrived at time 5.649235592475004
+Simulation arrived at time 5.6835200994037525
+Simulation arrived at time 5.873712286316929
+Simulation arrived at time 5.901563000922433
+Simulation arrived at time 5.995969797173051
+Simulation arrived at time 6.113142789070419
+Simulation arrived at time 6.179026621099556
+Simulation arrived at time 6.234091023152604
+Simulation arrived at time 6.27601852287744
+Simulation arrived at time 6.309377960897256
+Simulation arrived at time 6.312872342942784
+Simulation arrived at time 6.359672309204677
+Simulation arrived at time 6.411591226206796
+Simulation arrived at time 6.487838996868973
+Simulation arrived at time 6.514109211727537
+Simulation arrived at time 6.542316402429955
+Simulation arrived at time 6.557987312433013
+Simulation arrived at time 6.5658987412110825
+Simulation arrived at time 6.596171574712146
+Simulation arrived at time 6.610680803155961
+Simulation arrived at time 6.623989160923004
+Simulation arrived at time 6.706563853886542
+Simulation arrived at time 6.894031187698619
+Simulation arrived at time 6.960883576428564
+Simulation arrived at time 7.015160356859772
+Simulation arrived at time 7.082225493300571
+Simulation arrived at time 7.114893974441767
+Simulation arrived at time 7.1201572226503975
+Simulation arrived at time 7.2083458912475615
+Simulation arrived at time 7.211086731673569
+Simulation arrived at time 7.2501568192156975
+Simulation arrived at time 7.298228217990672
+Simulation arrived at time 7.306455803736233
+Simulation arrived at time 7.424470445978164
+Simulation arrived at time 7.527979190589757
+Simulation arrived at time 7.598013174913608
+Simulation arrived at time 7.688661280557657
+Simulation arrived at time 7.729767554631456
+Simulation arrived at time 7.856376054762547
+Simulation arrived at time 7.859249423486736
+Simulation arrived at time 7.869783120254939
+Simulation arrived at time 7.940913917970124
+Simulation arrived at time 7.991990554337492
+Simulation arrived at time 8.007972616350612
+Simulation arrived at time 8.154704766057336
+Simulation arrived at time 8.211329345419504
+Simulation arrived at time 8.22935356780635
+Simulation arrived at time 8.265165199010124
+Simulation arrived at time 8.27978972655529
+Simulation arrived at time 8.29514545313545
+Simulation arrived at time 8.316587637715427
+Simulation arrived at time 8.334609336766482
+Simulation arrived at time 8.347803620739299
+Simulation arrived at time 8.384854029349183
+Simulation arrived at time 8.53091215145314
+Simulation arrived at time 8.638535461685091
+Simulation arrived at time 8.641263970815766
+Simulation arrived at time 8.649275113689761
+Simulation arrived at time 8.687658505917756
+Simulation arrived at time 8.765501123726896
+Simulation arrived at time 8.77506905362182
+Simulation arrived at time 8.828740936147316
+Simulation arrived at time 8.834110448749918
+Simulation arrived at time 8.838193782283184
+Simulation arrived at time 8.880036715379665
+Simulation arrived at time 8.932170373374763
+Simulation arrived at time 8.971059606688344
+Simulation arrived at time 8.97709042643787
+Simulation arrived at time 8.983165692001227
+Simulation arrived at time 9.025749825764882
+Simulation arrived at time 9.064495099429047
+Simulation arrived at time 9.067270320941024
+Simulation arrived at time 9.079090791355188
+Simulation arrived at time 9.08100060452883
+Simulation arrived at time 9.138972326447348
+Simulation arrived at time 9.171841388882195
+Simulation arrived at time 9.17434248976203
+Simulation arrived at time 9.185824840782752
+Simulation arrived at time 9.196159468498657
+Simulation arrived at time 9.292968222982475
+Simulation arrived at time 9.306370733301106
+Simulation arrived at time 9.35296490521425
+Simulation arrived at time 9.354017625656905
+Simulation arrived at time 9.357252844108492
+Simulation arrived at time 9.361591345210297
+Simulation arrived at time 9.373771715718817
+Simulation arrived at time 9.374781623202137
+Simulation arrived at time 9.381820723611572
+Simulation arrived at time 9.394838721962085
+Simulation arrived at time 9.406766340064445
+Simulation arrived at time 9.416354106541855
+Simulation arrived at time 9.432513210864888
+Simulation arrived at time 9.44048172562422
+Simulation arrived at time 9.461397119430432
+Simulation arrived at time 9.461457661872664
+Simulation arrived at time 9.470476565380931
+Simulation arrived at time 9.476859343287105
+Simulation arrived at time 9.488562575805535
+Simulation arrived at time 9.49234424354428
+Simulation arrived at time 9.513801698714637
+Simulation arrived at time 9.550927698326202
+Simulation arrived at time 9.62413896474042
+Simulation arrived at time 9.646011102861369
+Simulation arrived at time 9.680821213756836
+Simulation arrived at time 9.71309257084836
+Simulation arrived at time 9.72385240931964
+Simulation arrived at time 9.745174392427158
+Simulation arrived at time 9.747974578713327
+Simulation arrived at time 9.77105889982806
+Simulation arrived at time 9.785024251600912
+Simulation arrived at time 9.796723297593951
+Simulation arrived at time 9.801271967145025
+Simulation arrived at time 9.847399910714945
+Simulation arrived at time 9.869634703309677
+Simulation arrived at time 9.873075210170152
+Simulation arrived at time 9.900415543184158
+Simulation arrived at time 9.974679103170693
+Simulation arrived at time 9.994481014218355
+Writing Newick output...
+Writing NEXUS output...
+Writing JSON output...
+Done.
+Done!

@@ -1,0 +1,76 @@
+
+                        BEAST v2.7.3, 2002-2022
+             Bayesian Evolutionary Analysis Sampling Trees
+                       Designed and developed by
+ Remco Bouckaert, Alexei J. Drummond, Andrew Rambaut & Marc A. Suchard
+                                    
+                   Centre for Computational Evolution
+                         University of Auckland
+                       r.bouckaert@auckland.ac.nz
+                        alexei@cs.auckland.ac.nz
+                                    
+                   Institute of Evolutionary Biology
+                        University of Edinburgh
+                           a.rambaut@ed.ac.uk
+                                    
+                    David Geffen School of Medicine
+                 University of California, Los Angeles
+                           msuchard@ucla.edu
+                                    
+                      Downloads, Help & Resources:
+                           http://beast2.org/
+                                    
+  Source code distributed under the GNU Lesser General Public License:
+                   http://github.com/CompEvol/beast2
+                                    
+                           BEAST developers:
+   Alex Alekseyenko, Trevor Bedford, Erik Bloomquist, Joseph Heled, 
+ Sebastian Hoehna, Denise Kuehnert, Philippe Lemey, Wai Lok Sibon Li, 
+Gerton Lunter, Sidney Markowitz, Vladimir Minin, Michael Defoin Platel, 
+          Oliver Pybus, Tim Vaughan, Chieh-Hsi Wu, Walter Xie
+                                    
+                               Thanks to:
+          Roald Forsberg, Beth Shapiro and Korbinian Strimmer
+
+Random number seed: 1678999072697
+
+File: sim.16.xml seed: 1678999072697 threads: 1
+Loading package BEAST.base v2.7.3 MASTER v7.0.0 BEAST.app v2.7.3    
+Assembling model...
+Setting up populations... done.
+Setting up reactions... Extinction... Extinction... Extinction... Extirpation... Extirpation... Extirpation... Extirpation... Extirpation... Extirpation... Extirpation... Extirpation... Extirpation... WithinRegionSpeciation... WithinRegionSpeciation... WithinRegionSpeciation... WithinRegionSpeciation... WithinRegionSpeciation... WithinRegionSpeciation... WithinRegionSpeciation... WithinRegionSpeciation... WithinRegionSpeciation... WithinRegionSpeciation... WithinRegionSpeciation... WithinRegionSpeciation... Dispersal... Dispersal... Dispersal... Dispersal... Dispersal... Dispersal... Dispersal... Dispersal... Dispersal... BetweenRegionSpeciation... BetweenRegionSpeciation... BetweenRegionSpeciation... BetweenRegionSpeciation... BetweenRegionSpeciation... BetweenRegionSpeciation... done.
+Model assembled.
+Generating inheritance trajectory 1 of 1
+Simulation arrived at time 0.0
+Simulation arrived at time 0.2452638728515182
+Simulation arrived at time 0.9101868277340995
+Simulation arrived at time 1.2317609370994
+Simulation arrived at time 3.2152184668944095
+Simulation arrived at time 3.264753287045747
+Simulation arrived at time 3.3677559706973925
+Simulation arrived at time 3.8339405589478193
+Simulation arrived at time 3.9848237372317277
+Simulation arrived at time 4.831930606131993
+Simulation arrived at time 4.953782520277221
+Simulation arrived at time 5.947661712253264
+Simulation arrived at time 6.075145919716775
+Simulation arrived at time 6.40411638614972
+Simulation arrived at time 7.08700447302507
+Simulation arrived at time 7.416872189884071
+Simulation arrived at time 7.815689038901112
+Simulation arrived at time 7.988952575107862
+Simulation arrived at time 8.224076643519531
+Simulation arrived at time 8.814106757846924
+Simulation arrived at time 9.0248301698406
+Simulation arrived at time 9.107954322679982
+Simulation arrived at time 9.17859165027018
+Simulation arrived at time 9.230961096968905
+Simulation arrived at time 9.292799648201639
+Simulation arrived at time 9.396887293342132
+Simulation arrived at time 9.763587923538722
+Simulation arrived at time 9.945876307453725
+Writing Newick output...
+Writing NEXUS output...
+Writing JSON output...
+Done.
+Done!
