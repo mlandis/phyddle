@@ -25,6 +25,8 @@ settings['batch_size'] = 16
 settings['prefix'] = 'sim'
 settings['model_name'] = 'geosse_share_v1'
 
+settings = init_cnn_settings(settings)
+
 train_model = settings['model_name']
 train_prefix = settings['prefix']
 num_test = settings['num_test']
@@ -44,6 +46,8 @@ train_labels_fn = train_dir + '/' + train_prefix + '.labels.csv'
 
 # load data
 full_data,full_labels = cn.load_input(train_data_fn, train_labels_fn)
+
+full_labels = full_labels[:, [0, 3, 6, 18]]
 param_names = full_labels[0,:]
 full_labels = full_labels[1:,:].astype('float64')
 
