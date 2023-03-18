@@ -15,6 +15,7 @@ from itertools import chain, combinations
 import multiprocessing as mp
 from joblib import Parallel, delayed
 import time
+from tqdm import tqdm
 
 # start time
 start = time.time()
@@ -132,7 +133,7 @@ def sim_one(k):
             cblv,new_order = vectorize_tree(tre_fn, max_taxa=max_taxa, prob=1.0 )
         except Exception as inst:
             # NEED TO FIX apparent issue with vectorize tree
-            print(inst)
+            #print(inst)
             return 'negative dim?'
 
         cblvs = make_cblvs_geosse(cblv, taxon_states, new_order)
@@ -157,7 +158,9 @@ def sim_one(k):
 # dispatch jobs
 #use_parallel = False
 if use_parallel:
-    res = Parallel(n_jobs=num_jobs)(delayed(sim_one)(k) for k in rep_idx)
+    #global_n_jobs = len(rep_idx)
+    #joblib.parallel.BatchCompletionCallBack = BatchCompletionCallBack
+    res = Parallel(n_jobs=num_jobs)(delayed(sim_one)(k) for k in tqdm(rep_idx))
     
     #print('\n'.join(res))
 else:
