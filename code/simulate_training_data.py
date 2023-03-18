@@ -46,9 +46,10 @@ os.system('mkdir -p ' + out_dir)
 num_rep        = len(rep_idx)
 num_jobs       = -2
 max_taxa       = 999
-num_regions    = 3
-num_states     = 2**num_regions - 1
-regions        = list(range(num_regions))
+cblv_width     = 501
+num_chars      = 3
+num_states     = 2**num_chars - 1
+regions        = list(range(num_chars))
 states         = list(powerset(regions))[1:]
 states_str     = [ ''.join(list([string.ascii_uppercase[i] for i in s])) for s in states ]
 states_str_inv = {}
@@ -82,6 +83,7 @@ events = make_events(regions, states, states_inv)
 
 # main simulation function (looped)
 def sim_one(k):
+
     # update info for replicate
     settings['out_path'] = out_path+"."+str(k)
     geo_fn    = settings['out_path'] + '.geosse.nex'
@@ -105,12 +107,19 @@ def sim_one(k):
     beast_out = subprocess.check_output(beast_str, shell=True, text=True, stderr=subprocess.STDOUT)
     write_to_file(beast_out, beast_fn)
 
+    # record simulating parameters
+    param1_str,param2_str = param_dict_to_str(rates)
+    write_to_file(param1_str, param1_fn)
+    write_to_file(param2_str, param2_fn)
+
     # verify tree size & existence!
     result_str = ''
     n_taxa_k = get_num_taxa(tre_fn, k, max_taxa)
-    if n_taxa_k <= 0 or n_taxa_k >= max_taxa:
+    if n_taxa_k <= 0:
+        cblvs = np.zeros( shape=(1,(2+num_chars)*cblv_width) )
         result_str = '- replicate {k} simulated n_taxa={nt}'.format(k=k,nt=n_taxa_k)
-
+    elif n_taxa_k >= max_taxa:
+        result_str = '- replicate {k} simulated n_taxa={nt}'.format(k=k,nt=n_taxa_k)
     else:
         # generate nexus file 0/1 ranges
         taxon_states = convert_geo_nex(nex_fn, tre_fn, geo_fn, states_bits)
@@ -122,16 +131,10 @@ def sim_one(k):
         cblvs_str = np.array2string(cblvs, separator=',', max_line_width=1e200, threshold=1e200, edgeitems=1e200)
         cblvs_str = cblvs_str.replace(' ','').replace('.,',',').strip('[].') + '\n'
         write_to_file(cblvs_str, cblvs_fn)
-
-        # record simulating parameters
-        param1_str,param2_str = param_dict_to_str(rates)
-        write_to_file(param1_str, param1_fn)
-        write_to_file(param2_str, param2_fn)
-
         result_str = '+ replicate {k} simulated n_taxa={nt}'.format(k=k,nt=n_taxa_k)
 
     return result_str
-    
+
 
 # dispatch jobs
 #use_parallel = False
