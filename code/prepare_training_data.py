@@ -1,26 +1,44 @@
 #!/usr/local/bin/python3
 
+import glob
 import os
+import argparse
+import shutil
+from phyddle_util import init_process_settings
 
-model_dir = '../model/geosse_v2/'
-sim_dir = model_dir + 'data/raw'
-train_dir = model_dir + 'data/train'
+
+settings = {}
+settings['model_name'] = 'geosse_share_v1'
+settings = init_process_settings(settings)
+
+model_dir = '../model/' + settings['model_name']
+raw_dir = model_dir + '/data/raw'
+train_dir = model_dir + '/data/train'
 prefix = 'sim'
+out_data_fn = train_dir + '/' + prefix + '.data.csv'
+out_labels_fn = train_dir + '/' + prefix + '.labels.csv'
 
-os.system('mkdir -p ' + train_dir)
+# make dir
+if not os.path.exists(train_dir):
+    os.makedirs(train_dir)
 
-# CBLVS input tensor
-os.system('cat {sim_dir}/*.cblvs.* > {train_dir}/{prefix}.data.csv'.format( sim_dir=sim_dir, train_dir=train_dir, prefix=prefix ))
+# raw files
+data_files = glob.glob(raw_dir + '/*.cblvs.csv')
+label_files = glob.glob(raw_dir + '/*.param2.csv')
 
-# param training labels
-if False:
-    label_cmd = 'tail -n1 {sim_dir}/*.param2.csv | grep , > {train_dir}/{prefix}.labels.csv'.format(sim_dir=sim_dir, train_dir=train_dir, prefix=prefix)
-else: 
-    label_cmd = ' \
-tail -n1 {sim_dir}/*.param2.csv | grep , > {train_dir}/{prefix}.label_values.csv; \
-cat {sim_dir}/*.param2.csv | head -n1 > {train_dir}/{prefix}.label_headers.csv; \
-cat {train_dir}/{prefix}.label_*.csv > {train_dir}/{prefix}.labels.csv; \
-rm {train_dir}/{prefix}.label_*.csv; \
-'.format(sim_dir=sim_dir, train_dir=train_dir, prefix=prefix)
-os.system(label_cmd)
+# data input tensor
+with open(out_data_fn, 'w') as outfile:
+    for fname in data_files:
+        with open(fname, 'r') as infile:
+            outfile.write(infile.read())
+
+# labels input tensor
+with open(out_labels_fn, 'w') as outfile:
+    for i,fname in enumerate(label_files):
+        with open(fname, 'r') as infile:
+            if i == 0:
+                outfile.write(infile.read())
+            else:
+                s = ''.join(infile.readlines()[1:])
+                outfile.write(s)
 
