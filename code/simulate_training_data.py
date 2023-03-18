@@ -45,7 +45,7 @@ print(settings)
 out_dir    = '../model/{model_name}/data/raw'.format(model_name=model_name)
 out_prefix = 'sim'
 out_path   = out_dir + '/' + out_prefix
-os.system('mkdir -p ' + out_dir)
+os.makedirs(out_dir, exist_ok=True)
 
 # init settings
 num_rep        = len(rep_idx)
@@ -124,6 +124,7 @@ def sim_one(k):
     if n_taxa_k <= 0:
         cblvs = np.zeros( shape=(1,(2+num_chars)*cblv_width) )
         result_str = '- replicate {k} simulated n_taxa={nt}'.format(k=k,nt=n_taxa_k)
+        return result_str
     else:
         # generate nexus file 0/1 ranges
         taxon_states = convert_geo_nex(nex_fn, tre_fn, geo_fn, states_bits)

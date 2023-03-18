@@ -8,20 +8,19 @@ from phyddle_util import init_process_settings
 
 
 settings = {}
-settings['model_name'] = 'geosse_share_v1'
+settings['model_name'] = 'geosse_share_v2'
 settings['prefix'] = 'sim'
 settings = init_process_settings(settings)
 
 prefix        = settings['prefix']
 model_dir     = '../model/' + settings['model_name']
 raw_dir       = model_dir + '/data/raw'
-train_dir     = model_dir + '/data/train'
+train_dir     = model_dir + '/data/formatted'
 out_data_fn   = train_dir + '/' + prefix + '.data.csv'
 out_labels_fn = train_dir + '/' + prefix + '.labels.csv'
 
 # make dir
-if not os.path.exists(train_dir):
-    os.makedirs(train_dir)
+os.makedirs(train_dir, exist_ok=True)
 
 # raw files
 data_files = glob.glob(raw_dir + '/*.cblvs.csv')

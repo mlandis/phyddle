@@ -10,7 +10,6 @@ import tensorflow as tf
 import cnn_utilities as cn
 import sklearn
 import matplotlib as plt
-import seaborn as sb
 
 from phyddle_util import *
 from scipy.stats import kde
@@ -19,11 +18,11 @@ from keras import *
 # analysis settings
 settings = {}
 settings['num_test'] = 50
-settings['num_validation'] = 100
+settings['num_validation'] = 500
 settings['num_epoch'] = 20
-settings['batch_size'] = 16
+settings['batch_size'] = 32
 settings['prefix'] = 'sim'
-settings['model_name'] = 'geosse_share_v1'
+settings['model_name'] = 'geosse_share_v2'
 
 settings = init_cnn_settings(settings)
 
@@ -36,11 +35,15 @@ batch_size = settings['batch_size']
 
 # IO
 model_dir = '../model/' + train_model
-train_dir = model_dir + '/data/train'
+train_dir = model_dir + '/data/formatted'
+plot_dir = model_dir + '/plot'
+network_dir = model_dir + '/network'
+os.makedirs(plot_dir, exist_ok=True)
+os.makedirs(network_dir, exist_ok=True)
 
 model_prefix = train_prefix + '_batchsize' + str(batch_size) + '_numepoch' + str(num_epochs)
-model_csv_fn = model_dir + '/' + model_prefix + '.csv' 
-model_sav_fn = model_dir + '/' + model_prefix + '.hdf5'
+model_csv_fn = network_dir + '/' + model_prefix + '.csv' 
+model_sav_fn = network_dir + '/' + model_prefix + '.hdf5'
 train_data_fn = train_dir + '/' + train_prefix + '.data.csv'
 train_labels_fn = train_dir + '/' + train_prefix + '.labels.csv'
 
@@ -112,13 +115,11 @@ input_treeLocation_tensor = Input(shape = train_treeLocation_tensor.shape[1:3])
 
 # double-check this stuff
 # 64 patterns you expect to see, width of 3, stride (skip-size) of 1, padding zeroes so all windows are 'same'
-w_input = layers.Conv1D(64, 3, strides = 1, activation = 'relu', padding = 'same')(input_treeLocation_tensor)
-
 # convolutional layers
-w_conv = layers.Conv1D(64, 5, activation = 'relu', padding = 'same')(w_input)
-#w = layers.MaxPooling1D(pool_size = 3, stride = 1)(w)
+w_conv = layers.Conv1D(64, 3, strides = 1, activation = 'relu', padding = 'same')(input_treeLocation_tensor)
+#w_conv = layers.Conv1D(64, 5, activation = 'relu', padding = 'same')(w_conv)
 w_conv = layers.Conv1D(96, 5, activation = 'relu', padding = 'same')(w_conv)
-w_conv = layers.Conv1D(128, 5, activation = 'relu', padding = 'same')(w_conv)
+#w_conv = layers.Conv1D(128, 5, activation = 'relu', padding = 'same')(w_conv)
 w_conv = layers.Conv1D(256, 7, activation = 'relu', padding = 'same')(w_conv)
 w_conv_global_avg = layers.GlobalAveragePooling1D(name = 'w_conv_global_avg')(w_conv)
 
@@ -129,7 +130,7 @@ w_stride_global_avg = layers.GlobalAveragePooling1D(name = 'w_stride_global_avg'
 
 # tree + geolocation dilated
 w_dilated = layers.Conv1D(32, 3, dilation_rate = 2, activation = 'relu', padding = "same")(input_treeLocation_tensor)
-w_dilated = layers.Conv1D(64, 5, dilation_rate = 4, activation = 'relu', padding = "same")(w_dilated)
+#w_dilated = layers.Conv1D(64, 5, dilation_rate = 4, activation = 'relu', padding = "same")(w_dilated)
 w_dilated = layers.Conv1D(128, 7, dilation_rate = 8, activation = 'relu', padding = "same")(w_dilated)
 w_dilated_global_avg = layers.GlobalAveragePooling1D(name = 'w_dilated_global_avg')(w_dilated)
 
@@ -146,7 +147,7 @@ concatenated_wxyz = layers.Concatenate(axis = 1, name = 'all_concatenated')([w_s
 
 # VarianceScaling for kernel initializer (look up?? )
 wxyz = layers.Dense(256, activation = 'relu', kernel_initializer = 'VarianceScaling')(concatenated_wxyz)
-wxyz = layers.Dense(128, activation = 'relu', kernel_initializer = 'VarianceScaling')(wxyz)
+#wxyz = layers.Dense(128, activation = 'relu', kernel_initializer = 'VarianceScaling')(wxyz)
 wxyz = layers.Dense(64, activation = 'relu', kernel_initializer = 'VarianceScaling')(wxyz)
 wxyz = layers.Dense(32, activation = 'relu', kernel_initializer = 'VarianceScaling')(wxyz)
 
@@ -169,10 +170,10 @@ history = mymodel.fit([train_treeLocation_tensor], #, train_prior_tensor],
 
 
 # make history plots
-cn.make_history_plot(history)
+cn.make_history_plot(history, plot_dir=plot_dir)
 
+# evaluate ???
 mymodel.evaluate([test_treeLocation_tensor], norm_test_labels)
-
 
 # scatter plot training prediction to truth
 normalized_train_preds = mymodel.predict([train_treeLocation_tensor[0:1000,:,:]]) #, 
@@ -185,8 +186,7 @@ train_preds = cn.denormalize(normalized_train_preds, train_label_means, train_la
 train_preds = np.exp(train_preds)
 
 # make scatter plots
-cn.plot_preds_labels(train_preds, denormalized_train_labels, 
-                     param_names = param_names)
+cn.plot_preds_labels(train_preds, denormalized_train_labels, param_names = param_names, prefix='train', plot_dir=plot_dir)
 
 # scatter plot test prediction to truth
 normalized_test_preds = mymodel.predict([test_treeLocation_tensor]) #, test_prior_tensor])
@@ -198,7 +198,7 @@ test_preds = cn.denormalize(normalized_test_preds, train_label_means, train_labe
 test_preds = np.exp(test_preds)
 
 # summarize results
-cn.plot_preds_labels(test_preds[0:1000,:], denormalized_test_labels[0:1000,:], param_names = param_names)
+cn.plot_preds_labels(test_preds[0:1000,:], denormalized_test_labels[0:1000,:], param_names=param_names, prefix='test', plot_dir=plot_dir)
 
 # SAVE MODEL to FILE
 all_means = train_label_means #np.append(train_label_means, train_aux_priors_means)

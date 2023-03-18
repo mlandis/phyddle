@@ -12,12 +12,18 @@ import numpy as np
 import pandas as pd
 import scipy.stats as sp
 from sklearn import metrics
+import seaborn as sbs
 
 
+# file handling
+def load_input( data_fn, label_fn ):
+    data = pd.read_csv(data_fn, header=None, on_bad_lines='skip').to_numpy()
+    labels = pd.read_csv(label_fn, header=None, on_bad_lines='skip').to_numpy()
+    return data,labels
 
 # loss functions
 def myLoss(y_true, y_pred):
-    power = 3
+    power = 2 # 3
     power_loss = tf.math.abs(y_true - y_pred)**power
     return tf.reduce_mean(power_loss, axis=-1)
 
@@ -146,6 +152,34 @@ def create_train_val_test_tensors(full_tensor, num_validation, num_test):
 # PLotting functions ##
 #######################
 
+def make_history_plot(history, plot_dir):
+    epochs      = range(1, len(history.history['loss']) + 1)
+    train_keys  = [ x for x in history.history.keys() if 'val' not in x ]
+    val_keys = [ 'val_'+x for x in train_keys ]
+    for i,v in enumerate(train_keys): #range(0,num_metrics):
+        plt.plot(epochs, history.history[train_keys[i]], 'bo', label = train_keys[i])
+        plt.plot(epochs, history.history[val_keys[i]], 'b', label = val_keys[i])
+        plt.title('Train and val ' + train_keys[i])
+        plt.xlabel('Epochs')
+        plt.ylabel(train_keys[i])
+        plt.legend()
+        save_fn = plot_dir + '/train_' + train_keys[i] + '.pdf'
+        plt.savefig(save_fn, format='pdf')
+        plt.clf()
+
+
+def plot_preds_labels(preds, labels, param_names, plot_dir, prefix, axis_labels = ["prediction", "truth"]):
+    for i in range(0, len(param_names)):
+        plt.scatter(preds[:,i], labels[:,i], alpha =0.25)
+        plt.xlabel(param_names[i] + " " +  axis_labels[0])
+        plt.ylabel(param_names[i] + " " +  axis_labels[1])
+        plt.axline((np.min(labels[:,i]),np.min(labels[:,i])), slope = 1, color = 'red', alpha=0.75)
+        save_fn = plot_dir + '/' + prefix + '_' + param_names[i] + '.pdf'
+        plt.savefig(save_fn, format='pdf')
+        plt.clf()
+        #plt.show()
+
+
 def plot_root_pred_examples(labels, preds, phylo_post, tip_loc_distro, num_plots = 10, num_locs = 5):
     cats = np.arange(num_locs)
     barwidth = 0.2
@@ -159,7 +193,7 @@ def plot_root_pred_examples(labels, preds, phylo_post, tip_loc_distro, num_plots
         plt.bar(cats + 3 * barwidth, tip_loc_distro[i,:], barwidth, label = 'tip frequency')
         plt.show()
     plt.close()
-    
+
 
 def root_summary_plots(cnn_root_accuracy, phylo_root_accuracy, accuracy_tipfreq):
 
@@ -184,15 +218,7 @@ def root_summary_plots(cnn_root_accuracy, phylo_root_accuracy, accuracy_tipfreq)
     plt.axline((np.min(cnn_root_accuracy),np.min(phylo_root_accuracy)), slope = 1, color = 'red', alpha=0.75)
     plt.show()
 
-    
-def plot_preds_labels(preds, labels, param_names = ["R0", "sample rate", "migration rate"], axis_labels = ["prediction", "truth"]):
-    for i in range(0, len(param_names)):
-        plt.scatter(preds[:,i], labels[:,i], alpha =0.25)
-        plt.xlabel(param_names[i] + " " +  axis_labels[0])
-        plt.ylabel(param_names[i] + " " +  axis_labels[1])
-        plt.axline((np.min(labels[:,i]),np.min(labels[:,i])), slope = 1, color = 'red', alpha=0.75)
-        plt.show()
-        
+
 def plot_overlaid_scatter(sample_1, sample_2, reference_sample, 
                           sample_names = ['CNN', 'phylo'],
                           param_names = ["R0", "sample rate", "migration rate"], 
@@ -209,22 +235,6 @@ def plot_overlaid_scatter(sample_1, sample_2, reference_sample,
         plt.show()
         
 
-def make_history_plot(history):
-    epochs =range(1, len(history.history['loss']) + 1)
-    num_metrics = int(len(history.history.keys()) / 2)
-    key_length = len(history.history.keys())
-    val_keys = list(history.history.keys())[0:num_metrics]
-    train_keys = list(history.history.keys())[num_metrics:key_length]
-    for i in range(0,num_metrics):
-        plt.plot(epochs, history.history[train_keys[i]], 'bo', label = i)
-        plt.plot(epochs, history.history[val_keys[i]], 'b', label = 'Validation mae')
-        plt.title('Training and val ' + train_keys[i])
-        plt.xlabel('Epochs')
-        plt.ylabel(train_keys[i])
-        plt.legend()
-        plt.show()     
-    
-
 def plot_convlayer_weights(model, layer_num):
     layer_num = layer_num
     print(model.layers[layer_num].get_config())
@@ -239,8 +249,6 @@ def plot_convlayer_weights(model, layer_num):
             plt.plot(layer_weights[:,k,filter_num], color=np.random.rand(3,))
             plt.vlines(0,-0.5,0.5, color = "white")
         plt.show()
-    
-    
     
     
 def plot_denselayer_weights(model, layer_num):
@@ -262,7 +270,6 @@ def plot_denselayer_weights(model, layer_num):
         plt.show()
 
 
-
 def qq_plot(sample_1, sample_2, num_quantiles=100, axlabels=['sample 1', 'sample 2']):
     plt.scatter(np.quantile(sample_1, np.arange(0,1,1/num_quantiles)), 
            np.quantile(sample_2, np.arange(0,1,1/num_quantiles)))
@@ -271,7 +278,6 @@ def qq_plot(sample_1, sample_2, num_quantiles=100, axlabels=['sample 1', 'sample
     plt.ylabel(axlabels[1])
     plt.show()
 
-    
 
 def make_experiment_density_plots(ref_pred_ape, ref_phylo_ape, 
                          misspec_pred_ape,  misspec_phylo_ape, 
@@ -334,7 +340,4 @@ def make_experiment_density_plots(ref_pred_ape, ref_phylo_ape,
         # print summary stats
 
 
-def load_input( data_fn, label_fn ):
-    data = pd.read_csv(data_fn, header=None, on_bad_lines='skip').to_numpy()
-    labels = pd.read_csv(label_fn, header=None, on_bad_lines='skip').to_numpy()
-    return data,labels
+
