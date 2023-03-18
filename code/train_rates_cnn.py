@@ -12,18 +12,27 @@ import sklearn
 import matplotlib as plt
 import seaborn as sb
 
+from phyddle_util import *
 from scipy.stats import kde
 from keras import *
 
 # analysis settings
-num_test = 5 #1000
-num_validation = 10 #5000
-num_epochs = 20
-batch_size = 16
+settings = {}
+settings['num_test'] = 50
+settings['num_validation'] = 100
+settings['num_epoch'] = 20
+settings['batch_size'] = 16
+settings['prefix'] = 'sim'
+settings['model_name'] = 'geosse_share_v1'
+
+train_model = settings['model_name']
+train_prefix = settings['prefix']
+num_test = settings['num_test']
+num_validation = settings['num_validation']
+num_epochs = settings['num_epoch']
+batch_size = settings['batch_size']
 
 # IO
-train_prefix = 'sim'
-train_model = 'geosse_v2'
 model_dir = '../model/' + train_model
 train_dir = model_dir + '/data/train'
 
@@ -37,8 +46,6 @@ train_labels_fn = train_dir + '/' + train_prefix + '.labels.csv'
 full_data,full_labels = cn.load_input(train_data_fn, train_labels_fn)
 param_names = full_labels[0,:]
 full_labels = full_labels[1:,:].astype('float64')
-
-
 
 # data dimensions
 max_tips = 501 # get width of input tensor

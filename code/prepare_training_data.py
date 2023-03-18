@@ -9,13 +9,14 @@ from phyddle_util import init_process_settings
 
 settings = {}
 settings['model_name'] = 'geosse_share_v1'
+settings['prefix'] = 'sim'
 settings = init_process_settings(settings)
 
-model_dir = '../model/' + settings['model_name']
-raw_dir = model_dir + '/data/raw'
-train_dir = model_dir + '/data/train'
-prefix = 'sim'
-out_data_fn = train_dir + '/' + prefix + '.data.csv'
+prefix        = settings['prefix']
+model_dir     = '../model/' + settings['model_name']
+raw_dir       = model_dir + '/data/raw'
+train_dir     = model_dir + '/data/train'
+out_data_fn   = train_dir + '/' + prefix + '.data.csv'
 out_labels_fn = train_dir + '/' + prefix + '.labels.csv'
 
 # make dir

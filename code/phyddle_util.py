@@ -712,3 +712,34 @@ def init_settings(settings):
         settings['use_parallel'] = args.use_parallel
 
     return settings
+
+def init_process_settings(settings):
+    parser = argparse.ArgumentParser('data process settings')
+    parser.add_argument('--name', dest='model_name', type=str, help='Model name')
+    args = parser.parse_args()
+    if args.model_name != None:
+        settings['model_name'] = args.model_name
+    return settings
+
+def init_cnn_settings(settings):
+    parser = argparse.ArgumentParser('CNN settings')
+    parser.add_argument('--name', dest='model_name', type=str, help='Model name')
+    parser.add_argument('--prefix', dest='prefix', type=str, help='Simulation prefix')
+    parser.add_argument('--num_epoch', dest='num_epoch', type=int, help='Number of epochs')
+    parser.add_argument('--batch_size', dest='batch_size', type=int, help='Batch size')
+    parser.add_argument('--num_validation', dest='num_validation', type=int, help='Number of validation records')
+    parser.add_argument('--num_test', dest='num_test', type=int, help='Number of test records')
+    args = parser.parse_args()
+    if args.model_name != None:
+        settings['model_name'] = args.model_name
+    if args.prefix != None:
+        settings['prefix'] = args.prefix
+    if args.num_epoch != None:
+        settings['num_epoch'] = args.num_epoch
+    if args.batch_size != None:
+        settings['batch_size'] = args.batch_size
+    if args.num_validation != None:
+        settings['num_validation'] = args.num_validation
+    if args.num_test != None:
+        settings['num_test'] = args.num_test
+    return settings

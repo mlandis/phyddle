@@ -112,18 +112,15 @@ def sim_one(k):
     beast_out = subprocess.check_output(beast_str, shell=True, text=True, stderr=subprocess.STDOUT)
     write_to_file(beast_out, beast_fn)
 
-    # record simulating parameters
-    param1_str,param2_str = param_dict_to_str(rates)
-    write_to_file(param1_str, param1_fn)
-    write_to_file(param2_str, param2_fn)
-
     # verify tree size & existence!
     result_str = ''
     n_taxa_k = get_num_taxa(tre_fn, k, max_taxa)
+    if n_taxa_k >= max_taxa:
+        result_str = '- replicate {k} simulated n_taxa={nt}'.format(k=k,nt=n_taxa_k)
+        return result_str
+
     if n_taxa_k <= 0:
         cblvs = np.zeros( shape=(1,(2+num_chars)*cblv_width) )
-        result_str = '- replicate {k} simulated n_taxa={nt}'.format(k=k,nt=n_taxa_k)
-    elif n_taxa_k >= max_taxa:
         result_str = '- replicate {k} simulated n_taxa={nt}'.format(k=k,nt=n_taxa_k)
     else:
         # generate nexus file 0/1 ranges
@@ -139,10 +136,20 @@ def sim_one(k):
             return 'negative dim?'
 
         cblvs = make_cblvs_geosse(cblv, taxon_states, new_order)
-        cblvs_str = np.array2string(cblvs, separator=',', max_line_width=1e200, threshold=1e200, edgeitems=1e200)
-        cblvs_str = cblvs_str.replace(' ','').replace('.,',',').strip('[].') + '\n'
-        write_to_file(cblvs_str, cblvs_fn)
+        #cblvs_str = np.array2string(cblvs, separator=',', max_line_width=1e200, threshold=1e200, edgeitems=1e200)
+        #cblvs_str = cblvs_str.replace(' ','').replace('.,',',').strip('[].') + '\n'
+        #write_to_file(cblvs_str, cblvs_fn)
         result_str = '+ replicate {k} simulated n_taxa={nt}'.format(k=k,nt=n_taxa_k)
+
+    # record labels (simulating parameters)
+    param1_str,param2_str = param_dict_to_str(rates)
+    write_to_file(param1_str, param1_fn)
+    write_to_file(param2_str, param2_fn)
+
+    # record data
+    cblvs_str = np.array2string(cblvs, separator=',', max_line_width=1e200, threshold=1e200, edgeitems=1e200)
+    cblvs_str = cblvs_str.replace(' ','').replace('.,',',').strip('[].') + '\n'
+    write_to_file(cblvs_str, cblvs_fn)
 
     return result_str
 
