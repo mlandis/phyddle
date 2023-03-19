@@ -18,11 +18,11 @@ from keras import *
 # analysis settings
 settings = {}
 settings['num_test'] = 50
-settings['num_validation'] = 500
-settings['num_epoch'] = 20
+settings['num_validation'] = 200
+settings['num_epoch'] = 40
 settings['batch_size'] = 32
 settings['prefix'] = 'sim'
-settings['model_name'] = 'geosse_share_v2'
+settings['model_name'] = 'geosse_share_v4'
 
 settings = init_cnn_settings(settings)
 
@@ -50,7 +50,8 @@ train_labels_fn = train_dir + '/' + train_prefix + '.labels.csv'
 # load data
 full_data,full_labels = cn.load_input(train_data_fn, train_labels_fn)
 
-full_labels = full_labels[:, [0, 3, 6, 18]]
+#full_labels = full_labels[:, [0, 3, 6, 18]]
+full_labels = full_labels[:, [3]]
 param_names = full_labels[0,:]
 full_labels = full_labels[1:,:].astype('float64')
 
@@ -96,19 +97,13 @@ norm_validation_labels = cn.normalize(labels[validation_idx,:], (train_label_mea
 norm_test_labels = cn.normalize(labels[test_idx,:], (train_label_means, train_label_sd))
 
 # potentially create new tensor that pulls info from both data and labels (Ammon advises put only in data)
-
 # create data tensors
-
-#full_treeLocation_tensor, full_prior_tensor = cn.create_data_tensors(data = full_data[0:num_sample,:], max_tips = max_tips, cblv_contains_mu_rho = False)
-#train_treeLocation_tensor, validation_treeLocation_tensor, test_treeLocation_tensor = cn.create_train_val_test_tensors(full_treeLocation_tensor, num_validation, num_test)
-#train_prior_tensor, validation_prior_tensor,  test_prior_tensor = cn.create_train_val_test_tensors(full_prior_tensor, num_validation, num_test)
 train_treeLocation_tensor = full_data[train_idx,:]
 validation_treeLocation_tensor = full_data[validation_idx,:]
 test_treeLocation_tensor = full_data[test_idx,:]
 
-# print(train_treeLocation_tensor.shape, train_prior_tensor.shape)
-# print(test_treeLocation_tensor.shape, test_prior_tensor.shape)
-# print(validation_treeLocation_tensor.shape, validation_prior_tensor.shape)
+# initializer
+initializer = tf.keras.initializers.GlorotUniform()
 
 # Build CNN
 input_treeLocation_tensor = Input(shape = train_treeLocation_tensor.shape[1:3])
@@ -116,11 +111,11 @@ input_treeLocation_tensor = Input(shape = train_treeLocation_tensor.shape[1:3])
 # double-check this stuff
 # 64 patterns you expect to see, width of 3, stride (skip-size) of 1, padding zeroes so all windows are 'same'
 # convolutional layers
-w_conv = layers.Conv1D(64, 3, strides = 1, activation = 'relu', padding = 'same')(input_treeLocation_tensor)
+w_conv = layers.Conv1D(64, 3, activation = 'relu', padding = 'same', kernel_initializer=initializer)(input_treeLocation_tensor)
 #w_conv = layers.Conv1D(64, 5, activation = 'relu', padding = 'same')(w_conv)
-w_conv = layers.Conv1D(96, 5, activation = 'relu', padding = 'same')(w_conv)
-#w_conv = layers.Conv1D(128, 5, activation = 'relu', padding = 'same')(w_conv)
-w_conv = layers.Conv1D(256, 7, activation = 'relu', padding = 'same')(w_conv)
+#w_conv = layers.Conv1D(96, 5, activation = 'relu', padding = 'same')(w_conv)
+w_conv = layers.Conv1D(128, 5, activation = 'relu', padding = 'same', kernel_initializer=initializer)(w_conv)
+#w_conv = layers.Conv1D(256, 7, activation = 'relu', padding = 'same')(w_conv)
 w_conv_global_avg = layers.GlobalAveragePooling1D(name = 'w_conv_global_avg')(w_conv)
 
 # stride layers
@@ -134,40 +129,43 @@ w_dilated = layers.Conv1D(32, 3, dilation_rate = 2, activation = 'relu', padding
 w_dilated = layers.Conv1D(128, 7, dilation_rate = 8, activation = 'relu', padding = "same")(w_dilated)
 w_dilated_global_avg = layers.GlobalAveragePooling1D(name = 'w_dilated_global_avg')(w_dilated)
 
-# # prior known parameters and data statistics
-# input_priors_tensor = Input(shape = train_prior_tensor.shape[1:3])
-# priors = layers.Flatten()(input_priors_tensor)
-# priors = layers.Dense(32, activation = 'relu', kernel_initializer = 'VarianceScaling', name = 'prior1')(priors)
-
 # concatenate all above -> deep fully connected network
-concatenated_wxyz = layers.Concatenate(axis = 1, name = 'all_concatenated')([w_stride_global_avg,
-                                                                             w_conv_global_avg,
-                                                                             w_dilated_global_avg])
+concatenated_wxyz = layers.Concatenate(axis = 1, name = 'all_concatenated')([w_conv_global_avg])#,
+                                                                            #w_stride_global_avg,
+                                                                            # w_dilated_global_avg])
                                                                              #priors])
 
 # VarianceScaling for kernel initializer (look up?? )
-wxyz = layers.Dense(256, activation = 'relu', kernel_initializer = 'VarianceScaling')(concatenated_wxyz)
+wxyz = layers.Dense(128, activation = 'relu', kernel_initializer = 'VarianceScaling')(concatenated_wxyz)
 #wxyz = layers.Dense(128, activation = 'relu', kernel_initializer = 'VarianceScaling')(wxyz)
-wxyz = layers.Dense(64, activation = 'relu', kernel_initializer = 'VarianceScaling')(wxyz)
+#wxyz = layers.Dense(64, activation = 'relu', kernel_initializer = 'VarianceScaling')(wxyz)
 wxyz = layers.Dense(32, activation = 'relu', kernel_initializer = 'VarianceScaling')(wxyz)
 
 output_params = layers.Dense(num_params, activation = 'linear', name = "params")(wxyz)
 
-my_loss = "mse"
+
+# model initializer
+# init = tf.initializers.GlorotUniform()
+# var = tf.Variable(init(shape=shape))
+# or a oneliner with a little confusing brackets
+# var = tf.Variable(tf.initializers.GlorotUniform()(shape=shape))
 
 # instantiate MODEL
 mymodel = Model(inputs = [input_treeLocation_tensor], #, input_priors_tensor], 
                 outputs = output_params)
 
+my_loss = "mse"
 mymodel.compile(optimizer = 'adam', 
                 loss = my_loss, 
                 metrics = ['mae', 'acc', 'mape'])
 
 history = mymodel.fit([train_treeLocation_tensor], #, train_prior_tensor], 
                       norm_train_labels,
-                      epochs = num_epochs, batch_size = batch_size, 
+                      epochs = num_epochs,
+                      batch_size = batch_size, 
                       validation_data = ([validation_treeLocation_tensor], norm_validation_labels))
-
+# validation_splitq
+# use_multiprocessing
 
 # make history plots
 cn.make_history_plot(history, plot_dir=plot_dir)
@@ -176,8 +174,7 @@ cn.make_history_plot(history, plot_dir=plot_dir)
 mymodel.evaluate([test_treeLocation_tensor], norm_test_labels)
 
 # scatter plot training prediction to truth
-normalized_train_preds = mymodel.predict([train_treeLocation_tensor[0:1000,:,:]]) #, 
-                                          #train_prior_tensor[0:1000,:,:]])
+normalized_train_preds = mymodel.predict([train_treeLocation_tensor[0:1000,:,:]])
 
 # reverse normalization
 denormalized_train_labels = cn.denormalize(norm_train_labels[0:1000,:], train_label_means, train_label_sd)

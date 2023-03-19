@@ -69,7 +69,8 @@ states_bits    = regions_to_binary(states, states_str, regions)
 model_type = 'iid_simple'
 num_feature_layers = 2
 def rv_rate(size):
-    return sp.stats.expon.rvs(size=size, loc=0., scale=0.1) 
+    return sp.stats.uniform.rvs(size=size, loc=0.1, scale=0.9) 
+    #return sp.stats.expon.rvs(size=size, loc=0., scale=0.1) 
 def rv_effect(size):
     return sp.stats.norm.rvs(size=size, loc=0., scale=1.) 
 def rv_feature(size):
@@ -103,7 +104,10 @@ def sim_one(k):
 
     # generate GeoSSE rates
     rates = make_rates(regions, states, events, settings)
-    rates['r_w'] = rates['r_w'] * 5
+    rates['r_w'] = rates['r_w'] * 0.5
+    rates['r_d'] = rates['r_d'] * 0.0 #0.1
+    rates['r_e'] = rates['r_e'] * 0.0# 1
+    rates['r_b'] = rates['r_b'] * 0.0 #10
 
     # generate MASTER XML string
     xml_str = make_xml(events, rates, states, states_str, settings)
