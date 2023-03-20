@@ -18,12 +18,13 @@ from keras import layers
 
 # analysis settings
 settings = {}
+settings['max_taxa'] = 500
 settings['num_test'] = 50
 settings['num_validation'] = 200
 settings['num_epoch'] = 40
 settings['batch_size'] = 32
 settings['prefix'] = 'sim'
-settings['model_name'] = 'geosse_share_v4'
+settings['model_name'] = 'geosse_v5'
 
 settings = init_cnn_settings(settings)
 
@@ -33,6 +34,7 @@ num_test     = settings['num_test']
 num_val      = settings['num_validation']
 num_epochs   = settings['num_epoch']
 batch_size   = settings['batch_size']
+max_taxa     = settings['max_taxa']
 
 # IO
 model_dir   = '../model/' + train_model
@@ -43,11 +45,11 @@ network_dir = model_dir + '/network'
 os.makedirs(plot_dir, exist_ok=True)
 os.makedirs(network_dir, exist_ok=True)
 
-model_prefix    = train_prefix + '_batchsize' + str(batch_size) + '_numepoch' + str(num_epochs)
+model_prefix    = train_prefix + '_batchsize' + str(batch_size) + '_numepoch' + str(num_epochs) + '_nt' + str(max_taxa)
 model_csv_fn    = network_dir + '/' + model_prefix + '.csv' 
 model_sav_fn    = network_dir + '/' + model_prefix + '.hdf5'
-train_data_fn   = train_dir + '/' + train_prefix + '.data.csv'
-train_labels_fn = train_dir + '/' + train_prefix + '.labels.csv'
+train_data_fn   = train_dir + '/' + train_prefix + '.nt' + str(max_taxa) + '.data.csv'
+train_labels_fn = train_dir + '/' + train_prefix + '.nt' + str(max_taxa) + '.labels.csv'
 
 # load data
 full_data,full_labels = cn.load_input(train_data_fn, train_labels_fn)
@@ -165,7 +167,7 @@ history = mymodel.fit([train_treeLocation_tensor], #, train_prior_tensor],
                       norm_train_labels,
                       epochs = num_epochs,
                       batch_size = batch_size, 
-                      val_data = ([val_treeLocation_tensor], norm_val_labels))
+                      validation_data = ([val_treeLocation_tensor], norm_val_labels))
 # validation_splitq
 # use_multiprocessing
 

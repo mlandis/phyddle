@@ -170,7 +170,7 @@ def encode_into_most_recent(tree_input, max_taxa=[500], summ_stat=[], target_ave
         #print('test')
         reshape_coordinates = reshape_coor(maxl)
 
-        print(reshape_coordinates.shape)
+        #print(reshape_coordinates.shape)
         result_v.loc[:, maxl] = 0
 
         # append summ stats to final columns
@@ -202,7 +202,7 @@ def encode_into_most_recent(tree_input, max_taxa=[500], summ_stat=[], target_ave
         if len(tree) <= mt:
             cblv_length = 2*(mt + num_summ_stat)
             break
-        
+
     if cblv_length == -1:
         raise Exception('tree too large')
 
@@ -649,8 +649,6 @@ def vectorize_tree(tre_fn, max_taxa=[500], summ_stat=[], prob=1.0):
         print( 'vv[3] ==>', vv[3], '\n' )
 
     cblv = np.asarray( vv[0] )
-    print(cblv.shape)
-    print('hmm!')
     cblv.shape = (2, -1)
     cblv_df = pd.DataFrame( cblv )
 
@@ -743,6 +741,7 @@ def init_cnn_settings(settings):
     parser.add_argument('--batch_size', dest='batch_size', type=int, help='Batch size')
     parser.add_argument('--num_validation', dest='num_validation', type=int, help='Number of validation records')
     parser.add_argument('--num_test', dest='num_test', type=int, help='Number of test records')
+    parser.add_argument('--max_taxa', dest='max_taxa', type=int, help='Number of taxon slots in CBLV record')
     args = parser.parse_args()
     if args.model_name != None:
         settings['model_name'] = args.model_name
@@ -756,6 +755,8 @@ def init_cnn_settings(settings):
         settings['num_validation'] = args.num_validation
     if args.num_test != None:
         settings['num_test'] = args.num_test
+    if args.max_taxa != None:
+        settings['max_taxa'] = args.max_taxa
     return settings
 
 class BatchCompletionCallBack(object):

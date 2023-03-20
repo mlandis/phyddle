@@ -150,9 +150,6 @@ def sim_one(k):
         except Exception as inst:
             # NEED TO FIX apparent issue with vectorize tree
             result_str = '+ replicate {k} simulated n_taxa={nt}'.format(k=k,nt=n_taxa_k)
-            print(result_str)
-            print(inst)
-            print(cblv.shape)
             return 'negative dim?'
 
         cblvs = make_cblvs_geosse(cblv, taxon_states, new_order)
@@ -162,7 +159,6 @@ def sim_one(k):
         mt_size = cblv.shape[1]
         #print(cblv.shape[1])
         tmp_fn = mt_out_dir[mt_size] + '/' + out_prefix + '.' + str(k)
-        print(tmp_fn)
         cblvs_fn = tmp_fn + '.cblvs.csv'
         param1_fn = tmp_fn + '.param1.csv'
         param2_fn = tmp_fn + '.param2.csv'
