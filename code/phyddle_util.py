@@ -81,7 +81,7 @@ def rescale_tree(tre, target_avg_length):
     
 
 
-def encode_into_most_recent(tree_input, sampling_proba, max_taxa=999, target_average_brlen=1.0):
+def encode_into_most_recent(tree_input, max_taxa=[500], summ_stat=[], target_average_brlen=1.0):
     """Rescales all trees from tree_file so that mean branch length is 1,
     then encodes them into full tree representation (most recent version)
 
@@ -150,37 +150,40 @@ def encode_into_most_recent(tree_input, sampling_proba, max_taxa=999, target_ave
         for _ in encode(anc):
             yield _
 
-    def complete_coding(encoding, max_length):
+    def complete_coding(encoding, cblv_length):
         #print(encoding, max_length, max_length - len(encoding) )
-        add_vect = np.repeat(0, max_length - len(encoding))
+        add_vect = np.repeat(0, cblv_length - len(encoding))
         add_vect = list(add_vect)
         encoding.extend(add_vect)
         return encoding
 
-    def refactor_to_final_shape(result_v, sampling_p, maxl):
+    def refactor_to_final_shape(result_v, maxl, summ_stat=[]):
         def reshape_coor(max_length):
-            tips_coor = np.arange(0, max_length, 2)
-            tips_coor = np.insert(tips_coor, -1, max_length + 1)
-
-            int_nodes_coor = np.arange(1, max_length - 1, 2)
-            int_nodes_coor = np.insert(int_nodes_coor, 0, max_length)
-            int_nodes_coor = np.insert(int_nodes_coor, -1, max_length + 2)
-
+            tips_coor = np.arange(0, max_length, 2)  # second row
+            #tips_coor = np.insert(tips_coor, -1, max_length + 1)
+            int_nodes_coor = np.arange(1, max_length - 1, 2) # first row
+            int_nodes_coor = np.insert(int_nodes_coor, 0, max_length) # prepend 0??
+            #int_nodes_coor = np.insert(int_nodes_coor, -1, max_length + 2)
             order_coor = np.append(int_nodes_coor, tips_coor)
-
             return order_coor
        
+        #print('test')
         reshape_coordinates = reshape_coor(maxl)
 
-        # add sampling probability:
-        if maxl == 999:
-            result_v.loc[:, 1000] = 0
-            result_v['1001'] = sampling_p
-            result_v['1002'] = sampling_p
-        else:
-            result_v.loc[:, 400] = 0
-            result_v['401'] = sampling_p
-            result_v['402'] = sampling_p
+        print(reshape_coordinates.shape)
+        result_v.loc[:, maxl] = 0
+
+        # append summ stats to final columns
+        
+        # # add sampling probability:
+        # if maxl == 999:
+        #     result_v.loc[:, 1000] = 0
+        #     result_v['1001'] = sampling_p
+        #     result_v['1002'] = sampling_p
+        # else:
+        #     result_v.loc[:, 400] = 0
+        #     result_v['401'] = sampling_p
+        #     result_v['402'] = sampling_p
 
         # reorder the columns        
         result_v = result_v.iloc[:,reshape_coordinates]
@@ -192,9 +195,16 @@ def encode_into_most_recent(tree_input, sampling_proba, max_taxa=999, target_ave
     
     #if len(tree) < 200:
     #    max_len = 399
-    #else:
-    #    max_len = 999
-    max_len = max_taxa
+    num_summ_stat = len(summ_stat)
+
+    cblv_length = -1
+    for mt in max_taxa:
+        if len(tree) <= mt:
+            cblv_length = 2*(mt + num_summ_stat)
+            break
+        
+    if cblv_length == -1:
+        raise Exception('tree too large')
 
     # remove the edge above root if there is one
     if len(tree.children) < 2:
@@ -217,13 +227,14 @@ def encode_into_most_recent(tree_input, sampling_proba, max_taxa=999, target_ave
 
     tree_embedding = list(encode(tree))
     
-    tree_embedding = complete_coding(tree_embedding, max_len)
+    tree_embedding = complete_coding(tree_embedding, cblv_length)
+    #print(len(tree_embedding))
    
     result = pd.DataFrame(tree_embedding, columns=[0])
 
     result = result.T
  
-    result = refactor_to_final_shape(result, sampling_proba, max_len)
+    result = refactor_to_final_shape(result, cblv_length)
 
     return result, rescale_factor, new_leaf_order_names, newLeafKeys_inputNameValues
 
@@ -616,7 +627,7 @@ END;
     return d
 
 
-def vectorize_tree(tre_fn, max_taxa=999, prob=1.0):
+def vectorize_tree(tre_fn, max_taxa=[500], summ_stat=[], prob=1.0):
 
     # get tree and tip labels
     tree = read_tree_file(tre_fn)    
@@ -625,7 +636,7 @@ def vectorize_tree(tre_fn, max_taxa=999, prob=1.0):
         ordered_tip_names.append(i.name)
 
     # returns result, rescale_factor, new_leaf_order_names, newLeafKeys_inputNameValues
-    vv = encode_into_most_recent(tree, sampling_proba = prob, max_taxa=max_taxa)
+    vv = encode_into_most_recent(tree, max_taxa=max_taxa, summ_stat=summ_stat, target_average_brlen=1.0)
     otn = np.asarray(ordered_tip_names) # ordered list of the input tip labels
     vv2 = np.asarray(vv[2]) # ordered list of the new tip labels
     new_order = [vv[3][i] for i in vv2]
@@ -638,6 +649,8 @@ def vectorize_tree(tre_fn, max_taxa=999, prob=1.0):
         print( 'vv[3] ==>', vv[3], '\n' )
 
     cblv = np.asarray( vv[0] )
+    print(cblv.shape)
+    print('hmm!')
     cblv.shape = (2, -1)
     cblv_df = pd.DataFrame( cblv )
 
@@ -677,7 +690,7 @@ def get_num_taxa(tre_fn, k, max_taxa):
     try:
         tree = read_tree_file(tre_fn)
         n_taxa_k = len(tree.get_leaves())
-        if n_taxa_k > max_taxa:
+        if n_taxa_k > np.max(max_taxa):
             #warning_str = '- replicate {k} simulated n_taxa={nt} (max_taxa={mt})'.format(k=k,nt=n_taxa_k,mt=max_taxa)
             #print(warning_str)
             return max_taxa

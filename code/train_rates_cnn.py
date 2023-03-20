@@ -14,6 +14,7 @@ import matplotlib as plt
 from phyddle_util import *
 from scipy.stats import kde
 from keras import *
+from keras import layers
 
 # analysis settings
 settings = {}
@@ -26,25 +27,26 @@ settings['model_name'] = 'geosse_share_v4'
 
 settings = init_cnn_settings(settings)
 
-train_model = settings['model_name']
+train_model  = settings['model_name']
 train_prefix = settings['prefix']
-num_test = settings['num_test']
-num_validation = settings['num_validation']
-num_epochs = settings['num_epoch']
-batch_size = settings['batch_size']
+num_test     = settings['num_test']
+num_val      = settings['num_validation']
+num_epochs   = settings['num_epoch']
+batch_size   = settings['batch_size']
 
 # IO
-model_dir = '../model/' + train_model
-train_dir = model_dir + '/data/formatted'
-plot_dir = model_dir + '/plot'
+model_dir   = '../model/' + train_model
+train_dir   = model_dir + '/data/formatted'
+plot_dir    = model_dir + '/plot'
 network_dir = model_dir + '/network'
+
 os.makedirs(plot_dir, exist_ok=True)
 os.makedirs(network_dir, exist_ok=True)
 
-model_prefix = train_prefix + '_batchsize' + str(batch_size) + '_numepoch' + str(num_epochs)
-model_csv_fn = network_dir + '/' + model_prefix + '.csv' 
-model_sav_fn = network_dir + '/' + model_prefix + '.hdf5'
-train_data_fn = train_dir + '/' + train_prefix + '.data.csv'
+model_prefix    = train_prefix + '_batchsize' + str(batch_size) + '_numepoch' + str(num_epochs)
+model_csv_fn    = network_dir + '/' + model_prefix + '.csv' 
+model_sav_fn    = network_dir + '/' + model_prefix + '.hdf5'
+train_data_fn   = train_dir + '/' + train_prefix + '.data.csv'
 train_labels_fn = train_dir + '/' + train_prefix + '.labels.csv'
 
 # load data
@@ -56,8 +58,8 @@ param_names = full_labels[0,:]
 full_labels = full_labels[1:,:].astype('float64')
 
 # data dimensions
-max_tips = 501 # get width of input tensor
-num_chars = 3
+max_tips   = 500 # get width of input tensor
+num_chars  = 3
 num_sample = full_data.shape[0]
 num_params = full_labels.shape[1]
 
@@ -77,30 +79,30 @@ full_labels = np.log(full_labels)
 # do not want to use exact same datapoints when iteratively improving
 # training/validation accuracy
 randomized_idx = np.random.permutation(full_data.shape[0])
-full_data = full_data[randomized_idx,:]
-full_labels = full_labels[randomized_idx,:]
+full_data      = full_data[randomized_idx,:]
+full_labels    = full_labels[randomized_idx,:]
 
 # reshape full_data
 full_data.shape = (num_sample,-1,2+num_chars)
 
 # create input subsets
-train_idx      = np.arange( num_test+num_validation, num_sample )
-validation_idx = np.arange( num_test, num_test+num_validation )
-test_idx       = np.arange( 0, num_test )
+train_idx = np.arange( num_test+num_val, num_sample )
+val_idx   = np.arange( num_test, num_test+num_val )
+test_idx  = np.arange( 0, num_test )
 
 # create & normalize label tensors
 labels = full_labels[:,:] # 2nd column was 5:12 previously to exclude ancestral stem location
 
 # (option for diff schemes) try normalizing against 0 to 1
 norm_train_labels, train_label_means, train_label_sd = cn.normalize( labels[train_idx,:] )
-norm_validation_labels = cn.normalize(labels[validation_idx,:], (train_label_means, train_label_sd))
+norm_val_labels  = cn.normalize(labels[val_idx,:], (train_label_means, train_label_sd))
 norm_test_labels = cn.normalize(labels[test_idx,:], (train_label_means, train_label_sd))
 
 # potentially create new tensor that pulls info from both data and labels (Ammon advises put only in data)
 # create data tensors
 train_treeLocation_tensor = full_data[train_idx,:]
-validation_treeLocation_tensor = full_data[validation_idx,:]
-test_treeLocation_tensor = full_data[test_idx,:]
+val_treeLocation_tensor   = full_data[val_idx,:]
+test_treeLocation_tensor  = full_data[test_idx,:]
 
 # initializer
 initializer = tf.keras.initializers.GlorotUniform()
@@ -163,7 +165,7 @@ history = mymodel.fit([train_treeLocation_tensor], #, train_prior_tensor],
                       norm_train_labels,
                       epochs = num_epochs,
                       batch_size = batch_size, 
-                      validation_data = ([validation_treeLocation_tensor], norm_validation_labels))
+                      val_data = ([val_treeLocation_tensor], norm_val_labels))
 # validation_splitq
 # use_multiprocessing
 

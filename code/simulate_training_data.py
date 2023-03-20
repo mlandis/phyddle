@@ -25,7 +25,7 @@ np.set_printoptions(floatmode='unique', suppress=True)
 
 # default settings
 settings = {}
-settings['model_name']     = 'geosse_v2'
+settings['model_name']     = 'geosse_v5'
 settings['start_idx']      = 0
 settings['end_idx']        = 99
 settings['cfg_file']       = None # TODO: add config file parser
@@ -45,13 +45,14 @@ print(settings)
 out_dir    = '../model/{model_name}/data/raw'.format(model_name=model_name)
 out_prefix = 'sim'
 out_path   = out_dir + '/' + out_prefix
-os.makedirs(out_dir, exist_ok=True)
 
 # init settings
 num_rep        = len(rep_idx)
 num_jobs       = -2
-max_taxa       = 999
-cblv_width     = 501
+#max_taxa       = 500
+#cblv_width    = max_taxa + 0
+#max_taxa       = 999  # <----
+max_taxa       = [200, 500]
 num_chars      = 3
 num_states     = 2**num_chars - 1
 regions        = list(range(num_chars))
@@ -65,6 +66,13 @@ for i,v in enumerate(states):
     states_inv[v] = i
 states_bits    = regions_to_binary(states, states_str, regions)
 
+# make dirs
+mt_out_dir = {}
+for mt in max_taxa:
+    mt_out_dir[mt] = out_dir + '/nt' + str(mt)
+    os.makedirs(mt_out_dir[mt], exist_ok=True)
+
+
 # model settings
 model_type = 'iid_simple'
 num_feature_layers = 2
@@ -77,7 +85,7 @@ def rv_feature(size):
     return sp.stats.gamma.rvs(size=size, loc=2., scale=2.) 
 
 # generate settings container
-settings['max_taxa'] = max_taxa
+settings['max_taxa'] = np.max(max_taxa)
 settings['model_type'] = model_type
 settings['num_feature_layers'] = num_feature_layers
 settings['rv_rate'] = rv_rate
@@ -104,7 +112,7 @@ def sim_one(k):
 
     # generate GeoSSE rates
     rates = make_rates(regions, states, events, settings)
-    rates['r_w'] = rates['r_w'] * 0.5
+    rates['r_w'] = rates['r_w'] * 1
     rates['r_d'] = rates['r_d'] * 0.0 #0.1
     rates['r_e'] = rates['r_e'] * 0.0# 1
     rates['r_b'] = rates['r_b'] * 0.0 #10
@@ -121,12 +129,12 @@ def sim_one(k):
     # verify tree size & existence!
     result_str = ''
     n_taxa_k = get_num_taxa(tre_fn, k, max_taxa)
-    if n_taxa_k >= max_taxa:
+    if n_taxa_k <= 0:
+        cblvs = np.zeros( shape=(1,(2+num_chars)*max_taxa[0]) )
         result_str = '- replicate {k} simulated n_taxa={nt}'.format(k=k,nt=n_taxa_k)
         return result_str
-
-    if n_taxa_k <= 0:
-        cblvs = np.zeros( shape=(1,(2+num_chars)*cblv_width) )
+    elif n_taxa_k > np.max(max_taxa):
+        cblvs = np.zeros( shape=(1,(2+num_chars)*np.max(max_taxa)) )
         result_str = '- replicate {k} simulated n_taxa={nt}'.format(k=k,nt=n_taxa_k)
         return result_str
     else:
@@ -137,12 +145,28 @@ def sim_one(k):
         # encode dataset
         try:
             cblv,new_order = vectorize_tree(tre_fn, max_taxa=max_taxa, prob=1.0 )
+            #settings['out_path'] = out_path+"."+str(k)
+    
         except Exception as inst:
             # NEED TO FIX apparent issue with vectorize tree
-            #print(inst)
+            result_str = '+ replicate {k} simulated n_taxa={nt}'.format(k=k,nt=n_taxa_k)
+            print(result_str)
+            print(inst)
+            print(cblv.shape)
             return 'negative dim?'
 
         cblvs = make_cblvs_geosse(cblv, taxon_states, new_order)
+        #print(cblv.shape)
+        #print(cblvs.shape)
+
+        mt_size = cblv.shape[1]
+        #print(cblv.shape[1])
+        tmp_fn = mt_out_dir[mt_size] + '/' + out_prefix + '.' + str(k)
+        print(tmp_fn)
+        cblvs_fn = tmp_fn + '.cblvs.csv'
+        param1_fn = tmp_fn + '.param1.csv'
+        param2_fn = tmp_fn + '.param2.csv'
+
         #cblvs_str = np.array2string(cblvs, separator=',', max_line_width=1e200, threshold=1e200, edgeitems=1e200)
         #cblvs_str = cblvs_str.replace(' ','').replace('.,',',').strip('[].') + '\n'
         #write_to_file(cblvs_str, cblvs_fn)
