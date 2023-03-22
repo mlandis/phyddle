@@ -134,9 +134,9 @@ w_dilated = layers.Conv1D(128, 7, dilation_rate = 8, activation = 'relu', paddin
 w_dilated_global_avg = layers.GlobalAveragePooling1D(name = 'w_dilated_global_avg')(w_dilated)
 
 # concatenate all above -> deep fully connected network
-concatenated_wxyz = layers.Concatenate(axis = 1, name = 'all_concatenated')([w_conv_global_avg])#,
-                                                                            #w_stride_global_avg,
-                                                                            # w_dilated_global_avg])
+concatenated_wxyz = layers.Concatenate(axis = 1, name = 'all_concatenated')([w_conv_global_avg,
+                                                                            w_stride_global_avg,
+                                                                             w_dilated_global_avg])
                                                                              #priors])
 
 # VarianceScaling for kernel initializer (look up?? )
