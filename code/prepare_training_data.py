@@ -13,9 +13,9 @@ settings['prefix'] = 'sim'
 settings = init_process_settings(settings)
 
 prefix        = settings['prefix']
-model_dir     = '../model/' + settings['model_name']
-raw_dir       = model_dir + '/data/raw'
-train_dir     = model_dir + '/data/formatted'
+#model_dir     = '../model/' + settings['model_name']
+raw_dir       = '../raw_data/' + settings['model_name'] #model_dir + '/data/raw'
+train_dir     = '../formatted_data/' + settings['model_name'] #model_dir + '/data/formatted'
 
 
 # make dir
@@ -32,16 +32,25 @@ for i in os.listdir(raw_dir):
 
 for i in raw_nt_dirs:
 
-    out_data_fn   = train_dir + '/' + prefix + '.' + i + '.data.csv'
+    out_cdvs_fn   = train_dir + '/' + prefix + '.' + i + '.cdvs.data.csv'
+    out_cblvs_fn   = train_dir + '/' + prefix + '.' + i + '.cblvs.data.csv'
     out_labels_fn = train_dir + '/' + prefix + '.' + i + '.labels.csv'
     
     # raw files
-    data_files = glob.glob(raw_dir + '/' + i + '/*.cblvs.csv')
+    cdvs_files = glob.glob(raw_dir + '/' + i + '/*.cdvs.csv')
+    cblvs_files = glob.glob(raw_dir + '/' + i + '/*.cblvs.csv')
     label_files = glob.glob(raw_dir + '/' + i + '/*.param2.csv')
 
+    print('Formatting {n} files in {i}'.format(n=len(cdvs_files), i=i))
+
     # data input tensor
-    with open(out_data_fn, 'w') as outfile:
-        for fname in data_files:
+    with open(out_cdvs_fn, 'w') as outfile:
+        for fname in cdvs_files:
+            with open(fname, 'r') as infile:
+                outfile.write(infile.read())
+    
+    with open(out_cblvs_fn, 'w') as outfile:
+        for fname in cblvs_files:
             with open(fname, 'r') as infile:
                 outfile.write(infile.read())
 

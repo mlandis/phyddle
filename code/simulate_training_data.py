@@ -29,7 +29,7 @@ np.set_printoptions(floatmode='unique', suppress=True)
 settings = {}
 settings['model_name']     = 'geosse_v5'
 settings['start_idx']      = 0
-settings['end_idx']        = 99
+settings['end_idx']        = 1 #99
 settings['cfg_file']       = None # TODO: add config file parser
 settings['use_parallel']   = False
 
@@ -44,7 +44,7 @@ print("Applied settings:")
 print(settings)
 
 # IO
-out_dir    = '../model/{model_name}/data/raw'.format(model_name=model_name)
+out_dir    = '../raw_data/{model_name}'.format(model_name=model_name)
 out_prefix = 'sim'
 out_path   = out_dir + '/' + out_prefix
 
@@ -169,9 +169,6 @@ def sim_one(k):
         param1_fn = tmp_fn + '.param1.csv'
         param2_fn = tmp_fn + '.param2.csv'
 
-        #cblvs_str = np.array2string(cblvs, separator=',', max_line_width=1e200, threshold=1e200, edgeitems=1e200)
-        #cblvs_str = cblvs_str.replace(' ','').replace('.,',',').strip('[].') + '\n'
-        #write_to_file(cblvs_str, cblvs_fn)
         result_str = '+ replicate {k} simulated n_taxa={nt}'.format(k=k,nt=n_taxa_k)
 
     # record labels (simulating parameters)
@@ -180,19 +177,14 @@ def sim_one(k):
     write_to_file(param2_str, param2_fn)
 
     # record data
-    #print(cblvs)
     cblvs_str = np.array2string(cblvs, separator=',', max_line_width=1e200, threshold=1e200, edgeitems=1e200)
     cblvs_str = cblvs_str.replace(' ','').replace('.,',',').strip('[].') + '\n'
-    #print(cblvs_str)
     write_to_file(cblvs_str, cblvs_fn)
 
-    #print(cdvs)
-    #print(type(cdvs))
     cdvs = cdvs.to_numpy()
     cdvs_str = np.array2string(cdvs, separator=',', max_line_width=1e200, threshold=1e200, edgeitems=1e200)
     cdvs_str = cdvs_str.replace(' ','').replace('.,',',').strip('[].') + '\n'
     
-    #print(cdvs_str)
     write_to_file(cdvs_str, cdvs_fn)
 
     return result_str

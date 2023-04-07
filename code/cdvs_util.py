@@ -214,13 +214,12 @@ def complete_coding(encoding, max_length):
     return encoding
 
 def expand_tip_states(tips_info):
-    #print(tips_info)
     n_idx = len(tips_info)
     n_char = len(tips_info[1])
     #print(n_char, n_idx)
     x = np.zeros( shape=(n_char, n_idx) )
-    x[:,0] = tips_info[0]
-    for i in range(1,n_idx):
+    #x[:,0] = tips_info[0]  # needed?
+    for i in range(n_idx):
         x[:,i] = [ int(y) for y in tips_info[i] ]
     return x
 
@@ -229,8 +228,10 @@ def expand_tip_states(tips_info):
 #tree TREE_0 = ((1[&type="B",reaction="Extinction",time=3.6232301233156976]:1.2142655324328055,(2[&type="B",time=10.0]:3.459208574144607,(3[&type="B",reaction="Extinction",time=6.868495320534605]:0.04404772822342995,((4[&type="B",time=10.0]:1.591682207985743,5[&type="B",reaction="Extinction",time=9.718023692584314]:1.3097059005700569)[&type="B",reaction="WithinRegionSpeciation",time=8.408317792014257]:1.395484627131916,6[&type="B",reaction="Extinction",time=7.337444843536313]:0.3246116786539721)[&type="B",reaction="WithinRegionSpeciation",time=7.012833164882341]:0.18838557257116584)[&type="B",reaction="WithinRegionSpeciation",time=6.824447592311175]:0.2836561664557822)[&type="B",reaction="WithinRegionSpeciation",time=6.540791425855393]:4.131826834972501)[&type="B",reaction="WithinRegionSpeciation",time=2.408964590882892]:1.5267870397153571,(7[&type="B",reaction="Extinction",time=2.98118850738119]:0.8725488577697549,(((8[&type="B",reaction="Extinction",time=9.850924475820728]:2.4517510454113083,9[&type="B",time=10.0]:2.6008265695905806)[&type="B",reaction="WithinRegionSpeciation",time=7.399173430409419]:4.033746617591738,10[&type="B",reaction="Extinction",time=4.670202523679139]:1.304775710861457)[&type="B",reaction="WithinRegionSpeciation",time=3.365426812817682]:0.3081968127823407,11[&type="B",reaction="Extinction",time=3.1071117381661546]:0.049881738130813424)[&type="B",reaction="WithinRegionSpeciation",time=3.057230000035341]:0.9485903504239062)[&type="B",reaction="WithinRegionSpeciation",time=2.108639649611435]:1.2264620984439)[&type="B",reaction="WithinRegionSpeciation",time=0.8821775511675349]:0.8821775511675349;
 #End;
 
-
 # [&&NHX:conf=0.01:name=INTERNAL]
+
+# this newick string from this regex does not work, despite passing visual check
+# x1=re.sub(r'&', r'&&NHX:', x); x2=re.sub(r'\"', '', x1);x3=re.sub(r',([a-z])', r':\1', x2);x3
 
 def make_cdvs(tree_fn, max_len, states, state_labels):
 
@@ -267,53 +268,34 @@ def make_cdvs(tree_fn, max_len, states, state_labels):
     # separate info on tips and nodes:
     tips_info = [tree_embedding[i] for i in range(len(tree_embedding)) if i % 2 == 0]
     node_info = [tree_embedding[i] for i in range(len(tree_embedding)) if i % 2 == 1]
+    node_info.insert(0,0) # pad with zero to align length of info vec ??
+
+    #print('tips_info ==> ', tips_info)
+    #print('node_info ==>', node_info)
 
     # expand tip states
     tips_info = expand_tip_states(tips_info)
     node_info = np.array([node_info])
-    
-    #print(type(tips_info))
-    #print(type(node_info))
-    #print(tips_info)
-    #print(tips_info.shape)
-    #print(node_info.shape)
 
-    # add tree height
-    #tips_info.insert(0, tr_height)
-    tips_info = np.insert( tips_info, 0, tr_height, axis=0 )
-    node_info = np.insert( node_info, 0, tr_height, axis=0 )
-    #node_info.insert(0, tr_height)
-   
     # complete embedding
     tips_info = complete_coding(tips_info, max_len)
     node_info = complete_coding(node_info, max_len)
 
-    #print('wee')
-    #print(tips_info)
-    #print(node_info)
-    #print(tips_info.shape)
-    #print(node_info.shape)
-
-    # vstack and flatten
+    # vertical stack
     complete_info = np.vstack( [tips_info, node_info] )
-    #print(complete_info)
-    #print(complete_info.shape)
-    #print('why is this off by one!?')
-    complete_info.reshape(-1)
     
     # extra info
+    nrow = complete_info.shape[0]
     state_counts = type_count(tree, states, state_labels)
-    complete_info = np.append(complete_info, state_counts)
-    complete_info = np.append(complete_info, rescale_factor)
-    # combine:
-    #tips_info.extend(node_info)
-    #print(complete_info)
-    # add type count and scaling factor
-    #tips_info.extend(list(type_count(tree, states, state_labels)))
-    #tips_info.extend([rescale_factor])
-
+    extra_info = [ tr_height, rescale_factor ] + state_counts
+    for x in extra_info:
+        complete_info = np.append( complete_info, np.repeat(x, nrow).reshape(-1,1) )
+    
+    # flatten
+    complete_info.reshape(-1)
+    
+    # make output
     result = pd.DataFrame(complete_info) #, columns=[id + 0])
     result = result.T
 
     return result
-    #sys.stdout.write(result.to_csv(sep='\t', index=True, index_label='Index'))

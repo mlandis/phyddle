@@ -37,10 +37,10 @@ batch_size   = settings['batch_size']
 max_taxa     = settings['max_taxa']
 
 # IO
-model_dir   = '../model/' + train_model
-train_dir   = model_dir + '/data/formatted'
-plot_dir    = model_dir + '/plot'
-network_dir = model_dir + '/network'
+#model_dir   = '../model/' + train_model
+train_dir   = '../formatted_data/' + train_model
+plot_dir    = '../plot/' + train_model
+network_dir = '../network/' + train_model
 
 os.makedirs(plot_dir, exist_ok=True)
 os.makedirs(network_dir, exist_ok=True)
@@ -48,7 +48,7 @@ os.makedirs(network_dir, exist_ok=True)
 model_prefix    = train_prefix + '_batchsize' + str(batch_size) + '_numepoch' + str(num_epochs) + '_nt' + str(max_taxa)
 model_csv_fn    = network_dir + '/' + model_prefix + '.csv' 
 model_sav_fn    = network_dir + '/' + model_prefix + '.hdf5'
-train_data_fn   = train_dir + '/' + train_prefix + '.nt' + str(max_taxa) + '.data.csv'
+train_data_fn   = train_dir + '/' + train_prefix + '.nt' + str(max_taxa) + '.cdvs.data.csv'
 train_labels_fn = train_dir + '/' + train_prefix + '.nt' + str(max_taxa) + '.labels.csv'
 
 # load data
@@ -85,7 +85,7 @@ full_data      = full_data[randomized_idx,:]
 full_labels    = full_labels[randomized_idx,:]
 
 # reshape full_data
-full_data.shape = (num_sample,-1,2+num_chars)
+full_data.shape = (num_sample,-1,1+num_chars)
 
 # create input subsets
 train_idx = np.arange( num_test+num_val, num_sample )
