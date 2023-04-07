@@ -197,14 +197,15 @@ def encode_into_most_recent(tree_input, max_taxa=[500], summ_stat=[], target_ave
     #    max_len = 399
     num_summ_stat = len(summ_stat)
 
-    cblv_length = -1
-    for mt in max_taxa:
-        if len(tree) <= mt:
-            cblv_length = 2*(mt + num_summ_stat)
-            break
+    cblv_length = 2*(max_taxa + num_summ_stat)
+    # cblv_length = -1
+    # for mt in max_taxa:
+    #     if len(tree) <= mt:
+    #         cblv_length = 2*(mt + num_summ_stat)
+    #         break
 
-    if cblv_length == -1:
-        raise Exception('tree too large')
+    # if cblv_length == -1:
+    #     raise Exception('tree too large')
 
     # remove the edge above root if there is one
     if len(tree.children) < 2:
@@ -228,7 +229,6 @@ def encode_into_most_recent(tree_input, max_taxa=[500], summ_stat=[], target_ave
     tree_embedding = list(encode(tree))
     
     tree_embedding = complete_coding(tree_embedding, cblv_length)
-    #print(len(tree_embedding))
    
     result = pd.DataFrame(tree_embedding, columns=[0])
 
@@ -331,6 +331,18 @@ def powerset(iterable):
     return chain.from_iterable(combinations(s, r) for r in range(len(s)+1))
 
 
+def find_taxon_size(num_taxa, max_taxa):
+    if num_taxa == 0:
+        return 0
+    elif num_taxa > max_taxa[-1]:
+        return -1
+    for i in max_taxa:
+        if num_taxa <= i:
+            return i
+    # should never call this
+    raise Exception('error in find_taxon_size()', num_taxa, max_taxa)
+    return -2
+    
 # generate event map
 def make_events(regions, states, states_inv):
 
@@ -626,8 +638,33 @@ END;
 
     return d
 
+def vectorize_tree_cdv(tre_fn, max_taxa=[500], summ_stat=[], prob=1.0):
+    # get tree and tip labels
+    tree = read_tree_file(tre_fn)    
+    ordered_tip_names = []
+    for i in tree.get_leaves():
+        ordered_tip_names.append(i.name)
 
-def vectorize_tree(tre_fn, max_taxa=[500], summ_stat=[], prob=1.0):
+    # returns result, rescale_factor, new_leaf_order_names, newLeafKeys_inputNameValues
+    vv = encode_into_most_recent(tree, max_taxa=max_taxa, summ_stat=summ_stat, target_average_brlen=1.0)
+    otn = np.asarray(ordered_tip_names) # ordered list of the input tip labels
+    vv2 = np.asarray(vv[2]) # ordered list of the new tip labels
+    new_order = [vv[3][i] for i in vv2]
+
+    if False:
+        print( 'otn ==> ', otn, '\n' )
+        print( 'vv[0] ==>', vv[0], '\n' )
+        print( 'vv[1] ==>', vv[1], '\n' )
+        print( 'vv[2] ==>', vv[2], '\n' )
+        print( 'vv[3] ==>', vv[3], '\n' )
+
+    cblv = np.asarray( vv[0] )
+    cblv.shape = (2, -1)
+    cblv_df = pd.DataFrame( cblv )
+
+    return cblv_df,new_order
+
+def vectorize_tree(tre_fn, max_taxa=500, summ_stat=[], prob=1.0):
 
     # get tree and tip labels
     tree = read_tree_file(tre_fn)    
@@ -678,6 +715,29 @@ def make_cblvs_geosse(cblv_df, taxon_states, new_order):
     # done!
     return cblvs_df
 
+def make_cdv_geosse(cdv_df, taxon_states, new_order):
+    
+    # array dimensions for GeoSSE states
+    n_taxon_cols = cblv_df.shape[1]
+    n_region = len(list(taxon_states.values())[0])
+
+    # create states array
+    states_df = np.zeros( shape=(n_region,n_taxon_cols), dtype='int')
+    
+    # populate states (not sure if this is how new_order works!)
+    for i,v in enumerate(new_order):
+        y =  [ int(x) for x in taxon_states[v] ]
+        z = np.array(y, dtype='int' )
+        states_df[:,i] = z
+
+    # append states
+    cblvs_df = np.concatenate( (cblv_df, states_df), axis=0 )
+    cblvs_df = cblvs_df.T.reshape((1,-1))
+    #cblvs_df.shape = (1,-1)
+
+    # done!
+    return cblvs_df
+
 def write_to_file(s, fn):
     f = open(fn, 'w')
     f.write(s)
@@ -688,18 +748,19 @@ def get_num_taxa(tre_fn, k, max_taxa):
     try:
         tree = read_tree_file(tre_fn)
         n_taxa_k = len(tree.get_leaves())
-        if n_taxa_k > np.max(max_taxa):
-            #warning_str = '- replicate {k} simulated n_taxa={nt} (max_taxa={mt})'.format(k=k,nt=n_taxa_k,mt=max_taxa)
-            #print(warning_str)
-            return max_taxa
+        #if n_taxa_k > np.max(max_taxa):
+        #    #warning_str = '- replicate {k} simulated n_taxa={nt} (max_taxa={mt})'.format(k=k,nt=n_taxa_k,mt=max_taxa)
+        #    #print(warning_str)
+        #    return n_taxa_k #np.max(max_taxa)
     except ValueError:
         #warning_str = '- replicate {k} simulated n_taxa=0'.format(k=k)
         #print(warning_str)
         return 0
+    
     return n_taxa_k
 
 
-def init_settings(settings):
+def init_sim_settings(settings):
     
     # argument parsing
     parser = argparse.ArgumentParser(description='phyddle settings')

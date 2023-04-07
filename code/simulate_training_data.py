@@ -16,6 +16,8 @@ import multiprocessing as mp
 from joblib import Parallel, delayed
 import time
 from tqdm import tqdm
+import cdvs_util
+
 
 # start time
 start = time.time()
@@ -32,7 +34,7 @@ settings['cfg_file']       = None # TODO: add config file parser
 settings['use_parallel']   = False
 
 # non-default settings passed by argsparse
-settings     = init_settings(settings)
+settings     = init_sim_settings(settings)
 model_name   = settings['model_name']
 rep_idx      = np.arange( settings['start_idx'], settings['end_idx'] )
 cfg_file     = settings['cfg_file']
@@ -52,6 +54,7 @@ num_jobs       = -2
 #max_taxa       = 500
 #cblv_width    = max_taxa + 0
 #max_taxa       = 999  # <----
+#max_taxa       = [200, 500]
 max_taxa       = [200, 500]
 num_chars      = 3
 num_states     = 2**num_chars - 1
@@ -65,6 +68,10 @@ for i,v in enumerate(states_str):
 for i,v in enumerate(states):
     states_inv[v] = i
 states_bits    = regions_to_binary(states, states_str, regions)
+states_bits_str = [ ''.join(s) for s in states_bits.values() ]
+
+#print(states_str)
+#print(states_bits_str)
 
 # make dirs
 mt_out_dir = {}
@@ -112,10 +119,10 @@ def sim_one(k):
 
     # generate GeoSSE rates
     rates = make_rates(regions, states, events, settings)
-    rates['r_w'] = rates['r_w'] * 1
-    rates['r_d'] = rates['r_d'] * 0.0 #0.1
-    rates['r_e'] = rates['r_e'] * 0.0# 1
-    rates['r_b'] = rates['r_b'] * 0.0 #10
+    rates['r_w'] = rates['r_w'] * 1.0
+    rates['r_d'] = rates['r_d'] * 0.0 # 0.1
+    rates['r_e'] = rates['r_e'] * 0.25 # 0.1
+    rates['r_b'] = rates['r_b'] * 0.0 # 10.0
 
     # generate MASTER XML string
     xml_str = make_xml(events, rates, states, states_str, settings)
@@ -129,6 +136,9 @@ def sim_one(k):
     # verify tree size & existence!
     result_str = ''
     n_taxa_k = get_num_taxa(tre_fn, k, max_taxa)
+    taxon_size_k = find_taxon_size(n_taxa_k, max_taxa)
+
+    print(n_taxa_k,taxon_size_k,max_taxa)
     if n_taxa_k <= 0:
         cblvs = np.zeros( shape=(1,(2+num_chars)*max_taxa[0]) )
         result_str = '- replicate {k} simulated n_taxa={nt}'.format(k=k,nt=n_taxa_k)
@@ -140,26 +150,22 @@ def sim_one(k):
     else:
         # generate nexus file 0/1 ranges
         taxon_states = convert_geo_nex(nex_fn, tre_fn, geo_fn, states_bits)
+        
         # collect summary statistics
         # ...
-        # encode dataset
-        try:
-            cblv,new_order = vectorize_tree(tre_fn, max_taxa=max_taxa, prob=1.0 )
-            #settings['out_path'] = out_path+"."+str(k)
-    
-        except Exception as inst:
-            # NEED TO FIX apparent issue with vectorize tree
-            result_str = '+ replicate {k} simulated n_taxa={nt}'.format(k=k,nt=n_taxa_k)
-            return 'negative dim?'
-
+        
+        # then get CBLVS working
+        cblv,new_order = vectorize_tree(tre_fn, max_taxa=taxon_size_k, prob=1.0 )
         cblvs = make_cblvs_geosse(cblv, taxon_states, new_order)
-        #print(cblv.shape)
-        #print(cblvs.shape)
+        
+        # get CDVS working
+        cdvs = cdvs_util.make_cdvs(tre_fn, taxon_size_k, taxon_states, states_bits_str)
 
+        # output files
         mt_size = cblv.shape[1]
-        #print(cblv.shape[1])
         tmp_fn = mt_out_dir[mt_size] + '/' + out_prefix + '.' + str(k)
         cblvs_fn = tmp_fn + '.cblvs.csv'
+        cdvs_fn = tmp_fn + '.cdvs.csv'
         param1_fn = tmp_fn + '.param1.csv'
         param2_fn = tmp_fn + '.param2.csv'
 
@@ -174,9 +180,19 @@ def sim_one(k):
     write_to_file(param2_str, param2_fn)
 
     # record data
+    #print(cblvs)
     cblvs_str = np.array2string(cblvs, separator=',', max_line_width=1e200, threshold=1e200, edgeitems=1e200)
     cblvs_str = cblvs_str.replace(' ','').replace('.,',',').strip('[].') + '\n'
+    #print(cblvs_str)
     write_to_file(cblvs_str, cblvs_fn)
+
+    #print(cdvs)
+    #print(type(cdvs))
+    cdvs = cdvs.to_numpy()
+    cdvs_str = np.array2string(cdvs, separator=',', max_line_width=1e200, threshold=1e200, edgeitems=1e200)
+    cdvs_str = cdvs_str.replace(' ','').replace('.,',',').strip('[].') + '\n'
+    print(cdvs_str)
+    write_to_file(cdvs_str, cdvs_fn)
 
     return result_str
 
