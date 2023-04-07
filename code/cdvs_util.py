@@ -214,10 +214,10 @@ def complete_coding(encoding, max_length):
     return encoding
 
 def expand_tip_states(tips_info):
-    print(tips_info)
+    #print(tips_info)
     n_idx = len(tips_info)
     n_char = len(tips_info[1])
-    print(n_char, n_idx)
+    #print(n_char, n_idx)
     x = np.zeros( shape=(n_char, n_idx) )
     x[:,0] = tips_info[0]
     for i in range(1,n_idx):

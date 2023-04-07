@@ -138,7 +138,7 @@ def sim_one(k):
     n_taxa_k = get_num_taxa(tre_fn, k, max_taxa)
     taxon_size_k = find_taxon_size(n_taxa_k, max_taxa)
 
-    print(n_taxa_k,taxon_size_k,max_taxa)
+    #print(n_taxa_k,taxon_size_k,max_taxa)
     if n_taxa_k <= 0:
         cblvs = np.zeros( shape=(1,(2+num_chars)*max_taxa[0]) )
         result_str = '- replicate {k} simulated n_taxa={nt}'.format(k=k,nt=n_taxa_k)
@@ -191,7 +191,8 @@ def sim_one(k):
     cdvs = cdvs.to_numpy()
     cdvs_str = np.array2string(cdvs, separator=',', max_line_width=1e200, threshold=1e200, edgeitems=1e200)
     cdvs_str = cdvs_str.replace(' ','').replace('.,',',').strip('[].') + '\n'
-    print(cdvs_str)
+    
+    #print(cdvs_str)
     write_to_file(cdvs_str, cdvs_fn)
 
     return result_str
