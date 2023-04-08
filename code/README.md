@@ -7,7 +7,7 @@ The repo has two main directories. The code directory contains scripts to simula
 Example use:
 ```
 cd ~/projects/phyddle/code
-./simulate_training_data.py --start_idx 0 --end_idx 100 --use_parallel --name bd1
+./simulate_training_data.py --name bd1 --start_idx 0 --end_idx 100 --use_parallel
 ./prepare_training_data.py --name bd1
 ./train_rates_cnn.py --name bd1 --num_epoch 20 --batch_size 32 --num_validation 50 --num_test 50 --max_taxa 500
 ```
