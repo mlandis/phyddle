@@ -6,7 +6,6 @@ from phyddle_util import *
 # other dependencies
 import numpy as np
 import scipy as sp
-import dendropy as dp
 import subprocess
 import os
 import argparse
@@ -74,10 +73,11 @@ states_bits_str = [ ''.join(s) for s in states_bits.values() ]
 #print(states_bits_str)
 
 # make dirs
-mt_out_dir = {}
-for mt in max_taxa:
-    mt_out_dir[mt] = out_dir + '/nt' + str(mt)
-    os.makedirs(mt_out_dir[mt], exist_ok=True)
+os.makedirs(out_dir, exist_ok=True)
+#mt_out_dir = {}
+#for mt in max_taxa:
+#    mt_out_dir[mt] = out_dir + '/nt' + str(mt)
+#    os.makedirs(mt_out_dir[mt], exist_ok=True)
 
 
 # model settings
@@ -108,8 +108,10 @@ def sim_one(k):
 
     # update info for replicate
     settings['out_path'] = out_path+"."+str(k)
+    settings['replicate_index'] = k
     geo_fn    = settings['out_path'] + '.geosse.nex'
     tre_fn    = settings['out_path'] + '.tre'
+    prune_fn  = settings['out_path'] + '.extant.tre'
     nex_fn    = settings['out_path'] + '.nex'
     cblvs_fn  = settings['out_path'] + '.cblvs.csv'
     param1_fn = settings['out_path'] + '.param1.csv'
@@ -148,6 +150,9 @@ def sim_one(k):
         result_str = '- replicate {k} simulated n_taxa={nt}'.format(k=k,nt=n_taxa_k)
         return result_str
     else:
+        # generate extinct-pruned tree
+        #prune_phy(tre_fn, prune_fn)
+
         # generate nexus file 0/1 ranges
         taxon_states = convert_geo_nex(nex_fn, tre_fn, geo_fn, states_bits)
         
@@ -162,14 +167,21 @@ def sim_one(k):
         cdvs = cdvs_util.make_cdvs(tre_fn, taxon_size_k, taxon_states, states_bits_str)
 
         # output files
-        mt_size = cblv.shape[1]
-        tmp_fn = mt_out_dir[mt_size] + '/' + out_prefix + '.' + str(k)
-        cblvs_fn = tmp_fn + '.cblvs.csv'
-        cdvs_fn = tmp_fn + '.cdvs.csv'
+        mt_size   = cblv.shape[1]
+        #tmp_fn = mt_out_dir[mt_size] + '/' + out_prefix + '.' + str(k)
+        tmp_fn    = out_path + '.' + str(k)
+        cblvs_fn  = tmp_fn + '.cblvs.csv'
+        cdvs_fn   = tmp_fn + '.cdvs.csv'
         param1_fn = tmp_fn + '.param1.csv'
         param2_fn = tmp_fn + '.param2.csv'
+        info_fn   = tmp_fn + '.info.csv'
 
         result_str = '+ replicate {k} simulated n_taxa={nt}'.format(k=k,nt=n_taxa_k)
+
+
+    # record info
+    info_str = settings_to_str(settings, mt_size)
+    write_to_file(info_str, info_fn)
 
     # record labels (simulating parameters)
     param1_str,param2_str = param_dict_to_str(rates)
@@ -184,7 +196,6 @@ def sim_one(k):
     cdvs = cdvs.to_numpy()
     cdvs_str = np.array2string(cdvs, separator=',', max_line_width=1e200, threshold=1e200, edgeitems=1e200)
     cdvs_str = cdvs_str.replace(' ','').replace('.,',',').strip('[].') + '\n'
-    
     write_to_file(cdvs_str, cdvs_fn)
 
     return result_str

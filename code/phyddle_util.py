@@ -556,6 +556,13 @@ def make_xml(events, rates, states, states_str, settings):
     return xml_spec_str
 
 
+def settings_to_str(settings, taxon_category):
+    s = 'setting,value\n'
+    s += 'model_name,' + settings['model_name'] + '\n'
+    s += 'model_type,' + settings['model_type'] + '\n'
+    s += 'replicate_index,' + str(settings['replicate_index']) + '\n'
+    s += 'taxon_category,' + str(taxon_category) + '\n'
+    return s
 
 def param_dict_to_str(params):
     s1 = 'param,i,j,value\n'
@@ -585,6 +592,20 @@ def regions_to_binary(states, states_str, regions):
         for j in v:
             x[states_str[i]][j] = '1'
     return x
+
+def prune_phy(tre_fn, prune_fn):
+    # read tree
+    tre_file = open(tre_fn, 'r')
+    # prune non-extant taxa
+    # write pruned tree
+    return
+
+def categorize_sizes(raw_data_dir):
+    # get all files
+    # learn sizes from param files
+    # sort into groups
+    # return dictionary of { size_key: [ index_list ] }
+    return
 
 def convert_geo_nex(nex_fn, tre_fn, geo_fn, states_bits):
 
