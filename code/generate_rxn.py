@@ -66,18 +66,18 @@ def generate_reactions(reaction_string, index_sizes, reaction_group_name, rate_f
 
 # examples
 
-def my_rlnorm(idx):
-	logmean = 0
-	logsd = 1
-	return(np.random.lognormal(logmean, logsd))
-
-def my_idx_fn(idx):
-	return(2 * idx[0] - 10 * idx[1] + 3 * idx[2])
-
-def place_holder(idx):
-	return "rate_here"
-
-my_xml_string, my_rates = generate_reactions("A[i]:1 + B[j] -> C[i] + D[k]:1", {"i":2, "j":2, "k":3}, "testing", my_rlnorm )
-
-print(my_xml_string)
-print(my_rates)
+#def my_rlnorm(idx):
+#	logmean = 0
+#	logsd = 1
+#	return(np.random.lognormal(logmean, logsd))
+#
+#def my_idx_fn(idx):
+#	return(2 * idx[0] - 10 * idx[1] + 3 * idx[2])
+#
+#def place_holder(idx):
+#	return "rate_here"
+#
+#my_xml_string, my_rates = generate_reactions("A[i]:1 + B[j] -> C[i] + D[k]:1", {"i":2, "j":2, "k":3}, "testing", my_rlnorm )
+#
+#print(my_xml_string)
+#print(my_rates)
