@@ -52,10 +52,10 @@ for k in sorted(list(size_sort.keys())):
 
     print('Formatting {n} files for taxon_category={i}'.format(n=len(size_sort[k]), i=k))
     
-    out_cdvs_fn   = train_dir + '/' + prefix + '.' + str(k) + '.cdvs.data.csv'
-    out_cblvs_fn  = train_dir + '/' + prefix + '.' + str(k) + '.cblvs.data.csv'
-    out_labels_fn = train_dir + '/' + prefix + '.' + str(k) + '.labels.csv'
-    out_info_fn   = train_dir + '/' + prefix + '.' + str(k) + '.info.csv'
+    out_cdvs_fn   = train_dir + '/' + prefix + '.nt' + str(k) + '.cdvs.data.csv'
+    out_cblvs_fn  = train_dir + '/' + prefix + '.nt' + str(k) + '.cblvs.data.csv'
+    out_labels_fn = train_dir + '/' + prefix + '.nt' + str(k) + '.labels.csv'
+    out_info_fn   = train_dir + '/' + prefix + '.nt' + str(k) + '.info.csv'
     
     # cdv file tensor
     with open(out_cdvs_fn, 'w') as outfile:
