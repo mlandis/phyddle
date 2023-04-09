@@ -54,6 +54,7 @@ for k in sorted(list(size_sort.keys())):
     
     out_cdvs_fn   = train_dir + '/' + prefix + '.nt' + str(k) + '.cdvs.data.csv'
     out_cblvs_fn  = train_dir + '/' + prefix + '.nt' + str(k) + '.cblvs.data.csv'
+    out_stat_fn   = train_dir + '/' + prefix + '.nt' + str(k) + '.summ_stat.csv'
     out_labels_fn = train_dir + '/' + prefix + '.nt' + str(k) + '.labels.csv'
     out_info_fn   = train_dir + '/' + prefix + '.nt' + str(k) + '.info.csv'
     
@@ -72,6 +73,18 @@ for k in sorted(list(size_sort.keys())):
             with open(fname, 'r') as infile:
                 s = infile.read()
                 z = outfile.write(s)
+    
+    # summary stats tensor
+    with open(out_stat_fn, 'w') as outfile:
+        for j,i in enumerate(size_sort[k]):
+            fname = raw_dir + '/' + prefix + '.' + str(i) + '.summ_stat.csv'
+            with open(fname, 'r') as infile:
+                if j == 0:
+                    s = infile.read()
+                    z = outfile.write(s)
+                else:
+                    s = ''.join(infile.readlines()[1:])
+                    z = outfile.write(s)
 
     # labels input tensor
     with open(out_labels_fn, 'w') as outfile:

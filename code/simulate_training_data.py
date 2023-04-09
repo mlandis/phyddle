@@ -62,23 +62,22 @@ states         = list(powerset(regions))[1:]
 states_str     = [ ''.join(list([string.ascii_uppercase[i] for i in s])) for s in states ]
 states_str_inv = {}
 states_inv     = {}
+states_bits_str_inv = {}
 for i,v in enumerate(states_str):
     states_str_inv[v] = i
 for i,v in enumerate(states):
     states_inv[v] = i
 states_bits    = regions_to_binary(states, states_str, regions)
 states_bits_str = [ ''.join(s) for s in states_bits.values() ]
+for i,v in enumerate(states_bits_str):
+    states_bits_str_inv[v] = i
 
 #print(states_str)
 #print(states_bits_str)
+#print(states_bits_str_inv)
 
 # make dirs
 os.makedirs(out_dir, exist_ok=True)
-#mt_out_dir = {}
-#for mt in max_taxa:
-#    mt_out_dir[mt] = out_dir + '/nt' + str(mt)
-#    os.makedirs(mt_out_dir[mt], exist_ok=True)
-
 
 # model settings
 model_type = 'iid_simple'
@@ -155,10 +154,6 @@ def sim_one(k):
 
         # generate nexus file 0/1 ranges
         taxon_states = convert_geo_nex(nex_fn, tre_fn, geo_fn, states_bits)
-        
-        # collect summary statistics
-        # ...
-        
         # then get CBLVS working
         cblv,new_order = vectorize_tree(tre_fn, max_taxa=taxon_size_k, prob=1.0 )
         cblvs = make_cblvs_geosse(cblv, taxon_states, new_order)
@@ -172,6 +167,7 @@ def sim_one(k):
         tmp_fn    = out_path + '.' + str(k)
         cblvs_fn  = tmp_fn + '.cblvs.csv'
         cdvs_fn   = tmp_fn + '.cdvs.csv'
+        ss_fn     = tmp_fn + '.summ_stat.csv'
         param1_fn = tmp_fn + '.param1.csv'
         param2_fn = tmp_fn + '.param2.csv'
         info_fn   = tmp_fn + '.info.csv'
@@ -188,15 +184,21 @@ def sim_one(k):
     write_to_file(param1_str, param1_fn)
     write_to_file(param2_str, param2_fn)
 
-    # record data
+    # record CBLVS data
     cblvs_str = np.array2string(cblvs, separator=',', max_line_width=1e200, threshold=1e200, edgeitems=1e200)
     cblvs_str = cblvs_str.replace(' ','').replace('.,',',').strip('[].') + '\n'
     write_to_file(cblvs_str, cblvs_fn)
 
+    # record CDVS data
     cdvs = cdvs.to_numpy()
     cdvs_str = np.array2string(cdvs, separator=',', max_line_width=1e200, threshold=1e200, edgeitems=1e200)
     cdvs_str = cdvs_str.replace(' ','').replace('.,',',').strip('[].') + '\n'
     write_to_file(cdvs_str, cdvs_fn)
+
+    # record summ stat data
+    ss = make_summ_stat(tre_fn, geo_fn, states_bits_str_inv)
+    ss_str = make_summ_stat_str(ss)
+    write_to_file(ss_str, ss_fn)
 
     return result_str
 
@@ -204,16 +206,13 @@ def sim_one(k):
 # dispatch jobs
 #use_parallel = False
 if use_parallel:
-    #global_n_jobs = len(rep_idx)
-    #joblib.parallel.BatchCompletionCallBack = BatchCompletionCallBack
     res = Parallel(n_jobs=num_jobs)(delayed(sim_one)(k) for k in tqdm(rep_idx))
-    
-    #print('\n'.join(res))
 else:
-    res = []
-    for k in rep_idx:
-        res_k = sim_one(k)
-        res.append(res_k)
+    res = [ sim_one(k) for k in rep_idx ]
+#    res = []
+#    for k in rep_idx:
+#        res_k = sim_one(k)
+#        res.append(res_k)
         
 # end time
 end = time.time()
