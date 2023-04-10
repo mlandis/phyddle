@@ -63,7 +63,7 @@ stat_names = full_stats[0,:]
 full_stats = full_stats[1:,:].astype('float64')
 
 #full_labels = full_labels[:, [0, 3, 6, 18]]
-full_labels = full_labels[:, [3]]
+full_labels = full_labels[:, [0,3]]
 param_names = full_labels[0,:]
 full_labels = full_labels[1:,:].astype('float64')
 
