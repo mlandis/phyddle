@@ -122,7 +122,7 @@ def sim_one(k):
     rates = make_rates(regions, states, events, settings)
     rates['r_w'] = rates['r_w'] * 0.75
     rates['r_d'] = rates['r_d'] * 0.0 # 0.1
-    rates['r_e'] = rates['r_e'] * 0.0 # 0.1
+    rates['r_e'] = rates['r_e'] * 0.1 # 0.1
     rates['r_b'] = rates['r_b'] * 0.0 # 10.0
 
     # generate MASTER XML string
@@ -150,7 +150,7 @@ def sim_one(k):
         return result_str
     else:
         # generate extinct-pruned tree
-        # make_prune_phy(tre_fn, prune_fn)
+        make_prune_phy(tre_fn, prune_fn)
 
         # generate nexus file 0/1 ranges
         taxon_states = convert_geo_nex(nex_fn, tre_fn, geo_fn, states_bits)
@@ -160,7 +160,8 @@ def sim_one(k):
         cblvs = make_cblvs_geosse(cblv, taxon_states, new_order)
         
         # get CDVS working
-        cdvs = cdvs_util.make_cdvs(tre_fn, taxon_size_k, taxon_states, states_bits_str)
+       # cdvs = cdvs_util.make_cdvs(tre_fn, taxon_size_k, taxon_states, states_bits_str)
+        cdvs = cdvs_util.make_cdvs(prune_fn, taxon_size_k, taxon_states, states_bits_str)
 
         # output files
         mt_size   = cblv.shape[1]

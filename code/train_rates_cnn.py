@@ -139,7 +139,7 @@ w_stride = layers.Conv1D(96, 9, strides = 6, activation = 'relu', padding = 'sam
 w_stride_global_avg = layers.GlobalAveragePooling1D(name = 'w_stride_global_avg')(w_stride)
 
 # dilation layers
-w_dilated = layers.Conv1D(32, 3, dilation_rate = 2, activation = 'relu', padding = 'same', name='in_conv_stride')(input_data_tensor)
+w_dilated = layers.Conv1D(32, 3, dilation_rate = 2, activation = 'relu', padding = 'same', name='in_conv_dilation')(input_data_tensor)
 #w_dilated = layers.Conv1D(64, 5, dilation_rate = 4, activation = 'relu', padding = "same")(w_dilated)
 w_dilated = layers.Conv1D(128, 7, dilation_rate = 8, activation = 'relu', padding = 'same')(w_dilated)
 w_dilated_global_avg = layers.GlobalAveragePooling1D(name = 'w_dilated_global_avg')(w_dilated)
