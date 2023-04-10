@@ -2,7 +2,7 @@
 import itertools
 import re
 import numpy as np
-def generate_reactions(reaction_string, index_sizes, reaction_group_name, rate_fn):
+def generate_reactions(reaction_string, index_sizes, reaction_group_name, rate_fn, no_self = False):
 	"""
 	generates all possible combinations of indices, replaces the keys in the reaction_string 
 	with the corresponding index values, calculates the reaction rates using the provided rate 
@@ -34,50 +34,31 @@ def generate_reactions(reaction_string, index_sizes, reaction_group_name, rate_f
 	xml_string = "<reactionGroup spec='ReactionGroup' reactionGroupName='{}'>\n".format(reaction_group_name)
 
 	# Loop through all index combinations
-	for combo in range(len(index_combinations)):
+	for combo_idx in range(len(index_combinations)):
 		# Initialize the reaction name
 		reaction_name = reaction_group_name
 		new_rxn = reaction_string
 
-		# Replace keys with corresponding index values in reaction_string
-		for idx in range(len(index_combinations[combo])):
-			reaction_name = reaction_name + "_" + str(index_combinations[combo][idx])
-			new_rxn = new_rxn.replace('[' + keys[idx] + ']', '[' + str(index_combinations[combo][idx]) + ']')
+		if not (no_self and len(index_combinations[combo_idx]) != len(set(index_combinations[combo_idx]))):
 
-		# Calculate the rate using the provided rate function
-		rate = rate_fn(index_combinations[combo])
+			# Replace keys with corresponding index values in reaction_string
+			for idx in range(len(index_combinations[combo_idx])):
+				reaction_name = reaction_name + "_" + str(index_combinations[combo_idx][idx])
+				new_rxn = new_rxn.replace('[' + keys[idx] + ']', '[' + str(index_combinations[combo_idx][idx]) + ']')
 
-		# Store the reaction rate in the rxn_rates dictionary
-		rxn_rates[reaction_name] = rate
+			# Calculate the rate using the provided rate function
+			rate = rate_fn(index_combinations[combo_idx])
 
-		# Append the reaction to the XML string and substitute rxn name and rate
-		xml_string += '  <reaction spec="Reaction" reactionName="{reaction_name}" rate="{rate}">\n'.format(reaction_name = reaction_name, rate = rate)
-		xml_string += "\t\t" + new_rxn + "\n"
-		xml_string += "  </reaction>\n"
+			# Store the reaction rate in the rxn_rates dictionary
+			rxn_rates[reaction_name] = rate
+
+			# Append the reaction to the XML string and substitute rxn name and rate
+			xml_string += '  <reaction spec="Reaction" reactionName="{reaction_name}" rate="{rate}">\n'.format(reaction_name = reaction_name, rate = rate)
+			xml_string += "\t\t" + new_rxn + "\n"
+			xml_string += "  </reaction>\n"
 
 	# Close the reaction group XML tag
 	xml_string += '</reactionGroup>'
 
 	# Return the generated XML string and reaction rates dictionary
 	return xml_string, rxn_rates
-
-
-
-
-# examples
-
-#def my_rlnorm(idx):
-#	logmean = 0
-#	logsd = 1
-#	return(np.random.lognormal(logmean, logsd))
-#
-#def my_idx_fn(idx):
-#	return(2 * idx[0] - 10 * idx[1] + 3 * idx[2])
-#
-#def place_holder(idx):
-#	return "rate_here"
-#
-#my_xml_string, my_rates = generate_reactions("A[i]:1 + B[j] -> C[i] + D[k]:1", {"i":2, "j":2, "k":3}, "testing", my_rlnorm )
-#
-#print(my_xml_string)
-#print(my_rates)
