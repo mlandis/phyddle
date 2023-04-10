@@ -150,10 +150,11 @@ def sim_one(k):
         return result_str
     else:
         # generate extinct-pruned tree
-        #prune_phy(tre_fn, prune_fn)
+        # make_prune_phy(tre_fn, prune_fn)
 
         # generate nexus file 0/1 ranges
         taxon_states = convert_geo_nex(nex_fn, tre_fn, geo_fn, states_bits)
+
         # then get CBLVS working
         cblv,new_order = vectorize_tree(tre_fn, max_taxa=taxon_size_k, prob=1.0 )
         cblvs = make_cblvs_geosse(cblv, taxon_states, new_order)

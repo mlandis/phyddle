@@ -594,12 +594,20 @@ def regions_to_binary(states, states_str, regions):
             x[states_str[i]][j] = '1'
     return x
 
-def prune_phy(tre_fn, prune_fn):
+## set return None if bad, then flag the index as a bad sim.
+def make_prune_phy(tre_fn, prune_fn):
     # read tree
-    tre_file = open(tre_fn, 'r')
+    phy = dp.Tree.get(path=tre_fn, schema='newick')
+    phy.calc_node_ages(ultrametricity_precision=False)
+    # determine what to drop
+    drop_taxon_labels = [ nd.taxon.label for nd in phy.leaf_nodes() if nd.age < 1e-12 ]
+    print(drop_taxon_labels)
     # prune non-extant taxa
+    phy.prune_taxa_with_labels( drop_taxon_labels )
+    phy.calc_node_ages(ultrametricity_precision=False)
     # write pruned tree
-    return
+    phy.write(path=prune_fn, schema='newick')
+    return 
 
 def categorize_sizes(raw_data_dir):
     # get all files

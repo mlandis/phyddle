@@ -10,6 +10,8 @@ import tensorflow as tf
 import cnn_utilities as cn
 import sklearn
 import matplotlib as plt
+import eli5
+from eli5.sklearn import PermutationImportance
 
 from phyddle_util import *
 from scipy.stats import kde
@@ -124,7 +126,7 @@ input_data_tensor = Input(shape = train_data_tensor.shape[1:3])
 # double-check this stuff
 # 64 patterns you expect to see, width of 3, stride (skip-size) of 1, padding zeroes so all windows are 'same'
 # convolutional layers
-w_conv = layers.Conv1D(64, 3, activation = 'relu', padding = 'same')(input_data_tensor)
+w_conv = layers.Conv1D(64, 3, activation = 'relu', padding = 'same', name='in_conv_std')(input_data_tensor)
 #w_conv = layers.Conv1D(64, 5, activation = 'relu', padding = 'same')(w_conv)
 #w_conv = layers.Conv1D(96, 5, activation = 'relu', padding = 'same')(w_conv)
 w_conv = layers.Conv1D(128, 5, activation = 'relu', padding = 'same')(w_conv)
@@ -132,20 +134,20 @@ w_conv = layers.Conv1D(128, 5, activation = 'relu', padding = 'same')(w_conv)
 w_conv_global_avg = layers.GlobalAveragePooling1D(name = 'w_conv_global_avg')(w_conv)
 
 # stride layers
-w_stride = layers.Conv1D(64, 7, strides = 3, activation = 'relu', padding = 'same')(input_data_tensor)
+w_stride = layers.Conv1D(64, 7, strides = 3, activation = 'relu', padding = 'same', name='in_conv_stride')(input_data_tensor)
 w_stride = layers.Conv1D(96, 9, strides = 6, activation = 'relu', padding = 'same')(w_stride)
 w_stride_global_avg = layers.GlobalAveragePooling1D(name = 'w_stride_global_avg')(w_stride)
 
 # dilation layers
-w_dilated = layers.Conv1D(32, 3, dilation_rate = 2, activation = 'relu', padding = "same")(input_data_tensor)
+w_dilated = layers.Conv1D(32, 3, dilation_rate = 2, activation = 'relu', padding = 'same', name='in_conv_stride')(input_data_tensor)
 #w_dilated = layers.Conv1D(64, 5, dilation_rate = 4, activation = 'relu', padding = "same")(w_dilated)
-w_dilated = layers.Conv1D(128, 7, dilation_rate = 8, activation = 'relu', padding = "same")(w_dilated)
+w_dilated = layers.Conv1D(128, 7, dilation_rate = 8, activation = 'relu', padding = 'same')(w_dilated)
 w_dilated_global_avg = layers.GlobalAveragePooling1D(name = 'w_dilated_global_avg')(w_dilated)
 
 
 # summary stats
 input_stats_tensor = Input(shape = train_stats_tensor.shape[1:2])
-w_stats_ffnn = layers.Dense(128, activation = 'relu', kernel_initializer = 'VarianceScaling')(input_stats_tensor)
+w_stats_ffnn = layers.Dense(128, activation = 'relu', kernel_initializer = 'VarianceScaling', name='in_ffnn_stat')(input_stats_tensor)
 w_stats_ffnn = layers.Dense(64, activation = 'relu', kernel_initializer = 'VarianceScaling')(w_stats_ffnn)
 w_stats_ffnn = layers.Dense(32, activation = 'relu', kernel_initializer = 'VarianceScaling')(w_stats_ffnn)
 
@@ -196,10 +198,10 @@ mymodel.evaluate([test_data_tensor, test_stats_tensor], norm_test_labels)
 
 # scatter plot training prediction to truth
 max_idx = 1000
-normalized_train_preds = mymodel.predict([train_data_tensor[some_idx,:,:], train_stats_tensor[some_idx,:]])
+normalized_train_preds = mymodel.predict([train_data_tensor[0:max_idx,:,:], train_stats_tensor[0:max_idx,:]])
 
 # reverse normalization
-denormalized_train_labels = cn.denormalize(norm_train_labels[some_idx,:], train_label_means, train_label_sd)
+denormalized_train_labels = cn.denormalize(norm_train_labels[0:max_idx,:], train_label_means, train_label_sd)
 denormalized_train_labels = np.exp(denormalized_train_labels)
 train_preds = cn.denormalize(normalized_train_preds, train_label_means, train_label_sd)
 train_preds = np.exp(train_preds)
@@ -208,7 +210,7 @@ train_preds = np.exp(train_preds)
 cn.plot_preds_labels(train_preds, denormalized_train_labels, param_names = param_names, prefix='train', plot_dir=plot_dir)
 
 # scatter plot test prediction to truth
-normalized_test_preds = mymodel.predict([test_treeLocation_tensor]) #, test_prior_tensor])
+normalized_test_preds = mymodel.predict([test_data_tensor, test_stats_tensor])
 
 # reversing normalization
 denormalized_test_labels = cn.denormalize(norm_test_labels, train_label_means, train_label_sd)
@@ -229,3 +231,6 @@ with open(model_csv_fn, 'w') as file:
     the_writer.writerow(np.append( 'sd', all_sd))
 
 mymodel.save(model_sav_fn)
+
+#mymodel.weights
+#mymodel.trainable_variables
