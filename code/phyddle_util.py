@@ -5,6 +5,7 @@ import time
 import pandas as pd
 import numpy as np
 import scipy as sp
+import dendropy as dp
 import random
 import re
 import sys
@@ -556,6 +557,13 @@ def make_xml(events, rates, states, states_str, settings):
     return xml_spec_str
 
 
+def settings_to_str(settings, taxon_category):
+    s = 'setting,value\n'
+    s += 'model_name,' + settings['model_name'] + '\n'
+    s += 'model_type,' + settings['model_type'] + '\n'
+    s += 'replicate_index,' + str(settings['replicate_index']) + '\n'
+    s += 'taxon_category,' + str(taxon_category) + '\n'
+    return s
 
 def param_dict_to_str(params):
     s1 = 'param,i,j,value\n'
@@ -585,6 +593,20 @@ def regions_to_binary(states, states_str, regions):
         for j in v:
             x[states_str[i]][j] = '1'
     return x
+
+def prune_phy(tre_fn, prune_fn):
+    # read tree
+    tre_file = open(tre_fn, 'r')
+    # prune non-extant taxa
+    # write pruned tree
+    return
+
+def categorize_sizes(raw_data_dir):
+    # get all files
+    # learn sizes from param files
+    # sort into groups
+    # return dictionary of { size_key: [ index_list ] }
+    return
 
 def convert_geo_nex(nex_fn, tre_fn, geo_fn, states_bits):
 
@@ -616,8 +638,7 @@ def convert_geo_nex(nex_fn, tre_fn, geo_fn, states_bits):
     # build new geosse string
 
     s = \
-'''
-#NEXUS
+'''#NEXUS
 Begin DATA;
 Dimensions NTAX={num_taxa} NCHAR={num_regions}
 Format MISSING=? GAP=- DATATYPE=STANDARD SYMBOLS="01";
@@ -846,3 +867,56 @@ class BatchCompletionCallBack(object):
         # Added code - end
         if self.parallel._original_iterator is not None:
             self.parallel.dispatch_next()
+
+
+def make_summ_stat(tre_fn, geo_fn, states_bits_str_inv):
+    
+    # build summary stats
+    summ_stats = {}
+
+    # read tree + states
+    phy = dp.Tree.get(path=tre_fn, schema="newick")
+    num_taxa = len(phy.leaf_nodes())
+
+    # tree statistics
+    summ_stats['tree_length'] = phy.length()
+    summ_stats['tree_height'] = max(phy.calc_node_ages())
+    summ_stats['B1'] = dp.calculate.treemeasure.B1(phy)
+    summ_stats['N_bar'] = dp.calculate.treemeasure.N_bar(phy)
+    summ_stats['colless'] = dp.calculate.treemeasure.colless_tree_imbalance(phy)
+    summ_stats['gamma'] = dp.calculate.treemeasure.pybus_harvey_gamma(phy)
+    summ_stats['sackin'] = dp.calculate.treemeasure.sackin_index(phy)
+    summ_stats['treeness'] = dp.calculate.treemeasure.treeness(phy)
+
+    # read characters + states
+    f = open(geo_fn, 'r')
+    m = f.read().splitlines()
+    f.close()
+    y = re.search(string=m[2], pattern='NCHAR=([0-9]+)')
+    z = re.search(string=m[3], pattern='SYMBOLS="([0-9A-Za-z]+)"')
+    num_char = int(y.group(1))
+    states = z.group(1)
+    num_states = len(states)
+    num_combo = num_char * num_states
+
+    # get taxon data
+    taxon_state_block = m[ m.index('Matrix')+1 : m.index('END;')-1 ]
+    taxon_states = [ x.split(' ')[-1] for x in taxon_state_block ]
+
+    # freqs of entire char-set
+    freq_taxon_states = np.zeros(num_char, dtype='float')
+    for i in range(num_char):
+        summ_stats['char_' + str(i)] = 0
+    for k in list(states_bits_str_inv.keys()):
+        #freq_taxon_states[ states_bits_str_inv[k] ] = taxon_states.count(k) / num_taxa
+        summ_stats['state_' + str(k)] = taxon_states.count(k) / num_taxa
+        for i,j in enumerate(k):
+            if j != '0':
+                summ_stats['char_' + str(i)] += summ_stats['state_' + k]
+
+    return summ_stats
+
+def make_summ_stat_str(ss):
+    keys_str = ','.join( list(ss.keys()) ) + '\n'
+    vals_str = ','.join( [ str(x) for x in ss.values() ] ) + '\n'
+    return keys_str + vals_str

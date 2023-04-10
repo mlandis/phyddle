@@ -18,13 +18,13 @@ from keras import layers
 
 # analysis settings
 settings = {}
-settings['max_taxa'] = 500
-settings['num_test'] = 50
-settings['num_validation'] = 200
-settings['num_epoch'] = 40
+settings['max_taxa'] = 200
+settings['num_test'] = 20
+settings['num_validation'] = 20
+settings['num_epoch'] = 20
 settings['batch_size'] = 32
 settings['prefix'] = 'sim'
-settings['model_name'] = 'geosse_v5'
+settings['model_name'] = 'bd1'
 
 settings = init_cnn_settings(settings)
 
@@ -49,10 +49,16 @@ model_prefix    = train_prefix + '_batchsize' + str(batch_size) + '_numepoch' + 
 model_csv_fn    = network_dir + '/' + model_prefix + '.csv' 
 model_sav_fn    = network_dir + '/' + model_prefix + '.hdf5'
 train_data_fn   = train_dir + '/' + train_prefix + '.nt' + str(max_taxa) + '.cdvs.data.csv'
+train_stats_fn   = train_dir + '/' + train_prefix + '.nt' + str(max_taxa) + '.summ_stat.csv'
 train_labels_fn = train_dir + '/' + train_prefix + '.nt' + str(max_taxa) + '.labels.csv'
 
 # load data
-full_data,full_labels = cn.load_input(train_data_fn, train_labels_fn)
+full_data = pd.read_csv(train_data_fn, header=None, on_bad_lines='skip').to_numpy()
+full_stats = pd.read_csv(train_stats_fn, header=None, on_bad_lines='skip').to_numpy()
+full_labels = pd.read_csv(train_labels_fn, header=None, on_bad_lines='skip').to_numpy()
+
+stat_names = full_stats[0,:]
+full_stats = full_stats[1:,:].astype('float64')
 
 #full_labels = full_labels[:, [0, 3, 6, 18]]
 full_labels = full_labels[:, [3]]
@@ -60,18 +66,10 @@ param_names = full_labels[0,:]
 full_labels = full_labels[1:,:].astype('float64')
 
 # data dimensions
-max_tips   = 500 # get width of input tensor
-num_chars  = 3
+num_chars  = 3 # another way to get this??
 num_sample = full_data.shape[0]
 num_params = full_labels.shape[1]
-
-# not sure if we need this...
-#num_tips = cn.get_num_tips(full_data)
-#subsample_prop = full_data[:,(max_tips-1)*7] # why times 7?? I think this has to do with spare tree sampling
-#mu = full_data[:,(max_tips-3)*7] # not sure
-
-# subsample_prop : find subsample proportion stats from cblv file for epi phylogeo
-# use max_tips to split cblv input tensor from summary stats tensor
+num_stats = full_stats.shape[1]
 
 # take logs of labels (rates)
 # for variance stabilization for heteroskedastic (variance grows with mean)
@@ -82,6 +80,7 @@ full_labels = np.log(full_labels)
 # training/validation accuracy
 randomized_idx = np.random.permutation(full_data.shape[0])
 full_data      = full_data[randomized_idx,:]
+full_stats     = full_stats[randomized_idx,:]
 full_labels    = full_labels[randomized_idx,:]
 
 # reshape full_data
@@ -93,51 +92,69 @@ val_idx   = np.arange( num_test, num_test+num_val )
 test_idx  = np.arange( 0, num_test )
 
 # create & normalize label tensors
-labels = full_labels[:,:] # 2nd column was 5:12 previously to exclude ancestral stem location
+#labels = full_labels[:,:] # 2nd column was 5:12 previously to exclude ancestral stem location
+
+# normalize summary stats
+norm_train_stats, train_stats_means, train_stats_sd = cn.normalize( full_stats[train_idx,:] )
+norm_val_stats  = cn.normalize(full_stats[val_idx,:], (train_stats_means, train_stats_sd))
+norm_test_stats = cn.normalize(full_stats[test_idx,:], (train_stats_means, train_stats_sd))
 
 # (option for diff schemes) try normalizing against 0 to 1
-norm_train_labels, train_label_means, train_label_sd = cn.normalize( labels[train_idx,:] )
-norm_val_labels  = cn.normalize(labels[val_idx,:], (train_label_means, train_label_sd))
-norm_test_labels = cn.normalize(labels[test_idx,:], (train_label_means, train_label_sd))
+norm_train_labels, train_label_means, train_label_sd = cn.normalize( full_labels[train_idx,:] )
+norm_val_labels  = cn.normalize(full_labels[val_idx,:], (train_label_means, train_label_sd))
+norm_test_labels = cn.normalize(full_labels[test_idx,:], (train_label_means, train_label_sd))
 
 # potentially create new tensor that pulls info from both data and labels (Ammon advises put only in data)
 # create data tensors
-train_treeLocation_tensor = full_data[train_idx,:]
-val_treeLocation_tensor   = full_data[val_idx,:]
-test_treeLocation_tensor  = full_data[test_idx,:]
+train_data_tensor = full_data[train_idx,:]
+val_data_tensor   = full_data[val_idx,:]
+test_data_tensor  = full_data[test_idx,:]
+
+# summary stats
+train_stats_tensor = full_stats[train_idx,:]
+val_stats_tensor   = full_stats[val_idx,:]
+test_stats_tensor  = full_stats[test_idx,:]
 
 # initializer
-initializer = tf.keras.initializers.GlorotUniform()
+#initializer = tf.keras.initializers.GlorotUniform()
 
 # Build CNN
-input_treeLocation_tensor = Input(shape = train_treeLocation_tensor.shape[1:3])
+input_data_tensor = Input(shape = train_data_tensor.shape[1:3])
 
 # double-check this stuff
 # 64 patterns you expect to see, width of 3, stride (skip-size) of 1, padding zeroes so all windows are 'same'
 # convolutional layers
-w_conv = layers.Conv1D(64, 3, activation = 'relu', padding = 'same', kernel_initializer=initializer)(input_treeLocation_tensor)
+w_conv = layers.Conv1D(64, 3, activation = 'relu', padding = 'same')(input_data_tensor)
 #w_conv = layers.Conv1D(64, 5, activation = 'relu', padding = 'same')(w_conv)
 #w_conv = layers.Conv1D(96, 5, activation = 'relu', padding = 'same')(w_conv)
-w_conv = layers.Conv1D(128, 5, activation = 'relu', padding = 'same', kernel_initializer=initializer)(w_conv)
+w_conv = layers.Conv1D(128, 5, activation = 'relu', padding = 'same')(w_conv)
 #w_conv = layers.Conv1D(256, 7, activation = 'relu', padding = 'same')(w_conv)
 w_conv_global_avg = layers.GlobalAveragePooling1D(name = 'w_conv_global_avg')(w_conv)
 
 # stride layers
-w_stride = layers.Conv1D(64, 7, strides = 3, activation = 'relu', padding = 'same')(input_treeLocation_tensor)
+w_stride = layers.Conv1D(64, 7, strides = 3, activation = 'relu', padding = 'same')(input_data_tensor)
 w_stride = layers.Conv1D(96, 9, strides = 6, activation = 'relu', padding = 'same')(w_stride)
 w_stride_global_avg = layers.GlobalAveragePooling1D(name = 'w_stride_global_avg')(w_stride)
 
-# tree + geolocation dilated
-w_dilated = layers.Conv1D(32, 3, dilation_rate = 2, activation = 'relu', padding = "same")(input_treeLocation_tensor)
+# dilation layers
+w_dilated = layers.Conv1D(32, 3, dilation_rate = 2, activation = 'relu', padding = "same")(input_data_tensor)
 #w_dilated = layers.Conv1D(64, 5, dilation_rate = 4, activation = 'relu', padding = "same")(w_dilated)
 w_dilated = layers.Conv1D(128, 7, dilation_rate = 8, activation = 'relu', padding = "same")(w_dilated)
 w_dilated_global_avg = layers.GlobalAveragePooling1D(name = 'w_dilated_global_avg')(w_dilated)
 
+
+# summary stats
+input_stats_tensor = Input(shape = train_stats_tensor.shape[1:2])
+w_stats_ffnn = layers.Dense(128, activation = 'relu', kernel_initializer = 'VarianceScaling')(input_stats_tensor)
+w_stats_ffnn = layers.Dense(64, activation = 'relu', kernel_initializer = 'VarianceScaling')(w_stats_ffnn)
+w_stats_ffnn = layers.Dense(32, activation = 'relu', kernel_initializer = 'VarianceScaling')(w_stats_ffnn)
+
+
 # concatenate all above -> deep fully connected network
 concatenated_wxyz = layers.Concatenate(axis = 1, name = 'all_concatenated')([w_conv_global_avg,
-                                                                            w_stride_global_avg,
-                                                                             w_dilated_global_avg])
-                                                                             #priors])
+                                                                             w_stride_global_avg,
+                                                                             w_dilated_global_avg,
+                                                                             w_stats_ffnn])
 
 # VarianceScaling for kernel initializer (look up?? )
 wxyz = layers.Dense(128, activation = 'relu', kernel_initializer = 'VarianceScaling')(concatenated_wxyz)
@@ -155,7 +172,7 @@ output_params = layers.Dense(num_params, activation = 'linear', name = "params")
 # var = tf.Variable(tf.initializers.GlorotUniform()(shape=shape))
 
 # instantiate MODEL
-mymodel = Model(inputs = [input_treeLocation_tensor], #, input_priors_tensor], 
+mymodel = Model(inputs = [input_data_tensor, input_stats_tensor], 
                 outputs = output_params)
 
 my_loss = "mse"
@@ -163,11 +180,11 @@ mymodel.compile(optimizer = 'adam',
                 loss = my_loss, 
                 metrics = ['mae', 'acc', 'mape'])
 
-history = mymodel.fit([train_treeLocation_tensor], #, train_prior_tensor], 
+history = mymodel.fit([train_data_tensor, train_stats_tensor], 
                       norm_train_labels,
                       epochs = num_epochs,
                       batch_size = batch_size, 
-                      validation_data = ([val_treeLocation_tensor], norm_val_labels))
+                      validation_data = ([val_data_tensor, val_stats_tensor], norm_val_labels))
 # validation_splitq
 # use_multiprocessing
 
@@ -175,13 +192,14 @@ history = mymodel.fit([train_treeLocation_tensor], #, train_prior_tensor],
 cn.make_history_plot(history, plot_dir=plot_dir)
 
 # evaluate ???
-mymodel.evaluate([test_treeLocation_tensor], norm_test_labels)
+mymodel.evaluate([test_data_tensor, test_stats_tensor], norm_test_labels)
 
 # scatter plot training prediction to truth
-normalized_train_preds = mymodel.predict([train_treeLocation_tensor[0:1000,:,:]])
+max_idx = 1000
+normalized_train_preds = mymodel.predict([train_data_tensor[some_idx,:,:], train_stats_tensor[some_idx,:]])
 
 # reverse normalization
-denormalized_train_labels = cn.denormalize(norm_train_labels[0:1000,:], train_label_means, train_label_sd)
+denormalized_train_labels = cn.denormalize(norm_train_labels[some_idx,:], train_label_means, train_label_sd)
 denormalized_train_labels = np.exp(denormalized_train_labels)
 train_preds = cn.denormalize(normalized_train_preds, train_label_means, train_label_sd)
 train_preds = np.exp(train_preds)
