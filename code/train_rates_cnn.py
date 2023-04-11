@@ -11,12 +11,14 @@ import cnn_utilities as cn
 import sklearn
 import matplotlib as plt
 import eli5
-from eli5.sklearn import PermutationImportance
 
+from eli5.sklearn import PermutationImportance  # check for important input features?
 from phyddle_util import *
 from scipy.stats import kde
 from keras import *
 from keras import layers
+
+from PyPDF2 import PdfMerger
 
 # analysis settings
 settings = {}
@@ -128,8 +130,8 @@ input_data_tensor = Input(shape = train_data_tensor.shape[1:3])
 # convolutional layers
 w_conv = layers.Conv1D(64, 3, activation = 'relu', padding = 'same', name='in_conv_std')(input_data_tensor)
 #w_conv = layers.Conv1D(64, 5, activation = 'relu', padding = 'same')(w_conv)
-#w_conv = layers.Conv1D(96, 5, activation = 'relu', padding = 'same')(w_conv)
-w_conv = layers.Conv1D(128, 5, activation = 'relu', padding = 'same')(w_conv)
+w_conv = layers.Conv1D(96, 5, activation = 'relu', padding = 'same')(w_conv)
+w_conv = layers.Conv1D(128, 7, activation = 'relu', padding = 'same')(w_conv)
 #w_conv = layers.Conv1D(256, 7, activation = 'relu', padding = 'same')(w_conv)
 w_conv_global_avg = layers.GlobalAveragePooling1D(name = 'w_conv_global_avg')(w_conv)
 
@@ -140,8 +142,8 @@ w_stride_global_avg = layers.GlobalAveragePooling1D(name = 'w_stride_global_avg'
 
 # dilation layers
 w_dilated = layers.Conv1D(32, 3, dilation_rate = 2, activation = 'relu', padding = 'same', name='in_conv_dilation')(input_data_tensor)
-#w_dilated = layers.Conv1D(64, 5, dilation_rate = 4, activation = 'relu', padding = "same")(w_dilated)
-w_dilated = layers.Conv1D(128, 7, dilation_rate = 8, activation = 'relu', padding = 'same')(w_dilated)
+w_dilated = layers.Conv1D(64, 5, dilation_rate = 4, activation = 'relu', padding = "same")(w_dilated)
+#w_dilated = layers.Conv1D(128, 7, dilation_rate = 8, activation = 'relu', padding = 'same')(w_dilated)
 w_dilated_global_avg = layers.GlobalAveragePooling1D(name = 'w_dilated_global_avg')(w_dilated)
 
 
@@ -160,8 +162,8 @@ concatenated_wxyz = layers.Concatenate(axis = 1, name = 'all_concatenated')([w_c
 
 # VarianceScaling for kernel initializer (look up?? )
 wxyz = layers.Dense(128, activation = 'relu', kernel_initializer = 'VarianceScaling')(concatenated_wxyz)
-#wxyz = layers.Dense(128, activation = 'relu', kernel_initializer = 'VarianceScaling')(wxyz)
-#wxyz = layers.Dense(64, activation = 'relu', kernel_initializer = 'VarianceScaling')(wxyz)
+#wxyz = layers.Dense(96, activation = 'relu', kernel_initializer = 'VarianceScaling')(wxyz)
+wxyz = layers.Dense(64, activation = 'relu', kernel_initializer = 'VarianceScaling')(wxyz)
 wxyz = layers.Dense(32, activation = 'relu', kernel_initializer = 'VarianceScaling')(wxyz)
 
 output_params = layers.Dense(num_params, activation = 'linear', name = "params")(wxyz)
@@ -207,7 +209,7 @@ train_preds = cn.denormalize(normalized_train_preds, train_label_means, train_la
 train_preds = np.exp(train_preds)
 
 # make scatter plots
-cn.plot_preds_labels(train_preds, denormalized_train_labels, param_names = param_names, prefix='train', plot_dir=plot_dir)
+cn.plot_preds_labels(train_preds, denormalized_train_labels, param_names = param_names, prefix='train', plot_dir=plot_dir, title='Train predictions')
 
 # scatter plot test prediction to truth
 normalized_test_preds = mymodel.predict([test_data_tensor, test_stats_tensor])
@@ -219,7 +221,7 @@ test_preds = cn.denormalize(normalized_test_preds, train_label_means, train_labe
 test_preds = np.exp(test_preds)
 
 # summarize results
-cn.plot_preds_labels(test_preds[0:1000,:], denormalized_test_labels[0:1000,:], param_names=param_names, prefix='test', plot_dir=plot_dir)
+cn.plot_preds_labels(test_preds[0:1000,:], denormalized_test_labels[0:1000,:], param_names=param_names, prefix='test', plot_dir=plot_dir, title='Test predictions')
 
 # SAVE MODEL to FILE
 all_means = train_label_means #np.append(train_label_means, train_aux_priors_means)
@@ -231,6 +233,16 @@ with open(model_csv_fn, 'w') as file:
     the_writer.writerow(np.append( 'sd', all_sd))
 
 mymodel.save(model_sav_fn)
+
+
+# merge pdfs
+merger = PdfMerger()
+files = os.listdir(plot_dir)
+for f in files:
+    if '.pdf' in f:
+        merger.append(plot_dir + '/' + f)
+
+merger.write(plot_dir + '/all_results.pdf')
 
 #mymodel.weights
 #mymodel.trainable_variables

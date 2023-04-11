@@ -169,8 +169,9 @@ def make_history_plot(history, plot_dir):
         plt.clf()
 
 
-def plot_preds_labels(preds, labels, param_names, plot_dir, prefix, axis_labels = ["prediction", "truth"]):
+def plot_preds_labels(preds, labels, param_names, plot_dir, prefix, axis_labels = ["prediction", "truth"], title = ''):
     for i in range(0, len(param_names)):
+        plt.title(title)
         plt.scatter(preds[:,i], labels[:,i], alpha =0.25)
         plt.xlabel(param_names[i] + " " +  axis_labels[0])
         plt.ylabel(param_names[i] + " " +  axis_labels[1])
@@ -186,7 +187,6 @@ def plot_root_pred_examples(labels, preds, phylo_post, tip_loc_distro, num_plots
     barwidth = 0.2
     randidx = np.random.permutation(labels.shape[0]-1)[0:num_plots]
     for i in randidx:
-        print(i)
         plt.figure(figsize=(num_locs+2, 1))
         plt.bar(cats + barwidth, preds[i,:], barwidth, label = "prediction")
         plt.bar(cats, labels[i,:5], barwidth, label = "truth")
