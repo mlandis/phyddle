@@ -16,7 +16,7 @@ settings = init_process_settings(settings)
 prefix        = settings['prefix']
 #model_dir     = '../model/' + settings['model_name']
 raw_dir       = '../raw_data/' + settings['model_name'] #model_dir + '/data/raw'
-train_dir     = '../formatted_data/' + settings['model_name'] #model_dir + '/data/formatted'
+train_dir     = '../tensor_data/' + settings['model_name'] #model_dir + '/data/formatted'
 
 # make dir
 os.makedirs(train_dir, exist_ok=True)
