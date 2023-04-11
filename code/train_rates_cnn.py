@@ -40,7 +40,7 @@ max_taxa     = settings['max_taxa']
 
 # IO
 #model_dir   = '../model/' + train_model
-train_dir   = '../formatted_data/' + train_model
+train_dir   = '../tensor_data/' + train_model
 plot_dir    = '../plot/' + train_model
 network_dir = '../network/' + train_model
 
@@ -62,8 +62,8 @@ full_labels = pd.read_csv(train_labels_fn, header=None, on_bad_lines='skip').to_
 stat_names = full_stats[0,:]
 full_stats = full_stats[1:,:].astype('float64')
 
-#full_labels = full_labels[:, [0, 3, 6, 18]]
-full_labels = full_labels[:, [0,3]]
+full_labels = full_labels[:, [0, 3, 6, 18]] # geosse
+#full_labels = full_labels[:, [0,3]] # birth + death
 param_names = full_labels[0,:]
 full_labels = full_labels[1:,:].astype('float64')
 

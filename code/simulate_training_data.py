@@ -120,10 +120,10 @@ def sim_one(k):
 
     # generate GeoSSE rates
     rates = make_rates(regions, states, events, settings)
-    rates['r_w'] = rates['r_w'] * 0.75
-    rates['r_d'] = rates['r_d'] * 0.0 # 0.1
+    rates['r_w'] = rates['r_w'] * 0.7
+    rates['r_d'] = rates['r_d'] * 0.1
     rates['r_e'] = rates['r_e'] * 0.1 # 0.1
-    rates['r_b'] = rates['r_b'] * 0.0 # 10.0
+    rates['r_b'] = rates['r_b'] * 3.0
 
     # generate MASTER XML string
     xml_str = make_xml(events, rates, states, states_str, settings)
