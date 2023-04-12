@@ -11,6 +11,7 @@ import cnn_utilities as cn
 import sklearn
 import matplotlib as plt
 import eli5
+import pydot, pydot_ng, plot_model
 
 from eli5.sklearn import PermutationImportance  # check for important input features?
 from phyddle_util import *
@@ -244,5 +245,14 @@ for f in files:
 
 merger.write(plot_dir + '/all_results.pdf')
 
+
+
+#import visualkeras
+#model_viz_fn = plot_dir + '/' + model_prefix + '.model_viz.pdf'
+#visualkeras.layered_view(mymodel, legend=True, draw_volume=False, spacing=30, to_file=model_viz_fn) # without custom font
+
+model_arch_fn = plot_dir + '/' + model_prefix + '.model_architecture.pdf'
+#plot_model.plot_model(mymodel, to_file=model_arch_fn, show_shapes=True, show_layer_names=False, rankdir='TB', expand_nested=False, style=0, color=True, dpi=96)
+tf.keras.utils.plot_model(mymodel, to_file=model_arch_fn, show_shapes=True, show_layer_names=True)
 #mymodel.weights
 #mymodel.trainable_variables
