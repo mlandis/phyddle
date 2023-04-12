@@ -161,10 +161,13 @@ def sim_one(k):
         # then get CBLVS working
         cblv,new_order = vectorize_tree(tre_fn, max_taxa=taxon_size_k, prob=1.0 )
         cblvs = make_cblvs_geosse(cblv, taxon_states, new_order)
-        
-        # get CDVS working
-        # cdvs = cdvs_util.make_cdvs(tre_fn, taxon_size_k, taxon_states, states_bits_str)
-        cdvs = cdvs_util.make_cdvs(prune_fn, taxon_size_k, taxon_states, states_bits_str)
+       
+        # NOTE: this if statement should not be needed, but for some reason the "next"
+        # seems to run even when make_prune_phy returns False
+        if prune_success:
+            # get CDVS working
+            # cdvs = cdvs_util.make_cdvs(tre_fn, taxon_size_k, taxon_states, states_bits_str)
+            cdvs = cdvs_util.make_cdvs(prune_fn, taxon_size_k, taxon_states, states_bits_str)
 
         # output files
         mt_size   = cblv.shape[1]
@@ -195,10 +198,11 @@ def sim_one(k):
     write_to_file(cblvs_str, cblvs_fn)
 
     # record CDVS data
-    cdvs = cdvs.to_numpy()
-    cdvs_str = np.array2string(cdvs, separator=',', max_line_width=1e200, threshold=1e200, edgeitems=1e200)
-    cdvs_str = cdvs_str.replace(' ','').replace('.,',',').strip('[].') + '\n'
-    write_to_file(cdvs_str, cdvs_fn)
+    if prune_success:
+        cdvs = cdvs.to_numpy()
+        cdvs_str = np.array2string(cdvs, separator=',', max_line_width=1e200, threshold=1e200, edgeitems=1e200)
+        cdvs_str = cdvs_str.replace(' ','').replace('.,',',').strip('[].') + '\n'
+        write_to_file(cdvs_str, cdvs_fn)
 
     # record summ stat data
     ss = make_summ_stat(tre_fn, geo_fn, states_bits_str_inv)
