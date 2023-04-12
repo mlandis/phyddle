@@ -506,7 +506,7 @@ def make_xml(events, rates, states, states_str, settings):
     # between-region speciation
     xml_between_speciation = "<reactionGroup spec='ReactionGroup' reactionGroupName='BetweenRegionSpeciation'>\n"
     for k,v in enumerate(events['between_region_speciation']):
-        xml_between_speciation += "\t<reaction spec='Reaction' reactionName='BetweenRegionSpeciation-{i},{j},{k}' rate='{r}'>\n\t\t{i}:1 -> {j}:1 + {k}:1\n\t</reaction>\n".format(i=states_str[v[0]], j=states_str[v[1]], k=states_str[v[2]], r=1.0)
+        xml_between_speciation += "\t<reaction spec='Reaction' reactionName='BetweenRegionSpeciation-{i},{j},{k}' rate='{r}'>\n\t\t{i}:1 -> {j}:1 + {k}:1\n\t</reaction>\n".format(i=states_str[v[0]], j=states_str[v[1]], k=states_str[v[2]], r=r_b[0][0]) #### @TODO MJL 230411: FIX TO BE EVENT-PATTERN-DEPENDENT
     xml_between_speciation += "</reactionGroup>\n"
 
     # collect XML model settings
@@ -622,6 +622,10 @@ def make_prune_phy(tre_fn, prune_fn):
     drop_taxon_labels = [ k for k,v in d.items() if v > 1e-12 ]
     # abort if pruned tree would be invalid
     if len(leaf_nodes) - len(drop_taxon_labels) < 2:
+        print( "leaf_nodes ==>", leaf_nodes)
+        print( "drop_taxon_labels ==>", drop_taxon_labels )
+        print( "len(leaf_nodes) ==>", len(leaf_nodes))
+        print( "len(drop_taxon_labels) ==>", len(drop_taxon_labels) )
         return False
     else:
         # prune non-extant taxa

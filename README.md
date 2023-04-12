@@ -1,6 +1,8 @@
 # phyddle
 
-Python scripts for using CNNs + deep learning to estimate SSE model parameters.
+A repository for fiddling around with Phylogenetic Deep Learning.
+
+Python pipeline scripts for using CNNs + deep learning to estimate SSE model parameters.
 
 The repository has five main directories:
 - `code` contains scripts to generate and process data
