@@ -622,6 +622,10 @@ def make_prune_phy(tre_fn, prune_fn):
     drop_taxon_labels = [ k for k,v in d.items() if v > 1e-12 ]
     # abort if pruned tree would be invalid
     if len(leaf_nodes) - len(drop_taxon_labels) < 2:
+        print( "leaf_nodes ==>", leaf_nodes)
+        print( "drop_taxon_labels ==>", drop_taxon_labels )
+        print( "len(leaf_nodes) ==>", len(leaf_nodes))
+        print( "len(drop_taxon_labels) ==>", len(drop_taxon_labels) )
         return False
     else:
         # prune non-extant taxa
