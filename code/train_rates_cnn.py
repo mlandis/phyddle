@@ -238,6 +238,7 @@ mymodel.save(model_sav_fn)
 # merge pdfs
 merger = PdfMerger()
 files = os.listdir(plot_dir)
+files.sort()
 for f in files:
     if '.pdf' in f:
         merger.append(plot_dir + '/' + f)
