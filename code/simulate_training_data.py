@@ -17,7 +17,6 @@ import time
 from tqdm import tqdm
 import cdvs_util
 
-
 # start time
 start = time.time()
 
@@ -150,7 +149,11 @@ def sim_one(k):
         return result_str
     else:
         # generate extinct-pruned tree
-        make_prune_phy(tre_fn, prune_fn)
+        prune_success = make_prune_phy(tre_fn, prune_fn)
+
+        # MJL 230411: probably too aggressive, should revisit
+        if not prune_success:
+            next
 
         # generate nexus file 0/1 ranges
         taxon_states = convert_geo_nex(nex_fn, tre_fn, geo_fn, states_bits)
@@ -160,7 +163,7 @@ def sim_one(k):
         cblvs = make_cblvs_geosse(cblv, taxon_states, new_order)
         
         # get CDVS working
-       # cdvs = cdvs_util.make_cdvs(tre_fn, taxon_size_k, taxon_states, states_bits_str)
+        # cdvs = cdvs_util.make_cdvs(tre_fn, taxon_size_k, taxon_states, states_bits_str)
         cdvs = cdvs_util.make_cdvs(prune_fn, taxon_size_k, taxon_states, states_bits_str)
 
         # output files
