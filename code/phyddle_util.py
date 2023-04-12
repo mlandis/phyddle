@@ -620,11 +620,15 @@ def make_prune_phy(tre_fn, prune_fn):
 
     # determine what to drop
     drop_taxon_labels = [ k for k,v in d.items() if v > 1e-12 ]
-    # prune non-extant taxa
-    phy.prune_taxa_with_labels( drop_taxon_labels )
-    # write pruned tree
-    phy.write(path=prune_fn, schema='newick')
-    return 
+    # abort if pruned tree would be invalid
+    if len(leaf_nodes) - len(drop_taxon_labels) < 2:
+        return False
+    else:
+        # prune non-extant taxa
+        phy.prune_taxa_with_labels( drop_taxon_labels )
+        # write pruned tree
+        phy.write(path=prune_fn, schema='newick')
+        return True
 
 def categorize_sizes(raw_data_dir):
     # get all files
