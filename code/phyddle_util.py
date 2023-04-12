@@ -506,7 +506,7 @@ def make_xml(events, rates, states, states_str, settings):
     # between-region speciation
     xml_between_speciation = "<reactionGroup spec='ReactionGroup' reactionGroupName='BetweenRegionSpeciation'>\n"
     for k,v in enumerate(events['between_region_speciation']):
-        xml_between_speciation += "\t<reaction spec='Reaction' reactionName='BetweenRegionSpeciation-{i},{j},{k}' rate='{r}'>\n\t\t{i}:1 -> {j}:1 + {k}:1\n\t</reaction>\n".format(i=states_str[v[0]], j=states_str[v[1]], k=states_str[v[2]], r=1.0)
+        xml_between_speciation += "\t<reaction spec='Reaction' reactionName='BetweenRegionSpeciation-{i},{j},{k}' rate='{r}'>\n\t\t{i}:1 -> {j}:1 + {k}:1\n\t</reaction>\n".format(i=states_str[v[0]], j=states_str[v[1]], k=states_str[v[2]], r=r_b[0][0]) #### @TODO MJL 230411: FIX TO BE EVENT-PATTERN-DEPENDENT
     xml_between_speciation += "</reactionGroup>\n"
 
     # collect XML model settings
