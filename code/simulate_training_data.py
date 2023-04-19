@@ -17,7 +17,6 @@ import time
 from tqdm import tqdm
 import cdvs_util
 
-
 # start time
 start = time.time()
 
@@ -101,29 +100,37 @@ settings['rv_effect'] = rv_effect
 # generate GeoSSE events
 events = make_events(regions, states, states_inv)
 
-
 # main simulation function (looped)
 def sim_one(k):
 
-    # update info for replicate
-    settings['out_path'] = out_path+"."+str(k)
+    # make filenames
+    tmp_fn    = out_path + '.' + str(k)
+    geo_fn    = tmp_fn + '.geosse.nex'
+    tre_fn    = tmp_fn + '.tre'
+    prune_fn  = tmp_fn + '.extant.tre'
+    beast_fn  = tmp_fn + '.beast.log'
+    xml_fn    = tmp_fn + '.xml'
+    nex_fn    = tmp_fn + '.nex'
+    cblvs_fn  = tmp_fn + '.cblvs.csv'
+    cdvs_fn   = tmp_fn + '.cdvs.csv'
+    param1_fn = tmp_fn + '.param1.csv'
+    param2_fn = tmp_fn + '.param2.csv'
+    ss_fn     = tmp_fn + '.summ_stat.csv'
+    info_fn   = tmp_fn + '.info.csv'
+    #cblvs_fn  = tmp_fn + '.cblvs.csv'
+    #param1_fn = tmp_fn + '.param1.csv'
+    #param2_fn = tmp_fn + '.param2.csv'
+
+    # update settings
+    settings['out_path'] = tmp_fn
     settings['replicate_index'] = k
-    geo_fn    = settings['out_path'] + '.geosse.nex'
-    tre_fn    = settings['out_path'] + '.tre'
-    prune_fn  = settings['out_path'] + '.extant.tre'
-    nex_fn    = settings['out_path'] + '.nex'
-    cblvs_fn  = settings['out_path'] + '.cblvs.csv'
-    param1_fn = settings['out_path'] + '.param1.csv'
-    param2_fn = settings['out_path'] + '.param2.csv'
-    beast_fn  = settings['out_path'] + '.beast.log'
-    xml_fn    = settings['out_path'] + '.xml'
 
     # generate GeoSSE rates
     rates = make_rates(regions, states, events, settings)
-    rates['r_w'] = rates['r_w'] * 0.75
-    rates['r_d'] = rates['r_d'] * 0.0 # 0.1
-    rates['r_e'] = rates['r_e'] * 0.0 # 0.1
-    rates['r_b'] = rates['r_b'] * 0.0 # 10.0
+    rates['r_w'] = rates['r_w'] * 0.5
+    rates['r_d'] = rates['r_d'] * 0.5
+    rates['r_e'] = rates['r_e'] * 0.2 # 0.1
+    rates['r_b'] = rates['r_b'] * 1.0
 
     # generate MASTER XML string
     xml_str = make_xml(events, rates, states, states_str, settings)
@@ -139,40 +146,44 @@ def sim_one(k):
     n_taxa_k = get_num_taxa(tre_fn, k, max_taxa)
     taxon_size_k = find_taxon_size(n_taxa_k, max_taxa)
 
-    #print(n_taxa_k,taxon_size_k,max_taxa)
-    if n_taxa_k <= 0:
-        cblvs = np.zeros( shape=(1,(2+num_chars)*max_taxa[0]) )
+    # handle simulation based on tree size
+    if n_taxa_k > np.max(max_taxa):
+        # do nothing!
         result_str = '- replicate {k} simulated n_taxa={nt}'.format(k=k,nt=n_taxa_k)
         return result_str
-    elif n_taxa_k > np.max(max_taxa):
-        cblvs = np.zeros( shape=(1,(2+num_chars)*np.max(max_taxa)) )
+    elif n_taxa_k <= 0:
+        # write empty CDVS
         result_str = '- replicate {k} simulated n_taxa={nt}'.format(k=k,nt=n_taxa_k)
+        #cblvs = np.zeros( shape=(1,(2+num_chars)*max_taxa[0]) )
+        #cdvs  = np.zeros( shape=(1,(1+num_chars)*max_taxa[0]) )
         return result_str
     else:
+        result_str = '+ replicate {k} simulated n_taxa={nt}'.format(k=k,nt=n_taxa_k)
+
         # generate extinct-pruned tree
-        #prune_phy(tre_fn, prune_fn)
+        prune_success = make_prune_phy(tre_fn, prune_fn)
+
+        # MJL 230411: probably too aggressive, should revisit
+        if not prune_success:
+            next
 
         # generate nexus file 0/1 ranges
         taxon_states = convert_geo_nex(nex_fn, tre_fn, geo_fn, states_bits)
+
         # then get CBLVS working
         cblv,new_order = vectorize_tree(tre_fn, max_taxa=taxon_size_k, prob=1.0 )
         cblvs = make_cblvs_geosse(cblv, taxon_states, new_order)
-        
-        # get CDVS working
-        cdvs = cdvs_util.make_cdvs(tre_fn, taxon_size_k, taxon_states, states_bits_str)
+       
+        # NOTE: this if statement should not be needed, but for some reason the "next"
+        # seems to run even when make_prune_phy returns False
+        if prune_success:
+            # get CDVS working
+            # cdvs = cdvs_util.make_cdvs(tre_fn, taxon_size_k, taxon_states, states_bits_str)
+            cdvs = cdvs_util.make_cdvs(prune_fn, taxon_size_k, taxon_states, states_bits_str)
 
         # output files
         mt_size   = cblv.shape[1]
         #tmp_fn = mt_out_dir[mt_size] + '/' + out_prefix + '.' + str(k)
-        tmp_fn    = out_path + '.' + str(k)
-        cblvs_fn  = tmp_fn + '.cblvs.csv'
-        cdvs_fn   = tmp_fn + '.cdvs.csv'
-        ss_fn     = tmp_fn + '.summ_stat.csv'
-        param1_fn = tmp_fn + '.param1.csv'
-        param2_fn = tmp_fn + '.param2.csv'
-        info_fn   = tmp_fn + '.info.csv'
-
-        result_str = '+ replicate {k} simulated n_taxa={nt}'.format(k=k,nt=n_taxa_k)
 
 
     # record info
@@ -190,10 +201,11 @@ def sim_one(k):
     write_to_file(cblvs_str, cblvs_fn)
 
     # record CDVS data
-    cdvs = cdvs.to_numpy()
-    cdvs_str = np.array2string(cdvs, separator=',', max_line_width=1e200, threshold=1e200, edgeitems=1e200)
-    cdvs_str = cdvs_str.replace(' ','').replace('.,',',').strip('[].') + '\n'
-    write_to_file(cdvs_str, cdvs_fn)
+    if prune_success:
+        cdvs = cdvs.to_numpy()
+        cdvs_str = np.array2string(cdvs, separator=',', max_line_width=1e200, threshold=1e200, edgeitems=1e200)
+        cdvs_str = cdvs_str.replace(' ','').replace('.,',',').strip('[].') + '\n'
+        write_to_file(cdvs_str, cdvs_fn)
 
     # record summ stat data
     ss = make_summ_stat(tre_fn, geo_fn, states_bits_str_inv)
@@ -202,17 +214,11 @@ def sim_one(k):
 
     return result_str
 
-
 # dispatch jobs
-#use_parallel = False
 if use_parallel:
     res = Parallel(n_jobs=num_jobs)(delayed(sim_one)(k) for k in tqdm(rep_idx))
 else:
-    res = [ sim_one(k) for k in rep_idx ]
-#    res = []
-#    for k in rep_idx:
-#        res_k = sim_one(k)
-#        res.append(res_k)
+    res = [ sim_one(k) for k in tqdm(rep_idx) ]
         
 # end time
 end = time.time()
@@ -220,18 +226,6 @@ delta_time = np.round(end-start, decimals=3)
 
 print('Elapsed time:', delta_time, 'seconds')
 
-
-## other stuff to write?
-## job summary
-#write_to_file(param1_str, results_fn)
-#results = '\n'.join(res)
-
-## state spaces stuff
-#print('states ==> ', states, '\n')
-#print('states_bits ==> ', states_bits, '\n')
-#print('events ==>', events, '\n')
-
-# raw file de/compression?
 
 # done!
 print('...done!')

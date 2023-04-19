@@ -506,7 +506,7 @@ def make_xml(events, rates, states, states_str, settings):
     # between-region speciation
     xml_between_speciation = "<reactionGroup spec='ReactionGroup' reactionGroupName='BetweenRegionSpeciation'>\n"
     for k,v in enumerate(events['between_region_speciation']):
-        xml_between_speciation += "\t<reaction spec='Reaction' reactionName='BetweenRegionSpeciation-{i},{j},{k}' rate='{r}'>\n\t\t{i}:1 -> {j}:1 + {k}:1\n\t</reaction>\n".format(i=states_str[v[0]], j=states_str[v[1]], k=states_str[v[2]], r=1.0)
+        xml_between_speciation += "\t<reaction spec='Reaction' reactionName='BetweenRegionSpeciation-{i},{j},{k}' rate='{r}'>\n\t\t{i}:1 -> {j}:1 + {k}:1\n\t</reaction>\n".format(i=states_str[v[0]], j=states_str[v[1]], k=states_str[v[2]], r=r_b[0][0]) #### @TODO MJL 230411: FIX TO BE EVENT-PATTERN-DEPENDENT
     xml_between_speciation += "</reactionGroup>\n"
 
     # collect XML model settings
@@ -594,12 +594,45 @@ def regions_to_binary(states, states_str, regions):
             x[states_str[i]][j] = '1'
     return x
 
-def prune_phy(tre_fn, prune_fn):
+## set return None if bad, then flag the index as a bad sim.
+def make_prune_phy(tre_fn, prune_fn):
     # read tree
-    tre_file = open(tre_fn, 'r')
-    # prune non-extant taxa
-    # write pruned tree
-    return
+    phy = dp.Tree.get(path=tre_fn, schema='newick')
+    # compute all root-to-node distances
+    root_distances = phy.calc_node_root_distances()
+    # find tree height (max root-to-node distance)
+    tree_height = np.max( root_distances )
+    # create empty dictionary
+    d = {}
+    # loop through all leaf nodes
+    leaf_nodes = phy.leaf_nodes()
+    for i,nd in enumerate(leaf_nodes):
+        # convert root-distances to ages
+        age = tree_height - nd.root_distance
+        nd.annotations.add_new('age', age)
+        # ultrametricize ages for extant taxa
+        if age < 1e-6:
+            age = 0.0
+        # store taxon and age in dictionary
+        taxon_name = str(nd.taxon).strip('\'')
+        taxon_name = taxon_name.replace(' ', '_')
+        d[ taxon_name ] = age
+
+    # determine what to drop
+    drop_taxon_labels = [ k for k,v in d.items() if v > 1e-12 ]
+    # abort if pruned tree would be invalid
+    if len(leaf_nodes) - len(drop_taxon_labels) < 2:
+        print( "leaf_nodes ==>", leaf_nodes)
+        print( "drop_taxon_labels ==>", drop_taxon_labels )
+        print( "len(leaf_nodes) ==>", len(leaf_nodes))
+        print( "len(drop_taxon_labels) ==>", len(drop_taxon_labels) )
+        return False
+    else:
+        # prune non-extant taxa
+        phy.prune_taxa_with_labels( drop_taxon_labels )
+        # write pruned tree
+        phy.write(path=prune_fn, schema='newick')
+        return True
 
 def categorize_sizes(raw_data_dir):
     # get all files
@@ -877,16 +910,18 @@ def make_summ_stat(tre_fn, geo_fn, states_bits_str_inv):
     # read tree + states
     phy = dp.Tree.get(path=tre_fn, schema="newick")
     num_taxa = len(phy.leaf_nodes())
+    root_distances = phy.calc_node_root_distances()
+    tree_height = np.max( root_distances )
 
     # tree statistics
     summ_stats['tree_length'] = phy.length()
-    summ_stats['tree_height'] = max(phy.calc_node_ages())
-    summ_stats['B1'] = dp.calculate.treemeasure.B1(phy)
-    summ_stats['N_bar'] = dp.calculate.treemeasure.N_bar(phy)
-    summ_stats['colless'] = dp.calculate.treemeasure.colless_tree_imbalance(phy)
-    summ_stats['gamma'] = dp.calculate.treemeasure.pybus_harvey_gamma(phy)
-    summ_stats['sackin'] = dp.calculate.treemeasure.sackin_index(phy)
-    summ_stats['treeness'] = dp.calculate.treemeasure.treeness(phy)
+    summ_stats['tree_height'] = tree_height
+    summ_stats['B1']          = dp.calculate.treemeasure.B1(phy)
+    summ_stats['N_bar']       = dp.calculate.treemeasure.N_bar(phy)
+    summ_stats['colless']     = dp.calculate.treemeasure.colless_tree_imbalance(phy)
+    #summ_stats['gamma']       = dp.calculate.treemeasure.pybus_harvey_gamma(phy)
+    #summ_stats['sackin']      = dp.calculate.treemeasure.sackin_index(phy)
+    summ_stats['treeness']    = dp.calculate.treemeasure.treeness(phy)
 
     # read characters + states
     f = open(geo_fn, 'r')
