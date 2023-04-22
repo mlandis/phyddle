@@ -49,8 +49,9 @@ def generate_reactions(reaction_string, index_sizes, reaction_group_name, rate_f
             # Calculate the rate using the provided rate function
             rate = rate_fn(index_combinations[combo_idx], state_space)
 
-            # if
+            # only store valid positive-valued rates
             if rate > 0.0:
+                
                 # Store the reaction rate in the rxn_rates dictionary
                 rxn_rates[reaction_name] = rate
 

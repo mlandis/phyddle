@@ -82,4 +82,4 @@ def d_rate_fn(idx, s):
 
 d_rate_fn( (1,3), ss )
 
-generate_reactions( reaction_string_d, index_sizes_d, reaction_group_name_d, d_rate_fn, state_space=ss)
+zz = generate_reactions( reaction_string_d, index_sizes_d, reaction_group_name_d, d_rate_fn, state_space=ss)
