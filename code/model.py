@@ -4,6 +4,7 @@
 import pandas as pd
 import numpy as np
 import scipy as sp
+import random
 #import itertools
 #import collections
 #import math
@@ -13,9 +14,9 @@ import scipy as sp
 class Event:
     # initialize
     def __init__(self, idx, r=0.0, n=None, g=None, x=None, d=None):
-        self.i = None
-        self.j = None
-        self.k = None
+        self.i = -1
+        self.j = -1
+        self.k = -1
         self.idx = idx
         if 'i' in idx:
             self.i = idx['i']
@@ -119,12 +120,84 @@ class EventSpace:
         
 
 # model itself
-
 class Model:
     # initialization
-    def __init__(self, state_space, event_space, rates_to_events, base_rates):
-        self.state_space = state_space
-        self.event_space = event_space
-        self.rates_to_events = rates_to_events
-        self.base_rates = base_rates
+    def __init__(self, events, statespace):
+        self.statespace = statespace
+        self.events = events
+        print(self.statespace)
+        #self.xml = self.make_xml(events, statespace)
+    
+    def make_xml(self, max_taxa, newick_fn, nexus_fn, json_fn):
+        print(self.statespace)
+        # NOTE: uniform root state sampling is not ideal
+        start_index = random.sample(self.statespace.int2int, 1)[0]
+        start_state = 'S[{i}]'.format(i=start_index)
 
+        # states
+        xml_events = ''
+        xml_events += "<populationType spec='PopulationType' typeName='X' id='X'/>\n"
+        #states = self.statespace.int2int
+        for st in self.statespace.int2int:
+            xml_events += "<populationType spec='PopulationType' typeName='S[{st}]' id='{st}'/>\n".format(st=st)
+
+        # get groups
+        #groups = set([ e.group for e in events ])
+        groups = set(self.events.group)
+        for g in groups:
+            xml_events += "<reactionGroup spec='ReactionGroup' reactionGroupName='{g}'>\n".format(g=g)
+            #for row in self.events[ self.events.group == g ]:
+            for i in range(0, len(self.events[ self.events.group == g ])):
+                row = self.events[ self.events.group == g ].iloc[i]
+                rate     = row['rate']
+                name     = row['name']
+                reaction = row['reaction']
+                print(name,rate,reaction)
+                xml_events += "\t<reaction spec='Reaction' reactionName='{n}' rate='{r}'>\n\t\t{x}\n\t</reaction>\n".format(n=name, r=rate, x=reaction)
+            xml_events += "</reactionGroup>\n"
+
+        print(xml_events)
+
+        # generate entire XML specification
+        xml_spec_str = '''\
+<beast version='2.0' namespace='master:master.model:master.steppers:master.conditions:master.postprocessors:master.outputs'>
+
+<run spec='InheritanceEnsemble'
+    verbosity='3'
+    nTraj='1'
+    nSamples='{num_samples}'
+    samplePopulationSizes='{sample_pop}'
+    simulationTime='10'
+    maxConditionRejects='1'>
+
+<model spec='Model'>
+
+{xml_events}
+
+</model>
+
+<initialState spec='InitState'>
+    <lineageSeedMultiple spec='MultipleIndividuals' copies='1' >
+            <population spec='Population' type='@{start_state}'/>
+    </lineageSeedMultiple>
+</initialState>
+
+<lineageEndCondition spec='LineageEndCondition' nLineages='{max_taxa}'
+    alsoGreaterThan='true' isRejection='false'/>
+
+<lineageEndCondition spec='LineageEndCondition' nLineages='0'
+    alsoGreaterThan='false' isRejection='false'/>
+
+<postSimCondition spec='LeafCountPostSimCondition' nLeaves='10'
+    exact='false' exceedCondition='true'/>
+
+<output spec='NewickOutput' collapseSingleChildNodes='true' fileName='{newick_fn}'/>
+<output spec='NexusOutput' fileName='{nexus_fn}'/>
+<output spec='JsonOutput' fileName='{json_fn}' />
+
+</run>
+</beast>
+'''.format(xml_events=xml_events, start_state=start_state, newick_fn=newick_fn, nexus_fn=nexus_fn, json_fn=json_fn, max_taxa=max_taxa, num_samples=1, sample_pop='false')
+        self.xml_spec_str = xml_spec_str
+        return
+        #return xml_spec_str

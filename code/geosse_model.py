@@ -1,48 +1,11 @@
 #!/usr/local/bin/python3
-from model import Event, StateSpace, RateSpace
+from model import Event, StateSpace, RateSpace, Model
 import itertools
 import string
 import scipy as sp
 import numpy as np
 import pandas as pd
   
-# Storing the value in variable result
-result = string.ascii_letters
-
-# single event
-evt = []
-evt.append( Event( {'i':0}, 0.3, 'r_e_0', 'extinction') )
-evt.append( Event( {'i':0,'j':1}, 0.4, 'r_d_0_1', 'dispersal') )
-evt.append( Event( {'i':2,'j':0,'k':1}, 0.2, 'r_b_2_0_1', 'between-region speciation') )
-print(evt)
-
-# state space
-num_char  = 3
-vec       = [ x for x in itertools.product(range(2), repeat=num_char) ][1:]
-vec       = sort_binary_vectors(vec)
-letters   = string.ascii_uppercase[0:num_char]
-lbl       = [ ''.join([ letters[i] for i,y in enumerate(x) if y == 1 ]) for x in vec ]
-#letters   = 'ABCD'
-#lbl       = [ ]
-#vec       = [ [1,0,0], [0,1,0], [0,0,1], [1,1,0], [1,0,1], [0,1,1,], [1,1,1] ]
-#lbl       = [ 'A', 'B', 'C', 'AB', 'AC', 'BC', 'ABC' ]
-lbl2vec = { k:v for k,v in list(zip(lbl,vec)) }
-ss = StateSpace(lbl2vec)
-print(ss)
-
-# rate space
-#num_char = 3
-rates = {
-    'r_w': sp.stats.expon.rvs(size=num_char),
-    'r_e': sp.stats.expon.rvs(size=num_char), 
-    'r_d': sp.stats.expon.rvs(size=num_char**2).reshape((num_char,num_char)),
-    'r_b': sp.stats.expon.rvs(size=num_char**2).reshape((num_char,num_char))
-}
-rates['r_x'] = rates['r_e']
-rs = RateSpace(rates)
-
-# container of rate functions?
-# ...
 
 # Chat-GPT function
 def sort_binary_vectors(binary_vectors):
@@ -205,6 +168,49 @@ def fn_b(states, rates):
 
     return events
 
+
+
+
+# Storing the value in variable result
+result = string.ascii_letters
+
+# single event
+#evt = []
+#evt.append( Event( {'i':0}, 0.3, 'r_e_0', 'extinction') )
+#evt.append( Event( {'i':0,'j':1}, 0.4, 'r_d_0_1', 'dispersal') )
+#evt.append( Event( {'i':2,'j':0,'k':1}, 0.2, 'r_b_2_0_1', 'between-region speciation') )
+#print(evt)
+
+#letters   = 'ABCD'
+#lbl       = [ ]
+#vec       = [ [1,0,0], [0,1,0], [0,0,1], [1,1,0], [1,0,1], [0,1,1,], [1,1,1] ]
+#lbl       = [ 'A', 'B', 'C', 'AB', 'AC', 'BC', 'ABC' ]
+
+
+# state space
+num_char  = 3
+vec       = [ x for x in itertools.product(range(2), repeat=num_char) ][1:]
+vec       = sort_binary_vectors(vec)
+letters   = string.ascii_uppercase[0:num_char]
+lbl       = [ ''.join([ letters[i] for i,y in enumerate(x) if y == 1 ]) for x in vec ]
+lbl2vec   = { k:v for k,v in list(zip(lbl,vec)) }
+ss = StateSpace(lbl2vec)
+#print(ss)
+
+# rate space
+#num_char = 3
+rates = {
+    'r_w': sp.stats.expon.rvs(size=num_char),
+    'r_e': sp.stats.expon.rvs(size=num_char), 
+    'r_d': sp.stats.expon.rvs(size=num_char**2).reshape((num_char,num_char)),
+    'r_b': sp.stats.expon.rvs(size=num_char**2).reshape((num_char,num_char))
+}
+rates['r_x'] = rates['r_e']
+#rs = RateSpace(rates)
+
+# container of rate functions?
+# ...
+
 events_x = fn_x( ss, rates['r_x'] )
 events_e = fn_e( ss, rates['r_e'] )
 events_w = fn_w( ss, rates['r_w'] )
@@ -232,7 +238,5 @@ df = pd.DataFrame({
 
 print(df)
 
-#event_classes     = [ 'dispersal', 'extirpation', 'extinction', 'within-region speciation', 'between-region speciation' ]
-#event_anaclado    = [ 'transition', 'transition', 'death', 'speciation', 'speciation' ]
-#event_num_index   = [ 2, 1, 1, 1, 3 ]
-#event_rules    = [ fn_d, fn_e, fn_x, fn_w, fb_b ]
+mdl = Model(df, ss)
+mdl.make_xml(max_taxa=500, newick_fn='file.nwk', nexus_fn='file.nex', json_fn='file.json')
