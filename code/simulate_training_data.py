@@ -2,6 +2,7 @@
 
 # helper functions
 from phyddle_util import *
+from model import Event, StateSpace, RateSpace, Model
 
 # other dependencies
 import numpy as np
