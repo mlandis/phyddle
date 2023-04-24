@@ -101,6 +101,8 @@ settings['rv_effect'] = rv_effect
 # generate GeoSSE events
 events = make_events(regions, states, states_inv)
 
+xxx
+
 # main simulation function (looped)
 def sim_one(k):
 
@@ -118,10 +120,7 @@ def sim_one(k):
     param2_fn = tmp_fn + '.param2.csv'
     ss_fn     = tmp_fn + '.summ_stat.csv'
     info_fn   = tmp_fn + '.info.csv'
-    #cblvs_fn  = tmp_fn + '.cblvs.csv'
-    #param1_fn = tmp_fn + '.param1.csv'
-    #param2_fn = tmp_fn + '.param2.csv'
-
+    
     # update settings
     settings['out_path'] = tmp_fn
     settings['replicate_index'] = k
@@ -130,7 +129,7 @@ def sim_one(k):
     rates = make_rates(regions, states, events, settings)
     rates['r_w'] = rates['r_w'] * 0.5
     rates['r_d'] = rates['r_d'] * 0.5
-    rates['r_e'] = rates['r_e'] * 0.2 # 0.1
+    rates['r_e'] = rates['r_e'] * 0.2
     rates['r_b'] = rates['r_b'] * 1.0
 
     # generate MASTER XML string
@@ -149,16 +148,15 @@ def sim_one(k):
 
     # handle simulation based on tree size
     if n_taxa_k > np.max(max_taxa):
-        # do nothing!
+        # too many taxa
         result_str = '- replicate {k} simulated n_taxa={nt}'.format(k=k,nt=n_taxa_k)
         return result_str
     elif n_taxa_k <= 0:
-        # write empty CDVS
+        # no taxa
         result_str = '- replicate {k} simulated n_taxa={nt}'.format(k=k,nt=n_taxa_k)
-        #cblvs = np.zeros( shape=(1,(2+num_chars)*max_taxa[0]) )
-        #cdvs  = np.zeros( shape=(1,(1+num_chars)*max_taxa[0]) )
         return result_str
     else:
+        # valid number of taxa
         result_str = '+ replicate {k} simulated n_taxa={nt}'.format(k=k,nt=n_taxa_k)
 
         # generate extinct-pruned tree
@@ -177,15 +175,12 @@ def sim_one(k):
        
         # NOTE: this if statement should not be needed, but for some reason the "next"
         # seems to run even when make_prune_phy returns False
+        # generate CDVS file
         if prune_success:
-            # get CDVS working
-            # cdvs = cdvs_util.make_cdvs(tre_fn, taxon_size_k, taxon_states, states_bits_str)
             cdvs = cdvs_util.make_cdvs(prune_fn, taxon_size_k, taxon_states, states_bits_str)
 
         # output files
         mt_size   = cblv.shape[1]
-        #tmp_fn = mt_out_dir[mt_size] + '/' + out_prefix + '.' + str(k)
-
 
     # record info
     info_str = settings_to_str(settings, mt_size)
@@ -213,6 +208,7 @@ def sim_one(k):
     ss_str = make_summ_stat_str(ss)
     write_to_file(ss_str, ss_fn)
 
+    # return status string
     return result_str
 
 # dispatch jobs
@@ -224,9 +220,7 @@ else:
 # end time
 end = time.time()
 delta_time = np.round(end-start, decimals=3)
-
 print('Elapsed time:', delta_time, 'seconds')
-
 
 # done!
 print('...done!')
