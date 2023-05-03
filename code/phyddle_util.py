@@ -641,15 +641,15 @@ def categorize_sizes(raw_data_dir):
     # return dictionary of { size_key: [ index_list ] }
     return
 
-def convert_geo_nex(nex_fn, tre_fn, geo_fn, states_bits):
+def convert_nex(nex_fn, tre_fn, int2vec):
 
     # get num regions from size of bit vector
-    num_regions = len(list(states_bits.values())[0])
+    num_char = len(int2vec[0])
 
-    # get tip names and states
+    # get tip names and states from NHX tree
     nex_file = open(nex_fn, 'r')
     nex_str = nex_file.readlines()[3]
-    m = re.findall(pattern='([0-9]+)\[\&type="([A-Z]+)"', string=nex_str)
+    m = re.findall(pattern='([0-9]+)\[\&type="([A-Z]+)",location="([0-9]+)"', string=nex_str)
     num_taxa = len(m)
     nex_file.close()
 
@@ -658,22 +658,21 @@ def convert_geo_nex(nex_fn, tre_fn, geo_fn, states_bits):
     s_state_str = ''
     for i,v in enumerate(m):
         taxon = v[0]
-        state = ''.join(states_bits[v[1]])
-        s_state_str += taxon + '  ' + state + '\n'
-        d[ taxon ] = state
+        state = int(v[2])
+        vec_str = ''.join([ str(x) for x in int2vec[state] ])
+        s_state_str += taxon + '  ' + vec_str + '\n'
+        d[ taxon ] = vec_str
     
-    # get newick string
+    # get newick string (no annotations)
     tre_file = open(tre_fn, 'r')
-    #print(tre_file)
     tre_str = tre_file.readlines()[0]
     tre_file.close()
 
-    # build new geosse string
-
+    # build new nexus string
     s = \
 '''#NEXUS
 Begin DATA;
-Dimensions NTAX={num_taxa} NCHAR={num_regions}
+Dimensions NTAX={num_taxa} NCHAR={num_char}
 Format MISSING=? GAP=- DATATYPE=STANDARD SYMBOLS="01";
 Matrix
 {s_state_str}
@@ -683,14 +682,9 @@ END;
 Begin trees;
     tree 1={tre_str}
 END;
-'''.format(num_taxa=num_taxa, num_regions=num_regions, tre_str=tre_str, s_state_str=s_state_str)
+'''.format(num_taxa=num_taxa, num_char=num_char, tre_str=tre_str, s_state_str=s_state_str)
 
-
-    geo_file = open(geo_fn, 'w')
-    geo_file.write(s)
-    geo_file.close()
-
-    return d
+    return d,s
 
 def vectorize_tree_cdv(tre_fn, max_taxa=[500], summ_stat=[], prob=1.0):
     # get tree and tip labels

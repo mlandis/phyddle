@@ -2,7 +2,8 @@
 
 # helper functions
 from phyddle_util import *
-from model import Event, StateSpace, RateSpace, Model
+#from model import Event, StateSpace, Model
+from model import *
 
 # other dependencies
 import numpy as np
@@ -50,11 +51,9 @@ out_path   = out_dir + '/' + out_prefix
 # init settings
 num_rep        = len(rep_idx)
 num_jobs       = -2
-#max_taxa       = 500
-#cblv_width    = max_taxa + 0
-#max_taxa       = 999  # <----
-#max_taxa       = [200, 500]
 max_taxa       = [200, 500]
+
+
 num_chars      = 3
 num_states     = 2**num_chars - 1
 regions        = list(range(num_chars))
@@ -72,6 +71,8 @@ states_bits_str = [ ''.join(s) for s in states_bits.values() ]
 for i,v in enumerate(states_bits_str):
     states_bits_str_inv[v] = i
 
+
+
 #print(states_str)
 #print(states_bits_str)
 #print(states_bits_str_inv)
@@ -80,28 +81,26 @@ for i,v in enumerate(states_bits_str):
 os.makedirs(out_dir, exist_ok=True)
 
 # model settings
-model_type = 'iid_simple'
-num_feature_layers = 2
-def rv_rate(size):
-    return sp.stats.uniform.rvs(size=size, loc=0.1, scale=0.9) 
-    #return sp.stats.expon.rvs(size=size, loc=0., scale=0.1) 
-def rv_effect(size):
-    return sp.stats.norm.rvs(size=size, loc=0., scale=1.) 
-def rv_feature(size):
-    return sp.stats.gamma.rvs(size=size, loc=2., scale=2.) 
+# model_type = 'iid_simple'
+# num_feature_layers = 2
+# def rv_rate(size):
+#     return sp.stats.uniform.rvs(size=size, loc=0.1, scale=0.9) 
+#     #return sp.stats.expon.rvs(size=size, loc=0., scale=0.1) 
+# def rv_effect(size):
+#     return sp.stats.norm.rvs(size=size, loc=0., scale=1.) 
+# def rv_feature(size):
+#     return sp.stats.gamma.rvs(size=size, loc=2., scale=2.) 
 
 # generate settings container
 settings['max_taxa'] = np.max(max_taxa)
-settings['model_type'] = model_type
-settings['num_feature_layers'] = num_feature_layers
-settings['rv_rate'] = rv_rate
-settings['rv_feature'] = rv_feature
-settings['rv_effect'] = rv_effect
+
+# settings['num_feature_layers'] = num_feature_layers
+# settings['rv_rate'] = rv_rate
+# settings['rv_feature'] = rv_feature
+# settings['rv_effect'] = rv_effect
 
 # generate GeoSSE events
-events = make_events(regions, states, states_inv)
-
-xxx
+# events = make_events(regions, states, states_inv)
 
 # main simulation function (looped)
 def sim_one(k):
@@ -114,6 +113,7 @@ def sim_one(k):
     beast_fn  = tmp_fn + '.beast.log'
     xml_fn    = tmp_fn + '.xml'
     nex_fn    = tmp_fn + '.nex'
+    json_fn   = tmp_fn + '.json'
     cblvs_fn  = tmp_fn + '.cblvs.csv'
     cdvs_fn   = tmp_fn + '.cdvs.csv'
     param1_fn = tmp_fn + '.param1.csv'
@@ -126,14 +126,28 @@ def sim_one(k):
     settings['replicate_index'] = k
 
     # generate GeoSSE rates
-    rates = make_rates(regions, states, events, settings)
-    rates['r_w'] = rates['r_w'] * 0.5
-    rates['r_d'] = rates['r_d'] * 0.5
-    rates['r_e'] = rates['r_e'] * 0.2
-    rates['r_b'] = rates['r_b'] * 1.0
+    mymodel = GeosseModel(num_char=3)  ### <-- how do we instantiate a new model object of Class X each replicate?
+    model_type = mymodel.model_type
+    settings['model_type'] = model_type
+
+    lbl2vec = mymodel.states.lbl2vec
+    int2vec = mymodel.states.int2vec
+
+    ## build model here??
+    # rates = make_rates(regions, states, events, settings)
+    # rates['r_w'] = rates['r_w'] * 0.5
+    # rates['r_d'] = rates['r_d'] * 0.5
+    # rates['r_e'] = rates['r_e'] * 0.2
+    # rates['r_b'] = rates['r_b'] * 1.0
 
     # generate MASTER XML string
-    xml_str = make_xml(events, rates, states, states_str, settings)
+    # xml_str = make_xml(events, rates, states, states_str, settings)
+    # out_path    = settings['out_path']
+    #newick_fn   = out_path + '.tre'
+    #nexus_fn    = out_path + '.nex'
+    #json_fn     = out_path + '.json'
+    mymodel.xmlgen.make_xml(max_taxa=max_taxa[-1]/2, newick_fn=tre_fn, nexus_fn=nex_fn, json_fn=json_fn)
+    xml_str = mymodel.xmlgen.xml_spec_str
     write_to_file(xml_str, xml_fn)
 
     # run BEAST/MASTER against XML
@@ -145,6 +159,7 @@ def sim_one(k):
     result_str = ''
     n_taxa_k = get_num_taxa(tre_fn, k, max_taxa)
     taxon_size_k = find_taxon_size(n_taxa_k, max_taxa)
+    print(n_taxa_k)
 
     # handle simulation based on tree size
     if n_taxa_k > np.max(max_taxa):
@@ -167,7 +182,8 @@ def sim_one(k):
             next
 
         # generate nexus file 0/1 ranges
-        taxon_states = convert_geo_nex(nex_fn, tre_fn, geo_fn, states_bits)
+        taxon_states,nexus_str = convert_nex(nex_fn, tre_fn, int2vec)
+        write_to_file(nexus_str, geo_fn)
 
         # then get CBLVS working
         cblv,new_order = vectorize_tree(tre_fn, max_taxa=taxon_size_k, prob=1.0 )
@@ -187,7 +203,7 @@ def sim_one(k):
     write_to_file(info_str, info_fn)
 
     # record labels (simulating parameters)
-    param1_str,param2_str = param_dict_to_str(rates)
+    param1_str,param2_str = param_dict_to_str(mymodel.rates)
     write_to_file(param1_str, param1_fn)
     write_to_file(param2_str, param2_fn)
 
