@@ -1,8 +1,48 @@
-from model_util import Event
+from model_util import Event,States
 import itertools
 import numpy as np
 import scipy as sp
 
+
+# SIRM state space
+def make_sirm_states(num_location):
+    
+    # S: Susceptible, I: Infected, R: Recovered
+    compartments = 'SIR'
+    # Location 0, Location 1, Location 2, ...
+    locations = [ str(x) for x in list(range(num_location)) ]
+    # S0, S1, S2, ..., I0, I1, I2, ..., R0, R1, R2, ...
+    lbl = [ ''.join(x) for x in list(itertools.product(compartments,locations)) ]
+    # 1000, 0100, 0010, 0001 (one-hot encoding for N locations)
+    vec = np.identity(num_location, dtype='int').tolist()
+    # { S0:1000, S1:0100, S2:0010, ..., I0:1000, I1:0100, I2:0010, ... }
+    lbl2vec = {}
+    for i,v in enumerate(lbl):
+        j = int(v[1:]) # get location as integer, drop compartment name
+        lbl2vec[v] = vec[j]
+    # state space object
+    states = States(lbl2vec)
+    return states
+
+
+# SIRM [i]nfection within location
+def make_events_i(states, rates):
+    events = []
+
+    # for each state
+    for x in states.int2lbl:
+        # get infected compartment in location
+        if 'I' in x:
+            # get susceptible compartment in location
+            i = int(x[1:])
+            y = 'S' + x[1:]
+            r = rates[i]
+            xml_str = 'I[{i}] + S[{i}] -> 2 I[{i}]'.format(i=i)
+            idx = {'i':i}
+            e = Event( idx=idx, r=r, n='r_I_{i}'.format(i=i), g='Infection', x=xml_str )
+            events.append(e)
+
+    return events
 
 # GeoSSE extinction rate
 def GeoSSE_rate_func_x(states, rates):  
@@ -19,25 +59,6 @@ def GeoSSE_rate_func_x(states, rates):
     return events
 
 
-# GeoSSE extirpation rate
-def GeoSSE_rate_func_e(states, rates):
-    events = []
-    # for each state
-    for i,x in enumerate(states.int2vec):
-        # for each bit in the state-vector
-        for j,y in enumerate(x):
-            # if range is size 2+ and region occupied
-            if sum(x) > 1 and y == 1:
-                new_bits = list(x).copy()
-                new_bits[j] = 0
-                new_bits = tuple(new_bits)
-                new_state = states.vec2int[ new_bits ]
-                r = rates[j]
-                xml_str = 'S[{i}]:1 -> S[{j}]:1'.format(i=i, j=new_state)
-                idx = {'i':i, 'j':new_state}
-                e = Event( idx=idx, r=r, n='r_e_{i}_{j}'.format(i=i, j=new_state), g='Extirpation', x=xml_str )
-                events.append(e)
-    return events
 
 # GeoSSE within-region speciation rate
 def GeoSSE_rate_func_w(states, rates):
@@ -144,34 +165,32 @@ def GeoSSE_rate_func_b(states, rates):
 
     return events
 
-def make_geosse_events( states, rates ):
-    events_x = GeoSSE_rate_func_x( states, rates['Extinction'] )
-    events_e = GeoSSE_rate_func_e( states, rates['Extirpation'] )
-    events_d = GeoSSE_rate_func_d( states, rates['Dispersal'] )
-    events_w = GeoSSE_rate_func_w( states, rates['Within-region speciation'] )
-    events_b = GeoSSE_rate_func_b( states, rates['Between-region speciation'] )
-    events = events_x + events_e + events_d + events_w + events_b
+def make_sirm_events( states, rates ):
+    events_i = make_events_i( states, rates['Infect'] )
+    events_m = [] #make_events_m( states, rates['Migrate'] )
+    events_r = [] #make_events_r( states, rates['Recover'] )
+    events_s = [] #make_events_s( states, rates['Sample'] )
+
+    events = events_i + events_m + events_r + events_s
     return events
 
-def make_geosse_rates( model_variant, num_char ):
+def make_sirm_rates( model_variant, num_locations ):
     rates = {}
     
     if model_variant is 'free_rates':
         rates = {
-                'Within-region speciation': sp.stats.expon.rvs(size=num_char),
-                'Extirpation': sp.stats.expon.rvs(size=num_char), 
-                'Dispersal': sp.stats.expon.rvs(size=num_char**2).reshape((num_char,num_char)),
-                'Between-region speciation': sp.stats.expon.rvs(size=num_char**2).reshape((num_char,num_char))
+                'Infect': sp.stats.expon.rvs(size=num_locations),
+                'Recover': sp.stats.expon.rvs(size=num_locations),
+                'Sample': sp.stats.expon.rvs(size=num_locations),
+                'Migrate': sp.stats.expon.rvs(size=num_locations**2).reshape((num_locations,num_locations)),
             }
-        rates['Extinction'] = rates['Extirpation']
 
     elif model_variant is 'equal_rates':
         rates = {
-                'Within-region speciation': np.full(num_char, sp.stats.expon.rvs(size=1)[0]),
-                'Extirpation': np.full(num_char, sp.stats.expon.rvs(size=1)[0]), 
-                'Dispersal': np.full((num_char,num_char), sp.stats.expon.rvs(size=1)[0]), #sp.stats.expon.rvs(size=num_char**2).reshape((num_char,num_char)),
-                'Between-region speciation': np.full((num_char,num_char), sp.stats.expon.rvs(size=1)[0]) #sp.stats.expon.rvs(size=num_char**2).reshape((num_char,num_char))
+                'Infect': np.full(num_locations, sp.stats.expon.rvs(size=1)[0]),
+                'Recover': np.full(num_locations, sp.stats.expon.rvs(size=1)[0]), 
+                'Sample': np.full(num_locations, sp.stats.expon.rvs(size=1)[0]), 
+                'Migrate': np.full((num_locations,num_locations), sp.stats.expon.rvs(size=1)[0])
             }
-        rates['Extinction'] = rates['Extirpation']
 
     return rates

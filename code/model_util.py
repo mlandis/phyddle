@@ -1,7 +1,8 @@
-import itertools
 import numpy as np
 import pandas as pd
-#from model import Event
+import scipy as sp
+import random
+import itertools
 
 
 def make_symm(m):
@@ -56,14 +57,6 @@ def sort_binary_vectors(binary_vectors):
                         break
                 
     return sorted_vectors
-
-
-import pandas as pd
-import numpy as np
-import scipy as sp
-import random
-import itertools
-  
 
 # model events
 class Event:

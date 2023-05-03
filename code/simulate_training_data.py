@@ -4,6 +4,7 @@
 from phyddle_util import *
 #from model import Event, StateSpace, Model
 from model import *
+from model_util import MasterXmlGenerator
 
 # other dependencies
 import numpy as np
@@ -54,22 +55,22 @@ num_jobs       = -2
 max_taxa       = [200, 500]
 
 
-num_chars      = 3
-num_states     = 2**num_chars - 1
-regions        = list(range(num_chars))
-states         = list(powerset(regions))[1:]
-states_str     = [ ''.join(list([string.ascii_uppercase[i] for i in s])) for s in states ]
-states_str_inv = {}
-states_inv     = {}
-states_bits_str_inv = {}
-for i,v in enumerate(states_str):
-    states_str_inv[v] = i
-for i,v in enumerate(states):
-    states_inv[v] = i
-states_bits    = regions_to_binary(states, states_str, regions)
-states_bits_str = [ ''.join(s) for s in states_bits.values() ]
-for i,v in enumerate(states_bits_str):
-    states_bits_str_inv[v] = i
+# num_chars      = 3
+# num_states     = 2**num_chars - 1
+# regions        = list(range(num_chars))
+# states         = list(powerset(regions))[1:]
+# states_str     = [ ''.join(list([string.ascii_uppercase[i] for i in s])) for s in states ]
+# states_str_inv = {}
+# states_inv     = {}
+# states_bits_str_inv = {}
+# for i,v in enumerate(states_str):
+#     states_str_inv[v] = i
+# for i,v in enumerate(states):
+#     states_inv[v] = i
+# states_bits    = regions_to_binary(states, states_str, regions)
+# states_bits_str = [ ''.join(s) for s in states_bits.values() ]
+# for i,v in enumerate(states_bits_str):
+#     states_bits_str_inv[v] = i
 
 
 
@@ -126,12 +127,15 @@ def sim_one(k):
     settings['replicate_index'] = k
 
     # generate GeoSSE rates
-    mymodel = GeosseModel(num_char=3)  ### <-- how do we instantiate a new model object of Class X each replicate?
+    #mymodel = GeosseModel(num_char=3, model_variant='free_rates')  ### <-- how do we instantiate a new model object of Class X each replicate?
+    mymodel = SirmModel(num_char=3, model_variant='free_rates')  ### <-- how do we instantiate a new model object of Class X each replicate?
     model_type = mymodel.model_type
     settings['model_type'] = model_type
 
     lbl2vec = mymodel.states.lbl2vec
     int2vec = mymodel.states.int2vec
+    int2vecstr = [ ''.join([str(y) for y in x]) for x in int2vec ]
+    vecstr2int = { v:i for i,v in enumerate(int2vecstr) }
 
     ## build model here??
     # rates = make_rates(regions, states, events, settings)
@@ -146,8 +150,13 @@ def sim_one(k):
     #newick_fn   = out_path + '.tre'
     #nexus_fn    = out_path + '.nex'
     #json_fn     = out_path + '.json'
-    mymodel.xmlgen.make_xml(max_taxa=max_taxa[-1]/2, newick_fn=tre_fn, nexus_fn=nex_fn, json_fn=json_fn)
-    xml_str = mymodel.xmlgen.xml_spec_str
+
+    ## construct XML from model class
+    xmlgen = MasterXmlGenerator(mymodel.df_events, mymodel.df_states)
+    # alternative, construct XML from event and states dataframes
+    # xmlgen = MasterXmlGenerator(df_events, df_states)
+    xmlgen.make_xml(max_taxa=max_taxa[-1]/2, newick_fn=tre_fn, nexus_fn=nex_fn, json_fn=json_fn)
+    xml_str = xmlgen.xml_spec_str
     write_to_file(xml_str, xml_fn)
 
     # run BEAST/MASTER against XML
@@ -193,7 +202,7 @@ def sim_one(k):
         # seems to run even when make_prune_phy returns False
         # generate CDVS file
         if prune_success:
-            cdvs = cdvs_util.make_cdvs(prune_fn, taxon_size_k, taxon_states, states_bits_str)
+            cdvs = cdvs_util.make_cdvs(prune_fn, taxon_size_k, taxon_states, int2vecstr) #states_bits_str)
 
         # output files
         mt_size   = cblv.shape[1]
@@ -220,7 +229,7 @@ def sim_one(k):
         write_to_file(cdvs_str, cdvs_fn)
 
     # record summ stat data
-    ss = make_summ_stat(tre_fn, geo_fn, states_bits_str_inv)
+    ss = make_summ_stat(tre_fn, geo_fn, vecstr2int)
     ss_str = make_summ_stat_str(ss)
     write_to_file(ss_str, ss_fn)
 

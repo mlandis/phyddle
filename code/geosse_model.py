@@ -8,26 +8,21 @@ import itertools
 class GeosseModel:
     
     # set up model
-    def __init__(self, num_char):
+    def __init__(self, num_char, model_variant='equal_rates'):
         
         # create state space
         self.model_type = 'GeoSSE'
+        self.model_variant = model_variant
         self.num_char   = num_char
         self.vec        = [ x for x in itertools.product(range(2), repeat=self.num_char) ][1:]
         self.vec        = sort_binary_vectors(self.vec)
         self.letters    = string.ascii_uppercase[0:self.num_char]
         self.lbl        = [ ''.join([ self.letters[i] for i,y in enumerate(x) if y == 1 ]) for x in self.vec ]
         self.lbl2vec    = { k:v for k,v in list(zip(self.lbl,self.vec)) }
-        self.states    = States(self.lbl2vec)
+        self.states     = States(self.lbl2vec)
 
         # rate space
-        self.rates = {
-            'Within-region speciation': sp.stats.expon.rvs(size=self.num_char),
-            'Extirpation': sp.stats.expon.rvs(size=self.num_char), 
-            'Dispersal': sp.stats.expon.rvs(size=self.num_char**2).reshape((self.num_char,self.num_char)),
-            'Between-region speciation': sp.stats.expon.rvs(size=self.num_char**2).reshape((self.num_char,self.num_char))
-        }
-        self.rates['Extinction'] = self.rates['Extirpation']
+        self.rates = make_geosse_rates( self.model_variant, self.num_char )
 
         # event space
         self.events = make_geosse_events( self.states, self.rates )
