@@ -28,7 +28,7 @@ np.set_printoptions(floatmode='unique', suppress=True)
 
 # default settings
 settings = {}
-settings['model_name']     = 'geosse_v5'
+settings['model_name']     = 'bd1'
 settings['start_idx']      = 0
 settings['end_idx']        = 1 #99
 settings['cfg_file']       = None # TODO: add config file parser
@@ -128,7 +128,8 @@ def sim_one(k):
 
     # generate GeoSSE rates
     #mymodel = GeosseModel(num_char=3, model_variant='free_rates')  ### <-- how do we instantiate a new model object of Class X each replicate?
-    mymodel = SirmModel(num_char=3, model_variant='free_rates')  ### <-- how do we instantiate a new model object of Class X each replicate?
+    mymodel = SirmModel(num_char=3, model_variant='equal_rates')  ### <-- how do we instantiate a new model object of Class X each replicate?
+    print(mymodel.df_events)
     model_type = mymodel.model_type
     settings['model_type'] = model_type
 

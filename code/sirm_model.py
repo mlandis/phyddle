@@ -8,12 +8,12 @@ import itertools
 class SirmModel:
     
     # set up model
-    def __init__(self, num_char, model_variant='equal_rates'):
+    def __init__(self, num_char, model_variant='equal_rates', feature_set=None):
         
         # create state space
-        self.model_type = 'SIRM'
+        self.model_type    = 'SIRM'
         self.model_variant = model_variant
-        self.num_char   = num_char
+        self.num_char      = num_char
      
         # state space
         self.states = make_sirm_states(self.num_char)
@@ -26,8 +26,7 @@ class SirmModel:
 
         # event space dataframe
         self.df_events = events2df( self.events )
-        print(self.df_events)
-        
+
         # state space dataframe
         self.df_states = states2df( self.states )
 

@@ -142,9 +142,10 @@ class States:
 # model itself
 class MasterXmlGenerator:
     # initialization
-    def __init__(self, events, states):
+    def __init__(self, events, states, settings=None):
         self.states = states
         self.events = events
+        self.settings = settings
     
     def make_xml(self, max_taxa, newick_fn, nexus_fn, json_fn):
     

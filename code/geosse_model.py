@@ -11,15 +11,12 @@ class GeosseModel:
     def __init__(self, num_char, model_variant='equal_rates'):
         
         # create state space
-        self.model_type = 'GeoSSE'
+        self.model_type    = 'GeoSSE'
         self.model_variant = model_variant
-        self.num_char   = num_char
-        self.vec        = [ x for x in itertools.product(range(2), repeat=self.num_char) ][1:]
-        self.vec        = sort_binary_vectors(self.vec)
-        self.letters    = string.ascii_uppercase[0:self.num_char]
-        self.lbl        = [ ''.join([ self.letters[i] for i,y in enumerate(x) if y == 1 ]) for x in self.vec ]
-        self.lbl2vec    = { k:v for k,v in list(zip(self.lbl,self.vec)) }
-        self.states     = States(self.lbl2vec)
+        self.num_char      = num_char
+        
+        # state space
+        self.states = make_geosse_states( self.num_char )
 
         # rate space
         self.rates = make_geosse_rates( self.model_variant, self.num_char )
@@ -35,36 +32,4 @@ class GeosseModel:
 
         # model
         self.xmlgen = MasterXmlGenerator(self.df_events, self.df_states)
-
-    # should model handle various state/file conversions?
-
-# num_char   = 3
-# vec        = [ x for x in itertools.product(range(2), repeat=num_char) ][1:]
-# vec        = sort_binary_vectors(vec)
-# letters    = string.ascii_uppercase[0:num_char]
-# lbl        = [ ''.join([ letters[i] for i,y in enumerate(x) if y == 1 ]) for x in vec ]
-# lbl2vec    = { k:v for k,v in list(zip(lbl,vec)) }
-# states    = States(lbl2vec)
-
-# # rate space
-# rates = {
-#     'Within-region speciation': sp.stats.expon.rvs(size=num_char),
-#     'Extirpation': sp.stats.expon.rvs(size=num_char), 
-#     'Dispersal': sp.stats.expon.rvs(size=num_char**2).reshape((num_char,num_char)),
-#     'Between-region speciation': sp.stats.expon.rvs(size=num_char**2).reshape((num_char,num_char))
-# }
-# rates['Extinction'] = rates['Extirpation']
-
-# # event space
-# events = make_geosse_events( states, rates )
-
-# # event space
-# df_events = events2df( events )
-
-# # state space
-# df_states = states2df( states )
-
-# # model
-# mdl = Model(df_events, df_states)
-# mdl.make_xml(max_taxa=500, newick_fn='file.nwk', nexus_fn='file.nex', json_fn='file.json')
-# print(mdl.xml_spec_str)
+        

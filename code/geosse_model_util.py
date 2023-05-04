@@ -1,11 +1,22 @@
-from model_util import Event
+from model_util import Event,States
+from model_util import sort_binary_vectors
+import string
 import itertools
 import numpy as np
 import scipy as sp
 
 
+def make_geosse_states(num_char):
+    vec        = [ x for x in itertools.product(range(2), repeat=num_char) ][1:]
+    vec        = sort_binary_vectors(vec)
+    letters    = string.ascii_uppercase[0:num_char]
+    lbl        = [ ''.join([ letters[i] for i,y in enumerate(x) if y == 1 ]) for x in vec ]
+    lbl2vec    = { k:v for k,v in list(zip(lbl,vec)) }
+    states     = States(lbl2vec)
+    return states
+
 # GeoSSE extinction rate
-def GeoSSE_rate_func_x(states, rates):  
+def make_events_x(states, rates):  
     events = []
     for i,x in enumerate(states.int2vec):
         if sum(x) == 1:
@@ -20,7 +31,7 @@ def GeoSSE_rate_func_x(states, rates):
 
 
 # GeoSSE extirpation rate
-def GeoSSE_rate_func_e(states, rates):
+def make_events_e(states, rates):
     events = []
     # for each state
     for i,x in enumerate(states.int2vec):
@@ -40,7 +51,7 @@ def GeoSSE_rate_func_e(states, rates):
     return events
 
 # GeoSSE within-region speciation rate
-def GeoSSE_rate_func_w(states, rates):
+def make_events_w(states, rates):
     events = []
     # for each state
     for i,x in enumerate(states.int2vec):
@@ -57,7 +68,7 @@ def GeoSSE_rate_func_w(states, rates):
     return events
 
 # GeoSSE dispersal rate
-def GeoSSE_rate_func_d(states, rates):
+def make_events_d(states, rates):
     
     # how many compound states
     num_states = len(states.int2int)
@@ -98,7 +109,7 @@ def GeoSSE_rate_func_d(states, rates):
     return events
 
 # GeoSSE between-region speciation rate
-def GeoSSE_rate_func_b(states, rates):
+def make_events_b(states, rates):
     
     # geometric mean
     def gm(x):
@@ -145,11 +156,11 @@ def GeoSSE_rate_func_b(states, rates):
     return events
 
 def make_geosse_events( states, rates ):
-    events_x = GeoSSE_rate_func_x( states, rates['Extinction'] )
-    events_e = GeoSSE_rate_func_e( states, rates['Extirpation'] )
-    events_d = GeoSSE_rate_func_d( states, rates['Dispersal'] )
-    events_w = GeoSSE_rate_func_w( states, rates['Within-region speciation'] )
-    events_b = GeoSSE_rate_func_b( states, rates['Between-region speciation'] )
+    events_x = make_events_x( states, rates['Extinction'] )
+    events_e = make_events_e( states, rates['Extirpation'] )
+    events_d = make_events_d( states, rates['Dispersal'] )
+    events_w = make_events_w( states, rates['Within-region speciation'] )
+    events_b = make_events_b( states, rates['Between-region speciation'] )
     events = events_x + events_e + events_d + events_w + events_b
     return events
 
@@ -174,4 +185,7 @@ def make_geosse_rates( model_variant, num_char ):
             }
         rates['Extinction'] = rates['Extirpation']
 
+    elif model_variant is 'fig_rates':
+        rates = {}
+        
     return rates
