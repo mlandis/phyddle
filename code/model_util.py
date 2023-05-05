@@ -63,7 +63,7 @@ def sort_binary_vectors(binary_vectors):
 # model events
 class Event:
     # initialize
-    def __init__(self, idx, r=0.0, n=None, g=None, x=None, ix=None, jx=None):
+    def __init__(self, idx, r=0.0, n=None, g=None, ix=None, jx=None):
         self.i = -1
         self.j = -1
         self.k = -1
@@ -77,7 +77,6 @@ class Event:
         self.rate = r
         self.name = n
         self.group = g
-        self.reaction = x
         self.ix = ix
         self.jx = jx
         self.reaction = ' + '.join(ix) + ' -> ' + ' + '.join(jx)
@@ -147,7 +146,7 @@ class States:
 # model itself
 class MasterXmlGenerator:
     # initialization
-    def __init__(self, events, states, settings=None):
+    def __init__(self, events, states, settings):
         self.states = states
         self.events = events
         self.settings = settings
@@ -155,8 +154,10 @@ class MasterXmlGenerator:
     
     def make_reaction_vars(self):
         qty = {}
+        # get list of all reaction variables
         for s in self.events.reaction:
             toks = re.findall( r'([0-9]*([A-Za-z])(\[[0-9]+\])?)', s)
+            #toks = re.findall( r'([0-9]*([A-Za-z])(\[[0-9]+\])?)(:1)?', s)
             for v in toks:
                 var_name = v[1]
                 var_idx = v[2]
@@ -168,6 +169,7 @@ class MasterXmlGenerator:
                 else:
                     qty[var_name] = set()
 
+        # determine how many locations/substates per reaction label
         reaction_vars = {}
         for k,v in qty.items():
             reaction_vars[k] = len(v)
@@ -175,8 +177,14 @@ class MasterXmlGenerator:
         return reaction_vars
 
 
-    def make_xml(self, max_taxa, newick_fn, nexus_fn, json_fn):
+    def make_xml(self, newick_fn, nexus_fn, json_fn):
     
+        # extract settings
+        start_state = self.settings['start_state']
+        start_sizes = self.settings['start_sizes']
+        stop_floor_sizes = self.settings['stop_floor_sizes']
+        stop_ceil_sizes = self.settings['stop_ceil_sizes']
+
         # states
         xml_statespace = ''
         for k,v in self.reaction_vars.items():
@@ -205,40 +213,53 @@ class MasterXmlGenerator:
             xml_events += "</reactionGroup>\n"
             xml_events += '\n'
 
-        # init state
-        # NOTE: uniform root state sampling is not ideal
-        start_states = [0] * len(self.states.int)
-        start_index = random.sample( list(self.states.int), 1)[0]
-        start_states[start_index] = 1
-        
+        # starting state of simulation
         #start_state = 'S[{i}]'.format(i=start_index)
         xml_init_state = "<initialState spec='InitState'>\n"
-        for k,v in self.reaction_vars.items():
-            if v == 0:
-                xml_init_state += "\t<lineageSeedMultiple spec='MultipleIndividuals' copies='{k}'>\n".format(k=start_states[i])
-                xml_init_state += "\t\t<population spec ='Population' type='@{k}'/>\n".format(k=k)
-                xml_init_state += "\t</lineageSeedMultiple>\n"
-            else:
-                for i in range(v):
-                    xml_init_state += "\t<lineageSeedMultiple spec='MultipleIndividuals' copies='{k}'>\n".format(k=start_states[i])
-                    xml_init_state += "\t\t<population spec ='Population' type='@{k}' location='{i}'/>\n".format(k=k,i=i)
-                    xml_init_state += "\t</lineageSeedMultiple>\n"
+        for k,v in start_sizes.items():
+            for i,y in enumerate(v):
+                xml_init_state += "\t<populationSize spec='PopulationSize' size='{y}'>\n".format(y=y)
+                xml_init_state += "\t\t<population spec='Population' type='@{k}' location='{i}'/>\n".format(k=k,i=i)
+                xml_init_state += "\t</populationSize>\n"
+        for k,v in start_state.items():
+            xml_init_state += "\t<lineageSeedMultiple spec='MultipleIndividuals' copies='1'>\n".format(v=v)
+            xml_init_state += "\t\t<population spec ='Population' type='@{k}' location='{v}'/>\n".format(k=k,v=v)
+            xml_init_state += "\t</lineageSeedMultiple>\n"
         xml_init_state += "</initialState>\n"
+
+        # for k,v in self.reaction_vars.items():
+        #     if v == 0:
+        #         xml_init_state += "\t<lineageSeedMultiple spec='MultipleIndividuals' copies='{k}'>\n".format(k=start_states[i])
+        #         xml_init_state += "\t\t<population spec ='Population' type='@{k}'/>\n".format(k=k)
+        #         xml_init_state += "\t</lineageSeedMultiple>\n"
+        #     else:
+        #         for i in range(v):
+        #             xml_init_state += "\t<lineageSeedMultiple spec='MultipleIndividuals' copies='{k}'>\n".format(k=start_states[i])
+        #             xml_init_state += "\t\t<population spec ='Population' type='@{k}' location='{i}'/>\n".format(k=k,i=i)
+        #             xml_init_state += "\t</lineageSeedMultiple>\n"
+        # xml_init_state += "</initialState>\n"
         
         # sim conditions
         xml_sim_conditions = ""
-        xml_sim_conditions += "<lineageEndCondition spec='LineageEndCondition' nLineages='{max_taxa}' alsoGreaterThan='true' isRejection='false'/>\n".format(max_taxa=max_taxa)
-        xml_sim_conditions += "<lineageEndCondition spec='LineageEndCondition' nLineages='0' alsoGreaterThan='false' isRejection='false'>\n"
-        for k,v in self.reaction_vars.items():
-            if v == 0:
-                xml_sim_conditions += "\t\t<population spec ='Population' type='@{k}'/>\n".format(k=k)
-            else:
-                for i in range(v):
-                    xml_sim_conditions += "\t\t<population spec ='Population' type='@{k}' location='{i}'/>\n".format(k=k, i=i)
-        # for i in self.states.int:
-        #     xml_sim_conditions += "\t\t<population spec ='Population' type='@S' location='{i}'/>\n".format(i=i)
-        xml_sim_conditions += "</lineageEndCondition>\n"
+        xml_sim_conditions += "<lineageEndCondition spec='LineageEndCondition' nLineages='{stop_ceil_sizes}' alsoGreaterThan='true' isRejection='false'/>\n".format(stop_ceil_sizes=stop_ceil_sizes)
+        xml_sim_conditions += "<lineageEndCondition spec='LineageEndCondition' nLineages='{stop_floor_sizes}' alsoGreaterThan='false' isRejection='false'/>\n".format(stop_floor_sizes=stop_floor_sizes)
+        # for k,v in self.reaction_vars.items():
+        #     if v == 0:
+        #         xml_sim_conditions += "\t\t<population spec ='Population' type='@{k}'/>\n".format(k=k)
+        #     else:
+        #         for i in range(v):
+        #             xml_sim_conditions += "\t\t<population spec ='Population' type='@{k}' location='{i}'/>\n".format(k=k, i=i)
+        # # for i in self.states.int:
+        # #     xml_sim_conditions += "\t\t<population spec ='Population' type='@S' location='{i}'/>\n".format(i=i)
+        # xml_sim_conditions += "</lineageEndCondition>\n"
         xml_sim_conditions += "<postSimCondition spec='LeafCountPostSimCondition' nLeaves='10' exact='false' exceedCondition='true'/>\n"
+
+        # post-processing filter
+        sample_population = self.settings['sample_population']
+        xml_filter = ''
+        for k in sample_population:
+            xml_filter += "<inheritancePostProcessor spec='LineageFilter' populationName='{k}' reverseTime='false' discard='false' leavesOnly='true' noClean='true'/>\n".format(k=k)
+
 
         # generate entire XML specification
         xml_spec_str = '''\
@@ -264,13 +285,22 @@ class MasterXmlGenerator:
 
 {xml_sim_conditions}
 
+{xml_filter}
+
 <output spec='NewickOutput' collapseSingleChildNodes='true' fileName='{newick_fn}'/>
 <output spec='NexusOutput' fileName='{nexus_fn}'/>
 <output spec='JsonOutput' fileName='{json_fn}' />
 
 </run>
 </beast>
-'''.format(xml_statespace=xml_statespace, xml_events=xml_events, xml_init_state=xml_init_state, xml_sim_conditions=xml_sim_conditions, newick_fn=newick_fn, nexus_fn=nexus_fn, json_fn=json_fn, max_taxa=max_taxa, num_samples=1, sample_pop='false')
+'''.format(xml_statespace=xml_statespace,
+           xml_events=xml_events,
+           xml_init_state=xml_init_state,
+           xml_sim_conditions=xml_sim_conditions,
+           xml_filter=xml_filter,
+           newick_fn=newick_fn, nexus_fn=nexus_fn, json_fn=json_fn,
+           num_samples=1,
+           sample_pop='false')
         self.xml_spec_str = xml_spec_str
         return
         #return xml_spec_str

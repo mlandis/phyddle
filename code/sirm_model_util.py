@@ -4,17 +4,44 @@ import numpy as np
 import scipy as sp
 
 
+# SIRM simulation settings
+def make_settings(num_locations):
+    settings = {}
+
+    # generate random starting sizes
+    # X ~ Gamma(shape=0.5, scale=1e6) 
+    start_sizes = sp.stats.gamma.rvs(size=num_locations, a=0.5, scale=1000000)
+    p_start_sizes = start_sizes / np.sum(start_sizes)
+    
+    #settings['start_state'] = { 'I' : sp.stats.randint.rvs(size=1, low=0, high=num_location)[0] }
+    settings['num_locations'] = num_locations
+    #settings['model_variant'] = model_variant
+    settings['start_state'] = { 'I' : np.random.choice(a=num_locations, size=1, p=p_start_sizes)[0] }
+    settings['start_sizes'] = { 'S' : [ int(np.ceil(x)) for x in start_sizes ] }
+    settings['sample_population'] = [ 'A' ]
+    settings['stop_floor_sizes'] = 0
+    settings['stop_ceil_sizes'] = 5000
+    settings['rv_fn'] = { 'Infect': sp.stats.expon.rvs,
+                          'Migrate': sp.stats.expon.rvs,
+                          'Recover': sp.stats.expon.rvs,
+                          'Sample': sp.stats.expon.rvs }
+    settings['rv_arg'] = { 'Infect': { 'scale' : 0.001 }, # **kwargs
+                           'Migrate': { 'scale' : 1. },
+                           'Recover': { 'scale' : 0.01 },
+                           'Sample': { 'scale' : 0.1 } }
+    return settings
+
 # SIRM state space
-def make_sirm_states(num_location):
+def make_states(num_locations):
     
     # S: Susceptible, I: Infected, R: Recovered, A: Acquired ('Sampled')
     compartments = 'SIRA'
     # Location 0, Location 1, Location 2, ...
-    locations = [ str(x) for x in list(range(num_location)) ]
+    locations = [ str(x) for x in list(range(num_locations)) ]
     # S0, S1, S2, ..., I0, I1, I2, ..., R0, R1, R2, ...
     lbl = [ ''.join(x) for x in list(itertools.product(compartments,locations)) ]
     # 1000, 0100, 0010, 0001 (one-hot encoding for N locations)
-    vec = np.identity(num_location, dtype='int').tolist()
+    vec = np.identity(num_locations, dtype='int').tolist()
     # { S0:1000, S1:0100, S2:0010, ..., I0:1000, I1:0100, I2:0010, ... }
     lbl2vec = {}
     for i,v in enumerate(lbl):
@@ -34,10 +61,10 @@ def make_events_i(states, rates):
         r = rates[i]
         #xml_str = 'I[{i}] + S[{i}] -> 2 I[{i}]'.format(i=i)
         # 'I[{i}] + S[{i}] -> 2 I[{i}]'
-        ix = [ 'I[{i}]'.format(i=i), 'S[{i}]'.format(i=i) ]
-        jx = [ '2S[{i}]'.format(i=i) ]
+        ix = [ 'I[{i}]:1'.format(i=i), 'S[{i}]:1'.format(i=i) ]
+        jx = [ '2I[{i}]:1'.format(i=i) ]
         idx = {'i':i}
-        e = Event( idx=idx, r=r, n='r_I_{i}'.format(i=i), g='Infection', x='', ix=ix, jx=jx )
+        e = Event( idx=idx, r=r, n='r_I_{i}'.format(i=i), g='Infect', ix=ix, jx=jx )
         events.append(e)
 
     return events
@@ -49,12 +76,12 @@ def make_events_r(states, rates):
     for x in states_I:
         i = int(x[1:])
         r = rates[i]
-        #xml_str = 'I[{i}] -> R[{i}]'.format(i=i)
         # 'I[{i}] -> R[{i}]'
-        ix = [ 'I[{i}]'.format(i=i) ]
-        jx = [ 'R[{i}]'.format(i=i) ]
+        ix = [ 'I[{i}]:1'.format(i=i) ]
+        jx = [ 'R[{i}]:1'.format(i=i) ]
+        #mx = [ ix[0] ]
         idx = {'i':i}
-        e = Event( idx=idx, r=r, n='r_R_{i}'.format(i=i), g='Recover', x='', ix=ix, jx=jx )
+        e = Event( idx=idx, r=r, n='r_R_{i}'.format(i=i), g='Recover', ix=ix, jx=jx )
         events.append(e)
         
     return events
@@ -68,10 +95,10 @@ def make_events_s(states, rates):
         r = rates[i]
         # xml_str = 'I[{i}] -> A[{i}]'.format(i=i)
         # 'I[{i}] -> A[{i}]'
-        ix = [ 'I[{i}]'.format(i=i) ]
-        jx = [ 'A[{i}]'.format(i=i) ]
+        ix = [ 'I[{i}]:1'.format(i=i) ]
+        jx = [ 'A[{i}]:1'.format(i=i) ]
         idx = {'i':i}
-        e = Event( idx=idx, r=r, n='r_S_{i}'.format(i=i), g='Sample', x='', ix=ix, jx=jx )
+        e = Event( idx=idx, r=r, n='r_S_{i}'.format(i=i), g='Sample', ix=ix, jx=jx )
         events.append(e)
 
     return events
@@ -88,15 +115,15 @@ def make_events_m(states, rates):
             r = rates[i][j]
             #xml_str = 'I[{i}] -> I[{j}]'.format(i=i, j=j)
             # 'I[{i}] -> I[{j}]'
-            ix = [ 'I[{i}]'.format(i=i) ]
-            jx = [ 'A[{j}]'.format(j=j) ]
+            ix = [ 'I[{i}]:1'.format(i=i) ]
+            jx = [ 'I[{j}]:1'.format(j=j) ]
             idx = {'i':i, 'j':j}
-            e = Event( idx=idx, r=r, n='r_M_{i}_{j}'.format(i=i, j=j), g='Migrate', x='', ix=ix, jx=jx )
+            e = Event( idx=idx, r=r, n='r_M_{i}_{j}'.format(i=i, j=j), g='Migrate', ix=ix, jx=jx )
             events.append(e)
 
     return events
 
-def make_sirm_events( states, rates ):
+def make_events( states, rates ):
     events_i = make_events_i( states, rates['Infect'] )
     events_r = make_events_r( states, rates['Recover'] )
     events_s = make_events_s( states, rates['Sample'] )
@@ -104,26 +131,43 @@ def make_sirm_events( states, rates ):
     events = events_i + events_m + events_r + events_s
     return events
 
-def make_sirm_rates( model_variant, num_locations ):
+def make_rates( model_variant, num_locations, settings ):
     rates = {}
+    
+    # get sim RV functions and arguments
+    rv_fn = settings['rv_fn']
+    rv_arg = settings['rv_arg']
+    #print(rv_fn)
+    #print(rv_arg)
+
     # all rates within an event type are equal, but rate classes are drawn iid
-    if model_variant is 'free_rates':
+    if model_variant == 'free_rates':
+        # check to make sure arguments in settings are applied to model variant
         rates = {
-            'Infect': sp.stats.expon.rvs(size=num_locations),
-            'Recover': sp.stats.expon.rvs(size=num_locations),
-            'Sample': sp.stats.expon.rvs(size=num_locations),
-            'Migrate': sp.stats.expon.rvs(size=num_locations**2).reshape((num_locations,num_locations)),
+            #'Infect': sp.stats.expon.rvs(size=num_locations),
+            #'Recover': sp.stats.expon.rvs(size=num_locations),
+            #'Sample': sp.stats.expon.rvs(size=num_locations),
+            #'Migrate': sp.stats.expon.rvs(size=num_locations**2).reshape((num_locations,num_locations)),
+            'Infect': rv_fn['Infect'](size=num_locations, **rv_arg['Infect']),
+            'Recover': rv_fn['Recover'](size=num_locations, **rv_arg['Recover']),
+            'Sample': rv_fn['Sample'](size=num_locations, **rv_arg['Sample']),
+            'Migrate': rv_fn['Migrate'](size=num_locations**2, **rv_arg['Migrate']).reshape((num_locations,num_locations)),
         }
     # all rates are drawn iid
-    elif model_variant is 'equal_rates':
+    elif model_variant == 'equal_rates':
         rates = {
-            'Infect': np.full(num_locations, sp.stats.expon.rvs(size=1)[0]),
-            'Recover': np.full(num_locations, sp.stats.expon.rvs(size=1)[0]), 
-            'Sample': np.full(num_locations, sp.stats.expon.rvs(size=1)[0]), 
-            'Migrate': np.full((num_locations,num_locations), sp.stats.expon.rvs(size=1)[0])
+            'Infect': np.full(num_locations, rv_fn['Infect'](size=1, **rv_arg['Infect'])[0]),
+            'Recover': np.full(num_locations, rv_fn['Recover'](size=1, **rv_arg['Infect'])[0]),
+            'Sample': np.full(num_locations, rv_fn['Sample'](size=1, **rv_arg['Sample'])[0]),
+            'Migrate': np.full((num_locations,num_locations), rv_fn['Migrate'](size=1, **rv_arg['Migrate'])[0]),
+            # 'Infect': np.full(num_locations, sp.stats.expon.rvs(size=1)[0]),
+            # 'Recover': np.full(num_locations, sp.stats.expon.rvs(size=1)[0]), 
+            # 'Sample': np.full(num_locations, sp.stats.expon.rvs(size=1)[0]), 
+            # 'Migrate': np.full((num_locations,num_locations), sp.stats.expon.rvs(size=1)[0])
         }
     # all rates drawn as log-linear functions of features
-    elif model_variant is 'feature_rates':
+    elif model_variant == 'feature_rates':
+        # other parameters checked for effect-strength of feature on rates
         rates = {
             'Infect': np.full(num_locations, sp.stats.expon.rvs(size=1)[0]),
             'Recover': np.full(num_locations, sp.stats.expon.rvs(size=1)[0]), 

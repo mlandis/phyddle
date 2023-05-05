@@ -129,7 +129,7 @@ def sim_one(k):
     # generate GeoSSE rates
     #mymodel = GeosseModel(num_char=3, model_variant='free_rates')  ### <-- how do we instantiate a new model object of Class X each replicate?
     mymodel = SirmModel(num_char=3, model_variant='equal_rates')  ### <-- how do we instantiate a new model object of Class X each replicate?
-    print(mymodel.df_events)
+    #print(mymodel.df_events)
     model_type = mymodel.model_type
     settings['model_type'] = model_type
 
@@ -153,11 +153,11 @@ def sim_one(k):
     #json_fn     = out_path + '.json'
 
     ## construct XML from model class
-    xmlgen = MasterXmlGenerator(mymodel.df_events, mymodel.df_states)
+    xmlgen = MasterXmlGenerator(mymodel.df_events, mymodel.df_states, mymodel.settings)
     print( xmlgen.make_reaction_vars() )
     # alternative, construct XML from event and states dataframes
     # xmlgen = MasterXmlGenerator(df_events, df_states)
-    xmlgen.make_xml(max_taxa=max_taxa[-1]/2, newick_fn=tre_fn, nexus_fn=nex_fn, json_fn=json_fn)
+    xmlgen.make_xml(newick_fn=tre_fn, nexus_fn=nex_fn, json_fn=json_fn)
     xml_str = xmlgen.xml_spec_str
     write_to_file(xml_str, xml_fn)
 

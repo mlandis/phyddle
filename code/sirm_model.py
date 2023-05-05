@@ -15,14 +15,17 @@ class SirmModel:
         self.model_variant = model_variant
         self.num_char      = num_char
      
+        # simulation settings
+        self.settings = make_settings( self.num_char )
+
         # state space
-        self.states = make_sirm_states(self.num_char)
+        self.states = make_states(self.num_char)
 
         # rate space
-        self.rates = make_sirm_rates( self.model_variant, self.num_char )
+        self.rates = make_rates( self.model_variant, self.num_char, self.settings )
 
         # event space
-        self.events = make_sirm_events( self.states, self.rates )
+        self.events = make_events( self.states, self.rates )
 
         # event space dataframe
         self.df_events = events2df( self.events )
@@ -31,4 +34,4 @@ class SirmModel:
         self.df_states = states2df( self.states )
 
         # model
-        self.xmlgen = MasterXmlGenerator(self.df_events, self.df_states)
+        #self.xmlgen = MasterXmlGenerator(self.df_events, self.df_states, self.settings)

@@ -1,12 +1,27 @@
 from model_util import Event,States
 from model_util import sort_binary_vectors
+import model_util
 import string
 import itertools
 import numpy as np
 import scipy as sp
 
 
-def make_geosse_states(num_char):
+def make_settings(num_char):
+    settings = {}
+    num_states = 2**num_char - 1 
+    settings['start_state'] = { 'S' : sp.stats.randint.rvs(size=1, low=0, high=num_states)[0] }    
+    settings['rv_fn'] = { 'Within-region speciation': sp.stats.expon,
+                          'Extirpation': sp.stats.expon,
+                          'Dispersal': sp.stats.expon,
+                          'Between-region speciation': sp.stats.expon }
+    settings['rv_arg'] = { 'Within-region speciation': { 'scale' : 1. }, # **kwargs
+                           'Extirpation': { 'scale' : 1. },
+                           'Dispersal': { 'scale' : 1. },
+                           'Between-region speciation': { 'scale' : 1. } }
+    return settings
+
+def make_states(num_char):
     vec        = [ x for x in itertools.product(range(2), repeat=num_char) ][1:]
     vec        = sort_binary_vectors(vec)
     letters    = string.ascii_uppercase[0:num_char]
@@ -155,7 +170,7 @@ def make_events_b(states, rates):
 
     return events
 
-def make_geosse_events( states, rates ):
+def make_events( states, rates ):
     events_x = make_events_x( states, rates['Extinction'] )
     events_e = make_events_e( states, rates['Extirpation'] )
     events_d = make_events_d( states, rates['Dispersal'] )
@@ -164,10 +179,10 @@ def make_geosse_events( states, rates ):
     events = events_x + events_e + events_d + events_w + events_b
     return events
 
-def make_geosse_rates( model_variant, num_char ):
+def make_rates( model_variant, num_char ):
     rates = {}
     
-    if model_variant is 'free_rates':
+    if model_variant == 'free_rates':
         rates = {
                 'Within-region speciation': sp.stats.expon.rvs(size=num_char),
                 'Extirpation': sp.stats.expon.rvs(size=num_char), 
@@ -176,7 +191,7 @@ def make_geosse_rates( model_variant, num_char ):
             }
         rates['Extinction'] = rates['Extirpation']
 
-    elif model_variant is 'equal_rates':
+    elif model_variant == 'equal_rates':
         rates = {
                 'Within-region speciation': np.full(num_char, sp.stats.expon.rvs(size=1)[0]),
                 'Extirpation': np.full(num_char, sp.stats.expon.rvs(size=1)[0]), 
@@ -185,7 +200,7 @@ def make_geosse_rates( model_variant, num_char ):
             }
         rates['Extinction'] = rates['Extirpation']
 
-    elif model_variant is 'fig_rates':
+    elif model_variant == 'fig_rates':
         rates = {}
         
     return rates
