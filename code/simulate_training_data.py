@@ -26,9 +26,15 @@ start = time.time()
 # numpy printing format
 np.set_printoptions(floatmode='unique', suppress=True)
 
+#MyModel = SirmModel
+MyModel = GeosseModel
+my_model_args = { 'num_locations' : 3,
+                  'model_variant' : 'equal_rates' }
+
 # default settings
 settings = {}
 settings['model_name']     = 'bd1'
+#settings['model_type']     = ''
 settings['start_idx']      = 0
 settings['end_idx']        = 1 #99
 settings['cfg_file']       = None # TODO: add config file parser
@@ -52,7 +58,7 @@ out_path   = out_dir + '/' + out_prefix
 # init settings
 num_rep        = len(rep_idx)
 num_jobs       = -2
-max_taxa       = [200, 500]
+max_taxa       = [200, 500, 1000, 2000, 5000]
 
 # make dirs
 os.makedirs(out_dir, exist_ok=True)
@@ -83,36 +89,23 @@ def sim_one(k):
     settings['out_path'] = tmp_fn
     settings['replicate_index'] = k
 
-    # generate GeoSSE rates
-    #mymodel = GeosseModel(num_locations=3, model_variant='equal_rates')  ### <-- how do we instantiate a new model object of Class X each replicate?
-    mymodel = SirmModel(num_locations=3, model_variant='equal_rates')  ### <-- how do we instantiate a new model object of Class X each replicate?
-    
-    #print(mymodel.df_events)
+    # instantiate model
+    #mymodel = GeosseModel(num_locations=3, model_variant='equal_rates')
+    #mymodel = SirmModel(num_locations=3, model_variant='equal_rates')
+    mymodel = MyModel(**my_model_args)
+
     model_type = mymodel.model_type
     settings['model_type'] = model_type
 
-    lbl2vec = mymodel.states.lbl2vec
+    # get int/vec/str for states for some reason...
+    #lbl2vec = mymodel.states.lbl2vec
     int2vec = mymodel.states.int2vec
     int2vecstr = [ ''.join([str(y) for y in x]) for x in int2vec ]
     vecstr2int = { v:i for i,v in enumerate(int2vecstr) }
 
-    ## build model here??
-    # rates = make_rates(regions, states, events, settings)
-    # rates['r_w'] = rates['r_w'] * 0.5
-    # rates['r_d'] = rates['r_d'] * 0.5
-    # rates['r_e'] = rates['r_e'] * 0.2
-    # rates['r_b'] = rates['r_b'] * 1.0
-
-    # generate MASTER XML string
-    # xml_str = make_xml(events, rates, states, states_str, settings)
-    # out_path    = settings['out_path']
-    #newick_fn   = out_path + '.tre'
-    #nexus_fn    = out_path + '.nex'
-    #json_fn     = out_path + '.json'
-
     ## construct XML from model class
     xmlgen = MasterXmlGenerator(mymodel.df_events, mymodel.df_states, mymodel.settings)
-    print( xmlgen.make_reaction_vars() )
+    #print( xmlgen.make_reaction_vars() )
     # alternative, construct XML from event and states dataframes
     # xmlgen = MasterXmlGenerator(df_events, df_states)
     xmlgen.make_xml(newick_fn=tre_fn, nexus_fn=nex_fn, json_fn=json_fn)
