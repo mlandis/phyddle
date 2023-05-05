@@ -8,21 +8,21 @@ import itertools
 class SirmModel:
     
     # set up model
-    def __init__(self, num_char, model_variant='equal_rates', feature_set=None):
+    def __init__(self, num_locations, model_variant='equal_rates', feature_set=None):
         
         # create state space
         self.model_type    = 'SIRM'
         self.model_variant = model_variant
-        self.num_char      = num_char
+        self.num_locations = num_locations
      
         # simulation settings
-        self.settings = make_settings( self.num_char )
+        self.settings = make_settings( self.num_locations )
 
         # state space
-        self.states = make_states(self.num_char)
+        self.states = make_states(self.num_locations)
 
         # rate space
-        self.rates = make_rates( self.model_variant, self.num_char, self.settings )
+        self.rates = make_rates( self.model_variant, self.settings )
 
         # event space
         self.events = make_events( self.states, self.rates )

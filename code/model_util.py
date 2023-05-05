@@ -243,15 +243,6 @@ class MasterXmlGenerator:
         xml_sim_conditions = ""
         xml_sim_conditions += "<lineageEndCondition spec='LineageEndCondition' nLineages='{stop_ceil_sizes}' alsoGreaterThan='true' isRejection='false'/>\n".format(stop_ceil_sizes=stop_ceil_sizes)
         xml_sim_conditions += "<lineageEndCondition spec='LineageEndCondition' nLineages='{stop_floor_sizes}' alsoGreaterThan='false' isRejection='false'/>\n".format(stop_floor_sizes=stop_floor_sizes)
-        # for k,v in self.reaction_vars.items():
-        #     if v == 0:
-        #         xml_sim_conditions += "\t\t<population spec ='Population' type='@{k}'/>\n".format(k=k)
-        #     else:
-        #         for i in range(v):
-        #             xml_sim_conditions += "\t\t<population spec ='Population' type='@{k}' location='{i}'/>\n".format(k=k, i=i)
-        # # for i in self.states.int:
-        # #     xml_sim_conditions += "\t\t<population spec ='Population' type='@S' location='{i}'/>\n".format(i=i)
-        # xml_sim_conditions += "</lineageEndCondition>\n"
         xml_sim_conditions += "<postSimCondition spec='LeafCountPostSimCondition' nLeaves='10' exact='false' exceedCondition='true'/>\n"
 
         # post-processing filter

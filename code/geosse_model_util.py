@@ -7,24 +7,30 @@ import numpy as np
 import scipy as sp
 
 
-def make_settings(num_char):
+def make_settings(num_locations):
     settings = {}
-    num_states = 2**num_char - 1 
-    settings['start_state'] = { 'S' : sp.stats.randint.rvs(size=1, low=0, high=num_states)[0] }    
-    settings['rv_fn'] = { 'Within-region speciation': sp.stats.expon,
-                          'Extirpation': sp.stats.expon,
-                          'Dispersal': sp.stats.expon,
-                          'Between-region speciation': sp.stats.expon }
-    settings['rv_arg'] = { 'Within-region speciation': { 'scale' : 1. }, # **kwargs
-                           'Extirpation': { 'scale' : 1. },
-                           'Dispersal': { 'scale' : 1. },
-                           'Between-region speciation': { 'scale' : 1. } }
+    num_ranges = 2**num_locations - 1
+    settings['num_locations']        = num_locations
+    settings['num_ranges']           = num_ranges
+    settings['start_state']          = { 'S' : sp.stats.randint.rvs(size=1, low=0, high=num_ranges)[0] }    
+    settings['start_sizes']          = {}
+    settings['sample_population']    = []
+    settings['stop_floor_sizes']     = 0
+    settings['stop_ceil_sizes']      = 500
+    settings['rv_fn']                = { 'Within-region speciation': sp.stats.expon.rvs,
+                                         'Extirpation': sp.stats.expon.rvs,
+                                         'Dispersal': sp.stats.expon.rvs,
+                                         'Between-region speciation': sp.stats.expon.rvs }
+    settings['rv_arg']               = { 'Within-region speciation': { 'scale' : 1. },
+                                         'Extirpation': { 'scale' : 1. },
+                                         'Dispersal': { 'scale' : 1. },
+                                         'Between-region speciation': { 'scale' : 1. } }
     return settings
 
-def make_states(num_char):
-    vec        = [ x for x in itertools.product(range(2), repeat=num_char) ][1:]
+def make_states(num_locations):
+    vec        = [ x for x in itertools.product(range(2), repeat=num_locations) ][1:]
     vec        = sort_binary_vectors(vec)
-    letters    = string.ascii_uppercase[0:num_char]
+    letters    = string.ascii_uppercase[0:num_locations]
     lbl        = [ ''.join([ letters[i] for i,y in enumerate(x) if y == 1 ]) for x in vec ]
     lbl2vec    = { k:v for k,v in list(zip(lbl,vec)) }
     states     = States(lbl2vec)
@@ -32,21 +38,29 @@ def make_states(num_char):
 
 # GeoSSE extinction rate
 def make_events_x(states, rates):  
+
+    group = 'Extinction'
+
     events = []
     for i,x in enumerate(states.int2vec):
         if sum(x) == 1:
             for j,y in enumerate(x):
                 if y == 1:
-                    r = rates[j]
-                    xml_str = 'S[{i}]:1 -> X'.format(i=i)
+                    name = 'r_x_{i}'.format(i=i)
                     idx = {'i':i}
-                    e = Event( idx=idx, r=r, n='r_x_{i}'.format(i=i), g='Extinction', x=xml_str )
+                    rate = rates[j]
+                    ix = [ 'S[{i}]:1'.format(i=i) ]
+                    jx = [ 'X' ]
+                    e = Event( g=group, n=name, idx=idx, r=rate, ix=ix, jx=jx )
                     events.append(e)
     return events
 
 
 # GeoSSE extirpation rate
 def make_events_e(states, rates):
+
+    group = 'Extirpation'
+
     events = []
     # for each state
     for i,x in enumerate(states.int2vec):
@@ -54,19 +68,27 @@ def make_events_e(states, rates):
         for j,y in enumerate(x):
             # if range is size 2+ and region occupied
             if sum(x) > 1 and y == 1:
+                
                 new_bits = list(x).copy()
                 new_bits[j] = 0
                 new_bits = tuple(new_bits)
                 new_state = states.vec2int[ new_bits ]
-                r = rates[j]
-                xml_str = 'S[{i}]:1 -> S[{j}]:1'.format(i=i, j=new_state)
+
+                name = 'r_e_{i}_{j}'.format(i=i, j=new_state)
+                rate = rates[j]
+                #xml_str = 'S[{i}]:1 -> S[{j}]:1'.format(i=i, j=new_state)
+                ix = [ 'S[{i}]:1'.format(i=i) ]
+                jx = [ 'S[{j}]:1'.format(j=new_state) ]
                 idx = {'i':i, 'j':new_state}
-                e = Event( idx=idx, r=r, n='r_e_{i}_{j}'.format(i=i, j=new_state), g='Extirpation', x=xml_str )
+                e = Event( g=group, n=name, idx=idx, r=rate, ix=ix, jx=jx )
                 events.append(e)
     return events
 
 # GeoSSE within-region speciation rate
 def make_events_w(states, rates):
+
+    group = 'Within-region speciation'
+
     events = []
     # for each state
     for i,x in enumerate(states.int2vec):
@@ -74,17 +96,22 @@ def make_events_w(states, rates):
         for j,y in enumerate(x):
             # if region is occupied
             if y == 1:
-                new_state = j
-                r = rates[j]
-                xml_str = 'S[{i}]:1 -> S[{i}]:1 + S[{j}]:1'.format(i=i, j=new_state)
-                idx = {'i':i, 'j':i, 'k':new_state}
-                e = Event( idx=idx, r=r, n='r_w_{i}_{i}_{j}'.format(i=i, j=new_state), g='Within-region_speciation', x=xml_str )
+                #new_state = j
+                name = 'r_w_{i}_{i}_{j}'.format(i=i, j=j)
+                rate = rates[j]
+                #xml_str = 'S[{i}]:1 -> S[{i}]:1 + S[{j}]:1'.format(i=i, j=new_state)
+                ix = [ 'S[{i}]:1'.format(i=i, j=j) ]
+                jx = [ 'S[{i}]:1'.format(i=i), 'S[{j}]:1'.format(j=j) ]
+                idx = {'i':i, 'j':i, 'k':j}
+                e = Event( g=group, n=name, idx=idx, r=rate, ix=ix, jx=jx )
                 events.append(e)
     return events
 
 # GeoSSE dispersal rate
 def make_events_d(states, rates):
     
+    group = 'Dispersal'
+
     # how many compound states
     num_states = len(states.int2int)
 
@@ -108,17 +135,20 @@ def make_events_d(states, rates):
             next
         #print(on[i], off[i])
         for a,y in enumerate(off[i]):
-            r = 0.0
+            rate = 0.0
             for b,z in enumerate(on[i]):
-                r += rates[z][y]
+                rate += rates[z][y]
             new_bits = list(states.int2vec[i]).copy()
             new_bits[y] = 1
             #print(states.int2vec[i], '->', new_bits)
             new_state = states.vec2int[ tuple(new_bits) ]
-            xml_str = 'S[{i}]:1 -> S[{j}]:1'.format(i=i, j=new_state)
+            name = 'r_d_{i}_{j}'.format(i=i, j=new_state)
+            ix = [ 'S[{i}]:1'.format(i=i) ]
+            jx = [ 'S[{j}]:1'.format(j=new_state) ]
+            #xml_str = 'S[{i}]:1 -> S[{j}]:1'.format(i=i, j=new_state)
             #idx = [i, new_state]
             idx = {'i':i, 'j':new_state}
-            e = Event( idx=idx, r=r, n='r_d_{i}_{j}'.format(i=i, j=new_state), g='Dispersal', x=xml_str )
+            e = Event( g=group, n=name, idx=idx, r=rate, ix=ix, jx=jx )
             events.append(e)
 
     return events
@@ -126,6 +156,8 @@ def make_events_d(states, rates):
 # GeoSSE between-region speciation rate
 def make_events_b(states, rates):
     
+    group = 'Between-region speciation'
+
     # geometric mean
     def gm(x):
         return np.power( np.prod(x), 1.0/len(x) )
@@ -152,15 +184,18 @@ def make_events_b(states, rates):
         #print(x)
         for y in splits:
             z = tuple(set(x).difference(y))
-            #print('  ',y,z)
             # create event
             left_state = states.set2int[y] 
             right_state = states.set2int[z]
-            r = make_split_rate(y,z,rates)
-            all_rates.append(r)
+            name = 'r_b_{i}_{j}_{k}'.format(i=i, j=left_state, k=right_state)
+            rate = make_split_rate(y,z,rates)
+            all_rates.append(rate)
             idx = {'i':i, 'j':left_state, 'k':right_state }
-            xml_str = 'S[{i}]:1 -> S[{j}]:1 + S[{k}]:1'.format(i=i, j=left_state, k=right_state)
-            e = Event( idx=idx, r=r, n='r_b_{i}_{j}_{k}'.format(i=i, j=left_state, k=right_state), g='Between-region speciation', x=xml_str )
+            ix = [ 'S[{i}]:1'.format(i=i) ]
+            jx = [ 'S[{j}]:1'.format(j=left_state), 'S[{k}]:1'.format(k=right_state) ]
+            #xml_str = 'S[{i}]:1 -> S[{j}]:1 + S[{k}]:1'.format(i=i, j=left_state, k=right_state)
+            #e = Event( idx=idx, r=r, n='r_b_{i}_{j}_{k}'.format(i=i, j=left_state, k=right_state), g='Between-region speciation', x=xml_str )
+            e = Event( g=group, n=name, idx=idx, r=rate, ix=ix, jx=jx )
             events.append(e)
 
     # normalize rates
@@ -179,24 +214,30 @@ def make_events( states, rates ):
     events = events_x + events_e + events_d + events_w + events_b
     return events
 
-def make_rates( model_variant, num_char ):
+def make_rates( model_variant, settings ):
     rates = {}
     
+    # get settings
+    num_locations = settings['num_locations']
+    rv_fn = settings['rv_fn']
+    rv_arg = settings['rv_arg']
+
+    # build rates
     if model_variant == 'free_rates':
         rates = {
-                'Within-region speciation': sp.stats.expon.rvs(size=num_char),
-                'Extirpation': sp.stats.expon.rvs(size=num_char), 
-                'Dispersal': sp.stats.expon.rvs(size=num_char**2).reshape((num_char,num_char)),
-                'Between-region speciation': sp.stats.expon.rvs(size=num_char**2).reshape((num_char,num_char))
+                'Within-region speciation':  rv_fn['Within-region speciation'](size=num_locations, **rv_arg['Within-region speciation']),
+                'Extirpation':               rv_fn['Extirpation'](size=num_locations, **rv_arg['Extirpation']),
+                'Dispersal':                 rv_fn['Dispersal'](size=num_locations**2, **rv_arg['Dispersal']).reshape((num_locations,num_locations)),
+                'Between-region speciation': rv_fn['Between-region speciation'](size=num_locations**2, **rv_arg['Between-region speciation']).reshape((num_locations,num_locations))
             }
         rates['Extinction'] = rates['Extirpation']
 
     elif model_variant == 'equal_rates':
         rates = {
-                'Within-region speciation': np.full(num_char, sp.stats.expon.rvs(size=1)[0]),
-                'Extirpation': np.full(num_char, sp.stats.expon.rvs(size=1)[0]), 
-                'Dispersal': np.full((num_char,num_char), sp.stats.expon.rvs(size=1)[0]), #sp.stats.expon.rvs(size=num_char**2).reshape((num_char,num_char)),
-                'Between-region speciation': np.full((num_char,num_char), sp.stats.expon.rvs(size=1)[0]) #sp.stats.expon.rvs(size=num_char**2).reshape((num_char,num_char))
+                'Within-region speciation': np.full(num_locations, rv_fn['Within-region speciation'](size=1, **rv_arg['Within-region speciation'])[0]),
+                'Extirpation': np.full(num_locations, rv_fn['Extirpation'](size=1, **rv_arg['Extirpation'])[0]),
+                'Dispersal': np.full((num_locations,num_locations), rv_fn['Dispersal'](size=1, **rv_arg['Dispersal'])[0]),
+                'Between-region speciation': np.full((num_locations,num_locations), rv_fn['Between-region speciation'](size=1, **rv_arg['Between-region speciation'])[0])
             }
         rates['Extinction'] = rates['Extirpation']
 
@@ -204,3 +245,21 @@ def make_rates( model_variant, num_char ):
         rates = {}
         
     return rates
+
+#  # all rates within an event type are equal, but rate classes are drawn iid
+#     if model_variant == 'free_rates':
+#         # check to make sure arguments in settings are applied to model variant
+#         rates = {
+#             'Infect': rv_fn['Infect'](size=num_locations, **rv_arg['Infect']),
+#             'Recover': rv_fn['Recover'](size=num_locations, **rv_arg['Recover']),
+#             'Sample': rv_fn['Sample'](size=num_locations, **rv_arg['Sample']),
+#             'Migrate': rv_fn['Migrate'](size=num_locations**2, **rv_arg['Migrate']).reshape((num_locations,num_locations)),
+#         }
+#     # all rates are drawn iid
+#     elif model_variant == 'equal_rates':
+#         rates = {
+#             'Infect': np.full(num_locations, rv_fn['Infect'](size=1, **rv_arg['Infect'])[0]),
+#             'Recover': np.full(num_locations, rv_fn['Recover'](size=1, **rv_arg['Infect'])[0]),
+#             'Sample': np.full(num_locations, rv_fn['Sample'](size=1, **rv_arg['Sample'])[0]),
+#             'Migrate': np.full((num_locations,num_locations), rv_fn['Migrate'](size=1, **rv_arg['Migrate'])[0]),
+#         }

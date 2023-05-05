@@ -54,54 +54,11 @@ num_rep        = len(rep_idx)
 num_jobs       = -2
 max_taxa       = [200, 500]
 
-
-# num_chars      = 3
-# num_states     = 2**num_chars - 1
-# regions        = list(range(num_chars))
-# states         = list(powerset(regions))[1:]
-# states_str     = [ ''.join(list([string.ascii_uppercase[i] for i in s])) for s in states ]
-# states_str_inv = {}
-# states_inv     = {}
-# states_bits_str_inv = {}
-# for i,v in enumerate(states_str):
-#     states_str_inv[v] = i
-# for i,v in enumerate(states):
-#     states_inv[v] = i
-# states_bits    = regions_to_binary(states, states_str, regions)
-# states_bits_str = [ ''.join(s) for s in states_bits.values() ]
-# for i,v in enumerate(states_bits_str):
-#     states_bits_str_inv[v] = i
-
-
-
-#print(states_str)
-#print(states_bits_str)
-#print(states_bits_str_inv)
-
 # make dirs
 os.makedirs(out_dir, exist_ok=True)
 
-# model settings
-# model_type = 'iid_simple'
-# num_feature_layers = 2
-# def rv_rate(size):
-#     return sp.stats.uniform.rvs(size=size, loc=0.1, scale=0.9) 
-#     #return sp.stats.expon.rvs(size=size, loc=0., scale=0.1) 
-# def rv_effect(size):
-#     return sp.stats.norm.rvs(size=size, loc=0., scale=1.) 
-# def rv_feature(size):
-#     return sp.stats.gamma.rvs(size=size, loc=2., scale=2.) 
-
 # generate settings container
 settings['max_taxa'] = np.max(max_taxa)
-
-# settings['num_feature_layers'] = num_feature_layers
-# settings['rv_rate'] = rv_rate
-# settings['rv_feature'] = rv_feature
-# settings['rv_effect'] = rv_effect
-
-# generate GeoSSE events
-# events = make_events(regions, states, states_inv)
 
 # main simulation function (looped)
 def sim_one(k):
@@ -127,8 +84,9 @@ def sim_one(k):
     settings['replicate_index'] = k
 
     # generate GeoSSE rates
-    #mymodel = GeosseModel(num_char=3, model_variant='free_rates')  ### <-- how do we instantiate a new model object of Class X each replicate?
-    mymodel = SirmModel(num_char=3, model_variant='equal_rates')  ### <-- how do we instantiate a new model object of Class X each replicate?
+    #mymodel = GeosseModel(num_locations=3, model_variant='equal_rates')  ### <-- how do we instantiate a new model object of Class X each replicate?
+    mymodel = SirmModel(num_locations=3, model_variant='equal_rates')  ### <-- how do we instantiate a new model object of Class X each replicate?
+    
     #print(mymodel.df_events)
     model_type = mymodel.model_type
     settings['model_type'] = model_type
