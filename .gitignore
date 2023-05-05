@@ -1,2 +1,5 @@
 code/__pycache__/*
 raw_data/*/*
+tensor_data/*/*
+network/*/*
+plot/*/*
