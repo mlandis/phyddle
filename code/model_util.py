@@ -2,7 +2,9 @@ import numpy as np
 import pandas as pd
 import scipy as sp
 import random
+import string
 import itertools
+import re
 
 
 def make_symm(m):
@@ -61,7 +63,7 @@ def sort_binary_vectors(binary_vectors):
 # model events
 class Event:
     # initialize
-    def __init__(self, idx, r=0.0, n=None, g=None, x=None):
+    def __init__(self, idx, r=0.0, n=None, g=None, x=None, ix=None, jx=None):
         self.i = -1
         self.j = -1
         self.k = -1
@@ -76,6 +78,9 @@ class Event:
         self.name = n
         self.group = g
         self.reaction = x
+        self.ix = ix
+        self.jx = jx
+        self.reaction = ' + '.join(ix) + ' -> ' + ' + '.join(jx)
         
     # make print string
     def make_str(self):
@@ -146,16 +151,43 @@ class MasterXmlGenerator:
         self.states = states
         self.events = events
         self.settings = settings
+        self.reaction_vars = self.make_reaction_vars()
     
+    def make_reaction_vars(self):
+        qty = {}
+        for s in self.events.reaction:
+            toks = re.findall( r'([0-9]*([A-Za-z])(\[[0-9]+\])?)', s)
+            for v in toks:
+                var_name = v[1]
+                var_idx = v[2]
+                if var_idx != '':
+                    if var_name not in qty:
+                        qty[var_name] = set([var_idx])
+                    else:
+                        qty[var_name].add(var_idx)
+                else:
+                    qty[var_name] = set()
+
+        reaction_vars = {}
+        for k,v in qty.items():
+            reaction_vars[k] = len(v)
+            
+        return reaction_vars
+
+
     def make_xml(self, max_taxa, newick_fn, nexus_fn, json_fn):
     
         # states
         xml_statespace = ''
-        xml_statespace += "<populationType spec='PopulationType' typeName='X' id='X'/>\n"
+        for k,v in self.reaction_vars.items():
+            if v == 0:
+                xml_statespace += "<populationType spec='PopulationType' typeName='{k}' id='{k}'/>\n".format(k=k)
+            elif v > 0:
+                xml_statespace += "<populationType spec='PopulationType' typeName='{k}' id='{k}' dim='{v}'/>\n".format(k=k,v=v)
         #states = self.statespace.int2int
         #for st in self.states.int:
         #    xml_events += "<populationType spec='PopulationType' typeName='S[{st}]' id='{st}'/>\n".format(st=st)
-        xml_statespace += "<populationType spec='PopulationType' typeName='S' id='S' dim='{ns}'/>".format(ns=len(self.states.int))
+        #xml_statespace += "<populationType spec='PopulationType' typeName='S' id='S' dim='{ns}'/>".format(ns=len(self.states.int))
 
         # get groups
         #groups = set([ e.group for e in events ])
@@ -181,18 +213,30 @@ class MasterXmlGenerator:
         
         #start_state = 'S[{i}]'.format(i=start_index)
         xml_init_state = "<initialState spec='InitState'>\n"
-        for i in self.states.int:
-            xml_init_state += "\t<lineageSeedMultiple spec='MultipleIndividuals' copies='{k}'>\n".format(k=start_states[i])
-            xml_init_state += "\t\t<population spec ='Population' type='@S' location='{i}'/>\n".format(i=i)
-            xml_init_state += "\t</lineageSeedMultiple>\n"
+        for k,v in self.reaction_vars.items():
+            if v == 0:
+                xml_init_state += "\t<lineageSeedMultiple spec='MultipleIndividuals' copies='{k}'>\n".format(k=start_states[i])
+                xml_init_state += "\t\t<population spec ='Population' type='@{k}'/>\n".format(k=k)
+                xml_init_state += "\t</lineageSeedMultiple>\n"
+            else:
+                for i in range(v):
+                    xml_init_state += "\t<lineageSeedMultiple spec='MultipleIndividuals' copies='{k}'>\n".format(k=start_states[i])
+                    xml_init_state += "\t\t<population spec ='Population' type='@{k}' location='{i}'/>\n".format(k=k,i=i)
+                    xml_init_state += "\t</lineageSeedMultiple>\n"
         xml_init_state += "</initialState>\n"
         
         # sim conditions
         xml_sim_conditions = ""
         xml_sim_conditions += "<lineageEndCondition spec='LineageEndCondition' nLineages='{max_taxa}' alsoGreaterThan='true' isRejection='false'/>\n".format(max_taxa=max_taxa)
         xml_sim_conditions += "<lineageEndCondition spec='LineageEndCondition' nLineages='0' alsoGreaterThan='false' isRejection='false'>\n"
-        for i in self.states.int:
-            xml_sim_conditions += "\t\t<population spec ='Population' type='@S' location='{i}'/>\n".format(i=i)
+        for k,v in self.reaction_vars.items():
+            if v == 0:
+                xml_sim_conditions += "\t\t<population spec ='Population' type='@{k}'/>\n".format(k=k)
+            else:
+                for i in range(v):
+                    xml_sim_conditions += "\t\t<population spec ='Population' type='@{k}' location='{i}'/>\n".format(k=k, i=i)
+        # for i in self.states.int:
+        #     xml_sim_conditions += "\t\t<population spec ='Population' type='@S' location='{i}'/>\n".format(i=i)
         xml_sim_conditions += "</lineageEndCondition>\n"
         xml_sim_conditions += "<postSimCondition spec='LeafCountPostSimCondition' nLeaves='10' exact='false' exceedCondition='true'/>\n"
 

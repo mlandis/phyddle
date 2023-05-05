@@ -154,6 +154,7 @@ def sim_one(k):
 
     ## construct XML from model class
     xmlgen = MasterXmlGenerator(mymodel.df_events, mymodel.df_states)
+    print( xmlgen.make_reaction_vars() )
     # alternative, construct XML from event and states dataframes
     # xmlgen = MasterXmlGenerator(df_events, df_states)
     xmlgen.make_xml(max_taxa=max_taxa[-1]/2, newick_fn=tre_fn, nexus_fn=nex_fn, json_fn=json_fn)
@@ -169,7 +170,7 @@ def sim_one(k):
     result_str = ''
     n_taxa_k = get_num_taxa(tre_fn, k, max_taxa)
     taxon_size_k = find_taxon_size(n_taxa_k, max_taxa)
-    print(n_taxa_k)
+    #print(n_taxa_k)
 
     # handle simulation based on tree size
     if n_taxa_k > np.max(max_taxa):

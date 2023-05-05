@@ -11,11 +11,11 @@ cd ~/projects/phyddle/code
 ./clean_model.sh --name bd1
 
 # simulate data in `raw_data/bd1`
-./simulate_training_data.py --name bd1 --start_idx 0 --end_idx 100 --use_parallel
+./simulate_training_data.py --start_idx 0 --end_idx 100 --use_parallel --name bd1
 
-# prepare data as tensors in `formatted_data/bd1`
+# prepare data as tensors in `tensor_data/bd1`
 ./prepare_training_data.py --name bd1
 
 # train CNN using tensors in `network/bd1`
-./train_rates_cnn.py --name bd1 --num_epoch 20 --batch_size 32 --num_validation 50 --num_test 50 --max_taxa 500
+./train_rates_cnn.py --num_epoch 20 --batch_size 32 --num_validation 50 --num_test 50 --max_taxa 500 --name bd1
 ```
