@@ -11,12 +11,14 @@ import scipy as sp
 class GeosseModel:
     
     # set up model
-    def __init__(self, num_locations, model_variant='equal_rates'):
+    def __init__(self, num_locations, model_variant='equal_rates', rv_fn=None, rv_arg=None):
         
         # create state space
         self.model_type    = 'GeoSSE'
         self.model_variant = model_variant
         self.num_locations = num_locations
+        self.rv_fn = rv_fn
+        self.rv_arg = rv_arg
         
         # simulation settings
         self.settings = self.make_settings( self.num_locations )
@@ -49,14 +51,23 @@ class GeosseModel:
         settings['sample_population']    = []
         settings['stop_floor_sizes']     = 0
         settings['stop_ceil_sizes']      = 500
-        settings['rv_fn']                = { 'w': sp.stats.expon.rvs,
-                                             'e': sp.stats.expon.rvs,
-                                             'd': sp.stats.expon.rvs,
-                                             'b': sp.stats.expon.rvs }
-        settings['rv_arg']               = { 'w': { 'scale' : 1. },
-                                             'e': { 'scale' : 1. },
-                                             'd': { 'scale' : 1. },
-                                             'b': { 'scale' : 1. } }
+        
+        if self.rv_fn == None:
+            settings['rv_fn']           = { 'w': sp.stats.expon.rvs,
+                                            'e': sp.stats.expon.rvs,
+                                            'd': sp.stats.expon.rvs,
+                                            'b': sp.stats.expon.rvs }
+        else:
+            settings['rv_fn'] = self.rv_fn
+        
+        if self.rv_arg == None:
+            settings['rv_arg']          = { 'w': { 'scale' : 1. },
+                                            'e': { 'scale' : 1. },
+                                            'd': { 'scale' : 1. },
+                                            'b': { 'scale' : 1. } }
+        else:
+            settings['rv_arg'] = self.rv_arg
+
         return settings
 
     def make_states(self, num_locations):
@@ -177,7 +188,8 @@ class GeosseModel:
 
         # geometric mean
         def gm(x):
-            return np.power( np.prod(x), 1.0/len(x) )
+            # unstable: np.power( np.prod(x), 1.0/len(x) )
+            return np.exp( np.sum(np.log(x)) / len(x) )
         
         # powerset (to get splits)
         def powerset(iterable):

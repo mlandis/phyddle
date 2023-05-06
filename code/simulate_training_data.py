@@ -26,10 +26,22 @@ start = time.time()
 # numpy printing format
 np.set_printoptions(floatmode='unique', suppress=True)
 
-MyModel = SirmModel
-#MyModel = GeosseModel
-my_model_args = { 'num_locations' : 3,
-                  'model_variant' : 'equal_rates' }
+#MyModel = SirmModel
+MyModel = GeosseModel
+my_model_args = {
+    'num_locations' : 5,
+    'model_variant' : 'equal_rates',
+    'rv_fn' : { 'w': sp.stats.expon.rvs,
+        'e': sp.stats.expon.rvs,
+        'd': sp.stats.expon.rvs,
+        'b': sp.stats.expon.rvs },
+    'rv_arg' : {
+        'w': { 'scale' : 1.0 },
+        'e': { 'scale' : 0.5 },
+        'd': { 'scale' : 1.0 },
+        'b': { 'scale' : 3.0 }
+    }
+}
 
 # default settings
 settings = {}
