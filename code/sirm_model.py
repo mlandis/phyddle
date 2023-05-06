@@ -58,14 +58,14 @@ class SirmModel:
         settings['sample_population'] = [ 'A' ]
         settings['stop_floor_sizes']  = 0
         settings['stop_ceil_sizes']   = 5000
-        settings['rv_fn']             = { 'Infect': sp.stats.expon.rvs,
-                                        'Migrate': sp.stats.expon.rvs,
-                                        'Recover': sp.stats.expon.rvs,
-                                        'Sample': sp.stats.expon.rvs }
-        settings['rv_arg']            = { 'Infect': { 'scale' : 0.001 },
-                                        'Migrate': { 'scale' : 1. },
-                                        'Recover': { 'scale' : 0.01 },
-                                        'Sample': { 'scale' : 0.1 } }
+        settings['rv_fn']             = { 'i':  sp.stats.expon.rvs,
+                                          'm': sp.stats.expon.rvs,
+                                          'r': sp.stats.expon.rvs,
+                                          's':  sp.stats.expon.rvs }
+        settings['rv_arg']            = { 'i':  { 'scale' : 0.001 },
+                                          'm': { 'scale' : 1.000 },
+                                          'r': { 'scale' : 0.010 },
+                                          's':  { 'scale' : 0.100 } }
         return settings
 
     # SIRM state space
@@ -88,10 +88,10 @@ class SirmModel:
         return states
 
     def make_events(self, states, rates):
-        events_i = self.make_events_i( states, rates['Infect'] )
-        events_r = self.make_events_r( states, rates['Recover'] )
-        events_s = self.make_events_s( states, rates['Sample'] )
-        events_m = self.make_events_m( states, rates['Migrate'] )
+        events_i = self.make_events_i( states, rates['i'] )
+        events_r = self.make_events_r( states, rates['r'] )
+        events_s = self.make_events_s( states, rates['s'] )
+        events_m = self.make_events_m( states, rates['m'] )
         events = events_i + events_m + events_r + events_s
         return events
 
@@ -185,18 +185,18 @@ class SirmModel:
         if model_variant == 'free_rates':
             # check to make sure arguments in settings are applied to model variant
             rates = {
-                'Infect': rv_fn['Infect'](size=num_locations, **rv_arg['Infect']),
-                'Recover': rv_fn['Recover'](size=num_locations, **rv_arg['Recover']),
-                'Sample': rv_fn['Sample'](size=num_locations, **rv_arg['Sample']),
-                'Migrate': rv_fn['Migrate'](size=num_locations**2, **rv_arg['Migrate']).reshape((num_locations,num_locations))
+                'i': rv_fn['i'](size=num_locations, **rv_arg['i']),
+                'r': rv_fn['r'](size=num_locations, **rv_arg['r']),
+                's': rv_fn['s'](size=num_locations, **rv_arg['s']),
+                'm': rv_fn['m'](size=num_locations**2, **rv_arg['m']).reshape((num_locations,num_locations))
             }
         # all rates are drawn iid
         elif model_variant == 'equal_rates':
             rates = {
-                'Infect': np.full(num_locations, rv_fn['Infect'](size=1, **rv_arg['Infect'])[0]),
-                'Recover': np.full(num_locations, rv_fn['Recover'](size=1, **rv_arg['Recover'])[0]),
-                'Sample': np.full(num_locations, rv_fn['Sample'](size=1, **rv_arg['Sample'])[0]),
-                'Migrate': np.full((num_locations,num_locations), rv_fn['Migrate'](size=1, **rv_arg['Migrate'])[0])
+                'i': np.full(num_locations, rv_fn['i'](size=1, **rv_arg['i'])[0]),
+                'r': np.full(num_locations, rv_fn['r'](size=1, **rv_arg['r'])[0]),
+                's': np.full(num_locations, rv_fn['s'](size=1, **rv_arg['s'])[0]),
+                'm': np.full((num_locations,num_locations), rv_fn['m'](size=1, **rv_arg['m'])[0])
             }
         # e.g. all rates drawn as log-linear functions of features
         elif model_variant == 'feature_rates':

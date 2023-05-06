@@ -49,14 +49,14 @@ class GeosseModel:
         settings['sample_population']    = []
         settings['stop_floor_sizes']     = 0
         settings['stop_ceil_sizes']      = 500
-        settings['rv_fn']                = { 'Within-region speciation': sp.stats.expon.rvs,
-                                            'Extirpation': sp.stats.expon.rvs,
-                                            'Dispersal': sp.stats.expon.rvs,
-                                            'Between-region speciation': sp.stats.expon.rvs }
-        settings['rv_arg']               = { 'Within-region speciation': { 'scale' : 1. },
-                                            'Extirpation': { 'scale' : 1. },
-                                            'Dispersal': { 'scale' : 1. },
-                                            'Between-region speciation': { 'scale' : 1. } }
+        settings['rv_fn']                = { 'w': sp.stats.expon.rvs,
+                                             'e': sp.stats.expon.rvs,
+                                             'd': sp.stats.expon.rvs,
+                                             'b': sp.stats.expon.rvs }
+        settings['rv_arg']               = { 'w': { 'scale' : 1. },
+                                             'e': { 'scale' : 1. },
+                                             'd': { 'scale' : 1. },
+                                             'b': { 'scale' : 1. } }
         return settings
 
     def make_states(self, num_locations):
@@ -223,11 +223,11 @@ class GeosseModel:
         return events
 
     def make_events(self, states, rates):
-        events_x = self.make_events_x( states, rates['Extinction'] )
-        events_e = self.make_events_e( states, rates['Extirpation'] )
-        events_d = self.make_events_d( states, rates['Dispersal'] )
-        events_w = self.make_events_w( states, rates['Within-region speciation'] )
-        events_b = self.make_events_b( states, rates['Between-region speciation'] )
+        events_x = self.make_events_x( states, rates['x'] )
+        events_e = self.make_events_e( states, rates['e'] )
+        events_d = self.make_events_d( states, rates['d'] )
+        events_w = self.make_events_w( states, rates['w'] )
+        events_b = self.make_events_b( states, rates['b'] )
         events = events_x + events_e + events_d + events_w + events_b
         return events
 
@@ -242,21 +242,21 @@ class GeosseModel:
         # build rates
         if model_variant == 'free_rates':
             rates = {
-                    'Within-region speciation':  rv_fn['Within-region speciation'](size=num_locations, **rv_arg['Within-region speciation']),
-                    'Extirpation':               rv_fn['Extirpation'](size=num_locations, **rv_arg['Extirpation']),
-                    'Dispersal':                 rv_fn['Dispersal'](size=num_locations**2, **rv_arg['Dispersal']).reshape((num_locations,num_locations)),
-                    'Between-region speciation': rv_fn['Between-region speciation'](size=num_locations**2, **rv_arg['Between-region speciation']).reshape((num_locations,num_locations))
+                    'w': rv_fn['w'](size=num_locations, **rv_arg['w']),
+                    'e': rv_fn['e'](size=num_locations, **rv_arg['e']),
+                    'd': rv_fn['d'](size=num_locations**2, **rv_arg['d']).reshape((num_locations,num_locations)),
+                    'b': rv_fn['b'](size=num_locations**2, **rv_arg['b']).reshape((num_locations,num_locations))
                 }
-            rates['Extinction'] = rates['Extirpation']
+            rates['x'] = rates['x']
 
         elif model_variant == 'equal_rates':
             rates = {
-                    'Within-region speciation': np.full(num_locations, rv_fn['Within-region speciation'](size=1, **rv_arg['Within-region speciation'])[0]),
-                    'Extirpation': np.full(num_locations, rv_fn['Extirpation'](size=1, **rv_arg['Extirpation'])[0]),
-                    'Dispersal': np.full((num_locations,num_locations), rv_fn['Dispersal'](size=1, **rv_arg['Dispersal'])[0]),
-                    'Between-region speciation': np.full((num_locations,num_locations), rv_fn['Between-region speciation'](size=1, **rv_arg['Between-region speciation'])[0])
+                    'w': np.full(num_locations, rv_fn['w'](size=1, **rv_arg['w'])[0]),
+                    'e': np.full(num_locations, rv_fn['e'](size=1, **rv_arg['e'])[0]),
+                    'd': np.full((num_locations,num_locations), rv_fn['d'](size=1, **rv_arg['d'])[0]),
+                    'b': np.full((num_locations,num_locations), rv_fn['b'](size=1, **rv_arg['b'])[0])
                 }
-            rates['Extinction'] = rates['Extirpation']
+            rates['x'] = rates['e']
 
         elif model_variant == 'fig_rates':
             rates = {}

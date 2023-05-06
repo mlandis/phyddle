@@ -26,8 +26,8 @@ start = time.time()
 # numpy printing format
 np.set_printoptions(floatmode='unique', suppress=True)
 
-#MyModel = SirmModel
-MyModel = GeosseModel
+MyModel = SirmModel
+#MyModel = GeosseModel
 my_model_args = { 'num_locations' : 3,
                   'model_variant' : 'equal_rates' }
 
