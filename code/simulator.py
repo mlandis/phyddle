@@ -1,15 +1,16 @@
-
 import os
 import re
 import subprocess
 from joblib import Parallel, delayed
 from tqdm import tqdm
+
+# look into reorganizing this stuff, removing unneeded files
 from phyddle_util import *
 import cdvs_util
 
 # needed?
-import model
-import time
+#import model
+#import time
 
 class Simulator:
     def __init__(self, args, mdl): #, events_df, states_df):
@@ -173,21 +174,6 @@ class MasterSimulator(Simulator):
         self.xml_str       = self.make_xml(idx)
         self.cmd_str       = 'beast {sim_dir}/{job_name}/sim.{idx}.xml'.format(sim_dir=self.sim_dir, job_name=self.job_name, idx=idx)
         return
-
-    # def test_one(self, idx):
-    #     # call beast
-    #     #xmlgen = MasterXmlGenerator(mymodel.df_events, mymodel.df_states, mymodel.settings)
-    #     #print( xmlgen.make_reaction_vars() )
-    #     # alternative, construct XML from event and states dataframes
-    #     # xmlgen = MasterXmlGenerator(df_events, df_states)
-    #     self.xml_str = self.make_xml(idx=0)
-    #     self.cmd_str = self.make_command(idx=0)
-    #     xml_fn = ''
-    #     write_to_file(self.xml_str, xml_fn)
-    #     beast_str = 'beast ' + xml_fn
-    #     beast_out = subprocess.check_output(beast_str, shell=True, text=True, stderr=subprocess.STDOUT)
-    #     write_to_file(beast_out, beast_fn)
-    #     return
 
     def make_reaction_vars(self):
         qty = {}

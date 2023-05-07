@@ -1,14 +1,11 @@
 #!/usr/bin/python3
 import scipy as sp
 import numpy as np
-#import phyddle_util
 import model
 import Simulator
 import InputFormatter
 import Learner
-#import formatter
-#import trainer
-#import resulter
+#import phyddle_util
 
 #####################
 # PIPELINE SETTINGS #
@@ -43,11 +40,11 @@ my_sim_args = {
     'rep_idx'           : list(range(0, 500)),
     'tree_sizes'        : [ 200, 500 ],
     'use_parallel'      : True,
-    'start_sizes'       : {},                # move to mode; none, default 0
-    'start_state'       : { 'S' : 0 },       # move to model
+    'start_sizes'       : {},                # move setting into model spec
+    'start_state'       : { 'S' : 0 },       # move setting into model spec
     'sample_population' : ['S'],
     'stop_floor_sizes'  : 0,
-    'stop_ceil_sizes'   : 300                # something weird about MASTER stop rule?
+    'stop_ceil_sizes'   : 300                # MASTER seems to generate too many taxa?
 } | my_all_args
 
 
@@ -74,10 +71,6 @@ my_lrn_args = {
     'metrics'        : ['mae', 'acc', 'mape']
 } | my_all_args
 
-# define plot & results-making settings
-my_plt_args = { 
-    'net_dir'       : '../plot'
-} | my_all_args
 
 #########################
 # DEFINE PIPELINE STEPS #
@@ -96,16 +89,11 @@ my_fmt = MyInputFormatter(my_fmt_args)
 MyLearner = Learner.CnnLearner
 my_lrn = MyLearner(my_lrn_args)
 
-
-# plotter generates output
-#MyPlotter = Plotter
-#my_plt = MyPlotter(my_plt_args)
-
 ################
 # RUN PIPELINE #
 ################
 
 #my_sim.run()
-#my_fmt.run()
+my_fmt.run()
 my_lrn.run()
-#my_plt.run()
+#my_plt.run()  # possibly better to have Learner save output tp file, then have Plotter generate figures

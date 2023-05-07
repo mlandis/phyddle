@@ -26,9 +26,11 @@ class InputFormatter:
         # sort replicate indices into size-category lists
         size_sort = {}
         for fn in info_files:
-            fn = self.in_dir + '/' + fn
+            fn = self.sim_dir + '/' + self.job_name + '/' + fn
             idx = -1
             size = -1
+            all_files_valid = False
+
             with open(fn, newline='') as csvfile:
                 info = csv.reader(csvfile, delimiter=',')
                 for row in info:
@@ -38,10 +40,16 @@ class InputFormatter:
                         size = int(row[1])
                     #print(', '.join(row))
 
-            if size >= 0 and size not in size_sort:
-                size_sort[size] = []
-            if size >=0 and idx >= 0:
-                size_sort[size].append(idx)
+                all_files = [self.in_dir+'/sim.'+str(idx)+'.'+x for x in ['cdvs.csv','cblvs.csv','param2.csv','summ_stat.csv']]
+                all_files_valid = all( [os.path.isfile(fn) for fn in all_files] )
+
+                if all_files_valid:
+                    if size >= 0 and size not in size_sort:
+                        size_sort[size] = []
+                    if size >=0 and idx >= 0:
+                        size_sort[size].append(idx)
+                else:
+                    print(all_files_valid,all_files)
 
         # build files
         for tree_size in sorted(list(size_sort.keys())):
