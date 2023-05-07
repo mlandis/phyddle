@@ -1,17 +1,17 @@
 import os
 import csv
 
-class Formatter:
-    def __init__(self, fmt_args):
-        self.set_args(fmt_args)
+class InputFormatter:
+    def __init__(self, args):
+        self.set_args(args)
         return        
 
-    def set_args(self, fmt_args):
+    def set_args(self, args):
         # simulator arguments
-        self.fmt_args = fmt_args
-        self.job_name = fmt_args['job_name']
-        self.fmt_dir  = fmt_args['fmt_dir']
-        self.sim_dir  = fmt_args['sim_dir']
+        self.args     = args
+        self.job_name = args['job_name']
+        self.fmt_dir  = args['fmt_dir']
+        self.sim_dir  = args['sim_dir']
         self.in_dir   = self.sim_dir + '/' + self.job_name
         self.out_dir  = self.fmt_dir + '/' + self.job_name
         return

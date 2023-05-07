@@ -1,9 +1,11 @@
 #!/usr/bin/python3
 import scipy as sp
 import numpy as np
-import phyddle_util
+#import phyddle_util
 import model
-import simulator
+import Simulator
+import InputFormatter
+import Learner
 #import formatter
 #import trainer
 #import resulter
@@ -38,9 +40,9 @@ my_mdl_args = {
 #######################
 my_sim_args = {
     'sim_dir'           : '../raw_data',
-    'rep_idx'           : list(range(0, 5)),
+    'rep_idx'           : list(range(0, 500)),
     'tree_sizes'        : [ 200, 500 ],
-    'use_parallel'      : False,
+    'use_parallel'      : True,
     'start_sizes'       : {},                # move to mode; none, default 0
     'start_state'       : { 'S' : 0 },       # move to model
     'sample_population' : ['S'],
@@ -51,34 +53,59 @@ my_sim_args = {
 
 # define tensor-formatting settings
 my_fmt_args = {
-    'fmt_dir' : 'tensor_data'
+    'fmt_dir' : '../tensor_data',
+    'sim_dir' : '../raw_data'
 } | my_all_args
 
-# define training settings
-my_trn_args = { } | my_all_args
-# define result-making settings
-my_res_args = { } | my_all_args
+# define learning settings
+my_lrn_args = { 
+    'fmt_dir'        : '../tensor_data',
+    'net_dir'        : '../network',
+    'plt_dir'        : '../plot',
+    'tree_size'      : 500,
+    'tree_type'      : 'extant',
+    'predict_idx'    : [ 0, 3, 6, 18 ],
+    'num_epochs'     : 5,
+    'num_test'       : 5,
+    'num_validation' : 5,
+    'batch_size'     : 8,
+    'loss'           : 'mae',
+    'optimizer'      : 'adam',
+    'metrics'        : ['mae', 'acc', 'mape']
+} | my_all_args
 
-# define pipeline steps
-# (replace classes as desired)
-MySimulator = simulator.MasterSimulator
+# define plot & results-making settings
+my_plt_args = { 
+    'net_dir'       : '../plot'
+} | my_all_args
+
+#########################
+# DEFINE PIPELINE STEPS #
+#########################
+
+# simulator samples from model
+MySimulator = Simulator.MasterSimulator
 my_mdl = model.make_model(my_mdl_args)
 my_sim = MySimulator(my_sim_args, my_mdl)
-my_sim.run()
 
-#MyFormatter = Formatter
-#MyTrainer   = CNNTrainer
-#MyResulter  = Resulter
+# formatter prepares tensor format
+MyInputFormatter = InputFormatter.InputFormatter
+my_fmt = MyInputFormatter(my_fmt_args)
 
-# define pipeline objects
-#my_mdl = MyModel(**my_mdl_args)
+# trainer fits neural network
+MyLearner = Learner.CnnLearner
+my_lrn = MyLearner(my_lrn_args)
 
-#my_fmt = MyFormatter(my_fmt_args)
-#my_trn = MyTrainer(my_trn_args)
-#my_res = MyResulter(my_res_args)
 
-# run pipeline steps
+# plotter generates output
+#MyPlotter = Plotter
+#my_plt = MyPlotter(my_plt_args)
 
+################
+# RUN PIPELINE #
+################
+
+#my_sim.run()
 #my_fmt.run()
-#my_trn.run()
-#my_res.run()
+my_lrn.run()
+#my_plt.run()

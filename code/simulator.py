@@ -12,26 +12,26 @@ import model
 import time
 
 class Simulator:
-    def __init__(self, sim_args, mdl): #, events_df, states_df):
-        self.set_args(sim_args)
+    def __init__(self, args, mdl): #, events_df, states_df):
+        self.set_args(args)
         self.command      = 'echo \"phyddle.Simulator.command undefined in derived class!\"' # do nothing
         self.model        = mdl
         return
 
-    def set_args(self, sim_args):
+    def set_args(self, args):
         # simulator arguments
-        self.sim_args          = sim_args
-        self.job_name          = sim_args['job_name']
-        self.sim_dir           = sim_args['sim_dir']
-        self.rep_idx           = sim_args['rep_idx']
-        self.tree_sizes        = sim_args['tree_sizes']
+        self.args              = args
+        self.job_name          = args['job_name']
+        self.sim_dir           = args['sim_dir']
+        self.rep_idx           = args['rep_idx']
+        self.tree_sizes        = args['tree_sizes']
         self.num_jobs          = len(self.rep_idx)
-        self.use_parallel      = sim_args['use_parallel']
-        self.sample_population = sim_args['sample_population']
-        self.stop_floor_sizes  = sim_args['stop_floor_sizes']
-        self.stop_ceil_sizes   = sim_args['stop_ceil_sizes']
-        self.start_sizes       = sim_args['start_sizes']
-        self.start_state       = sim_args['start_state']
+        self.use_parallel      = args['use_parallel']
+        self.sample_population = args['sample_population']
+        self.stop_floor_sizes  = args['stop_floor_sizes']
+        self.stop_ceil_sizes   = args['stop_ceil_sizes']
+        self.start_sizes       = args['start_sizes']
+        self.start_state       = args['start_state']
         return
 
     def make_settings_str(self, idx, mtx_size):
@@ -161,9 +161,9 @@ class Simulator:
         return result_str
 
 class MasterSimulator(Simulator):
-    def __init__(self, sim_args, mdl):
+    def __init__(self, args, mdl):
         # call base constructor
-        super().__init__(sim_args, mdl)
+        super().__init__(args, mdl)
         return
     
     def refresh_model(self, idx):
