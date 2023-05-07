@@ -9,38 +9,45 @@ import numpy as np
 import scipy as sp
 
 class GeosseModel:
-    
     # set up model
-    def __init__(self, num_locations, model_variant='equal_rates', rv_fn=None, rv_arg=None):
-        
+    def __init__(self, num_locations=2, model_type='geosse', model_variant='equal_rates', rv_fn=None, rv_arg=None):
         # create state space
-        self.model_type    = 'GeoSSE'
+        self.model_type    = model_type
         self.model_variant = model_variant
         self.num_locations = num_locations
         self.rv_fn = rv_fn
         self.rv_arg = rv_arg
-        
-        # simulation settings
-        self.settings = self.make_settings( self.num_locations )
-
-        # state space
-        self.states = self.make_states( self.num_locations )
-
-        # rate space
-        self.rates = self.make_rates( self.model_variant, self.settings )
-
-        # event space
-        self.events = self.make_events( self.states, self.rates )
-
-        # event space dataframe
-        self.df_events = events2df( self.events )
-
-        # state space dataframe
-        self.df_states = states2df( self.states )
-
+        self.set_model()
         # model
         #self.xmlgen = MasterXmlGenerator(self.df_events, self.df_states)
-        
+
+    def set_model(self):
+        self.is_model_set = True
+        # simulation settings
+        self.settings = self.make_settings( self.num_locations )
+        # state space
+        self.states = self.make_states( self.num_locations )
+        #print(self.states)
+        # rate space
+        self.rates = self.make_rates( self.model_variant, self.settings )
+        # event space
+        self.events = self.make_events( self.states, self.rates )
+        # event space dataframe
+        self.df_events = events2df( self.events )
+        #print(self.events)
+        #print(self.df_events)
+        # state space dataframe
+        self.df_states = states2df( self.states )
+        return
+
+    def clear_model(self):
+        self.is_model_set = False
+        self.states = None
+        self.rates = None
+        self.events = None
+        self.df_events = None
+        self.df_states = None
+
     def make_settings(self, num_locations):
         settings = {}
         num_ranges = 2**num_locations - 1

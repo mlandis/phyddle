@@ -14,7 +14,7 @@ import os
 import argparse
 import string
 from itertools import chain, combinations
-import multiprocessing as mp
+#import multiprocessing as mp
 from joblib import Parallel, delayed
 import time
 from tqdm import tqdm
@@ -36,7 +36,7 @@ my_model_args = {
         'd': sp.stats.expon.rvs,
         'b': sp.stats.expon.rvs },
     'rv_arg' : {
-        'w': { 'scale' : 1.0 },
+        'w': { 'scale' : 2.0 },
         'e': { 'scale' : 0.5 },
         'd': { 'scale' : 1.0 },
         'b': { 'scale' : 3.0 }
@@ -70,7 +70,7 @@ out_path   = out_dir + '/' + out_prefix
 # init settings
 num_rep        = len(rep_idx)
 num_jobs       = -2
-max_taxa       = [200, 500, 1000, 2000, 5000]
+max_taxa       = [200, 500] #, 1000, 2000, 5000]
 
 # make dirs
 os.makedirs(out_dir, exist_ok=True)
@@ -112,8 +112,6 @@ def sim_one(k):
     # get int/vec/str for states for some reason...
     #lbl2vec = mymodel.states.lbl2vec
     int2vec = mymodel.states.int2vec
-    int2vecstr = [ ''.join([str(y) for y in x]) for x in int2vec ]
-    vecstr2int = { v:i for i,v in enumerate(int2vecstr) }
 
     ## construct XML from model class
     xmlgen = MasterXmlGenerator(mymodel.df_events, mymodel.df_states, mymodel.settings)

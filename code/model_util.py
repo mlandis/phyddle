@@ -120,6 +120,8 @@ class States:
         self.set2vec = {tuple(k):v for k,v in list(zip(self.int2set, self.int2vec))}
         self.set2int = {tuple(k):v for k,v in list(zip(self.int2set, self.int2int))}
         self.set2lbl = {tuple(k):v for k,v in list(zip(self.int2set, self.int2lbl))}
+        self.int2vecstr = [ ''.join([str(y) for y in x]) for x in self.int2vec ]
+        self.vecstr2int = { v:i for i,v in enumerate(self.int2vecstr) }
        
     def make_str(self):
         # state space: {'A': [1, 0, 0], 'B': [0, 1, 0], 'C': [0, 0, 1], 'AB': [1, 1, 0], 'AC': [1, 0, 1], 'BC': [0, 1, 1], 'ABC': [1, 1, 1]}
@@ -295,3 +297,17 @@ class MasterXmlGenerator:
         self.xml_spec_str = xml_spec_str
         return
         #return xml_spec_str
+
+
+# class Model:
+#     def __init__(self, settings, extra):
+#         self.settings = settings
+#         self.extra = extra
+
+# class NewModel(Model):
+#     def __init__(self, settings, extra, thing):
+#         super().__init__(settings, extra) 
+#         self.thing = thing
+
+#     def welcome(self):
+#         print(self.extra, self.thing)
