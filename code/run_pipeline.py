@@ -96,4 +96,5 @@ my_lrn = MyLearner(my_lrn_args)
 #my_sim.run()
 my_fmt.run()
 my_lrn.run()
+
 #my_plt.run()  # possibly better to have Learner save output tp file, then have Plotter generate figures
