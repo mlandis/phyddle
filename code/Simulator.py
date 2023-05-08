@@ -32,8 +32,8 @@ class Simulator:
         self.sample_population = args['sample_population']
         self.stop_floor_sizes  = args['stop_floor_sizes']
         self.stop_ceil_sizes   = args['stop_ceil_sizes']
-        self.start_sizes       = args['start_sizes']
-        self.start_state       = args['start_state']
+        #self.start_sizes       = args['start_sizes']
+        #self.start_state       = args['start_state']
         self.rep_idx           = list(range(self.start_idx, self.end_idx))
         return
 
@@ -171,6 +171,8 @@ class MasterSimulator(Simulator):
     
     def refresh_model(self, idx):
         self.model.set_model(idx)
+        self.start_state   = self.model.start_state
+        self.start_sizes   = self.model.start_sizes
         self.df_events     = self.model.df_events
         self.reaction_vars = self.make_reaction_vars()
         self.xml_str       = self.make_xml(idx)

@@ -25,6 +25,11 @@ def load_config(config_fn, arg_overwrite=True):
         m.my_sim_args['start_idx'] = args.start_idx
     if args.end_idx != None:
         m.my_sim_args['end_idx'] = args.end_idx
-   
+
+    # update args    
+    m.my_sim_args = m.my_sim_args | m.my_all_args
+    m.my_fmt_args = m.my_fmt_args | m.my_all_args
+    m.my_lrn_args = m.my_lrn_args | m.my_all_args
+
     # return new args
     return m

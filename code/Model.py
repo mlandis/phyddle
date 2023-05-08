@@ -16,3 +16,32 @@ def make_model(mdl_args):
     #elif model_type == 'musse':       return MusseModel
     else:                             return None
     return mdl(**mdl_args)
+
+
+#
+# TODO: add Model base class
+#
+# class Model:
+#     def __init__(self):
+#         return
+#     def set_model(self):
+#         raise NotImplementedError
+#     def clear_model(self):
+#         self.is_model_set = False
+#         self.states = None
+#         self.rates = None
+#         self.events = None
+#         self.df_events = None
+#         self.df_states = None
+#     def make_settings(self):
+#         raise NotImplementedError
+#     def make_states(self):
+#          raise NotImplementedError
+#     def make_events(self):
+#         raise NotImplementedError
+#     def make_rates(self):
+#         raise NotImplementedError
+#     def make_start_state(self):
+#         raise NotImplementedError
+#     def make_start_sizes(self):
+#         raise NotImplementedError

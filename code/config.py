@@ -36,8 +36,8 @@ my_sim_args = {
     'tree_sizes'        : [ 200, 500 ],
     'use_parallel'      : True,
     'num_proc'          : 12,                # set to max - 2
-    'start_sizes'       : {},                # move setting into model spec
-    'start_state'       : { 'S' : 0 },       # move setting into model spec
+    #'start_sizes'       : {},                # move setting into model spec
+    #'start_state'       : { 'S' : 0 },       # move setting into model spec
     'sample_population' : ['S'],
     'stop_floor_sizes'  : 0,
     'stop_ceil_sizes'   : 300                # MASTER seems to generate too many taxa?
