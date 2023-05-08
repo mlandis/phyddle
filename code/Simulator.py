@@ -24,7 +24,8 @@ class Simulator:
         self.args              = args
         self.job_name          = args['job_name']
         self.sim_dir           = args['sim_dir']
-        self.rep_idx           = args['rep_idx']
+        self.start_idx         = args['start_idx']
+        self.end_idx           = args['end_idx']
         self.tree_sizes        = args['tree_sizes']
         self.num_proc          = args['num_proc']
         self.use_parallel      = args['use_parallel']
@@ -33,6 +34,7 @@ class Simulator:
         self.stop_ceil_sizes   = args['stop_ceil_sizes']
         self.start_sizes       = args['start_sizes']
         self.start_state       = args['start_state']
+        self.rep_idx           = list(range(self.start_idx, self.end_idx))
         return
 
     def make_settings_str(self, idx, mtx_size):

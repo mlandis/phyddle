@@ -25,6 +25,8 @@ class InputFormatter:
 
         # sort replicate indices into size-category lists
         size_sort = {}
+
+        print('hello')
         for fn in info_files:
             fn = self.sim_dir + '/' + self.job_name + '/' + fn
             idx = -1
@@ -50,7 +52,7 @@ class InputFormatter:
                         size_sort[size].append(idx)
                 else:
                     print(all_files_valid,all_files)
-
+        
         # build files
         for tree_size in sorted(list(size_sort.keys())):
 

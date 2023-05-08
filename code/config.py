@@ -35,7 +35,7 @@ my_sim_args = {
     'end_idx'           : 100,
     'tree_sizes'        : [ 200, 500 ],
     'use_parallel'      : True,
-    'num_proc'          : 14,                # all but 2 processors
+    'num_proc'          : 12,                # set to max - 2
     'start_sizes'       : {},                # move setting into model spec
     'start_state'       : { 'S' : 0 },       # move setting into model spec
     'sample_population' : ['S'],
