@@ -170,7 +170,7 @@ class MasterSimulator(Simulator):
         return
     
     def refresh_model(self, idx):
-        self.model.set_model()
+        self.model.set_model(idx)
         self.df_events     = self.model.df_events
         self.reaction_vars = self.make_reaction_vars()
         self.xml_str       = self.make_xml(idx)

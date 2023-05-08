@@ -253,14 +253,15 @@ class CnnLearner(Learner):
     def save_results(self):
 
         # make history plots
-        cn.make_history_plot(self.history, plot_dir=self.plot_dir)
+        cn.make_history_plot(self.history, prefix=self.model_prefix+'_train', plot_dir=self.plot_dir)
+        #cn.make_history_plot(self.history, plot_dir=self.plot_dir)
 
         
         # make scatter plots
         cn.plot_preds_labels(preds=self.train_preds,
                              labels=self.denormalized_train_labels,
                              param_names=self.param_names,
-                             prefix='train',
+                             prefix=self.model_prefix+'_train',
                              plot_dir=self.plot_dir,
                              title='Train predictions')
 
@@ -268,7 +269,7 @@ class CnnLearner(Learner):
         cn.plot_preds_labels(preds=self.test_preds[0:1000,:],
                              labels=self.denormalized_test_labels[0:1000,:],
                              param_names=self.param_names,
-                             prefix='test',
+                             prefix=self.model_prefix+'test',
                              plot_dir=self.plot_dir,
                              title='Test predictions')
 
@@ -288,9 +289,8 @@ class CnnLearner(Learner):
         files = os.listdir(self.plot_dir)
         files.sort()
         for f in files:
-            if '.pdf' in f:
+            if '.pdf' in f and self.model_prefix in f and 'all_results.pdf' not in f:
                 merger.append(self.plot_dir + '/' + f)
 
-        merger.write(self.plot_dir + '/all_results.pdf')
-
+        merger.write(self.plot_dir+'/'+self.model_prefix+'_'+'all_results.pdf')
         return

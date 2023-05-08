@@ -21,7 +21,7 @@ class GeosseModel:
         # model
         #self.xmlgen = MasterXmlGenerator(self.df_events, self.df_states)
 
-    def set_model(self):
+    def set_model(self, seed=None):
         self.is_model_set = True
         # simulation settings
         self.settings = self.make_settings( self.num_locations )
@@ -29,7 +29,7 @@ class GeosseModel:
         self.states = self.make_states( self.num_locations )
         #print(self.states)
         # rate space
-        self.rates = self.make_rates( self.model_variant, self.settings )
+        self.rates = self.make_rates( self.model_variant, self.settings, seed )
         # event space
         self.events = self.make_events( self.states, self.rates )
         # event space dataframe
@@ -250,7 +250,7 @@ class GeosseModel:
         events = events_x + events_e + events_d + events_w + events_b
         return events
 
-    def make_rates(self, model_variant, settings):
+    def make_rates(self, model_variant, settings, seed):
         rates = {}
         
         # get settings
@@ -261,23 +261,23 @@ class GeosseModel:
         # build rates
         if model_variant == 'free_rates':
             rates = {
-                    'w': rv_fn['w'](size=num_locations, **rv_arg['w']),
-                    'e': rv_fn['e'](size=num_locations, **rv_arg['e']),
-                    'd': rv_fn['d'](size=num_locations**2, **rv_arg['d']).reshape((num_locations,num_locations)),
-                    'b': rv_fn['b'](size=num_locations**2, **rv_arg['b']).reshape((num_locations,num_locations))
+                    'w': rv_fn['w'](size=num_locations, random_state=seed, **rv_arg['w']),
+                    'e': rv_fn['e'](size=num_locations, random_state=seed, **rv_arg['e']),
+                    'd': rv_fn['d'](size=num_locations**2, random_state=seed, **rv_arg['d']).reshape((num_locations,num_locations)),
+                    'b': rv_fn['b'](size=num_locations**2, random_state=seed, **rv_arg['b']).reshape((num_locations,num_locations))
                 }
             rates['x'] = rates['x']
 
         elif model_variant == 'equal_rates':
             rates = {
-                    'w': np.full(num_locations, rv_fn['w'](size=1, **rv_arg['w'])[0]),
-                    'e': np.full(num_locations, rv_fn['e'](size=1, **rv_arg['e'])[0]),
-                    'd': np.full((num_locations,num_locations), rv_fn['d'](size=1, **rv_arg['d'])[0]),
-                    'b': np.full((num_locations,num_locations), rv_fn['b'](size=1, **rv_arg['b'])[0])
+                    'w': np.full(num_locations, rv_fn['w'](size=1, random_state=seed, **rv_arg['w'])[0]),
+                    'e': np.full(num_locations, rv_fn['e'](size=1, random_state=seed, **rv_arg['e'])[0]),
+                    'd': np.full((num_locations,num_locations), rv_fn['d'](size=1, random_state=seed, **rv_arg['d'])[0]),
+                    'b': np.full((num_locations,num_locations), rv_fn['b'](size=1, random_state=seed, **rv_arg['b'])[0])
                 }
             rates['x'] = rates['e']
 
         elif model_variant == 'fig_rates':
             rates = {}
-            
+        
         return rates
