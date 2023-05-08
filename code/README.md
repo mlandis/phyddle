@@ -7,15 +7,19 @@ Example use:
 # execute from code subdirectory
 cd ~/projects/phyddle/code
 
-# remove all previous dirs for model name `bd1`
-./clean_model.sh --name bd1
+# remove all previous dirs for model name `my_job`
+./clean_model.sh --name my_job
 
-# simulate data in `raw_data/bd1`
-./simulate_training_data.py --name bd1 --start_idx 0 --end_idx 100 --use_parallel
+# config file controls pipeline
+# (will add more argparse options)
+vim config.py
 
-# prepare data as tensors in `formatted_data/bd1`
-./prepare_training_data.py --name bd1
+# simulate data in `raw_data/my_job`
+./run_simulate.py --cfg config
 
-# train CNN using tensors in `network/bd1`
-./train_rates_cnn.py --name bd1 --num_epoch 20 --batch_size 32 --num_validation 50 --num_test 50 --max_taxa 500
+# prepare data as tensors in `tensor_data/my_job`
+./run_format.py --cfg config
+
+# train CNN using tensors in `network/my_job`
+./run_learn.py --cfg config
 ```

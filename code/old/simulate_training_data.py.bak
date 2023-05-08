@@ -2,9 +2,7 @@
 
 # helper functions
 from phyddle_util import *
-#from model import Event, StateSpace, Model
-from Model import *
-from model_util import MasterXmlGenerator
+from model import *
 
 # other dependencies
 import numpy as np
@@ -14,7 +12,7 @@ import os
 import argparse
 import string
 from itertools import chain, combinations
-#import multiprocessing as mp
+import multiprocessing as mp
 from joblib import Parallel, delayed
 import time
 from tqdm import tqdm
@@ -26,27 +24,9 @@ start = time.time()
 # numpy printing format
 np.set_printoptions(floatmode='unique', suppress=True)
 
-#MyModel = SirmModel
-MyModel = GeosseModel
-my_model_args = {
-    'num_locations' : 5,
-    'model_variant' : 'equal_rates',
-    'rv_fn' : { 'w': sp.stats.expon.rvs,
-        'e': sp.stats.expon.rvs,
-        'd': sp.stats.expon.rvs,
-        'b': sp.stats.expon.rvs },
-    'rv_arg' : {
-        'w': { 'scale' : 2.0 },
-        'e': { 'scale' : 0.5 },
-        'd': { 'scale' : 1.0 },
-        'b': { 'scale' : 3.0 }
-    }
-}
-
 # default settings
 settings = {}
-settings['model_name']     = 'bd1'
-#settings['model_type']     = ''
+settings['model_name']     = 'geosse_v5'
 settings['start_idx']      = 0
 settings['end_idx']        = 1 #99
 settings['cfg_file']       = None # TODO: add config file parser
@@ -70,13 +50,56 @@ out_path   = out_dir + '/' + out_prefix
 # init settings
 num_rep        = len(rep_idx)
 num_jobs       = -2
-max_taxa       = [200, 500] #, 1000, 2000, 5000]
+max_taxa       = [200, 500]
+
+
+num_chars      = 3
+num_states     = 2**num_chars - 1
+regions        = list(range(num_chars))
+states         = list(powerset(regions))[1:]
+states_str     = [ ''.join(list([string.ascii_uppercase[i] for i in s])) for s in states ]
+states_str_inv = {}
+states_inv     = {}
+states_bits_str_inv = {}
+for i,v in enumerate(states_str):
+    states_str_inv[v] = i
+for i,v in enumerate(states):
+    states_inv[v] = i
+states_bits    = regions_to_binary(states, states_str, regions)
+states_bits_str = [ ''.join(s) for s in states_bits.values() ]
+for i,v in enumerate(states_bits_str):
+    states_bits_str_inv[v] = i
+
+mymodel = GeosseModel(num_char=3)
+
+#print(states_str)
+#print(states_bits_str)
+#print(states_bits_str_inv)
 
 # make dirs
 os.makedirs(out_dir, exist_ok=True)
 
+# model settings
+model_type = 'iid_simple'
+num_feature_layers = 2
+def rv_rate(size):
+    return sp.stats.uniform.rvs(size=size, loc=0.1, scale=0.9) 
+    #return sp.stats.expon.rvs(size=size, loc=0., scale=0.1) 
+def rv_effect(size):
+    return sp.stats.norm.rvs(size=size, loc=0., scale=1.) 
+def rv_feature(size):
+    return sp.stats.gamma.rvs(size=size, loc=2., scale=2.) 
+
 # generate settings container
 settings['max_taxa'] = np.max(max_taxa)
+settings['model_type'] = model_type
+settings['num_feature_layers'] = num_feature_layers
+settings['rv_rate'] = rv_rate
+settings['rv_feature'] = rv_feature
+settings['rv_effect'] = rv_effect
+
+# generate GeoSSE events
+events = make_events(regions, states, states_inv)
 
 # main simulation function (looped)
 def sim_one(k):
@@ -89,7 +112,6 @@ def sim_one(k):
     beast_fn  = tmp_fn + '.beast.log'
     xml_fn    = tmp_fn + '.xml'
     nex_fn    = tmp_fn + '.nex'
-    json_fn   = tmp_fn + '.json'
     cblvs_fn  = tmp_fn + '.cblvs.csv'
     cdvs_fn   = tmp_fn + '.cdvs.csv'
     param1_fn = tmp_fn + '.param1.csv'
@@ -101,27 +123,17 @@ def sim_one(k):
     settings['out_path'] = tmp_fn
     settings['replicate_index'] = k
 
-    # instantiate model
-    #mymodel = GeosseModel(num_locations=3, model_variant='equal_rates')
-    #mymodel = SirmModel(num_locations=3, model_variant='equal_rates')
-    mymodel = MyModel(**my_model_args)
+    # generate GeoSSE rates
 
-    model_type = mymodel.model_type
-    settings['model_type'] = model_type
+    ## build model here??
+    rates = make_rates(regions, states, events, settings)
+    rates['r_w'] = rates['r_w'] * 0.5
+    rates['r_d'] = rates['r_d'] * 0.5
+    rates['r_e'] = rates['r_e'] * 0.2
+    rates['r_b'] = rates['r_b'] * 1.0
 
-    # get int/vec/str for states for some reason...
-    #lbl2vec = mymodel.states.lbl2vec
-    int2vec = mymodel.states.int2vec
-    int2vecstr = mymodel.states.int2vecstr
-    vecstr2int = mymodel.states.vecstr2int
-
-    ## construct XML from model class
-    xmlgen = MasterXmlGenerator(mymodel.df_events, mymodel.df_states, mymodel.settings)
-    #print( xmlgen.make_reaction_vars() )
-    # alternative, construct XML from event and states dataframes
-    # xmlgen = MasterXmlGenerator(df_events, df_states)
-    xmlgen.make_xml(newick_fn=tre_fn, nexus_fn=nex_fn, json_fn=json_fn)
-    xml_str = xmlgen.xml_spec_str
+    # generate MASTER XML string
+    xml_str = make_xml(events, rates, states, states_str, settings)
     write_to_file(xml_str, xml_fn)
 
     # run BEAST/MASTER against XML
@@ -133,7 +145,6 @@ def sim_one(k):
     result_str = ''
     n_taxa_k = get_num_taxa(tre_fn, k, max_taxa)
     taxon_size_k = find_taxon_size(n_taxa_k, max_taxa)
-    #print(n_taxa_k)
 
     # handle simulation based on tree size
     if n_taxa_k > np.max(max_taxa):
@@ -156,8 +167,7 @@ def sim_one(k):
             next
 
         # generate nexus file 0/1 ranges
-        taxon_states,nexus_str = convert_nex(nex_fn, tre_fn, int2vec)
-        write_to_file(nexus_str, geo_fn)
+        taxon_states = convert_geo_nex(nex_fn, tre_fn, geo_fn, states_bits)
 
         # then get CBLVS working
         cblv,new_order = vectorize_tree(tre_fn, max_taxa=taxon_size_k, prob=1.0 )
@@ -167,7 +177,7 @@ def sim_one(k):
         # seems to run even when make_prune_phy returns False
         # generate CDVS file
         if prune_success:
-            cdvs = cdvs_util.make_cdvs(prune_fn, taxon_size_k, taxon_states, int2vecstr) #states_bits_str)
+            cdvs = cdvs_util.make_cdvs(prune_fn, taxon_size_k, taxon_states, states_bits_str)
 
         # output files
         mt_size   = cblv.shape[1]
@@ -177,7 +187,7 @@ def sim_one(k):
     write_to_file(info_str, info_fn)
 
     # record labels (simulating parameters)
-    param1_str,param2_str = param_dict_to_str(mymodel.rates)
+    param1_str,param2_str = param_dict_to_str(rates)
     write_to_file(param1_str, param1_fn)
     write_to_file(param2_str, param2_fn)
 
@@ -194,7 +204,7 @@ def sim_one(k):
         write_to_file(cdvs_str, cdvs_fn)
 
     # record summ stat data
-    ss = make_summ_stat(tre_fn, geo_fn, vecstr2int)
+    ss = make_summ_stat(tre_fn, geo_fn, states_bits_str_inv)
     ss_str = make_summ_stat_str(ss)
     write_to_file(ss_str, ss_fn)
 
