@@ -62,7 +62,7 @@ my_lrn_args = {
     'num_test'       : 20,
     'num_validation' : 20,
     'batch_size'     : 32,
-    'loss'           : 'mae',
+    'loss'           : 'mse',
     'optimizer'      : 'adam',
     'metrics'        : ['mae', 'acc', 'mape']
 } | my_all_args
