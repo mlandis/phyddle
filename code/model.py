@@ -1,8 +1,8 @@
 #!/usr/local/bin/python3
 
 # import models
-from geosse_model import GeosseModel
-from sirm_model import SirmModel
+from Models.GeosseModel import GeosseModel
+from Models.SirmModel import SirmModel
 
 # register models for retrieval
 def make_model(mdl_args):

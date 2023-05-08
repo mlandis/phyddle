@@ -3,3 +3,4 @@ raw_data/*/*
 tensor_data/*/*
 network/*/*
 plot/*/*
+code/Models/__pycache__/*

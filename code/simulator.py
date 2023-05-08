@@ -26,7 +26,7 @@ class Simulator:
         self.sim_dir           = args['sim_dir']
         self.rep_idx           = args['rep_idx']
         self.tree_sizes        = args['tree_sizes']
-        self.num_jobs          = len(self.rep_idx)
+        self.num_proc          = args['num_proc']
         self.use_parallel      = args['use_parallel']
         self.sample_population = args['sample_population']
         self.stop_floor_sizes  = args['stop_floor_sizes']
@@ -50,7 +50,7 @@ class Simulator:
         os.makedirs( self.sim_dir + '/' + self.job_name, exist_ok=True )
         # dispatch jobs
         if self.use_parallel:
-            res = Parallel(n_jobs=self.num_jobs)(delayed(self.sim_one)(idx) for idx in tqdm(self.rep_idx))
+            res = Parallel(n_jobs=self.num_proc)(delayed(self.sim_one)(idx) for idx in tqdm(self.rep_idx))
         else:
             res = [ self.sim_one(idx) for idx in tqdm(self.rep_idx) ]
         return res

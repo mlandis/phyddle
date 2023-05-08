@@ -1,0 +1,67 @@
+
+import scipy as sp
+
+#####################
+# PIPELINE SETTINGS #
+#####################
+my_all_args = { 'job_name' : 'test' }
+
+##################
+# MODEL SETTINGS #
+##################
+my_mdl_args = {
+    'model_type'    : 'geosse',
+    'model_variant' : 'equal_rates',
+    'num_locations' : 3,
+    'rv_fn' : {
+        'w': sp.stats.expon.rvs,
+        'e': sp.stats.expon.rvs,
+        'd': sp.stats.expon.rvs,
+        'b': sp.stats.expon.rvs },
+    'rv_arg' : {
+        'w': { 'scale' : 1.0 },
+        'e': { 'scale' : 0.5 },
+        'd': { 'scale' : 1.0 },
+        'b': { 'scale' : 3.0 }
+    }
+}
+
+#######################
+# SIMULATION SETTINGS #
+#######################
+my_sim_args = {
+    'sim_dir'           : '../raw_data',
+    'rep_idx'           : list(range(0, 400)),
+    'tree_sizes'        : [ 200, 500 ],
+    'use_parallel'      : True,
+    'num_proc'          : 14,                # all but 2 processors
+    'start_sizes'       : {},                # move setting into model spec
+    'start_state'       : { 'S' : 0 },       # move setting into model spec
+    'sample_population' : ['S'],
+    'stop_floor_sizes'  : 0,
+    'stop_ceil_sizes'   : 300                # MASTER seems to generate too many taxa?
+} | my_all_args
+
+
+# define tensor-formatting settings
+my_fmt_args = {
+    'fmt_dir' : '../tensor_data',
+    'sim_dir' : '../raw_data'
+} | my_all_args
+
+# define learning settings
+my_lrn_args = { 
+    'fmt_dir'        : '../tensor_data',
+    'net_dir'        : '../network',
+    'plt_dir'        : '../plot',
+    'tree_size'      : 500,
+    'tree_type'      : 'extant',
+    'predict_idx'    : [ 0, 3, 6, 18 ],
+    'num_epochs'     : 5,
+    'num_test'       : 5,
+    'num_validation' : 5,
+    'batch_size'     : 8,
+    'loss'           : 'mae',
+    'optimizer'      : 'adam',
+    'metrics'        : ['mae', 'acc', 'mape']
+} | my_all_args
