@@ -193,7 +193,7 @@ history = mymodel.fit([train_data_tensor, train_stats_tensor],
 # use_multiprocessing
 
 # make history plots
-cn.make_history_plot(history, plot_dir=plot_dir)
+cn.make_history_plot(history, prefix=model_prefix+'_train', plot_dir=plot_dir)
 
 # evaluate ???
 mymodel.evaluate([test_data_tensor, test_stats_tensor], norm_test_labels)
@@ -209,7 +209,7 @@ train_preds = cn.denormalize(normalized_train_preds, train_label_means, train_la
 train_preds = np.exp(train_preds)
 
 # make scatter plots
-cn.plot_preds_labels(train_preds, denormalized_train_labels, param_names = param_names, prefix='train', plot_dir=plot_dir, title='Train predictions')
+cn.plot_preds_labels(train_preds, denormalized_train_labels, param_names = param_names, prefix=model_prefix+'_train', plot_dir=plot_dir, title='Train predictions')
 
 # scatter plot test prediction to truth
 normalized_test_preds = mymodel.predict([test_data_tensor, test_stats_tensor])
@@ -221,7 +221,7 @@ test_preds = cn.denormalize(normalized_test_preds, train_label_means, train_labe
 test_preds = np.exp(test_preds)
 
 # summarize results
-cn.plot_preds_labels(test_preds[0:1000,:], denormalized_test_labels[0:1000,:], param_names=param_names, prefix='test', plot_dir=plot_dir, title='Test predictions')
+cn.plot_preds_labels(test_preds[0:1000,:], denormalized_test_labels[0:1000,:], param_names=param_names, prefix=model_prefix+'_test', plot_dir=plot_dir, title='Test predictions')
 
 # SAVE MODEL to FILE
 all_means = train_label_means #np.append(train_label_means, train_aux_priors_means)
@@ -240,10 +240,10 @@ merger = PdfMerger()
 files = os.listdir(plot_dir)
 files.sort()
 for f in files:
-    if '.pdf' in f:
+    if '.pdf' in f and model_prefix in f and 'all_results.pdf' not in f:
         merger.append(plot_dir + '/' + f)
 
-merger.write(plot_dir + '/all_results.pdf')
+merger.write(plot_dir + '/'+model_prefix+'_'+'all_results.pdf')
 
 #mymodel.weights
 #mymodel.trainable_variables

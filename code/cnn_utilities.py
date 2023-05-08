@@ -153,7 +153,7 @@ def create_train_val_test_tensors(full_tensor, num_validation, num_test):
 # PLotting functions ##
 #######################
 
-def make_history_plot(history, plot_dir):
+def make_history_plot(history, prefix, plot_dir):
     epochs      = range(1, len(history.history['loss']) + 1)
     train_keys  = [ x for x in history.history.keys() if 'val' not in x ]
     val_keys = [ 'val_'+x for x in train_keys ]
@@ -164,7 +164,7 @@ def make_history_plot(history, plot_dir):
         plt.xlabel('Epochs')
         plt.ylabel(train_keys[i])
         plt.legend()
-        save_fn = plot_dir + '/train_' + train_keys[i] + '.pdf'
+        save_fn = plot_dir + '/' + prefix + '_' + train_keys[i] + '.pdf'
         plt.savefig(save_fn, format='pdf')
         plt.clf()
 
