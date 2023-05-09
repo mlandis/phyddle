@@ -4,7 +4,6 @@
 # PHYDDLE IMPORTS #
 ###################
 
-import Model
 import InputFormatter
 import Utilities
 

@@ -1,5 +1,8 @@
+# general libraries
 import argparse
 import importlib
+import pandas as pd
+from GeosseModel import *
 
 def load_config(config_fn, arg_overwrite=True):
     
@@ -33,3 +36,40 @@ def load_config(config_fn, arg_overwrite=True):
 
     # return new args
     return m
+
+#from Models.SirmModel import SirmModel
+#from Models.GeosseModel import GeosseModel
+
+# register models for retrieval
+def make_model(mdl_args):    
+    model_type = mdl_args['model_type']
+    if model_type == 'geosse':      mdl = GeosseModel
+    #elif model_type == 'sirm':      mdl = SirmModel
+    #elif model_type == 'nichesse':    return NicheModel
+    #elif model_type == 'birthdeath':  return BirthDeathModel
+    #elif model_type == 'chromosse':   return ChromosseModel
+    #elif model_type == 'classe':      return ClasseModel
+    #elif model_type == 'musse':       return MusseModel
+    else:                           return None
+    return mdl(mdl_args)
+
+def events2df(events):
+    df = pd.DataFrame({
+        'name'     : [ e.name for e in events ],
+        'group'    : [ e.group for e in events ], 
+        'i'        : [ e.i for e in events ],
+        'j'        : [ e.j for e in events ],
+        'k'        : [ e.k for e in events ],
+        'reaction' : [ e.reaction for e in events ],
+        'rate'     : [ e.rate for e in events ]
+    })
+    return df
+
+def states2df(states):
+    df = pd.DataFrame({
+        'lbl' : states.int2lbl,
+        'int' : states.int2int,
+        'set' : states.int2set,
+        'vec' : states.int2vec
+    })
+    return df

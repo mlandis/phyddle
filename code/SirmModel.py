@@ -1,9 +1,9 @@
 #!/usr/local/bin/python3
 #from model import *
 #from model_util import *
-import model_util
 #from sirm_model_util import *
 #import string
+#import model_util
 import itertools
 import scipy as sp
 import numpy as np

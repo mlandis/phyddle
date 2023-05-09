@@ -1,83 +1,30 @@
 #!/usr/local/bin/python3
 from model_util import States,Event
-from model_util import states2df,events2df
+#from model_util import states2df,events2df
 from model_util import sort_binary_vectors
 #from geosse_model_util import *
 import string
 import itertools
 import numpy as np
 import scipy as sp
+from Model import *
 
-class GeosseModel:
-    # set up model
-    def __init__(self, num_locations=2, model_type='geosse', model_variant='equal_rates', rv_fn=None, rv_arg=None):
-        # create state space
-        self.model_type    = model_type
-        self.model_variant = model_variant
-        self.num_locations = num_locations
-        self.rv_fn = rv_fn
-        self.rv_arg = rv_arg
+class GeosseModel(Model):
+    # initialize model
+    def __init__(self, args):
+        super().__init__(args)
+        self.set_args(args)
         self.set_model()
-        # model
-        #self.xmlgen = MasterXmlGenerator(self.df_events, self.df_states)
-
-    def set_model(self, seed=None):
-        self.is_model_set = True
-        # simulation settings
-        self.settings = self.make_settings( self.num_locations )
-        # state space
-        self.states = self.make_states( self.num_locations )
-        #print(self.states)
-        # rate space
-        self.rates = self.make_rates( self.model_variant, self.settings, seed )
-        # event space
-        self.events = self.make_events( self.states, self.rates )
-        # event space dataframe
-        self.df_events = events2df( self.events )
-        #print(self.events)
-        #print(self.df_events)
-        # state space dataframe
-        self.df_states = states2df( self.states )
         return
-
-    def clear_model(self):
-        self.is_model_set = False
-        self.states = None
-        self.rates = None
-        self.events = None
-        self.df_events = None
-        self.df_states = None
-
-    def make_settings(self, num_locations):
-        settings = {}
-        num_ranges = 2**num_locations - 1
-        settings['num_locations']        = num_locations
-        settings['num_ranges']           = num_ranges
-        settings['start_state']          = { 'S' : sp.stats.randint.rvs(size=1, low=0, high=num_ranges)[0] }    
-        settings['start_sizes']          = {}
-        settings['sample_population']    = []
-        settings['stop_floor_sizes']     = 0
-        settings['stop_ceil_sizes']      = 500
-        
-        if self.rv_fn == None:
-            settings['rv_fn']           = { 'w': sp.stats.expon.rvs,
-                                            'e': sp.stats.expon.rvs,
-                                            'd': sp.stats.expon.rvs,
-                                            'b': sp.stats.expon.rvs }
-        else:
-            settings['rv_fn'] = self.rv_fn
-        
-        if self.rv_arg == None:
-            settings['rv_arg']          = { 'w': { 'scale' : 1. },
-                                            'e': { 'scale' : 1. },
-                                            'd': { 'scale' : 1. },
-                                            'b': { 'scale' : 1. } }
-        else:
-            settings['rv_arg'] = self.rv_arg
-
-        return settings
-
-    def make_states(self, num_locations):
+    # assign initial arguments
+    def set_args(self, args):
+        super().set_args(args)
+        self.num_locations = args['num_locations']
+        self.num_ranges = 2**self.num_locations - 1
+        return
+    # make model states
+    def make_states(self):
+        num_locations = self.num_locations
         vec        = [ x for x in itertools.product(range(2), repeat=num_locations) ][1:]
         vec        = sort_binary_vectors(vec)
         letters    = string.ascii_uppercase[0:num_locations]
@@ -86,6 +33,51 @@ class GeosseModel:
         states     = States(lbl2vec)
         return states
 
+    # make starting state for simulation
+    def make_start_state(self, seed):
+        # { 'S' : 0 }
+        num_ranges = self.num_ranges
+        idx = sp.stats.randint.rvs(low=0, high=num_ranges, size=1, random_state=seed)[0]
+        s = { 'S' : idx }
+        return s
+    
+    # make starting sizes for compartments
+    def make_start_sizes(self, seed):
+        return {}
+
+    # get all model rates
+    def make_rates(self, model_variant, seed):
+        rates = {}
+        
+        # get settings
+        num_locations = self.num_locations
+        rv_fn = self.rv_fn
+        rv_arg = self.rv_arg
+
+        # build rates
+        if model_variant == 'free_rates':
+            rates = {
+                    'w': rv_fn['w'](size=num_locations, random_state=seed, **rv_arg['w']),
+                    'e': rv_fn['e'](size=num_locations, random_state=seed, **rv_arg['e']),
+                    'd': rv_fn['d'](size=num_locations**2, random_state=seed, **rv_arg['d']).reshape((num_locations,num_locations)),
+                    'b': rv_fn['b'](size=num_locations**2, random_state=seed, **rv_arg['b']).reshape((num_locations,num_locations))
+                }
+            rates['x'] = rates['x']
+
+        elif model_variant == 'equal_rates':
+            rates = {
+                    'w': np.full(num_locations, rv_fn['w'](size=1, random_state=seed, **rv_arg['w'])[0]),
+                    'e': np.full(num_locations, rv_fn['e'](size=1, random_state=seed, **rv_arg['e'])[0]),
+                    'd': np.full((num_locations,num_locations), rv_fn['d'](size=1, random_state=seed, **rv_arg['d'])[0]),
+                    'b': np.full((num_locations,num_locations), rv_fn['b'](size=1, random_state=seed, **rv_arg['b'])[0])
+                }
+            rates['x'] = rates['e']
+
+        elif model_variant == 'fig_rates':
+            rates = {}
+        
+        return rates
+    
     # GeoSSE extinction rate
     def make_events_x(self, states, rates):  
         group = 'Extinction'
@@ -241,6 +233,7 @@ class GeosseModel:
 
         return events
 
+    # make list of all events in model
     def make_events(self, states, rates):
         events_x = self.make_events_x( states, rates['x'] )
         events_e = self.make_events_e( states, rates['e'] )
@@ -250,34 +243,4 @@ class GeosseModel:
         events = events_x + events_e + events_d + events_w + events_b
         return events
 
-    def make_rates(self, model_variant, settings, seed):
-        rates = {}
-        
-        # get settings
-        num_locations = settings['num_locations']
-        rv_fn = settings['rv_fn']
-        rv_arg = settings['rv_arg']
-
-        # build rates
-        if model_variant == 'free_rates':
-            rates = {
-                    'w': rv_fn['w'](size=num_locations, random_state=seed, **rv_arg['w']),
-                    'e': rv_fn['e'](size=num_locations, random_state=seed, **rv_arg['e']),
-                    'd': rv_fn['d'](size=num_locations**2, random_state=seed, **rv_arg['d']).reshape((num_locations,num_locations)),
-                    'b': rv_fn['b'](size=num_locations**2, random_state=seed, **rv_arg['b']).reshape((num_locations,num_locations))
-                }
-            rates['x'] = rates['x']
-
-        elif model_variant == 'equal_rates':
-            rates = {
-                    'w': np.full(num_locations, rv_fn['w'](size=1, random_state=seed, **rv_arg['w'])[0]),
-                    'e': np.full(num_locations, rv_fn['e'](size=1, random_state=seed, **rv_arg['e'])[0]),
-                    'd': np.full((num_locations,num_locations), rv_fn['d'](size=1, random_state=seed, **rv_arg['d'])[0]),
-                    'b': np.full((num_locations,num_locations), rv_fn['b'](size=1, random_state=seed, **rv_arg['b'])[0])
-                }
-            rates['x'] = rates['e']
-
-        elif model_variant == 'fig_rates':
-            rates = {}
-        
-        return rates
+    

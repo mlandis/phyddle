@@ -71,9 +71,6 @@ class Learner:
         self.save_results()
     
     def load_input(self):
-        #self.input_dir   = '../tensor_data/' + train_model
-        #self.plot_dir    = '../plot/' + train_model
-        #self.network_dir = '../network/' + train_model
         raise NotImplementedError
     def build_network(self):
         raise NotImplementedError

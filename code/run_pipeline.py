@@ -29,6 +29,7 @@ my_lrn_args = my_config.my_lrn_args
 
 # simulator samples from model
 MySimulator = Simulator.MasterSimulator
+#MySimulator = Simulator.PhyloJunction
 my_mdl = Model.make_model(my_mdl_args)
 my_sim = MySimulator(my_sim_args, my_mdl)
 

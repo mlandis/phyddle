@@ -4,7 +4,7 @@
 # PHYDDLE IMPORTS #
 ###################
 
-import Model
+#import Model
 import Simulator
 import Utilities
 
@@ -25,7 +25,7 @@ my_sim_args = my_config.my_sim_args
 
 # simulator samples from model
 MySimulator = Simulator.MasterSimulator
-my_mdl = Model.make_model(my_mdl_args)
+my_mdl = Utilities.make_model(my_mdl_args)
 my_sim = MySimulator(my_sim_args, my_mdl)
 
 
