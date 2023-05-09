@@ -1,27 +1,32 @@
 #!/usr/local/bin/python3
-from model_util import States,Event
-#from model_util import states2df,events2df
-from model_util import sort_binary_vectors
-#from geosse_model_util import *
 import string
 import itertools
 import numpy as np
 import scipy as sp
+
+from model_util import States,Event
+from model_util import sort_binary_vectors
 from Model import *
 
+#from model_util import states2df,events2df
+#from geosse_model_util import *
+
 class GeosseModel(Model):
+    
     # initialize model
     def __init__(self, args):
         super().__init__(args)
         self.set_args(args)
         self.set_model()
         return
+    
     # assign initial arguments
     def set_args(self, args):
         super().set_args(args)
         self.num_locations = args['num_locations']
         self.num_ranges = 2**self.num_locations - 1
         return
+    
     # make model states
     def make_states(self):
         num_locations = self.num_locations

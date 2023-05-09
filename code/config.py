@@ -19,10 +19,10 @@ my_mdl_args = {
         'd': sp.stats.expon.rvs,
         'b': sp.stats.expon.rvs },
     'rv_arg' : {
-        'w': { 'scale' : 1.0 },
-        'e': { 'scale' : 0.5 },
-        'd': { 'scale' : 1.0 },
-        'b': { 'scale' : 3.0 }
+        'w': { 'scale' : 0.2 },
+        'e': { 'scale' : 0.1 },
+        'd': { 'scale' : 0.1 },
+        'b': { 'scale' : 0.5 }
     }
 }
 
@@ -35,9 +35,7 @@ my_sim_args = {
     'end_idx'           : 100,
     'tree_sizes'        : [ 200, 500 ],
     'use_parallel'      : True,
-    'num_proc'          : 12,                # set to max - 2
-    #'start_sizes'       : {},                # move setting into model spec
-    #'start_state'       : { 'S' : 0 },       # move setting into model spec
+    'num_proc'          : -2,
     'sample_population' : ['S'],
     'stop_floor_sizes'  : 0,
     'stop_ceil_sizes'   : 300                # MASTER seems to generate too many taxa?

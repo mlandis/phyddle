@@ -4,72 +4,88 @@
 #from sirm_model_util import *
 #import string
 #import model_util
+#from model_util import states2df,events2df
+
 import itertools
 import scipy as sp
 import numpy as np
 
 from model_util import States,Event
-from model_util import states2df,events2df
+from Model import *
 
-class SirmModel:
+class SirmModel(Model):
+
+    # initialize model
+    def __init__(self, args):
+        super().__init__(args)
+        self.set_args(args)
+        self.set_model()
+        return
     
-    # set up model
-    def __init__(self, num_locations, model_variant='equal_rates', feature_set=None):
+    # assign initial arguments
+    def set_args(self, args):
+        super().set_args(args)
+        self.num_locations = args['num_locations']
+        return
+    
+    # # set up model
+    # def __init__(self, num_locations, model_variant='equal_rates', feature_set=None):
         
-        # create state space
-        self.model_type    = 'SIRM'
-        self.model_variant = model_variant
-        self.num_locations = num_locations
+    #     # create state space
+    #     self.model_type    = 'SIRM'
+    #     self.model_variant = model_variant
+    #     self.num_locations = num_locations
      
-        # simulation settings
-        self.settings = self.make_settings( self.num_locations )
+    #     # simulation settings
+    #     self.settings = self.make_settings( self.num_locations )
 
-        # state space
-        self.states = self.make_states(self.num_locations)
+    #     # state space
+    #     self.states = self.make_states(self.num_locations)
 
-        # rate space
-        self.rates = self.make_rates( self.model_variant, self.settings )
+    #     # rate space
+    #     self.rates = self.make_rates( self.model_variant, self.settings )
 
-        # event space
-        self.events = self.make_events( self.states, self.rates )
+    #     # event space
+    #     self.events = self.make_events( self.states, self.rates )
 
-        # event space dataframe
-        self.df_events = events2df( self.events )
+    #     # event space dataframe
+    #     self.df_events = events2df( self.events )
 
-        # state space dataframe
-        self.df_states = states2df( self.states )
+    #     # state space dataframe
+    #     self.df_states = states2df( self.states )
 
-        # model
-        #self.xmlgen = MasterXmlGenerator(self.df_events, self.df_states, self.settings)
+    #     # model
+    #     #self.xmlgen = MasterXmlGenerator(self.df_events, self.df_states, self.settings)
 
-    # SIRM simulation settings
-    def make_settings(self, num_locations):
-        settings = {}
+    # # SIRM simulation settings
+    # def make_settings(self, num_locations):
+    #     settings = {}
 
-        # generate random starting sizes
-        # X ~ Gamma(shape=0.5, scale=1e6) 
-        start_sizes = sp.stats.gamma.rvs(size=num_locations, a=0.5, scale=1000000)
-        p_start_sizes = start_sizes / np.sum(start_sizes)
+    #     # generate random starting sizes
+    #     # X ~ Gamma(shape=0.5, scale=1e6) 
+    #     start_sizes = sp.stats.gamma.rvs(size=num_locations, a=0.5, scale=1000000)
+    #     p_start_sizes = start_sizes / np.sum(start_sizes)
         
-        # default settings
-        settings['num_locations']     = num_locations
-        settings['start_state']       = { 'I' : np.random.choice(a=num_locations, size=1, p=p_start_sizes)[0] }
-        settings['start_sizes']       = { 'S' : [ int(np.ceil(x)) for x in start_sizes ] }
-        settings['sample_population'] = [ 'A' ]
-        settings['stop_floor_sizes']  = 0
-        settings['stop_ceil_sizes']   = 5000
-        settings['rv_fn']             = { 'i':  sp.stats.expon.rvs,
-                                          'm': sp.stats.expon.rvs,
-                                          'r': sp.stats.expon.rvs,
-                                          's':  sp.stats.expon.rvs }
-        settings['rv_arg']            = { 'i':  { 'scale' : 0.001 },
-                                          'm': { 'scale' : 1.000 },
-                                          'r': { 'scale' : 0.010 },
-                                          's':  { 'scale' : 0.100 } }
-        return settings
+    #     # default settings
+    #     settings['num_locations']     = num_locations
+    #     settings['start_state']       = { 'I' : np.random.choice(a=num_locations, size=1, p=p_start_sizes)[0] }
+    #     settings['start_sizes']       = { 'S' : [ int(np.ceil(x)) for x in start_sizes ] }
+    #     settings['sample_population'] = [ 'A' ]
+    #     settings['stop_floor_sizes']  = 0
+    #     settings['stop_ceil_sizes']   = 5000
+    #     settings['rv_fn']             = { 'i':  sp.stats.expon.rvs,
+    #                                       'm': sp.stats.expon.rvs,
+    #                                       'r': sp.stats.expon.rvs,
+    #                                       's':  sp.stats.expon.rvs }
+    #     settings['rv_arg']            = { 'i':  { 'scale' : 0.001 },
+    #                                       'm': { 'scale' : 1.000 },
+    #                                       'r': { 'scale' : 0.010 },
+    #                                       's':  { 'scale' : 0.100 } }
+    #     return settings
 
     # SIRM state space
-    def make_states(self, num_locations):
+    def make_states(self):
+        num_locations = self.num_locations
         # S: Susceptible, I: Infected, R: Recovered, A: Acquired ('Sampled')
         compartments = 'SIRA'
         # Location 0, Location 1, Location 2, ...
@@ -86,6 +102,69 @@ class SirmModel:
         # state space object
         states = States(lbl2vec)
         return states
+
+    #     # generate random starting sizes
+    #     # X ~ Gamma(shape=0.5, scale=1e6) 
+    #     start_sizes = sp.stats.gamma.rvs(size=num_locations, a=0.5, scale=1000000)
+    #     p_start_sizes = start_sizes / np.sum(start_sizes)
+        
+    #     # default settings
+    #     settings['num_locations']     = num_locations
+    #     settings['start_state']       = { 'I' : np.random.choice(a=num_locations, size=1, p=p_start_sizes)[0] }
+    #     settings['start_sizes']       = { 'S' : [ int(np.ceil(x)) for x in start_sizes ] }
+    def make_start_sizes(self, seed):
+        rv_fn = self.rv_fn
+        rv_arg = self.rv_arg
+        num_locations = self.num_locations
+        # X ~ Gamma(shape=0.5, scale=1e6) 
+        start_sizes = rv_fn['n0'](size=num_locations, random_state=seed, **rv_arg['n0'])
+        start_sizes = [ int(np.ceil(x)) for x in start_sizes ]
+        ret = { 'S' : start_sizes }
+        return ret
+        
+    def make_start_state(self, seed):
+        print(self.start_sizes)
+        p_start_sizes = self.start_sizes['S'] / np.sum(self.start_sizes['S'])
+        start_state = list(sp.stats.multinomial.rvs(n=1, p=p_start_sizes, random_state=seed)).index(1)
+        ret = { 'I' : start_state }
+        return ret
+        
+    def make_rates(self, model_variant, seed):
+        rates = {}
+        
+        # get sim RV functions and arguments
+        num_locations = self.num_locations
+        rv_fn = self.rv_fn
+        rv_arg = self.rv_arg
+
+        # all rates within an event type are equal, but rate classes are drawn iid
+        if model_variant == 'free_rates':
+            # check to make sure arguments in settings are applied to model variant
+            rates = {
+                'i': rv_fn['i'](size=num_locations, random_state=seed, **rv_arg['i']),
+                'r': rv_fn['r'](size=num_locations, random_state=seed, **rv_arg['r']),
+                's': rv_fn['s'](size=num_locations, random_state=seed, **rv_arg['s']),
+                'm': rv_fn['m'](size=num_locations**2, random_state=seed, **rv_arg['m']).reshape((num_locations,num_locations))
+            }
+        # all rates are drawn iid
+        elif model_variant == 'equal_rates':
+            rates = {
+                'i': np.full(num_locations, rv_fn['i'](size=1, random_state=seed, **rv_arg['i'])[0]),
+                'r': np.full(num_locations, rv_fn['r'](size=1, random_state=seed, **rv_arg['r'])[0]),
+                's': np.full(num_locations, rv_fn['s'](size=1, random_state=seed, **rv_arg['s'])[0]),
+                'm': np.full((num_locations,num_locations), rv_fn['m'](size=1, random_state=seed, **rv_arg['m'])[0])
+            }
+        # e.g. all rates drawn as log-linear functions of features
+        elif model_variant == 'feature_rates':
+            # other parameters checked for effect-strength of feature on rates
+            rates = {
+                #'Infect': np.full(num_locations, sp.stats.expon.rvs(size=1)[0]),
+                #'Recover': np.full(num_locations, sp.stats.expon.rvs(size=1)[0]), 
+                #'Sample': np.full(num_locations, sp.stats.expon.rvs(size=1)[0]), 
+                #'Migrate': np.full((num_locations,num_locations), sp.stats.expon.rvs(size=1)[0])
+            }
+        # return rates
+        return rates
 
     def make_events(self, states, rates):
         events_i = self.make_events_i( states, rates['i'] )
@@ -173,39 +252,4 @@ class SirmModel:
                 events.append(e)
         return events
 
-    def make_rates(self, model_variant, settings):
-        rates = {}
-        
-        # get sim RV functions and arguments
-        num_locations = settings['num_locations']
-        rv_fn = settings['rv_fn']
-        rv_arg = settings['rv_arg']
-
-        # all rates within an event type are equal, but rate classes are drawn iid
-        if model_variant == 'free_rates':
-            # check to make sure arguments in settings are applied to model variant
-            rates = {
-                'i': rv_fn['i'](size=num_locations, **rv_arg['i']),
-                'r': rv_fn['r'](size=num_locations, **rv_arg['r']),
-                's': rv_fn['s'](size=num_locations, **rv_arg['s']),
-                'm': rv_fn['m'](size=num_locations**2, **rv_arg['m']).reshape((num_locations,num_locations))
-            }
-        # all rates are drawn iid
-        elif model_variant == 'equal_rates':
-            rates = {
-                'i': np.full(num_locations, rv_fn['i'](size=1, **rv_arg['i'])[0]),
-                'r': np.full(num_locations, rv_fn['r'](size=1, **rv_arg['r'])[0]),
-                's': np.full(num_locations, rv_fn['s'](size=1, **rv_arg['s'])[0]),
-                'm': np.full((num_locations,num_locations), rv_fn['m'](size=1, **rv_arg['m'])[0])
-            }
-        # e.g. all rates drawn as log-linear functions of features
-        elif model_variant == 'feature_rates':
-            # other parameters checked for effect-strength of feature on rates
-            rates = {
-                #'Infect': np.full(num_locations, sp.stats.expon.rvs(size=1)[0]),
-                #'Recover': np.full(num_locations, sp.stats.expon.rvs(size=1)[0]), 
-                #'Sample': np.full(num_locations, sp.stats.expon.rvs(size=1)[0]), 
-                #'Migrate': np.full((num_locations,num_locations), sp.stats.expon.rvs(size=1)[0])
-            }
-        # return rates
-        return rates
+    
