@@ -266,7 +266,7 @@ class CnnLearner(Learner):
         cn.plot_preds_labels(preds=self.test_preds[0:1000,:],
                              labels=self.denormalized_test_labels[0:1000,:],
                              param_names=self.param_names,
-                             prefix=self.model_prefix+'test',
+                             prefix=self.model_prefix+'_test',
                              plot_dir=self.plot_dir,
                              title='Test predictions')
 
