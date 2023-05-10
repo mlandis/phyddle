@@ -26,7 +26,6 @@ class InputFormatter:
         # sort replicate indices into size-category lists
         size_sort = {}
 
-        print('hello')
         for fn in info_files:
             fn = self.sim_dir + '/' + self.job_name + '/' + fn
             idx = -1
