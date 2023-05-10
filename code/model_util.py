@@ -296,18 +296,3 @@ class MasterXmlGenerator:
            sample_pop='false')
         self.xml_spec_str = xml_spec_str
         return
-        #return xml_spec_str
-
-
-# class Model:
-#     def __init__(self, settings, extra):
-#         self.settings = settings
-#         self.extra = extra
-
-# class NewModel(Model):
-#     def __init__(self, settings, extra, thing):
-#         super().__init__(settings, extra) 
-#         self.thing = thing
-
-#     def welcome(self):
-#         print(self.extra, self.thing)

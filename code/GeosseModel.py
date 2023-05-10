@@ -5,13 +5,16 @@ import numpy as np
 import scipy as sp
 
 from model_util import States,Event
-from model_util import sort_binary_vectors
-from Model import *
+#from Model import *
+import Model
+#import Utilities
+#from Utilities import sort_binary_vectors
+from Utilities import sort_binary_vectors
 
 #from model_util import states2df,events2df
 #from geosse_model_util import *
 
-class GeosseModel(Model):
+class GeosseModel(Model.BaseModel):
     
     # initialize model
     def __init__(self, args):

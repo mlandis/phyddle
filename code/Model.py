@@ -1,7 +1,7 @@
 
 import Utilities
 
-class Model:
+class BaseModel:
     def __init__(self, args):
         return
     

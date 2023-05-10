@@ -4,7 +4,9 @@ import importlib
 import pandas as pd
 
 # model registry
-from GeosseModel import *
+#import GeosseModel
+#import SirmModel
+#from GeosseModel import *
 #from SirmModel import *
 
 def load_config(config_fn, arg_overwrite=True):
@@ -40,13 +42,13 @@ def load_config(config_fn, arg_overwrite=True):
     # return new args
     return m
 
-# register models for retrieval
-def make_model(mdl_args):    
-    model_type = mdl_args['model_type']
-    if model_type == 'geosse': mdl = GeosseModel
-    #elif model_type == 'sirm': mdl = SirmModel
-    else: return None
-    return mdl(mdl_args)
+# # register models for retrieval
+# def make_model(mdl_args):    
+#     model_type = mdl_args['model_type']
+#     if model_type == 'geosse': mdl = GeosseModel.GeosseModel
+#     #elif model_type == 'sirm': mdl = SirmModel
+#     else: return None
+#     return mdl(mdl_args)
 
 def events2df(events):
     df = pd.DataFrame({
@@ -68,3 +70,27 @@ def states2df(states):
         'vec' : states.int2vec
     })
     return df
+
+# Chat-GPT function
+def sort_binary_vectors(binary_vectors):
+    """
+    Sorts a list of binary vectors in order of number of "on" bits first, and then left to right in terms of which bits are "on".
+    """
+    # Define a helper function to count the number of "on" bits in a binary vector
+    def count_ones(binary_vector):
+        return sum(binary_vector)
+    
+    # Sort the binary vectors in the list first by number of "on" bits
+    sorted_vectors = sorted(binary_vectors, key=count_ones)
+    
+    # Sort the binary vectors in the list by "on" bits from left to right
+    for i in range(len(sorted_vectors)):
+        for j in range(i+1, len(sorted_vectors)):
+            if count_ones(sorted_vectors[j]) == count_ones(sorted_vectors[i]):
+                for k in range(len(sorted_vectors[i])):
+                    if sorted_vectors[i][k] != sorted_vectors[j][k]:
+                        if sorted_vectors[j][k] > sorted_vectors[i][k]:
+                            sorted_vectors[i], sorted_vectors[j] = sorted_vectors[j], sorted_vectors[i]
+                        break
+                
+    return sorted_vectors
