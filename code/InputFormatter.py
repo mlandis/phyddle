@@ -50,8 +50,8 @@ class InputFormatter:
                         size_sort[size] = []
                     if size >=0 and idx >= 0:
                         size_sort[size].append(idx)
-                else:
-                    print(all_files_valid,all_files)
+                #else:
+                #    print(all_files_valid,all_files)
         
         # build files
         for tree_size in sorted(list(size_sort.keys())):

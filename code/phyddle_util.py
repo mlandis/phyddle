@@ -623,10 +623,10 @@ def make_prune_phy(tre_fn, prune_fn):
     drop_taxon_labels = [ k for k,v in d.items() if v > 1e-12 ]
     # abort if pruned tree would be invalid
     if len(leaf_nodes) - len(drop_taxon_labels) < 2:
-        print( "leaf_nodes ==>", leaf_nodes)
-        print( "drop_taxon_labels ==>", drop_taxon_labels )
-        print( "len(leaf_nodes) ==>", len(leaf_nodes))
-        print( "len(drop_taxon_labels) ==>", len(drop_taxon_labels) )
+        #print( "leaf_nodes ==>", leaf_nodes)
+        #print( "drop_taxon_labels ==>", drop_taxon_labels )
+        #print( "len(leaf_nodes) ==>", len(leaf_nodes))
+        #print( "len(drop_taxon_labels) ==>", len(drop_taxon_labels) )
         return False
     else:
         # prune non-extant taxa
@@ -727,12 +727,12 @@ def vectorize_tree(tre_fn, max_taxa=500, summ_stat=[], prob=1.0):
     vv2 = np.asarray(vv[2]) # ordered list of the new tip labels
     new_order = [vv[3][i] for i in vv2]
 
-    if False:
-        print( 'otn ==> ', otn, '\n' )
-        print( 'vv[0] ==>', vv[0], '\n' )
-        print( 'vv[1] ==>', vv[1], '\n' )
-        print( 'vv[2] ==>', vv[2], '\n' )
-        print( 'vv[3] ==>', vv[3], '\n' )
+    #if False:
+    #    print( 'otn ==> ', otn, '\n' )
+    #    print( 'vv[0] ==>', vv[0], '\n' )
+    #    print( 'vv[1] ==>', vv[1], '\n' )
+    #    print( 'vv[2] ==>', vv[2], '\n' )
+    #    print( 'vv[3] ==>', vv[3], '\n' )
 
     cblv = np.asarray( vv[0] )
     cblv.shape = (2, -1)
