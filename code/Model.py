@@ -1,8 +1,10 @@
 
 import Utilities
+import numpy as np
 
 class BaseModel:
     def __init__(self, args):
+        #print('BaseModel')
         return
     
     def set_args(self, args):
@@ -13,16 +15,23 @@ class BaseModel:
         return
     
     def set_model(self, seed=None):
+        # set RNG seed if provided
+        
+        #print("BaseModel.set_model", seed)
+        #np.random.seed(seed=seed)
+        # set RNG
+        self.seed        = seed
+        self.rng         = np.random.Generator(np.random.PCG64(seed))
         # state space
         self.states      = self.make_states() # self.num_locations )
         # starting population sizes (e.g. SIR models)
-        self.start_sizes = self.make_start_sizes( seed )
+        self.start_sizes = self.make_start_sizes()
         # starting state
-        self.start_state = self.make_start_state( seed )
+        self.start_state = self.make_start_state()
         # rate space
-        self.rates       = self.make_rates( self.model_variant, seed )
+        self.params      = self.make_params( self.model_variant)
         # event space
-        self.events      = self.make_events( self.states, self.rates )
+        self.events      = self.make_events( self.states, self.params )
         # event space dataframe
         self.df_events   = Utilities.events2df( self.events )
         # state space dataframe
@@ -32,7 +41,7 @@ class BaseModel:
     def clear_model(self):
         self.is_model_set = False
         self.states = None
-        self.rates = None
+        self.params = None
         self.events = None
         self.df_events = None
         self.df_states = None
@@ -46,7 +55,7 @@ class BaseModel:
     def make_events(self):
         raise NotImplementedError
     
-    def make_rates(self):
+    def make_params(self):
         raise NotImplementedError
     
     def make_start_state(self):

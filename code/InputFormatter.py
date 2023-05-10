@@ -1,5 +1,6 @@
 import os
 import csv
+import pandas as pd
 
 class InputFormatter:
     def __init__(self, args):
@@ -8,12 +9,14 @@ class InputFormatter:
 
     def set_args(self, args):
         # simulator arguments
-        self.args     = args
-        self.job_name = args['job_name']
-        self.fmt_dir  = args['fmt_dir']
-        self.sim_dir  = args['sim_dir']
-        self.in_dir   = self.sim_dir + '/' + self.job_name
-        self.out_dir  = self.fmt_dir + '/' + self.job_name
+        self.args       = args
+        self.job_name   = args['job_name']
+        self.fmt_dir    = args['fmt_dir']
+        self.sim_dir    = args['sim_dir']
+        self.param_pred = args['param_pred'] # parameters in label set (prediction)
+        self.param_data = args['param_data'] # parameters in data set (training, etc)
+        self.in_dir     = self.sim_dir + '/' + self.job_name
+        self.out_dir    = self.fmt_dir + '/' + self.job_name
         return
 
     def run(self):
@@ -25,7 +28,6 @@ class InputFormatter:
 
         # sort replicate indices into size-category lists
         size_sort = {}
-
         for fn in info_files:
             fn = self.sim_dir + '/' + self.job_name + '/' + fn
             idx = -1
@@ -39,8 +41,8 @@ class InputFormatter:
                         idx = int(row[1])
                     elif row[0] == 'taxon_category':
                         size = int(row[1])
-                    #print(', '.join(row))
-
+                    
+                # check that all necessary files exist
                 all_files = [self.in_dir+'/sim.'+str(idx)+'.'+x for x in ['cdvs.csv','cblvs.csv','param2.csv','summ_stat.csv']]
                 all_files_valid = all( [os.path.isfile(fn) for fn in all_files] )
 
@@ -105,5 +107,20 @@ class InputFormatter:
                             s = ''.join(infile.readlines()[1:])
                             z = outfile.write(s)
     
+            # read in summ_stats and labels (_all_ params) dataframes
+            df_summ_stats = pd.read_csv(out_stat_fn)  # original, contains _no_ parameters
+            df_labels = pd.read_csv(out_labels_fn)    # original, contains _all_ parameters
+
+            # separate data parameters (things we know) from label parameters (things we predict)
+            df_labels_keep = df_labels[self.param_pred]
+            df_labels_move = df_labels[self.param_data]
+
+            # concatenate new data parameters as column to existing summ_stats dataframe
+            df_summ_stats = df_summ_stats.join( df_labels_move )
+
+            # overwrite original files with new modified versions
+            df_summ_stats.to_csv(out_stat_fn, index=False)
+            df_labels_keep.to_csv(out_labels_fn, index=False)
+
         # done
         return

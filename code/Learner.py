@@ -22,7 +22,7 @@ class Learner:
         self.job_name          = args['job_name']
         self.tree_size         = args['tree_size']
         self.tree_type         = args['tree_type']
-        self.predict_idx       = args['predict_idx']
+        #self.predict_idx       = args['predict_idx']
         self.fmt_dir           = args['fmt_dir']
         self.plt_dir           = args['plt_dir']
         self.net_dir           = args['net_dir']
@@ -36,21 +36,17 @@ class Learner:
         return
     
     def prepare_files(self):
+
+        # main directories
         self.input_dir   = self.fmt_dir + '/' + self.job_name
         self.plot_dir    = self.plt_dir + '/' + self.job_name
         self.network_dir = self.net_dir + '/' + self.job_name
 
+        # create new job directories
         os.makedirs(self.plot_dir, exist_ok=True)
         os.makedirs(self.network_dir, exist_ok=True)
 
-        #self.model_prefix    = 'sim_batchsize' + str(self.batch_size) + '_numepoch' + str(self.num_epochs) + '_nt' + str(self.tree_size)
-        #self.model_csv_fn    = self.network_dir + '/' + model_prefix + '.csv' 
-        #self.model_sav_fn    = self.network_dir + '/' + model_prefix + '.hdf5'
-        #self.train_data_fn   = self.input_dir + '/' + train_prefix + '.nt' + str(max_taxa) + '.cdvs.data.csv'
-        #self.train_stats_fn  = self.input_dir + '/' + train_prefix + '.nt' + str(max_taxa) + '.summ_stat.csv'
-        #self.train_labels_fn = self.input_dir + '/' + train_prefix + '.nt' + str(max_taxa) + '.labels.csv'
-        
-        # filesystem
+        # main job filenames
         self.model_prefix    = f'sim_batchsize{self.batch_size}_numepoch{self.num_epochs}_nt{self.tree_size}'
         self.model_csv_fn    = f'{self.network_dir}/{self.model_prefix}.csv'
         self.model_sav_fn    = f'{self.network_dir}/{self.model_prefix}.hdf5'
@@ -88,6 +84,7 @@ class CnnLearner(Learner):
     
     def load_input(self):
 
+        # dataset size
         num_val = self.num_validation
         num_test = self.num_test
 
@@ -96,15 +93,18 @@ class CnnLearner(Learner):
         full_stats  = pd.read_csv(self.input_stats_fn, header=None, on_bad_lines='skip').to_numpy()
         full_labels = pd.read_csv(self.input_labels_fn, header=None, on_bad_lines='skip').to_numpy()
 
+        # get summary stats
         self.stat_names = full_stats[0,:]
         full_stats = full_stats[1:,:].astype('float64')
 
-        full_labels = full_labels[:, self.predict_idx] # geosse
+        # get parameters and labels
+        #if len(self.predict_idx) > 0:
+        #    full_labels = full_labels[:, self.predict_idx]
         self.param_names = full_labels[0,:]
         full_labels = full_labels[1:,:].astype('float64')   
 
         # data dimensions
-        num_chars  = 3 # another way to get this??
+        num_chars  = 3  # MJL: better way to get this? either from tensor or from an info file?
         num_sample = full_data.shape[0]
         self.num_params = full_labels.shape[1]
         self.num_stats = full_stats.shape[1]
@@ -122,15 +122,13 @@ class CnnLearner(Learner):
         full_labels    = full_labels[randomized_idx,:]
 
         # reshape full_data
+        # depends on CBLV/CDV and num_states
         full_data.shape = (num_sample,-1,1+num_chars)
 
         # create input subsets
         train_idx = np.arange( num_test+num_val, num_sample )
         val_idx   = np.arange( num_test, num_test+num_val )
         test_idx  = np.arange( 0, num_test )
-
-        # create & normalize label tensors
-        #labels = full_labels[:,:] # 2nd column was 5:12 previously to exclude ancestral stem location
 
         # normalize summary stats
         self.norm_train_stats, self.train_stats_means, self.train_stats_sd = cn.normalize( full_stats[train_idx,:] )
@@ -142,7 +140,6 @@ class CnnLearner(Learner):
         self.norm_val_labels  = cn.normalize(full_labels[val_idx,:], (self.train_label_means, self.train_label_sd))
         self.norm_test_labels = cn.normalize(full_labels[test_idx,:], (self.train_label_means, self.train_label_sd))
 
-        # potentially create new tensor that pulls info from both data and labels (Ammon advises put only in data)
         # create data tensors
         self.train_data_tensor = full_data[train_idx,:]
         self.val_data_tensor   = full_data[val_idx,:]
@@ -159,34 +156,28 @@ class CnnLearner(Learner):
         # Build CNN
         input_data_tensor = Input(shape = self.train_data_tensor.shape[1:3])
 
-        # double-check this stuff
-        # 64 patterns you expect to see, width of 3, stride (skip-size) of 1, padding zeroes so all windows are 'same'
         # convolutional layers
+        # e.g. you expect to see 64 patterns, width of 3, stride (skip-size) of 1, padding zeroes so all windows are 'same'
         w_conv = layers.Conv1D(64, 3, activation = 'relu', padding = 'same', name='in_conv_std')(input_data_tensor)
-        #w_conv = layers.Conv1D(64, 5, activation = 'relu', padding = 'same')(w_conv)
         w_conv = layers.Conv1D(96, 5, activation = 'relu', padding = 'same')(w_conv)
         w_conv = layers.Conv1D(128, 7, activation = 'relu', padding = 'same')(w_conv)
-        #w_conv = layers.Conv1D(256, 7, activation = 'relu', padding = 'same')(w_conv)
         w_conv_global_avg = layers.GlobalAveragePooling1D(name = 'w_conv_global_avg')(w_conv)
 
-        # stride layers
+        # stride layers (skip sizes during slide
         w_stride = layers.Conv1D(64, 7, strides = 3, activation = 'relu', padding = 'same', name='in_conv_stride')(input_data_tensor)
         w_stride = layers.Conv1D(96, 9, strides = 6, activation = 'relu', padding = 'same')(w_stride)
         w_stride_global_avg = layers.GlobalAveragePooling1D(name = 'w_stride_global_avg')(w_stride)
 
-        # dilation layers
+        # dilation layers (spacing among grid elements)
         w_dilated = layers.Conv1D(32, 3, dilation_rate = 2, activation = 'relu', padding = 'same', name='in_conv_dilation')(input_data_tensor)
         w_dilated = layers.Conv1D(64, 5, dilation_rate = 4, activation = 'relu', padding = "same")(w_dilated)
-        #w_dilated = layers.Conv1D(128, 7, dilation_rate = 8, activation = 'relu', padding = 'same')(w_dilated)
         w_dilated_global_avg = layers.GlobalAveragePooling1D(name = 'w_dilated_global_avg')(w_dilated)
-
 
         # summary stats
         input_stats_tensor = Input(shape = self.train_stats_tensor.shape[1:2])
         w_stats_ffnn = layers.Dense(128, activation = 'relu', kernel_initializer = 'VarianceScaling', name='in_ffnn_stat')(input_stats_tensor)
         w_stats_ffnn = layers.Dense(64, activation = 'relu', kernel_initializer = 'VarianceScaling')(w_stats_ffnn)
         w_stats_ffnn = layers.Dense(32, activation = 'relu', kernel_initializer = 'VarianceScaling')(w_stats_ffnn)
-
 
         # concatenate all above -> deep fully connected network
         concatenated_wxyz = layers.Concatenate(axis = 1, name = 'all_concatenated')([w_conv_global_avg,

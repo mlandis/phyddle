@@ -43,21 +43,25 @@ my_sim_args = {
     'stop_ceil_sizes'   : 300                # MASTER seems to generate too many taxa?
 } | my_all_args
 
-
-# define tensor-formatting settings
+###################
+# FORMAT SETTINGS #
+###################
 my_fmt_args = {
-    'fmt_dir' : '../tensor_data',
-    'sim_dir' : '../raw_data'
+    'fmt_dir'     : '../tensor_data',
+    'sim_dir'     : '../raw_data',
+    'param_pred'  : [ 's_0', 'i_0', 'm_0_1' ],
+    'param_data'  : [ 'r_0' ]
 } | my_all_args
 
-# define learning settings
+#####################
+# LEARNING SETTINGS #
+#####################
 my_lrn_args = { 
     'fmt_dir'        : '../tensor_data',
     'net_dir'        : '../network',
     'plt_dir'        : '../plot',
     'tree_size'      : 200,
     'tree_type'      : 'serial',
-    'predict_idx'    : [ 0,3,6,9],
     'num_epochs'     : 20,
     'num_test'       : 200,
     'num_validation' : 200,

@@ -139,7 +139,7 @@ class Simulator:
         write_to_file(info_str, info_fn)
 
         # record labels (simulating parameters)
-        param1_str,param2_str = param_dict_to_str(self.model.rates)
+        param1_str,param2_str = param_dict_to_str(self.model.params)
         write_to_file(param1_str, param1_fn)
         write_to_file(param2_str, param2_fn)
 

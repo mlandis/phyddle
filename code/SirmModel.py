@@ -20,7 +20,7 @@ class SirmModel(Model.BaseModel):
     def __init__(self, args):
         super().__init__(args)
         self.set_args(args)
-        self.set_model()
+        self.set_model(None)
         return
     
     # assign initial arguments
@@ -29,6 +29,10 @@ class SirmModel(Model.BaseModel):
         self.num_locations = args['num_locations']
         return
     
+    def set_model(self, idx):
+        super().set_model(idx)
+        return
+
     # SIRM state space
     def make_states(self):
         num_locations = self.num_locations
@@ -48,26 +52,26 @@ class SirmModel(Model.BaseModel):
         # state space object
         states = States(lbl2vec)
         return states
-
-    def make_start_sizes(self, seed):
+    
+    def make_start_sizes(self):
         rv_fn = self.rv_fn
         rv_arg = self.rv_arg
         num_locations = self.num_locations
         # X ~ Gamma(shape=0.5, scale=1e6) 
-        start_sizes = rv_fn['n0'](size=num_locations, random_state=seed, **rv_arg['n0'])
+        start_sizes = rv_fn['n0'](size=num_locations, random_state=self.rng, **rv_arg['n0'])
         start_sizes = [ int(np.ceil(x)) for x in start_sizes ]
-        ret = { 'S' : start_sizes }
+        ret = { 'S' : start_sizes } ## this info could be added to self.params s.t. it can be used for training
         return ret
         
-    def make_start_state(self, seed):
+    def make_start_state(self):
         p_start_sizes = self.start_sizes['S'] / np.sum(self.start_sizes['S'])
-        start_state = list(sp.stats.multinomial.rvs(n=1, p=p_start_sizes, random_state=seed)).index(1)
+        start_state = list(sp.stats.multinomial.rvs(n=1, p=p_start_sizes, random_state=self.rng)).index(1)
         ret = { 'I' : start_state }
         return ret
         
-    def make_rates(self, model_variant, seed):
-        rates = {}
-        
+    def make_params(self, model_variant):
+        params = {}
+
         # get sim RV functions and arguments
         num_locations = self.num_locations
         rv_fn = self.rv_fn
@@ -76,31 +80,37 @@ class SirmModel(Model.BaseModel):
         # all rates within an event type are equal, but rate classes are drawn iid
         if model_variant == 'free_rates':
             # check to make sure arguments in settings are applied to model variant
-            rates = {
-                'i': rv_fn['i'](size=num_locations, random_state=seed, **rv_arg['i']),
-                'r': rv_fn['r'](size=num_locations, random_state=seed, **rv_arg['r']),
-                's': rv_fn['s'](size=num_locations, random_state=seed, **rv_arg['s']),
-                'm': rv_fn['m'](size=num_locations**2, random_state=seed, **rv_arg['m']).reshape((num_locations,num_locations))
+            params = {
+                'i': rv_fn['i'](size=num_locations, random_state=self.rng, **rv_arg['i']),
+                'r': rv_fn['r'](size=num_locations, random_state=self.rng, **rv_arg['r']),
+                's': rv_fn['s'](size=num_locations, random_state=self.rng, **rv_arg['s']),
+                'm': rv_fn['m'](size=num_locations**2, random_state=self.rng, **rv_arg['m']).reshape((num_locations,num_locations))
+
             }
+            #monitors = { 'i':rates['i'], 'r':rates['r'], 's':rates['s'], 'm':rates['m'] }
+            
         # all rates are drawn iid
         elif model_variant == 'equal_rates':
-            rates = {
-                'i': np.full(num_locations, rv_fn['i'](size=1, random_state=seed, **rv_arg['i'])[0]),
-                'r': np.full(num_locations, rv_fn['r'](size=1, random_state=seed, **rv_arg['r'])[0]),
-                's': np.full(num_locations, rv_fn['s'](size=1, random_state=seed, **rv_arg['s'])[0]),
-                'm': np.full((num_locations,num_locations), rv_fn['m'](size=1, random_state=seed, **rv_arg['m'])[0])
+            params = {
+                'i': np.full(num_locations, rv_fn['i'](size=1, random_state=self.rng, **rv_arg['i'])[0]),
+                'r': np.full(num_locations, rv_fn['r'](size=1, random_state=self.rng, **rv_arg['r'])[0]),
+                's': np.full(num_locations, rv_fn['s'](size=1, random_state=self.rng, **rv_arg['s'])[0]),
+                'm': np.full((num_locations,num_locations), rv_fn['m'](size=1, random_state=self.rng, **rv_arg['m'])[0])
             }
+            #monitors = { 'i':rates['i'][0],'r':rates['r'][0],'s':rates['s'][0],'m':rates['m'][0][1] }
+
         # e.g. all rates drawn as log-linear functions of features
         elif model_variant == 'feature_rates':
             # other parameters checked for effect-strength of feature on rates
-            rates = {
+            params = {
                 #'Infect': np.full(num_locations, sp.stats.expon.rvs(size=1)[0]),
                 #'Recover': np.full(num_locations, sp.stats.expon.rvs(size=1)[0]), 
                 #'Sample': np.full(num_locations, sp.stats.expon.rvs(size=1)[0]), 
                 #'Migrate': np.full((num_locations,num_locations), sp.stats.expon.rvs(size=1)[0])
             }
         # return rates
-        return rates
+        #print(rates)
+        return params
 
     def make_events(self, states, rates):
         events_i = self.make_events_i( states, rates['i'] )

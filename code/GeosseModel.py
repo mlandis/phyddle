@@ -54,7 +54,7 @@ class GeosseModel(Model.BaseModel):
         return {}
 
     # get all model rates
-    def make_rates(self, model_variant, seed):
+    def make_params(self, model_variant):
         rates = {}
         
         # get settings
@@ -64,27 +64,27 @@ class GeosseModel(Model.BaseModel):
 
         # build rates
         if model_variant == 'free_rates':
-            rates = {
-                    'w': rv_fn['w'](size=num_locations, random_state=seed, **rv_arg['w']),
-                    'e': rv_fn['e'](size=num_locations, random_state=seed, **rv_arg['e']),
-                    'd': rv_fn['d'](size=num_locations**2, random_state=seed, **rv_arg['d']).reshape((num_locations,num_locations)),
-                    'b': rv_fn['b'](size=num_locations**2, random_state=seed, **rv_arg['b']).reshape((num_locations,num_locations))
+            params = {
+                    'w': rv_fn['w'](size=num_locations, random_state=self.rng, **rv_arg['w']),
+                    'e': rv_fn['e'](size=num_locations, random_state=self.rng, **rv_arg['e']),
+                    'd': rv_fn['d'](size=num_locations**2, random_state=self.rng, **rv_arg['d']).reshape((num_locations,num_locations)),
+                    'b': rv_fn['b'](size=num_locations**2, random_state=self.rng, **rv_arg['b']).reshape((num_locations,num_locations))
                 }
             rates['x'] = rates['x']
 
         elif model_variant == 'equal_rates':
-            rates = {
-                    'w': np.full(num_locations, rv_fn['w'](size=1, random_state=seed, **rv_arg['w'])[0]),
-                    'e': np.full(num_locations, rv_fn['e'](size=1, random_state=seed, **rv_arg['e'])[0]),
-                    'd': np.full((num_locations,num_locations), rv_fn['d'](size=1, random_state=seed, **rv_arg['d'])[0]),
-                    'b': np.full((num_locations,num_locations), rv_fn['b'](size=1, random_state=seed, **rv_arg['b'])[0])
+            params = {
+                    'w': np.full(num_locations, rv_fn['w'](size=1, random_state=self.rng, **rv_arg['w'])[0]),
+                    'e': np.full(num_locations, rv_fn['e'](size=1, random_state=self.rng, **rv_arg['e'])[0]),
+                    'd': np.full((num_locations,num_locations), rv_fn['d'](size=1, random_state=self.rng, **rv_arg['d'])[0]),
+                    'b': np.full((num_locations,num_locations), rv_fn['b'](size=1, random_state=self.rng, **rv_arg['b'])[0])
                 }
             rates['x'] = rates['e']
 
         elif model_variant == 'fig_rates':
-            rates = {}
+            params = {}
         
-        return rates
+        return params
     
     # GeoSSE extinction rate
     def make_events_x(self, states, rates):  
