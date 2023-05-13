@@ -1,16 +1,16 @@
 #!/usr/local/bin/python3
 
-import joblib
-import time
+# import joblib
+# import time
 import pandas as pd
 import numpy as np
-import scipy as sp
+# import scipy as sp
 import dendropy as dp
-import random
+# import random
 import re
 import sys
-import argparse
-import importlib
+# import argparse
+# import importlib
 
 from collections import Counter
 from itertools import chain, combinations
@@ -22,6 +22,11 @@ sys.setrecursionlimit(100000) # possibly needed for CBLV formatting
 #import itertools
 #import ammon_tree_utilities as tu #from phylodeep import tree_utilities as tu
 #import ammon_encoding as en #from phylodeep import encoding as en
+
+#################
+# CBLVS ENCODER #
+#################
+
 
 def add_dist_to_root(tre):
     """
@@ -240,6 +245,11 @@ def encode_into_most_recent(tree_input, max_taxa=[500], summ_stat=[], target_ave
 
     return result, rescale_factor, new_leaf_order_names, newLeafKeys_inputNameValues
 
+
+##############
+# READ TREES #
+##############
+
 def read_tree(newick_tree):
     """ Tries all nwk formats and returns an ete3 Tree
 
@@ -345,217 +355,7 @@ def find_taxon_size(num_taxa, max_taxa):
     raise Exception('error in find_taxon_size()', num_taxa, max_taxa)
     return -2
     
-# generate event map
-def make_events(regions, states, states_inv):
 
-    # make data structure
-    num_regions = len(regions)
-    events = { 'extinction': [],
-               'extirpation': [],
-               'dispersal': [],
-               'within_region_speciation': [],
-               'between_region_speciation': [] }
-
-    # populate events
-    for state,region_set in enumerate(states):
-        if len(region_set) == 1:
-            # extinction
-            events['extinction'].append([state,region_set[0]])
-        elif len(region_set) > 1:
-            # between-region speciation
-            splits = list(powerset(region_set))[1:-1]
-            for x in splits:
-                y = tuple(set(region_set).difference(x))
-                x_state = states_inv[x]
-                y_state = states_inv[y]
-                z = [x_state, y_state]
-                z.sort()
-                v = [state, z[0], z[1]]
-                if v not in events['between_region_speciation']:
-                    events['between_region_speciation'].append( [state, z[0], z[1]] )
-        for region in region_set:
-            if len(region_set) > 1:
-                # extirpation
-                new_regions = tuple( set(region_set).difference([region]) )
-                new_state = states_inv[new_regions]
-                #print(state,region,new_regions,new_state)
-                events['extirpation'].append( [state, new_state, region ] )
-            # within-region speciation
-            w_new_state = states_inv[ tuple([region]) ]
-            events['within_region_speciation'].append( [state, w_new_state, region] )
-            for dest in regions:
-                if dest not in region_set:
-                    i = tuple(set(region_set).union([dest]))
-                    d_new_state = states_inv[i] 
-                    v = [state, d_new_state, dest]
-                    if v not in events['dispersal']:
-                        events['dispersal'].append( [state, d_new_state, dest] )
-
-    return events
-
-def make_rates(regions, states, events, settings):
-
-    # get settings
-    model_type       = settings['model_type']
-    num_regions      = len(events['extinction'])
-    num_feature_layers = settings['num_feature_layers']
-    rv_rate          = settings['rv_rate']
-    rv_effect        = settings['rv_effect']
-    rv_feature       = settings['rv_feature']
-
-    # model rates
-    if model_type == 'iid':
-        r_e = rv_rate(size=num_regions)
-        r_w = rv_rate(size=num_regions)
-        r_d = rv_rate(size=(num_regions,num_regions))
-        r_b = rv_rate(size=(num_regions,num_regions))
-
-    elif model_type == 'iid_simple':
-        r_e = np.repeat( rv_rate(size=1), num_regions )
-        r_w = np.repeat( rv_rate(size=1), num_regions )
-        r_d = np.repeat( rv_rate(size=1), num_regions*num_regions ).reshape(num_regions,num_regions)
-        r_b = np.repeat( rv_rate(size=1), num_regions*num_regions ).reshape(num_regions,num_regions)
-
-    elif model_type == 'FIG':
-        # generate base rates
-        rho_e, rho_w, rho_d, rho_w = rv_rate(size=4)
-
-        # generate features and effects
-        features = { 'cw':[], 'cb':[], 'qw':[], 'qb':[] }
-        phi_effects = {'d':[], 'e':[], 'w':[], 'b':[] }
-        sigma_effects = {'d':[], 'e':[], 'w':[], 'b':[] }
-
-        for k in range(num_feature_layers):
-            # regional features
-            features['cw'].append( sp.stats.bernoulli.rvs(p=0.5, size=num_regions) )
-            features['cb'].append( sp.stats.bernoulli.rvs(p=0.5, size=(num_regions,num_regions)) )
-            features['qw'].append( rv_feature(size=num_regions) )
-            features['qb'].append( rv_feature(size=(num_regions,num_regions)) )
-
-            # feature effect parameters
-            phi_effects['d'], phi_effects['e'], phi_effects['w'], phi_effects['b'] = rv_effect(size=4)
-            sigma_effects['d'], sigma_effects['e'], sigma_effects['w'], sigma_effects['b'] = rv_effect(size=4)
-
-        # normalize features
-
-        # generate m relative rates
-
-        # split scores
-
-        # get absolute rates
-
-    # collect rates
-    rates = { 'r_e':r_e, 'r_w':r_w, 'r_b':r_b, 'r_d':r_d }
-
-    # return rates
-    return rates
-
-# generate event rates xml
-def make_xml(events, rates, states, states_str, settings):
-
-    # XML settings
-    max_taxa    = settings['max_taxa']
-    out_path    = settings['out_path']
-    newick_fn   = out_path + '.tre'
-    nexus_fn    = out_path + '.nex'
-    json_fn     = out_path + '.json'
-    num_regions = len(events['extinction'])
-
-    # rates
-    r_e = rates['r_e']
-    r_d = rates['r_d']
-    r_w = rates['r_w']
-    r_b = rates['r_b']
-
-    # NOTE: uniform root state sampling is not ideal
-    start_state = random.sample(states_str, 1)[0]
-
-    # states
-    xml_states = "<populationType spec='PopulationType' typeName='X' id='X'/>\n"
-    for st in states_str:
-        xml_states += "<populationType spec='PopulationType' typeName='{st}' id='{st}'/>\n".format(st=st)
-
-    # extinction
-    xml_extinction = "<reactionGroup spec='ReactionGroup' reactionGroupName='Extinction'>\n"
-    for k,v in enumerate(events['extinction']):
-        xml_extinction += "\t<reaction spec='Reaction' reactionName='Extinction-{i}' rate='{r}'>\n\t\t{i}:1 -> X\n\t</reaction>\n".format(i=states_str[v[0]], r=r_e[v[1]])
-    xml_extinction += "</reactionGroup>\n"
-
-    # extirpation
-    xml_extirpation = "<reactionGroup spec='ReactionGroup' reactionGroupName='Extirpation'>\n"
-    for k,v in enumerate(events['extirpation']):
-        xml_extirpation += "\t<reaction spec='Reaction' reactionName='Extirpation-{i},{j}' rate='{r}'>\n\t\t{i}:1 -> {j}:1\n\t</reaction>\n".format(i=states_str[v[0]], j=states_str[v[1]], r=r_e[v[2]])
-    xml_extirpation += "</reactionGroup>\n"
-
-    # within-region speciation
-    xml_within_speciation = "<reactionGroup spec='ReactionGroup' reactionGroupName='WithinRegionSpeciation'>\n"
-    for k,v in enumerate(events['within_region_speciation']):
-        xml_within_speciation += "\t<reaction spec='Reaction' reactionName='WithinRegionSpeciation-{i},{i},{j}' rate='{r}'>\n\t\t{i}:1 -> {i}:1 + {j}:1\n\t</reaction>\n".format(i=states_str[v[0]], j=states_str[v[1]], r=r_w[v[2]])
-    xml_within_speciation += "</reactionGroup>\n"
-
-    # dispersal
-    xml_dispersal = "<reactionGroup spec='ReactionGroup' reactionGroupName='Dispersal'>\n"
-    for k,v in enumerate(events['dispersal']):
-        tmp_rate = 0.0
-        tmp_range = states[ v[0] ]
-        j = v[2]
-        for i in tmp_range:
-            tmp_rate += r_d[i][j]
-        xml_dispersal += "\t<reaction spec='Reaction' reactionName='Dispersal-{i},{j}' rate='{r}'>\n\t\t{i}:1 -> {j}:1\n\t</reaction>\n".format(i=states_str[v[0]], j=states_str[v[1]], r=tmp_rate)
-    xml_dispersal += "</reactionGroup>\n"
-
-    # between-region speciation
-    xml_between_speciation = "<reactionGroup spec='ReactionGroup' reactionGroupName='BetweenRegionSpeciation'>\n"
-    for k,v in enumerate(events['between_region_speciation']):
-        xml_between_speciation += "\t<reaction spec='Reaction' reactionName='BetweenRegionSpeciation-{i},{j},{k}' rate='{r}'>\n\t\t{i}:1 -> {j}:1 + {k}:1\n\t</reaction>\n".format(i=states_str[v[0]], j=states_str[v[1]], k=states_str[v[2]], r=r_b[0][0]) #### @TODO MJL 230411: FIX TO BE EVENT-PATTERN-DEPENDENT
-    xml_between_speciation += "</reactionGroup>\n"
-
-    # collect XML model settings
-    xml_rates_str = "\n".join([xml_states, xml_extinction, xml_extirpation, xml_within_speciation, xml_dispersal, xml_between_speciation ])
-
-    # generate entire XML specification
-    xml_spec_str = '''
-<beast version='2.0' namespace='master:master.model:master.steppers:master.conditions:master.postprocessors:master.outputs'>
-
-<run spec='InheritanceEnsemble'
-    verbosity='3'
-    nTraj='1'
-    nSamples='{num_samples}'
-    samplePopulationSizes='{sample_pop}'
-    simulationTime='10'
-    maxConditionRejects='1'>
-
-<model spec='Model'>
-
-{xml_rates}
-
-</model>
-
-<initialState spec='InitState'>
-    <lineageSeedMultiple spec='MultipleIndividuals' copies='1' >
-            <population spec='Population' type='@{start_state}'/>
-    </lineageSeedMultiple>
-</initialState>
-
-<lineageEndCondition spec='LineageEndCondition' nLineages='{max_taxa}'
-    alsoGreaterThan='true' isRejection='false'/>
-
-<lineageEndCondition spec='LineageEndCondition' nLineages='0'
-    alsoGreaterThan='false' isRejection='false'/>
-
-<postSimCondition spec='LeafCountPostSimCondition' nLeaves='10'
-    exact='false' exceedCondition='true'/>
-
-<output spec='NewickOutput' collapseSingleChildNodes='true' fileName='{newick_fn}'/>
-<output spec='NexusOutput' fileName='{nexus_fn}'/>
-<output spec='JsonOutput' fileName='{json_fn}' />
-
-</run>
-</beast>
-    '''.format(xml_rates=xml_rates_str, start_state=start_state, newick_fn=newick_fn, nexus_fn=nexus_fn, json_fn=json_fn, max_taxa=max_taxa, num_samples=1, sample_pop='false')
-
-
-    return xml_spec_str
 
 
 def settings_to_str(settings, taxon_category):
@@ -586,6 +386,7 @@ def param_dict_to_str(params):
     return s1,s4
 
 
+# unused??
 def regions_to_binary(states, states_str, regions):
     num_regions = len(regions)
     x = {}
@@ -635,12 +436,12 @@ def make_prune_phy(tre_fn, prune_fn):
         phy.write(path=prune_fn, schema='newick')
         return True
 
-def categorize_sizes(raw_data_dir):
-    # get all files
-    # learn sizes from param files
-    # sort into groups
-    # return dictionary of { size_key: [ index_list ] }
-    return
+# def categorize_sizes(raw_data_dir):
+#     # get all files
+#     # learn sizes from param files
+#     # sort into groups
+#     # return dictionary of { size_key: [ index_list ] }
+#     return
 
 def convert_nex(nex_fn, tre_fn, int2vec):
 
@@ -741,6 +542,10 @@ def vectorize_tree(tre_fn, max_taxa=500, summ_stat=[], prob=1.0):
     return cblv_df,new_order
 
 
+#####################
+# FORMAT CONVERSION #
+#####################
+
 def make_cblvs_geosse(cblv_df, taxon_states, new_order):
     
     # array dimensions for GeoSSE states
@@ -787,10 +592,20 @@ def make_cdv_geosse(cdv_df, taxon_states, new_order):
     # done!
     return cblvs_df
 
+
+#######################
+# FILE/STRING HELPERS #
+#######################
+
 def write_to_file(s, fn):
     f = open(fn, 'w')
     f.write(s)
     f.close()
+
+
+#####################################
+# DATA DIMENSION/VALIDATION HELPERS #
+#####################################
 
 def get_num_taxa(tre_fn, k, max_taxa):
     tree = None
@@ -808,94 +623,9 @@ def get_num_taxa(tre_fn, k, max_taxa):
     
     return n_taxa_k
 
-
-def init_sim_settings(settings):
-    
-    # argument parsing
-    parser = argparse.ArgumentParser(description='phyddle settings')
-    parser.add_argument('--name', dest='model_name', type=str, help='Model name')
-    parser.add_argument('--start_idx', dest='start_idx', type=int, help='Start index for range of replicates')
-    parser.add_argument('--end_idx', dest='end_idx', type=int, help='End index for range of replicates')
-    parser.add_argument('--cfg', dest='cfg', type=str, help='Model configuration file')
-    parser.add_argument('--use_parallel', action=argparse.BooleanOptionalAction, help='Use parallelization?')
-    args = parser.parse_args()
-
-    print(args)
-    # set arguments
-    if args.model_name != None:
-        settings['model_name'] = args.model_name
-    if args.start_idx != None:
-        settings['start_idx'] = args.start_idx
-    if args.end_idx != None:
-        settings['end_idx'] = args.end_idx
-    if args.cfg != None:
-        settings['cfg_fn'] = args.cfg
-    if args.use_parallel != None:
-        settings['use_parallel'] = args.use_parallel
-
-    return settings
-
-def init_process_settings(settings):
-    parser = argparse.ArgumentParser('data process settings')
-    parser.add_argument('--name', dest='model_name', type=str, help='Model name')
-    args = parser.parse_args()
-    if args.model_name != None:
-        settings['model_name'] = args.model_name
-    return settings
-
-def init_cnn_settings(settings):
-    parser = argparse.ArgumentParser('CNN settings')
-    parser.add_argument('--name', dest='model_name', type=str, help='Model name')
-    parser.add_argument('--prefix', dest='prefix', type=str, help='Simulation prefix')
-    parser.add_argument('--num_epoch', dest='num_epoch', type=int, help='Number of epochs')
-    parser.add_argument('--batch_size', dest='batch_size', type=int, help='Batch size')
-    parser.add_argument('--num_validation', dest='num_validation', type=int, help='Number of validation records')
-    parser.add_argument('--num_test', dest='num_test', type=int, help='Number of test records')
-    parser.add_argument('--max_taxa', dest='max_taxa', type=int, help='Number of taxon slots in CBLV record')
-    args = parser.parse_args()
-    if args.model_name != None:
-        settings['model_name'] = args.model_name
-    if args.prefix != None:
-        settings['prefix'] = args.prefix
-    if args.num_epoch != None:
-        settings['num_epoch'] = args.num_epoch
-    if args.batch_size != None:
-        settings['batch_size'] = args.batch_size
-    if args.num_validation != None:
-        settings['num_validation'] = args.num_validation
-    if args.num_test != None:
-        settings['num_test'] = args.num_test
-    if args.max_taxa != None:
-        settings['max_taxa'] = args.max_taxa
-    return settings
-
-class BatchCompletionCallBack(object):
-    # Added code - start
-    global total_n_jobs
-    # Added code - end
-    def __init__(self, dispatch_timestamp, batch_size, parallel):
-        self.dispatch_timestamp = dispatch_timestamp
-        self.batch_size = batch_size
-        self.parallel = parallel
-
-    def __call__(self, out):
-        self.parallel.n_completed_tasks += self.batch_size
-        this_batch_duration = time.time() - self.dispatch_timestamp
-
-        self.parallel._backend.batch_completed(self.batch_size,
-                                           this_batch_duration)
-        self.parallel.print_progress()
-        # Added code - start
-        progress = self.parallel.n_completed_tasks / total_n_jobs
-        print(
-            "\rProgress: [{0:50s}] {1:.1f}%".format('#' * int(progress * 50), progress*100)
-            , end="", flush=True)
-        if self.parallel.n_completed_tasks == total_n_jobs:
-            print('\n')
-        # Added code - end
-        if self.parallel._original_iterator is not None:
-            self.parallel.dispatch_next()
-
+#################
+# SUMMARY STATS #
+#################
 
 def make_summ_stat(tre_fn, geo_fn, states_bits_str_inv):
     
@@ -950,3 +680,223 @@ def make_summ_stat_str(ss):
     keys_str = ','.join( list(ss.keys()) ) + '\n'
     vals_str = ','.join( [ str(x) for x in ss.values() ] ) + '\n'
     return keys_str + vals_str
+
+
+
+
+###############
+# UNUSED CODE #
+###############
+
+
+# # generate event map
+# def make_events(regions, states, states_inv):
+
+#     # make data structure
+#     num_regions = len(regions)
+#     events = { 'extinction': [],
+#                'extirpation': [],
+#                'dispersal': [],
+#                'within_region_speciation': [],
+#                'between_region_speciation': [] }
+
+#     # populate events
+#     for state,region_set in enumerate(states):
+#         if len(region_set) == 1:
+#             # extinction
+#             events['extinction'].append([state,region_set[0]])
+#         elif len(region_set) > 1:
+#             # between-region speciation
+#             splits = list(powerset(region_set))[1:-1]
+#             for x in splits:
+#                 y = tuple(set(region_set).difference(x))
+#                 x_state = states_inv[x]
+#                 y_state = states_inv[y]
+#                 z = [x_state, y_state]
+#                 z.sort()
+#                 v = [state, z[0], z[1]]
+#                 if v not in events['between_region_speciation']:
+#                     events['between_region_speciation'].append( [state, z[0], z[1]] )
+#         for region in region_set:
+#             if len(region_set) > 1:
+#                 # extirpation
+#                 new_regions = tuple( set(region_set).difference([region]) )
+#                 new_state = states_inv[new_regions]
+#                 #print(state,region,new_regions,new_state)
+#                 events['extirpation'].append( [state, new_state, region ] )
+#             # within-region speciation
+#             w_new_state = states_inv[ tuple([region]) ]
+#             events['within_region_speciation'].append( [state, w_new_state, region] )
+#             for dest in regions:
+#                 if dest not in region_set:
+#                     i = tuple(set(region_set).union([dest]))
+#                     d_new_state = states_inv[i] 
+#                     v = [state, d_new_state, dest]
+#                     if v not in events['dispersal']:
+#                         events['dispersal'].append( [state, d_new_state, dest] )
+
+#     return events
+
+# def make_rates(regions, states, events, settings):
+
+#     # get settings
+#     model_type       = settings['model_type']
+#     num_regions      = len(events['extinction'])
+#     num_feature_layers = settings['num_feature_layers']
+#     rv_rate          = settings['rv_rate']
+#     rv_effect        = settings['rv_effect']
+#     rv_feature       = settings['rv_feature']
+
+#     # model rates
+#     if model_type == 'iid':
+#         r_e = rv_rate(size=num_regions)
+#         r_w = rv_rate(size=num_regions)
+#         r_d = rv_rate(size=(num_regions,num_regions))
+#         r_b = rv_rate(size=(num_regions,num_regions))
+
+#     elif model_type == 'iid_simple':
+#         r_e = np.repeat( rv_rate(size=1), num_regions )
+#         r_w = np.repeat( rv_rate(size=1), num_regions )
+#         r_d = np.repeat( rv_rate(size=1), num_regions*num_regions ).reshape(num_regions,num_regions)
+#         r_b = np.repeat( rv_rate(size=1), num_regions*num_regions ).reshape(num_regions,num_regions)
+
+#     elif model_type == 'FIG':
+#         # generate base rates
+#         rho_e, rho_w, rho_d, rho_w = rv_rate(size=4)
+
+#         # generate features and effects
+#         features = { 'cw':[], 'cb':[], 'qw':[], 'qb':[] }
+#         phi_effects = {'d':[], 'e':[], 'w':[], 'b':[] }
+#         sigma_effects = {'d':[], 'e':[], 'w':[], 'b':[] }
+
+#         for k in range(num_feature_layers):
+#             # regional features
+#             features['cw'].append( sp.stats.bernoulli.rvs(p=0.5, size=num_regions) )
+#             features['cb'].append( sp.stats.bernoulli.rvs(p=0.5, size=(num_regions,num_regions)) )
+#             features['qw'].append( rv_feature(size=num_regions) )
+#             features['qb'].append( rv_feature(size=(num_regions,num_regions)) )
+
+#             # feature effect parameters
+#             phi_effects['d'], phi_effects['e'], phi_effects['w'], phi_effects['b'] = rv_effect(size=4)
+#             sigma_effects['d'], sigma_effects['e'], sigma_effects['w'], sigma_effects['b'] = rv_effect(size=4)
+
+#         # normalize features
+
+#         # generate m relative rates
+
+#         # split scores
+
+#         # get absolute rates
+
+#     # collect rates
+#     rates = { 'r_e':r_e, 'r_w':r_w, 'r_b':r_b, 'r_d':r_d }
+
+#     # return rates
+#     return rates
+
+# # generate event rates xml
+# def make_xml(events, rates, states, states_str, settings):
+
+#     # XML settings
+#     max_taxa    = settings['max_taxa']
+#     out_path    = settings['out_path']
+#     newick_fn   = out_path + '.tre'
+#     nexus_fn    = out_path + '.nex'
+#     json_fn     = out_path + '.json'
+#     num_regions = len(events['extinction'])
+
+#     # rates
+#     r_e = rates['r_e']
+#     r_d = rates['r_d']
+#     r_w = rates['r_w']
+#     r_b = rates['r_b']
+
+#     # NOTE: uniform root state sampling is not ideal
+#     start_state = random.sample(states_str, 1)[0]
+
+#     # states
+#     xml_states = "<populationType spec='PopulationType' typeName='X' id='X'/>\n"
+#     for st in states_str:
+#         xml_states += "<populationType spec='PopulationType' typeName='{st}' id='{st}'/>\n".format(st=st)
+
+#     # extinction
+#     xml_extinction = "<reactionGroup spec='ReactionGroup' reactionGroupName='Extinction'>\n"
+#     for k,v in enumerate(events['extinction']):
+#         xml_extinction += "\t<reaction spec='Reaction' reactionName='Extinction-{i}' rate='{r}'>\n\t\t{i}:1 -> X\n\t</reaction>\n".format(i=states_str[v[0]], r=r_e[v[1]])
+#     xml_extinction += "</reactionGroup>\n"
+
+#     # extirpation
+#     xml_extirpation = "<reactionGroup spec='ReactionGroup' reactionGroupName='Extirpation'>\n"
+#     for k,v in enumerate(events['extirpation']):
+#         xml_extirpation += "\t<reaction spec='Reaction' reactionName='Extirpation-{i},{j}' rate='{r}'>\n\t\t{i}:1 -> {j}:1\n\t</reaction>\n".format(i=states_str[v[0]], j=states_str[v[1]], r=r_e[v[2]])
+#     xml_extirpation += "</reactionGroup>\n"
+
+#     # within-region speciation
+#     xml_within_speciation = "<reactionGroup spec='ReactionGroup' reactionGroupName='WithinRegionSpeciation'>\n"
+#     for k,v in enumerate(events['within_region_speciation']):
+#         xml_within_speciation += "\t<reaction spec='Reaction' reactionName='WithinRegionSpeciation-{i},{i},{j}' rate='{r}'>\n\t\t{i}:1 -> {i}:1 + {j}:1\n\t</reaction>\n".format(i=states_str[v[0]], j=states_str[v[1]], r=r_w[v[2]])
+#     xml_within_speciation += "</reactionGroup>\n"
+
+#     # dispersal
+#     xml_dispersal = "<reactionGroup spec='ReactionGroup' reactionGroupName='Dispersal'>\n"
+#     for k,v in enumerate(events['dispersal']):
+#         tmp_rate = 0.0
+#         tmp_range = states[ v[0] ]
+#         j = v[2]
+#         for i in tmp_range:
+#             tmp_rate += r_d[i][j]
+#         xml_dispersal += "\t<reaction spec='Reaction' reactionName='Dispersal-{i},{j}' rate='{r}'>\n\t\t{i}:1 -> {j}:1\n\t</reaction>\n".format(i=states_str[v[0]], j=states_str[v[1]], r=tmp_rate)
+#     xml_dispersal += "</reactionGroup>\n"
+
+#     # between-region speciation
+#     xml_between_speciation = "<reactionGroup spec='ReactionGroup' reactionGroupName='BetweenRegionSpeciation'>\n"
+#     for k,v in enumerate(events['between_region_speciation']):
+#         xml_between_speciation += "\t<reaction spec='Reaction' reactionName='BetweenRegionSpeciation-{i},{j},{k}' rate='{r}'>\n\t\t{i}:1 -> {j}:1 + {k}:1\n\t</reaction>\n".format(i=states_str[v[0]], j=states_str[v[1]], k=states_str[v[2]], r=r_b[0][0]) #### @TODO MJL 230411: FIX TO BE EVENT-PATTERN-DEPENDENT
+#     xml_between_speciation += "</reactionGroup>\n"
+
+#     # collect XML model settings
+#     xml_rates_str = "\n".join([xml_states, xml_extinction, xml_extirpation, xml_within_speciation, xml_dispersal, xml_between_speciation ])
+
+#     # generate entire XML specification
+#     xml_spec_str = '''
+# <beast version='2.0' namespace='master:master.model:master.steppers:master.conditions:master.postprocessors:master.outputs'>
+
+# <run spec='InheritanceEnsemble'
+#     verbosity='3'
+#     nTraj='1'
+#     nSamples='{num_samples}'
+#     samplePopulationSizes='{sample_pop}'
+#     simulationTime='10'
+#     maxConditionRejects='1'>
+
+# <model spec='Model'>
+
+# {xml_rates}
+
+# </model>
+
+# <initialState spec='InitState'>
+#     <lineageSeedMultiple spec='MultipleIndividuals' copies='1' >
+#             <population spec='Population' type='@{start_state}'/>
+#     </lineageSeedMultiple>
+# </initialState>
+
+# <lineageEndCondition spec='LineageEndCondition' nLineages='{max_taxa}'
+#     alsoGreaterThan='true' isRejection='false'/>
+
+# <lineageEndCondition spec='LineageEndCondition' nLineages='0'
+#     alsoGreaterThan='false' isRejection='false'/>
+
+# <postSimCondition spec='LeafCountPostSimCondition' nLeaves='10'
+#     exact='false' exceedCondition='true'/>
+
+# <output spec='NewickOutput' collapseSingleChildNodes='true' fileName='{newick_fn}'/>
+# <output spec='NexusOutput' fileName='{nexus_fn}'/>
+# <output spec='JsonOutput' fileName='{json_fn}' />
+
+# </run>
+# </beast>
+#     '''.format(xml_rates=xml_rates_str, start_state=start_state, newick_fn=newick_fn, nexus_fn=nexus_fn, json_fn=json_fn, max_taxa=max_taxa, num_samples=1, sample_pop='false')
+
+
+#     return xml_spec_str

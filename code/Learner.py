@@ -19,6 +19,10 @@ class Learner:
     
     def set_args(self, args):
         self.args              = args
+        self.num_test          = 0
+        self.num_validation    = 0
+        self.prop_test         = 0
+        self.prop_test         = 0
         self.job_name          = args['job_name']
         self.tree_size         = args['tree_size']
         self.tree_type         = args['tree_type']
@@ -28,8 +32,12 @@ class Learner:
         self.net_dir           = args['net_dir']
         self.batch_size        = args['batch_size']
         self.num_epochs        = args['num_epochs']    
-        self.num_test          = args['num_test']
-        self.num_validation    = args['num_validation']
+        if 'num_test' in args and 'num_validation' in args:
+            self.num_test          = args['num_test']
+            self.num_validation    = args['num_validation']
+        elif 'prop_test' in args and 'prop_validation' in args:
+            self.prop_test         = args['prop_test']
+            self.prop_validation   = args['prop_validation']
         self.loss              = args['loss']
         self.optimizer         = args['optimizer']
         self.metrics           = args['metrics']
@@ -84,10 +92,6 @@ class CnnLearner(Learner):
     
     def load_input(self):
 
-        # dataset size
-        num_val = self.num_validation
-        num_test = self.num_test
-
         # read data
         full_data   = pd.read_csv(self.input_data_fn, header=None, on_bad_lines='skip').to_numpy()
         full_stats  = pd.read_csv(self.input_stats_fn, header=None, on_bad_lines='skip').to_numpy()
@@ -124,6 +128,14 @@ class CnnLearner(Learner):
         # reshape full_data
         # depends on CBLV/CDV and num_states
         full_data.shape = (num_sample,-1,1+num_chars)
+
+        # split dataset into training, test, and validation parts
+        if self.num_test != 0 and self.num_validation != 0:
+            num_val = self.num_validation
+            num_test = self.num_test
+        elif self.prop_test != 0 and self.prop_validation != 0:
+            num_val = int(np.floor(num_sample * self.prop_validation))
+            num_test = int(np.floor(num_sample * self.prop_test))
 
         # create input subsets
         train_idx = np.arange( num_test+num_val, num_sample )

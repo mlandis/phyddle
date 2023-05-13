@@ -45,7 +45,9 @@ my_sim_args = {
 # define tensor-formatting settings
 my_fmt_args = {
     'fmt_dir' : '../tensor_data',
-    'sim_dir' : '../raw_data'
+    'sim_dir' : '../raw_data',
+    'param_pred' : ['w_0', 'e_0', 'd_0_1', 'b_0_1'],
+    'param_data' : []
 } | my_all_args
 
 # define learning settings
@@ -55,11 +57,10 @@ my_lrn_args = {
     'plt_dir'        : '../plot',
     'tree_size'      : 500,
     'tree_type'      : 'extant',
-    'predict_idx'    : [ 0, 3, 6, 18 ],
     'num_epochs'     : 20,
-    'num_test'       : 5,
-    'num_validation' : 5,
-    'batch_size'     : 32,
+    'prop_test'       : 0.05,
+    'prop_validation' : 0.05,
+    'batch_size'     : 64,
     'loss'           : 'mse',
     'optimizer'      : 'adam',
     'metrics'        : ['mae', 'acc', 'mape']

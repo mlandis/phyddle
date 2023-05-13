@@ -10,7 +10,7 @@ import itertools
 import scipy as sp
 import numpy as np
 
-from model_util import States,Event
+from Utilities import States,Event
 #from Model import *
 import Model
 
@@ -197,69 +197,3 @@ class SirmModel(Model.BaseModel):
                 # e = Event( idx=idx, r=r, n='r_M_{i}_{j}'.format(i=i, j=j), g='Migrate', ix=ix, jx=jx )
                 events.append(e)
         return events
-
-
-    #     # generate random starting sizes
-    #     # X ~ Gamma(shape=0.5, scale=1e6) 
-    #     start_sizes = sp.stats.gamma.rvs(size=num_locations, a=0.5, scale=1000000)
-    #     p_start_sizes = start_sizes / np.sum(start_sizes)
-        
-    #     # default settings
-    #     settings['num_locations']     = num_locations
-    #     settings['start_state']       = { 'I' : np.random.choice(a=num_locations, size=1, p=p_start_sizes)[0] }
-    #     settings['start_sizes']       = { 'S' : [ int(np.ceil(x)) for x in start_sizes ] }
-
-    # # set up model
-    # def __init__(self, num_locations, model_variant='equal_rates', feature_set=None):
-        
-    #     # create state space
-    #     self.model_type    = 'SIRM'
-    #     self.model_variant = model_variant
-    #     self.num_locations = num_locations
-     
-    #     # simulation settings
-    #     self.settings = self.make_settings( self.num_locations )
-
-    #     # state space
-    #     self.states = self.make_states(self.num_locations)
-
-    #     # rate space
-    #     self.rates = self.make_rates( self.model_variant, self.settings )
-
-    #     # event space
-    #     self.events = self.make_events( self.states, self.rates )
-
-    #     # event space dataframe
-    #     self.df_events = events2df( self.events )
-
-    #     # state space dataframe
-    #     self.df_states = states2df( self.states )
-
-    #     # model
-    #     #self.xmlgen = MasterXmlGenerator(self.df_events, self.df_states, self.settings)
-
-    # # SIRM simulation settings
-    # def make_settings(self, num_locations):
-    #     settings = {}
-
-    #     # generate random starting sizes
-    #     # X ~ Gamma(shape=0.5, scale=1e6) 
-    #     start_sizes = sp.stats.gamma.rvs(size=num_locations, a=0.5, scale=1000000)
-    #     p_start_sizes = start_sizes / np.sum(start_sizes)
-        
-    #     # default settings
-    #     settings['num_locations']     = num_locations
-    #     settings['start_state']       = { 'I' : np.random.choice(a=num_locations, size=1, p=p_start_sizes)[0] }
-    #     settings['start_sizes']       = { 'S' : [ int(np.ceil(x)) for x in start_sizes ] }
-    #     settings['sample_population'] = [ 'A' ]
-    #     settings['stop_floor_sizes']  = 0
-    #     settings['stop_ceil_sizes']   = 5000
-    #     settings['rv_fn']             = { 'i':  sp.stats.expon.rvs,
-    #                                       'm': sp.stats.expon.rvs,
-    #                                       'r': sp.stats.expon.rvs,
-    #                                       's':  sp.stats.expon.rvs }
-    #     settings['rv_arg']            = { 'i':  { 'scale' : 0.001 },
-    #                                       'm': { 'scale' : 1.000 },
-    #                                       'r': { 'scale' : 0.010 },
-    #                                       's':  { 'scale' : 0.100 } }
-    #     return settings

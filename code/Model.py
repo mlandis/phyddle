@@ -63,3 +63,6 @@ class BaseModel:
     
     def make_start_sizes(self):
         raise NotImplementedError
+    
+    #def get_params(self):
+

@@ -4,12 +4,12 @@ import itertools
 import numpy as np
 import scipy as sp
 
-from model_util import States,Event
+#from model_util import States,Event
 #from Model import *
 import Model
 #import Utilities
 #from Utilities import sort_binary_vectors
-from Utilities import sort_binary_vectors
+from Utilities import sort_binary_vectors,States,Event
 
 #from model_util import states2df,events2df
 #from geosse_model_util import *
@@ -42,15 +42,15 @@ class GeosseModel(Model.BaseModel):
         return states
 
     # make starting state for simulation
-    def make_start_state(self, seed):
+    def make_start_state(self):
         # { 'S' : 0 }
         num_ranges = self.num_ranges
-        idx = sp.stats.randint.rvs(low=0, high=num_ranges, size=1, random_state=seed)[0]
+        idx = sp.stats.randint.rvs(low=0, high=num_ranges, size=1, random_state=self.rng)[0]
         s = { 'S' : idx }
         return s
     
     # make starting sizes for compartments
-    def make_start_sizes(self, seed):
+    def make_start_sizes(self):
         return {}
 
     # get all model rates
@@ -70,7 +70,7 @@ class GeosseModel(Model.BaseModel):
                     'd': rv_fn['d'](size=num_locations**2, random_state=self.rng, **rv_arg['d']).reshape((num_locations,num_locations)),
                     'b': rv_fn['b'](size=num_locations**2, random_state=self.rng, **rv_arg['b']).reshape((num_locations,num_locations))
                 }
-            rates['x'] = rates['x']
+            params['x'] = params['x']
 
         elif model_variant == 'equal_rates':
             params = {
@@ -79,7 +79,7 @@ class GeosseModel(Model.BaseModel):
                     'd': np.full((num_locations,num_locations), rv_fn['d'](size=1, random_state=self.rng, **rv_arg['d'])[0]),
                     'b': np.full((num_locations,num_locations), rv_fn['b'](size=1, random_state=self.rng, **rv_arg['b'])[0])
                 }
-            rates['x'] = rates['e']
+            params['x'] = params['e']
 
         elif model_variant == 'fig_rates':
             params = {}
