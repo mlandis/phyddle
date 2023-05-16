@@ -235,9 +235,9 @@ class GeosseModel(Model.BaseModel):
                 events.append(e)
 
         # normalize rates
-        z = gm(all_rates)
-        for i,x in enumerate(events):
-            events[i].rate = events[i].rate / z
+        #z = gm(all_rates)
+        #for i,x in enumerate(events):
+        #    events[i].rate = events[i].rate / z
 
         return events
 
