@@ -17,6 +17,9 @@ def load_model(args):
     elif model_type == 'sirm':
         import SirmModel
         mdl = SirmModel.SirmModel
+    elif model_type == 'cont_trait':
+        import ContTraitModel
+        mdl = ContTraitModel.ContTraitModel
     else:
         return None
     return mdl(args)

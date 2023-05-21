@@ -55,7 +55,7 @@ class GeosseModel(Model.BaseModel):
 
     # get all model rates
     def make_params(self, model_variant):
-        rates = {}
+        params = {}
         
         # get settings
         num_locations = self.num_locations
