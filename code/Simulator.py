@@ -1,12 +1,14 @@
 import os
 import re
 import subprocess
+import numpy as np
 from joblib import Parallel, delayed
 from tqdm import tqdm
 
 # look into reorganizing this stuff, removing unneeded files
-from phyddle_util import *
-import cdvs_util
+#from phyddle_util import *
+import Utilities
+#import cdvs_util
 
 # needed?
 #import model
@@ -85,17 +87,17 @@ class Simulator:
 
         # make XML file
         xml_str = self.xml_str
-        write_to_file(xml_str, xml_fn)
+        Utilities.write_to_file(xml_str, xml_fn)
 
         # run BEAST job
         cmd_str = self.cmd_str
         beast_out = subprocess.check_output(cmd_str, shell=True, text=True, stderr=subprocess.STDOUT)
-        write_to_file(beast_out, beast_fn)
+        Utilities.write_to_file(beast_out, beast_fn)
 
         # verify tree size & existence!
         result_str     = ''
-        n_taxa_idx     = get_num_taxa(tre_fn, idx, self.tree_sizes)
-        taxon_size_idx = find_taxon_size(n_taxa_idx, self.tree_sizes)
+        n_taxa_idx     = Utilities.get_num_taxa(tre_fn, idx, self.tree_sizes)
+        taxon_size_idx = Utilities.find_taxon_size(n_taxa_idx, self.tree_sizes)
 
         # handle simulation based on tree size
         if n_taxa_idx > np.max(self.tree_sizes):
@@ -111,54 +113,54 @@ class Simulator:
             result_str = '+ replicate {idx} simulated n_taxa={nt}'.format(idx=idx, nt=n_taxa_idx)
 
             # generate extinct-pruned tree
-            prune_success = make_prune_phy(tre_fn, prune_fn)
+            prune_success = Utilities.make_prune_phy(tre_fn, prune_fn)
 
             # MJL 230411: probably too aggressive, should revisit
             if not prune_success:
                 next
 
             # generate nexus file 0/1 ranges
-            taxon_states,nexus_str = convert_nex(nex_fn, tre_fn, int2vec)
-            write_to_file(nexus_str, geo_fn)
+            taxon_states,nexus_str = Utilities.convert_nex(nex_fn, tre_fn, int2vec)
+            Utilities.write_to_file(nexus_str, geo_fn)
 
             # then get CBLVS working
-            cblv,new_order = vectorize_tree(tre_fn, max_taxa=taxon_size_idx, prob=1.0 )
-            cblvs = make_cblvs_geosse(cblv, taxon_states, new_order)
+            cblv,new_order = Utilities.vectorize_tree(tre_fn, max_taxa=taxon_size_idx, prob=1.0 )
+            cblvs = Utilities.make_cblvs_geosse(cblv, taxon_states, new_order)
         
             # NOTE: this if statement should not be needed, but for some reason the "next"
             # seems to run even when make_prune_phy returns False
             # generate CDVS file
             if prune_success:
-                cdvs = cdvs_util.make_cdvs(prune_fn, taxon_size_idx, taxon_states, int2vecstr)
+                cdvs = Utilities.make_cdvs(prune_fn, taxon_size_idx, taxon_states, int2vecstr)
 
             # output files
             mtx_size = cblv.shape[1]
 
         # record info
         info_str = self.make_settings_str(idx, mtx_size)
-        write_to_file(info_str, info_fn)
+        Utilities.write_to_file(info_str, info_fn)
 
         # record labels (simulating parameters)
-        param1_str,param2_str = param_dict_to_str(self.model.params)
-        write_to_file(param1_str, param1_fn)
-        write_to_file(param2_str, param2_fn)
+        param1_str,param2_str = Utilities.param_dict_to_str(self.model.params)
+        Utilities.write_to_file(param1_str, param1_fn)
+        Utilities.write_to_file(param2_str, param2_fn)
 
         # record CBLVS data
         cblvs_str = np.array2string(cblvs, separator=',', max_line_width=1e200, threshold=1e200, edgeitems=1e200)
         cblvs_str = cblvs_str.replace(' ','').replace('.,',',').strip('[].') + '\n'
-        write_to_file(cblvs_str, cblvs_fn)
+        Utilities.write_to_file(cblvs_str, cblvs_fn)
 
         # record CDVS data
         if prune_success:
             cdvs = cdvs.to_numpy()
             cdvs_str = np.array2string(cdvs, separator=',', max_line_width=1e200, threshold=1e200, edgeitems=1e200)
             cdvs_str = cdvs_str.replace(' ','').replace('.,',',').strip('[].') + '\n'
-            write_to_file(cdvs_str, cdvs_fn)
+            Utilities.write_to_file(cdvs_str, cdvs_fn)
 
         # record summ stat data
-        ss = make_summ_stat(tre_fn, geo_fn, vecstr2int)
-        ss_str = make_summ_stat_str(ss)
-        write_to_file(ss_str, ss_fn)
+        ss = Utilities.make_summ_stat(tre_fn, geo_fn, vecstr2int)
+        ss_str = Utilities.make_summ_stat_str(ss)
+        Utilities.write_to_file(ss_str, ss_fn)
 
         # return status string
         return result_str

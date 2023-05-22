@@ -1,5 +1,5 @@
 
-import cnn_utilities as cn
+#import cnn_utilities as cn
 import pandas as pd
 import numpy as np
 import os
@@ -7,9 +7,11 @@ import csv
 
 from PyPDF2 import PdfMerger
 
-import tensorflow as tf
+#import tensorflow as tf
 from keras import *
 from keras import layers
+
+import Utilities
 
 class Learner:
     def __init__(self, args):
@@ -143,14 +145,14 @@ class CnnLearner(Learner):
         test_idx  = np.arange( 0, num_test )
 
         # normalize summary stats
-        self.norm_train_stats, self.train_stats_means, self.train_stats_sd = cn.normalize( full_stats[train_idx,:] )
-        self.norm_val_stats  = cn.normalize(full_stats[val_idx,:], (self.train_stats_means, self.train_stats_sd))
-        self.norm_test_stats = cn.normalize(full_stats[test_idx,:], (self.train_stats_means, self.train_stats_sd))
+        self.norm_train_stats, self.train_stats_means, self.train_stats_sd = Utilities.normalize( full_stats[train_idx,:] )
+        self.norm_val_stats  = Utilities.normalize(full_stats[val_idx,:], (self.train_stats_means, self.train_stats_sd))
+        self.norm_test_stats = Utilities.normalize(full_stats[test_idx,:], (self.train_stats_means, self.train_stats_sd))
 
         # (option for diff schemes) try normalizing against 0 to 1
-        self.norm_train_labels, self.train_label_means, self.train_label_sd = cn.normalize( full_labels[train_idx,:] )
-        self.norm_val_labels  = cn.normalize(full_labels[val_idx,:], (self.train_label_means, self.train_label_sd))
-        self.norm_test_labels = cn.normalize(full_labels[test_idx,:], (self.train_label_means, self.train_label_sd))
+        self.norm_train_labels, self.train_label_means, self.train_label_sd = Utilities.normalize( full_labels[train_idx,:] )
+        self.norm_val_labels  = Utilities.normalize(full_labels[val_idx,:], (self.train_label_means, self.train_label_sd))
+        self.norm_test_labels = Utilities.normalize(full_labels[test_idx,:], (self.train_label_means, self.train_label_sd))
 
         # create data tensors
         self.train_data_tensor = full_data[train_idx,:]
@@ -233,18 +235,18 @@ class CnnLearner(Learner):
         max_idx = 1000
         
         normalized_train_preds_thin = self.mymodel.predict([self.train_data_tensor[0:max_idx,:,:], self.train_stats_tensor[0:max_idx,:]])
-        train_preds = cn.denormalize(normalized_train_preds_thin, self.train_label_means, self.train_label_sd)
+        train_preds = Utilities.denormalize(normalized_train_preds_thin, self.train_label_means, self.train_label_sd)
         self.train_preds = np.exp(train_preds)
 
-        denormalized_train_labels = cn.denormalize(self.norm_train_labels[0:max_idx,:], self.train_label_means, self.train_label_sd)
+        denormalized_train_labels = Utilities.denormalize(self.norm_train_labels[0:max_idx,:], self.train_label_means, self.train_label_sd)
         self.denormalized_train_labels = np.exp(denormalized_train_labels)
 
         # scatter plot test prediction to truth
         normalized_test_preds = self.mymodel.predict([self.test_data_tensor, self.test_stats_tensor])
-        test_preds = cn.denormalize(normalized_test_preds, self.train_label_means, self.train_label_sd)
+        test_preds = Utilities.denormalize(normalized_test_preds, self.train_label_means, self.train_label_sd)
         self.test_preds = np.exp(test_preds)
 
-        denormalized_test_labels = cn.denormalize(self.norm_test_labels, self.train_label_means, self.train_label_sd)
+        denormalized_test_labels = Utilities.denormalize(self.norm_test_labels, self.train_label_means, self.train_label_sd)
         self.denormalized_test_labels = np.exp(denormalized_test_labels)
         
         return
@@ -253,12 +255,12 @@ class CnnLearner(Learner):
     def save_results(self):
 
         # make history plots
-        cn.make_history_plot(self.history, prefix=self.model_prefix+'_train', plot_dir=self.plot_dir)
+        Utilities.make_history_plot(self.history, prefix=self.model_prefix+'_train', plot_dir=self.plot_dir)
         #cn.make_history_plot(self.history, plot_dir=self.plot_dir)
 
         
         # make scatter plots
-        cn.plot_preds_labels(preds=self.train_preds,
+        Utilities.plot_preds_labels(preds=self.train_preds,
                              labels=self.denormalized_train_labels,
                              param_names=self.param_names,
                              prefix=self.model_prefix+'_train',
@@ -266,7 +268,7 @@ class CnnLearner(Learner):
                              title='Train predictions')
 
         # summarize results
-        cn.plot_preds_labels(preds=self.test_preds[0:1000,:],
+        Utilities.plot_preds_labels(preds=self.test_preds[0:1000,:],
                              labels=self.denormalized_test_labels[0:1000,:],
                              param_names=self.param_names,
                              prefix=self.model_prefix+'_test',
