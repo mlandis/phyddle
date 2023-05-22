@@ -4,8 +4,9 @@ import importlib
 import sys
 import random
 import re
-
 import os
+
+# Call before importing Tensorflow to suppress INFO messages
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # or any {'0', '1', '2'}
 
 import pandas as pd
@@ -18,6 +19,11 @@ from sklearn import metrics
 from collections import Counter
 from itertools import chain, combinations
 from ete3 import Tree
+
+NUM_DIGITS = 10
+np.set_printoptions(floatmode='maxprec', precision=NUM_DIGITS)
+pd.set_option('display.precision', NUM_DIGITS)
+pd.set_option('display.float_format', lambda x: f'{x:,.3f}')
 
 #max_len = 501
 TURN_ONE = 'turn_one'
@@ -215,6 +221,9 @@ def states2df(states):
     return df
 
 
+################
+# CDVS ENCODER #
+################
 
 ### this is where state info is stored
 def set_attribs(tre):
@@ -419,15 +428,6 @@ def expand_tip_states(tips_info):
         x[:,i] = [ int(y) for y in tips_info[i] ]
     return x
 
-# #nexus
-#Begin trees;
-#tree TREE_0 = ((1[&type="B",reaction="Extinction",time=3.6232301233156976]:1.2142655324328055,(2[&type="B",time=10.0]:3.459208574144607,(3[&type="B",reaction="Extinction",time=6.868495320534605]:0.04404772822342995,((4[&type="B",time=10.0]:1.591682207985743,5[&type="B",reaction="Extinction",time=9.718023692584314]:1.3097059005700569)[&type="B",reaction="WithinRegionSpeciation",time=8.408317792014257]:1.395484627131916,6[&type="B",reaction="Extinction",time=7.337444843536313]:0.3246116786539721)[&type="B",reaction="WithinRegionSpeciation",time=7.012833164882341]:0.18838557257116584)[&type="B",reaction="WithinRegionSpeciation",time=6.824447592311175]:0.2836561664557822)[&type="B",reaction="WithinRegionSpeciation",time=6.540791425855393]:4.131826834972501)[&type="B",reaction="WithinRegionSpeciation",time=2.408964590882892]:1.5267870397153571,(7[&type="B",reaction="Extinction",time=2.98118850738119]:0.8725488577697549,(((8[&type="B",reaction="Extinction",time=9.850924475820728]:2.4517510454113083,9[&type="B",time=10.0]:2.6008265695905806)[&type="B",reaction="WithinRegionSpeciation",time=7.399173430409419]:4.033746617591738,10[&type="B",reaction="Extinction",time=4.670202523679139]:1.304775710861457)[&type="B",reaction="WithinRegionSpeciation",time=3.365426812817682]:0.3081968127823407,11[&type="B",reaction="Extinction",time=3.1071117381661546]:0.049881738130813424)[&type="B",reaction="WithinRegionSpeciation",time=3.057230000035341]:0.9485903504239062)[&type="B",reaction="WithinRegionSpeciation",time=2.108639649611435]:1.2264620984439)[&type="B",reaction="WithinRegionSpeciation",time=0.8821775511675349]:0.8821775511675349;
-#End;
-
-# [&&NHX:conf=0.01:name=INTERNAL]
-
-# this newick string from this regex does not work, despite passing visual check
-# x1=re.sub(r'&', r'&&NHX:', x); x2=re.sub(r'\"', '', x1);x3=re.sub(r',([a-z])', r':\1', x2);x3
 
 def make_cdvs(tree_fn, max_len, states, state_labels):
 
@@ -478,7 +478,8 @@ def make_cdvs(tree_fn, max_len, states, state_labels):
     node_info = complete_coding(node_info, max_len)
 
     # vertical stack
-    complete_info = np.vstack( [tips_info, node_info] )
+    #complete_info = np.vstack( [tips_info, node_info] )
+    complete_info = np.vstack( [node_info, tips_info] )
     
     # extra info
     nrow = complete_info.shape[0]
@@ -848,14 +849,16 @@ def param_dict_to_str(params):
     for k,v in params.items():
         for i,x in enumerate(v):
             if len(v.shape) == 1:
-                s1 += '{k},{i},{i},{v}\n'.format(k=k,i=i,v=x)
+                rate = np.round(x, NUM_DIGITS)
+                s1 += '{k},{i},{i},{v}\n'.format(k=k,i=i,v=rate)
                 s2 += '{k}_{i},'.format(k=k,i=i)
-                s3 += str(x) + ','
+                s3 += str(rate) + ','
             else:
                 for j,y in enumerate(x):
-                    s1 += '{k},{i},{j},{v}\n'.format(k=k,i=i,j=j,v=y)
+                    rate = np.round(y, NUM_DIGITS)
+                    s1 += '{k},{i},{j},{v}\n'.format(k=k,i=i,j=j,v=rate)
                     s2 += '{k}_{i}_{j},'.format(k=k,i=i,j=j)
-                    s3 += str(y) + ','
+                    s3 += str(rate) + ','
 
     s4 = s2.rstrip(',') + '\n' + s3.rstrip(',') + '\n'
     return s1,s4
