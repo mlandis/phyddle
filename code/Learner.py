@@ -28,6 +28,13 @@ class Learner:
         self.job_name          = args['job_name']
         self.tree_size         = args['tree_size']
         self.tree_type         = args['tree_type']
+        if self.tree_type == 'extant':
+            self.num_tree_row = 1
+        elif self.tree_type == 'serial':
+            self.num_tree_row = 2
+        else:
+            raise NotImplementedError
+        self.num_char_row      = args['num_char']
         #self.predict_idx       = args['predict_idx']
         self.fmt_dir           = args['fmt_dir']
         self.plt_dir           = args['plt_dir']
@@ -110,8 +117,9 @@ class CnnLearner(Learner):
         full_labels = full_labels[1:,:].astype('float64')   
 
         # data dimensions
-        num_chars  = 3  # MJL: better way to get this? either from tensor or from an info file?
+        # num_chars  = 3  # MJL: better way to get this? either from tensor or from an info file?
         num_sample = full_data.shape[0]
+        #self.num_chars = full_data.shape[1]
         self.num_params = full_labels.shape[1]
         self.num_stats = full_stats.shape[1]
 
@@ -129,7 +137,7 @@ class CnnLearner(Learner):
 
         # reshape full_data
         # depends on CBLV/CDV and num_states
-        full_data.shape = (num_sample,-1,1+num_chars)
+        full_data.shape = ( num_sample, -1, (self.num_tree_row+self.num_char_row) )
 
         # split dataset into training, test, and validation parts
         if self.num_test != 0 and self.num_validation != 0:

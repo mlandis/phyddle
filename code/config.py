@@ -1,6 +1,10 @@
 
 import scipy as sp
 
+
+
+num_locations = 3
+
 #####################
 # PIPELINE SETTINGS #
 #####################
@@ -13,7 +17,7 @@ my_all_args = { 'job_name' : 'my_job' }
 my_mdl_args = {
     'model_type'    : 'geosse',
     'model_variant' : 'equal_rates',
-    'num_locations' : 3,
+    'num_locations' : num_locations,
     'rv_fn' : {
         'w': sp.stats.expon.rvs,
         'e': sp.stats.expon.rvs,
@@ -58,6 +62,7 @@ my_lrn_args = {
     'plt_dir'        : '../plot',
     'tree_size'      : 200,
     'tree_type'      : 'extant',
+    'num_char'       : num_locations,
     'num_epochs'     : 20,
     'prop_test'       : 0.05,
     'prop_validation' : 0.05,
