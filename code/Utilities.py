@@ -1,33 +1,23 @@
 # general libraries
 import argparse
 import importlib
-import pandas as pd
-import numpy as np
 import sys
 import random
-
-import dendropy as dp
 import re
 
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # or any {'0', '1', '2'}
+
+import pandas as pd
+import numpy as np
+import dendropy as dp
+import matplotlib.pyplot as plt
+import tensorflow as tf
+
+from sklearn import metrics
 from collections import Counter
 from itertools import chain, combinations
 from ete3 import Tree
-from ete3 import Tree
-
-
-#import os, shutil
-#from keras import models
-#from keras import layers
-#from keras import losses
-
-import matplotlib.pyplot as plt
-#import numpy as np
-#import pandas as pd
-#import scipy as sp
-from sklearn import metrics
-#import seaborn as sbs
-import tensorflow as tf
-
 
 #max_len = 501
 TURN_ONE = 'turn_one'

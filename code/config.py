@@ -56,7 +56,7 @@ my_lrn_args = {
     'fmt_dir'        : '../tensor_data',
     'net_dir'        : '../network',
     'plt_dir'        : '../plot',
-    'tree_size'      : 500,
+    'tree_size'      : 200,
     'tree_type'      : 'extant',
     'num_epochs'     : 20,
     'prop_test'       : 0.05,
