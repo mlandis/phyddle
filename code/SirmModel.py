@@ -83,11 +83,11 @@ class SirmModel(Model.BaseModel):
         if model_variant == 'free_rates':
             # check to make sure arguments in settings are applied to model variant
             params = {
+                'S0'        : rv_fn['S0'](size=num_locations, random_state=self.rng, **rv_arg['S0']),
                 'R0'        : rv_fn['R0'](size=num_locations, random_state=self.rng, **rv_arg['R0']),
                 'sampling'  : rv_fn['sampling'](size=num_locations, random_state=self.rng, **rv_arg['sampling']),
                 'recovery'  : rv_fn['recovery'](size=num_locations, random_state=self.rng, **rv_arg['recovery']),
-                'migration' : rv_fn['migration'](size=num_locations**2, random_state=self.rng, **rv_arg['migration']).reshape((num_locations,num_locations)),
-                'S0'        : rv_fn['S0'](size=num_locations, random_state=self.rng, **rv_arg['S0'])
+                'migration' : rv_fn['migration'](size=num_locations**2, random_state=self.rng, **rv_arg['migration']).reshape((num_locations,num_locations))
             }
             params['infection'] = params['R0'] / (params['recovery'] + params['sampling']) * (1. / params['S0'])
             p_start_sizes = params['S0'] / np.sum(params['S0'])
@@ -98,11 +98,11 @@ class SirmModel(Model.BaseModel):
         # all rates are drawn iid
         elif model_variant == 'equal_rates':
             params = {
+                'S0'        : np.full(num_locations, rv_fn['S0'](size=1, random_state=self.rng, **rv_arg['S0'])[0]),
                 'R0'        : np.full(num_locations, rv_fn['R0'](size=1, random_state=self.rng, **rv_arg['R0'])[0]),
                 'sampling'  : np.full(num_locations, rv_fn['sampling'](size=1, random_state=self.rng, **rv_arg['sampling'])[0]),
                 'recovery'  : np.full(num_locations, rv_fn['recovery'](size=1, random_state=self.rng, **rv_arg['recovery'])[0]),
-                'migration' : np.full((num_locations,num_locations), rv_fn['migration'](size=1, random_state=self.rng, **rv_arg['migration'])[0]),
-                'S0'        : np.full(num_locations, rv_fn['S0'](size=1, random_state=self.rng, **rv_arg['S0'])[0])
+                'migration' : np.full((num_locations,num_locations), rv_fn['migration'](size=1, random_state=self.rng, **rv_arg['migration'])[0])
             }
             params['infection'] = params['R0'] / (params['recovery'] + params['sampling']) * (1. /  params['S0'])
             p_start_sizes = params['S0'] / np.sum(params['S0'])

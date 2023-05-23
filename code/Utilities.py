@@ -11,6 +11,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # or any {'0', '1', '2'}
 
 import pandas as pd
 import numpy as np
+import scipy as sp
 import dendropy as dp
 import matplotlib.pyplot as plt
 import tensorflow as tf
@@ -1112,19 +1113,29 @@ def make_summ_stat(tre_fn, geo_fn, states_bits_str_inv):
 
     # read tree + states
     phy = dp.Tree.get(path=tre_fn, schema="newick")
-    num_taxa = len(phy.leaf_nodes())
-    root_distances = phy.calc_node_root_distances()
-    tree_height = np.max( root_distances )
+    num_taxa                  = len(phy.leaf_nodes())
+    root_distances            = phy.calc_node_root_distances()
+    tree_height               = np.max( root_distances )
+    branch_lengths            = [ nd.edge.length for nd in phy.nodes() if nd != phy.seed_node ]
 
     # tree statistics
+    summ_stats['n_taxa']      = num_taxa
     summ_stats['tree_length'] = phy.length()
     summ_stats['tree_height'] = tree_height
+    summ_stats['brlen_mean']  = sp.stats.mean(branch_lengths)
+    summ_stats['brlen_var']   = sp.stats.var(branch_lengths)
+    summ_stats['brlen_skew']  = sp.stats.skew(branch_lengths)
+    summ_stats['brlen_kurt']  = sp.stats.kurtosis(branch_lengths)
+    summ_stats['age_mean']    = sp.stats.mean(root_distances)
+    summ_stats['age_var']     = sp.stats.var(root_distances)
+    summ_stats['age_skew']    = sp.stats.skew(root_distances)
+    summ_stats['age_kurt']    = sp.stats.kurtosis(root_distances)
     summ_stats['B1']          = dp.calculate.treemeasure.B1(phy)
     summ_stats['N_bar']       = dp.calculate.treemeasure.N_bar(phy)
     summ_stats['colless']     = dp.calculate.treemeasure.colless_tree_imbalance(phy)
+    summ_stats['treeness']    = dp.calculate.treemeasure.treeness(phy)
     #summ_stats['gamma']       = dp.calculate.treemeasure.pybus_harvey_gamma(phy)
     #summ_stats['sackin']      = dp.calculate.treemeasure.sackin_index(phy)
-    summ_stats['treeness']    = dp.calculate.treemeasure.treeness(phy)
 
     # read characters + states
     f = open(geo_fn, 'r')
@@ -1134,23 +1145,26 @@ def make_summ_stat(tre_fn, geo_fn, states_bits_str_inv):
     z = re.search(string=m[3], pattern='SYMBOLS="([0-9A-Za-z]+)"')
     num_char = int(y.group(1))
     states = z.group(1)
-    num_states = len(states)
-    num_combo = num_char * num_states
+    #num_states = len(states)
+    #num_combo = num_char * num_states
 
     # get taxon data
     taxon_state_block = m[ m.index('Matrix')+1 : m.index('END;')-1 ]
     taxon_states = [ x.split(' ')[-1] for x in taxon_state_block ]
 
     # freqs of entire char-set
-    freq_taxon_states = np.zeros(num_char, dtype='float')
+    # freq_taxon_states = np.zeros(num_char, dtype='float')
     for i in range(num_char):
-        summ_stats['char_' + str(i)] = 0
+        summ_stats['n_char_' + str(i)] = 0
+        summ_stats['f_char_' + str(i)] = 0.
     for k in list(states_bits_str_inv.keys()):
         #freq_taxon_states[ states_bits_str_inv[k] ] = taxon_states.count(k) / num_taxa
-        summ_stats['state_' + str(k)] = taxon_states.count(k) / num_taxa
+        summ_stats['n_state_' + str(k)] = taxon_states.count(k)
+        summ_stats['f_state_' + str(k)] = taxon_states.count(k) / num_taxa
         for i,j in enumerate(k):
             if j != '0':
-                summ_stats['char_' + str(i)] += summ_stats['state_' + k]
+                summ_stats['n_char_' + str(i)] += summ_stats['n_state_' + k]
+                summ_stats['f_char_' + str(i)] += summ_stats['f_state_' + k]
 
     return summ_stats
 

@@ -58,7 +58,7 @@ my_fmt_args = {
     'fmt_dir'     : '../tensor_data',
     'sim_dir'     : '../raw_data',
     'param_pred'  : [ 'R0_0', 'sampling_0', 'migration_0_1' ],
-    'param_data'  : [ 'recovery_0', 'S0_0', 'S0_1', 'S0_2' ]
+    'param_data'  : [ 'recovery_0', 'S0_0' ]
 } | my_all_args
 
 #####################
