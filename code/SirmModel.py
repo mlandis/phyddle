@@ -54,19 +54,21 @@ class SirmModel(Model.BaseModel):
         return states
     
     def make_start_sizes(self):
-        rv_fn = self.rv_fn
-        rv_arg = self.rv_arg
-        num_locations = self.num_locations
-        # X ~ Gamma(shape=0.5, scale=1e6) 
-        start_sizes = rv_fn['n0'](size=num_locations, random_state=self.rng, **rv_arg['n0'])
-        start_sizes = [ int(np.ceil(x)) for x in start_sizes ]
-        ret = { 'S' : start_sizes } ## this info could be added to self.params s.t. it can be used for training
+        # rv_fn = self.rv_fn
+        # rv_arg = self.rv_arg
+        # num_locations = self.num_locations
+        # # X ~ Gamma(shape=0.5, scale=1e6) 
+        # start_sizes = rv_fn['n0'](size=num_locations, random_state=self.rng, **rv_arg['n0'])
+        # start_sizes = [ int(np.ceil(x)) for x in start_sizes ]
+        ret = { 'S' : self.params['S0'] } ## this info could be added to self.params s.t. it can be used for training
+        #if 'I0' in self.params:
+        #    ret['I'] = self.params['I0']
         return ret
         
     def make_start_state(self):
-        p_start_sizes = self.start_sizes['S'] / np.sum(self.start_sizes['S'])
-        start_state = list(sp.stats.multinomial.rvs(n=1, p=p_start_sizes, random_state=self.rng)).index(1)
-        ret = { 'I' : start_state }
+        # p_start_sizes = self.start_sizes['S'] / np.sum(self.start_sizes['S'])
+        # start_state = list(sp.stats.multinomial.rvs(n=1, p=p_start_sizes, random_state=self.rng)).index(1)
+        ret = { 'I' : self.params['start_state'][0] }
         return ret
         
     def make_params(self, model_variant):
@@ -81,22 +83,31 @@ class SirmModel(Model.BaseModel):
         if model_variant == 'free_rates':
             # check to make sure arguments in settings are applied to model variant
             params = {
-                'i': rv_fn['i'](size=num_locations, random_state=self.rng, **rv_arg['i']),
-                'r': rv_fn['r'](size=num_locations, random_state=self.rng, **rv_arg['r']),
-                's': rv_fn['s'](size=num_locations, random_state=self.rng, **rv_arg['s']),
-                'm': rv_fn['m'](size=num_locations**2, random_state=self.rng, **rv_arg['m']).reshape((num_locations,num_locations))
-
+                'R0'        : rv_fn['R0'](size=num_locations, random_state=self.rng, **rv_arg['R0']),
+                'sampling'  : rv_fn['sampling'](size=num_locations, random_state=self.rng, **rv_arg['sampling']),
+                'recovery'  : rv_fn['recovery'](size=num_locations, random_state=self.rng, **rv_arg['recovery']),
+                'migration' : rv_fn['migration'](size=num_locations**2, random_state=self.rng, **rv_arg['migration']).reshape((num_locations,num_locations)),
+                'S0'        : rv_fn['S0'](size=num_locations, random_state=self.rng, **rv_arg['S0'])
             }
+            params['infection'] = params['R0'] / (params['recovery'] + params['sampling']) * (1. / params['S0'])
+            p_start_sizes = params['S0'] / np.sum(params['S0'])
+            start_state = sp.stats.multinomial.rvs(n=1, p=p_start_sizes, random_state=self.rng)
+            params['start_state'] = np.where( start_state==1 )[0]
             #monitors = { 'i':rates['i'], 'r':rates['r'], 's':rates['s'], 'm':rates['m'] }
             
         # all rates are drawn iid
         elif model_variant == 'equal_rates':
             params = {
-                'i': np.full(num_locations, rv_fn['i'](size=1, random_state=self.rng, **rv_arg['i'])[0]),
-                'r': np.full(num_locations, rv_fn['r'](size=1, random_state=self.rng, **rv_arg['r'])[0]),
-                's': np.full(num_locations, rv_fn['s'](size=1, random_state=self.rng, **rv_arg['s'])[0]),
-                'm': np.full((num_locations,num_locations), rv_fn['m'](size=1, random_state=self.rng, **rv_arg['m'])[0])
+                'R0'        : np.full(num_locations, rv_fn['R0'](size=1, random_state=self.rng, **rv_arg['R0'])[0]),
+                'sampling'  : np.full(num_locations, rv_fn['sampling'](size=1, random_state=self.rng, **rv_arg['sampling'])[0]),
+                'recovery'  : np.full(num_locations, rv_fn['recovery'](size=1, random_state=self.rng, **rv_arg['recovery'])[0]),
+                'migration' : np.full((num_locations,num_locations), rv_fn['migration'](size=1, random_state=self.rng, **rv_arg['migration'])[0]),
+                'S0'        : np.full(num_locations, rv_fn['S0'](size=1, random_state=self.rng, **rv_arg['S0'])[0])
             }
+            params['infection'] = params['R0'] / (params['recovery'] + params['sampling']) * (1. /  params['S0'])
+            p_start_sizes = params['S0'] / np.sum(params['S0'])
+            start_state = sp.stats.multinomial.rvs(n=1, p=p_start_sizes, random_state=self.rng)
+            params['start_state'] = np.where( start_state==1 )[0]
             #monitors = { 'i':rates['i'][0],'r':rates['r'][0],'s':rates['s'][0],'m':rates['m'][0][1] }
 
         # e.g. all rates drawn as log-linear functions of features
@@ -112,16 +123,16 @@ class SirmModel(Model.BaseModel):
         #print(rates)
         return params
 
-    def make_events(self, states, rates):
-        events_i = self.make_events_i( states, rates['i'] )
-        events_r = self.make_events_r( states, rates['r'] )
-        events_s = self.make_events_s( states, rates['s'] )
-        events_m = self.make_events_m( states, rates['m'] )
+    def make_events(self, states, params):
+        events_i = self.make_events_i( states, params['infection'] )
+        events_r = self.make_events_r( states, params['recovery'] )
+        events_s = self.make_events_s( states, params['sampling'] )
+        events_m = self.make_events_m( states, params['migration'] )
         events = events_i + events_m + events_r + events_s
         return events
 
     # SIRM [i]nfection within location
-    def make_events_i(self, states, rates):
+    def make_events_i(self, states, params):
         group = 'Infect'
         events = []
         states_I = [ x for x in states.int2lbl if 'I' in x ]
@@ -130,7 +141,7 @@ class SirmModel(Model.BaseModel):
             i = int(x[1:])
             name = 'r_I_{i}'.format(i=i)
             idx = {'i':i}
-            rate = rates[i]
+            rate = params[i]
             ix = [ 'I[{i}]:1'.format(i=i), 'S[{i}]:1'.format(i=i) ]
             jx = [ '2I[{i}]:1'.format(i=i) ]
             e = Event( g=group, n=name, idx=idx, r=rate, ix=ix, jx=jx )
@@ -140,7 +151,7 @@ class SirmModel(Model.BaseModel):
         return events
 
     # SIRM [r]ecovery within location
-    def make_events_r(self, states, rates):
+    def make_events_r(self, states, params):
         group = 'Recover'
         events = []
         states_I = [ x for x in states.int2lbl if 'I' in x ]
@@ -148,7 +159,7 @@ class SirmModel(Model.BaseModel):
             # 'I[{i}] -> R[{i}]'
             i = int(x[1:])
             name = 'r_R_{i}'.format(i=i)
-            rate = rates[i]
+            rate = params[i]
             idx = {'i':i}
             ix = [ 'I[{i}]:1'.format(i=i) ]
             jx = [ 'R[{i}]:1'.format(i=i) ]
@@ -159,7 +170,7 @@ class SirmModel(Model.BaseModel):
         return events
 
     # SIRM [s]ampled from infected host
-    def make_events_s(self, states, rates):
+    def make_events_s(self, states, params):
         group = 'Sample'
         events = []
         states_I = [ x for x in states.int2lbl if 'I' in x ]
@@ -168,7 +179,7 @@ class SirmModel(Model.BaseModel):
             i = int(x[1:])
             name = 'r_S_{i}'.format(i=i)
             idx = {'i':i}
-            rate = rates[i]
+            rate = params[i]
             ix = [ 'I[{i}]:1'.format(i=i) ]
             jx = [ 'A[{i}]:1'.format(i=i) ]
             e = Event( g=group, n=name, idx=idx, r=rate, ix=ix, jx=jx )
@@ -178,7 +189,7 @@ class SirmModel(Model.BaseModel):
         return events
 
     # SIRM [m]igrates into new population
-    def make_events_m(self, states, rates):
+    def make_events_m(self, states, params):
         group = 'Migrate'
         events = []
         states_I = [ x for x in states.int2lbl if 'I' in x ]
@@ -190,7 +201,7 @@ class SirmModel(Model.BaseModel):
                 j = int(y[1:])
                 name = 'r_M_{i}_{j}'.format(i=i, j=j)
                 idx = {'i':i, 'j':j}
-                rate = rates[i][j]
+                rate = params[i][j]
                 ix = [ 'I[{i}]:1'.format(i=i) ]
                 jx = [ 'I[{j}]:1'.format(j=j) ]
                 e = Event( g=group, n=name, idx=idx, r=rate, ix=ix, jx=jx )

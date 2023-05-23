@@ -24,12 +24,12 @@ class BaseModel:
         self.rng         = np.random.Generator(np.random.PCG64(seed))
         # state space
         self.states      = self.make_states() # self.num_locations )
+        # params space
+        self.params      = self.make_params( self.model_variant)
         # starting population sizes (e.g. SIR models)
         self.start_sizes = self.make_start_sizes()
         # starting state
         self.start_state = self.make_start_state()
-        # rate space
-        self.params      = self.make_params( self.model_variant)
         # event space
         self.events      = self.make_events( self.states, self.params )
         # event space dataframe

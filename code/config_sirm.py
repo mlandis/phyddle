@@ -7,6 +7,13 @@ import scipy as sp
 my_all_args = { 'job_name' : 'test_sirm' }
 NUM_LOC = 3
 
+# infection rate (beta) constant should be proportional to number of pairwise combinations
+# (i.e. number of susceptibles) during exponential growth phase
+
+# R0 is defined as beta/gammma
+
+# so choose gamma such that R0 tends to be > 1
+
 ##################
 # MODEL SETTINGS #
 ##################
@@ -15,17 +22,17 @@ my_mdl_args = {
     'model_variant' : 'equal_rates',
     'num_locations' : NUM_LOC,
     'rv_fn' : {
-        's': sp.stats.expon.rvs,
-        'i': sp.stats.expon.rvs,
-        'r': sp.stats.expon.rvs,
-        'm': sp.stats.expon.rvs,
-        'n0': sp.stats.gamma.rvs },
+        'R0'        : sp.stats.uniform.rvs,
+        'recovery'  : sp.stats.expon.rvs,
+        'sampling'  : sp.stats.expon.rvs,
+        'migration' : sp.stats.expon.rvs,
+        'S0'        : sp.stats.uniform.rvs },
     'rv_arg' : {
-        's': { 'loc': 0.0, 'scale' : 1.0 },
-        'i': { 'loc': 1.0, 'scale' : 0.5 },
-        'r': { 'loc': 0.0, 'scale' : 1.0 },
-        'm': { 'loc': 0.0, 'scale' : 1.0 },
-        'n0': { 'a':0.5, 'scale':1000000 }
+        'R0'        : { 'loc': 1., 'scale' : 9. },
+        'recovery'  : { 'loc': 0., 'scale' : 1. },
+        'sampling'  : { 'loc': 0., 'scale' : 1./10. },
+        'migration' : { 'loc': 0., 'scale' : 1./10. },
+        'S0'        : { 'loc': 1000., 'scale': 9000. }
     }
 }
 
@@ -41,7 +48,7 @@ my_sim_args = {
     'num_proc'          : -2,
     'sample_population' : ['S'],
     'stop_floor_sizes'  : 0,
-    'stop_ceil_sizes'   : 450                # MASTER seems to generate too many taxa?
+    'stop_ceil_sizes'   : 450   # MASTER seems to generate too many taxa?
 } | my_all_args
 
 ###################
@@ -50,8 +57,8 @@ my_sim_args = {
 my_fmt_args = {
     'fmt_dir'     : '../tensor_data',
     'sim_dir'     : '../raw_data',
-    'param_pred'  : [ 's_0', 'i_0', 'm_0_1' ],
-    'param_data'  : [ 'r_0' ]
+    'param_pred'  : [ 'R0_0', 'sampling_0', 'migration_0_1' ],
+    'param_data'  : [ 'recovery_0', 'S0_0', 'S0_1', 'S0_2' ]
 } | my_all_args
 
 #####################

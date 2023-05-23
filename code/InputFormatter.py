@@ -43,7 +43,8 @@ class InputFormatter:
                         size = int(row[1])
                     
                 # check that all necessary files exist
-                all_files = [self.in_dir+'/sim.'+str(idx)+'.'+x for x in ['cdvs.csv','cblvs.csv','param2.csv','summ_stat.csv']]
+                #all_files = [self.in_dir+'/sim.'+str(idx)+'.'+x for x in ['cdvs.csv','cblvs.csv','param2.csv','summ_stat.csv']]
+                all_files = [self.in_dir+'/sim.'+str(idx)+'.'+x for x in ['cblvs.csv','param2.csv','summ_stat.csv']]
                 all_files_valid = all( [os.path.isfile(fn) for fn in all_files] )
 
                 if all_files_valid:
@@ -68,12 +69,12 @@ class InputFormatter:
             #out_info_fn   = self.out_dir + '/' + prefix + '.nt' + str(k) + '.info.csv'
             
             # cdv file tensor
-            with open(out_cdvs_fn, 'w') as outfile:
-                for i in size_sort[tree_size]:
-                    fname = self.in_dir + '/' + 'sim.' + str(i) + '.cdvs.csv'
-                    with open(fname, 'r') as infile:
-                        s = infile.read()
-                        z = outfile.write(s)
+            # with open(out_cdvs_fn, 'w') as outfile:
+            #     for i in size_sort[tree_size]:
+            #         fname = self.in_dir + '/' + 'sim.' + str(i) + '.cdvs.csv'
+            #         with open(fname, 'r') as infile:
+            #             s = infile.read()
+            #             z = outfile.write(s)
 
             # cblvs tensor
             with open(out_cblvs_fn, 'w') as outfile:

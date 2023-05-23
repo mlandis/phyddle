@@ -116,8 +116,8 @@ class Simulator:
             prune_success = Utilities.make_prune_phy(tre_fn, prune_fn)
 
             # MJL 230411: probably too aggressive, should revisit
-            if not prune_success:
-                next
+            #if not prune_success:
+            #    next
 
             # generate nexus file 0/1 ranges
             taxon_states,nexus_str = Utilities.convert_nex(nex_fn, tre_fn, int2vec)
