@@ -138,6 +138,9 @@ class CnnLearner(Learner):
         # reshape full_data
         # depends on CBLV/CDV and num_states
         full_data.shape = ( num_sample, -1, (self.num_tree_row+self.num_char_row) )
+        print(self.num_char_row)
+        print(self.num_tree_row)
+        print(full_data.shape)
 
         # split dataset into training, test, and validation parts
         if self.num_test != 0 and self.num_validation != 0:
@@ -147,10 +150,17 @@ class CnnLearner(Learner):
             num_val = int(np.floor(num_sample * self.prop_validation))
             num_test = int(np.floor(num_sample * self.prop_test))
 
+        print(num_val)
+        print(num_test)
+
         # create input subsets
         train_idx = np.arange( num_test+num_val, num_sample )
         val_idx   = np.arange( num_test, num_test+num_val )
         test_idx  = np.arange( 0, num_test )
+
+        print(train_idx)
+        print(val_idx)
+        print(test_idx)
 
         # normalize summary stats
         self.norm_train_stats, self.train_stats_means, self.train_stats_sd = Utilities.normalize( full_stats[train_idx,:] )

@@ -5,6 +5,7 @@ import scipy as sp
 # PIPELINE SETTINGS #
 #####################
 my_all_args = { 'job_name' : 'test_sirm' }
+NUM_LOC = 3
 
 ##################
 # MODEL SETTINGS #
@@ -12,7 +13,7 @@ my_all_args = { 'job_name' : 'test_sirm' }
 my_mdl_args = {
     'model_type'    : 'sirm',
     'model_variant' : 'equal_rates',
-    'num_locations' : 3,
+    'num_locations' : NUM_LOC,
     'rv_fn' : {
         's': sp.stats.expon.rvs,
         'i': sp.stats.expon.rvs,
@@ -20,10 +21,10 @@ my_mdl_args = {
         'm': sp.stats.expon.rvs,
         'n0': sp.stats.gamma.rvs },
     'rv_arg' : {
-        's': { 'scale' : 1.0 },
-        'i': { 'scale' : 0.5 },
-        'r': { 'scale' : 1.0 },
-        'm': { 'scale' : 3.0 },
+        's': { 'loc': 0.0, 'scale' : 1.0 },
+        'i': { 'loc': 1.0, 'scale' : 0.5 },
+        'r': { 'loc': 0.0, 'scale' : 1.0 },
+        'm': { 'loc': 0.0, 'scale' : 1.0 },
         'n0': { 'a':0.5, 'scale':1000000 }
     }
 }
@@ -40,7 +41,7 @@ my_sim_args = {
     'num_proc'          : -2,
     'sample_population' : ['S'],
     'stop_floor_sizes'  : 0,
-    'stop_ceil_sizes'   : 300                # MASTER seems to generate too many taxa?
+    'stop_ceil_sizes'   : 450                # MASTER seems to generate too many taxa?
 } | my_all_args
 
 ###################
@@ -62,9 +63,10 @@ my_lrn_args = {
     'plt_dir'        : '../plot',
     'tree_size'      : 200,
     'tree_type'      : 'serial',
+    'num_char'       : NUM_LOC,
     'num_epochs'     : 20,
-    'num_test'       : 200,
-    'num_validation' : 200,
+    'prop_test'       : 0.05,
+    'prop_validation' : 0.05,
     'batch_size'     : 32,
     'loss'           : 'mse',
     'optimizer'      : 'adam',
