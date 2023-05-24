@@ -62,6 +62,12 @@ class Simulator:
     # main simulation function (looped)
     def sim_one(self, idx):
         
+        NUM_DIGITS = 10
+        #np.set_printoptions(floatmode='maxprec', precision=NUM_DIGITS)
+        np.set_printoptions(formatter={'float': lambda x: format(x, '8.6E')}, precision=NUM_DIGITS)
+        #pd.set_option('display.precision', NUM_DIGITS)
+        #pd.set_option('display.float_format', lambda x: f'{x:,.3f}')
+
         # make filenames
         out_path  = self.sim_dir + '/' + self.job_name + '/sim'
         tmp_fn    = out_path + '.' + str(idx)
@@ -142,24 +148,31 @@ class Simulator:
 
         # record labels (simulating parameters)
         param1_str,param2_str = Utilities.param_dict_to_str(self.model.params)
+        param1_str = Utilities.clean_scientific_notation(param1_str)
+        param2_str = Utilities.clean_scientific_notation(param2_str)
         Utilities.write_to_file(param1_str, param1_fn)
         Utilities.write_to_file(param2_str, param2_fn)
 
         # record CBLVS data
-        cblvs_str = np.array2string(cblvs, separator=',', max_line_width=1e200, threshold=1e200, edgeitems=1e200)
+        cblvs_str = np.array2string(cblvs, separator=',', max_line_width=1e200, threshold=1e200, edgeitems=1e200, precision=10, floatmode='maxprec')
         cblvs_str = cblvs_str.replace(' ','').replace('.,',',').strip('[].') + '\n'
+        #cblvs_str = re.sub( '\.0+E\+0+', '', cblvs_str)
+        cblvs_str = Utilities.clean_scientific_notation(cblvs_str)
+        #print(cblvs_str)
         Utilities.write_to_file(cblvs_str, cblvs_fn)
 
         # record CDVS data
         if prune_success:
             cdvs = cdvs.to_numpy()
-            cdvs_str = np.array2string(cdvs, separator=',', max_line_width=1e200, threshold=1e200, edgeitems=1e200)
+            cdvs_str = np.array2string(cdvs, separator=',', max_line_width=1e200, threshold=1e200, edgeitems=1e200, precision=10, floatmode='maxprec')
             cdvs_str = cdvs_str.replace(' ','').replace('.,',',').strip('[].') + '\n'
+            cdvs_str = Utilities.clean_scientific_notation(cdvs_str)
             Utilities.write_to_file(cdvs_str, cdvs_fn)
 
         # record summ stat data
         ss = Utilities.make_summ_stat(tre_fn, geo_fn, vecstr2int)
         ss_str = Utilities.make_summ_stat_str(ss)
+        ss_str = Utilities.clean_scientific_notation(ss_str) #re.sub( '\.0+E\+0+', '', ss_str)
         Utilities.write_to_file(ss_str, ss_fn)
 
         # return status string

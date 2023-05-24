@@ -1106,6 +1106,9 @@ def get_num_taxa(tre_fn, k, max_taxa):
 # SUMMARY STATS #
 #################
 
+def clean_scientific_notation(s):
+    return re.sub( '\.0+E\+0+', '', s)
+
 def make_summ_stat(tre_fn, geo_fn, states_bits_str_inv):
     
     # build summary stats
