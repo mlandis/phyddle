@@ -74,7 +74,7 @@ my_lrn_args = {
     'num_epochs'     : 20,
     'prop_test'       : 0.05,
     'prop_validation' : 0.05,
-    'batch_size'     : 32,
+    'batch_size'     : 128,
     'loss'           : 'mse',
     'optimizer'      : 'adam',
     'metrics'        : ['mae', 'acc', 'mape']

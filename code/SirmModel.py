@@ -89,6 +89,7 @@ class SirmModel(Model.BaseModel):
                 'recovery'  : rv_fn['recovery'](size=num_locations, random_state=self.rng, **rv_arg['recovery']),
                 'migration' : rv_fn['migration'](size=num_locations**2, random_state=self.rng, **rv_arg['migration']).reshape((num_locations,num_locations))
             }
+            params['S0'] = int( np.round(params['S0']) )
             params['infection'] = params['R0'] / (params['recovery'] + params['sampling']) * (1. / params['S0'])
             p_start_sizes = params['S0'] / np.sum(params['S0'])
             start_state = sp.stats.multinomial.rvs(n=1, p=p_start_sizes, random_state=self.rng)
@@ -104,6 +105,7 @@ class SirmModel(Model.BaseModel):
                 'recovery'  : np.full(num_locations, rv_fn['recovery'](size=1, random_state=self.rng, **rv_arg['recovery'])[0]),
                 'migration' : np.full((num_locations,num_locations), rv_fn['migration'](size=1, random_state=self.rng, **rv_arg['migration'])[0])
             }
+            params['S0'] = np.round(params['S0'])
             params['infection'] = params['R0'] / (params['recovery'] + params['sampling']) * (1. /  params['S0'])
             p_start_sizes = params['S0'] / np.sum(params['S0'])
             start_state = sp.stats.multinomial.rvs(n=1, p=p_start_sizes, random_state=self.rng)
