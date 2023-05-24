@@ -106,7 +106,8 @@ class SirmModel(Model.BaseModel):
                 'migration' : np.full((num_locations,num_locations), rv_fn['migration'](size=1, random_state=self.rng, **rv_arg['migration'])[0])
             }
             params['S0'] = np.round(params['S0'])
-            params['infection'] = params['R0'] / (params['recovery'] + params['sampling']) * (1. /  params['S0'])
+            # R0 = infection/(recovery+sampling) so infection = R0*(recovery+sampling)
+            params['infection'] = params['R0'] * (params['recovery'] + params['sampling']) * (1. /  params['S0'])
             p_start_sizes = params['S0'] / np.sum(params['S0'])
             start_state = sp.stats.multinomial.rvs(n=1, p=p_start_sizes, random_state=self.rng)
             params['start_state'] = np.where( start_state==1 )[0]
