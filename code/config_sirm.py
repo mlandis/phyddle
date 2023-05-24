@@ -4,7 +4,7 @@ import scipy as sp
 #####################
 # PIPELINE SETTINGS #
 #####################
-my_all_args = { 'job_name' : 'test_sirm' }
+my_all_args = { 'job_name' : 'sirm1' }
 NUM_LOC = 3
 
 # infection rate (beta) constant should be proportional to number of pairwise combinations
@@ -74,7 +74,7 @@ my_lrn_args = {
     'num_epochs'     : 20,
     'prop_test'       : 0.05,
     'prop_validation' : 0.05,
-    'batch_size'     : 32,
+    'batch_size'     : 128,
     'loss'           : 'mse',
     'optimizer'      : 'adam',
     'metrics'        : ['mae', 'acc', 'mape']
