@@ -157,7 +157,7 @@ class Simulator:
         cblvs_str = np.array2string(cblvs, separator=',', max_line_width=1e200, threshold=1e200, edgeitems=1e200, precision=10, floatmode='maxprec')
         cblvs_str = cblvs_str.replace(' ','').replace('.,',',').strip('[].') + '\n'
         #cblvs_str = re.sub( '\.0+E\+0+', '', cblvs_str)
-        #cblvs_str = Utilities.clean_scientific_notation(cblvs_str)
+        cblvs_str = Utilities.clean_scientific_notation(cblvs_str)
         #print(cblvs_str)
         Utilities.write_to_file(cblvs_str, cblvs_fn)
 

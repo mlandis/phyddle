@@ -13,6 +13,7 @@ class InputFormatter:
         self.job_name   = args['job_name']
         self.fmt_dir    = args['fmt_dir']
         self.sim_dir    = args['sim_dir']
+        self.tree_type  = args['tree_type']
         self.param_pred = args['param_pred'] # parameters in label set (prediction)
         self.param_data = args['param_data'] # parameters in data set (training, etc)
         self.in_dir     = self.sim_dir + '/' + self.job_name
@@ -44,7 +45,12 @@ class InputFormatter:
                     
                 # check that all necessary files exist
                 #all_files = [self.in_dir+'/sim.'+str(idx)+'.'+x for x in ['cdvs.csv','cblvs.csv','param2.csv','summ_stat.csv']]
-                all_files = [self.in_dir+'/sim.'+str(idx)+'.'+x for x in ['cblvs.csv','param2.csv','summ_stat.csv']]
+                if self.tree_type == 'serial':
+                    all_files = [self.in_dir+'/sim.'+str(idx)+'.'+x for x in ['cblvs.csv','param2.csv','summ_stat.csv']]
+                elif self.tree_type == 'extant':
+                    all_files = [self.in_dir+'/sim.'+str(idx)+'.'+x for x in ['cdvs.csv','param2.csv','summ_stat.csv']]
+                else:
+                    raise NotImplementedError
                 all_files_valid = all( [os.path.isfile(fn) for fn in all_files] )
 
                 if all_files_valid:
@@ -60,30 +66,31 @@ class InputFormatter:
 
             size_sort[tree_size].sort()
 
-            print('Formatting {n} files for taxon_category={i}'.format(n=len(size_sort[tree_size]), i=tree_size))
+            print('Formatting {n} files for tree_type={tt} and tree_size={ts}'.format(n=len(size_sort[tree_size]), tt=self.tree_type, ts=tree_size))
             
-            out_cdvs_fn   = self.out_dir + '/' + 'sim.nt' + str(tree_size) + '.cdvs.data.csv'
             out_cblvs_fn  = self.out_dir + '/' + 'sim.nt' + str(tree_size) + '.cblvs.data.csv'
+            out_cdvs_fn   = self.out_dir + '/' + 'sim.nt' + str(tree_size) + '.cdvs.data.csv'
             out_stat_fn   = self.out_dir + '/' + 'sim.nt' + str(tree_size) + '.summ_stat.csv'
             out_labels_fn = self.out_dir + '/' + 'sim.nt' + str(tree_size) + '.labels.csv'
             #out_info_fn   = self.out_dir + '/' + prefix + '.nt' + str(k) + '.info.csv'
-            
-            # cdv file tensor
-            # with open(out_cdvs_fn, 'w') as outfile:
-            #     for i in size_sort[tree_size]:
-            #         fname = self.in_dir + '/' + 'sim.' + str(i) + '.cdvs.csv'
-            #         with open(fname, 'r') as infile:
-            #             s = infile.read()
-            #             z = outfile.write(s)
 
             # cblvs tensor
-            with open(out_cblvs_fn, 'w') as outfile:
-                for i in size_sort[tree_size]:
-                    fname = self.in_dir + '/' + 'sim.' + str(i) + '.cblvs.csv'
-                    with open(fname, 'r') as infile:
-                        s = infile.read()
-                        z = outfile.write(s)
-            
+            if self.tree_type == 'serial':
+                with open(out_cblvs_fn, 'w') as outfile:
+                    for i in size_sort[tree_size]:
+                        fname = self.in_dir + '/' + 'sim.' + str(i) + '.cblvs.csv'
+                        with open(fname, 'r') as infile:
+                            s = infile.read()
+                            z = outfile.write(s)
+            # cdv file tensor       
+            elif self.tree_type == 'extant':
+                with open(out_cdvs_fn, 'w') as outfile:
+                    for i in size_sort[tree_size]:
+                        fname = self.in_dir + '/' + 'sim.' + str(i) + '.cdvs.csv'
+                        with open(fname, 'r') as infile:
+                            s = infile.read()
+                            z = outfile.write(s)
+
             # summary stats tensor
             with open(out_stat_fn, 'w') as outfile:
                 for j,i in enumerate(size_sort[tree_size]):

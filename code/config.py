@@ -1,7 +1,4 @@
-
 import scipy as sp
-
-
 
 num_locations = 3
 
@@ -51,6 +48,7 @@ my_sim_args = {
 my_fmt_args = {
     'fmt_dir' : '../tensor_data',
     'sim_dir' : '../raw_data',
+    'tree_type'  : 'extant',
     'param_pred' : ['w_0', 'e_0', 'd_0_1', 'b_0_1'],
     'param_data' : []
 } | my_all_args
