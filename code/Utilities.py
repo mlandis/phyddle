@@ -1122,12 +1122,12 @@ def make_summ_stat(tre_fn, geo_fn, states_bits_str_inv):
     summ_stats['n_taxa']      = num_taxa
     summ_stats['tree_length'] = phy.length()
     summ_stats['tree_height'] = tree_height
-    summ_stats['brlen_mean']  = sp.stats.mean(branch_lengths)
-    summ_stats['brlen_var']   = sp.stats.var(branch_lengths)
+    summ_stats['brlen_mean']  = np.mean(branch_lengths)
+    summ_stats['brlen_var']   = np.var(branch_lengths)
     summ_stats['brlen_skew']  = sp.stats.skew(branch_lengths)
     summ_stats['brlen_kurt']  = sp.stats.kurtosis(branch_lengths)
-    summ_stats['age_mean']    = sp.stats.mean(root_distances)
-    summ_stats['age_var']     = sp.stats.var(root_distances)
+    summ_stats['age_mean']    = np.mean(root_distances)
+    summ_stats['age_var']     = np.var(root_distances)
     summ_stats['age_skew']    = sp.stats.skew(root_distances)
     summ_stats['age_kurt']    = sp.stats.kurtosis(root_distances)
     summ_stats['B1']          = dp.calculate.treemeasure.B1(phy)
