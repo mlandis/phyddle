@@ -29,6 +29,7 @@ class Simulator:
         self.start_idx         = args['start_idx']
         self.end_idx           = args['end_idx']
         self.tree_sizes        = args['tree_sizes']
+        self.stop_time         = args['stop_time']
         self.num_proc          = args['num_proc']
         self.use_parallel      = args['use_parallel']
         self.sample_population = args['sample_population']
@@ -277,6 +278,9 @@ class MasterSimulator(Simulator):
         for k in sample_population:
             xml_filter += "<inheritancePostProcessor spec='LineageFilter' populationName='{k}' reverseTime='false' discard='false' leavesOnly='true' noClean='true'/>\n".format(k=k)
 
+        # stop time
+        stop_time = self.stop_time
+
         # generate entire XML specification
         xml_spec_str = '''\
 <beast version='2.0' namespace='master:master.model:master.steppers:master.conditions:master.postprocessors:master.outputs'>
@@ -286,7 +290,7 @@ class MasterSimulator(Simulator):
     nTraj='1'
     nSamples='{num_samples}'
     samplePopulationSizes='{sample_pop}'
-    simulationTime='10'
+    simulationTime='{stop_time}'
     maxConditionRejects='1'>
 
 <model spec='Model'>
@@ -316,7 +320,8 @@ class MasterSimulator(Simulator):
            xml_filter=xml_filter,
            newick_fn=newick_fn, nexus_fn=nexus_fn, json_fn=json_fn,
            num_samples=1,
-           sample_pop='false')
+           sample_pop='false',
+           stop_time=stop_time)
         
         return xml_spec_str
         #return xml_spec_str

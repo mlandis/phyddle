@@ -23,16 +23,16 @@ my_mdl_args = {
     'num_locations' : NUM_LOC,
     'rv_fn' : {
         'R0'        : sp.stats.uniform.rvs,
-        'recovery'  : sp.stats.expon.rvs,
-        'sampling'  : sp.stats.expon.rvs,
-        'migration' : sp.stats.expon.rvs,
+        'recovery'  : sp.stats.uniform.rvs,
+        'sampling'  : sp.stats.uniform.rvs,
+        'migration' : sp.stats.uniform.rvs,
         'S0'        : sp.stats.uniform.rvs },
     'rv_arg' : {
         'R0'        : { 'loc': 1., 'scale' : 9. },
-        'recovery'  : { 'loc': 0., 'scale' : 1./10. },
-        'sampling'  : { 'loc': 0., 'scale' : 1./50. },
-        'migration' : { 'loc': 0., 'scale' : 1./50. },
-        'S0'        : { 'loc': 1000., 'scale': 9000. }
+        'recovery'  : { 'loc': 0.01, 'scale' : 0.04 },
+        'sampling'  : { 'loc': 0.0001, 'scale' : 0.0049 },
+        'migration' : { 'loc': 0.0001, 'scale' : 0.0049 },
+        'S0'        : { 'loc': 100000., 'scale': 400000. }
     }
 }
 
@@ -44,6 +44,7 @@ my_sim_args = {
     'start_idx'         : 0,
     'end_idx'           : 10,
     'tree_sizes'        : [ 200, 500 ],
+    'stop_time'         : 100,
     'use_parallel'      : True,
     'num_proc'          : -2,
     'sample_population' : ['S'],

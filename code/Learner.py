@@ -138,9 +138,9 @@ class CnnLearner(Learner):
         # reshape full_data
         # depends on CBLV/CDV and num_states
         full_data.shape = ( num_sample, -1, (self.num_tree_row+self.num_char_row) )
-        print(self.num_char_row)
-        print(self.num_tree_row)
-        print(full_data.shape)
+        # print(self.num_char_row)
+        # print(self.num_tree_row)
+        # print(full_data.shape)
 
         # split dataset into training, test, and validation parts
         if self.num_test != 0 and self.num_validation != 0:
@@ -150,17 +150,17 @@ class CnnLearner(Learner):
             num_val = int(np.floor(num_sample * self.prop_validation))
             num_test = int(np.floor(num_sample * self.prop_test))
 
-        print(num_val)
-        print(num_test)
+        # print(num_val)
+        # print(num_test)
 
         # create input subsets
         train_idx = np.arange( num_test+num_val, num_sample )
         val_idx   = np.arange( num_test, num_test+num_val )
         test_idx  = np.arange( 0, num_test )
 
-        print(train_idx)
-        print(val_idx)
-        print(test_idx)
+        # print(train_idx)
+        # print(val_idx)
+        # print(test_idx)
 
         # normalize summary stats
         self.norm_train_stats, self.train_stats_means, self.train_stats_sd = Utilities.normalize( full_stats[train_idx,:] )
@@ -303,6 +303,16 @@ class CnnLearner(Learner):
             the_writer.writerow(np.append( 'sd', all_sd))
 
         self.mymodel.save(self.model_sav_fn)
+
+        # SAVE SUMM STAT & PARAM DIST TO FILE
+        #Utilities.concat_csv()
+        df_stats = pd.read_csv( self.input_stats_fn )
+        df_param = pd.read_csv( self.input_labels_fn )
+        df_all = pd.concat( [df_stats, df_param], axis=1 )
+        df_all = df_all.T.drop_duplicates().T
+        Utilities.plot_ss_param_hist(df=df_all, save_fn=self.plot_dir + '/' + self.model_prefix + '.summ_stat_param_hist.pdf')
+        Utilities.plot_pca(df=df_all, save_fn=self.plot_dir + '/' + self.model_prefix + '.summ_stat_param_pca.pdf')
+
 
         # merge pdfs
         merger = PdfMerger()

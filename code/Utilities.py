@@ -1545,24 +1545,29 @@ def make_experiment_density_plots(ref_pred_ape, ref_phylo_ape,
 
 def concat_csv(fp):
     files = os.listdir(fp)
-    files = [ x for x in files if 'param2' in x ]
+    files = [ fp + '/' + x for x in files if 'param2' in x ]
     df = pd.concat(map(pd.read_csv, files))
     return df
 
+def plot_ss_param_hist(df, save_fn):
+    df.hist(alpha=0.5, figsize=(20,10))
+    plt.tight_layout()
+    plt.savefig(save_fn, format='pdf')
+    plt.clf()
 
-def make_pca(df, num_comp=4):
+def plot_pca(df, save_fn, num_comp=4):
     x = StandardScaler().fit_transform(df)
     x = pd.DataFrame(x, columns=df.columns)
     pca_model = PCA(n_components=num_comp)
     pca = pca_model.fit_transform(x)
-    print(pca_model.explained_variance_ratio_)
-    print(sum(pca_model.explained_variance_ratio_))
+    #print(pca_model.explained_variance_ratio_)
+    #print(sum(pca_model.explained_variance_ratio_))
     fig, axs = plt.subplots(num_comp-1, num_comp-1, sharex=True, sharey=True)
     for i in range(0, num_comp-1):
         for j in range(i+1, num_comp):
-            print(i,j)
             axs[i,j-1].scatter( pca[:,i], pca[:,j], alpha=0.2 )
 
-    plt.show()
+    plt.savefig(save_fn, format='pdf')
+    plt.clf()
 
 #make_pca(df)
