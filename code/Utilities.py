@@ -1556,9 +1556,10 @@ def plot_ss_param_hist(df, save_fn):
     plt.savefig(save_fn, format='pdf')
     plt.clf()
 
-def plot_pca(df, save_fn, num_comp=4):
+def plot_pca(df, save_fn, num_comp=4, f_show=0.1):
     x = StandardScaler().fit_transform(df)
     x = pd.DataFrame(x, columns=df.columns)
+    nrow_keep = int(x.shape[1] * f_show)
     pca_model = PCA(n_components=num_comp)
     pca = pca_model.fit_transform(x)
     pca_var = pca_model.explained_variance_ratio_
@@ -1566,7 +1567,7 @@ def plot_pca(df, save_fn, num_comp=4):
     tick_spacing = 2
     for i in range(0, num_comp-1):
         for j in range(0, i+1):
-            axs[i,j].scatter( pca[:,i+1], pca[:,j], alpha=0.2 )
+            axs[i,j].scatter( pca[0:nrow_keep,i+1], pca[0:nrow_keep,j], alpha=0.2 )
             axs[i,j].xaxis.set_major_locator(ticker.MultipleLocator(tick_spacing))
             axs[i,j].yaxis.set_major_locator(ticker.MultipleLocator(tick_spacing))
             if j == 0:
