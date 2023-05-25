@@ -483,11 +483,11 @@ def make_cdvs(tree_fn, max_len, states, state_labels):
     complete_info = np.vstack( [node_info, tips_info] )
     
     # extra info
-    nrow = complete_info.shape[0]
-    state_counts = type_count(tree, states, state_labels)
-    extra_info = [ tr_height, rescale_factor ] + state_counts
-    for x in extra_info:
-        complete_info = np.append( complete_info, np.repeat(x, nrow).reshape(-1,1) )
+    #nrow = complete_info.shape[0]
+    #state_counts = type_count(tree, states, state_labels)
+    #extra_info = [ tr_height, rescale_factor ] + state_counts
+    #for x in extra_info:
+    #    complete_info = np.append( complete_info, np.repeat(x, nrow).reshape(-1,1) )
     
     # flatten
     complete_info.reshape(-1)
