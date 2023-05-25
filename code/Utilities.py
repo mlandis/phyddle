@@ -14,6 +14,7 @@ import numpy as np
 import scipy as sp
 import dendropy as dp
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 import tensorflow as tf
 
 from sklearn.preprocessing import StandardScaler
@@ -1560,14 +1561,22 @@ def plot_pca(df, save_fn, num_comp=4):
     x = pd.DataFrame(x, columns=df.columns)
     pca_model = PCA(n_components=num_comp)
     pca = pca_model.fit_transform(x)
-    #print(pca_model.explained_variance_ratio_)
-    #print(sum(pca_model.explained_variance_ratio_))
+    pca_var = pca_model.explained_variance_ratio_
     fig, axs = plt.subplots(num_comp-1, num_comp-1, sharex=True, sharey=True)
+    tick_spacing = 2
     for i in range(0, num_comp-1):
-        for j in range(i+1, num_comp):
-            axs[i,j-1].scatter( pca[:,i], pca[:,j], alpha=0.2 )
-
+        for j in range(0, i+1):
+            axs[i,j].scatter( pca[:,i+1], pca[:,j], alpha=0.2 )
+            axs[i,j].xaxis.set_major_locator(ticker.MultipleLocator(tick_spacing))
+            axs[i,j].yaxis.set_major_locator(ticker.MultipleLocator(tick_spacing))
+            if j == 0:
+                ylabel = 'PC{idx} ({var}%)'.format( idx=str(i+2), var=int(100*round(pca_var[i+1], ndigits=2)) )
+                axs[i,j].set_ylabel(ylabel, fontsize=12)
+            if i == (num_comp-2):
+                xlabel = 'PC{idx} ({var}%)'.format( idx=str(j+1), var=int(100*round(pca_var[j], ndigits=2)) )
+                axs[i,j].set_xlabel(xlabel, fontsize=12)
+    plt.tight_layout()
     plt.savefig(save_fn, format='pdf')
     plt.clf()
 
-#make_pca(df)
+
