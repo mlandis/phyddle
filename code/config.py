@@ -40,7 +40,7 @@ my_sim_args = {
     'num_proc'          : -2,
     'sample_population' : ['S'],
     'stop_floor_sizes'  : 0,
-    'stop_ceil_sizes'   : 300                # MASTER seems to generate too many taxa?
+    'stop_ceil_sizes'   : 400                # MASTER seems to generate too many taxa?
 } | my_all_args
 
 

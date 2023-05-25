@@ -29,9 +29,9 @@ my_mdl_args = {
         'S0'        : sp.stats.uniform.rvs },
     'rv_arg' : {
         'R0'        : { 'loc': 1., 'scale' : 9. },
-        'recovery'  : { 'loc': 0., 'scale' : 1. },
-        'sampling'  : { 'loc': 0., 'scale' : 1./10. },
-        'migration' : { 'loc': 0., 'scale' : 1./10. },
+        'recovery'  : { 'loc': 0., 'scale' : 1./10. },
+        'sampling'  : { 'loc': 0., 'scale' : 1./50. },
+        'migration' : { 'loc': 0., 'scale' : 1./50. },
         'S0'        : { 'loc': 1000., 'scale': 9000. }
     }
 }
@@ -42,7 +42,7 @@ my_mdl_args = {
 my_sim_args = {
     'sim_dir'           : '../raw_data',
     'start_idx'         : 0,
-    'end_idx'           : 100,
+    'end_idx'           : 10,
     'tree_sizes'        : [ 200, 500 ],
     'use_parallel'      : True,
     'num_proc'          : -2,
