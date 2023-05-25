@@ -16,6 +16,8 @@ import dendropy as dp
 import matplotlib.pyplot as plt
 import tensorflow as tf
 
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
 from sklearn import metrics
 from collections import Counter
 from itertools import chain, combinations
@@ -143,6 +145,7 @@ def load_config(config_fn, arg_overwrite=True):
     # overwrite config_fn is argument passed
     if arg_overwrite and args.config_fn != None:
         config_fn = args.config_fn
+    config_fn = config_fn.rstrip('.py')
     
     # config from file
     m = importlib.import_module(config_fn)
@@ -1501,3 +1504,65 @@ def make_experiment_density_plots(ref_pred_ape, ref_phylo_ape,
 
         # print summary stats
 
+
+
+############
+# plotting #
+############
+
+
+
+
+# ax = sns.heatmap(pcamodel.components_,
+#                  cmap='YlGnBu',
+#                  yticklabels=[ "PCA"+str(x) for x in range(1,pcamodel.n_components_+1)],
+#                  xticklabels=list(x.columns),
+#                  cbar_kws={"orientation": "horizontal"})
+# ax.set_aspect("equal")
+
+# def myplot(score,coeff,labels=None):
+#     xs = score[:,0]
+#     ys = score[:,1]
+#     n = coeff.shape[0]
+#     scalex = 1.0/(xs.max() - xs.min())
+#     scaley = 1.0/(ys.max() - ys.min())
+#     plt.scatter(xs * scalex,ys * scaley,s=5)
+#     for i in range(n):
+#         plt.arrow(0, 0, coeff[i,0], coeff[i,1],color = 'r',alpha = 0.5)
+#         if labels is None:
+#             plt.text(coeff[i,0]* 1.15, coeff[i,1] * 1.15, "Var"+str(i+1), color = 'green', ha = 'center', va = 'center')
+#         else:
+#             plt.text(coeff[i,0]* 1.15, coeff[i,1] * 1.15, labels[i], color = 'g', ha = 'center', va = 'center')
+ 
+#     plt.xlabel("PC{}".format(1))
+#     plt.ylabel("PC{}".format(2))
+#     plt.grid()
+
+# myplot(pca[:,0:2],np.transpose(pcamodel.components_[0:2, :]),list(x.columns))
+# plt.show()
+
+
+
+def concat_csv(fp):
+    files = os.listdir(fp)
+    files = [ x for x in files if 'param2' in x ]
+    df = pd.concat(map(pd.read_csv, files))
+    return df
+
+
+def make_pca(df, num_comp=4):
+    x = StandardScaler().fit_transform(df)
+    x = pd.DataFrame(x, columns=df.columns)
+    pca_model = PCA(n_components=num_comp)
+    pca = pca_model.fit_transform(x)
+    print(pca_model.explained_variance_ratio_)
+    print(sum(pca_model.explained_variance_ratio_))
+    fig, axs = plt.subplots(num_comp-1, num_comp-1, sharex=True, sharey=True)
+    for i in range(0, num_comp-1):
+        for j in range(i+1, num_comp):
+            print(i,j)
+            axs[i,j-1].scatter( pca[:,i], pca[:,j], alpha=0.2 )
+
+    plt.show()
+
+#make_pca(df)
