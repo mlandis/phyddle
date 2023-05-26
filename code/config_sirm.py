@@ -29,10 +29,10 @@ my_mdl_args = {
         'S0'        : sp.stats.uniform.rvs },
     'rv_arg' : {
         'R0'        : { 'loc': 1., 'scale' : 9. },
-        'recovery'  : { 'loc': 0.01, 'scale' : 0.04 },
-        'sampling'  : { 'loc': 0.0001, 'scale' : 0.0049 },
-        'migration' : { 'loc': 0.0001, 'scale' : 0.0049 },
-        'S0'        : { 'loc': 100000., 'scale': 400000. }
+        'recovery'  : { 'loc': 0.01, 'scale' : 0.09 },
+        'sampling'  : { 'loc': 0.10, 'scale' : 0.90 },
+        'migration' : { 'loc': 0.10, 'scale' : 0.90 },
+        'S0'        : { 'loc': 1000., 'scale': 4000. }
     }
 }
 
@@ -44,7 +44,7 @@ my_sim_args = {
     'start_idx'         : 0,
     'end_idx'           : 10,
     'tree_sizes'        : [ 200, 500 ],
-    'stop_time'         : 100,
+    'stop_time'         : 10,
     'use_parallel'      : True,
     'num_proc'          : -2,
     'sample_population' : ['S'],
@@ -70,7 +70,7 @@ my_lrn_args = {
     'fmt_dir'        : '../tensor_data',
     'net_dir'        : '../network',
     'plt_dir'        : '../plot',
-    'tree_size'      : 200,
+    'tree_size'      : 500,
     'tree_type'      : 'serial',
     'num_char'       : NUM_LOC,
     'num_epochs'     : 20,

@@ -1556,7 +1556,7 @@ def plot_ss_param_hist(df, save_fn):
     plt.savefig(save_fn, format='pdf')
     plt.clf()
 
-def plot_pca(df, save_fn, num_comp=4, f_show=0.1):
+def plot_pca(df, save_fn, num_comp=4, f_show=1.0):
     x = StandardScaler().fit_transform(df)
     x = pd.DataFrame(x, columns=df.columns)
     nrow_keep = int(x.shape[1] * f_show)
