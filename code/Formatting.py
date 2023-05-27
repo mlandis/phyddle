@@ -49,9 +49,9 @@ class InputFormatter:
                 # check that all necessary files exist
                 #all_files = [self.in_dir+'/sim.'+str(idx)+'.'+x for x in ['cdvs.csv','cblvs.csv','param2.csv','summ_stat.csv']]
                 if self.tree_type == 'serial':
-                    all_files = [self.in_dir+'/sim.'+str(idx)+'.'+x for x in ['cblvs.csv','param2.csv','summ_stat.csv']]
+                    all_files = [self.in_dir+'/sim.'+str(idx)+'.'+x for x in ['cblvs.csv','param_row.csv','summ_stat.csv']]
                 elif self.tree_type == 'extant':
-                    all_files = [self.in_dir+'/sim.'+str(idx)+'.'+x for x in ['cdvs.csv','param2.csv','summ_stat.csv']]
+                    all_files = [self.in_dir+'/sim.'+str(idx)+'.'+x for x in ['cdvs.csv','param_row.csv','summ_stat.csv']]
                 else:
                     raise NotImplementedError
                 all_files_valid = all( [os.path.isfile(fn) for fn in all_files] )
@@ -109,7 +109,7 @@ class InputFormatter:
             # labels input tensor
             with open(out_labels_fn, 'w') as outfile:
                 for j,i in enumerate(size_sort[tree_size]):
-                    fname = self.in_dir + '/' + 'sim.' + str(i) + '.param2.csv'
+                    fname = self.in_dir + '/' + 'sim.' + str(i) + '.param_row.csv'
                     with open(fname, 'r') as infile:
                         if j == 0:
                             s = infile.read()

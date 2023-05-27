@@ -40,6 +40,16 @@ class Simulator:
         self.rep_idx           = list(range(self.start_idx, self.end_idx))
         return
 
+    def make_settings_str(self, idx, mtx_size):
+
+        s = 'setting,value\n'
+        s += 'job_name,' + self.job_name + '\n'
+        s += 'model_name,' + self.model.model_type + '\n'
+        s += 'model_variant,' + self.model.model_variant + '\n'
+        s += 'replicate_index,' + str(idx) + '\n'
+        s += 'taxon_category,' + str(mtx_size) + '\n'
+        return s
+
     def run(self):
         # prepare workspace
         os.makedirs( self.sim_dir + '/' + self.job_name, exist_ok=True )
@@ -62,25 +72,33 @@ class Simulator:
         # make filenames
         out_path  = self.sim_dir + '/' + self.job_name + '/sim'
         tmp_fn    = out_path + '.' + str(idx)
-        geo_fn    = tmp_fn + '.geosse.nex'
-        tre_fn    = tmp_fn + '.tre'
-        prune_fn  = tmp_fn + '.extant.tre'
+        # geo_fn    = tmp_fn + '.geosse.nex'
+        # tre_fn    = tmp_fn + '.tre'
+        # prune_fn  = tmp_fn + '.extant.tre'
         beast_fn  = tmp_fn + '.beast.log'
         xml_fn    = tmp_fn + '.xml'
-        nex_fn    = tmp_fn + '.nex'
+        # nex_fn    = tmp_fn + '.nex'
         #json_fn   = tmp_fn + '.json'
-        cblvs_fn  = tmp_fn + '.cblvs.csv'
-        cdvs_fn   = tmp_fn + '.cdvs.csv'
-        param1_fn = tmp_fn + '.param1.csv'
-        param2_fn = tmp_fn + '.param2.csv'
-        ss_fn     = tmp_fn + '.summ_stat.csv'
-        info_fn   = tmp_fn + '.info.csv'
+        # cblvs_fn  = tmp_fn + '.cblvs.csv'
+        # cdvs_fn   = tmp_fn + '.cdvs.csv'
+        param_mtx_fn = tmp_fn + '.param_col.csv'
+        param_vec_fn = tmp_fn + '.param_row.csv'
+        # ss_fn     = tmp_fn + '.summ_stat.csv'
+        # info_fn   = tmp_fn + '.info.csv'
 
         # refresh model and update XML string (redraw parameters, etc.)
         self.refresh_model(idx)
-        int2vec = self.model.states.int2vec
-        int2vecstr = self.model.states.int2vecstr #[ ''.join([str(y) for y in x]) for x in int2vec ]
-        vecstr2int = self.model.states.vecstr2int #{ v:i for i,v in enumerate(int2vecstr) }
+        # int2vec = self.model.states.int2vec
+        # int2vecstr = self.model.states.int2vecstr #[ ''.join([str(y) for y in x]) for x in int2vec ]
+        # vecstr2int = self.model.states.vecstr2int #{ v:i for i,v in enumerate(int2vecstr) }
+
+        # record labels (simulating parameters)
+        param_mtx_str,param_vec_str = Utilities.param_dict_to_str(self.model.params)
+        #param1_str = Utilities.clean_scientific_notation(param1_str)
+        #param2_str = Utilities.clean_scientific_notation(param2_str)
+        Utilities.write_to_file(param_mtx_str, param_mtx_fn)
+        Utilities.write_to_file(param_vec_str, param_vec_fn)
+        
 
         # make XML file
         xml_str = self.xml_str
@@ -91,6 +109,8 @@ class Simulator:
         beast_out = subprocess.check_output(cmd_str, shell=True, text=True, stderr=subprocess.STDOUT)
         Utilities.write_to_file(beast_out, beast_fn)
 
+
+        
         # # verify tree size & existence!
         # result_str     = ''
         # n_taxa_idx     = Utilities.get_num_taxa(tre_fn, idx, self.tree_sizes)

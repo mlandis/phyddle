@@ -98,7 +98,7 @@ class Plotter:
             labels=self.test_labels.iloc[0:self.test_labels_max_idx].to_numpy(),
             param_names=self.param_names,
             prefix=self.network_prefix+'_test',
-            color="gold",
+            color="purple",
             plot_dir=self.plt_job_dir,
             title='Test predictions')
 

@@ -115,13 +115,6 @@ class Encoder:
         info_str = self.make_settings_str(idx, mtx_size)
         Utilities.write_to_file(info_str, info_fn)
 
-        # record labels (simulating parameters)
-        param1_str,param2_str = Utilities.param_dict_to_str(self.model.params)
-        #param1_str = Utilities.clean_scientific_notation(param1_str)
-        #param2_str = Utilities.clean_scientific_notation(param2_str)
-        Utilities.write_to_file(param1_str, param1_fn)
-        Utilities.write_to_file(param2_str, param2_fn)
-
         # record CBLVS data
         cblvs_str = np.array2string(cblvs, separator=',', max_line_width=1e200, threshold=1e200, edgeitems=1e200, precision=10, floatmode='maxprec')
         cblvs_str = cblvs_str.replace(' ','').replace('.,',',').strip('[].') + '\n'
