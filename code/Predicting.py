@@ -92,12 +92,17 @@ class Predictor:
 
     def make_results(self):
 
+        # load model
         self.mymodel              = tf.keras.models.load_model(self.model_sav_fn)
+
+        # get predictions
         norm_preds                = self.mymodel.predict([self.test_data_tensor, self.test_stats_tensor])
         denormalized_pred_labels  = Utilities.denormalize(norm_preds, self.train_label_means, self.train_label_sd)
         self.pred_labels          = np.exp( denormalized_pred_labels )
-
         print(self.pred_labels)
+
+        # get confidence intervals
+        # TBD
         
         return
     
