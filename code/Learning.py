@@ -197,9 +197,9 @@ class CnnLearner(Learner):
         self.test_data_tensor  = full_data[test_idx,:]
 
         # summary stats
-        self.train_stats_tensor = full_stats[train_idx,:]
-        self.val_stats_tensor   = full_stats[val_idx,:]
-        self.test_stats_tensor  = full_stats[test_idx,:]
+        self.train_stats_tensor = self.norm_train_stats #full_stats[train_idx,:]
+        self.val_stats_tensor   = self.norm_val_stats #full_stats[val_idx,:]
+        self.test_stats_tensor  = self.norm_test_stats #full_stats[test_idx,:]
         
         return
     
@@ -274,20 +274,18 @@ class CnnLearner(Learner):
         # scatter plot training prediction to truth
         max_idx = 1000
 
-        normalized_train_preds_thin = self.mymodel.predict([self.train_data_tensor[0:max_idx,:,:], self.train_stats_tensor[0:max_idx,:]])
-        train_preds = Utilities.denormalize(normalized_train_preds_thin, self.train_label_means, self.train_label_sd)
-        self.train_preds = np.exp(train_preds)
-
-        denormalized_train_labels = Utilities.denormalize(self.norm_train_labels[0:max_idx,:], self.train_label_means, self.train_label_sd)
+        normalized_train_preds_thin    = self.mymodel.predict([self.train_data_tensor[0:max_idx,:,:], self.train_stats_tensor[0:max_idx,:]])
+        train_preds                    = Utilities.denormalize(normalized_train_preds_thin, self.train_label_means, self.train_label_sd)
+        self.train_preds               = np.exp(train_preds)
+        denormalized_train_labels      = Utilities.denormalize(self.norm_train_labels[0:max_idx,:], self.train_label_means, self.train_label_sd)
         self.denormalized_train_labels = np.exp(denormalized_train_labels)
 
         # scatter plot test prediction to truth
-        normalized_test_preds = self.mymodel.predict([self.test_data_tensor, self.test_stats_tensor])
-        test_preds = Utilities.denormalize(normalized_test_preds, self.train_label_means, self.train_label_sd)
-        self.test_preds = np.exp(test_preds)
-
-        denormalized_test_labels = Utilities.denormalize(self.norm_test_labels, self.train_label_means, self.train_label_sd)
-        self.denormalized_test_labels = np.exp(denormalized_test_labels)
+        normalized_test_preds          = self.mymodel.predict([self.test_data_tensor, self.test_stats_tensor])
+        test_preds                     = Utilities.denormalize(normalized_test_preds, self.train_label_means, self.train_label_sd)
+        self.test_preds                = np.exp(test_preds)
+        denormalized_test_labels       = Utilities.denormalize(self.norm_test_labels, self.train_label_means, self.train_label_sd)
+        self.denormalized_test_labels  = np.exp(denormalized_test_labels)
         
         return
     
@@ -308,10 +306,10 @@ class CnnLearner(Learner):
         df_labels.to_csv(self.model_trn_lbl_norm_fn, index=False, sep=',')
 
         # save train prediction scatter data
-        df_train_pred = pd.DataFrame( self.train_preds[0:1000,:], columns=self.param_names )
+        df_train_pred   = pd.DataFrame( self.train_preds[0:1000,:], columns=self.param_names )
         df_train_labels = pd.DataFrame( self.denormalized_train_labels[0:1000,:], columns=self.param_names )
-        df_test_pred = pd.DataFrame( self.test_preds[0:1000,:], columns=self.param_names )
-        df_test_labels = pd.DataFrame( self.denormalized_test_labels[0:1000,:], columns=self.param_names )
+        df_test_pred    = pd.DataFrame( self.test_preds[0:1000,:], columns=self.param_names )
+        df_test_labels  = pd.DataFrame( self.denormalized_test_labels[0:1000,:], columns=self.param_names )
         df_train_pred.to_csv(self.train_pred_fn, index=False, sep=',')
         df_train_labels.to_csv(self.train_labels_fn, index=False, sep=',')
         df_test_pred.to_csv(self.test_pred_fn, index=False, sep=',')

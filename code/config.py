@@ -104,7 +104,6 @@ my_all_args = my_all_args | my_plt_args
 
 my_prd_args = {
     'pred_dir'    : '../raw_data/my_job_new',
-    'pred_phy_fn' : 'sim.0.tre',
-    'pred_nex_fn' : 'sim.0.nex'
+    'pred_prefix' : 'sim.0'
 }
 my_all_args = my_all_args | my_prd_args
