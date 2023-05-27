@@ -96,3 +96,15 @@ my_plt_args = {
     'network_prefix' : 'sim_batchsize128_numepoch20_nt200'
 }
 my_all_args = my_all_args | my_plt_args
+
+
+#######################
+# PREDICTING SETTINGS #
+#######################
+
+my_prd_args = {
+    'pred_dir'    : '../raw_data/my_job_new',
+    'pred_phy_fn' : 'sim.0.tre',
+    'pred_nex_fn' : 'sim.0.nex'
+}
+my_all_args = my_all_args | my_prd_args
