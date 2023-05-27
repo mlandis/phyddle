@@ -40,16 +40,6 @@ class Simulator:
         self.rep_idx           = list(range(self.start_idx, self.end_idx))
         return
 
-    def make_settings_str(self, idx, mtx_size):
-
-        s = 'setting,value\n'
-        s += 'job_name,' + self.job_name + '\n'
-        s += 'model_name,' + self.model.model_type + '\n'
-        s += 'model_variant,' + self.model.model_variant + '\n'
-        s += 'replicate_index,' + str(idx) + '\n'
-        s += 'taxon_category,' + str(mtx_size) + '\n'
-        return s
-
     def run(self):
         # prepare workspace
         os.makedirs( self.sim_dir + '/' + self.job_name, exist_ok=True )
@@ -101,83 +91,84 @@ class Simulator:
         beast_out = subprocess.check_output(cmd_str, shell=True, text=True, stderr=subprocess.STDOUT)
         Utilities.write_to_file(beast_out, beast_fn)
 
-        # verify tree size & existence!
-        result_str     = ''
-        n_taxa_idx     = Utilities.get_num_taxa(tre_fn, idx, self.tree_sizes)
-        taxon_size_idx = Utilities.find_taxon_size(n_taxa_idx, self.tree_sizes)
+        # # verify tree size & existence!
+        # result_str     = ''
+        # n_taxa_idx     = Utilities.get_num_taxa(tre_fn, idx, self.tree_sizes)
+        # taxon_size_idx = Utilities.find_taxon_size(n_taxa_idx, self.tree_sizes)
 
-        # handle simulation based on tree size
-        if n_taxa_idx > np.max(self.tree_sizes):
-            # too many taxa
-            result_str = '- replicate {idx} simulated n_taxa={nt}'.format(idx=idx, nt=n_taxa_idx)
-            return result_str
-        elif n_taxa_idx <= 0:
-            # no taxa
-            result_str = '- replicate {idx} simulated n_taxa={nt}'.format(idx=idx, nt=n_taxa_idx)
-            return result_str
-        else:
-            # valid number of taxa
-            result_str = '+ replicate {idx} simulated n_taxa={nt}'.format(idx=idx, nt=n_taxa_idx)
+        # # handle simulation based on tree size
+        # if n_taxa_idx > np.max(self.tree_sizes):
+        #     # too many taxa
+        #     result_str = '- replicate {idx} simulated n_taxa={nt}'.format(idx=idx, nt=n_taxa_idx)
+        #     return result_str
+        # elif n_taxa_idx <= 0:
+        #     # no taxa
+        #     result_str = '- replicate {idx} simulated n_taxa={nt}'.format(idx=idx, nt=n_taxa_idx)
+        #     return result_str
+        # else:
+        #     # valid number of taxa
+        #     result_str = '+ replicate {idx} simulated n_taxa={nt}'.format(idx=idx, nt=n_taxa_idx)
 
-            # generate extinct-pruned tree
-            prune_success = Utilities.make_prune_phy(tre_fn, prune_fn)
+        #     # generate extinct-pruned tree
+        #     prune_success = Utilities.make_prune_phy(tre_fn, prune_fn)
 
-            # MJL 230411: probably too aggressive, should revisit
-            #if not prune_success:
-            #    next
+        #     # MJL 230411: probably too aggressive, should revisit
+        #     #if not prune_success:
+        #     #    next
 
-            # generate nexus file 0/1 ranges
-            taxon_states,nexus_str = Utilities.convert_nex(nex_fn, tre_fn, int2vec)
-            Utilities.write_to_file(nexus_str, geo_fn)
+        #     # generate nexus file 0/1 ranges
+        #     taxon_states,nexus_str = Utilities.convert_nex(nex_fn, tre_fn, int2vec)
+        #     Utilities.write_to_file(nexus_str, geo_fn)
 
-            # then get CBLVS working
-            cblv,new_order = Utilities.vectorize_tree(tre_fn, max_taxa=taxon_size_idx, prob=1.0 )
-            cblvs = Utilities.make_cblvs_geosse(cblv, taxon_states, new_order)
+        #     # then get CBLVS working
+        #     cblv,new_order = Utilities.vectorize_tree(tre_fn, max_taxa=taxon_size_idx, prob=1.0 )
+        #     cblvs = Utilities.make_cblvs_geosse(cblv, taxon_states, new_order)
         
-            # NOTE: this if statement should not be needed, but for some reason the "next"
-            # seems to run even when make_prune_phy returns False
-            # generate CDVS file
-            if prune_success:
-                cdvs = Utilities.make_cdvs(prune_fn, taxon_size_idx, taxon_states, int2vecstr)
+        #     # NOTE: this if statement should not be needed, but for some reason the "next"
+        #     # seems to run even when make_prune_phy returns False
+        #     # generate CDVS file
+        #     if prune_success:
+        #         cdvs = Utilities.make_cdvs(prune_fn, taxon_size_idx, taxon_states, int2vecstr)
 
-            # output files
-            mtx_size = cblv.shape[1]
+        #     # output files
+        #     mtx_size = cblv.shape[1]
 
         # record info
-        info_str = self.make_settings_str(idx, mtx_size)
-        Utilities.write_to_file(info_str, info_fn)
+        # info_str = self.make_settings_str(idx, mtx_size)
+        # Utilities.write_to_file(info_str, info_fn)
 
-        # record labels (simulating parameters)
-        param1_str,param2_str = Utilities.param_dict_to_str(self.model.params)
-        #param1_str = Utilities.clean_scientific_notation(param1_str)
-        #param2_str = Utilities.clean_scientific_notation(param2_str)
-        Utilities.write_to_file(param1_str, param1_fn)
-        Utilities.write_to_file(param2_str, param2_fn)
+        # # record labels (simulating parameters)
+        # param1_str,param2_str = Utilities.param_dict_to_str(self.model.params)
+        # #param1_str = Utilities.clean_scientific_notation(param1_str)
+        # #param2_str = Utilities.clean_scientific_notation(param2_str)
+        # Utilities.write_to_file(param1_str, param1_fn)
+        # Utilities.write_to_file(param2_str, param2_fn)
 
-        # record CBLVS data
-        cblvs_str = np.array2string(cblvs, separator=',', max_line_width=1e200, threshold=1e200, edgeitems=1e200, precision=10, floatmode='maxprec')
-        cblvs_str = cblvs_str.replace(' ','').replace('.,',',').strip('[].') + '\n'
-        #cblvs_str = re.sub( '\.0+E\+0+', '', cblvs_str)
-        #cblvs_str = Utilities.clean_scientific_notation(cblvs_str)
-        #print(cblvs_str)
-        Utilities.write_to_file(cblvs_str, cblvs_fn)
+        # # record CBLVS data
+        # cblvs_str = np.array2string(cblvs, separator=',', max_line_width=1e200, threshold=1e200, edgeitems=1e200, precision=10, floatmode='maxprec')
+        # cblvs_str = cblvs_str.replace(' ','').replace('.,',',').strip('[].') + '\n'
+        # #cblvs_str = re.sub( '\.0+E\+0+', '', cblvs_str)
+        # #cblvs_str = Utilities.clean_scientific_notation(cblvs_str)
+        # #print(cblvs_str)
+        # Utilities.write_to_file(cblvs_str, cblvs_fn)
 
-        # record CDVS data
-        if prune_success:
-            cdvs = cdvs.to_numpy()
-            cdvs_str = np.array2string(cdvs, separator=',', max_line_width=1e200, threshold=1e200, edgeitems=1e200, precision=10, floatmode='maxprec')
-            cdvs_str = cdvs_str.replace(' ','').replace('.,',',').strip('[].') + '\n'
-            #cdvs_str = Utilities.clean_scientific_notation(cdvs_str)
-            Utilities.write_to_file(cdvs_str, cdvs_fn)
+        # # record CDVS data
+        # if prune_success:
+        #     cdvs = cdvs.to_numpy()
+        #     cdvs_str = np.array2string(cdvs, separator=',', max_line_width=1e200, threshold=1e200, edgeitems=1e200, precision=10, floatmode='maxprec')
+        #     cdvs_str = cdvs_str.replace(' ','').replace('.,',',').strip('[].') + '\n'
+        #     #cdvs_str = Utilities.clean_scientific_notation(cdvs_str)
+        #     Utilities.write_to_file(cdvs_str, cdvs_fn)
 
-        # record summ stat data
-        ss = Utilities.make_summ_stat(tre_fn, geo_fn, vecstr2int)
-        ss_str = Utilities.make_summ_stat_str(ss)
-        #ss_str = Utilities.clean_scientific_notation(ss_str) #re.sub( '\.0+E\+0+', '', ss_str)
-        Utilities.write_to_file(ss_str, ss_fn)
+        # # record summ stat data
+        # ss = Utilities.make_summ_stat(tre_fn, geo_fn, vecstr2int)
+        # ss_str = Utilities.make_summ_stat_str(ss)
+        # #ss_str = Utilities.clean_scientific_notation(ss_str) #re.sub( '\.0+E\+0+', '', ss_str)
+        # Utilities.write_to_file(ss_str, ss_fn)
 
-        # return status string
-        return result_str
+        # # return status string
+        # return result_str
+        return
 
 class MasterSimulator(Simulator):
     def __init__(self, args, mdl):

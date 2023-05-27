@@ -24,8 +24,11 @@ class InputFormatter:
         os.makedirs(self.out_dir, exist_ok=True)
 
         # collect files with replicate info
+        print(self.in_dir)
         files = os.listdir(self.in_dir)
         info_files = [ x for x in files if 'info' in x ]
+
+        print(info_files)
 
         # sort replicate indices into size-category lists
         size_sort = {}

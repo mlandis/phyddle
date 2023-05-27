@@ -4,17 +4,17 @@
 # PHYDDLE IMPORTS #
 ###################
 
-import InputFormatter
+import Formatting
 import Utilities
 
 ########################
 # LOAD PIPELINE CONFIG #
 ########################
 
-my_config = Utilities.load_config('config', arg_overwrite=True)
+my_args = Utilities.load_config('config', arg_overwrite=True)
 
-my_all_args = my_config.my_all_args
-my_fmt_args = my_config.my_fmt_args
+# my_all_args = my_config.my_all_args
+# my_fmt_args = my_config.my_fmt_args
 
 
 #########################
@@ -22,8 +22,8 @@ my_fmt_args = my_config.my_fmt_args
 #########################
 
 # formatter prepares tensor format
-MyInputFormatter = InputFormatter.InputFormatter
-my_fmt = MyInputFormatter(my_fmt_args)
+MyInputFormatter = Formatting.InputFormatter
+my_fmt = MyInputFormatter(my_args)
 
 
 ################

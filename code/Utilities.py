@@ -155,17 +155,19 @@ def load_config(config_fn, arg_overwrite=True):
     if args.job_name != None:
         m.my_all_args['job_name'] = args.job_name
     if args.start_idx != None:
-        m.my_sim_args['start_idx'] = args.start_idx
+        m.my_all_args['start_idx'] = args.start_idx
     if args.end_idx != None:
-        m.my_sim_args['end_idx'] = args.end_idx
-
+        m.my_all_args['end_idx'] = args.end_idx
+    
     # update args    
-    m.my_sim_args = m.my_sim_args | m.my_all_args
-    m.my_fmt_args = m.my_fmt_args | m.my_all_args
-    m.my_lrn_args = m.my_lrn_args | m.my_all_args
+    # m.my_sim_args = m.my_sim_args | m.my_all_args
+    # m.my_fmt_args = m.my_fmt_args | m.my_all_args
+    # m.my_lrn_args = m.my_lrn_args | m.my_all_args
+    # m.my_plt_args = m.my_plt_args | m.my_plt_args
+    # m.my_enc_args = m.my_enc_args | m.my_enc_args
 
     # return new args
-    return m
+    return m.my_all_args
 
 
 
@@ -493,14 +495,17 @@ def make_cdvs(tree_fn, max_len, states, state_labels):
     #for x in extra_info:
     #    complete_info = np.append( complete_info, np.repeat(x, nrow).reshape(-1,1) )
     
-    # flatten
-    complete_info.reshape(-1)
-    
-    # make output
-    result = pd.DataFrame(complete_info) #, columns=[id + 0])
-    result = result.T
 
-    return result
+    # flatten
+    complete_info = complete_info.flatten() #reshape(-1)
+    #print(complete_info.shape)
+    
+    return complete_info
+    # make output
+    #result = pd.DataFrame(complete_info) #, columns=[id + 0])
+    #result = result.T
+
+    #return result
 
 
 
@@ -1319,12 +1324,12 @@ def create_train_val_test_tensors(full_tensor, num_validation, num_test):
 #######################
 
 def make_history_plot(history, prefix, plot_dir):
-    epochs      = range(1, len(history.history['loss']) + 1)
-    train_keys  = [ x for x in history.history.keys() if 'val' not in x ]
+    epochs      = range(1, len(history['loss']) + 1)
+    train_keys  = [ x for x in history.keys() if 'val' not in x ]
     val_keys = [ 'val_'+x for x in train_keys ]
     for i,v in enumerate(train_keys): #range(0,num_metrics):
-        plt.plot(epochs, history.history[train_keys[i]], 'bo', label = train_keys[i])
-        plt.plot(epochs, history.history[val_keys[i]], 'b', label = val_keys[i])
+        plt.plot(epochs, history[train_keys[i]], color='blue', label = train_keys[i])
+        plt.plot(epochs, history[val_keys[i]], color='red', label = val_keys[i])
         plt.title('Train and val ' + train_keys[i])
         plt.xlabel('Epochs')
         plt.ylabel(train_keys[i])
@@ -1334,13 +1339,13 @@ def make_history_plot(history, prefix, plot_dir):
         plt.clf()
 
 
-def plot_preds_labels(preds, labels, param_names, plot_dir, prefix, axis_labels = ["prediction", "truth"], title = ''):
+def plot_preds_labels(preds, labels, param_names, plot_dir, prefix, color="blue", axis_labels = ["prediction", "truth"], title = ''):
     for i in range(0, len(param_names)):
         plt.title(title)
-        plt.scatter(preds[:,i], labels[:,i], alpha =0.25)
+        plt.scatter(preds[:,i], labels[:,i], alpha =0.25, color=color)
         plt.xlabel(param_names[i] + " " +  axis_labels[0])
         plt.ylabel(param_names[i] + " " +  axis_labels[1])
-        plt.axline((np.min(labels[:,i]),np.min(labels[:,i])), slope = 1, color = 'red', alpha=0.75)
+        plt.axline((np.min(labels[:,i]),np.min(labels[:,i])), slope=1, color=color, alpha=0.75)
         save_fn = plot_dir + '/' + prefix + '_' + param_names[i] + '.pdf'
         plt.savefig(save_fn, format='pdf')
         plt.clf()
@@ -1556,7 +1561,7 @@ def plot_ss_param_hist(df, save_fn):
     plt.savefig(save_fn, format='pdf')
     plt.clf()
 
-def plot_pca(df, save_fn, num_comp=4, f_show=0.1):
+def plot_pca(df, save_fn, num_comp=4, f_show=1.0):
     x = StandardScaler().fit_transform(df)
     x = pd.DataFrame(x, columns=df.columns)
     nrow_keep = int(x.shape[1] * f_show)

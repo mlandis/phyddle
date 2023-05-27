@@ -26,16 +26,16 @@ class GeosseModel(Model.BaseModel):
     # assign initial arguments
     def set_args(self, args):
         super().set_args(args)
-        self.num_locations = args['num_locations']
-        self.num_ranges = 2**self.num_locations - 1
+        self.num_char = args['num_char']
+        self.num_ranges = 2**self.num_char - 1
         return
     
     # make model states
     def make_states(self):
-        num_locations = self.num_locations
-        vec        = [ x for x in itertools.product(range(2), repeat=num_locations) ][1:]
+        num_char = self.num_char
+        vec        = [ x for x in itertools.product(range(2), repeat=num_char) ][1:]
         vec        = sort_binary_vectors(vec)
-        letters    = string.ascii_uppercase[0:num_locations]
+        letters    = string.ascii_uppercase[0:num_char]
         lbl        = [ ''.join([ letters[i] for i,y in enumerate(x) if y == 1 ]) for x in vec ]
         lbl2vec    = { k:v for k,v in list(zip(lbl,vec)) }
         states     = States(lbl2vec)
@@ -58,32 +58,43 @@ class GeosseModel(Model.BaseModel):
         params = {}
         
         # get settings
-        num_locations = self.num_locations
+        num_char = self.num_char
         rv_fn = self.rv_fn
         rv_arg = self.rv_arg
 
         # build rates
         if model_variant == 'free_rates':
             params = {
-                    'w': rv_fn['w'](size=num_locations, random_state=self.rng, **rv_arg['w']),
-                    'e': rv_fn['e'](size=num_locations, random_state=self.rng, **rv_arg['e']),
-                    'd': rv_fn['d'](size=num_locations**2, random_state=self.rng, **rv_arg['d']).reshape((num_locations,num_locations)),
-                    'b': rv_fn['b'](size=num_locations**2, random_state=self.rng, **rv_arg['b']).reshape((num_locations,num_locations))
+                    'w': rv_fn['w'](size=num_char, random_state=self.rng, **rv_arg['w']),
+                    'e': rv_fn['e'](size=num_char, random_state=self.rng, **rv_arg['e']),
+                    'd': rv_fn['d'](size=num_char**2, random_state=self.rng, **rv_arg['d']).reshape((num_char,num_char)),
+                    'b': rv_fn['b'](size=num_char**2, random_state=self.rng, **rv_arg['b']).reshape((num_char,num_char))
                 }
             params['x'] = params['x']
 
         elif model_variant == 'equal_rates':
             params = {
-                    'w': np.full(num_locations, rv_fn['w'](size=1, random_state=self.rng, **rv_arg['w'])[0]),
-                    'e': np.full(num_locations, rv_fn['e'](size=1, random_state=self.rng, **rv_arg['e'])[0]),
-                    'd': np.full((num_locations,num_locations), rv_fn['d'](size=1, random_state=self.rng, **rv_arg['d'])[0]),
-                    'b': np.full((num_locations,num_locations), rv_fn['b'](size=1, random_state=self.rng, **rv_arg['b'])[0])
+                    'w': np.full(num_char, rv_fn['w'](size=1, random_state=self.rng, **rv_arg['w'])[0]),
+                    'e': np.full(num_char, rv_fn['e'](size=1, random_state=self.rng, **rv_arg['e'])[0]),
+                    'd': np.full((num_char,num_char), rv_fn['d'](size=1, random_state=self.rng, **rv_arg['d'])[0]),
+                    'b': np.full((num_char,num_char), rv_fn['b'](size=1, random_state=self.rng, **rv_arg['b'])[0])
                 }
             params['x'] = params['e']
 
         elif model_variant == 'fig_rates':
             params = {}
         
+        elif model_variant == 'carrying_capacity':
+            params = {
+                    'w': np.full(num_char, rv_fn['w'](size=1, random_state=self.rng, **rv_arg['w'])[0]),
+                    'e': np.full(num_char, rv_fn['e'](size=1, random_state=self.rng, **rv_arg['e'])[0]),
+                    'd': np.full((num_char,num_char), rv_fn['d'](size=1, random_state=self.rng, **rv_arg['d'])[0]),
+                    'b': np.full((num_char,num_char), rv_fn['b'](size=1, random_state=self.rng, **rv_arg['b'])[0]),
+                    'K_e': np.full(num_char, rv_fn['K_e'](size=1, random_state=self.rng, **rv_arg['K_e'])[0])
+                }
+            params['x'] = params['e']
+
+
         return params
     
     # GeoSSE extinction rate
@@ -117,7 +128,7 @@ class GeosseModel(Model.BaseModel):
                     new_bits[j] = 0
                     new_bits = tuple(new_bits)
                     new_state = states.vec2int[ new_bits ]
-                    name = 'r_e_{i}_{j}'.format(i=i, j=new_state)
+                    name = 'e_{i}_{j}'.format(i=i, j=new_state)
                     rate = rates[j]
                     #xml_str = 'S[{i}]:1 -> S[{j}]:1'.format(i=i, j=new_state)
                     ix = [ 'S[{i}]:1'.format(i=i) ]
@@ -138,7 +149,7 @@ class GeosseModel(Model.BaseModel):
                 # if region is occupied
                 if y == 1:
                     #new_state = j
-                    name = 'r_w_{i}_{i}_{j}'.format(i=i, j=j)
+                    name = 'w_{i}_{i}_{j}'.format(i=i, j=j)
                     rate = rates[j]
                     #xml_str = 'S[{i}]:1 -> S[{i}]:1 + S[{j}]:1'.format(i=i, j=new_state)
                     ix = [ 'S[{i}]:1'.format(i=i, j=j) ]
@@ -179,7 +190,7 @@ class GeosseModel(Model.BaseModel):
                 new_bits[y] = 1
                 #print(states.int2vec[i], '->', new_bits)
                 new_state = states.vec2int[ tuple(new_bits) ]
-                name = 'r_d_{i}_{j}'.format(i=i, j=new_state)
+                name = 'd_{i}_{j}'.format(i=i, j=new_state)
                 ix = [ 'S[{i}]:1'.format(i=i) ]
                 jx = [ 'S[{j}]:1'.format(j=new_state) ]
                 #xml_str = 'S[{i}]:1 -> S[{j}]:1'.format(i=i, j=new_state)
@@ -223,7 +234,7 @@ class GeosseModel(Model.BaseModel):
                 # create event
                 left_state = states.set2int[y] 
                 right_state = states.set2int[z]
-                name = 'r_b_{i}_{j}_{k}'.format(i=i, j=left_state, k=right_state)
+                name = 'b_{i}_{j}_{k}'.format(i=i, j=left_state, k=right_state)
                 rate = make_split_rate(y,z,rates)
                 all_rates.append(rate)
                 idx = {'i':i, 'j':left_state, 'k':right_state }

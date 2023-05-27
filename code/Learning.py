@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 import os
 import csv
+import json
 
 from PyPDF2 import PdfMerger
 
@@ -64,16 +65,23 @@ class Learner:
         os.makedirs(self.network_dir, exist_ok=True)
 
         # main job filenames
-        self.model_prefix    = f'sim_batchsize{self.batch_size}_numepoch{self.num_epochs}_nt{self.tree_size}'
-        self.model_csv_fn    = f'{self.network_dir}/{self.model_prefix}.csv'
-        self.model_sav_fn    = f'{self.network_dir}/{self.model_prefix}.hdf5'
-        self.input_stats_fn  = f'{self.input_dir}/sim.nt{self.tree_size}.summ_stat.csv'
-        self.input_labels_fn = f'{self.input_dir}/sim.nt{self.tree_size}.labels.csv'
+        self.model_prefix       = f'sim_batchsize{self.batch_size}_numepoch{self.num_epochs}_nt{self.tree_size}'
+        self.model_csv_fn       = f'{self.network_dir}/{self.model_prefix}.csv'
+        self.model_sav_fn       = f'{self.network_dir}/{self.model_prefix}.hdf5'
+        self.model_trn_lbl_norm_fn  = f'{self.network_dir}/{self.model_prefix}.train_label_norm.csv'
+        self.model_trn_ss_norm_fn   = f'{self.network_dir}/{self.model_prefix}.train_summ_stat_norm.csv'
+        self.model_hist_fn      = f'{self.network_dir}/{self.model_prefix}.train_history.json'
+        self.train_pred_fn      = f'{self.network_dir}/{self.model_prefix}.train_pred.csv'
+        self.train_labels_fn    = f'{self.network_dir}/{self.model_prefix}.train_labels.csv'
+        self.test_pred_fn       = f'{self.network_dir}/{self.model_prefix}.test_pred.csv'
+        self.test_labels_fn     = f'{self.network_dir}/{self.model_prefix}.test_labels.csv'
+        self.input_stats_fn     = f'{self.input_dir}/sim.nt{self.tree_size}.summ_stat.csv'
+        self.input_labels_fn    = f'{self.input_dir}/sim.nt{self.tree_size}.labels.csv'
         if self.tree_type == 'extant':
-            self.input_data_fn   = f'{self.input_dir}/sim.nt{self.tree_size}.cdvs.data.csv'
+            self.input_data_fn  = f'{self.input_dir}/sim.nt{self.tree_size}.cdvs.data.csv'
         elif self.tree_type == 'serial':
-            self.input_data_fn   = f'{self.input_dir}/sim.nt{self.tree_size}.cblvs.data.csv' 
-
+            self.input_data_fn  = f'{self.input_dir}/sim.nt{self.tree_size}.cblvs.data.csv' 
+        
         return
 
     def run(self):
@@ -162,6 +170,9 @@ class CnnLearner(Learner):
         # print(val_idx)
         # print(test_idx)
 
+        ## MJL need to save train_stats_means, train_stats_sd
+        # these will then be used to normalize new test data for predictions
+
         # normalize summary stats
         self.norm_train_stats, self.train_stats_means, self.train_stats_sd = Utilities.normalize( full_stats[train_idx,:] )
         self.norm_val_stats  = Utilities.normalize(full_stats[val_idx,:], (self.train_stats_means, self.train_stats_sd))
@@ -171,6 +182,14 @@ class CnnLearner(Learner):
         self.norm_train_labels, self.train_label_means, self.train_label_sd = Utilities.normalize( full_labels[train_idx,:] )
         self.norm_val_labels  = Utilities.normalize(full_labels[val_idx,:], (self.train_label_means, self.train_label_sd))
         self.norm_test_labels = Utilities.normalize(full_labels[test_idx,:], (self.train_label_means, self.train_label_sd))
+
+        # print(self.param_names)
+        # print(self.norm_train_labels)
+        # print(type(self.norm_train_labels))
+        # print(full_stats[0,:])
+        # df = pd.DataFrame( [self.stat_names, self.train_stats_means, self.train_stats_sd] ).T # columns=['name', 'mean', 'sd'] )
+        # df.columns = ['name', 'mean', 'sd']
+
 
         # create data tensors
         self.train_data_tensor = full_data[train_idx,:]
@@ -242,6 +261,9 @@ class CnnLearner(Learner):
             batch_size = self.batch_size, 
             validation_data = ([self.val_data_tensor, self.val_stats_tensor], self.norm_val_labels))
         
+        self.history_dict = self.history.history
+        #print(self.history2)
+        
         return
 
     def make_results(self):
@@ -251,7 +273,7 @@ class CnnLearner(Learner):
 
         # scatter plot training prediction to truth
         max_idx = 1000
-        
+
         normalized_train_preds_thin = self.mymodel.predict([self.train_data_tensor[0:max_idx,:,:], self.train_stats_tensor[0:max_idx,:]])
         train_preds = Utilities.denormalize(normalized_train_preds_thin, self.train_label_means, self.train_label_sd)
         self.train_preds = np.exp(train_preds)
@@ -272,55 +294,66 @@ class CnnLearner(Learner):
 
     def save_results(self):
 
-        # make history plots
-        Utilities.make_history_plot(self.history, prefix=self.model_prefix+'_train', plot_dir=self.plot_dir)
-        #cn.make_history_plot(self.history, plot_dir=self.plot_dir)
-
-        
-        # make scatter plots
-        Utilities.plot_preds_labels(preds=self.train_preds,
-                             labels=self.denormalized_train_labels,
-                             param_names=self.param_names,
-                             prefix=self.model_prefix+'_train',
-                             plot_dir=self.plot_dir,
-                             title='Train predictions')
-
-        # summarize results
-        Utilities.plot_preds_labels(preds=self.test_preds[0:1000,:],
-                             labels=self.denormalized_test_labels[0:1000,:],
-                             param_names=self.param_names,
-                             prefix=self.model_prefix+'_test',
-                             plot_dir=self.plot_dir,
-                             title='Test predictions')
-
-        # SAVE MODEL to FILE
-        all_means = self.train_label_means #np.append(train_label_means, train_aux_priors_means)
-        all_sd = self.train_label_sd #np.append(train_label_sd, train_aux_priors_sd)
-        with open(self.model_csv_fn, 'w') as file:
-            the_writer = csv.writer(file)
-            the_writer.writerow(np.append( 'mean_sd', self.param_names ))
-            the_writer.writerow(np.append( 'mean', all_means))
-            the_writer.writerow(np.append( 'sd', all_sd))
-
+        # save model to file
         self.mymodel.save(self.model_sav_fn)
 
-        # SAVE SUMM STAT & PARAM DIST TO FILE
-        #Utilities.concat_csv()
-        df_stats = pd.read_csv( self.input_stats_fn )
-        df_param = pd.read_csv( self.input_labels_fn )
-        df_all = pd.concat( [df_stats, df_param], axis=1 )
-        df_all = df_all.T.drop_duplicates().T
-        Utilities.plot_ss_param_hist(df=df_all, save_fn=self.plot_dir + '/' + self.model_prefix + '.summ_stat_param_hist.pdf')
-        Utilities.plot_pca(df=df_all, save_fn=self.plot_dir + '/' + self.model_prefix + '.summ_stat_param_pca.pdf')
+        # save summ_stat names, means, sd for new test dataset normalization
+        df_stats = pd.DataFrame( [self.stat_names, self.train_stats_means, self.train_stats_sd] ).T # columns=['name', 'mean', 'sd'] )
+        df_stats.columns = ['name', 'mean', 'sd']
+        df_stats.to_csv(self.model_trn_ss_norm_fn, index=False, sep=',')
+ 
+        # save label names, means, sd for new test dataset normalization
+        df_labels = pd.DataFrame( [self.param_names, self.train_label_means, self.train_label_sd] ).T # columns=['name', 'mean', 'sd'] )
+        df_labels.columns = ['name', 'mean', 'sd']
+        df_labels.to_csv(self.model_trn_lbl_norm_fn, index=False, sep=',')
 
+        # save train prediction scatter data
+        df_train_pred = pd.DataFrame( self.train_preds[0:1000,:], columns=self.param_names )
+        df_train_labels = pd.DataFrame( self.denormalized_train_labels[0:1000,:], columns=self.param_names )
+        df_test_pred = pd.DataFrame( self.test_preds[0:1000,:], columns=self.param_names )
+        df_test_labels = pd.DataFrame( self.denormalized_test_labels[0:1000,:], columns=self.param_names )
+        df_train_pred.to_csv(self.train_pred_fn, index=False, sep=',')
+        df_train_labels.to_csv(self.train_labels_fn, index=False, sep=',')
+        df_test_pred.to_csv(self.test_pred_fn, index=False, sep=',')
+        df_test_labels.to_csv(self.test_labels_fn, index=False, sep=',')
+        
+        #, self.denormalized_train_labels[0:1000,:] ], )
+        json.dump(self.history_dict, open(self.model_hist_fn, 'w'))
 
-        # merge pdfs
-        merger = PdfMerger()
-        files = os.listdir(self.plot_dir)
-        files.sort()
-        for f in files:
-            if '.pdf' in f and self.model_prefix in f and 'all_results.pdf' not in f:
-                merger.append(self.plot_dir + '/' + f)
+        # make history plots
+        ## Utilities.make_history_plot(self.history2, prefix=self.model_prefix+'_train', plot_dir=self.plot_dir)
 
-        merger.write(self.plot_dir+'/'+self.model_prefix+'_'+'all_results.pdf')
+        # # train prediction scatter plots
+        # Utilities.plot_preds_labels(preds=self.train_preds[0:1000,:],
+        #                      labels=self.denormalized_train_labels[0:1000,:],
+        #                      param_names=self.param_names,
+        #                      prefix=self.model_prefix+'_train',
+        #                      plot_dir=self.plot_dir,
+        #                      title='Train predictions')
+
+        # # test predicition scatter plots
+        # Utilities.plot_preds_labels(preds=self.test_preds[0:1000,:],
+        #                      labels=self.denormalized_test_labels[0:1000,:],
+        #                      param_names=self.param_names,
+        #                      prefix=self.model_prefix+'_test',
+        #                      plot_dir=self.plot_dir,
+        #                      title='Test predictions')
+
+        # # save PCA and summ_stat histograms
+        # df_stats = pd.read_csv( self.input_stats_fn )
+        # df_param = pd.read_csv( self.input_labels_fn )
+        # df_all = pd.concat( [df_stats, df_param], axis=1 )
+        # df_all = df_all.T.drop_duplicates().T
+        # Utilities.plot_ss_param_hist(df=df_all, save_fn=self.plot_dir + '/' + self.model_prefix + '.summ_stat_param_hist.pdf')
+        # Utilities.plot_pca(df=df_all, save_fn=self.plot_dir + '/' + self.model_prefix + '.summ_stat_param_pca.pdf')
+
+        # # combine pdfs
+        # merger = PdfMerger()
+        # files = os.listdir(self.plot_dir)
+        # files.sort()
+        # for f in files:
+        #     if '.pdf' in f and self.model_prefix in f and 'all_results.pdf' not in f:
+        #         merger.append(self.plot_dir + '/' + f)
+
+        # merger.write(self.plot_dir+'/'+self.model_prefix+'_'+'all_results.pdf')
         return

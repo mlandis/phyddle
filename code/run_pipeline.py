@@ -5,42 +5,43 @@
 ###################
 
 import ModelLoader
-import Simulator
-import InputFormatter
-import Learner
+import Simulating
+import Encoding
+import Formatting
+import Learning
+import Plotting
 import Utilities
 
 ########################
 # LOAD PIPELINE CONFIG #
 ########################
 
-my_config = Utilities.load_config('config', arg_overwrite=True)
-
-my_all_args = my_config.my_all_args
-my_mdl_args = my_config.my_mdl_args
-my_sim_args = my_config.my_sim_args
-my_fmt_args = my_config.my_fmt_args
-my_lrn_args = my_config.my_lrn_args
-
+my_args = Utilities.load_config('config', arg_overwrite=True)
 
 #########################
 # DEFINE PIPELINE STEPS #
 #########################
 
 # simulator samples from model
-MySimulator = Simulator.MasterSimulator
-#MySimulator = Simulator.PhyloJunction
-my_mdl = ModelLoader.load_model(my_mdl_args)
-my_sim = MySimulator(my_sim_args, my_mdl)
+MySimulator = Simulating.MasterSimulator
+my_mdl = ModelLoader.load_model(my_args)
+my_sim = MySimulator(my_args, my_mdl)
 
-# formatter prepares tensor format
-MyInputFormatter = InputFormatter.InputFormatter
-my_fmt = MyInputFormatter(my_fmt_args)
+# encoder converts raw data into matrices
+MyEncoder = Encoding.Encoder
+my_enc = MyEncoder(my_args, my_mdl)
+
+# formatter prepares entire dataset into single tensor
+MyFormatter = Formatting.InputFormatter
+my_fmt = MyFormatter(my_args)
 
 # trainer fits neural network
-MyLearner = Learner.CnnLearner
-my_lrn = MyLearner(my_lrn_args)
+MyLearner = Learning.CnnLearner
+my_lrn = MyLearner(my_args)
 
+# plotter generates figures
+MyPlotter = Plotting.Plotter
+my_plt = MyPlotter(my_args)
 
 ################
 # RUN PIPELINE #
@@ -49,12 +50,17 @@ my_lrn = MyLearner(my_lrn_args)
 # Step 1: run simulation
 my_sim.run()
 
-# Step 2: re-format output
+# Step 2: encode output
+my_enc.run()
+
+# Step 3: make tensor from output
 my_fmt.run()
 
-# Step 3: train network
+# Step 4: train network
 my_lrn.run()
 
-# Step 4: separate plotting functionality?
-# possibly better to have Learner save output tp file, then have Plotter generate figures
-# my_plt.run()
+# Step 5: plot results
+my_plt.run()
+
+# Step 6: predict against new test dataset
+# my_pred.run()
