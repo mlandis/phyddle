@@ -5,6 +5,8 @@ import numpy as np
 import os
 import csv
 import json
+#import pickle
+import dill # richer serialization than pickle
 
 from PyPDF2 import PdfMerger
 
@@ -71,6 +73,7 @@ class Learner:
         self.model_trn_lbl_norm_fn  = f'{self.network_dir}/{self.model_prefix}.train_label_norm.csv'
         self.model_trn_ss_norm_fn   = f'{self.network_dir}/{self.model_prefix}.train_summ_stat_norm.csv'
         self.model_hist_fn      = f'{self.network_dir}/{self.model_prefix}.train_history.json'
+        self.model_cpi_fn       = f'{self.network_dir}/{self.model_prefix}.cpi.obj'
         self.train_pred_fn      = f'{self.network_dir}/{self.model_prefix}.train_pred.csv'
         self.train_labels_fn    = f'{self.network_dir}/{self.model_prefix}.train_labels.csv'
         self.test_pred_fn       = f'{self.network_dir}/{self.model_prefix}.test_pred.csv'
@@ -200,7 +203,8 @@ class CnnLearner(Learner):
         self.train_stats_tensor = self.norm_train_stats #full_stats[train_idx,:]
         self.val_stats_tensor   = self.norm_val_stats #full_stats[val_idx,:]
         self.test_stats_tensor  = self.norm_test_stats #full_stats[test_idx,:]
-        
+        self.unnormalized_train_stats = full_stats[train_idx,:]
+
         return
     
     def build_network(self):
@@ -287,6 +291,22 @@ class CnnLearner(Learner):
         denormalized_test_labels       = Utilities.denormalize(self.norm_test_labels, self.train_label_means, self.train_label_sd)
         self.denormalized_test_labels  = np.exp(denormalized_test_labels)
         
+        # conformalized prediction interval functions
+        self.cpi_dict = {} # 'lower':[], 'upper':[] }
+        #print(self.train_preds)
+        #print(self.denormalized_train_labels)
+        for i,p in enumerate(self.param_names):
+            #print(i,p)
+            x_cpi = self.unnormalized_train_stats[:, [0,1,2]]
+            y_cpi = self.denormalized_train_labels[:, i]
+            #print(x_cpi)
+            #print(y_cpi.shape)
+            #print(y_cpi)
+            self.lower_cpi, self.upper_cpi = Utilities.get_CPI(x_cpi, y_cpi, frac=0.1, inner_quantile=0.95)
+            self.cpi_dict[p] = { 'lower' : self.lower_cpi, 'upper': self.upper_cpi }
+            #self.cpi_dict[p]['upper'] = self.upper_cpi
+
+
         return
     
 
@@ -318,6 +338,11 @@ class CnnLearner(Learner):
         #, self.denormalized_train_labels[0:1000,:] ], )
         json.dump(self.history_dict, open(self.model_hist_fn, 'w'))
 
+        # pickle CPI
+        cpi_file_obj = open(self.model_cpi_fn, 'wb')
+        dill.dump(self.cpi_dict, cpi_file_obj)
+        cpi_file_obj.close()
+        
         # make history plots
         ## Utilities.make_history_plot(self.history2, prefix=self.model_prefix+'_train', plot_dir=self.plot_dir)
 

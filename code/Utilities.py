@@ -5,6 +5,8 @@ import sys
 import random
 import re
 import os
+import itertools
+import dill
 
 # Call before importing Tensorflow to suppress INFO messages
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # or any {'0', '1', '2'}
@@ -1097,21 +1099,13 @@ def write_to_file(s, fn):
 # DATA DIMENSION/VALIDATION HELPERS #
 #####################################
 
-def get_num_taxa(tre_fn, k, max_taxa):
-    tree = None
+def get_num_taxa(tre_fn):
     try:
         tree = read_tree_file(tre_fn)
-        n_taxa_k = len(tree.get_leaves())
-        #if n_taxa_k > np.max(max_taxa):
-        #    #warning_str = '- replicate {k} simulated n_taxa={nt} (max_taxa={mt})'.format(k=k,nt=n_taxa_k,mt=max_taxa)
-        #    #print(warning_str)
-        #    return n_taxa_k #np.max(max_taxa)
+        num_taxa = len(tree.get_leaves())
     except ValueError:
-        #warning_str = '- replicate {k} simulated n_taxa=0'.format(k=k)
-        #print(warning_str)
         return 0
-    
-    return n_taxa_k
+    return num_taxa
 
 #################
 # SUMMARY STATS #
@@ -1590,45 +1584,54 @@ def plot_pca(df, save_fn, num_comp=4, f_show=1.0):
     plt.clf()
 
 
-def get_CPI(x, y, frac=0.1, inner_quantile=0.95):
+
+# x are the summstats to restrict the neighborhooed
+# y are the model parameters we're constructing CPI for
+def get_CPI2(x, y, idx=[0,1,2], frac=0.1, inner_quantile=0.95, num_grid_points=20):
     # Fit using residuals around CNN predictions
     # scale and shift columns 1 and 2 to have same spread as column 0
-    min_x0 = np.min(x[:,0])
-    max_x0 = np.max(x[:,0])
-    min_x1 = np.min(x[:,1])
-    max_x1 = np.max(x[:,1])
-    min_x2 = np.min(x[:,2])
-    max_x2 = np.max(x[:,2])
-    x[:,1] = min_x0 + (x[:,1] - min_x1)/(max_x1 - min_x1) * (max_x0 - min_x0)
-    x[:,2] = min_x0 + (x[:,2] - min_x2)/(max_x2 - min_x2) * (max_x0 - min_x0)
-    sorted_idx = np.lexsort((x[:,2], x[:,1], x[:,0]))  # Sort by multiple columns
+    num_idx = len(idx)
+    min_x = {}
+    max_x = {}
+    for i,k in enumerate(idx):
+        min_x[k] = np.min(x[:k])
+        max_x[k] = np.max(x[:k])
+        if i != 0:
+            x[:,k] = min_x[k] + (x[:,k] - min_x[k]) / (max_x[k]-min_x[k]) * (max_x[idx[0]] - min_x[idx[0]])
+    
+    sorted_idx = np.lexsort( tuple([ x[:,k] for k in idx])  )
     xx = x[sorted_idx,:]
     yy = y[sorted_idx]
     lower_q = (1-inner_quantile)/2
     upper_q = 1 - lower_q
     tree = KDTree(xx)
-    grid_points = 20
-    xvals = [np.linspace(np.min(xx[:, i]), np.max(xx[:, i]), grid_points) for i in range(3)]
-    local_lower_q = np.empty((grid_points, grid_points, grid_points))
-    local_upper_q = np.empty((grid_points, grid_points, grid_points))
+    print('ok!')
+    xvals = [np.linspace(np.min(xx[:, i]), np.max(xx[:, i]), num_grid_points) for i in range(num_idx)]
+    local_lower_q = np.empty( np.repeat(num_grid_points, num_idx) )
+    local_upper_q = np.empty( np.repeat(num_grid_points, num_idx) )
     num_frac = int(round(frac * xx.shape[0]))
-    for i in range(grid_points):
-        for j in range(grid_points):
-            for k in range(grid_points):
-                point = [xvals[0][i], xvals[1][j], xvals[2][k]]
-                dist, indices = tree.query(point, num_frac)
-                window_x = xx[indices, :]
-                window_y = yy[indices]
-                residuals = window_y - window_x[:, 0]  # Assuming y is 1-D
-                local_lower_q[i, j, k] = point[0] + np.quantile(residuals, lower_q)
-                local_upper_q[i, j, k] = point[0] + np.quantile(residuals, upper_q)
+
+    grid_idx_list = list(itertools.combinations_with_replacement(list(range(num_grid_points)), num_grid_points))
+
+    for grid_idx in grid_idx_list:
+        #point = [xvals[0][i], xvals[1][j], xvals[2][k]]
+        point = []
+        for j,k in enumerate(idx):
+            point.append( xvals[j][grid_idx[j]] )
+        
+        dist, indices = tree.query(point, num_frac)
+        window_x = xx[indices, :]
+        window_y = yy[indices]
+        residuals = window_y - window_x[:, 0]  # Assuming y is 1-D
+        local_lower_q[i, j, k] = point[0] + np.quantile(residuals, lower_q)
+        local_upper_q[i, j, k] = point[0] + np.quantile(residuals, upper_q)
+    
     # Create functions to interpolate the fits for out-of-sample values
     smoothed_lower_local_q = RegularGridInterpolator((xvals[0], xvals[1], xvals[2]),
                                                      local_lower_q, method='linear', bounds_error=False, fill_value=None)
     smoothed_upper_local_q = RegularGridInterpolator((xvals[0], xvals[1], xvals[2]),
                                                      local_upper_q, method='linear', bounds_error=False, fill_value=None)
     # CONFORMAILZE
-        # ToDo
     # output functions for exponentiating, rescaling and interpolation
     def scaled_lq(a):
         a[:,1] = min_x0 + (a[:,1] - min_x1)/(max_x1 - min_x1) * (max_x0 - min_x0)
@@ -1639,5 +1642,77 @@ def get_CPI(x, y, frac=0.1, inner_quantile=0.95):
         a[:,2] = min_x0 + (a[:,2] - min_x2)/(max_x2 - min_x2) * (max_x0 - min_x0)
         return np.exp(smoothed_upper_local_q(a))
     
-    return None, scaled_lq, scaled_uq
+    return scaled_lq, scaled_uq
+
+def get_CPI(x, y, frac=0.1, inner_quantile=0.95, num_grid_points=20):
+    min_x0 = np.min(x[:,0])
+    max_x0 = np.max(x[:,0])
+    min_x1 = np.min(x[:,1])
+    max_x1 = np.max(x[:,1])
+    min_x2 = np.min(x[:,2])
+    max_x2 = np.max(x[:,2])
+    x[:,1] = min_x0 + (x[:,1] - min_x1)/(max_x1 - min_x1) * (max_x0 - min_x0)
+    x[:,2] = min_x0 + (x[:,2] - min_x2)/(max_x2 - min_x2) * (max_x0 - min_x0)
+    sorted_idx = np.lexsort((x[:,2], x[:,1], x[:,0]))  # Sort by multiple columns
+    #print(x.shape)
+    #print(y.shape)
+    xx = x[sorted_idx,:]
+    yy = y[sorted_idx]
+    print(xx.shape)
+    print(type(xx))
+    print(yy.shape)
+    
+    #print(xx)
+    #print(yy)
+    lower_q = (1-inner_quantile)/2
+    upper_q = 1 - lower_q
+    tree = KDTree(xx)
+    xvals = [ np.linspace(np.min(xx[:,i]), np.max(xx[:,i]), num_grid_points) for i in range(3) ]
+    local_lower_q = np.empty((num_grid_points, num_grid_points, num_grid_points))
+    local_upper_q = np.empty((num_grid_points, num_grid_points, num_grid_points))
+    num_frac = int(round(frac * xx.shape[0]))
+    for i in range(num_grid_points):
+        for j in range(num_grid_points):
+            for k in range(num_grid_points):
+                point = np.array( [ xvals[0][i], xvals[1][j], xvals[2][k] ] )
+                point = point.reshape(1,-1)
+                #print(point.shape)
+                dist, indices = tree.query(point, num_frac)
+                window_x = xx[indices, :].reshape(-1,3)
+                window_y = yy[indices].reshape(-1)
+                #print(xx.shape)
+                #print(window_x.shape)
+                #print(window_y.shape)
+                residuals = window_y - window_x[:,0]  #window_x[:, 0]  # Assuming y is 1-D
+                
+                #print(i,j,k)
+                #print(residuals)
+                #print(np.quantile(residuals, lower_q))
+                #print(point[0])
+                #print(point[:,0])
+                local_lower_q[i, j, k] = point[:,0] + np.quantile(residuals, lower_q)
+                local_upper_q[i, j, k] = point[:,0] + np.quantile(residuals, upper_q)
+    
+    # Create functions to interpolate the fits for out-of-sample values
+    smoothed_lower_local_q = RegularGridInterpolator((xvals[0], xvals[1], xvals[2]),
+                                                     local_lower_q, method='linear', bounds_error=False, fill_value=None)
+    smoothed_upper_local_q = RegularGridInterpolator((xvals[0], xvals[1], xvals[2]),
+                                                     local_upper_q, method='linear', bounds_error=False, fill_value=None)
+    # CONFORMAILZE
+    # output functions for exponentiating, rescaling and interpolation
+    def scaled_lq(a):
+        #global result
+        a[:,1] = min_x0 + (a[:,1] - min_x1)/(max_x1 - min_x1) * (max_x0 - min_x0)
+        a[:,2] = min_x0 + (a[:,2] - min_x2)/(max_x2 - min_x2) * (max_x0 - min_x0)
+        result = np.exp(smoothed_lower_local_q(a))
+        return result
+    
+    def scaled_uq(a):
+        #global result
+        a[:,1] = min_x0 + (a[:,1] - min_x1)/(max_x1 - min_x1) * (max_x0 - min_x0)
+        a[:,2] = min_x0 + (a[:,2] - min_x2)/(max_x2 - min_x2) * (max_x0 - min_x0)
+        result = np.exp(smoothed_upper_local_q(a))
+        return result
+    
+    return scaled_lq, scaled_uq
 

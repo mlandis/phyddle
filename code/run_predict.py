@@ -24,7 +24,10 @@ my_mdl = ModelLoader.load_model(my_args)
 
 MyEncoder = Encoding.Encoder
 my_enc = MyEncoder(my_args, my_mdl)
-my_enc.run_one(dir=my_args['pred_dir'], prefix=my_args['pred_prefix'])
+
+pred_prefix = my_args['pred_dir'] + '/' + my_args['pred_prefix']
+print(pred_prefix)
+my_enc.encode_one(tmp_fn=pred_prefix, idx=-1)
 
 MyPredictor = Predicting.Predictor
 my_prd = MyPredictor(my_args)

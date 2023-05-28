@@ -35,10 +35,12 @@ class Encoder:
         return s
 
     def run(self):
+        self.out_path  = self.sim_dir + '/' + self.job_name + '/sim'
         for idx in self.rep_idx:
-            self.encode_one(idx)
+            tmp_fn  = self.out_path + '.' + str(idx)
+            self.encode_one(tmp_fn, idx)
 
-    def encode_one(self, idx):
+    def encode_one(self, tmp_fn, idx):
 
         NUM_DIGITS = 10
         #np.set_printoptions(floatmode='maxprec', precision=NUM_DIGITS)
@@ -47,43 +49,44 @@ class Encoder:
         #pd.set_option('display.float_format', lambda x: f'{x:,.3f}')
 
         # make filenames
-        out_path  = self.sim_dir + '/' + self.job_name + '/sim'
-        tmp_fn    = out_path + '.' + str(idx)
+        # out_path  = self.sim_dir + '/' + self.job_name + '/sim'
         geo_fn    = tmp_fn + '.geosse.nex'
         tre_fn    = tmp_fn + '.tre'
         prune_fn  = tmp_fn + '.extant.tre'
         nex_fn    = tmp_fn + '.nex'
-        #json_fn   = tmp_fn + '.json'
         cblvs_fn  = tmp_fn + '.cblvs.csv'
         cdvs_fn   = tmp_fn + '.cdvs.csv'
-        param1_fn = tmp_fn + '.param1.csv'
-        param2_fn = tmp_fn + '.param2.csv'
         ss_fn     = tmp_fn + '.summ_stat.csv'
         info_fn   = tmp_fn + '.info.csv'
-
+        #json_fn   = tmp_fn + '.json'
+        #param1_fn = tmp_fn + '.param1.csv'
+        #param2_fn = tmp_fn + '.param2.csv'
 
         # state space
         int2vec    = self.model.states.int2vec
         int2vecstr = self.model.states.int2vecstr #[ ''.join([str(y) for y in x]) for x in int2vec ]
         vecstr2int = self.model.states.vecstr2int #{ v:i for i,v in enumerate(int2vecstr) }
 
-         # verify tree size & existence!
-        result_str     = ''
-        n_taxa_idx     = Utilities.get_num_taxa(tre_fn, idx, self.tree_sizes)
+        # verify tree size & existence!
+        #result_str     = ''
+        n_taxa_idx     = Utilities.get_num_taxa(tre_fn) #, idx, self.tree_sizes)
         taxon_size_idx = Utilities.find_taxon_size(n_taxa_idx, self.tree_sizes)
+
+        print(n_taxa_idx)
+        print(taxon_size_idx)
 
         # handle simulation based on tree size
         if n_taxa_idx > np.max(self.tree_sizes):
             # too many taxa
-            result_str = '- replicate {idx} simulated n_taxa={nt}'.format(idx=idx, nt=n_taxa_idx)
-            return result_str
+            #result_str = '- replicate {idx} simulated n_taxa={nt}'.format(idx=idx, nt=n_taxa_idx)
+            return #result_str
         elif n_taxa_idx <= 0:
             # no taxa
-            result_str = '- replicate {idx} simulated n_taxa={nt}'.format(idx=idx, nt=n_taxa_idx)
-            return result_str
+            #result_str = '- replicate {idx} simulated n_taxa={nt}'.format(idx=idx, nt=n_taxa_idx)
+            return #result_str
         else:
             # valid number of taxa
-            result_str = '+ replicate {idx} simulated n_taxa={nt}'.format(idx=idx, nt=n_taxa_idx)
+            #result_str = '+ replicate {idx} simulated n_taxa={nt}'.format(idx=idx, nt=n_taxa_idx)
 
             # generate extinct-pruned tree
             prune_success = Utilities.make_prune_phy(tre_fn, prune_fn)
@@ -105,7 +108,7 @@ class Encoder:
             # generate CDVS file
             if prune_success:
                 cdvs = Utilities.make_cdvs(prune_fn, taxon_size_idx, taxon_states, int2vecstr)
-                print(cdvs)
+                #print(cdvs)
 
             # output files
             mtx_size = cblv.shape[1]
