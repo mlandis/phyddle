@@ -1585,113 +1585,69 @@ def plot_pca(df, save_fn, num_comp=4, f_show=1.0):
 
 
 
-# x are the summstats to restrict the neighborhooed
-# y are the model parameters we're constructing CPI for
-def get_CPI2(x, y, idx=[0,1,2], frac=0.1, inner_quantile=0.95, num_grid_points=20):
-    # Fit using residuals around CNN predictions
-    # scale and shift columns 1 and 2 to have same spread as column 0
-    num_idx = len(idx)
-    min_x = {}
-    max_x = {}
-    for i,k in enumerate(idx):
-        min_x[k] = np.min(x[:k])
-        max_x[k] = np.max(x[:k])
-        if i != 0:
-            x[:,k] = min_x[k] + (x[:,k] - min_x[k]) / (max_x[k]-min_x[k]) * (max_x[idx[0]] - min_x[idx[0]])
+
+def get_CPI(x, y, idx=0, frac=0.1, inner_quantile=0.95, num_grid_points=20):
     
-    sorted_idx = np.lexsort( tuple([ x[:,k] for k in idx])  )
-    xx = x[sorted_idx,:]
-    yy = y[sorted_idx]
+    # sizes of training dataset and KNN used for CPIs
+    num_samples = x.shape[0]
+    num_param = x.shape[1]
+    num_frac = int(round(frac * num_samples))
+    
+    # define quantiles
     lower_q = (1-inner_quantile)/2
     upper_q = 1 - lower_q
-    tree = KDTree(xx)
-    print('ok!')
-    xvals = [np.linspace(np.min(xx[:, i]), np.max(xx[:, i]), num_grid_points) for i in range(num_idx)]
-    local_lower_q = np.empty( np.repeat(num_grid_points, num_idx) )
-    local_upper_q = np.empty( np.repeat(num_grid_points, num_idx) )
-    num_frac = int(round(frac * xx.shape[0]))
-
-    grid_idx_list = list(itertools.combinations_with_replacement(list(range(num_grid_points)), num_grid_points))
-
-    for grid_idx in grid_idx_list:
-        #point = [xvals[0][i], xvals[1][j], xvals[2][k]]
-        point = []
-        for j,k in enumerate(idx):
-            point.append( xvals[j][grid_idx[j]] )
-        
-        dist, indices = tree.query(point, num_frac)
-        window_x = xx[indices, :]
-        window_y = yy[indices]
-        residuals = window_y - window_x[:, 0]  # Assuming y is 1-D
-        local_lower_q[i, j, k] = point[0] + np.quantile(residuals, lower_q)
-        local_upper_q[i, j, k] = point[0] + np.quantile(residuals, upper_q)
     
-    # Create functions to interpolate the fits for out-of-sample values
-    smoothed_lower_local_q = RegularGridInterpolator((xvals[0], xvals[1], xvals[2]),
-                                                     local_lower_q, method='linear', bounds_error=False, fill_value=None)
-    smoothed_upper_local_q = RegularGridInterpolator((xvals[0], xvals[1], xvals[2]),
-                                                     local_upper_q, method='linear', bounds_error=False, fill_value=None)
-    # CONFORMAILZE
-    # output functions for exponentiating, rescaling and interpolation
-    def scaled_lq(a):
-        a[:,1] = min_x0 + (a[:,1] - min_x1)/(max_x1 - min_x1) * (max_x0 - min_x0)
-        a[:,2] = min_x0 + (a[:,2] - min_x2)/(max_x2 - min_x2) * (max_x0 - min_x0)
-        return np.exp(smoothed_lower_local_q(a))
-    def scaled_uq(a):
-        a[:,1] = min_x0 + (a[:,1] - min_x1)/(max_x1 - min_x1) * (max_x0 - min_x0)
-        a[:,2] = min_x0 + (a[:,2] - min_x2)/(max_x2 - min_x2) * (max_x0 - min_x0)
-        return np.exp(smoothed_upper_local_q(a))
-    
-    return scaled_lq, scaled_uq
-
-def get_CPI(x, y, frac=0.1, inner_quantile=0.95, num_grid_points=20):
+    # input values are log, convert to exp on return
+    # X probably represents the tree stats used for filtering
+    # because the num_frac seems to be based on the sorted version of xx
+    # ... butpossibly represents the different SIRM model parameters (R0, delta, m)
     min_x0 = np.min(x[:,0])
     max_x0 = np.max(x[:,0])
     min_x1 = np.min(x[:,1])
     max_x1 = np.max(x[:,1])
     min_x2 = np.min(x[:,2])
     max_x2 = np.max(x[:,2])
+    
+    # put X1 and X2 on scale of X0 
+    # ...but why isn't X0 rescaled against (max_x0 - min_x0)????
+    # ... regardless, we unrescale them later
+    # I think this so X1/X2/X3 are on common scale, important for kmeans etc
     x[:,1] = min_x0 + (x[:,1] - min_x1)/(max_x1 - min_x1) * (max_x0 - min_x0)
     x[:,2] = min_x0 + (x[:,2] - min_x2)/(max_x2 - min_x2) * (max_x0 - min_x0)
-    sorted_idx = np.lexsort((x[:,2], x[:,1], x[:,0]))  # Sort by multiple columns
-    #print(x.shape)
-    #print(y.shape)
+    
+    # not sure why we need to sort, but seems to be for num_frac
+    # Sort X by multiple columns, from left to right??
+    # Sorted in terms of closest points, I guess
+    # But L2 distance should be based on sqrt(sum((x0-xi)^2) ????
+    sorted_idx = np.lexsort((x[:,2], x[:,1], x[:,0]))
     xx = x[sorted_idx,:]
     yy = y[sorted_idx]
-    print(xx.shape)
-    print(type(xx))
-    print(yy.shape)
     
-    #print(xx)
-    #print(yy)
-    lower_q = (1-inner_quantile)/2
-    upper_q = 1 - lower_q
+    # Construct kNN Tree based on sorted summ. stats in x
+    print(xx.shape)
     tree = KDTree(xx)
+    
+    # Construct grid for parameters
     xvals = [ np.linspace(np.min(xx[:,i]), np.max(xx[:,i]), num_grid_points) for i in range(3) ]
     local_lower_q = np.empty((num_grid_points, num_grid_points, num_grid_points))
     local_upper_q = np.empty((num_grid_points, num_grid_points, num_grid_points))
-    num_frac = int(round(frac * xx.shape[0]))
+
+    # Visit each grid point
     for i in range(num_grid_points):
         for j in range(num_grid_points):
             for k in range(num_grid_points):
+                # Get the coordinates for each grid point
                 point = np.array( [ xvals[0][i], xvals[1][j], xvals[2][k] ] )
                 point = point.reshape(1,-1)
-                #print(point.shape)
+                # Get windows of num_frac values xx and yy close to point
                 dist, indices = tree.query(point, num_frac)
-                window_x = xx[indices, :].reshape(-1,3)
+                window_x = xx[indices, :].reshape(-1, num_param)
                 window_y = yy[indices].reshape(-1)
-                #print(xx.shape)
-                #print(window_x.shape)
-                #print(window_y.shape)
-                residuals = window_y - window_x[:,0]  #window_x[:, 0]  # Assuming y is 1-D
-                
-                #print(i,j,k)
-                #print(residuals)
-                #print(np.quantile(residuals, lower_q))
-                #print(point[0])
-                #print(point[:,0])
-                local_lower_q[i, j, k] = point[:,0] + np.quantile(residuals, lower_q)
-                local_upper_q[i, j, k] = point[:,0] + np.quantile(residuals, upper_q)
+                # Get the residuals between window_y and window_x (not sure what these represent)
+                residuals = window_y - window_x[:,idx]  #window_x[:, 0]  # Assuming y is 1-D
+                # Build upper/lower quantiles at i,j,k in grid based on upper/lower quanitiles at point i,j,k
+                local_lower_q[i, j, k] = point[:,idx] + np.quantile(residuals, lower_q)
+                local_upper_q[i, j, k] = point[:,idx] + np.quantile(residuals, upper_q)
     
     # Create functions to interpolate the fits for out-of-sample values
     smoothed_lower_local_q = RegularGridInterpolator((xvals[0], xvals[1], xvals[2]),
@@ -1701,14 +1657,14 @@ def get_CPI(x, y, frac=0.1, inner_quantile=0.95, num_grid_points=20):
     # CONFORMAILZE
     # output functions for exponentiating, rescaling and interpolation
     def scaled_lq(a):
-        #global result
+        # rescale stats for a, return CPI
         a[:,1] = min_x0 + (a[:,1] - min_x1)/(max_x1 - min_x1) * (max_x0 - min_x0)
         a[:,2] = min_x0 + (a[:,2] - min_x2)/(max_x2 - min_x2) * (max_x0 - min_x0)
         result = np.exp(smoothed_lower_local_q(a))
         return result
     
     def scaled_uq(a):
-        #global result
+        # rescale states for a, return CPI UQ
         a[:,1] = min_x0 + (a[:,1] - min_x1)/(max_x1 - min_x1) * (max_x0 - min_x0)
         a[:,2] = min_x0 + (a[:,2] - min_x2)/(max_x2 - min_x2) * (max_x0 - min_x0)
         result = np.exp(smoothed_upper_local_q(a))
@@ -1716,3 +1672,126 @@ def get_CPI(x, y, frac=0.1, inner_quantile=0.95, num_grid_points=20):
     
     return scaled_lq, scaled_uq
 
+
+
+
+# x are the summstats to restrict the neighborhooed
+# y are the model parameters we're constructing CPI for
+# x_pred is the predicted value for the parameter of interest
+# x_stat are other summary stats for filtering
+# x_true is the true value for the parameter of interest
+def get_CPI2(x_pred, x_stat, x_true, frac=0.1, inner_quantile=0.95, num_grid_points=20):
+    
+    # construct x,y objects
+    x = np.hstack( [x_pred, x_stat] )
+    y = x_true
+
+    # Fit using residuals around CNN predictions
+    # get basic CPI settings
+    lower_q     = (1-inner_quantile)/2
+    upper_q     = 1 - lower_q
+    num_params  = x.shape[1]
+    num_samples = x.shape[0]
+    num_frac    = int(round(frac * num_samples))
+
+    # standardize data to loc/scale of x0
+    # scale and shift columns k!=0 to have same spread as column 0
+    min_x = {}
+    max_x = {}
+    range_x = {}
+    for i,k in enumerate(range(num_params)):
+        min_x[k] = np.min(x[:,k])
+        max_x[k] = np.max(x[:,k])
+        range_x[k] = max_x[k] - min_x[k]
+        if i != 0:
+            x[:,k] = min_x[0] + (x[:,k] - min_x[k]) / range_x[k] * range_x[0] #(max_x[k]-min_x[k]) * (max_x[0] - min_x[0])
+    
+    # created sorted containers
+    # reverse order of columns in x = (x_pred, x_stat)
+    sorted_idx = np.lexsort( tuple([ x[:,k] for k in range(num_params)[::-1]])  )
+    xx = x[sorted_idx,:]
+    yy = y[sorted_idx,:]
+    
+    # create KNN tree to access
+    tree = KDTree(xx)
+
+    # construct grid
+    xvals = [ np.linspace(min_x[i], max_x[i], num_grid_points) for i in range(num_params) ]
+    #xvals = [ np.linspace(np.min(xx[:,i]), np.max(xx[:,i]), num_grid_points) for i in range(num_params) ]
+    local_lower_q = np.empty( np.repeat(num_grid_points, num_params) )
+    local_upper_q = np.empty( np.repeat(num_grid_points, num_params) )
+    grid_idx_list = list(itertools.combinations_with_replacement(list(range(num_grid_points)), num_params))
+    
+    # get focal param quantiles for each grid point
+    for grid_idx in grid_idx_list:
+        point = np.zeros( (1,num_params) )
+        for j in range(num_params):
+            # xvals[j] corresponds to parameter j, grid_idx[j] cor
+            point[:,j] = xvals[j][grid_idx[j]]
+            #point.append( xvals[j][grid_idx[j]] )
+
+        #print(point)
+        #point.shape = (1, -1)
+        dist, indices = tree.query(point, num_frac)
+        window_x = xx[indices, 0]
+        window_y = yy[indices, 0]
+        residuals = window_y - window_x # [:,focal_idx]  # Assuming y is 1-D
+        
+        #print(point)
+        #print(residuals)
+        
+        print(point)
+        print(np.mean(residuals))
+        print(np.sqrt(np.var(residuals)))
+        print( point[0,0] + np.quantile(residuals, lower_q) )
+        print( point[0,0] + np.quantile(residuals, upper_q) )
+        print('')
+        #local_lower_q[i, j, k] = point[focal_idx] + np.quantile(residuals, lower_q)
+        #local_upper_q[i, j, k] = point[focal_idx] + np.quantile(residuals, upper_q)
+        #print( tuple(grid_idx) )
+        #print( local_lower_q[ tuple(grid_idx) ] )
+        #print( np.quantile(residuals, lower_q) )
+
+        # now we have a vector of upper/lower quantiles centered on point
+        # how to store into local/upper/lower??
+        local_lower_q[ tuple(grid_idx) ] = point[0,0] + np.quantile(residuals, lower_q)
+        local_upper_q[ tuple(grid_idx) ] = point[0,0] + np.quantile(residuals, upper_q)
+    
+    # Create functions to interpolate the fits for out-of-sample values
+    # smoothed_lower_local_q = RegularGridInterpolator((xvals[0], xvals[1], xvals[2]),
+    #                                                  local_lower_q, method='linear', bounds_error=False, fill_value=None)
+    # smoothed_upper_local_q = RegularGridInterpolator((xvals[0], xvals[1], xvals[2]),
+    #                                                  local_upper_q, method='linear', bounds_error=False, fill_value=None)
+    smoothed_lower_local_q = RegularGridInterpolator( tuple(xvals),
+                                                     local_lower_q, method='linear', bounds_error=False, fill_value=None)
+    smoothed_upper_local_q = RegularGridInterpolator( tuple(xvals),
+                                                     local_upper_q, method='linear', bounds_error=False, fill_value=None)
+    
+    # CONFORMAILZE
+    # output functions for exponentiating, rescaling and interpolation
+    def scaled_lq(a):
+        for i,k in enumerate(range(num_params)):
+            if i != 0:
+                a[:,k] = min_x[0] + (a[:,k] - min_x[k]) / range_x[k] * range_x[0] # (max_x[k]-min_x[k]) * (max_x[0] - min_x[0])
+        #a[:,1] = min_x0 + (a[:,1] - min_x1)/(max_x1 - min_x1) * (max_x0 - min_x0)
+        #a[:,2] = min_x0 + (a[:,2] - min_x2)/(max_x2 - min_x2) * (max_x0 - min_x0)
+        return smoothed_lower_local_q(a)
+    def scaled_uq(a):
+        for i,k in enumerate(range(num_params)):
+            if i != 0:
+                a[:,k] = min_x[0] + (a[:,k] - min_x[k]) / range_x[k] * range_x[0] # (max_x[k]-min_x[k]) * (max_x[0] - min_x[0])
+        # a[:,1] = min_x0 + (a[:,1] - min_x1)/(max_x1 - min_x1) * (max_x0 - min_x0)
+        # a[:,2] = min_x0 + (a[:,2] - min_x2)/(max_x2 - min_x2) * (max_x0 - min_x0)
+        return smoothed_upper_local_q(a)
+    
+    print('check result')
+    #print( scaled_lq( point*0.99 ) )
+    #print( scaled_uq( point*0.99 ) )
+
+    print( point*0.99 )
+    print( smoothed_lower_local_q( point*0.99 ) )
+    print( smoothed_upper_local_q( point*0.99 ) )
+    print( num_samples )
+    print( num_frac )
+
+    return scaled_lq, scaled_uq

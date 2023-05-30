@@ -73,7 +73,7 @@ class Learner:
         self.model_trn_lbl_norm_fn  = f'{self.network_dir}/{self.model_prefix}.train_label_norm.csv'
         self.model_trn_ss_norm_fn   = f'{self.network_dir}/{self.model_prefix}.train_summ_stat_norm.csv'
         self.model_hist_fn      = f'{self.network_dir}/{self.model_prefix}.train_history.json'
-        self.model_cpi_fn       = f'{self.network_dir}/{self.model_prefix}.cpi.obj'
+        self.model_cpi_func_fn  = f'{self.network_dir}/{self.model_prefix}.cpi_func.obj'
         self.train_pred_fn      = f'{self.network_dir}/{self.model_prefix}.train_pred.csv'
         self.train_labels_fn    = f'{self.network_dir}/{self.model_prefix}.train_labels.csv'
         self.test_pred_fn       = f'{self.network_dir}/{self.model_prefix}.test_pred.csv'
@@ -278,33 +278,47 @@ class CnnLearner(Learner):
         # scatter plot training prediction to truth
         max_idx = 1000
 
-        normalized_train_preds_thin    = self.mymodel.predict([self.train_data_tensor[0:max_idx,:,:], self.train_stats_tensor[0:max_idx,:]])
-        train_preds                    = Utilities.denormalize(normalized_train_preds_thin, self.train_label_means, self.train_label_sd)
-        self.train_preds               = np.exp(train_preds)
-        denormalized_train_labels      = Utilities.denormalize(self.norm_train_labels[0:max_idx,:], self.train_label_means, self.train_label_sd)
-        self.denormalized_train_labels = np.exp(denormalized_train_labels)
+        self.normalized_train_preds       = self.mymodel.predict([self.train_data_tensor, self.train_stats_tensor])
+        #self.normalized_train_preds_thin  = normalized_train_preds[0:max_idx,:]
+        self.denormalized_train_preds     = Utilities.denormalize(self.normalized_train_preds, self.train_label_means, self.train_label_sd)
+        self.denormalized_train_preds     = np.exp(self.denormalized_train_preds)
+        self.denormalized_train_labels    = Utilities.denormalize(self.norm_train_labels[0:max_idx,:], self.train_label_means, self.train_label_sd)
+        #denormalized_train_labels         = Utilities.denormalize(self.norm_train_labels[0:max_idx,:], self.train_label_means, self.train_label_sd)
+        self.denormalized_train_labels    = np.exp(self.denormalized_train_labels)
 
         # scatter plot test prediction to truth
-        normalized_test_preds          = self.mymodel.predict([self.test_data_tensor, self.test_stats_tensor])
-        test_preds                     = Utilities.denormalize(normalized_test_preds, self.train_label_means, self.train_label_sd)
-        self.test_preds                = np.exp(test_preds)
-        denormalized_test_labels       = Utilities.denormalize(self.norm_test_labels, self.train_label_means, self.train_label_sd)
-        self.denormalized_test_labels  = np.exp(denormalized_test_labels)
+        self.normalized_test_preds        = self.mymodel.predict([self.test_data_tensor, self.test_stats_tensor])
+        self.denormalized_test_preds      = Utilities.denormalize(self.normalized_test_preds, self.train_label_means, self.train_label_sd)
+        self.denormalized_test_preds      = np.exp(self.denormalized_test_preds)
+        self.denormalized_test_labels     = Utilities.denormalize(self.norm_test_labels, self.train_label_means, self.train_label_sd)
+        self.denormalized_test_labels     = np.exp(self.denormalized_test_labels)
         
         # conformalized prediction interval functions
-        self.cpi_dict = {} # 'lower':[], 'upper':[] }
+        self.cpi_func = {} # 'lower':[], 'upper':[] }
         #print(self.train_preds)
         #print(self.denormalized_train_labels)
         for i,p in enumerate(self.param_names):
-            #print(i,p)
-            x_cpi = self.unnormalized_train_stats[:, [0,1,2]]
-            y_cpi = self.denormalized_train_labels[:, i]
-            #print(x_cpi)
+        #print(i,p)
+        #x_cpi = self.unnormalized_train_stats[:,0:3]
+        #x_cpi = self.unnormalized_train_stats[:,0:3]
+        #print(p)
+            self.cpi_func[p] = {}
+            x_pred_cpi = self.normalized_train_preds[:,i].reshape(-1,1)
+            x_stat_cpi = self.norm_train_stats[:,0:2]
+            x_true_cpi = self.norm_train_labels[:,i].reshape(-1,1)
+
+            #print(x_pred_cpi)
+            #print(x_stat_cpi)
+            #print(x_true_cpi)
+            #print(x_pred_cpi.shape)
+            #print(x_stat_cpi.shape)
+            #print(x_true_cpi.shape)
+            #print(x_cpi[:10,])
             #print(y_cpi.shape)
-            #print(y_cpi)
-            self.lower_cpi, self.upper_cpi = Utilities.get_CPI(x_cpi, y_cpi, frac=0.1, inner_quantile=0.95)
-            self.cpi_dict[p] = { 'lower' : self.lower_cpi, 'upper': self.upper_cpi }
-            #self.cpi_dict[p]['upper'] = self.upper_cpi
+            #print(y_cpi[:10])
+            self.lower_cpi, self.upper_cpi = Utilities.get_CPI2(x_pred_cpi, x_stat_cpi, x_true_cpi, frac=0.1, inner_quantile=0.95, num_grid_points=4)
+            self.cpi_func[p]['lower'] = self.lower_cpi
+            self.cpi_func[p]['upper'] = self.upper_cpi
 
 
         return
@@ -312,6 +326,8 @@ class CnnLearner(Learner):
 
     def save_results(self):
 
+        max_idx = 1000
+        
         # save model to file
         self.mymodel.save(self.model_sav_fn)
 
@@ -326,10 +342,10 @@ class CnnLearner(Learner):
         df_labels.to_csv(self.model_trn_lbl_norm_fn, index=False, sep=',')
 
         # save train prediction scatter data
-        df_train_pred   = pd.DataFrame( self.train_preds[0:1000,:], columns=self.param_names )
-        df_train_labels = pd.DataFrame( self.denormalized_train_labels[0:1000,:], columns=self.param_names )
-        df_test_pred    = pd.DataFrame( self.test_preds[0:1000,:], columns=self.param_names )
-        df_test_labels  = pd.DataFrame( self.denormalized_test_labels[0:1000,:], columns=self.param_names )
+        df_train_pred   = pd.DataFrame( self.denormalized_train_preds[0:max_idx,:], columns=self.param_names )
+        df_train_labels = pd.DataFrame( self.denormalized_train_labels[0:max_idx,:], columns=self.param_names )
+        df_test_pred    = pd.DataFrame( self.denormalized_test_preds[0:max_idx,:], columns=self.param_names )
+        df_test_labels  = pd.DataFrame( self.denormalized_test_labels[0:max_idx,:], columns=self.param_names )
         df_train_pred.to_csv(self.train_pred_fn, index=False, sep=',')
         df_train_labels.to_csv(self.train_labels_fn, index=False, sep=',')
         df_test_pred.to_csv(self.test_pred_fn, index=False, sep=',')
@@ -339,8 +355,8 @@ class CnnLearner(Learner):
         json.dump(self.history_dict, open(self.model_hist_fn, 'w'))
 
         # pickle CPI
-        cpi_file_obj = open(self.model_cpi_fn, 'wb')
-        dill.dump(self.cpi_dict, cpi_file_obj)
+        cpi_file_obj = open(self.model_cpi_func_fn, 'wb')
+        dill.dump(self.cpi_func, cpi_file_obj)
         cpi_file_obj.close()
         
         # make history plots

@@ -43,7 +43,7 @@ class Predictor:
         self.model_sav_fn           = f'{self.network_dir}/{self.model_prefix}.hdf5'
         self.model_trn_lbl_norm_fn  = f'{self.network_dir}/{self.model_prefix}.train_label_norm.csv'
         self.model_trn_ss_norm_fn   = f'{self.network_dir}/{self.model_prefix}.train_summ_stat_norm.csv'
-        self.model_cpi_fn           = f'{self.network_dir}/{self.model_prefix}.cpi.obj'
+        self.model_cpi_func_fn      = f'{self.network_dir}/{self.model_prefix}.cpi_func.obj'
 
         # save predictions to file
         self.model_pred_fn          = f'{self.network_dir}/{self.pred_prefix}.{self.model_prefix}.pred_labels.csv'
@@ -94,14 +94,16 @@ class Predictor:
         # read & normalize new summary stats
         self.pred_stats_tensor       = pd.read_csv(self.pred_summ_stat_fn, sep=',', index_col=False).to_numpy().flatten()
         self.pred_stats_tensor.shape = ( 1, -1 )
+        #self.ln_pred_stats_tensor    = np.log(self.pred_stats_tensor)
         #print(self.pred_data_tensor)
         #print(self.pred_stats_tensor)
         #print(self.train_stats_means)
         #print(self.train_stats_sd)
-        self.norm_pred_stats    = Utilities.normalize(self.pred_stats_tensor, (self.train_stats_means, self.train_stats_sd))
+        self.norm_pred_stats          = Utilities.normalize(self.pred_stats_tensor, (self.train_stats_means, self.train_stats_sd))
+        self.denormalized_pred_stats  = Utilities.denormalize(self.norm_pred_stats, self.train_stats_means, self.train_stats_sd)
         
         # CPI functions
-        with open(self.model_cpi_fn, 'rb') as f:
+        with open(self.model_cpi_func_fn, 'rb') as f:
             self.cpi_func = dill.load(f)
 
         return
@@ -122,22 +124,35 @@ class Predictor:
         self.pred_lower_CPI = []
         self.pred_upper_CPI = []
         for i,k in enumerate(self.param_names):
+            # MJL: we pass the predicted parameter vector into the function
+            #      each cpi_func is trained for a different parameter
             #self.cpi_vals[k] = {}
-            lower_val = 0 # self.cpi_func[k]['lower']( self.pred_labels[i] )
-            upper_val = 10 # self.cpi_func[k]['upper']( self.pred_labels[i] )
-            self.pred_lower_CPI.append( lower_val )
-            self.pred_upper_CPI.append( upper_val )
-            #self.cpi_vals[k]['upper'] = self.cpi_func[k]['upper']( self.pred_labels[i] )
-        #print(self.cpi_vals)
+            #lower_val = self.cpi_func[k]['lower']( self.pred_labels[i] )
+            #upper_val = self.cpi_func[k]['upper']( self.pred_labels[i] )
+            if k in self.cpi_func:
+                #print(self.norm_preds.shape)
+                #print(self.norm_pred_stats.shape)
+                x_pred = self.denormalized_pred_labels[:,[i]]  # denormalized_pred_labels????
+                x_stat = self.denormalized_pred_stats[:,0:2]
+                self.pred_cpi_val = np.hstack( [x_pred, x_stat] )
 
+                lower_val = self.cpi_func[k]['lower']( self.pred_cpi_val )
+                upper_val = self.cpi_func[k]['upper']( self.pred_cpi_val )
+
+                self.pred_lower_CPI.append( np.exp( lower_val[0] ) )
+                self.pred_upper_CPI.append( np.exp( upper_val[0] ) )
+            else:
+                self.pred_lower_CPI.append(0.)
+                self.pred_upper_CPI.append(10.)
+                #self.cpi_vals[k]['upper'] = self.cpi_func[k]['upper']( self.pred_labels[i] )
+        #print(self.cpi_vals)
+        #print(self.pred_stats_tensor[:,0:3])
         # save predictions
         #self.df_pred_labels = pd.DataFrame(self.pred_labels, columns=self.param_names, index=None)
         #self.df_pred_labels.to_csv(self.model_pred_fn, index=False, sep=',')
-
+        #print(lower_val)
         self.df_pred_all_labels = pd.DataFrame()
         self.df_pred_all_labels['name'] = self.param_names
-        print(self.df_pred_all_labels)
-        print(self.pred_labels)
         self.df_pred_all_labels['estimate'] = self.pred_labels.flatten()
         self.df_pred_all_labels['lower_CPI'] = self.pred_lower_CPI
         self.df_pred_all_labels['upper_CPI'] = self.pred_upper_CPI
