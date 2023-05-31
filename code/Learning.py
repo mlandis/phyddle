@@ -177,11 +177,13 @@ class CnnLearner(Learner):
         # these will then be used to normalize new test data for predictions
 
         # normalize summary stats
+        self.denormalized_train_stats = full_stats[train_idx,:]
         self.norm_train_stats, self.train_stats_means, self.train_stats_sd = Utilities.normalize( full_stats[train_idx,:] )
         self.norm_val_stats  = Utilities.normalize(full_stats[val_idx,:], (self.train_stats_means, self.train_stats_sd))
         self.norm_test_stats = Utilities.normalize(full_stats[test_idx,:], (self.train_stats_means, self.train_stats_sd))
 
         # (option for diff schemes) try normalizing against 0 to 1
+        self.denormalized_train_labels = full_labels[train_idx,:]
         self.norm_train_labels, self.train_label_means, self.train_label_sd = Utilities.normalize( full_labels[train_idx,:] )
         self.norm_val_labels  = Utilities.normalize(full_labels[val_idx,:], (self.train_label_means, self.train_label_sd))
         self.norm_test_labels = Utilities.normalize(full_labels[test_idx,:], (self.train_label_means, self.train_label_sd))
@@ -203,7 +205,6 @@ class CnnLearner(Learner):
         self.train_stats_tensor = self.norm_train_stats #full_stats[train_idx,:]
         self.val_stats_tensor   = self.norm_val_stats #full_stats[val_idx,:]
         self.test_stats_tensor  = self.norm_test_stats #full_stats[test_idx,:]
-        self.unnormalized_train_stats = full_stats[train_idx,:]
 
         return
     
@@ -278,18 +279,20 @@ class CnnLearner(Learner):
         # scatter plot training prediction to truth
         max_idx = 1000
 
-        self.normalized_train_preds       = self.mymodel.predict([self.train_data_tensor, self.train_stats_tensor])
         #self.normalized_train_preds_thin  = normalized_train_preds[0:max_idx,:]
+        #denormalized_train_labels         = Utilities.denormalize(self.norm_train_labels[0:max_idx,:], self.train_label_means, self.train_label_sd)
+        self.normalized_train_preds       = self.mymodel.predict([self.train_data_tensor, self.train_stats_tensor])
         self.denormalized_train_preds     = Utilities.denormalize(self.normalized_train_preds, self.train_label_means, self.train_label_sd)
         self.denormalized_train_preds     = np.exp(self.denormalized_train_preds)
-        self.denormalized_train_labels    = Utilities.denormalize(self.norm_train_labels[0:max_idx,:], self.train_label_means, self.train_label_sd)
-        #denormalized_train_labels         = Utilities.denormalize(self.norm_train_labels[0:max_idx,:], self.train_label_means, self.train_label_sd)
+        
+        self.denormalized_train_labels    = Utilities.denormalize(self.norm_train_labels, self.train_label_means, self.train_label_sd)
         self.denormalized_train_labels    = np.exp(self.denormalized_train_labels)
 
         # scatter plot test prediction to truth
         self.normalized_test_preds        = self.mymodel.predict([self.test_data_tensor, self.test_stats_tensor])
         self.denormalized_test_preds      = Utilities.denormalize(self.normalized_test_preds, self.train_label_means, self.train_label_sd)
         self.denormalized_test_preds      = np.exp(self.denormalized_test_preds)
+        
         self.denormalized_test_labels     = Utilities.denormalize(self.norm_test_labels, self.train_label_means, self.train_label_sd)
         self.denormalized_test_labels     = np.exp(self.denormalized_test_labels)
         
@@ -298,14 +301,10 @@ class CnnLearner(Learner):
         #print(self.train_preds)
         #print(self.denormalized_train_labels)
         for i,p in enumerate(self.param_names):
-        #print(i,p)
-        #x_cpi = self.unnormalized_train_stats[:,0:3]
-        #x_cpi = self.unnormalized_train_stats[:,0:3]
-        #print(p)
             self.cpi_func[p] = {}
-            x_pred_cpi = self.normalized_train_preds[:,i].reshape(-1,1)
-            x_stat_cpi = self.norm_train_stats[:,0:2]
-            x_true_cpi = self.norm_train_labels[:,i].reshape(-1,1)
+            x_pred_cpi = self.denormalized_train_preds[:,i].reshape(-1,1)
+            x_stat_cpi = self.denormalized_train_stats[:,0:2]
+            x_true_cpi = self.denormalized_train_labels[:,i].reshape(-1,1)
 
             #print(x_pred_cpi)
             #print(x_stat_cpi)
@@ -316,10 +315,9 @@ class CnnLearner(Learner):
             #print(x_cpi[:10,])
             #print(y_cpi.shape)
             #print(y_cpi[:10])
-            self.lower_cpi, self.upper_cpi = Utilities.get_CPI2(x_pred_cpi, x_stat_cpi, x_true_cpi, frac=0.1, inner_quantile=0.95, num_grid_points=4)
+            self.lower_cpi, self.upper_cpi = Utilities.get_CPI2(x_pred_cpi, x_stat_cpi, x_true_cpi, frac=0.1, inner_quantile=0.95, num_grid_points=20)
             self.cpi_func[p]['lower'] = self.lower_cpi
             self.cpi_func[p]['upper'] = self.upper_cpi
-
 
         return
     
