@@ -2,6 +2,8 @@
 
 import Utilities
 import numpy as np
+from joblib import Parallel, delayed
+from tqdm import tqdm
 
 class Encoder:
     def __init__(self, args, mdl): #, events_df, states_df):
@@ -19,6 +21,8 @@ class Encoder:
         self.tree_sizes        = [ 200, 500 ]
         self.start_idx         = args['start_idx']
         self.end_idx           = args['end_idx']
+        self.use_parallel      = args['use_parallel']
+        self.num_proc          = args['num_proc']
         self.rep_idx           = list(range(self.start_idx, self.end_idx))
         self.tree_type         = args['tree_type']
         return
@@ -34,10 +38,16 @@ class Encoder:
         return s
 
     def run(self):
-        self.out_path  = self.sim_dir + '/' + self.job_name + '/sim'
-        for idx in self.rep_idx:
-            tmp_fn  = self.out_path + '.' + str(idx)
-            self.encode_one(tmp_fn, idx)
+        self.out_path  = f'{self.sim_dir}/{self.job_name}/sim'
+
+        if self.use_parallel:
+            res = Parallel(n_jobs=self.num_proc)(delayed(self.encode_one)(tmp_fn=f'{self.out_path}.{idx}', idx=idx) for idx in tqdm(self.rep_idx))
+        else:
+            res = [ self.encode_one(tmp_fn=f'{self.out_path}.{idx}', idx=idx) for idx in tqdm(self.rep_idx) ]
+        return res
+        #for idx in self.rep_idx:
+        #    tmp_fn  = self.out_path + '.' + str(idx)
+        # self.encode_one(tmp_fn, idx)
 
     def encode_one(self, tmp_fn, idx):
 
@@ -64,8 +74,8 @@ class Encoder:
         n_taxa_idx     = Utilities.get_num_taxa(tre_fn) #, idx, self.tree_sizes)
         taxon_size_idx = Utilities.find_taxon_size(n_taxa_idx, self.tree_sizes)
 
-        print(n_taxa_idx)
-        print(taxon_size_idx)
+        #print(n_taxa_idx)
+        #print(taxon_size_idx)
 
         # handle simulation based on tree size
         if n_taxa_idx > np.max(self.tree_sizes):

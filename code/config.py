@@ -77,10 +77,10 @@ my_lrn_args = {
     'tree_size'      : 200,
 #   'tree_type'      : 'extant',
 #   'num_char'       : num_char,
-    'num_epochs'     : 5,
+    'num_epochs'     : 10,
     'prop_test'       : 0.05,
     'prop_validation' : 0.05,
-    'batch_size'     : 32,
+    'batch_size'     : 128,
     'loss'           : 'mse',
     'optimizer'      : 'adam',
     'metrics'        : ['mae', 'acc', 'mape']
@@ -103,7 +103,7 @@ my_all_args = my_all_args | my_plt_args
 #######################
 
 my_prd_args = {
-    'pred_dir'    : '../raw_data/my_job_new',
-    'pred_prefix' : 'sim.7'
+    'pred_dir'    : '../raw_data/geosse1',
+    'pred_prefix' : 'sim.8'
 }
 my_all_args = my_all_args | my_prd_args

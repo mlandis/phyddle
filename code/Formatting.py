@@ -1,5 +1,6 @@
 import os
 import csv
+import h5py
 import pandas as pd
 
 class InputFormatter:
@@ -24,11 +25,11 @@ class InputFormatter:
         os.makedirs(self.out_dir, exist_ok=True)
 
         # collect files with replicate info
-        print(self.in_dir)
+        #print(self.in_dir)
         files = os.listdir(self.in_dir)
         info_files = [ x for x in files if 'info' in x ]
 
-        print(info_files)
+        #print(info_files)
 
         # sort replicate indices into size-category lists
         size_sort = {}
@@ -75,6 +76,12 @@ class InputFormatter:
             out_cdvs_fn   = self.out_dir + '/' + 'sim.nt' + str(tree_size) + '.cdvs.data.csv'
             out_stat_fn   = self.out_dir + '/' + 'sim.nt' + str(tree_size) + '.summ_stat.csv'
             out_labels_fn = self.out_dir + '/' + 'sim.nt' + str(tree_size) + '.labels.csv'
+
+            out_cblvs_hdf5_fn  = self.out_dir + '/' + 'sim.nt' + str(tree_size) + '.cblvs.data.hdf5'
+            out_cdvs_hdf5_fn   = self.out_dir + '/' + 'sim.nt' + str(tree_size) + '.cdvs.data.hdf5'
+            out_stat_hdf5_fn   = self.out_dir + '/' + 'sim.nt' + str(tree_size) + '.summ_stat.hdf5'
+            out_labels_hdf5_fn = self.out_dir + '/' + 'sim.nt' + str(tree_size) + '.labels.hdf5'
+            #out_cdvs_hdf5_fn = 
             #out_info_fn   = self.out_dir + '/' + prefix + '.nt' + str(k) + '.info.csv'
 
             # cblvs tensor

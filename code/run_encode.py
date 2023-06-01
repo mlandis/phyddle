@@ -36,5 +36,5 @@ my_enc = MyEncoder(my_args, my_mdl)
 ################
 
 # Step 1: run simulation
-my_enc.run(idx=1)
+my_enc.run()
 
