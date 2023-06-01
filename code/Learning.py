@@ -1,16 +1,12 @@
 
-#import cnn_utilities as cn
 import pandas as pd
 import numpy as np
 import os
-import csv
 import json
-#import pickle
 import dill # richer serialization than pickle
 
 from PyPDF2 import PdfMerger
 
-#import tensorflow as tf
 from keras import *
 from keras import layers
 
@@ -149,9 +145,6 @@ class CnnLearner(Learner):
         # reshape full_data
         # depends on CBLV/CDV and num_states
         full_data.shape = ( num_sample, -1, (self.num_tree_row+self.num_char_row) )
-        # print(self.num_char_row)
-        # print(self.num_tree_row)
-        # print(full_data.shape)
 
         # split dataset into training, test, and validation parts
         if self.num_test != 0 and self.num_validation != 0:
@@ -161,20 +154,10 @@ class CnnLearner(Learner):
             num_val = int(np.floor(num_sample * self.prop_validation))
             num_test = int(np.floor(num_sample * self.prop_test))
 
-        # print(num_val)
-        # print(num_test)
-
         # create input subsets
         train_idx = np.arange( num_test+num_val, num_sample )
         val_idx   = np.arange( num_test, num_test+num_val )
         test_idx  = np.arange( 0, num_test )
-
-        # print(train_idx)
-        # print(val_idx)
-        # print(test_idx)
-
-        ## MJL need to save train_stats_means, train_stats_sd
-        # these will then be used to normalize new test data for predictions
 
         # normalize summary stats
         self.norm_train_stats, self.train_stats_means, self.train_stats_sd = Utilities.normalize( full_stats[train_idx,:] )
@@ -186,23 +169,15 @@ class CnnLearner(Learner):
         self.norm_val_labels  = Utilities.normalize(full_labels[val_idx,:], (self.train_label_means, self.train_label_sd))
         self.norm_test_labels = Utilities.normalize(full_labels[test_idx,:], (self.train_label_means, self.train_label_sd))
 
-        # print(self.param_names)
-        # print(self.norm_train_labels)
-        # print(type(self.norm_train_labels))
-        # print(full_stats[0,:])
-        # df = pd.DataFrame( [self.stat_names, self.train_stats_means, self.train_stats_sd] ).T # columns=['name', 'mean', 'sd'] )
-        # df.columns = ['name', 'mean', 'sd']
-
-
         # create data tensors
         self.train_data_tensor = full_data[train_idx,:]
         self.val_data_tensor   = full_data[val_idx,:]
         self.test_data_tensor  = full_data[test_idx,:]
 
         # summary stats
-        self.train_stats_tensor = self.norm_train_stats #full_stats[train_idx,:]
-        self.val_stats_tensor   = self.norm_val_stats #full_stats[val_idx,:]
-        self.test_stats_tensor  = self.norm_test_stats #full_stats[test_idx,:]
+        self.train_stats_tensor = self.norm_train_stats
+        self.val_stats_tensor   = self.norm_val_stats
+        self.test_stats_tensor  = self.norm_test_stats
         self.unnormalized_train_stats = full_stats[train_idx,:]
 
         return
@@ -293,15 +268,9 @@ class CnnLearner(Learner):
         self.denormalized_test_labels     = Utilities.denormalize(self.norm_test_labels, self.train_label_means, self.train_label_sd)
         self.denormalized_test_labels     = np.exp(self.denormalized_test_labels)
         
-        # conformalized prediction interval functions
-        self.cpi_func = {} # 'lower':[], 'upper':[] }
-        #print(self.train_preds)
-        #print(self.denormalized_train_labels)
+        # conformalized prediction interval (CPI) functions
+        self.cpi_func = {}
         for i,p in enumerate(self.param_names):
-        #print(i,p)
-        #x_cpi = self.unnormalized_train_stats[:,0:3]
-        #x_cpi = self.unnormalized_train_stats[:,0:3]
-        #print(p)
             self.cpi_func[p] = {}
             x_pred_cpi = self.normalized_train_preds[:,i].reshape(-1,1)
             x_stat_cpi = self.norm_train_stats[:,0:2]
@@ -358,41 +327,5 @@ class CnnLearner(Learner):
         cpi_file_obj = open(self.model_cpi_func_fn, 'wb')
         dill.dump(self.cpi_func, cpi_file_obj)
         cpi_file_obj.close()
-        
-        # make history plots
-        ## Utilities.make_history_plot(self.history2, prefix=self.model_prefix+'_train', plot_dir=self.plot_dir)
 
-        # # train prediction scatter plots
-        # Utilities.plot_preds_labels(preds=self.train_preds[0:1000,:],
-        #                      labels=self.denormalized_train_labels[0:1000,:],
-        #                      param_names=self.param_names,
-        #                      prefix=self.model_prefix+'_train',
-        #                      plot_dir=self.plot_dir,
-        #                      title='Train predictions')
-
-        # # test predicition scatter plots
-        # Utilities.plot_preds_labels(preds=self.test_preds[0:1000,:],
-        #                      labels=self.denormalized_test_labels[0:1000,:],
-        #                      param_names=self.param_names,
-        #                      prefix=self.model_prefix+'_test',
-        #                      plot_dir=self.plot_dir,
-        #                      title='Test predictions')
-
-        # # save PCA and summ_stat histograms
-        # df_stats = pd.read_csv( self.input_stats_fn )
-        # df_param = pd.read_csv( self.input_labels_fn )
-        # df_all = pd.concat( [df_stats, df_param], axis=1 )
-        # df_all = df_all.T.drop_duplicates().T
-        # Utilities.plot_ss_param_hist(df=df_all, save_fn=self.plot_dir + '/' + self.model_prefix + '.summ_stat_param_hist.pdf')
-        # Utilities.plot_pca(df=df_all, save_fn=self.plot_dir + '/' + self.model_prefix + '.summ_stat_param_pca.pdf')
-
-        # # combine pdfs
-        # merger = PdfMerger()
-        # files = os.listdir(self.plot_dir)
-        # files.sort()
-        # for f in files:
-        #     if '.pdf' in f and self.model_prefix in f and 'all_results.pdf' not in f:
-        #         merger.append(self.plot_dir + '/' + f)
-
-        # merger.write(self.plot_dir+'/'+self.model_prefix+'_'+'all_results.pdf')
         return

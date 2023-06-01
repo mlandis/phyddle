@@ -1727,8 +1727,10 @@ def get_CPI2(x_pred, x_stat, x_true, frac=0.1, inner_quantile=0.95, num_grid_poi
         point = np.zeros( (1,num_params) )
         for j in range(num_params):
             # xvals[j] corresponds to parameter j, grid_idx[j] cor
-            point[:,j] = xvals[j][grid_idx[j]]
+            k = grid_idx[j]
+            point[0,j] = xvals[j][k]
             #point.append( xvals[j][grid_idx[j]] )
+        #point = np.array( [ xvals[0][i], xvals[1][j], xvals[2][k] ] )
 
         #print(point)
         #point.shape = (1, -1)
