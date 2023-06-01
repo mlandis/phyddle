@@ -103,7 +103,7 @@ my_all_args = my_all_args | my_plt_args
 #######################
 
 my_prd_args = {
-    'pred_dir'    : '../raw_data/my_job_new',
-    'pred_prefix' : 'sim.7'
+    'pred_dir'    : '../raw_data/geosse1',
+    'pred_prefix' : 'sim.8'
 }
 my_all_args = my_all_args | my_prd_args
