@@ -15,6 +15,7 @@ class InputFormatter:
         self.fmt_dir    = args['fmt_dir']
         self.sim_dir    = args['sim_dir']
         self.tree_type  = args['tree_type']
+        self.num_char   = args['num_char']
         self.param_pred = args['param_pred'] # parameters in label set (prediction)
         self.param_data = args['param_data'] # parameters in data set (training, etc)
         self.in_dir     = self.sim_dir + '/' + self.job_name
@@ -65,24 +66,39 @@ class InputFormatter:
                 #else:
                 #    print(all_files_valid,all_files)
         
+       
+
         # build files
         for tree_size in sorted(list(size_sort.keys())):
 
             size_sort[tree_size].sort()
+            num_samples = len(size_sort[tree_size])
+            num_taxa = size_sort[tree_size]
+            num_char = self.num_char
+            num_stats = 10
+            num_labels = 10
 
-            print('Formatting {n} files for tree_type={tt} and tree_size={ts}'.format(n=len(size_sort[tree_size]), tt=self.tree_type, ts=tree_size))
+            print('Formatting {n} files for tree_type={tt} and tree_size={ts}'.format(n=num_samples, tt=self.tree_type, ts=tree_size))
             
+            # CSV files
             out_cblvs_fn  = self.out_dir + '/' + 'sim.nt' + str(tree_size) + '.cblvs.data.csv'
             out_cdvs_fn   = self.out_dir + '/' + 'sim.nt' + str(tree_size) + '.cdvs.data.csv'
             out_stat_fn   = self.out_dir + '/' + 'sim.nt' + str(tree_size) + '.summ_stat.csv'
             out_labels_fn = self.out_dir + '/' + 'sim.nt' + str(tree_size) + '.labels.csv'
 
-            out_cblvs_hdf5_fn  = self.out_dir + '/' + 'sim.nt' + str(tree_size) + '.cblvs.data.hdf5'
-            out_cdvs_hdf5_fn   = self.out_dir + '/' + 'sim.nt' + str(tree_size) + '.cdvs.data.hdf5'
-            out_stat_hdf5_fn   = self.out_dir + '/' + 'sim.nt' + str(tree_size) + '.summ_stat.hdf5'
-            out_labels_hdf5_fn = self.out_dir + '/' + 'sim.nt' + str(tree_size) + '.labels.hdf5'
-            #out_cdvs_hdf5_fn = 
-            #out_info_fn   = self.out_dir + '/' + prefix + '.nt' + str(k) + '.info.csv'
+            # HDF5 files
+            
+            # out_cdvs_hdf5_fn   = self.out_dir + '/' + 'sim.nt' + str(tree_size) + '.cdvs.data.hdf5'
+            # out_stat_hdf5_fn   = self.out_dir + '/' + 'sim.nt' + str(tree_size) + '.summ_stat.hdf5'
+            # out_labels_hdf5_fn = self.out_dir + '/' + 'sim.nt' + str(tree_size) + '.labels.hdf5'
+            
+            #out_hdf5_fn  = self.out_dir + '/' + 'sim.nt' + str(tree_size) + '.hdf5'
+            #hdf5_file  = h5py.File(out_hdf5_fn, 'w')
+            #dat_cblvs = hdf5_file.create_dataset(f'cblvs', (num_samples, num_taxa, 2+num_char), dtype='f', compression='gzip')
+            #dat_cdvs = hdf5_file.create_dataset(f'cdvs', (num_samples, num_taxa, 1+num_char), dtype='f', compression='gzip')
+            #dat_stat = hdf5_file.create_dataset(f'summ_stat', (num_samples, num_stats), dtype='f', compression='gzip')
+            #dat_labels = hdf5_file.create_dataset(f'labels', (num_samples, num_labels), dtype='f', compression='gzip')
+            #dsB = hdf5_file.create_dataset(f'B', (num_samples, num_data_rows, nt), dtype='f', compression='gzip')
 
             # cblvs tensor
             if self.tree_type == 'serial':
@@ -92,6 +108,8 @@ class InputFormatter:
                         with open(fname, 'r') as infile:
                             s = infile.read()
                             z = outfile.write(s)
+                            #dat_cblvs[i,:,:] = s
+
             # cdv file tensor       
             elif self.tree_type == 'extant':
                 with open(out_cdvs_fn, 'w') as outfile:
@@ -100,6 +118,7 @@ class InputFormatter:
                         with open(fname, 'r') as infile:
                             s = infile.read()
                             z = outfile.write(s)
+                            #dat_cdvs[i,:,:] = s
 
             # summary stats tensor
             with open(out_stat_fn, 'w') as outfile:
@@ -112,6 +131,7 @@ class InputFormatter:
                         else:
                             s = ''.join(infile.readlines()[1:])
                             z = outfile.write(s)
+                            #dat_stat[i,:] = s
 
             # labels input tensor
             with open(out_labels_fn, 'w') as outfile:
@@ -124,6 +144,7 @@ class InputFormatter:
                         else:
                             s = ''.join(infile.readlines()[1:])
                             z = outfile.write(s)
+                            # dat_labels[i,:] = s
     
             # read in summ_stats and labels (_all_ params) dataframes
             df_summ_stats = pd.read_csv(out_stat_fn)  # original, contains _no_ parameters
@@ -139,6 +160,12 @@ class InputFormatter:
             # overwrite original files with new modified versions
             df_summ_stats.to_csv(out_stat_fn, index=False)
             df_labels_keep.to_csv(out_labels_fn, index=False)
+
+            # close HDF5 files
+            #hdf5_file.close()
+            #cdvs_hdf5_file.close()
+            #stat_hdf5_file.close()
+            #labels_hdf5_file.close()
 
         # done
         return
