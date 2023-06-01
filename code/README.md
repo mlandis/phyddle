@@ -17,9 +17,16 @@ vim config.py
 # simulate data in `raw_data/my_job`
 ./run_simulate.py --cfg config
 
+# encode data in `raw_data/my_job`
+./run_encode.py --cfg config
+
 # prepare data as tensors in `tensor_data/my_job`
 ./run_format.py --cfg config
 
 # train CNN using tensors in `network/my_job`
 ./run_learn.py --cfg config
+
+# plot output into `plot/my_job`
+./run_plot.py --cfg config
+
 ```
