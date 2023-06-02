@@ -4,6 +4,7 @@ import numpy as np
 import os
 import json
 import dill # richer serialization than pickle
+import h5py
 
 from PyPDF2 import PdfMerger
 
@@ -33,6 +34,7 @@ class Learner:
             self.num_tree_row = 2
         else:
             raise NotImplementedError
+        self.tensor_format     = args['tensor_format']
         self.num_char_row      = args['num_char']
         #self.predict_idx       = args['predict_idx']
         self.fmt_dir           = args['fmt_dir']
@@ -80,6 +82,7 @@ class Learner:
             self.input_data_fn  = f'{self.input_dir}/sim.nt{self.tree_size}.cdvs.data.csv'
         elif self.tree_type == 'serial':
             self.input_data_fn  = f'{self.input_dir}/sim.nt{self.tree_size}.cblvs.data.csv' 
+        self.input_hdf5_fn      = f'{self.input_dir}/sim.nt{self.tree_size}.hdf5' 
         
         return
 
@@ -108,20 +111,28 @@ class CnnLearner(Learner):
     
     def load_input(self):
 
-        # read data
-        full_data   = pd.read_csv(self.input_data_fn, header=None, on_bad_lines='skip').to_numpy()
-        full_stats  = pd.read_csv(self.input_stats_fn, header=None, on_bad_lines='skip').to_numpy()
-        full_labels = pd.read_csv(self.input_labels_fn, header=None, on_bad_lines='skip').to_numpy()
+        if self.tensor_format == 'csv':
+            # read data
+            full_data   = pd.read_csv(self.input_data_fn, header=None, on_bad_lines='skip').to_numpy()
+            full_stats  = pd.read_csv(self.input_stats_fn, header=None, on_bad_lines='skip').to_numpy()
+            full_labels = pd.read_csv(self.input_labels_fn, header=None, on_bad_lines='skip').to_numpy()
 
-        # get summary stats
-        self.stat_names = full_stats[0,:]
-        full_stats = full_stats[1:,:].astype('float64')
+            # get summary stats
+            self.stat_names = full_stats[0,:]
+            full_stats = full_stats[1:,:].astype('float64')
 
-        # get parameters and labels
-        #if len(self.predict_idx) > 0:
-        #    full_labels = full_labels[:, self.predict_idx]
-        self.param_names = full_labels[0,:]
-        full_labels = full_labels[1:,:].astype('float64')   
+            # get parameters and labels
+            self.param_names = full_labels[0,:]
+            full_labels = full_labels[1:,:].astype('float64')   
+
+        elif self.tensor_format == 'hdf5':
+            hdf5_file = h5py.File(self.input_hdf5_fn, 'r')
+            self.stat_names = hdf5_file['summ_stat_names'][0,:]
+            self.param_names = hdf5_file['label_names'][0,:]
+            full_data = pd.DataFrame( hdf5_file['data'] ).to_numpy()
+            full_stats = pd.DataFrame( hdf5_file['summ_stat'] ).to_numpy()
+            full_labels = pd.DataFrame( hdf5_file['labels'] ).to_numpy()
+            hdf5_file.close()
 
         # data dimensions
         # num_chars  = 3  # MJL: better way to get this? either from tensor or from an info file?

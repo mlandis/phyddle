@@ -64,7 +64,8 @@ my_fmt_args = {
     #'sim_dir' : '../raw_data',
     'tree_type'  : 'extant',
     'param_pred' : ['w_0', 'e_0', 'd_0_1', 'b_0_1'],
-    'param_data' : []
+    'param_data' : [],
+    'tensor_format' : 'csv'
 } #| my_all_args
 my_all_args = my_all_args | my_fmt_args
 

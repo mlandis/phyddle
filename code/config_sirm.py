@@ -70,7 +70,8 @@ my_fmt_args = {
     'sim_dir'     : '../raw_data',
     'tree_type'   : 'serial',
     'param_pred'  : [ 'R0_0', 'sampling_0', 'migration_0_1' ],
-    'param_data'  : [ 'recovery_0', 'S0_0' ]
+    'param_data'  : [ 'recovery_0', 'S0_0' ],
+    'tensor_format' : 'hdf5'
 }#| my_all_args
 my_all_args = my_all_args | my_fmt_args
 

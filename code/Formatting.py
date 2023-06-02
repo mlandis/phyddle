@@ -2,6 +2,7 @@ import os
 import csv
 import h5py
 import pandas as pd
+import numpy as np
 
 class InputFormatter:
     def __init__(self, args):
@@ -18,6 +19,7 @@ class InputFormatter:
         self.num_char   = args['num_char']
         self.param_pred = args['param_pred'] # parameters in label set (prediction)
         self.param_data = args['param_data'] # parameters in data set (training, etc)
+        self.tensor_format = args['tensor_format']
         self.in_dir     = self.sim_dir + '/' + self.job_name
         self.out_dir    = self.fmt_dir + '/' + self.job_name
         return
@@ -26,11 +28,8 @@ class InputFormatter:
         os.makedirs(self.out_dir, exist_ok=True)
 
         # collect files with replicate info
-        #print(self.in_dir)
         files = os.listdir(self.in_dir)
         info_files = [ x for x in files if 'info' in x ]
-
-        #print(info_files)
 
         # sort replicate indices into size-category lists
         size_sort = {}
@@ -58,26 +57,131 @@ class InputFormatter:
                     raise NotImplementedError
                 all_files_valid = all( [os.path.isfile(fn) for fn in all_files] )
 
+                # place index into tree_size category if all necessary files exist
+                first_valid_file = True
                 if all_files_valid:
                     if size >= 0 and size not in size_sort:
                         size_sort[size] = []
                     if size >=0 and idx >= 0:
                         size_sort[size].append(idx)
-                #else:
-                #    print(all_files_valid,all_files)
-        
-       
 
-        # build files
+                    # collect simpler header info from summ_stat and param_row 
+                    if first_valid_file:
+                        prefix = f'{self.in_dir}/sim.{idx}'
+                        summ_stat = pd.read_csv(prefix+'.summ_stat.csv', sep=',')
+                        param_row = pd.read_csv(prefix+'.param_row.csv', sep=',')
+                        if self.tree_type == 'serial':
+                            data = pd.read_csv(prefix+'.cblvs.csv', sep=',', header=None)
+                        if self.tree_type == 'extant':
+                            data = pd.read_csv(prefix+'.cdvs.csv', sep=',', header=None)
+                        self.label_names = param_row.columns.to_list()
+                        self.summ_stat_names = summ_stat.columns.to_list()
+                        self.num_summ_stat = len(self.summ_stat_names)
+                        self.num_labels = len(self.label_names)
+                        self.num_data_row = int(data.shape[1] / size)
+                        first_valid_file = False
+
+        if self.tensor_format == 'csv':
+            self.write_csb(size_sort)
+        elif self.tensor_format == 'hdf5':
+            self.write_hdf5(size_sort)
+
+    def write_hdf5(self, size_sort):
+                # build files
         for tree_size in sorted(list(size_sort.keys())):
-
+            # dimensions
             size_sort[tree_size].sort()
             num_samples = len(size_sort[tree_size])
-            num_taxa = size_sort[tree_size]
-            num_char = self.num_char
-            num_stats = 10
-            num_labels = 10
+            num_taxa = tree_size
+            num_data_length = num_taxa * self.num_data_row
+            
+            print('Formatting {n} files for tree_type={tt} and tree_size={ts}'.format(n=num_samples, tt=self.tree_type, ts=tree_size))
+            
+            # HDF5 file
+            out_hdf5_fn  = self.out_dir + '/' + 'sim.nt' + str(tree_size) + '.hdf5'
+            hdf5_file  = h5py.File(out_hdf5_fn, 'w')
 
+            self.summ_stat_names_encode = [ s.encode('UTF-8') for s in self.summ_stat_names ]
+            self.label_names_encode = [ s.encode('UTF-8') for s in self.label_names ]
+            dat_stat_names = hdf5_file.create_dataset('summ_stat_names', (1, self.num_summ_stat), 'S64', self.summ_stat_names_encode)
+            dat_label_names = hdf5_file.create_dataset('label_names', (1, self.num_labels), 'S64', self.label_names_encode)
+
+            # numerical data
+            #print(num_samples,num_taxa,self.num_data_row)
+            dat_data   = hdf5_file.create_dataset('data', (num_samples, num_data_length), dtype='f', compression='gzip')
+            dat_stat   = hdf5_file.create_dataset('summ_stat', (num_samples, self.num_summ_stat), dtype='f', compression='gzip')
+            dat_labels = hdf5_file.create_dataset('labels', (num_samples, self.num_labels), dtype='f', compression='gzip')
+
+            # cblvs tensor
+            if self.tree_type == 'serial':
+                for j,i in enumerate(size_sort[tree_size]):
+                    fname = self.in_dir + '/' + 'sim.' + str(i) + '.cblvs.csv'
+                    df = pd.read_csv(fname, header=None)
+                    dat_data[j,:] = df.to_numpy()   
+
+            # cdv file tensor       
+            elif self.tree_type == 'extant':
+                for j,i in enumerate(size_sort[tree_size]):
+                    fname = self.in_dir + '/' + 'sim.' + str(i) + '.cdvs.csv'
+                    df = pd.read_csv(fname, header=None)
+                    dat_data[j,:] = df.to_numpy()
+                    
+            # summary stats tensor
+            for j,i in enumerate(size_sort[tree_size]):
+                fname = self.in_dir + '/' + 'sim.' + str(i) + '.summ_stat.csv'
+                df = pd.read_csv(fname)
+                dat_stat[j,:] = df.to_numpy()
+                
+            # labels input tensor
+            for j,i in enumerate(size_sort[tree_size]):
+                fname = self.in_dir + '/' + 'sim.' + str(i) + '.param_row.csv'
+                df = pd.read_csv(fname)
+                dat_labels[j,:] = df.to_numpy()
+            
+            # read in summ_stats and labels (_all_ params) dataframes
+            label_names_str = [ s.decode('UTF-8') for s in dat_label_names[0,:] ]
+            summ_stat_names_str = [ s.decode('UTF-8') for s in dat_stat_names[0,:] ]
+            df_summ_stats = pd.DataFrame( dat_stat, columns=summ_stat_names_str )
+            df_labels = pd.DataFrame( dat_labels, columns=label_names_str )
+            
+
+            # separate data parameters (things we know) from label parameters (things we predict)
+            df_labels_new = df_labels[self.param_pred]
+            df_labels_move = df_labels[self.param_data]
+
+            # concatenate new data parameters as column to existing summ_stats dataframe
+            df_summ_stats_new = df_summ_stats.join( df_labels_move )
+
+            # get new label/stat names
+            new_label_names = self.param_pred
+            new_summ_stat_names = self.summ_stat_names + self.param_data
+
+            # delete original datasets 
+            del hdf5_file['summ_stat']
+            del hdf5_file['labels']
+            del hdf5_file['label_names']
+            del hdf5_file['summ_stat_names']
+            
+            # create new datasets
+            hdf5_file.create_dataset('summ_stat', df_summ_stats_new.shape, 'f', df_summ_stats_new)
+            hdf5_file.create_dataset('labels', df_labels_new.shape, 'f', df_labels_new)
+            hdf5_file.create_dataset('label_names', (1, len(new_label_names)), 'S64', new_label_names)
+            hdf5_file.create_dataset('summ_stat_names', (1, len(new_summ_stat_names)), 'S64', new_summ_stat_names)
+
+            # close HDF5 files
+            hdf5_file.close()
+
+        return
+
+    def write_csv(self, size_sort):
+        # build files
+        for tree_size in sorted(list(size_sort.keys())):
+            # dimensions
+            size_sort[tree_size].sort()
+            num_samples = len(size_sort[tree_size])
+            num_taxa = tree_size
+            num_data_length = num_taxa * self.num_data_row
+            
             print('Formatting {n} files for tree_type={tt} and tree_size={ts}'.format(n=num_samples, tt=self.tree_type, ts=tree_size))
             
             # CSV files
@@ -86,40 +190,25 @@ class InputFormatter:
             out_stat_fn   = self.out_dir + '/' + 'sim.nt' + str(tree_size) + '.summ_stat.csv'
             out_labels_fn = self.out_dir + '/' + 'sim.nt' + str(tree_size) + '.labels.csv'
 
-            # HDF5 files
-            
-            # out_cdvs_hdf5_fn   = self.out_dir + '/' + 'sim.nt' + str(tree_size) + '.cdvs.data.hdf5'
-            # out_stat_hdf5_fn   = self.out_dir + '/' + 'sim.nt' + str(tree_size) + '.summ_stat.hdf5'
-            # out_labels_hdf5_fn = self.out_dir + '/' + 'sim.nt' + str(tree_size) + '.labels.hdf5'
-            
-            #out_hdf5_fn  = self.out_dir + '/' + 'sim.nt' + str(tree_size) + '.hdf5'
-            #hdf5_file  = h5py.File(out_hdf5_fn, 'w')
-            #dat_cblvs = hdf5_file.create_dataset(f'cblvs', (num_samples, num_taxa, 2+num_char), dtype='f', compression='gzip')
-            #dat_cdvs = hdf5_file.create_dataset(f'cdvs', (num_samples, num_taxa, 1+num_char), dtype='f', compression='gzip')
-            #dat_stat = hdf5_file.create_dataset(f'summ_stat', (num_samples, num_stats), dtype='f', compression='gzip')
-            #dat_labels = hdf5_file.create_dataset(f'labels', (num_samples, num_labels), dtype='f', compression='gzip')
-            #dsB = hdf5_file.create_dataset(f'B', (num_samples, num_data_rows, nt), dtype='f', compression='gzip')
-
             # cblvs tensor
             if self.tree_type == 'serial':
                 with open(out_cblvs_fn, 'w') as outfile:
-                    for i in size_sort[tree_size]:
+                    for j,i in enumerate(size_sort[tree_size]):
                         fname = self.in_dir + '/' + 'sim.' + str(i) + '.cblvs.csv'
                         with open(fname, 'r') as infile:
                             s = infile.read()
                             z = outfile.write(s)
-                            #dat_cblvs[i,:,:] = s
+                        
 
             # cdv file tensor       
             elif self.tree_type == 'extant':
                 with open(out_cdvs_fn, 'w') as outfile:
-                    for i in size_sort[tree_size]:
+                    for j,i in enumerate(size_sort[tree_size]):
                         fname = self.in_dir + '/' + 'sim.' + str(i) + '.cdvs.csv'
                         with open(fname, 'r') as infile:
                             s = infile.read()
                             z = outfile.write(s)
-                            #dat_cdvs[i,:,:] = s
-
+                    
             # summary stats tensor
             with open(out_stat_fn, 'w') as outfile:
                 for j,i in enumerate(size_sort[tree_size]):
@@ -131,7 +220,7 @@ class InputFormatter:
                         else:
                             s = ''.join(infile.readlines()[1:])
                             z = outfile.write(s)
-                            #dat_stat[i,:] = s
+                        
 
             # labels input tensor
             with open(out_labels_fn, 'w') as outfile:
@@ -144,8 +233,8 @@ class InputFormatter:
                         else:
                             s = ''.join(infile.readlines()[1:])
                             z = outfile.write(s)
-                            # dat_labels[i,:] = s
-    
+
+            
             # read in summ_stats and labels (_all_ params) dataframes
             df_summ_stats = pd.read_csv(out_stat_fn)  # original, contains _no_ parameters
             df_labels = pd.read_csv(out_labels_fn)    # original, contains _all_ parameters
@@ -161,11 +250,4 @@ class InputFormatter:
             df_summ_stats.to_csv(out_stat_fn, index=False)
             df_labels_keep.to_csv(out_labels_fn, index=False)
 
-            # close HDF5 files
-            #hdf5_file.close()
-            #cdvs_hdf5_file.close()
-            #stat_hdf5_file.close()
-            #labels_hdf5_file.close()
-
-        # done
         return
