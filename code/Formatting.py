@@ -3,6 +3,7 @@ import csv
 import h5py
 import pandas as pd
 import numpy as np
+from tqdm import tqdm
 
 class InputFormatter:
     def __init__(self, args):
@@ -32,6 +33,7 @@ class InputFormatter:
         info_files = [ x for x in files if 'info' in x ]
 
         # sort replicate indices into size-category lists
+        first_valid_file = True
         size_sort = {}
         for fn in info_files:
             fn = self.sim_dir + '/' + self.job_name + '/' + fn
@@ -58,7 +60,6 @@ class InputFormatter:
                 all_files_valid = all( [os.path.isfile(fn) for fn in all_files] )
 
                 # place index into tree_size category if all necessary files exist
-                first_valid_file = True
                 if all_files_valid:
                     if size >= 0 and size not in size_sort:
                         size_sort[size] = []
@@ -82,7 +83,7 @@ class InputFormatter:
                         first_valid_file = False
 
         if self.tensor_format == 'csv':
-            self.write_csb(size_sort)
+            self.write_csv(size_sort)
         elif self.tensor_format == 'hdf5':
             self.write_hdf5(size_sort)
 
@@ -107,36 +108,73 @@ class InputFormatter:
             dat_label_names = hdf5_file.create_dataset('label_names', (1, self.num_labels), 'S64', self.label_names_encode)
 
             # numerical data
-            #print(num_samples,num_taxa,self.num_data_row)
             dat_data   = hdf5_file.create_dataset('data', (num_samples, num_data_length), dtype='f', compression='gzip')
             dat_stat   = hdf5_file.create_dataset('summ_stat', (num_samples, self.num_summ_stat), dtype='f', compression='gzip')
             dat_labels = hdf5_file.create_dataset('labels', (num_samples, self.num_labels), dtype='f', compression='gzip')
+      
+            # save in chunks of 10000
+            # this is somewhat slow, but could be sped up by reading and saving in chunks
+            # ... nevermind, seems like bottleneck was pandas not h5py
+            #chunk_size = 1000
+            #df_data_chunk = np.empty( (chunk_size, num_data_length) )
+            #df_stat_chunk = np.empty( (chunk_size, self.num_summ_stat) )
+            #df_labels_chunk = np.empty( (chunk_size, self.num_labels) )
 
-            # cblvs tensor
-            if self.tree_type == 'serial':
-                for j,i in enumerate(size_sort[tree_size]):
-                    fname = self.in_dir + '/' + 'sim.' + str(i) + '.cblvs.csv'
-                    df = pd.read_csv(fname, header=None)
-                    dat_data[j,:] = df.to_numpy()   
-
-            # cdv file tensor       
-            elif self.tree_type == 'extant':
-                for j,i in enumerate(size_sort[tree_size]):
-                    fname = self.in_dir + '/' + 'sim.' + str(i) + '.cdvs.csv'
-                    df = pd.read_csv(fname, header=None)
-                    dat_data[j,:] = df.to_numpy()
-                    
-            # summary stats tensor
             for j,i in enumerate(size_sort[tree_size]):
-                fname = self.in_dir + '/' + 'sim.' + str(i) + '.summ_stat.csv'
-                df = pd.read_csv(fname)
-                dat_stat[j,:] = df.to_numpy()
                 
-            # labels input tensor
-            for j,i in enumerate(size_sort[tree_size]):
-                fname = self.in_dir + '/' + 'sim.' + str(i) + '.param_row.csv'
-                df = pd.read_csv(fname)
-                dat_labels[j,:] = df.to_numpy()
+                fname_base = f'{self.in_dir}/sim.{i}'
+                if self.tree_type == 'serial':
+                    fname_data = fname_base + '.cblvs.csv'
+                elif self.tree_type == 'extant':
+                    fname_data = fname_base + '.cdvs.csv'
+                fname_param = fname_base + '.param_row.csv'
+                fname_stat = fname_base + '.summ_stat.csv'
+
+                #chunk_idx = j % chunk_size
+                #save_chunk = ((chunk_idx+1) == 0)
+                #print(j, chunk_idx, save_chunk)
+
+                #df = pd.read_csv(fname_data, header=None)
+                #df_data_chunk[chunk_idx,:] = df.to_numpy()   
+                #df = pd.read_csv(fname_stat)
+                #df_stat_chunk[chunk_idx,:] = df.to_numpy()
+                #df = pd.read_csv(fname_param)
+                #df_labels_chunk[chunk_idx,:] = df.to_numpy()
+
+                #df_data_chunk[chunk_idx,:] = np.loadtxt(fname_data, delimiter=',') # df.to_numpy()   
+                #df_stat_chunk[chunk_idx,:] = np.loadtxt(fname_stat, delimiter=',', skiprows=1) #df.to_numpy()
+                #df_labels_chunk[chunk_idx,:] = np.loadtxt(fname_param, delimiter=',', skiprows=1) #df.to_numpy()
+
+                dat_data[j,:] = np.loadtxt(fname_data, delimiter=',') # df.to_numpy()   
+                dat_stat[j,:] = np.loadtxt(fname_stat, delimiter=',', skiprows=1) #df.to_numpy()
+                dat_labels[j,:] = np.loadtxt(fname_param, delimiter=',', skiprows=1) #df.to_numpy()
+                # save chunk
+                #if save_chunk:
+                #    start_chunk_idx = j-chunk_size
+                #    end_chunk_idx = j
+                #    print('save chunk ', start_chunk_idx)
+                #    dat_data[start_chunk_idx:end_chunk_idx,:] = df_data_chunk
+                #    dat_stat[start_chunk_idx:end_chunk_idx,:] = df_stat_chunk
+                #    dat_labels[start_chunk_idx:end_chunk_idx,:] = df_labels_chunk
+
+#            # cdv file tensor       
+#            elif self.tree_type == 'extant':
+#                for j,i in enumerate(size_sort[tree_size]):
+#                    fname = self.in_dir + '/' + 'sim.' + str(i) + '.cdvs.csv'
+#                    df = pd.read_csv(fname, header=None)
+#                    dat_data[j,:] = df.to_numpy()
+#                    
+#            # summary stats tensor
+#            for j,i in enumerate(size_sort[tree_size]):
+#                fname = self.in_dir + '/' + 'sim.' + str(i) + '.summ_stat.csv'
+#                df = pd.read_csv(fname)
+#                dat_stat[j,:] = df.to_numpy()
+#            
+#            # labels input tensor
+#            for j,i in enumerate(size_sort[tree_size]):
+#                fname = self.in_dir + '/' + 'sim.' + str(i) + '.param_row.csv'
+#                df = pd.read_csv(fname)
+#                dat_labels[j,:] = df.to_numpy()
             
             # read in summ_stats and labels (_all_ params) dataframes
             label_names_str = [ s.decode('UTF-8') for s in dat_label_names[0,:] ]

@@ -127,8 +127,8 @@ class CnnLearner(Learner):
 
         elif self.tensor_format == 'hdf5':
             hdf5_file = h5py.File(self.input_hdf5_fn, 'r')
-            self.stat_names = hdf5_file['summ_stat_names'][0,:]
-            self.param_names = hdf5_file['label_names'][0,:]
+            self.stat_names = [ s.decode() for s in hdf5_file['summ_stat_names'][0,:] ]
+            self.param_names = [ s.decode() for s in hdf5_file['label_names'][0,:] ]
             full_data = pd.DataFrame( hdf5_file['data'] ).to_numpy()
             full_stats = pd.DataFrame( hdf5_file['summ_stat'] ).to_numpy()
             full_labels = pd.DataFrame( hdf5_file['labels'] ).to_numpy()

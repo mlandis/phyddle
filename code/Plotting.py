@@ -12,6 +12,8 @@ import pandas as pd
 import numpy as np
 import os
 import json
+import h5py
+
 import Utilities
 
 from PyPDF2 import PdfMerger
@@ -34,6 +36,7 @@ class Plotter:
         self.batch_size        = args['batch_size']
         self.num_epochs        = args['num_epochs']
         self.tree_size         = args['tree_size']
+        self.tensor_format     = args['tensor_format']
         return
 
     def prepare_files(self):
@@ -48,6 +51,7 @@ class Plotter:
         self.test_labels_fn  = f'{self.net_job_dir}/{self.network_prefix}.test_labels.csv'
         self.input_stats_fn  = f'{self.fmt_job_dir}/sim.nt{self.tree_size}.summ_stat.csv'
         self.input_labels_fn = f'{self.fmt_job_dir}/sim.nt{self.tree_size}.labels.csv'
+        self.input_hdf5_fn   = f'{self.fmt_job_dir}/sim.nt{self.tree_size}.hdf5'
         self.history_json_fn = f'{self.net_job_dir}/{self.network_prefix}.train_history.json'
 
         
@@ -59,11 +63,19 @@ class Plotter:
         self.train_labels = pd.read_csv(self.train_labels_fn)
         self.test_preds   = pd.read_csv(self.test_pred_fn)
         self.test_labels  = pd.read_csv(self.test_labels_fn)
-        
-        self.input_stats  = pd.read_csv( self.input_stats_fn )
-        self.input_labels = pd.read_csv( self.input_labels_fn )
-
         self.param_names  = self.train_preds.columns.to_list()
+        
+        if self.tensor_format == 'csv':
+            self.input_stats  = pd.read_csv( self.input_stats_fn )
+            self.input_labels = pd.read_csv( self.input_labels_fn )
+        elif self.tensor_format == 'hdf5':
+            hdf5_file = h5py.File(self.input_hdf5_fn, 'r')
+            self.input_stat_names = [ s.decode() for s in hdf5_file['summ_stat_names'][0,:] ]
+            self.input_label_names = [ s.decode() for s in hdf5_file['label_names'][0,:] ]
+            self.input_stats  = pd.DataFrame( hdf5_file['summ_stat'][:,:], columns=self.input_stat_names )
+            self.input_labels  = pd.DataFrame( hdf5_file['labels'][:,:], columns=self.input_label_names )
+            hdf5_file.close()
+
 
         self.train_preds_max_idx = min( 1000, self.train_preds.shape[0] )
         self.train_labels_max_idx = min( 1000, self.train_labels.shape[0] )

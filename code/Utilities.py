@@ -1787,12 +1787,12 @@ def get_CPI2(x_pred, x_stat, x_true, frac=0.1, inner_quantile=0.95, num_grid_poi
         # a[:,2] = min_x0 + (a[:,2] - min_x2)/(max_x2 - min_x2) * (max_x0 - min_x0)
         return smoothed_upper_local_q(a)
 
-    print('check result')
+    #print('check result')
     point_test = point; point_test[0,0] = point_test[0,0] * 0.25
     param_est = point_test[0,0]
     param_lower = smoothed_lower_local_q( point_test )[0]
     param_upper = smoothed_upper_local_q( point_test )[0]
-    print( f'{param_est}  ({param_lower}   {param_upper})' )
-    print( '' )
+    #print( f'{param_est}  ({param_lower}   {param_upper})' )
+    #print( '' )
 
     return scaled_lq, scaled_uq

@@ -65,7 +65,7 @@ my_fmt_args = {
     'tree_type'  : 'extant',
     'param_pred' : ['w_0', 'e_0', 'd_0_1', 'b_0_1'],
     'param_data' : [],
-    'tensor_format' : 'csv'
+    'tensor_format' : 'hdf5'
 } #| my_all_args
 my_all_args = my_all_args | my_fmt_args
 
