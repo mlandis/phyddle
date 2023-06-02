@@ -14,9 +14,6 @@ import Utilities
 
 my_args = Utilities.load_config('config', arg_overwrite=True)
 
-# my_all_args = my_config.my_all_args
-# my_fmt_args = my_config.my_fmt_args
-
 
 #########################
 # DEFINE PIPELINE STEPS #
@@ -32,5 +29,5 @@ my_fmt = MyFormatter(my_args, my_mdl)
 # RUN PIPELINE #
 ################
 
-# Step 2: re-format output
+# Step 1: format and encode output
 my_fmt.run()

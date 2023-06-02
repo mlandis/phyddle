@@ -6,8 +6,9 @@
 
 import ModelLoader
 import Predicting
-import Encoding
+import Formatting
 import Utilities
+
 
 ########################
 # LOAD PIPELINE CONFIG #
@@ -15,22 +16,22 @@ import Utilities
 
 my_args = Utilities.load_config('config', arg_overwrite=True)
 
+
 #########################
 # DEFINE PIPELINE STEPS #
 #########################
 
-MyEncoder = Encoding.Encoder
+MyFormatter = Formatting.Formatter
 my_mdl = ModelLoader.load_model(my_args)
-
-MyEncoder = Encoding.Encoder
-my_enc = MyEncoder(my_args, my_mdl)
+my_fmt = MyFormatter(my_args, my_mdl)
 
 pred_prefix = my_args['pred_dir'] + '/' + my_args['pred_prefix']
 print(pred_prefix)
-my_enc.encode_one(tmp_fn=pred_prefix, idx=-1)
+my_fmt.encode_one(tmp_fn=pred_prefix, idx=-1, save_phyvec=True)
 
 MyPredictor = Predicting.Predictor
 my_prd = MyPredictor(my_args)
+
 
 ################
 # RUN PIPELINE #

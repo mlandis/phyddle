@@ -126,12 +126,7 @@ class Predictor:
         for i,k in enumerate(self.param_names):
             # MJL: we pass the predicted parameter vector into the function
             #      each cpi_func is trained for a different parameter
-            #self.cpi_vals[k] = {}
-            #lower_val = self.cpi_func[k]['lower']( self.pred_labels[i] )
-            #upper_val = self.cpi_func[k]['upper']( self.pred_labels[i] )
             if k in self.cpi_func:
-                #print(self.norm_preds.shape)
-                #print(self.norm_pred_stats.shape)
                 x_pred = self.denormalized_pred_labels[:,[i]]  # denormalized_pred_labels????
                 x_stat = self.denormalized_pred_stats[:,0:2]
                 self.pred_cpi_val = np.hstack( [x_pred, x_stat] )
@@ -144,13 +139,7 @@ class Predictor:
             else:
                 self.pred_lower_CPI.append(0.)
                 self.pred_upper_CPI.append(10.)
-                #self.cpi_vals[k]['upper'] = self.cpi_func[k]['upper']( self.pred_labels[i] )
-        #print(self.cpi_vals)
-        #print(self.pred_stats_tensor[:,0:3])
-        # save predictions
-        #self.df_pred_labels = pd.DataFrame(self.pred_labels, columns=self.param_names, index=None)
-        #self.df_pred_labels.to_csv(self.model_pred_fn, index=False, sep=',')
-        #print(lower_val)
+                
         self.df_pred_all_labels = pd.DataFrame()
         self.df_pred_all_labels['name'] = self.param_names
         self.df_pred_all_labels['estimate'] = self.pred_labels.flatten()

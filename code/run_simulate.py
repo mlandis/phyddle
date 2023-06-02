@@ -4,7 +4,6 @@
 # PHYDDLE IMPORTS #
 ###################
 
-#import Model
 import ModelLoader
 import Simulating
 import Utilities
@@ -14,11 +13,6 @@ import Utilities
 ########################
 
 my_args = Utilities.load_config('config', arg_overwrite=True)
-#my_config = Utilities.load_config('config', arg_overwrite=True)
-
-#my_all_args = my_config.my_all_args
-#my_mdl_args = my_config.my_mdl_args
-#my_sim_args = my_config.my_sim_args
 
 
 #########################

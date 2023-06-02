@@ -293,7 +293,7 @@ class Formatter:
 
         return
 
-    def encode_one(self, tmp_fn, idx):
+    def encode_one(self, tmp_fn, idx, save_phyvec=False):
 
         NUM_DIGITS = 10
         np.set_printoptions(formatter={'float': lambda x: format(x, '8.6E')}, precision=NUM_DIGITS)
@@ -303,8 +303,8 @@ class Formatter:
         tre_fn    = tmp_fn + '.tre'
         prune_fn  = tmp_fn + '.extant.tre'
         nex_fn    = tmp_fn + '.nex'
-        #cblvs_fn  = tmp_fn + '.cblvs.csv'
-        #cdvs_fn   = tmp_fn + '.cdvs.csv'
+        cblvs_fn  = tmp_fn + '.cblvs.csv'
+        cdvs_fn   = tmp_fn + '.cdvs.csv'
         ss_fn     = tmp_fn + '.summ_stat.csv'
         info_fn   = tmp_fn + '.info.csv'
         
@@ -337,7 +337,6 @@ class Formatter:
             # then get CBLVS working
             cblv,new_order = Utilities.vectorize_tree(tre_fn, max_taxa=taxon_size_idx, prob=1.0 )
             cblvs = Utilities.make_cblvs_geosse(cblv, taxon_states, new_order)
-            #print('cblvs', cblvs.shape)
         
             # NOTE: this if statement should not be needed, but for some reason the "next"
             # seems to run even when make_prune_phy returns False
@@ -346,7 +345,6 @@ class Formatter:
                 cdvs = Utilities.make_cdvs(prune_fn, taxon_size_idx, taxon_states, int2vecstr)
             else:
                 cdvs = None
-                #print('cdvs:', cdvs.shape)
             
             # output files
             mtx_size = cblv.shape[1]
@@ -356,18 +354,21 @@ class Formatter:
         info_str = self.make_settings_str(idx, mtx_size)
         Utilities.write_to_file(info_str, info_fn)
 
-        # # record CBLVS data
-        # cblvs_str = np.array2string(cblvs, separator=',', max_line_width=1e200, threshold=1e200, edgeitems=1e200, precision=10, floatmode='maxprec')
-        # cblvs_str = cblvs_str.replace(' ','').replace('.,',',').strip('[].') + '\n'
-        # #cblvs_str = Utilities.clean_scientific_notation(cblvs_str)
-        # Utilities.write_to_file(cblvs_str, cblvs_fn)
+        if save_phyvec and self.tree_type == 'serial':
+            # record CBLVS data
+            cblvs_str = np.array2string(cblvs, separator=',', max_line_width=1e200, threshold=1e200, edgeitems=1e200, precision=10, floatmode='maxprec')
+            cblvs_str = cblvs_str.replace(' ','').replace('.,',',').strip('[].') + '\n'
+            #cblvs_str = Utilities.clean_scientific_notation(cblvs_str)
+            Utilities.write_to_file(cblvs_str, cblvs_fn)
 
-        # # record CDVS data
-        # if prune_success:
-        #     cdvs_str = np.array2string(cdvs, separator=',', max_line_width=1e200, threshold=1e200, edgeitems=1e200, precision=10, floatmode='maxprec')
-        #     cdvs_str = cdvs_str.replace(' ','').replace('.,',',').strip('[].') + '\n'
-        #     #cdvs_str = Utilities.clean_scientific_notation(cdvs_str)
-        #     Utilities.write_to_file(cdvs_str, cdvs_fn)
+        if save_phyvec and self.tree_type == 'extant':
+            # record CDVS data
+            if prune_success:
+                cdvs_str = np.array2string(cdvs, separator=',', max_line_width=1e200, threshold=1e200, edgeitems=1e200, precision=10, floatmode='maxprec')
+                cdvs_str = cdvs_str.replace(' ','').replace('.,',',').strip('[].') + '\n'
+                #print(cdvs_str)
+                #cdvs_str = Utilities.clean_scientific_notation(cdvs_str)
+                Utilities.write_to_file(cdvs_str, cdvs_fn)
 
         # record summ stat data
         ss = Utilities.make_summ_stat(tre_fn, geo_fn, vecstr2int)
@@ -382,65 +383,3 @@ class Formatter:
 
         return data
     
-
-    # def make_tensors_old(self):
-    #         os.makedirs(self.out_dir, exist_ok=True)
-
-    #         # collect files with replicate info
-    #         files = os.listdir(self.in_dir)
-    #         info_files = [ x for x in files if 'info' in x ]
-
-    #         # sort replicate indices into size-category lists
-    #         first_valid_file = True
-    #         size_sort = {}
-    #         for fn in info_files:
-    #             fn = self.sim_dir + '/' + self.job_name + '/' + fn
-    #             idx = -1
-    #             size = -1
-    #             all_files_valid = False
-
-    #             with open(fn, newline='') as csvfile:
-    #                 info = csv.reader(csvfile, delimiter=',')
-    #                 for row in info:
-    #                     if row[0] == 'replicate_index':
-    #                         idx = int(row[1])
-    #                     elif row[0] == 'taxon_category':
-    #                         size = int(row[1])
-                        
-    #                 # check that all necessary files exist
-    #                 #all_files = [self.in_dir+'/sim.'+str(idx)+'.'+x for x in ['cdvs.csv','cblvs.csv','param2.csv','summ_stat.csv']]
-    #                 if self.tree_type == 'serial':
-    #                     all_files = [self.in_dir+'/sim.'+str(idx)+'.'+x for x in ['cblvs.csv','param_row.csv','summ_stat.csv']]
-    #                 elif self.tree_type == 'extant':
-    #                     all_files = [self.in_dir+'/sim.'+str(idx)+'.'+x for x in ['cdvs.csv','param_row.csv','summ_stat.csv']]
-    #                 else:
-    #                     raise NotImplementedError
-    #                 all_files_valid = all( [os.path.isfile(fn) for fn in all_files] )
-
-    #                 # place index into tree_size category if all necessary files exist
-    #                 if all_files_valid:
-    #                     if size >= 0 and size not in size_sort:
-    #                         size_sort[size] = []
-    #                     if size >= 0 and idx >= 0:
-    #                         size_sort[size].append(idx)
-
-    #                     # collect simpler header info from summ_stat and param_row 
-    #                     if first_valid_file:
-    #                         prefix = f'{self.in_dir}/sim.{idx}'
-    #                         summ_stat = pd.read_csv(prefix+'.summ_stat.csv', sep=',')
-    #                         param_row = pd.read_csv(prefix+'.param_row.csv', sep=',')
-    #                         if self.tree_type == 'serial':
-    #                             data = pd.read_csv(prefix+'.cblvs.csv', sep=',', header=None)
-    #                         if self.tree_type == 'extant':
-    #                             data = pd.read_csv(prefix+'.cdvs.csv', sep=',', header=None)
-    #                         self.label_names = param_row.columns.to_list()
-    #                         self.summ_stat_names = summ_stat.columns.to_list()
-    #                         self.num_summ_stat = len(self.summ_stat_names)
-    #                         self.num_labels = len(self.label_names)
-    #                         self.num_data_row = int(data.shape[1] / size)
-    #                         first_valid_file = False
-
-    #         if self.tensor_format == 'csv':
-    #             self.write_csv(size_sort)
-    #         elif self.tensor_format == 'hdf5':
-    #             self.write_hdf5(size_sort)
