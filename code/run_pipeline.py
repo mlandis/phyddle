@@ -6,7 +6,7 @@
 
 import ModelLoader
 import Simulating
-import Encoding
+#import Encoding
 import Formatting
 import Learning
 import Plotting
@@ -28,12 +28,12 @@ my_mdl = ModelLoader.load_model(my_args)
 my_sim = MySimulator(my_args, my_mdl)
 
 # encoder converts raw data into matrices
-MyEncoder = Encoding.Encoder
-my_enc = MyEncoder(my_args, my_mdl)
+#MyEncoder = Encoding.Encoder
+#my_enc = MyEncoder(my_args, my_mdl)
 
 # formatter prepares entire dataset into single tensor
-MyFormatter = Formatting.InputFormatter
-my_fmt = MyFormatter(my_args)
+MyFormatter = Formatting.Formatter
+my_fmt = MyFormatter(my_args, my_mdl)
 
 # trainer fits neural network
 MyLearner = Learning.CnnLearner
@@ -51,7 +51,7 @@ my_plt = MyPlotter(my_args)
 my_sim.run()
 
 # Step 2: encode output
-my_enc.run()
+# my_enc.run()
 
 # Step 3: make tensor from output
 my_fmt.run()

@@ -1055,7 +1055,8 @@ def make_cblvs_geosse(cblv_df, taxon_states, new_order):
 
     # append states
     cblvs_df = np.concatenate( (cblv_df, states_df), axis=0 )
-    cblvs_df = cblvs_df.T.reshape((1,-1))
+    cblvs_df = cblvs_df.flatten() #T.reshape((1,-1))
+    #cblvs_df = cblvs_df.T.reshape((1,-1))
     #cblvs_df.shape = (1,-1)
 
     # done!

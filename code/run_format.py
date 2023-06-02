@@ -4,6 +4,7 @@
 # PHYDDLE IMPORTS #
 ###################
 
+import ModelLoader
 import Formatting
 import Utilities
 
@@ -22,8 +23,9 @@ my_args = Utilities.load_config('config', arg_overwrite=True)
 #########################
 
 # formatter prepares tensor format
-MyInputFormatter = Formatting.InputFormatter
-my_fmt = MyInputFormatter(my_args)
+MyFormatter = Formatting.Formatter
+my_mdl = ModelLoader.load_model(my_args)
+my_fmt = MyFormatter(my_args, my_mdl)
 
 
 ################
