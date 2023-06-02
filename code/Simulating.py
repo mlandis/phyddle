@@ -28,6 +28,7 @@ class Simulator:
         self.sample_population = args['sample_population']
         self.stop_floor_sizes  = args['stop_floor_sizes']
         self.stop_ceil_sizes   = args['stop_ceil_sizes']
+        self.sim_logging       = args['sim_logging']
         self.rep_idx           = list(range(self.start_idx, self.end_idx))
         return
 
@@ -82,6 +83,13 @@ class Simulator:
         cmd_str = self.cmd_str
         beast_out = subprocess.check_output(cmd_str, shell=True, text=True, stderr=subprocess.STDOUT)
         Utilities.write_to_file(beast_out, beast_fn)
+
+        if self.sim_logging == 'clean':
+            os.remove(xml_fn)
+            os.remove(beast_fn)
+        elif self.sim_logging == 'verbose':
+            pass
+            # do nothing
 
         return
 

@@ -97,8 +97,8 @@ class Formatter:
                     tensor_size = tensor_length / (self.num_char + 2)
                 elif self.tree_type == 'extant':
                     tensor_size = tensor_length /  (self.num_char + 1)
-                print(res[i])
-                print(tensor_length)
+                #print(res[i])
+                #print(tensor_length)
                 tensor_size = int(tensor_size)
                 self.phy_tensors[tensor_size][i] = res[i]
 
@@ -225,9 +225,9 @@ class Formatter:
                 with open(out_cblvs_fn, 'w') as outfile:
                     for j,(idx,phy_tensor) in enumerate(self.phy_tensors[tree_size].items()):
                         fname = f'{self.in_dir}/sim.{idx}.cblvs.csv'
-                        with open(fname, 'r') as infile:
-                            s = ','.join(str(a) for a in phy_tensor) + '\n' #infile.read()
-                            z = outfile.write(s)
+                        #with open(fname, 'r') as infile:
+                        s = ','.join(str(a) for a in phy_tensor) + '\n' #infile.read()
+                        z = outfile.write(s)
                     
                     # for j,i in enumerate(size_sort[tree_size]):
                     #     fname = self.in_dir + '/' + 'sim.' + str(i) + '.cblvs.csv'
@@ -242,9 +242,9 @@ class Formatter:
                     #for j,i in enumerate(size_sort[tree_size]):
                     for j,(idx,phy_tensor) in enumerate(self.phy_tensors[tree_size].items()):
                         fname = f'{self.in_dir}/sim.{idx}.cdvs.csv'
-                        with open(fname, 'r') as infile:
-                            s = ','.join(str(a) for a in phy_tensor) + '\n' #infile.read()
-                            z = outfile.write(s)
+                        #with open(fname, 'r') as infile:
+                        s = ','.join(str(a) for a in phy_tensor) + '\n' #infile.read()
+                        z = outfile.write(s)
                     
             # summary stats tensor
             with open(out_stat_fn, 'w') as outfile:
@@ -299,12 +299,12 @@ class Formatter:
         np.set_printoptions(formatter={'float': lambda x: format(x, '8.6E')}, precision=NUM_DIGITS)
         
         # make filenames
-        geo_fn    = tmp_fn + '.geosse.nex'
+        geo_fn    = tmp_fn + '.data.nex'
         tre_fn    = tmp_fn + '.tre'
         prune_fn  = tmp_fn + '.extant.tre'
         nex_fn    = tmp_fn + '.nex'
-        cblvs_fn  = tmp_fn + '.cblvs.csv'
-        cdvs_fn   = tmp_fn + '.cdvs.csv'
+        #cblvs_fn  = tmp_fn + '.cblvs.csv'
+        #cdvs_fn   = tmp_fn + '.cdvs.csv'
         ss_fn     = tmp_fn + '.summ_stat.csv'
         info_fn   = tmp_fn + '.info.csv'
         
@@ -337,14 +337,16 @@ class Formatter:
             # then get CBLVS working
             cblv,new_order = Utilities.vectorize_tree(tre_fn, max_taxa=taxon_size_idx, prob=1.0 )
             cblvs = Utilities.make_cblvs_geosse(cblv, taxon_states, new_order)
-            print('cblvs', cblvs.shape)
+            #print('cblvs', cblvs.shape)
         
             # NOTE: this if statement should not be needed, but for some reason the "next"
             # seems to run even when make_prune_phy returns False
             # generate CDVS file
             if prune_success:
                 cdvs = Utilities.make_cdvs(prune_fn, taxon_size_idx, taxon_states, int2vecstr)
-                print('cdvs:', cdvs.shape)
+            else:
+                cdvs = None
+                #print('cdvs:', cdvs.shape)
             
             # output files
             mtx_size = cblv.shape[1]
@@ -354,18 +356,18 @@ class Formatter:
         info_str = self.make_settings_str(idx, mtx_size)
         Utilities.write_to_file(info_str, info_fn)
 
-        # record CBLVS data
-        cblvs_str = np.array2string(cblvs, separator=',', max_line_width=1e200, threshold=1e200, edgeitems=1e200, precision=10, floatmode='maxprec')
-        cblvs_str = cblvs_str.replace(' ','').replace('.,',',').strip('[].') + '\n'
-        #cblvs_str = Utilities.clean_scientific_notation(cblvs_str)
-        Utilities.write_to_file(cblvs_str, cblvs_fn)
+        # # record CBLVS data
+        # cblvs_str = np.array2string(cblvs, separator=',', max_line_width=1e200, threshold=1e200, edgeitems=1e200, precision=10, floatmode='maxprec')
+        # cblvs_str = cblvs_str.replace(' ','').replace('.,',',').strip('[].') + '\n'
+        # #cblvs_str = Utilities.clean_scientific_notation(cblvs_str)
+        # Utilities.write_to_file(cblvs_str, cblvs_fn)
 
-        # record CDVS data
-        if prune_success:
-            cdvs_str = np.array2string(cdvs, separator=',', max_line_width=1e200, threshold=1e200, edgeitems=1e200, precision=10, floatmode='maxprec')
-            cdvs_str = cdvs_str.replace(' ','').replace('.,',',').strip('[].') + '\n'
-            #cdvs_str = Utilities.clean_scientific_notation(cdvs_str)
-            Utilities.write_to_file(cdvs_str, cdvs_fn)
+        # # record CDVS data
+        # if prune_success:
+        #     cdvs_str = np.array2string(cdvs, separator=',', max_line_width=1e200, threshold=1e200, edgeitems=1e200, precision=10, floatmode='maxprec')
+        #     cdvs_str = cdvs_str.replace(' ','').replace('.,',',').strip('[].') + '\n'
+        #     #cdvs_str = Utilities.clean_scientific_notation(cdvs_str)
+        #     Utilities.write_to_file(cdvs_str, cdvs_fn)
 
         # record summ stat data
         ss = Utilities.make_summ_stat(tre_fn, geo_fn, vecstr2int)

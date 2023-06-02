@@ -34,6 +34,7 @@ my_all_args = my_all_args | my_mdl_args
 ######################
 my_sim_args = {
     'sim_dir'           : '../raw_data',
+    'sim_logging'       : 'verbose',
     'start_idx'         : 0,
     'end_idx'           : 100,
     'tree_sizes'        : [ 200, 500 ],
