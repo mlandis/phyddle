@@ -1855,10 +1855,10 @@ def get_CQR_constant(x_pred_quantiles, y_true, inner_quantile=0.95):
     Q = np.array([])
     # for each parameter
     for i in range(x_pred_quantiles.shape[2]):
-        s = np.amax(np.array((x_pred_quantiles[0][:,i] - y_true[:,i], y_true[:,i] - x_pred_quantiles[1][:,i])), axis=0)
+        E = np.amax(np.array((x_pred_quantiles[0][:,i] - y_true[:,i], y_true[:,i] - x_pred_quantiles[1][:,i])), axis=0)
 
         # get 1 - alpha/2's quintile of non-comformity scores
-        Q = np.append(Q, np.quantile(s, inner_quantile * (1 + 1/x_pred_quantiles.shape[1])))
+        Q = np.append(Q, np.quantile(E, inner_quantile * (1 + 1/x_pred_quantiles.shape[1])))
 
     return Q
 
