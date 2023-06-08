@@ -6,25 +6,27 @@ num_char = 3
 #####################
 # PIPELINE SETTINGS #
 #####################
-my_all_args = { 'job_name' : 'my_job' }
+my_all_args = { 'job_name' : 'geosse_de_1' }
 
 ##################
 # MODEL SETTINGS #
 ##################
 my_mdl_args = {
     'model_type'    : 'geosse',
-    'model_variant' : 'equal_rates',
+    'model_variant' : 'density_effect',
     'num_char'      : num_char,
     'rv_fn' : {
         'w': sp.stats.expon.rvs,
         'e': sp.stats.expon.rvs,
         'd': sp.stats.expon.rvs,
-        'b': sp.stats.expon.rvs },
+        'b': sp.stats.expon.rvs,
+        'ed': sp.stats.expon.rvs },
     'rv_arg' : {
-        'w': { 'scale' : 0.2 },
-        'e': { 'scale' : 0.1 },
-        'd': { 'scale' : 0.1 },
-        'b': { 'scale' : 0.5 }
+        'w':  { 'scale' : 0.25 },
+        'e':  { 'scale' : 0.05 },
+        'd':  { 'scale' : 0.1 },
+        'b':  { 'scale' : 0.5 },
+        'ed': { 'scale' : 0.20 }
     }
 }
 my_all_args = my_all_args | my_mdl_args
@@ -63,7 +65,7 @@ my_all_args = my_all_args | my_enc_args
 my_fmt_args = {
     'fmt_dir' : '../tensor_data',
     'tree_type'  : 'extant',
-    'param_pred' : ['w_0', 'e_0', 'd_0_1', 'b_0_1'],
+    'param_pred' : ['w_0', 'e_0', 'd_0_1', 'b_0_1', 'ed_0'],
     'param_data' : [],
     'tensor_format' : 'hdf5'
 } #| my_all_args
@@ -74,7 +76,7 @@ my_all_args = my_all_args | my_fmt_args
 #####################
 my_lrn_args = { 
     'net_dir'        : '../network',
-    'tree_size'      : 500,
+    'tree_size'      : 200,
     'num_epochs'     : 20,
     'prop_test'        : 0.05,
     'prop_validation'  : 0.05,

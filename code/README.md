@@ -17,9 +17,6 @@ vim config.py
 # simulate data in `raw_data/my_job`
 ./run_simulate.py --cfg config
 
-# encode data in `raw_data/my_job`
-./run_encode.py --cfg config
-
 # prepare data as tensors in `tensor_data/my_job`
 ./run_format.py --cfg config
 

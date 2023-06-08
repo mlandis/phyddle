@@ -233,8 +233,8 @@ class MasterSimulator(Simulator):
            xml_sim_conditions=xml_sim_conditions,
            xml_filter=xml_filter,
            newick_fn=newick_fn, nexus_fn=nexus_fn, json_fn=json_fn,
-           num_samples=1,
-           sample_pop='false',
+           num_samples=1000,
+           sample_pop='true',
            stop_time=stop_time)
         
         return xml_spec_str

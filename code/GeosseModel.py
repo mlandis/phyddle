@@ -39,8 +39,36 @@ class GeosseModel(Model.BaseModel):
         lbl        = [ ''.join([ letters[i] for i,y in enumerate(x) if y == 1 ]) for x in vec ]
         lbl2vec    = { k:v for k,v in list(zip(lbl,vec)) }
         states     = States(lbl2vec)
+
+        self.make_region_lookup_dict(states)
+
         return states
 
+    # make dictionary containing all states that contain a given region
+    def make_region_lookup_dict(self, states):
+        
+        self.region_lookup_dict = {}
+        
+        # for each region, collect indexes for all ranges that contain that region
+        # example with 3-region system:
+        #   0: 100; 1: 010; 2: 001; 3:110; 4:101; 5:011; 6:111
+        # gives us
+        #   x[0] = [ 0, 3, 4, 6 ]
+        #   x[1] = [ 1, 3, 5, 6 ]
+        #   x[2] = [ 2, 4, 5, 6 ]
+        for region_idx in range(self.num_char):
+            self.region_lookup_dict[region_idx] = []
+
+        # visit each range vector
+        for range_state,range_vector in enumerate(states.int2vec):
+            # visit each region
+            for region_idx,region_state in enumerate(range_vector):
+                # if region is occupied, add the range-state to the dictionary
+                if region_state == 1:
+                    self.region_lookup_dict[region_idx].append(range_state)
+
+        return
+    
     # make starting state for simulation
     def make_start_state(self):
         # { 'S' : 0 }
@@ -84,78 +112,138 @@ class GeosseModel(Model.BaseModel):
         elif model_variant == 'fig_rates':
             params = {}
         
-        elif model_variant == 'carrying_capacity':
+        elif model_variant == 'density_effect':
             params = {
                     'w': np.full(num_char, rv_fn['w'](size=1, random_state=self.rng, **rv_arg['w'])[0]),
                     'e': np.full(num_char, rv_fn['e'](size=1, random_state=self.rng, **rv_arg['e'])[0]),
                     'd': np.full((num_char,num_char), rv_fn['d'](size=1, random_state=self.rng, **rv_arg['d'])[0]),
                     'b': np.full((num_char,num_char), rv_fn['b'](size=1, random_state=self.rng, **rv_arg['b'])[0]),
-                    'K_e': np.full(num_char, rv_fn['K_e'](size=1, random_state=self.rng, **rv_arg['K_e'])[0])
+                    'ed': np.full(num_char, rv_fn['ed'](size=1, random_state=self.rng, **rv_arg['ed'])[0])
                 }
             params['x'] = params['e']
-
+            params['xd'] = params['ed']
 
         return params
     
-    # GeoSSE extinction rate
+    # make list of all events in model
+    def make_events(self, states, rates):
+        # lineage extinction events
+        events_x = self.make_events_x( states, rates['x'] )
+        # regional extinction (extirpation) events
+        events_e = self.make_events_e( states, rates['e'] )
+        # dispersal events
+        events_d = self.make_events_d( states, rates['d'] )
+        # within-region speciation events
+        events_w = self.make_events_w( states, rates['w'] )
+        # between-region speciation events
+        events_b = self.make_events_b( states, rates['b'] )
+        
+        core_events = events_x + events_e + events_d + events_w + events_b
+
+        extra_events = []
+        if self.model_variant == 'density_effect':
+             extra_events_x_DE = self.make_events_x_DE( states, rates['xd'] )
+             extra_events_e_DE = self.make_events_e_DE( states, rates['ed'] )
+             extra_events = extra_events + extra_events_x_DE + extra_events_e_DE
+
+        events = core_events + extra_events
+
+        return events
+
+    # GeoSSE lineage extinction rate
     def make_events_x(self, states, rates):  
         group = 'Extinction'
         events = []
-        for i,x in enumerate(states.int2vec):
-            if sum(x) == 1:
-                for j,y in enumerate(x):
-                    if y == 1:
-                        name = 'r_x_{i}'.format(i=i)
-                        idx = {'i':i}
-                        rate = rates[j]
-                        ix = [ 'S[{i}]:1'.format(i=i) ]
-                        jx = [ 'X' ]
-                        e = Event( g=group, n=name, idx=idx, r=rate, ix=ix, jx=jx )
+        for range_state,range_vector in enumerate(states.int2vec):
+            if sum(range_vector) == 1:
+                for region_idx,region_state in enumerate(range_vector):
+                    if region_state == 1:
+                        name = f'r_x_{range_state}'
+                        idx  = {'i': range_state}
+                        rate = rates[region_idx]
+                        ix   = [ f'S[{range_state}]:1' ]
+                        jx   = [ f'X[{region_idx}]', f'L[{region_idx}]' ]
+                        e    = Event( g=group, n=name, idx=idx, r=rate, ix=ix, jx=jx )
                         events.append(e)
         return events
 
-    # GeoSSE extirpation rate
+    # GeoSSE lineage extinction rate due to density effects
+    def make_events_x_DE(self, states, rates):  
+        group = 'Extinction_DE'
+        events = []
+        for range_state,range_vector in enumerate(states.int2vec):
+            if sum(range_vector) == 1:
+                for region_idx,region_state in enumerate(range_vector):
+                    if region_state == 1:
+                        name = 'r_xd_{i}'.format(i=range_state)
+                        idx  = {'i': range_state}
+                        rate = rates[region_idx]
+                        # enumerate over all states that contain region j
+                        for other_range_state in self.region_lookup_dict[region_idx]:
+                            # for loop
+                            ix = [ f'S[{range_state}]:1', f'S[{other_range_state}]' ]
+                            jx = [ f'S[{other_range_state}]', f'X[{region_idx}]', f'L[{region_idx}]' ]
+                            e  = Event( g=group, n=name, idx=idx, r=rate, ix=ix, jx=jx )
+                            events.append(e)
+        return events
+    
+    # GeoSSE regional extinction (extirpation) rate 
     def make_events_e(self, states, rates):
         group = 'Extirpation'
         events = []
-        # for each state
-        for i,x in enumerate(states.int2vec):
-            # for each bit in the state-vector
-            for j,y in enumerate(x):
-                # if range is size 2+ and region occupied
-                if sum(x) > 1 and y == 1:
-                    new_bits = list(x).copy()
-                    new_bits[j] = 0
+        for range_state,range_vector in enumerate(states.int2vec):
+            for region_idx,region_state in enumerate(range_vector):
+                if sum(range_vector) >= 2 and region_state == 1:
+                    new_bits = list(range_vector).copy()
+                    new_bits[region_idx] = 0
                     new_bits = tuple(new_bits)
                     new_state = states.vec2int[ new_bits ]
-                    name = 'e_{i}_{j}'.format(i=i, j=new_state)
-                    rate = rates[j]
-                    #xml_str = 'S[{i}]:1 -> S[{j}]:1'.format(i=i, j=new_state)
-                    ix = [ 'S[{i}]:1'.format(i=i) ]
-                    jx = [ 'S[{j}]:1'.format(j=new_state) ]
-                    idx = {'i':i, 'j':new_state}
-                    e = Event( g=group, n=name, idx=idx, r=rate, ix=ix, jx=jx )
+                    name = f'e_{range_state}_{new_state}'
+                    rate = rates[region_idx]
+                    idx  = {'i':range_state, 'j':new_state}
+                    ix   = [ f'S[{range_state}]:1' ]
+                    jx   = [ f'S[{new_state}]:1', f'L[{region_idx}]' ]
+                    e    = Event( g=group, n=name, idx=idx, r=rate, ix=ix, jx=jx )
                     events.append(e)
+        return events
+
+    # GeoSSE regional extinction (extirpation) rate due to density effects
+    def make_events_e_DE(self, states, rates):
+        group = 'Extirpation_DE'
+        events = []
+        for range_state,range_vector in enumerate(states.int2vec):
+            for region_idx,region_state in enumerate(range_vector):
+                if sum(range_vector) >= 2 and region_state == 1:
+                    new_bits = list(range_vector).copy()
+                    new_bits[region_idx] = 0
+                    new_bits = tuple(new_bits)
+                    new_state = states.vec2int[ new_bits ]
+                    name = f'e_{range_state}_{new_state}'
+                    rate = rates[region_idx]
+                    # enumerate over all states that contain region_idx
+                    for other_range_state in self.region_lookup_dict[region_idx]:
+                        idx = {'i':range_state, 'j':new_state}
+                        ix  = [ f'S[{range_state}]:1', f'S[{other_range_state}]' ]
+                        jx  = [ f'S[{other_range_state}]', f'X[{region_idx}]', f'L[{region_idx}]' ]
+                        e   = Event( g=group, n=name, idx=idx, r=rate, ix=ix, jx=jx )
+                        events.append(e)
         return events
 
     # GeoSSE within-region speciation rate
     def make_events_w(self, states, rates):
         group = 'Within-region speciation'
         events = []
-        # for each state
-        for i,x in enumerate(states.int2vec):
+        for range_state,range_vector in enumerate(states.int2vec):
             # for each bit in the state-vector
-            for j,y in enumerate(x):
+            for region_idx,region_state in enumerate(range_vector):
                 # if region is occupied
-                if y == 1:
-                    #new_state = j
-                    name = 'w_{i}_{i}_{j}'.format(i=i, j=j)
-                    rate = rates[j]
-                    #xml_str = 'S[{i}]:1 -> S[{i}]:1 + S[{j}]:1'.format(i=i, j=new_state)
-                    ix = [ 'S[{i}]:1'.format(i=i, j=j) ]
-                    jx = [ 'S[{i}]:1'.format(i=i), 'S[{j}]:1'.format(j=j) ]
-                    idx = {'i':i, 'j':i, 'k':j}
-                    e = Event( g=group, n=name, idx=idx, r=rate, ix=ix, jx=jx )
+                if region_state == 1:
+                    name = f'w_{range_state}_{range_state}_{region_idx}'
+                    rate = rates[region_idx]
+                    idx  = {'i': range_state, 'j': range_state, 'k': region_idx}
+                    ix   = [ f'S[{range_state}]:1' ]
+                    jx   = [ f'S[{range_state}]:1', f'S[{region_idx}]:1', f'G[{region_idx}]' ]
+                    e    = Event( g=group, n=name, idx=idx, r=rate, ix=ix, jx=jx )
                     events.append(e)
         return events
 
@@ -167,41 +255,37 @@ class GeosseModel(Model.BaseModel):
         # generate on/off bits
         on  = []
         off = []
-        for i,x in enumerate(states.int2vec):
-            #print(i,x)
+        for range_state,range_vector in enumerate(states.int2vec):
             on.append( [] )
             off.append( [] )
-            for j,y in enumerate(x):
-                if y == 0:
-                    off[i].append(j)
+            for region_idx,region_state in enumerate(range_vector):
+                if region_state == 0:
+                    off[range_state].append(region_idx)
                 else:
-                    on[i].append(j)
+                    on[range_state].append(region_idx)
         # convert to dispersal events
         events = []
-        for i in range(num_states):
-            if sum(on[i]) == 0:
+        for range_state in range(num_states):
+            if sum(on[range_state]) == 0:
                 next
-            #print(on[i], off[i])
-            for a,y in enumerate(off[i]):
+            for a,new_region_idx in enumerate(off[range_state]):
                 rate = 0.0
-                for b,z in enumerate(on[i]):
-                    rate += rates[z][y]
-                new_bits = list(states.int2vec[i]).copy()
-                new_bits[y] = 1
-                #print(states.int2vec[i], '->', new_bits)
+                for b,curr_region_idx in enumerate(on[range_state]):
+                    # sum of dispersal rates into off_region_idx
+                    rate += rates[curr_region_idx][new_region_idx]
+                new_bits = list(states.int2vec[range_state]).copy()
+                new_bits[new_region_idx] = 1
                 new_state = states.vec2int[ tuple(new_bits) ]
-                name = 'd_{i}_{j}'.format(i=i, j=new_state)
-                ix = [ 'S[{i}]:1'.format(i=i) ]
-                jx = [ 'S[{j}]:1'.format(j=new_state) ]
-                #xml_str = 'S[{i}]:1 -> S[{j}]:1'.format(i=i, j=new_state)
-                #idx = [i, new_state]
-                idx = {'i':i, 'j':new_state}
-                e = Event( g=group, n=name, idx=idx, r=rate, ix=ix, jx=jx )
+                name = f'd_{range_state}_{new_state}'
+                idx  = {'i':range_state, 'j':new_state}
+                ix   = [ f'S[{range_state}]:1' ]
+                jx   = [ f'S[{new_state}]:1', f'G[{new_region_idx}]' ]
+                e    = Event( g=group, n=name, idx=idx, r=rate, ix=ix, jx=jx )
                 events.append(e)
         return events
 
     # GeoSSE between-region speciation rate
-    def make_events_b(self, states, rates):
+    def make_events_b(self, states, rates, normalize_rates=False):
         group = 'Between-region speciation'
 
         # geometric mean
@@ -215,51 +299,42 @@ class GeosseModel(Model.BaseModel):
             s = list(iterable)
             return itertools.chain.from_iterable(itertools.combinations(s, r) for r in range(len(s)+1))
         
-        # compute split rates
-        def make_split_rate(left,right,rates):
+        # compute split rates of whole into left and right parts
+        def make_split_rate(left, right, rates):
             r = 0.0
             for i in left:
                 for j in right:
                     r += 1.0 / rates[i][j]
-            return 1.0/r
-            
+            return 1.0 / r
+                
         # get unique nonempty left/right splits for each range
         events = []
         all_rates = []
-        for i,x in enumerate(states.int2set):
-            splits = list(powerset(x))[1:-1]
-            #print(x)
-            for y in splits:
-                z = tuple(set(x).difference(y))
-                # create event
-                left_state = states.set2int[y] 
-                right_state = states.set2int[z]
-                name = 'b_{i}_{j}_{k}'.format(i=i, j=left_state, k=right_state)
-                rate = make_split_rate(y,z,rates)
-                all_rates.append(rate)
-                idx = {'i':i, 'j':left_state, 'k':right_state }
-                ix = [ 'S[{i}]:1'.format(i=i) ]
-                jx = [ 'S[{j}]:1'.format(j=left_state), 'S[{k}]:1'.format(k=right_state) ]
-                #xml_str = 'S[{i}]:1 -> S[{j}]:1 + S[{k}]:1'.format(i=i, j=left_state, k=right_state)
-                #e = Event( idx=idx, r=r, n='r_b_{i}_{j}_{k}'.format(i=i, j=left_state, k=right_state), g='Between-region speciation', x=xml_str )
-                e = Event( g=group, n=name, idx=idx, r=rate, ix=ix, jx=jx )
+        for range_state,anc_region_set in enumerate(states.int2set):
+            # get all non-empty splits
+            splits = list(powerset(anc_region_set))[1:-1]
+            # for each right/left range-state outcome
+            for left_region_set in splits:
+                right_region_set = tuple(set(anc_region_set).difference(left_region_set))
+                left_state  = states.set2int[left_region_set] 
+                right_state = states.set2int[right_region_set]
+                # build event
+                name = f'b_{range_state}_{left_state}_{right_state}'
+                rate = make_split_rate(left_region_set,right_region_set,rates)
+                idx  = {'i':range_state, 'j':left_state, 'k':right_state }
+                ix   = [ f'S[{range_state}]:1' ]
+                jx   = [ f'S[{left_state}]:1', f'S[{right_state}]:1' ]
+                e    = Event( g=group, n=name, idx=idx, r=rate, ix=ix, jx=jx )
                 events.append(e)
-
+                all_rates.append(rate)
+        
         # normalize rates
-        #z = gm(all_rates)
-        #for i,x in enumerate(events):
-        #    events[i].rate = events[i].rate / z
+        if normalize_rates:
+            z = gm(all_rates)
+            for range_state,range_vector in enumerate(events):
+               events[range_state].rate = events[range_state].rate / z
 
         return events
 
-    # make list of all events in model
-    def make_events(self, states, rates):
-        events_x = self.make_events_x( states, rates['x'] )
-        events_e = self.make_events_e( states, rates['e'] )
-        events_d = self.make_events_d( states, rates['d'] )
-        events_w = self.make_events_w( states, rates['w'] )
-        events_b = self.make_events_b( states, rates['b'] )
-        events = events_x + events_e + events_d + events_w + events_b
-        return events
 
     

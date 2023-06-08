@@ -63,6 +63,9 @@ class Plotter:
         self.train_labels = pd.read_csv(self.train_labels_fn)
         self.test_preds   = pd.read_csv(self.test_pred_fn)
         self.test_labels  = pd.read_csv(self.test_labels_fn)
+        self.train_preds  = self.train_preds.loc[:, self.train_preds.columns.str.contains('_value')] 
+        self.test_preds   = self.test_preds.loc[:, self.test_preds.columns.str.contains('_value')] 
+
         self.param_names  = self.train_preds.columns.to_list()
         
         if self.tensor_format == 'csv':
