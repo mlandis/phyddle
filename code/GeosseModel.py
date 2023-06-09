@@ -127,24 +127,29 @@ class GeosseModel(Model.BaseModel):
     
     # make list of all events in model
     def make_events(self, states, rates):
+        
         # lineage extinction events
-        events_x = self.make_events_x( states, rates['x'] )
+        #events_x = self.make_events_x( states, rates['x'] )
+        
         # regional extinction (extirpation) events
-        events_e = self.make_events_e( states, rates['e'] )
+        #events_e = self.make_events_e( states, rates['e'] )
+        
         # dispersal events
         events_d = self.make_events_d( states, rates['d'] )
+        
         # within-region speciation events
         events_w = self.make_events_w( states, rates['w'] )
+        
         # between-region speciation events
         events_b = self.make_events_b( states, rates['b'] )
         
-        core_events = events_x + events_e + events_d + events_w + events_b
+        core_events = events_w + events_d  + events_b #+ events_x + events_e
 
         extra_events = []
-        if self.model_variant == 'density_effect':
-             extra_events_x_DE = self.make_events_x_DE( states, rates['xd'] )
-             extra_events_e_DE = self.make_events_e_DE( states, rates['ed'] )
-             extra_events = extra_events + extra_events_x_DE + extra_events_e_DE
+        # if self.model_variant == 'density_effect':
+        #      extra_events_x_DE = self.make_events_x_DE( states, rates['xd'] )
+        #      extra_events_e_DE = self.make_events_e_DE( states, rates['ed'] )
+        #      extra_events = extra_events + extra_events_x_DE + extra_events_e_DE
 
         events = core_events + extra_events
 
@@ -180,8 +185,7 @@ class GeosseModel(Model.BaseModel):
                         rate = rates[region_idx]
                         # enumerate over all states that contain region j
                         for other_range_state in self.region_lookup_dict[region_idx]:
-                            # for loop
-                            ix = [ f'S[{range_state}]:1', f'S[{other_range_state}]' ]
+                            ix = [ f'S[{other_range_state}]', f'S[{range_state}]:1' ]
                             jx = [ f'S[{other_range_state}]', f'X[{region_idx}]', f'L[{region_idx}]' ]
                             e  = Event( g=group, n=name, idx=idx, r=rate, ix=ix, jx=jx )
                             events.append(e)
@@ -223,8 +227,8 @@ class GeosseModel(Model.BaseModel):
                     # enumerate over all states that contain region_idx
                     for other_range_state in self.region_lookup_dict[region_idx]:
                         idx = {'i':range_state, 'j':new_state}
-                        ix  = [ f'S[{range_state}]:1', f'S[{other_range_state}]' ]
-                        jx  = [ f'S[{other_range_state}]', f'X[{region_idx}]', f'L[{region_idx}]' ]
+                        ix  = [ f'S[{other_range_state}]', f'S[{range_state}]:1' ]
+                        jx  = [ f'S[{other_range_state}]', f'S[{new_state}]:1', f'L[{region_idx}]' ]
                         e   = Event( g=group, n=name, idx=idx, r=rate, ix=ix, jx=jx )
                         events.append(e)
         return events

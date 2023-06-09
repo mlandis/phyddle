@@ -26,7 +26,7 @@ my_mdl_args = {
         'e':  { 'scale' : 0.05 },
         'd':  { 'scale' : 0.1 },
         'b':  { 'scale' : 0.5 },
-        'ed': { 'scale' : 0.20 }
+        'ed': { 'scale' : 0.15 }
     }
 }
 my_all_args = my_all_args | my_mdl_args

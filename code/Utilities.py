@@ -1562,17 +1562,20 @@ def plot_ss_param_hist(df, save_fn):
     plt.clf()
 
 def plot_pca(df, save_fn, num_comp=4, f_show=1.0):
+    #print(df.shape)
     x = StandardScaler().fit_transform(df)
     x = pd.DataFrame(x, columns=df.columns)
-    nrow_keep = int(x.shape[1] * f_show)
+    nrow_keep = int(x.shape[0] * f_show)
+    alpha = 100. / nrow_keep
+    #print(nrow_keep)
     pca_model = PCA(n_components=num_comp)
     pca = pca_model.fit_transform(x)
     pca_var = pca_model.explained_variance_ratio_
     fig, axs = plt.subplots(num_comp-1, num_comp-1, sharex=True, sharey=True)
-    tick_spacing = 2
+    tick_spacing = 3
     for i in range(0, num_comp-1):
         for j in range(0, i+1):
-            axs[i,j].scatter( pca[0:nrow_keep,i+1], pca[0:nrow_keep,j], alpha=0.2 )
+            axs[i,j].scatter( pca[0:nrow_keep,i+1], pca[0:nrow_keep,j], alpha=alpha, color='blue', marker='x')
             axs[i,j].xaxis.set_major_locator(ticker.MultipleLocator(tick_spacing))
             axs[i,j].yaxis.set_major_locator(ticker.MultipleLocator(tick_spacing))
             if j == 0:
