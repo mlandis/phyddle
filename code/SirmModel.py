@@ -53,23 +53,25 @@ class SirmModel(Model.BaseModel):
         states = States(lbl2vec)
         return states
     
-    def make_start_sizes(self):
-        # rv_fn = self.rv_fn
-        # rv_arg = self.rv_arg
-        # num_char = self.num_char
-        # # X ~ Gamma(shape=0.5, scale=1e6) 
-        # start_sizes = rv_fn['n0'](size=num_char, random_state=self.rng, **rv_arg['n0'])
-        # start_sizes = [ int(np.ceil(x)) for x in start_sizes ]
-        ret = { 'S' : self.params['S0'] } ## this info could be added to self.params s.t. it can be used for training
-        #if 'I0' in self.params:
-        #    ret['I'] = self.params['I0']
-        return ret
+    # def make_start_sizes(self):
+    #     # rv_fn = self.rv_fn
+    #     # rv_arg = self.rv_arg
+    #     # num_char = self.num_char
+    #     # # X ~ Gamma(shape=0.5, scale=1e6) 
+    #     # start_sizes = rv_fn['n0'](size=num_char, random_state=self.rng, **rv_arg['n0'])
+    #     # start_sizes = [ int(np.ceil(x)) for x in start_sizes ]
+    #     ret = { 'S' : self.params['S0'] } ## this info could be added to self.params s.t. it can be used for training
+    #     #if 'I0' in self.params:
+    #     #    ret['I'] = self.params['I0']
+    #     return ret
         
-    def make_start_state(self):
+    def make_start_conditions(self):
         # p_start_sizes = self.start_sizes['S'] / np.sum(self.start_sizes['S'])
         # start_state = list(sp.stats.multinomial.rvs(n=1, p=p_start_sizes, random_state=self.rng)).index(1)
-        ret = { 'I' : self.params['start_state'][0] }
-        return ret
+        start_state = { 'I' : [ self.params['start_state'][0] ] }
+        start_sizes = { 'S' : self.params['S0'] } 
+        
+        return start_state, start_sizes
         
     def make_params(self, model_variant):
         params = {}

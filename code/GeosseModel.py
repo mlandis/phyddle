@@ -70,16 +70,28 @@ class GeosseModel(Model.BaseModel):
         return
     
     # make starting state for simulation
-    def make_start_state(self):
+    def make_start_conditions(self):
         # { 'S' : 0 }
+        start_state = {}
+        start_sizes = {}
+
+        # get starting state for lineage
         num_ranges = self.num_ranges
         idx = sp.stats.randint.rvs(low=0, high=num_ranges, size=1, random_state=self.rng)[0]
-        s = { 'S' : idx }
-        return s
+        start_state['S'] = idx
+
+        # get starting regions of lineage
+        start_range_vec = self.states.int2vec[idx]
+        start_sizes['G'] = start_range_vec
+        # for i,j in enumerate(start_range_vec):
+        #     if j == 1:
+        #         start_sizes['G'].append( i )
+
+        return start_state, start_sizes
     
     # make starting sizes for compartments
-    def make_start_sizes(self):
-        return {}
+    # def make_start_sizes(self):
+        # return {}
 
     # get all model rates
     def make_params(self, model_variant):
@@ -129,10 +141,10 @@ class GeosseModel(Model.BaseModel):
     def make_events(self, states, rates):
         
         # lineage extinction events
-        #events_x = self.make_events_x( states, rates['x'] )
+        events_x = self.make_events_x( states, rates['x'] )
         
         # regional extinction (extirpation) events
-        #events_e = self.make_events_e( states, rates['e'] )
+        events_e = self.make_events_e( states, rates['e'] )
         
         # dispersal events
         events_d = self.make_events_d( states, rates['d'] )
@@ -143,13 +155,13 @@ class GeosseModel(Model.BaseModel):
         # between-region speciation events
         events_b = self.make_events_b( states, rates['b'] )
         
-        core_events = events_w + events_d  + events_b #+ events_x + events_e
+        core_events = events_w + events_d + events_b + events_x + events_e
 
         extra_events = []
-        # if self.model_variant == 'density_effect':
-        #      extra_events_x_DE = self.make_events_x_DE( states, rates['xd'] )
-        #      extra_events_e_DE = self.make_events_e_DE( states, rates['ed'] )
-        #      extra_events = extra_events + extra_events_x_DE + extra_events_e_DE
+        if self.model_variant == 'density_effect':
+             extra_events_x_DE = self.make_events_x_DE( states, rates['xd'] )
+             extra_events_e_DE = self.make_events_e_DE( states, rates['ed'] )
+             extra_events = extra_events + extra_events_x_DE + extra_events_e_DE
 
         events = core_events + extra_events
 

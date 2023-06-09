@@ -27,9 +27,9 @@ class BaseModel:
         # params space
         self.params      = self.make_params( self.model_variant)
         # starting population sizes (e.g. SIR models)
-        self.start_sizes = self.make_start_sizes()
+        # self.start_sizes = self.make_start_sizes()
         # starting state
-        self.start_state = self.make_start_state()
+        self.start_state, self.start_sizes = self.make_start_conditions()
         # event space
         self.events      = self.make_events( self.states, self.params )
         # event space dataframe

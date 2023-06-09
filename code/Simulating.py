@@ -171,13 +171,15 @@ class MasterSimulator(Simulator):
         xml_init_state = "<initialState spec='InitState'>\n"
         for k,v in self.start_sizes.items():
             for i,y in enumerate(v):
-                xml_init_state += "\t<populationSize spec='PopulationSize' size='{y}'>\n".format(y=y)
-                xml_init_state += "\t\t<population spec='Population' type='@{k}' location='{i}'/>\n".format(k=k,i=i)
-                xml_init_state += "\t</populationSize>\n"
+                if y > 0:
+                    xml_init_state += "\t<populationSize spec='PopulationSize' size='{y}'>\n".format(y=y)
+                    xml_init_state += "\t\t<population spec='Population' type='@{k}' location='{i}'/>\n".format(k=k,i=i)
+                    xml_init_state += "\t</populationSize>\n"
         for k,v in self.start_state.items():
-            xml_init_state += "\t<lineageSeedMultiple spec='MultipleIndividuals' copies='1'>\n".format(v=v)
-            xml_init_state += "\t\t<population spec ='Population' type='@{k}' location='{v}'/>\n".format(k=k,v=v)
+            xml_init_state += "\t<lineageSeedMultiple spec='MultipleIndividuals' copies='1'>\n"
+            xml_init_state += "\t\t<population spec ='Population' type='@{k}' location='{v}'/>\n".format(k=k, v=v)
             xml_init_state += "\t</lineageSeedMultiple>\n"
+
         xml_init_state += "</initialState>\n"
 
         # sim conditions
