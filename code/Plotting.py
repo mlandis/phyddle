@@ -79,6 +79,7 @@ class Plotter:
         self.save_cqr_test_fn   = f'{self.plt_job_dir}/{self.network_prefix}.train_est_CI.pdf'
         self.save_cqr_pred_fn   = f'{self.plt_job_dir}/{self.network_prefix}.pred_est_CI.pdf'
         self.save_network_fn    = f'{self.plt_job_dir}/{self.network_prefix}.network_architecture.pdf'
+        self.save_summary_fn    = f'{self.plt_job_dir}/{self.network_prefix}.summary.pdf'
         
         self.train_color        = 'blue'
         self.test_color         = 'purple'
@@ -176,7 +177,7 @@ class Plotter:
             prefix=self.network_prefix+'_train',
             color=self.train_color,
             plot_dir=self.plt_job_dir,
-            title='Train predictions')
+            title='Train')
 
         # test predicition scatter plots
         self.plot_preds_labels(\
@@ -186,18 +187,18 @@ class Plotter:
             prefix=self.network_prefix+'_test',
             color=self.test_color,
             plot_dir=self.plt_job_dir,
-            title='Test predictions')
+            title='Test')
 
 
         # save histograms
-        self.plot_sim_histogram(save_fn=self.save_hist_aux_fn, sim_values=self.input_stats, pred_values=self.pred_aux_data, color=self.aux_color) #, title='Auxiliary data')
-        self.plot_sim_histogram(save_fn=self.save_hist_label_fn, sim_values=self.input_labels, pred_values=self.pred_lbl_value, color=self.label_color) #, title='Labels' )
+        self.plot_sim_histogram(save_fn=self.save_hist_aux_fn, sim_values=self.input_stats, pred_values=self.pred_aux_data, color=self.aux_color, title='Aux. data')
+        self.plot_sim_histogram(save_fn=self.save_hist_label_fn, sim_values=self.input_labels, pred_values=self.pred_lbl_value, color=self.label_color, title='Labels' )
         
         # save PCA
         self.plot_pca(save_fn=self.save_pca_aux_fn, sim_stat=self.input_stats, pred_stat=self.pred_aux_data, color=self.aux_color)
         
         # save point est. and CI for test dataset (if it exists)
-        self.plot_pred_est_CI(save_fn=self.save_cqr_pred_fn, pred_label=self.pred_lbl_df, color=self.pred_color)
+        self.plot_pred_est_CI(save_fn=self.save_cqr_pred_fn, pred_label=self.pred_lbl_df, title=f'Prediction: {self.pred_dir}/{self.pred_prefix}', color=self.pred_color)
         
         # save network
         tf.keras.utils.plot_model(self.model, to_file=self.save_network_fn, show_shapes=True)
@@ -221,11 +222,11 @@ class Plotter:
         for f in files_ordered:
             merger.append(self.plt_job_dir + '/' + f)
 
-        merger.write(self.plt_job_dir+'/'+self.network_prefix+'_'+'all_results.pdf')
+        merger.write(self.save_summary_fn)
         return
 
 
-    def plot_sim_histogram(self, save_fn, sim_values, pred_values=None, ncol_plot=3, color='blue'):
+    def plot_sim_histogram(self, save_fn, sim_values, pred_values=None, title='', ncol_plot=3, color='blue'):
         
         col_names = sorted( sim_values.columns )
         num_aux = len(col_names)
@@ -237,8 +238,8 @@ class Plotter:
 
         # basic figure structure
         fig, axes = plt.subplots(ncols=ncol_plot, nrows=nrow, figsize=(fig_width, fig_height))
-        fig.tight_layout(h_pad=2.25)
-        fig.subplots_adjust(bottom=0.05)
+        fig.tight_layout() #h_pad=2.25)
+        #fig.subplots_adjust(bottom=0.05)
 
         i = 0
         for i_row, ax_row in enumerate(axes):
@@ -298,9 +299,9 @@ class Plotter:
         fig.supxlabel('Data')
         fig.supylabel('Density')
 
-        #fig.suptitle(title)
-        #plt.margins(x=0.05, y=0.05)
-        plt.savefig(fname=save_fn)
+        fig.suptitle(f'Histogram: {title}')
+        fig.tight_layout(rect=[0, 0.03, 1, 0.98])
+        plt.savefig(fname=save_fn, format='pdf', dpi=300, bbox_inches='tight')
         plt.clf()
 
     
@@ -339,12 +340,14 @@ class Plotter:
                 #axs[i,j].yaxis.set_major_locator(ticker.MultipleLocator(tick_spacing))
                 
         plt.tight_layout()
-        plt.savefig(save_fn, format='pdf')
+        fig.suptitle('PCA: aux. data')
+        fig.tight_layout(rect=[0, 0.03, 1, 0.98])
+        plt.savefig(save_fn, format='pdf', dpi=300, bbox_inches='tight')
         plt.clf()
         return
 
 
-    def plot_pred_est_CI(self, save_fn, pred_label, color='black', plot_log=True):
+    def plot_pred_est_CI(self, save_fn, pred_label, title='Prediction', color='black', plot_log=True):
         if pred_label is None:
             return
                 
@@ -373,9 +376,10 @@ class Plotter:
             plt.scatter(i, y_value, color='red', edgecolors='white', s=30, zorder=3)
             
         # plot values as text
+        plt.title(title)
         plt.xticks(np.arange(num_label), label_names)
         plt.xlim( -0.5, num_label )
-        plt.savefig(save_fn, format='pdf')
+        plt.savefig(save_fn, format='pdf', dpi=300, bbox_inches='tight')
         plt.clf()
         return
 
@@ -416,7 +420,7 @@ class Plotter:
             plt.annotate(f'Coverage: {s_cover}%', xy=(0.01,0.99), xycoords='axes fraction', fontsize=10, horizontalalignment='left', verticalalignment='top', color='black')
 
             # cosmetics
-            plt.title(title)
+            plt.title(f'{title} predictions: {p}')
             plt.xlabel(f'{p} {axis_labels[0]}')
             plt.ylabel(f'{p} {axis_labels[1]}')
             if plot_log:
@@ -425,7 +429,7 @@ class Plotter:
 
             # save
             save_fn = f'{plot_dir}/{prefix}_{p}.pdf'
-            plt.savefig(save_fn, format='pdf')
+            plt.savefig(save_fn, format='pdf', dpi=300, bbox_inches='tight')
             plt.clf()
         return
     
@@ -495,9 +499,11 @@ class Plotter:
                 title_metric = 'entire network'
             fig.supxlabel('Epochs')
             fig.supylabel('Metrics')
-            fig.suptitle('Learning ' + label_names[i])
+            fig.suptitle('Training history: ' + title_metric)
+            fig.tight_layout()
 
             save_fn = plot_dir + '/' + prefix + '_' + label_names[i] + '.pdf'
 
-            plt.savefig(save_fn, format='pdf')
+            plt.savefig(save_fn, format='pdf', dpi=300, bbox_inches='tight')
             plt.clf()
+            return
