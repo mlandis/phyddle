@@ -1865,7 +1865,7 @@ def get_CQR_constant(x_pred_quantiles, y_true, inner_quantile=0.95):
 
     return Q
 
-# make matrix with parameter values, lower-bounds, upper-bounds
+# make matrix with parameter values, lower-bounds, upper-bounds: 3D->2D
 def make_param_VLU_mtx(A, param_names):
     
     # axis labels
@@ -1884,5 +1884,15 @@ def make_param_VLU_mtx(A, param_names):
 
     new_col_names = [ f'{param_names[y]}_{stat_names[x]}' for x,y in df.columns ]
     df.columns = new_col_names
+
+    return df
+
+# unmake VLU mtx: 2D -> 3D
+def unmake_param_VLU_mtx(A, param_names):
+    
+    # axis labels
+    stat_names = ['value', 'lower', 'upper']
+
+
 
     return df

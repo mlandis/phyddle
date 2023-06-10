@@ -111,57 +111,16 @@ class Predictor:
         self.mymodel = tf.keras.models.load_model(self.model_sav_fn, compile=False)
 
         # get predictions
-        self.norm_preds = self.mymodel.predict([self.pred_data_tensor, self.norm_pred_stats])
-        print(self.norm_preds)
-        self.norm_preds = np.array( self.norm_preds )
-        print('before')
-        print(self.norm_preds)
-        print(self.cqr_interval_adjustments)
-        #print(self.norm_preds[1,0,:])
-        self.norm_preds[1,:,:] = self.norm_preds[1,:,:] - self.cqr_interval_adjustments
-        self.norm_preds[2,:,:] = self.norm_preds[2,:,:] + self.cqr_interval_adjustments
-        print('after')
-        print(self.norm_preds)
-        #print('norm_preds', self.norm_preds)
+        self.norm_preds                = self.mymodel.predict([self.pred_data_tensor, self.norm_pred_stats])
+        self.norm_preds                = np.array( self.norm_preds )
+        self.norm_preds[1,:,:]         = self.norm_preds[1,:,:] - self.cqr_interval_adjustments
+        self.norm_preds[2,:,:]         = self.norm_preds[2,:,:] + self.cqr_interval_adjustments
         self.denormalized_pred_labels  = Utilities.denormalize(self.norm_preds, self.train_labels_means, self.train_labels_sd)
-        #print('denorm_pred_labels', self.denormalized_pred_labels)
         self.pred_labels               = np.exp( self.denormalized_pred_labels )
        
-
-        print(self.pred_labels)
-        
+        # output predictions
         self.df_pred_all_labels = Utilities.make_param_VLU_mtx(self.pred_labels, self.param_names)
-        
-        # self.df_pred_all_labels = pd.DataFrame()
-        # self.df_pred_all_labels['name'] = self.param_names
-        # self.df_pred_all_labels['estimate'] = self.pred_labels.flatten()
-        # self.df_pred_all_labels['lower_CPI'] = self.pred_lower_CPI
-        # self.df_pred_all_labels['upper_CPI'] = self.pred_upper_CPI
         self.df_pred_all_labels.to_csv(self.model_pred_fn, index=False, sep=',')
 
         return
     
- 
-        
-        #print('pred_labels', self.pred_labels)
-        # get CIs
-        #self.cpi_vals = {}
-        # self.pred_lower_CPI = []
-        # self.pred_upper_CPI = []
-        # for i,k in enumerate(self.param_names):
-        #     # MJL: we pass the predicted parameter vector into the function
-        #     #      each cpi_func is trained for a different parameter
-        #     if k in self.cpi_func:
-        #         x_pred = self.denormalized_pred_labels[:,[i]] # denormalized_pred_labels????
-        #         x_stat = self.denormalized_pred_stats[:,0:2]
-        #         self.pred_cpi_val = np.hstack( [x_pred, x_stat] )
-        #         print(self.pred_cpi_val)
-
-        #         lower_val = self.cpi_func[k]['lower']( self.pred_cpi_val )
-        #         upper_val = self.cpi_func[k]['upper']( self.pred_cpi_val )
-
-        #         self.pred_lower_CPI.append( np.exp( lower_val[0] ) )
-        #         self.pred_upper_CPI.append( np.exp( upper_val[0] ) )
-        #     else:
-        #         self.pred_lower_CPI.append(0.)
-        #         self.pred_upper_CPI.append(10.)

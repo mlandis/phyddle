@@ -77,9 +77,11 @@ class Learner:
         self.model_hist_fn      = f'{self.network_dir}/{self.model_prefix}.train_history.json'
         self.model_cpi_func_fn  = f'{self.network_dir}/{self.model_prefix}.cpi_func.obj'
         self.model_cqr_fn       = f'{self.network_dir}/{self.model_prefix}.cqr_interval_adjustments.csv'
-        self.train_pred_fn      = f'{self.network_dir}/{self.model_prefix}.train_pred.csv'
+        self.train_pred_calib_fn      = f'{self.network_dir}/{self.model_prefix}.train_pred.csv'
+        self.test_pred_calib_fn       = f'{self.network_dir}/{self.model_prefix}.test_pred.csv'
+        self.train_pred_nocalib_fn    = f'{self.network_dir}/{self.model_prefix}.train_pred_nocalib.csv'
+        self.test_pred_nocalib_fn     = f'{self.network_dir}/{self.model_prefix}.test_pred_nocalib.csv'
         self.train_labels_fn    = f'{self.network_dir}/{self.model_prefix}.train_labels.csv'
-        self.test_pred_fn       = f'{self.network_dir}/{self.model_prefix}.test_pred.csv'
         self.test_labels_fn     = f'{self.network_dir}/{self.model_prefix}.test_labels.csv'
         self.input_stats_fn     = f'{self.input_dir}/sim.nt{self.tree_size}.summ_stat.csv'
         self.input_labels_fn    = f'{self.input_dir}/sim.nt{self.tree_size}.labels.csv'
@@ -361,40 +363,45 @@ class CnnLearner(Learner):
          # scatter of pred vs true for test data
         self.normalized_calib_preds       = self.mymodel.predict([self.calib_data_tensor, self.calib_stats_tensor])
         self.normalized_calib_preds       = np.array(self.normalized_calib_preds)
-        #self.norm_calib_labels
 
         # drop 0th column containing point estimate predictions for calibration dataset
         norm_calib_pred_quantiles = self.normalized_calib_preds[1:,:,:]
         self.cqr_interval_adjustments = Utilities.get_CQR_constant(norm_calib_pred_quantiles, self.norm_calib_labels, inner_quantile=self.alpha_CQRI)
         self.cqr_interval_adjustments = np.array( self.cqr_interval_adjustments ).reshape((1,-1))
+
         # note to self: should I save all copies of calibrated/uncalibrated predictions test/train/calib??
 
+        # training predictions with calibrated CQR CIs
+        self.denorm_train_preds_calib        = self.normalized_train_preds
+        self.denorm_train_preds_calib[1,:,:] = self.denorm_train_preds_calib[1,:,:] - self.cqr_interval_adjustments
+        self.denorm_train_preds_calib[2,:,:] = self.denorm_train_preds_calib[2,:,:] + self.cqr_interval_adjustments
+        self.denorm_train_preds_calib        = Utilities.denormalize(self.denorm_train_preds_calib, self.train_label_means, self.train_label_sd)
+        self.denorm_train_preds_calib        = np.exp(self.denorm_train_preds_calib)
+
+        # test predictions with calibrated CQR CIs
+        self.denorm_test_preds_calib        = self.normalized_test_preds
+        self.denorm_test_preds_calib[1,:,:] = self.denorm_test_preds_calib[1,:,:] - self.cqr_interval_adjustments
+        self.denorm_test_preds_calib[2,:,:] = self.denorm_test_preds_calib[2,:,:] + self.cqr_interval_adjustments
+        self.denorm_test_preds_calib        = Utilities.denormalize(self.denorm_test_preds_calib, self.train_label_means, self.train_label_sd)
+        self.denorm_test_preds_calib        = np.exp(self.denorm_test_preds_calib)
+        
         # make copies of training predictions with calibrated quantiles
         #$self.denorm_calib_preds = Utilities.denormalize(self.normalized_calib_preds, self.train_label_means, self.train_label_sd)
         #self.denorm_calib_preds[]
 
         #print(conformity_scores)
+        
+        # self.norm_preds                = self.mymodel.predict([self.pred_data_tensor, self.norm_pred_stats])
+        # self.norm_preds                = np.array( self.norm_preds )
+        # self.norm_preds[1,:,:]         = self.norm_preds[1,:,:] - self.cqr_interval_adjustments
+        # self.norm_preds[2,:,:]         = self.norm_preds[2,:,:] + self.cqr_interval_adjustments
+        # self.denormalized_pred_labels  = Utilities.denormalize(self.norm_preds, self.train_labels_means, self.train_labels_sd)
+        # self.pred_labels               = np.exp( self.denormalized_pred_labels )
+       
+        # # output predictions
+        # self.df_pred_all_labels = Utilities.make_param_VLU_mtx(self.pred_labels, self.param_names)
+        # self.df_pred_all_labels.to_csv(self.model_pred_fn, index=False, sep=',')
 
-
-
-        # # conformalized prediction interval (CPI) functions
-        # self.cpi_func = {}
-        # for i,p in enumerate(self.param_names):
-            
-        #     # values passed into CPI function are on normal scale
-        #     # i.e. they are NOT normalized to training scale or log-transformed
-        #     x_pred_cpi = self.denormalized_train_preds[:,i].reshape(-1,1)
-        #     x_stat_cpi = self.denormalized_train_stats[:,0:2]
-        #     x_true_cpi = self.denormalized_train_labels[:,i].reshape(-1,1)
-
-        #     # get CPI functions
-        #     print(p)
-        #     self.lower_cpi, self.upper_cpi = Utilities.get_CPI2(x_pred_cpi, x_stat_cpi, x_true_cpi, frac=0.1, inner_quantile=0.95, num_grid_points=20)
-
-        #     # store CPI functions in dict for saving (dill)
-        #     self.cpi_func[p] = {}
-        #     self.cpi_func[p]['lower'] = self.lower_cpi
-        #     self.cpi_func[p]['upper'] = self.upper_cpi
 
         return
     
@@ -444,20 +451,24 @@ class CnnLearner(Learner):
 
 
         # save train prediction scatter data
-        df_train_pred   = Utilities.make_param_VLU_mtx(self.denormalized_train_preds[0:max_idx,:], self.param_names )
-        df_test_pred    = Utilities.make_param_VLU_mtx(self.denormalized_test_preds[0:max_idx,:], self.param_names )
+        df_train_pred_nocalib   = Utilities.make_param_VLU_mtx(self.denormalized_train_preds[0:max_idx,:], self.param_names )
+        df_test_pred_nocalib    = Utilities.make_param_VLU_mtx(self.denormalized_test_preds[0:max_idx,:], self.param_names )
+        df_train_pred_calib     = Utilities.make_param_VLU_mtx(self.denorm_train_preds_calib[0:max_idx,:], self.param_names )
+        df_test_pred_calib      = Utilities.make_param_VLU_mtx(self.denorm_test_preds_calib[0:max_idx,:], self.param_names )
         #df_train_pred   = pd.DataFrame( self.denormalized_train_preds[0:max_idx,:], columns=param_pred_names )
         #df_test_pred    = pd.DataFrame( self.denormalized_test_preds[0:max_idx,:], columns=param_pred_names )
 
-        print(self.cqr_interval_adjustments)
-        print(self.cqr_interval_adjustments.shape)
-        df_train_labels = pd.DataFrame( self.denormalized_train_labels[0:max_idx,:], columns=self.param_names )
-        df_test_labels  = pd.DataFrame( self.denormalized_test_labels[0:max_idx,:], columns=self.param_names )
+        #print(self.cqr_interval_adjustments)
+        #print(self.cqr_interval_adjustments.shape)
+        df_train_labels  = pd.DataFrame( self.denormalized_train_labels[0:max_idx,:], columns=self.param_names )
+        df_test_labels   = pd.DataFrame( self.denormalized_test_labels[0:max_idx,:], columns=self.param_names )
         df_cqr_intervals = pd.DataFrame( self.cqr_interval_adjustments, columns=self.param_names )
 
-        df_train_pred.to_csv(self.train_pred_fn, index=False, sep=',')
+        df_train_pred_nocalib.to_csv(self.train_pred_nocalib_fn, index=False, sep=',')
+        df_test_pred_nocalib.to_csv(self.test_pred_nocalib_fn, index=False, sep=',')
+        df_train_pred_calib.to_csv(self.train_pred_calib_fn, index=False, sep=',')
+        df_test_pred_calib.to_csv(self.test_pred_calib_fn, index=False, sep=',')
         df_train_labels.to_csv(self.train_labels_fn, index=False, sep=',')
-        df_test_pred.to_csv(self.test_pred_fn, index=False, sep=',')
         df_test_labels.to_csv(self.test_labels_fn, index=False, sep=',')
         df_cqr_intervals.to_csv(self.model_cqr_fn, index=False, sep=',')
         
