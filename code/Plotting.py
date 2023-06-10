@@ -234,7 +234,7 @@ class Plotter:
 
         # figure dimensions
         fig_width = 9
-        fig_height = int(np.ceil(2*nrow))
+        fig_height = 1 + int(np.ceil(2*nrow))
 
         # basic figure structure
         fig, axes = plt.subplots(ncols=ncol_plot, nrows=nrow, figsize=(fig_width, fig_height))
@@ -317,14 +317,19 @@ class Plotter:
         if self.pred_aux_loaded:
             pca_pred = pca_model.transform(pred_stat)
         
+        fig_width = 8
+        fig_height = 8 
+
         pca_var = pca_model.explained_variance_ratio_
-        fig, axs = plt.subplots(num_comp-1, num_comp-1, sharex=True, sharey=True)
+        fig, axs = plt.subplots(num_comp-1, num_comp-1, sharex=True, sharey=True, figsize=(fig_width, fig_height))
         #tick_spacing = 2
 
         # use this to turn off subplots
         #axes[i_row,j_col].axis('off')
 
         for i in range(0, num_comp-1):
+            for j in range(i+1, num_comp-1):
+                axs[i,j].axis('off')
             for j in range(0, i+1):
                 axs[i,j].scatter( pca[0:nrow_keep,i+1], pca[0:nrow_keep,j], alpha=alpha, marker='x', color=color )
                 if self.pred_aux_loaded:    
@@ -367,12 +372,12 @@ class Plotter:
             s_upper = '{:.2E}'.format(y_upper)
             
             # plot CI
-            plt.plot( [i,i], [y_lower, y_upper], color='black', linestyle="-", marker='_', linewidth=0.9 )
+            plt.plot( [i,i], [y_lower, y_upper], color=color, linestyle="-", marker='_', linewidth=0.9 )
             # plot values as text
             for y_,s_ in zip( [y_value,y_lower,y_upper], [s_value, s_lower, s_upper] ):
                 plt.text( x=i+0.05, y=y_, s=s_, color='black', va='center', size=7  )
             # plot point estimate
-            plt.scatter(i, y_value, color='white', edgecolors='black', s=50, zorder=3)
+            plt.scatter(i, y_value, color='white', edgecolors=color, s=50, zorder=3)
             plt.scatter(i, y_value, color='red', edgecolors='white', s=30, zorder=3)
             
         # plot values as text
@@ -386,6 +391,8 @@ class Plotter:
 
     def plot_preds_labels(self, preds, labels, param_names, plot_dir, prefix, color="blue", axis_labels = ["prediction", "truth"], title = '', plot_log=False):
    
+
+        plt.figure(figsize=(9,9))
         for i,p in enumerate(param_names):
             # preds/labels
             y_value = preds[f'{p}_value'][:].to_numpy()
@@ -415,7 +422,26 @@ class Plotter:
                      color='red', alpha=alpha, linestyle="-", marker='_', linewidth=0.5, zorder=4 )
             
             # 1:1 line
-            plt.axline((np.min(x_value),np.min(x_value)), slope=1, color=color, alpha=1.0, zorder=0)
+            plt.axline((0,0), slope=1, color=color, alpha=1.0, zorder=0)
+            plt.gca().set_aspect('equal')
+            #minlim = np.min( np.concatenate([x_value, y_lower]) )
+            #maxlim = np.max( np.concatenate([x_value, y_upper]) )
+            #adjlim = 0.20 #* (maxlim - minlim)
+            #if minlim < 0:
+            #    minlim -= 0.1 * (maxlim - minlim)
+            #    maxlim += 0.1 * (maxlim - minlim)
+            #else:
+            #    minlim /= (1.1)
+            #   maxlim *= (1.1)
+
+            xlim = plt.xlim()
+            ylim = plt.ylim()
+            minlim = min(xlim[0], ylim[0])
+            maxlim = max(xlim[1], ylim[1])
+            plt.xlim([minlim, maxlim])
+            plt.ylim([minlim, maxlim])
+            #plt.xlim( 0, maxlim )
+            #plt.ylim( 0, maxlim )
             
             plt.annotate(f'Coverage: {s_cover}%', xy=(0.01,0.99), xycoords='axes fraction', fontsize=10, horizontalalignment='left', verticalalignment='top', color='black')
 

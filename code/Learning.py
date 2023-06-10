@@ -55,6 +55,7 @@ class Learner:
         self.loss              = args['loss']
         self.optimizer         = args['optimizer']
         self.metrics           = args['metrics']
+        self.kernel_init       = 'glorot_uniform'
         return
     
     def prepare_files(self):
@@ -242,17 +243,17 @@ class CnnLearner(Learner):
                         outputs = output_layers)
         
     def build_network_input_layers(self):
-        input_phylo_tensor = Input(shape = self.train_data_tensor.shape[1:3])
-        input_aux_tensor = Input(shape = self.train_stats_tensor.shape[1:2])
+        input_phylo_tensor = Input(shape = self.train_data_tensor.shape[1:3],  name='input_phylo')
+        input_aux_tensor   = Input(shape = self.train_stats_tensor.shape[1:2], name='input_aux')
 
         return {'phylo': input_phylo_tensor, 'aux': input_aux_tensor }
 
     
     def build_network_aux_layers(self, input_aux_tensor):
         
-        w_aux_ffnn = layers.Dense(128, activation = 'relu', kernel_initializer = 'VarianceScaling', name='ffnn_aux')(input_aux_tensor)
-        w_aux_ffnn = layers.Dense(64, activation = 'relu', kernel_initializer = 'VarianceScaling')(w_aux_ffnn)
-        w_aux_ffnn = layers.Dense(32, activation = 'relu', kernel_initializer = 'VarianceScaling')(w_aux_ffnn)
+        w_aux_ffnn = layers.Dense(128, activation = 'relu', kernel_initializer = self.kernel_init, name='ff_aux1')(input_aux_tensor)
+        w_aux_ffnn = layers.Dense( 64, activation = 'relu', kernel_initializer = self.kernel_init, name='ff_aux2')(w_aux_ffnn)
+        w_aux_ffnn = layers.Dense( 32, activation = 'relu', kernel_initializer = self.kernel_init, name='ff_aux3')(w_aux_ffnn)
         
         return [ w_aux_ffnn ]
 
@@ -260,19 +261,19 @@ class CnnLearner(Learner):
         
         # convolutional layers
         # e.g. you expect to see 64 patterns, width of 3, stride (skip-size) of 1, padding zeroes so all windows are 'same'
-        w_conv = layers.Conv1D(64, 3, activation = 'relu', padding = 'same', name='conv_std')(input_data_tensor)
-        w_conv = layers.Conv1D(96, 5, activation = 'relu', padding = 'same')(w_conv)
-        w_conv = layers.Conv1D(128, 7, activation = 'relu', padding = 'same')(w_conv)
+        w_conv = layers.Conv1D(64, 3, activation = 'relu', padding = 'same', name='conv_std1')(input_data_tensor)
+        w_conv = layers.Conv1D(96, 5, activation = 'relu', padding = 'same', name='conv_std2')(w_conv)
+        w_conv = layers.Conv1D(128, 7, activation = 'relu', padding = 'same', name='conv_std3')(w_conv)
         w_conv_global_avg = layers.GlobalAveragePooling1D(name = 'pool_std')(w_conv)
 
         # stride layers (skip sizes during slide)
-        w_stride = layers.Conv1D(64, 7, strides = 3, activation = 'relu', padding = 'same', name='conv_stride')(input_data_tensor)
-        w_stride = layers.Conv1D(96, 9, strides = 6, activation = 'relu', padding = 'same')(w_stride)
+        w_stride = layers.Conv1D(64, 7, strides = 3, activation = 'relu', padding = 'same', name='conv_stride1')(input_data_tensor)
+        w_stride = layers.Conv1D(96, 9, strides = 6, activation = 'relu', padding = 'same', name='conv_stride2')(w_stride)
         w_stride_global_avg = layers.GlobalAveragePooling1D(name = 'pool_stride')(w_stride)
 
         # dilation layers (spacing among grid elements)
-        w_dilated = layers.Conv1D(32, 3, dilation_rate = 2, activation = 'relu', padding = 'same', name='conv_dilate')(input_data_tensor)
-        w_dilated = layers.Conv1D(64, 5, dilation_rate = 4, activation = 'relu', padding = "same")(w_dilated)
+        w_dilated = layers.Conv1D(32, 3, dilation_rate = 2, activation = 'relu', padding = 'same', name='conv_dilate1')(input_data_tensor)
+        w_dilated = layers.Conv1D(64, 5, dilation_rate = 4, activation = 'relu', padding = 'same', name='conv_dilate2')(w_dilated)
         w_dilated_global_avg = layers.GlobalAveragePooling1D(name = 'pool_dilate')(w_dilated)
 
         return [ w_conv_global_avg, w_stride_global_avg, w_dilated_global_avg ]
@@ -287,39 +288,32 @@ class CnnLearner(Learner):
         w_concat = layers.Concatenate(axis = 1, name = 'concat_out')(all_layers)
 
         # point estimate for parameters
-        w_point_est = layers.Dense(128, activation = 'relu', kernel_initializer = 'VarianceScaling')(w_concat)
-        w_point_est = layers.Dense(64, activation = 'relu', kernel_initializer = 'VarianceScaling')(w_point_est)
-        w_point_est = layers.Dense(32, activation = 'relu', kernel_initializer = 'VarianceScaling')(w_point_est)
-        w_point_est = layers.Dense(self.num_params, activation = 'linear', name = "param_value")(w_point_est)
+        w_point_est = layers.Dense(128, activation = 'relu', kernel_initializer = self.kernel_init, name='ff_value1')(w_concat)
+        w_point_est = layers.Dense( 64, activation = 'relu', kernel_initializer = self.kernel_init, name='ff_value2')(w_point_est)
+        w_point_est = layers.Dense( 32, activation = 'relu', kernel_initializer = self.kernel_init, name='ff_value3')(w_point_est)
+        w_point_est = layers.Dense(self.num_params, activation = 'linear', name = 'param_value')(w_point_est)
 
         # lower quantile for parameters
-        w_lower_quantile = layers.Dense(128, activation = 'relu', kernel_initializer = 'VarianceScaling')(w_concat)
-        w_lower_quantile = layers.Dense(64, activation = 'relu', kernel_initializer = 'VarianceScaling')(w_lower_quantile)
-        w_lower_quantile = layers.Dense(32, activation = 'relu', kernel_initializer = 'VarianceScaling')(w_lower_quantile)
-        w_lower_quantile = layers.Dense(self.num_params, activation = 'linear', name = "param_lower")(w_lower_quantile)
+        w_lower_quantile = layers.Dense(128, activation = 'relu', kernel_initializer = self.kernel_init, name='ff_lower1')(w_concat)
+        w_lower_quantile = layers.Dense( 64, activation = 'relu', kernel_initializer = self.kernel_init, name='ff_lower2')(w_lower_quantile)
+        w_lower_quantile = layers.Dense( 32, activation = 'relu', kernel_initializer = self.kernel_init, name='ff_lower3')(w_lower_quantile)
+        w_lower_quantile = layers.Dense(self.num_params, activation = 'linear', name = 'param_lower')(w_lower_quantile)
 
         # upper quantile for parameters
-        w_upper_quantile = layers.Dense(128, activation = 'relu', kernel_initializer = 'VarianceScaling')(w_concat)
-        w_upper_quantile = layers.Dense(64, activation = 'relu', kernel_initializer = 'VarianceScaling')(w_upper_quantile)
-        w_upper_quantile = layers.Dense(32, activation = 'relu', kernel_initializer = 'VarianceScaling')(w_upper_quantile)
-        w_upper_quantile = layers.Dense(self.num_params, activation = 'linear', name = "param_upper")(w_upper_quantile)
+        w_upper_quantile = layers.Dense(128, activation = 'relu', kernel_initializer = self.kernel_init, name='ff_upper1')(w_concat)
+        w_upper_quantile = layers.Dense( 64, activation = 'relu', kernel_initializer = self.kernel_init, name='ff_upper2')(w_upper_quantile)
+        w_upper_quantile = layers.Dense( 32, activation = 'relu', kernel_initializer = self.kernel_init, name='ff_upper3')(w_upper_quantile)
+        w_upper_quantile = layers.Dense(self.num_params, activation = 'linear', name = 'param_upper')(w_upper_quantile)
 
         return [ w_point_est, w_lower_quantile, w_upper_quantile ]
 
     def train(self):
 
-        # losses = {
-        #     "param_point_est": "mse",
-        #     "param_lower_quantile": "mae",
-        #     "param_upper_quantile": "mae",
-        # }
-        # lossWeights = {"category_output": 1.0, "color_output": 1.0}
-        
         my_loss = [ self.loss, Utilities.pinball_loss_q_0_025, Utilities.pinball_loss_q_0_975 ]
 
         # compile model        
         self.mymodel.compile(optimizer = self.optimizer, 
-                        loss = my_loss, #[ 'mse', 'mae', 'mae' ], #self.loss, # 'mse'
+                        loss = my_loss,
                         metrics = self.metrics)
         
      
@@ -384,47 +378,9 @@ class CnnLearner(Learner):
         self.denorm_test_preds_calib[2,:,:] = self.denorm_test_preds_calib[2,:,:] + self.cqr_interval_adjustments
         self.denorm_test_preds_calib        = Utilities.denormalize(self.denorm_test_preds_calib, self.train_label_means, self.train_label_sd)
         self.denorm_test_preds_calib        = np.exp(self.denorm_test_preds_calib)
-        
-        # make copies of training predictions with calibrated quantiles
-        #$self.denorm_calib_preds = Utilities.denormalize(self.normalized_calib_preds, self.train_label_means, self.train_label_sd)
-        #self.denorm_calib_preds[]
-
-        #print(conformity_scores)
-        
-        # self.norm_preds                = self.mymodel.predict([self.pred_data_tensor, self.norm_pred_stats])
-        # self.norm_preds                = np.array( self.norm_preds )
-        # self.norm_preds[1,:,:]         = self.norm_preds[1,:,:] - self.cqr_interval_adjustments
-        # self.norm_preds[2,:,:]         = self.norm_preds[2,:,:] + self.cqr_interval_adjustments
-        # self.denormalized_pred_labels  = Utilities.denormalize(self.norm_preds, self.train_labels_means, self.train_labels_sd)
-        # self.pred_labels               = np.exp( self.denormalized_pred_labels )
-       
-        # # output predictions
-        # self.df_pred_all_labels = Utilities.make_param_VLU_mtx(self.pred_labels, self.param_names)
-        # self.df_pred_all_labels.to_csv(self.model_pred_fn, index=False, sep=',')
-
 
         return
     
-    def make_CQR(self):
-
-        alpha = self.alpha_CQRI
-
-        # 0. do we get new predictions from calibration points?
-
-        # 1. compute conformity scores in calibration dataset
-        # preds are columns are columns 1 & 2 (not 0)
-        for i in range(self.norm_calib_labels.shape[1]):
-            preds = self.norm
-            true = self.norm_calib_labels[:,i]
-            E = Utilities.get_CQR_constant(preds, true, inner_quantile=0.95)
-
-        # 2. compute quantiles for comformity scores ??
-        # Utilities.get_CQR_constant()
-
-        # 3. adjust initial predicted quantiles based on 
-
-        return
-
     def save_results(self):
 
         max_idx = 1000
@@ -527,3 +483,23 @@ class CnnLearner(Learner):
     #     # instantiate MODEL
     #     self.mymodel = Model(inputs = [input_data_tensor, input_stats_tensor], 
     #                     outputs = output_params)
+
+    # def make_CQR(self):
+
+    #     alpha = self.alpha_CQRI
+
+    #     # 0. do we get new predictions from calibration points?
+
+    #     # 1. compute conformity scores in calibration dataset
+    #     # preds are columns are columns 1 & 2 (not 0)
+    #     for i in range(self.norm_calib_labels.shape[1]):
+    #         preds = self.norm
+    #         true = self.norm_calib_labels[:,i]
+    #         E = Utilities.get_CQR_constant(preds, true, inner_quantile=0.95)
+
+    #     # 2. compute quantiles for comformity scores ??
+    #     # Utilities.get_CQR_constant()
+
+    #     # 3. adjust initial predicted quantiles based on 
+
+    #     return

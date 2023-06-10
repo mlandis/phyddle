@@ -83,7 +83,7 @@ my_lrn_args = {
     'batch_size'     : 128,
     'loss'           : 'mse',
     'optimizer'      : 'adam',
-    'metrics'        : ['mae', 'acc', 'mape']
+    'metrics'        : ['mae', 'acc']
 }
 my_all_args = my_all_args | my_lrn_args
 
