@@ -16,8 +16,10 @@ import h5py
 import scipy as sp
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
+import tensorflow as tf
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
+#from tensorflow.keras.utils import plot_model
 #from sklearn import metrics
 
 import Utilities
@@ -52,27 +54,45 @@ class Plotter:
         self.net_job_dir        = f'{self.network_dir}/{self.job_name}'
         self.fmt_job_dir        = f'{self.tensor_dir}/{self.job_name}'
         self.plt_job_dir        = f'{self.plot_dir}/{self.job_name}'
+
+        # tensors
+        self.input_stats_fn     = f'{self.fmt_job_dir}/sim.nt{self.tree_size}.summ_stat.csv'
+        self.input_labels_fn    = f'{self.fmt_job_dir}/sim.nt{self.tree_size}.labels.csv'
+        self.input_hdf5_fn      = f'{self.fmt_job_dir}/sim.nt{self.tree_size}.hdf5'
+
+        # network
         self.train_pred_fn      = f'{self.net_job_dir}/{self.network_prefix}.train_pred.csv'
         self.train_labels_fn    = f'{self.net_job_dir}/{self.network_prefix}.train_labels.csv'
         self.test_pred_fn       = f'{self.net_job_dir}/{self.network_prefix}.test_pred.csv'
         self.test_labels_fn     = f'{self.net_job_dir}/{self.network_prefix}.test_labels.csv'
-        self.input_stats_fn     = f'{self.fmt_job_dir}/sim.nt{self.tree_size}.summ_stat.csv'
-        self.input_labels_fn    = f'{self.fmt_job_dir}/sim.nt{self.tree_size}.labels.csv'
-        self.input_hdf5_fn      = f'{self.fmt_job_dir}/sim.nt{self.tree_size}.hdf5'
+        self.network_fn         = f'{self.net_job_dir}/{self.network_prefix}.hdf5'
         self.history_json_fn    = f'{self.net_job_dir}/{self.network_prefix}.train_history.json'
+
+        # predictions
+        self.pred_aux_fn        = f'{self.pred_dir}/{self.pred_prefix}.summ_stat.csv'
+
+        # plotting
         self.save_hist_aux_fn   = f'{self.plt_job_dir}/{self.network_prefix}.histogram_aux.pdf'
         self.save_hist_label_fn = f'{self.plt_job_dir}/{self.network_prefix}.histogram_label.pdf'
         self.save_pca_aux_fn    = f'{self.plt_job_dir}/{self.network_prefix}.pca_aux.pdf'
-        self.pred_aux_fn        = f'{self.pred_dir}/{self.pred_prefix}.summ_stat.csv'
         self.pred_lbl_fn        = f'{self.net_job_dir}/{self.pred_prefix}.{self.network_prefix}.pred_labels.csv'
         self.save_cqr_test_fn   = f'{self.plt_job_dir}/{self.network_prefix}.train_est_CI.pdf'
         self.save_cqr_pred_fn   = f'{self.plt_job_dir}/{self.network_prefix}.pred_est_CI.pdf'
+        self.save_network_fn    = f'{self.plt_job_dir}/{self.network_prefix}.network_architecture.pdf'
         
-        
+        self.train_color        = 'blue'
+        self.test_color         = 'purple'
+        self.validation_color   = 'red'
+        self.aux_color          = 'green'
+        self.label_color        = 'orange'
+        self.pred_color         = 'black'
+
         return
 
     def load_data(self):
         
+        self.model        = tf.keras.models.load_model(self.network_fn, compile=False)
+
         self.train_preds  = pd.read_csv(self.train_pred_fn)
         self.train_labels = pd.read_csv(self.train_labels_fn)
         self.test_preds   = pd.read_csv(self.test_pred_fn)
@@ -97,7 +117,6 @@ class Plotter:
 
         #self.test_preds_df = Utilities.make_param_VLU_mtx( self.test_preds, self.param_names )
         #self.train_preds_df = Utilities.make_param_VLU_mtx( self.train_preds, self.param_names )
-
 
         #print(self.test_preds_df.iloc[0])
         #print(self.test_preds_df.shape)
@@ -147,7 +166,7 @@ class Plotter:
         self.load_data()
 
         # training stats
-        Utilities.make_history_plot(self.history_dict, prefix=self.network_prefix+'_history', plot_dir=self.plt_job_dir)
+        self.make_history_plot(self.history_dict, prefix=self.network_prefix+'_history', plot_dir=self.plt_job_dir, train_color=self.train_color, val_color=self.validation_color)
 
         # train prediction scatter plots
         self.plot_preds_labels(\
@@ -155,7 +174,7 @@ class Plotter:
             labels=self.train_labels.iloc[0:self.train_labels_max_idx],
             param_names=self.param_names,
             prefix=self.network_prefix+'_train',
-            color="blue",
+            color=self.train_color,
             plot_dir=self.plt_job_dir,
             title='Train predictions')
 
@@ -165,33 +184,37 @@ class Plotter:
             labels=self.test_labels.iloc[0:self.test_labels_max_idx],
             param_names=self.param_names,
             prefix=self.network_prefix+'_test',
-            color="purple",
+            color=self.test_color,
             plot_dir=self.plt_job_dir,
             title='Test predictions')
 
 
         # save histograms
-        self.plot_aux_hist(save_fn=self.save_hist_aux_fn, sim_values=self.input_stats, pred_values=self.pred_aux_data, color='blue') #, title='Auxiliary data')
-        self.plot_aux_hist(save_fn=self.save_hist_label_fn, sim_values=self.input_labels, pred_values=self.pred_lbl_value, color='orange') #, title='Labels' )
+        self.plot_sim_histogram(save_fn=self.save_hist_aux_fn, sim_values=self.input_stats, pred_values=self.pred_aux_data, color=self.aux_color) #, title='Auxiliary data')
+        self.plot_sim_histogram(save_fn=self.save_hist_label_fn, sim_values=self.input_labels, pred_values=self.pred_lbl_value, color=self.label_color) #, title='Labels' )
         
         # save PCA
-        self.plot_pca(save_fn=self.save_pca_aux_fn, sim_stat=self.input_stats, pred_stat=self.pred_aux_data)
+        self.plot_pca(save_fn=self.save_pca_aux_fn, sim_stat=self.input_stats, pred_stat=self.pred_aux_data, color=self.aux_color)
         
         # save point est. and CI for test dataset (if it exists)
-        self.plot_pred_est_CI(save_fn=self.save_cqr_pred_fn, pred_label=self.pred_lbl_df)
+        self.plot_pred_est_CI(save_fn=self.save_cqr_pred_fn, pred_label=self.pred_lbl_df, color=self.pred_color)
         
+        # save network
+        tf.keras.utils.plot_model(self.model, to_file=self.save_network_fn, show_shapes=True)
+
         # collect and sort file names
         files = os.listdir(self.plt_job_dir)
         files.sort()
         files = [ f for f in files if '.pdf' in f and self.network_prefix in f and 'all_results' not in f ]
 
-        files_history    = list(filter(lambda x: 'history' in x, files))
+        files_CI         = list(filter(lambda x: 'CI' in x, files))
+        files_pca        = list(filter(lambda x: 'pca' in x, files))
+        files_histogram  = list(filter(lambda x: 'histogram' in x, files))
         files_train      = list(filter(lambda x: 'train' in x, files))
         files_test       = list(filter(lambda x: 'test' in x, files))
-        files_histogram  = list(filter(lambda x: 'histogram' in x, files))
-        files_pca        = list(filter(lambda x: 'pca' in x, files))
-        files_CI         = list(filter(lambda x: 'CI' in x, files))
-        files_ordered    = files_history + files_train + files_test + files_histogram + files_pca + files_CI
+        files_arch       = list(filter(lambda x: 'architecture' in x, files))
+        files_history    = list(filter(lambda x: 'history' in x, files))
+        files_ordered    = files_CI + files_pca + files_histogram + files_train + files_test + files_history + files_arch
 
         # combine pdfs
         merger = PdfMerger()
@@ -202,7 +225,7 @@ class Plotter:
         return
 
 
-    def plot_aux_hist(self, save_fn, sim_values, pred_values=None, ncol_plot=3, color='blue'):
+    def plot_sim_histogram(self, save_fn, sim_values, pred_values=None, ncol_plot=3, color='blue'):
         
         col_names = sorted( sim_values.columns )
         num_aux = len(col_names)
@@ -296,6 +319,10 @@ class Plotter:
         pca_var = pca_model.explained_variance_ratio_
         fig, axs = plt.subplots(num_comp-1, num_comp-1, sharex=True, sharey=True)
         #tick_spacing = 2
+
+        # use this to turn off subplots
+        #axes[i_row,j_col].axis('off')
+
         for i in range(0, num_comp-1):
             for j in range(0, i+1):
                 axs[i,j].scatter( pca[0:nrow_keep,i+1], pca[0:nrow_keep,j], alpha=alpha, marker='x', color=color )
@@ -317,7 +344,7 @@ class Plotter:
         return
 
 
-    def plot_pred_est_CI(self, save_fn, pred_label, plot_log=True):
+    def plot_pred_est_CI(self, save_fn, pred_label, color='black', plot_log=True):
         if pred_label is None:
             return
                 
@@ -401,3 +428,76 @@ class Plotter:
             plt.savefig(save_fn, format='pdf')
             plt.clf()
         return
+    
+
+    def make_history_plot(self, history, prefix, plot_dir, train_color='blue', val_color='red'):
+
+        epochs      = range(1, len(history['loss']) + 1)
+        train_keys  = [ x for x in history.keys() if 'val' not in x ]
+        val_keys    = [ 'val_'+x for x in train_keys ]
+
+        label_names = [ '_'.join( x.split('_')[0:-1] ) for x in train_keys ]
+        #label_names = [ x for x in label_names if x != '' ]
+        label_names = sorted( np.unique(label_names) )
+        num_labels = len(label_names)
+
+        metric_names = [ x.split('_')[-1] for x in train_keys ]
+        metric_names = np.unique(metric_names)
+        metric_names = [ 'loss' ] + [ x for x in metric_names if x != 'loss' ]
+        num_metrics = len(metric_names)
+
+        fig_width = 9
+        fig_height = int(np.ceil(2*num_metrics))
+
+        for i,v1 in enumerate(label_names):
+
+            fig, axs = plt.subplots(nrows=num_metrics, ncols=1, sharex=True, figsize=(fig_width, fig_height))
+            #used_idx = [ True ] * num_metrics
+            idx = 0
+
+            for j,v2 in enumerate(metric_names):
+                
+                if v1 == '':
+                    k_train = v2
+                    k_val = ''
+                else:
+                    k_train = f'{v1}_{v2}'
+                    k_val = 'val_' + k_train
+
+                legend_handles = []
+                legend_labels = []
+                if k_train in history:
+                    lines_train, = axs[idx].plot(epochs, history[k_train], color=train_color, label = k_train)
+                    axs[idx].scatter(epochs, history[k_train], color=train_color, label = k_train, zorder=3)
+                    axs[idx].set(ylabel=metric_names[j])
+                    legend_handles.append( lines_train )
+                    legend_labels.append( 'Train' )
+
+                if k_val in history:
+                    lines_val, = axs[idx].plot(epochs, history[k_val], color=val_color, label = k_val)
+                    axs[idx].scatter(epochs, history[k_val], color=val_color, label = k_val, zorder=3)
+                    legend_handles.append( lines_val )
+                    legend_labels.append( 'Validation' )
+
+                if k_train in history or k_val in history:
+                    if idx == 0:
+                        axs[idx].legend( handles=legend_handles, labels=legend_labels, loc='upper right' )
+                    idx += 1
+
+            #print(v1, used_idx)
+            # turn off unused rows            
+            for j in range(num_metrics):
+                if j >= idx:
+                    axs[j].axis('off')
+
+            title_metric = label_names[i]
+            if title_metric == '':
+                title_metric = 'entire network'
+            fig.supxlabel('Epochs')
+            fig.supylabel('Metrics')
+            fig.suptitle('Learning ' + label_names[i])
+
+            save_fn = plot_dir + '/' + prefix + '_' + label_names[i] + '.pdf'
+
+            plt.savefig(save_fn, format='pdf')
+            plt.clf()

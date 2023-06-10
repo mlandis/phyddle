@@ -225,9 +225,9 @@ class CnnLearner(Learner):
         # Simplified network architecture:
         # 
         #                       ,--> Conv1D-normal + Pool --. 
-        #  Phylo. Data Tensor --+--> Conv1D-stride + Pool ---\
-        #                       '--> Conv1D-dilate + Pool ----+--> Concat + Output(s)
-        #                                                    /
+        #  Phylo. Data Tensor --+--> Conv1D-stride + Pool ---\                          ,--> Point estimate
+        #                       '--> Conv1D-dilate + Pool ----+--> Concat + Output(s)--+---> Lower quantile
+        #                                                    /                          '--> Upper quantile
         #  Aux. Data Tensor   -------> Dense ---------------'
         #
 
@@ -250,7 +250,7 @@ class CnnLearner(Learner):
     
     def build_network_aux_layers(self, input_aux_tensor):
         
-        w_aux_ffnn = layers.Dense(128, activation = 'relu', kernel_initializer = 'VarianceScaling', name='in_ffnn_stat')(input_aux_tensor)
+        w_aux_ffnn = layers.Dense(128, activation = 'relu', kernel_initializer = 'VarianceScaling', name='ffnn_aux')(input_aux_tensor)
         w_aux_ffnn = layers.Dense(64, activation = 'relu', kernel_initializer = 'VarianceScaling')(w_aux_ffnn)
         w_aux_ffnn = layers.Dense(32, activation = 'relu', kernel_initializer = 'VarianceScaling')(w_aux_ffnn)
         
@@ -260,20 +260,20 @@ class CnnLearner(Learner):
         
         # convolutional layers
         # e.g. you expect to see 64 patterns, width of 3, stride (skip-size) of 1, padding zeroes so all windows are 'same'
-        w_conv = layers.Conv1D(64, 3, activation = 'relu', padding = 'same', name='in_conv_std')(input_data_tensor)
+        w_conv = layers.Conv1D(64, 3, activation = 'relu', padding = 'same', name='conv_std')(input_data_tensor)
         w_conv = layers.Conv1D(96, 5, activation = 'relu', padding = 'same')(w_conv)
         w_conv = layers.Conv1D(128, 7, activation = 'relu', padding = 'same')(w_conv)
-        w_conv_global_avg = layers.GlobalAveragePooling1D(name = 'w_conv_global_avg')(w_conv)
+        w_conv_global_avg = layers.GlobalAveragePooling1D(name = 'pool_std')(w_conv)
 
         # stride layers (skip sizes during slide)
-        w_stride = layers.Conv1D(64, 7, strides = 3, activation = 'relu', padding = 'same', name='in_conv_stride')(input_data_tensor)
+        w_stride = layers.Conv1D(64, 7, strides = 3, activation = 'relu', padding = 'same', name='conv_stride')(input_data_tensor)
         w_stride = layers.Conv1D(96, 9, strides = 6, activation = 'relu', padding = 'same')(w_stride)
-        w_stride_global_avg = layers.GlobalAveragePooling1D(name = 'w_stride_global_avg')(w_stride)
+        w_stride_global_avg = layers.GlobalAveragePooling1D(name = 'pool_stride')(w_stride)
 
         # dilation layers (spacing among grid elements)
-        w_dilated = layers.Conv1D(32, 3, dilation_rate = 2, activation = 'relu', padding = 'same', name='in_conv_dilation')(input_data_tensor)
+        w_dilated = layers.Conv1D(32, 3, dilation_rate = 2, activation = 'relu', padding = 'same', name='conv_dilate')(input_data_tensor)
         w_dilated = layers.Conv1D(64, 5, dilation_rate = 4, activation = 'relu', padding = "same")(w_dilated)
-        w_dilated_global_avg = layers.GlobalAveragePooling1D(name = 'w_dilated_global_avg')(w_dilated)
+        w_dilated_global_avg = layers.GlobalAveragePooling1D(name = 'pool_dilate')(w_dilated)
 
         return [ w_conv_global_avg, w_stride_global_avg, w_dilated_global_avg ]
     
@@ -284,25 +284,25 @@ class CnnLearner(Learner):
         all_layers = phylo_layers + aux_layers
 
         # concatenate all above -> deep fully connected network
-        w_concat = layers.Concatenate(axis = 1, name = 'all_concatenated')(all_layers)
+        w_concat = layers.Concatenate(axis = 1, name = 'concat_out')(all_layers)
 
         # point estimate for parameters
         w_point_est = layers.Dense(128, activation = 'relu', kernel_initializer = 'VarianceScaling')(w_concat)
         w_point_est = layers.Dense(64, activation = 'relu', kernel_initializer = 'VarianceScaling')(w_point_est)
         w_point_est = layers.Dense(32, activation = 'relu', kernel_initializer = 'VarianceScaling')(w_point_est)
-        w_point_est = layers.Dense(self.num_params, activation = 'linear', name = "param_point_est")(w_point_est)
+        w_point_est = layers.Dense(self.num_params, activation = 'linear', name = "param_value")(w_point_est)
 
         # lower quantile for parameters
         w_lower_quantile = layers.Dense(128, activation = 'relu', kernel_initializer = 'VarianceScaling')(w_concat)
         w_lower_quantile = layers.Dense(64, activation = 'relu', kernel_initializer = 'VarianceScaling')(w_lower_quantile)
         w_lower_quantile = layers.Dense(32, activation = 'relu', kernel_initializer = 'VarianceScaling')(w_lower_quantile)
-        w_lower_quantile = layers.Dense(self.num_params, activation = 'linear', name = "param_lower_quantile")(w_lower_quantile)
+        w_lower_quantile = layers.Dense(self.num_params, activation = 'linear', name = "param_lower")(w_lower_quantile)
 
         # upper quantile for parameters
         w_upper_quantile = layers.Dense(128, activation = 'relu', kernel_initializer = 'VarianceScaling')(w_concat)
         w_upper_quantile = layers.Dense(64, activation = 'relu', kernel_initializer = 'VarianceScaling')(w_upper_quantile)
         w_upper_quantile = layers.Dense(32, activation = 'relu', kernel_initializer = 'VarianceScaling')(w_upper_quantile)
-        w_upper_quantile = layers.Dense(self.num_params, activation = 'linear', name = "param_upper_quantile")(w_upper_quantile)
+        w_upper_quantile = layers.Dense(self.num_params, activation = 'linear', name = "param_upper")(w_upper_quantile)
 
         return [ w_point_est, w_lower_quantile, w_upper_quantile ]
 
