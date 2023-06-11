@@ -7,23 +7,26 @@ Example use:
 # execute from code subdirectory
 cd ~/projects/phyddle/code
 
-# remove all previous dirs for model name `my_job`
-./clean_model.sh --name my_job
+# remove all previous dirs for project name `my_project`
+./clean_project.sh --proj my_project
 
 # config file controls pipeline
-# (will add more argparse options)
+# (edit dictionary values)
 vim config.py
 
-# simulate data in `raw_data/my_job`
+# simulate data in `raw_data/my_project`
 ./run_simulate.py --cfg config
 
-# prepare data as tensors in `tensor_data/my_job`
+# prepare data as tensors in `tensor_data/my_project`
 ./run_format.py --cfg config
 
-# train CNN using tensors in `network/my_job`
+# train CNN using tensors in `network/my_project`
 ./run_learn.py --cfg config
 
-# plot output into `plot/my_job`
+# predict parameters for new dataset using trained CNN
+./run_predict.py --cfg config
+
+# plot output into `plot/my_project`
 ./run_plot.py --cfg config
 
 ```

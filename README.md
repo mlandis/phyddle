@@ -11,4 +11,4 @@ The repository has five main directories:
 - `network` contains trained networks and diagnostics
 - `plot` contains figures of training and validation procedures
 
-In general, the pipeline assumes that the user supplies runs scripts in `code` using a consistent *model name* to coordinate the analysis across the `raw_data`, `tensor_data`, `network`, and `plot` directories.
+In general, the pipeline assumes that the user supplies runs scripts in `code` using a consistent *project name* (e.g. `my_project`) to coordinate the analysis across the `raw_data`, `tensor_data`, `network`, and `plot` directories.
