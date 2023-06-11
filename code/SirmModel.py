@@ -68,9 +68,11 @@ class SirmModel(Model.BaseModel):
     def make_start_conditions(self):
         # p_start_sizes = self.start_sizes['S'] / np.sum(self.start_sizes['S'])
         # start_state = list(sp.stats.multinomial.rvs(n=1, p=p_start_sizes, random_state=self.rng)).index(1)
-        start_state = { 'I' : [ self.params['start_state'][0] ] }
-        start_sizes = { 'S' : self.params['S0'] } 
-        
+        start_state = {}
+        start_sizes = {}
+        start_state['I'] = self.params['start_state'][0]
+        start_sizes['S'] = self.params['S0']
+
         return start_state, start_sizes
         
     def make_params(self, model_variant):

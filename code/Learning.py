@@ -26,7 +26,7 @@ class Learner:
         self.num_validation    = 0
         self.prop_test         = 0
         self.prop_test         = 0
-        self.job_name          = args['job_name']
+        self.proj              = args['proj']
         self.tree_size         = args['tree_size']
         self.tree_type         = args['tree_type']
         if self.tree_type == 'extant':
@@ -61,9 +61,9 @@ class Learner:
     def prepare_files(self):
 
         # main directories
-        self.input_dir   = self.fmt_dir + '/' + self.job_name
-        self.plot_dir    = self.plt_dir + '/' + self.job_name
-        self.network_dir = self.net_dir + '/' + self.job_name
+        self.input_dir   = self.fmt_dir + '/' + self.proj
+        self.plot_dir    = self.plt_dir + '/' + self.proj
+        self.network_dir = self.net_dir + '/' + self.proj
 
         # create new job directories
         os.makedirs(self.plot_dir, exist_ok=True)
@@ -315,7 +315,6 @@ class CnnLearner(Learner):
         self.mymodel.compile(optimizer = self.optimizer, 
                         loss = my_loss,
                         metrics = self.metrics)
-        
      
         # run learning
         self.history = self.mymodel.fit(\

@@ -36,7 +36,7 @@ class Plotter:
     def set_args(self, args):
         # simulator arguments
         self.args              = args
-        self.job_name          = args['job_name']
+        self.proj              = args['proj']
         self.network_dir       = args['net_dir']
         self.plot_dir          = args['plt_dir']
         self.tensor_dir        = args['fmt_dir']
@@ -51,9 +51,9 @@ class Plotter:
     def prepare_files(self):
         self.network_prefix     = f'sim_batchsize{self.batch_size}_numepoch{self.num_epochs}_nt{self.tree_size}'
 
-        self.net_job_dir        = f'{self.network_dir}/{self.job_name}'
-        self.fmt_job_dir        = f'{self.tensor_dir}/{self.job_name}'
-        self.plt_job_dir        = f'{self.plot_dir}/{self.job_name}'
+        self.net_job_dir        = f'{self.network_dir}/{self.proj}'
+        self.fmt_job_dir        = f'{self.tensor_dir}/{self.proj}'
+        self.plt_job_dir        = f'{self.plot_dir}/{self.proj}'
 
         # tensors
         self.input_stats_fn     = f'{self.fmt_job_dir}/sim.nt{self.tree_size}.summ_stat.csv'
@@ -333,8 +333,10 @@ class Plotter:
             for j in range(0, i+1):
                 axs[i,j].scatter( pca[0:nrow_keep,i+1], pca[0:nrow_keep,j], alpha=alpha, marker='x', color=color )
                 if self.pred_aux_loaded:    
-                    axs[i,j].scatter( pca_pred[0:nrow_keep,i+1], pca_pred[0:nrow_keep,j], alpha=1.0, color='white', edgecolor='black', s=50)
-                    axs[i,j].scatter( pca_pred[0:nrow_keep,i+1], pca_pred[0:nrow_keep,j], alpha=1.0, color='red', edgecolor='white', s=20 )
+                    axs[i,j].scatter(pca_pred[0:nrow_keep,i+1], pca_pred[0:nrow_keep,j],
+                                     alpha=1.0, color='white', edgecolor='black', s=80)
+                    axs[i,j].scatter(pca_pred[0:nrow_keep,i+1], pca_pred[0:nrow_keep,j],
+                                     alpha=1.0, color='red', edgecolor='white', s=40)
                 if j == 0:
                     ylabel = 'PC{idx} ({var}%)'.format( idx=str(i+2), var=int(100*round(pca_var[i+1], ndigits=2)) )
                     axs[i,j].set_ylabel(ylabel, fontsize=12)
@@ -355,7 +357,8 @@ class Plotter:
     def plot_pred_est_CI(self, save_fn, pred_label, title='Prediction', color='black', plot_log=True):
         if pred_label is None:
             return
-                
+
+        plt.figure(figsize=(5,5))      
         label_names = pred_label.columns
         num_label = len(label_names)
         
@@ -372,12 +375,13 @@ class Plotter:
             s_upper = '{:.2E}'.format(y_upper)
             
             # plot CI
-            plt.plot( [i,i], [y_lower, y_upper], color=color, linestyle="-", marker='_', linewidth=0.9 )
+            plt.plot([i,i], [y_lower, y_upper],
+                     color=color, linestyle="-", marker='_', linewidth=1.5)
             # plot values as text
             for y_,s_ in zip( [y_value,y_lower,y_upper], [s_value, s_lower, s_upper] ):
-                plt.text( x=i+0.05, y=y_, s=s_, color='black', va='center', size=7  )
+                plt.text( x=i+0.10, y=y_, s=s_, color='black', va='center', size=8  )
             # plot point estimate
-            plt.scatter(i, y_value, color='white', edgecolors=color, s=50, zorder=3)
+            plt.scatter(i, y_value, color='white', edgecolors=color, s=60, zorder=3)
             plt.scatter(i, y_value, color='red', edgecolors='white', s=30, zorder=3)
             
         # plot values as text
@@ -392,7 +396,7 @@ class Plotter:
     def plot_preds_labels(self, preds, labels, param_names, plot_dir, prefix, color="blue", axis_labels = ["prediction", "truth"], title = '', plot_log=False):
    
 
-        plt.figure(figsize=(9,9))
+        plt.figure(figsize=(6,6))
         for i,p in enumerate(param_names):
             # preds/labels
             y_value = preds[f'{p}_value'][:].to_numpy()
@@ -463,9 +467,12 @@ class Plotter:
     def make_history_plot(self, history, prefix, plot_dir, train_color='blue', val_color='red'):
 
         epochs      = range(1, len(history['loss']) + 1)
-        train_keys  = [ x for x in history.keys() if 'val' not in x ]
+        #print(history.keys())
+        train_keys  = [ x for x in history.keys() if 'val_' not in x ]
         val_keys    = [ 'val_'+x for x in train_keys ]
 
+        #print(train_keys)
+        #print(val_keys)
         label_names = [ '_'.join( x.split('_')[0:-1] ) for x in train_keys ]
         #label_names = [ x for x in label_names if x != '' ]
         label_names = sorted( np.unique(label_names) )
@@ -476,7 +483,7 @@ class Plotter:
         metric_names = [ 'loss' ] + [ x for x in metric_names if x != 'loss' ]
         num_metrics = len(metric_names)
 
-        fig_width = 9
+        fig_width = 6
         fig_height = int(np.ceil(2*num_metrics))
 
         for i,v1 in enumerate(label_names):
@@ -486,13 +493,12 @@ class Plotter:
             idx = 0
 
             for j,v2 in enumerate(metric_names):
-                
+
                 if v1 == '':
                     k_train = v2
-                    k_val = ''
                 else:
                     k_train = f'{v1}_{v2}'
-                    k_val = 'val_' + k_train
+                k_val = 'val_' + k_train
 
                 legend_handles = []
                 legend_labels = []
@@ -532,4 +538,4 @@ class Plotter:
 
             plt.savefig(save_fn, format='pdf', dpi=300, bbox_inches='tight')
             plt.clf()
-            return
+        return

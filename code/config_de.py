@@ -6,12 +6,12 @@ num_char = 3
 #####################
 # PIPELINE SETTINGS #
 #####################
-my_all_args = { 'job_name' : 'geosse_de_1' }
+args = { 'job_name' : 'geosse_de_1' }
 
 ##################
 # MODEL SETTINGS #
 ##################
-my_mdl_args = {
+mdl_args = {
     'model_type'    : 'geosse',
     'model_variant' : 'density_effect',
     'num_char'      : num_char,
@@ -29,12 +29,12 @@ my_mdl_args = {
         'ed': { 'scale' : 0.15 }
     }
 }
-my_all_args = my_all_args | my_mdl_args
+args = args | mdl_args
 
 ######################
 # SIMULATOR SETTINGS #
 ######################
-my_sim_args = {
+sim_args = {
     'sim_dir'           : '../raw_data',
     'sim_logging'       : 'verbose',
     'start_idx'         : 0,
@@ -46,35 +46,25 @@ my_sim_args = {
     'stop_time'         : 10,
     'stop_floor_sizes'  : 0,
     'stop_ceil_sizes'   : 400                # MASTER seems to generate too many taxa?
-} #| my_all_args
-my_all_args = my_all_args | my_sim_args
-
-
-####################
-# ENCODER SETTINGS #
-####################
-my_enc_args = {
-
 }
-my_all_args = my_all_args | my_enc_args
-
+args = args | sim_args
 
 #############################
 # TENSOR-FORMATTER SETTINGS #
 #############################
-my_fmt_args = {
+fmt_args = {
     'fmt_dir' : '../tensor_data',
     'tree_type'  : 'extant',
     'param_pred' : ['w_0', 'e_0', 'd_0_1', 'b_0_1', 'ed_0'],
     'param_data' : [],
     'tensor_format' : 'hdf5'
-} #| my_all_args
-my_all_args = my_all_args | my_fmt_args
+}
+args = args | fmt_args
 
 #####################
 # LEARNING SETTINGS #
 #####################
-my_lrn_args = { 
+lrn_args = { 
     'net_dir'        : '../network',
     'tree_size'      : 200,
     'num_epochs'     : 20,
@@ -87,25 +77,25 @@ my_lrn_args = {
     'optimizer'      : 'adam',
     'metrics'        : ['mae', 'acc', 'mape']
 }
-my_all_args = my_all_args | my_lrn_args
+args = args | lrn_args
 
 
 #####################
 # PLOTTING SETTINGS #
 #####################
-my_plt_args = {
+plt_args = {
     'plt_dir'        : '../plot',
     'network_prefix' : 'sim_batchsize128_numepoch20_nt200'
 }
-my_all_args = my_all_args | my_plt_args
+args = args | plt_args
 
 
 #######################
 # PREDICTING SETTINGS #
 #######################
 
-my_prd_args = {
+prd_args = {
     'pred_dir'    : '../raw_data/geosse1_test',
     'pred_prefix' : 'sim.4'
 }
-my_all_args = my_all_args | my_prd_args
+args = args | prd_args

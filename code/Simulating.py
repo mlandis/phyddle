@@ -17,7 +17,7 @@ class Simulator:
     def set_args(self, args):
         # simulator arguments
         self.args              = args
-        self.job_name          = args['job_name']
+        self.proj              = args['proj']
         self.sim_dir           = args['sim_dir']
         self.start_idx         = args['start_idx']
         self.end_idx           = args['end_idx']
@@ -35,7 +35,7 @@ class Simulator:
     def make_settings_str(self, idx, mtx_size):
 
         s = 'setting,value\n'
-        s += 'job_name,' + self.job_name + '\n'
+        s += 'proj,' + self.proj + '\n'
         s += 'model_name,' + self.model.model_type + '\n'
         s += 'model_variant,' + self.model.model_variant + '\n'
         s += 'replicate_index,' + str(idx) + '\n'
@@ -44,7 +44,7 @@ class Simulator:
 
     def run(self):
         # prepare workspace
-        os.makedirs( self.sim_dir + '/' + self.job_name, exist_ok=True )
+        os.makedirs( self.sim_dir + '/' + self.proj, exist_ok=True )
         # dispatch jobs
         if self.use_parallel:
             res = Parallel(n_jobs=self.num_proc)(delayed(self.sim_one)(idx) for idx in tqdm(self.rep_idx))
@@ -60,7 +60,7 @@ class Simulator:
         np.set_printoptions(formatter={'float': lambda x: format(x, '8.6E')}, precision=NUM_DIGITS)
         
         # make filenames
-        out_path  = self.sim_dir + '/' + self.job_name + '/sim'
+        out_path  = self.sim_dir + '/' + self.proj + '/sim'
         tmp_fn    = out_path + '.' + str(idx)
         beast_fn  = tmp_fn + '.beast.log'
         xml_fn    = tmp_fn + '.xml'
@@ -106,7 +106,7 @@ class MasterSimulator(Simulator):
         self.df_events     = self.model.df_events
         self.reaction_vars = self.make_reaction_vars()
         self.xml_str       = self.make_xml(idx)
-        self.cmd_str       = 'beast {sim_dir}/{job_name}/sim.{idx}.xml'.format(sim_dir=self.sim_dir, job_name=self.job_name, idx=idx)
+        self.cmd_str       = 'beast {sim_dir}/{proj}/sim.{idx}.xml'.format(sim_dir=self.sim_dir, proj=self.proj, idx=idx)
         return
 
     def make_reaction_vars(self):
@@ -139,9 +139,9 @@ class MasterSimulator(Simulator):
     def make_xml(self, idx):
 
         # file names
-        newick_fn = '{sim_dir}/{job_name}/sim.{idx}.tre'.format(sim_dir=self.sim_dir, job_name=self.job_name, idx=idx)
-        nexus_fn  = '{sim_dir}/{job_name}/sim.{idx}.nex'.format(sim_dir=self.sim_dir, job_name=self.job_name, idx=idx)
-        json_fn   = '{sim_dir}/{job_name}/sim.{idx}.json'.format(sim_dir=self.sim_dir, job_name=self.job_name, idx=idx)
+        newick_fn = '{sim_dir}/{proj}/sim.{idx}.tre'.format(sim_dir=self.sim_dir, proj=self.proj, idx=idx)
+        nexus_fn  = '{sim_dir}/{proj}/sim.{idx}.nex'.format(sim_dir=self.sim_dir, proj=self.proj, idx=idx)
+        json_fn   = '{sim_dir}/{proj}/sim.{idx}.json'.format(sim_dir=self.sim_dir, proj=self.proj, idx=idx)
 
         # state space
         xml_statespace = ''

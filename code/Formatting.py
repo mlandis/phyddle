@@ -20,7 +20,7 @@ class Formatter:
 
         # formatter arguments
         self.args          = args
-        self.job_name      = args['job_name']
+        self.proj          = args['proj']
         self.fmt_dir       = args['fmt_dir']
         self.sim_dir       = args['sim_dir']
         self.tree_type     = args['tree_type']
@@ -43,8 +43,8 @@ class Formatter:
         if self.tree_type == 'extant':
             self.num_data_row = 1 + self.num_char
             
-        self.in_dir        = f'{self.sim_dir}/{self.job_name}'
-        self.out_dir       = f'{self.fmt_dir}/{self.job_name}'
+        self.in_dir        = f'{self.sim_dir}/{self.proj}'
+        self.out_dir       = f'{self.fmt_dir}/{self.proj}'
 
         self.rep_idx       = list(range(self.start_idx, self.end_idx))
 
@@ -68,7 +68,7 @@ class Formatter:
     def make_settings_str(self, idx, mtx_size):
 
         s = 'setting,value\n'
-        s += 'job_name,' + self.job_name + '\n'
+        s += 'proj,' + self.proj + '\n'
         s += 'model_type,' + self.model.model_type + '\n'
         s += 'model_variant,' + self.model.model_variant + '\n'
         s += 'replicate_index,' + str(idx) + '\n'

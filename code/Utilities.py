@@ -142,10 +142,45 @@ def load_config(config_fn, arg_overwrite=True):
     
     # argument parsing
     parser = argparse.ArgumentParser(description='phyddle pipeline config')
-    parser.add_argument('--cfg', dest='config_fn', type=str, help='Config file name')
-    parser.add_argument('--job', dest='job_name', type=str, help='Job directory')
-    parser.add_argument('--start_idx', dest='start_idx', type=int, help='Start index for simulation')
-    parser.add_argument('--end_idx', dest='end_idx', type=int, help='End index for simulation')
+    parser.add_argument('--cfg',                dest='config_fn', type=str, default='config', help='Config file name')
+    parser.add_argument('--proj',               dest='proj', type=str, default='my_project', help='Project name used as directory across pipeline stages')
+    parser.add_argument('--use_parallel',       dest='use_parallel', type=bool, default=True, help='Use parallelization? (recommended)')
+    parser.add_argument('--num_proc',           dest='num_proc', type=int, default=-2, help='How many cores for multiprocessing? (e.g. 4 uses 4, -2 uses all but 2)')
+    # directory settings
+    parser.add_argument('--sim_dir',            dest='sim_dir', type=str, default='../raw_data', help='Directory for raw simulated data')
+    parser.add_argument('--fmt_dir',            dest='fmt_dir', type=str, default='../tensor_data', help='Directory for tensor-formatted simulated data')
+    parser.add_argument('--net_dir',            dest='net_dir', type=str, default='../network', help='Directory for trained networks and predictions')
+    parser.add_argument('--plt_dir',            dest='plt_dir', type=str, default='../plot', help='Directory for plotted results')
+    parser.add_argument('--pred_dir',           dest='pred_dir', type=str, help='Predict results for dataset located in this directory')
+    # model settings
+    parser.add_argument('--show_models',        dest='show_models', type=bool, default=False, help='Print all available model types and variants?')
+    parser.add_argument('--model_type',         dest='model_type', type=str, help='Model type')
+    parser.add_argument('--model_variant',      dest='model_variant', type=str, help='Model variant')
+    parser.add_argument('--num_char',           dest='num_char', type=int, help='Number of characters')
+    # simulation settings
+    parser.add_argument('--sim_logging',        dest='sim_logging', type=str, default='verbose', help='Simulationg logging style (clean/verbose)')
+    parser.add_argument('--start_idx',          dest='start_idx', type=int, default=0, help='Start index for simulation')
+    parser.add_argument('--end_idx',            dest='end_idx', type=int, default=100, help='End index for simulation')
+    parser.add_argument('--stop_time',          dest='stop_time', type=float, default=10.0, help='Maximum duration of evolution for each simulation')
+    parser.add_argument('--stop_floor_sizes',   dest='stop_floor_sizes', type=int, default=0, help='Minimum number of taxa for each simulation')
+    parser.add_argument('--stop_ceil_sizes',    dest='stop_ceil_sizes', type=int, default=500, help='Maximum number of taxa for each simulation')
+    # formatting settings
+    parser.add_argument('--tensor_format',      dest='tensor_format', type=str, default='hdf5', help='Storage format for simulation tensors (hdf5/csv)')
+    parser.add_argument('--tree_type',          dest='tree_type', type=str, help='Type of tree (extant/serial)')
+    # learning settings
+    parser.add_argument('--tree_size',          dest='tree_size', type=int, help='Number of taxa in phylogenetic tensor')
+    parser.add_argument('--num_epochs',         dest='num_epochs', type=int, default=20, help='Number of learning epochs')
+    parser.add_argument('--batch_size',         dest='batch_size', type=int, default=128, help='Training batch sizes during learning')
+    parser.add_argument('--prop_test',          dest='prop_test', type=float, default=0.05, help='Proportion of data used as test examples (demonstrate trained network performance)')
+    parser.add_argument('--prop_validation',    dest='prop_validation', type=float, default=0.05, help='Proportion of data used as validation examples (diagnose network overtraining)')
+    parser.add_argument('--prop_calibration',   dest='prop_calibration', type=float, default=0.20, help='Proportion of data used as calibration examples (calibrate conformal prediction intervals)')
+    parser.add_argument('--alpha_CQRI',         dest='alpha_CQRI', type=float, default=0.95, help='Expected coverage percent for prediction intervals')
+    parser.add_argument('--loss',               dest='loss', type=str, default='mse', help='Loss function used as optimization criterion')
+    parser.add_argument('--optimizer',          dest='optimizer', type=str, default='adam', help='Method used for optimizing neural network')
+    # plotting settings
+    parser.add_argument('--network_prefix',     dest='network_prefix', type=str, help='Plot results related to this network prefix')
+    # prediction settings
+    parser.add_argument('--pred_prefix',        dest='pred_prefix', type=str, help='Predict results for this dataset')
     args = parser.parse_args()
     
     # overwrite config_fn is argument passed
@@ -156,23 +191,45 @@ def load_config(config_fn, arg_overwrite=True):
     # config from file
     m = importlib.import_module(config_fn)
 
-    # overwrite default args
-    if args.job_name != None:
-        m.my_all_args['job_name'] = args.job_name
-    if args.start_idx != None:
-        m.my_all_args['start_idx'] = args.start_idx
-    if args.end_idx != None:
-        m.my_all_args['end_idx'] = args.end_idx
+    def overwrite_defaults(m, args, var):
+        x = getattr(args, var)
+        if x is not None:
+            m.args[var] = x
+        return m
     
-    # update args    
-    # m.my_sim_args = m.my_sim_args | m.my_all_args
-    # m.my_fmt_args = m.my_fmt_args | m.my_all_args
-    # m.my_lrn_args = m.my_lrn_args | m.my_all_args
-    # m.my_plt_args = m.my_plt_args | m.my_plt_args
-    # m.my_enc_args = m.my_enc_args | m.my_enc_args
+    if args.proj is not None:
+        m.args['proj'] = args.proj
+    
+    m = overwrite_defaults(m, args, 'use_parallel')
+    m = overwrite_defaults(m, args, 'num_proc')
+    m = overwrite_defaults(m, args, 'sim_dir')
+    m = overwrite_defaults(m, args, 'fmt_dir')
+    m = overwrite_defaults(m, args, 'net_dir')
+    m = overwrite_defaults(m, args, 'plt_dir')
+    m = overwrite_defaults(m, args, 'pred_dir')
+    m = overwrite_defaults(m, args, 'show_models')
+    m = overwrite_defaults(m, args, 'model_type')
+    m = overwrite_defaults(m, args, 'model_variant')
+    m = overwrite_defaults(m, args, 'sim_logging')
+    m = overwrite_defaults(m, args, 'start_idx')
+    m = overwrite_defaults(m, args, 'end_idx')
+    m = overwrite_defaults(m, args, 'stop_time')
+    m = overwrite_defaults(m, args, 'stop_floor_sizes')
+    m = overwrite_defaults(m, args, 'stop_ceil_sizes')
+    m = overwrite_defaults(m, args, 'tree_size')
+    m = overwrite_defaults(m, args, 'num_epochs')
+    m = overwrite_defaults(m, args, 'batch_size')
+    m = overwrite_defaults(m, args, 'prop_test')
+    m = overwrite_defaults(m, args, 'prop_validation')
+    m = overwrite_defaults(m, args, 'prop_calibration')
+    m = overwrite_defaults(m, args, 'alpha_CQRI')
+    m = overwrite_defaults(m, args, 'loss')
+    m = overwrite_defaults(m, args, 'optimizer')
+    m = overwrite_defaults(m, args, 'network_prefix')
+    m = overwrite_defaults(m, args, 'pred_prefix')
 
     # return new args
-    return m.my_all_args
+    return m.args
 
 
 
@@ -1591,222 +1648,222 @@ def plot_pca(df, save_fn, num_comp=4, f_show=1.0):
 
 
 
-def get_CPI(x, y, idx=0, frac=0.1, inner_quantile=0.95, num_grid_points=20):
+# def get_CPI(x, y, idx=0, frac=0.1, inner_quantile=0.95, num_grid_points=20):
     
-    # sizes of training dataset and KNN used for CPIs
-    num_samples = x.shape[0]
-    num_param = x.shape[1]
-    num_frac = int(round(frac * num_samples))
+#     # sizes of training dataset and KNN used for CPIs
+#     num_samples = x.shape[0]
+#     num_param = x.shape[1]
+#     num_frac = int(round(frac * num_samples))
     
-    # define quantiles
-    lower_q = (1-inner_quantile)/2
-    upper_q = 1 - lower_q
+#     # define quantiles
+#     lower_q = (1-inner_quantile)/2
+#     upper_q = 1 - lower_q
     
-    # input values are log, convert to exp on return
-    # X probably represents the tree stats used for filtering
-    # because the num_frac seems to be based on the sorted version of xx
-    # ... butpossibly represents the different SIRM model parameters (R0, delta, m)
-    min_x0 = np.min(x[:,0])
-    max_x0 = np.max(x[:,0])
-    min_x1 = np.min(x[:,1])
-    max_x1 = np.max(x[:,1])
-    min_x2 = np.min(x[:,2])
-    max_x2 = np.max(x[:,2])
+#     # input values are log, convert to exp on return
+#     # X probably represents the tree stats used for filtering
+#     # because the num_frac seems to be based on the sorted version of xx
+#     # ... butpossibly represents the different SIRM model parameters (R0, delta, m)
+#     min_x0 = np.min(x[:,0])
+#     max_x0 = np.max(x[:,0])
+#     min_x1 = np.min(x[:,1])
+#     max_x1 = np.max(x[:,1])
+#     min_x2 = np.min(x[:,2])
+#     max_x2 = np.max(x[:,2])
     
-    # put X1 and X2 on scale of X0 
-    # ...but why isn't X0 rescaled against (max_x0 - min_x0)????
-    # ... regardless, we unrescale them later
-    # I think this so X1/X2/X3 are on common scale, important for kmeans etc
-    x[:,1] = min_x0 + (x[:,1] - min_x1)/(max_x1 - min_x1) * (max_x0 - min_x0)
-    x[:,2] = min_x0 + (x[:,2] - min_x2)/(max_x2 - min_x2) * (max_x0 - min_x0)
+#     # put X1 and X2 on scale of X0 
+#     # ...but why isn't X0 rescaled against (max_x0 - min_x0)????
+#     # ... regardless, we unrescale them later
+#     # I think this so X1/X2/X3 are on common scale, important for kmeans etc
+#     x[:,1] = min_x0 + (x[:,1] - min_x1)/(max_x1 - min_x1) * (max_x0 - min_x0)
+#     x[:,2] = min_x0 + (x[:,2] - min_x2)/(max_x2 - min_x2) * (max_x0 - min_x0)
     
-    # not sure why we need to sort, but seems to be for num_frac
-    # Sort X by multiple columns, from left to right??
-    # Sorted in terms of closest points, I guess
-    # But L2 distance should be based on sqrt(sum((x0-xi)^2) ????
-    sorted_idx = np.lexsort((x[:,2], x[:,1], x[:,0]))
-    xx = x[sorted_idx,:]
-    yy = y[sorted_idx]
+#     # not sure why we need to sort, but seems to be for num_frac
+#     # Sort X by multiple columns, from left to right??
+#     # Sorted in terms of closest points, I guess
+#     # But L2 distance should be based on sqrt(sum((x0-xi)^2) ????
+#     sorted_idx = np.lexsort((x[:,2], x[:,1], x[:,0]))
+#     xx = x[sorted_idx,:]
+#     yy = y[sorted_idx]
     
-    # Construct kNN Tree based on sorted summ. stats in x
-    print(xx.shape)
-    tree = KDTree(xx)
+#     # Construct kNN Tree based on sorted summ. stats in x
+#     print(xx.shape)
+#     tree = KDTree(xx)
     
-    # Construct grid for parameters
-    xvals = [ np.linspace(np.min(xx[:,i]), np.max(xx[:,i]), num_grid_points) for i in range(3) ]
-    local_lower_q = np.empty((num_grid_points, num_grid_points, num_grid_points))
-    local_upper_q = np.empty((num_grid_points, num_grid_points, num_grid_points))
+#     # Construct grid for parameters
+#     xvals = [ np.linspace(np.min(xx[:,i]), np.max(xx[:,i]), num_grid_points) for i in range(3) ]
+#     local_lower_q = np.empty((num_grid_points, num_grid_points, num_grid_points))
+#     local_upper_q = np.empty((num_grid_points, num_grid_points, num_grid_points))
 
-    # Visit each grid point
-    for i in range(num_grid_points):
-        for j in range(num_grid_points):
-            for k in range(num_grid_points):
-                # Get the coordinates for each grid point
-                point = np.array( [ xvals[0][i], xvals[1][j], xvals[2][k] ] )
-                point = point.reshape(1,-1)
-                # Get windows of num_frac values xx and yy close to point
-                dist, indices = tree.query(point, num_frac)
-                window_x = xx[indices, :].reshape(-1, num_param)
-                window_y = yy[indices].reshape(-1)
-                # Get the residuals between window_y and window_x (not sure what these represent)
-                residuals = window_y - window_x[:,idx]  #window_x[:, 0]  # Assuming y is 1-D
-                # Build upper/lower quantiles at i,j,k in grid based on upper/lower quanitiles at point i,j,k
-                local_lower_q[i, j, k] = point[:,idx] + np.quantile(residuals, lower_q)
-                local_upper_q[i, j, k] = point[:,idx] + np.quantile(residuals, upper_q)
+#     # Visit each grid point
+#     for i in range(num_grid_points):
+#         for j in range(num_grid_points):
+#             for k in range(num_grid_points):
+#                 # Get the coordinates for each grid point
+#                 point = np.array( [ xvals[0][i], xvals[1][j], xvals[2][k] ] )
+#                 point = point.reshape(1,-1)
+#                 # Get windows of num_frac values xx and yy close to point
+#                 dist, indices = tree.query(point, num_frac)
+#                 window_x = xx[indices, :].reshape(-1, num_param)
+#                 window_y = yy[indices].reshape(-1)
+#                 # Get the residuals between window_y and window_x (not sure what these represent)
+#                 residuals = window_y - window_x[:,idx]  #window_x[:, 0]  # Assuming y is 1-D
+#                 # Build upper/lower quantiles at i,j,k in grid based on upper/lower quanitiles at point i,j,k
+#                 local_lower_q[i, j, k] = point[:,idx] + np.quantile(residuals, lower_q)
+#                 local_upper_q[i, j, k] = point[:,idx] + np.quantile(residuals, upper_q)
     
-    # Create functions to interpolate the fits for out-of-sample values
-    smoothed_lower_local_q = RegularGridInterpolator((xvals[0], xvals[1], xvals[2]),
-                                                     local_lower_q, method='linear', bounds_error=False, fill_value=None)
-    smoothed_upper_local_q = RegularGridInterpolator((xvals[0], xvals[1], xvals[2]),
-                                                     local_upper_q, method='linear', bounds_error=False, fill_value=None)
-    # CONFORMAILZE
-    # output functions for exponentiating, rescaling and interpolation
-    def scaled_lq(a):
-        # rescale stats for a, return CPI
-        a[:,1] = min_x0 + (a[:,1] - min_x1)/(max_x1 - min_x1) * (max_x0 - min_x0)
-        a[:,2] = min_x0 + (a[:,2] - min_x2)/(max_x2 - min_x2) * (max_x0 - min_x0)
-        result = np.exp(smoothed_lower_local_q(a))
-        return result
+#     # Create functions to interpolate the fits for out-of-sample values
+#     smoothed_lower_local_q = RegularGridInterpolator((xvals[0], xvals[1], xvals[2]),
+#                                                      local_lower_q, method='linear', bounds_error=False, fill_value=None)
+#     smoothed_upper_local_q = RegularGridInterpolator((xvals[0], xvals[1], xvals[2]),
+#                                                      local_upper_q, method='linear', bounds_error=False, fill_value=None)
+#     # CONFORMAILZE
+#     # output functions for exponentiating, rescaling and interpolation
+#     def scaled_lq(a):
+#         # rescale stats for a, return CPI
+#         a[:,1] = min_x0 + (a[:,1] - min_x1)/(max_x1 - min_x1) * (max_x0 - min_x0)
+#         a[:,2] = min_x0 + (a[:,2] - min_x2)/(max_x2 - min_x2) * (max_x0 - min_x0)
+#         result = np.exp(smoothed_lower_local_q(a))
+#         return result
     
-    def scaled_uq(a):
-        # rescale states for a, return CPI UQ
-        a[:,1] = min_x0 + (a[:,1] - min_x1)/(max_x1 - min_x1) * (max_x0 - min_x0)
-        a[:,2] = min_x0 + (a[:,2] - min_x2)/(max_x2 - min_x2) * (max_x0 - min_x0)
-        result = np.exp(smoothed_upper_local_q(a))
-        return result
+#     def scaled_uq(a):
+#         # rescale states for a, return CPI UQ
+#         a[:,1] = min_x0 + (a[:,1] - min_x1)/(max_x1 - min_x1) * (max_x0 - min_x0)
+#         a[:,2] = min_x0 + (a[:,2] - min_x2)/(max_x2 - min_x2) * (max_x0 - min_x0)
+#         result = np.exp(smoothed_upper_local_q(a))
+#         return result
     
-    return scaled_lq, scaled_uq
-
-
+#     return scaled_lq, scaled_uq
 
 
-# x are the summstats to restrict the neighborhooed
-# y are the model parameters we're constructing CPI for
-# x_pred is the predicted value for the parameter of interest
-# x_stat are other summary stats for filtering
-# x_true is the true value for the parameter of interest
-def get_CPI2(x_pred, x_stat, x_true, frac=0.1, inner_quantile=0.95, num_grid_points=20):
+
+
+# # x are the summstats to restrict the neighborhooed
+# # y are the model parameters we're constructing CPI for
+# # x_pred is the predicted value for the parameter of interest
+# # x_stat are other summary stats for filtering
+# # x_true is the true value for the parameter of interest
+# def get_CPI2(x_pred, x_stat, x_true, frac=0.1, inner_quantile=0.95, num_grid_points=20):
     
-    # accept all input on linear scale
-    # convert to log for interpolation
-    x_pred = np.log(x_pred)
-    x_true = np.log(x_true)
+#     # accept all input on linear scale
+#     # convert to log for interpolation
+#     x_pred = np.log(x_pred)
+#     x_true = np.log(x_true)
 
-    # construct x,y objects
-    x = np.hstack( [x_pred, x_stat] )
-    y = x_true
+#     # construct x,y objects
+#     x = np.hstack( [x_pred, x_stat] )
+#     y = x_true
 
-    # Fit using residuals around CNN predictions
-    # get basic CPI settings
-    lower_q     = (1-inner_quantile)/2
-    upper_q     = 1 - lower_q
-    num_params  = x.shape[1]
-    num_samples = x.shape[0]
-    num_frac    = int(round(frac * num_samples))
+#     # Fit using residuals around CNN predictions
+#     # get basic CPI settings
+#     lower_q     = (1-inner_quantile)/2
+#     upper_q     = 1 - lower_q
+#     num_params  = x.shape[1]
+#     num_samples = x.shape[0]
+#     num_frac    = int(round(frac * num_samples))
 
-    # standardize data to loc/scale of x0
-    # scale and shift columns k!=0 to have same spread as column 0
-    min_x = {}
-    max_x = {}
-    range_x = {}
-    for i,k in enumerate(range(num_params)):
-        min_x[k] = np.min(x[:,k])
-        max_x[k] = np.max(x[:,k])
-        range_x[k] = max_x[k] - min_x[k]
-        #if i != 0:
-        #    x[:,k] = min_x[0] + (x[:,k] - min_x[k]) / range_x[k] * range_x[0] #(max_x[k]-min_x[k]) * (max_x[0] - min_x[0])
+#     # standardize data to loc/scale of x0
+#     # scale and shift columns k!=0 to have same spread as column 0
+#     min_x = {}
+#     max_x = {}
+#     range_x = {}
+#     for i,k in enumerate(range(num_params)):
+#         min_x[k] = np.min(x[:,k])
+#         max_x[k] = np.max(x[:,k])
+#         range_x[k] = max_x[k] - min_x[k]
+#         #if i != 0:
+#         #    x[:,k] = min_x[0] + (x[:,k] - min_x[k]) / range_x[k] * range_x[0] #(max_x[k]-min_x[k]) * (max_x[0] - min_x[0])
     
-    # created sorted containers
-    # reverse order of columns in x = (x_pred, x_stat)
-    sorted_idx = np.lexsort( tuple([ x[:,k] for k in range(num_params)[::-1]])  )
-    xx = x[sorted_idx,:]
-    yy = y[sorted_idx,:]
+#     # created sorted containers
+#     # reverse order of columns in x = (x_pred, x_stat)
+#     sorted_idx = np.lexsort( tuple([ x[:,k] for k in range(num_params)[::-1]])  )
+#     xx = x[sorted_idx,:]
+#     yy = y[sorted_idx,:]
     
-    # create KNN tree to access
-    tree = KDTree(xx)
+#     # create KNN tree to access
+#     tree = KDTree(xx)
 
-    # construct grid
-    xvals = [ np.linspace(min_x[i], max_x[i], num_grid_points) for i in range(num_params) ]
+#     # construct grid
+#     xvals = [ np.linspace(min_x[i], max_x[i], num_grid_points) for i in range(num_params) ]
 
-    # for storing lower/upper quantiles (data at grid-points for interpolation)
-    local_lower_q = np.empty( np.repeat(num_grid_points, num_params) )
-    local_upper_q = np.empty( np.repeat(num_grid_points, num_params) )
+#     # for storing lower/upper quantiles (data at grid-points for interpolation)
+#     local_lower_q = np.empty( np.repeat(num_grid_points, num_params) )
+#     local_upper_q = np.empty( np.repeat(num_grid_points, num_params) )
 
-    # list of all possible grid-point indices
-    grid_idx_list = list(itertools.combinations_with_replacement(list(range(num_grid_points)), num_params))
+#     # list of all possible grid-point indices
+#     grid_idx_list = list(itertools.combinations_with_replacement(list(range(num_grid_points)), num_params))
     
-    # get focal param quantiles for each grid point
-    for grid_idx in grid_idx_list:
-        # point has 1 row and num_params columns
-        # value of point equals a grid-point's value
-        point = np.zeros( (1,num_params) )
-        for j in range(num_params):
-            k = grid_idx[j]
-            point[0,j] = xvals[j][k]
+#     # get focal param quantiles for each grid point
+#     for grid_idx in grid_idx_list:
+#         # point has 1 row and num_params columns
+#         # value of point equals a grid-point's value
+#         point = np.zeros( (1,num_params) )
+#         for j in range(num_params):
+#             k = grid_idx[j]
+#             point[0,j] = xvals[j][k]
 
-        # compute residuals for y-x near grid-point
-        dist, indices = tree.query(point, num_frac)
-        window_x = xx[indices, 0]
-        window_y = yy[indices, 0]
-        residuals = window_y - window_x
+#         # compute residuals for y-x near grid-point
+#         dist, indices = tree.query(point, num_frac)
+#         window_x = xx[indices, 0]
+#         window_y = yy[indices, 0]
+#         residuals = window_y - window_x
         
-        # get lower/upper quantiles relative to grid-point
-        param_est = point[0,0]
-        param_lower = param_est + np.quantile(residuals, lower_q)
-        param_upper = param_est + np.quantile(residuals, upper_q)
+#         # get lower/upper quantiles relative to grid-point
+#         param_est = point[0,0]
+#         param_lower = param_est + np.quantile(residuals, lower_q)
+#         param_upper = param_est + np.quantile(residuals, upper_q)
         
-        # debug printing
-        #print( point[0] )
-        #print( f'{param_est}  ({param_lower}   {param_upper})')
-        #print('')
+#         # debug printing
+#         #print( point[0] )
+#         #print( f'{param_est}  ({param_lower}   {param_upper})')
+#         #print('')
         
-        # store lower/upper quantiles corresponding to grid-point
-        local_lower_q[ tuple(grid_idx) ] = param_lower  # point[0,0] + np.quantile(residuals, lower_q)
-        local_upper_q[ tuple(grid_idx) ] = param_upper  # point[0,0] + np.quantile(residuals, upper_q)
+#         # store lower/upper quantiles corresponding to grid-point
+#         local_lower_q[ tuple(grid_idx) ] = param_lower  # point[0,0] + np.quantile(residuals, lower_q)
+#         local_upper_q[ tuple(grid_idx) ] = param_upper  # point[0,0] + np.quantile(residuals, upper_q)
     
 
-    print( tuple(xvals), local_lower_q )
-    print( local_lower_q.shape )
-    # Create functions to interpolate the fits for out-of-sample values
-    smoothed_lower_local_q = RegularGridInterpolator( tuple(xvals), local_lower_q,
-                                                      method='linear', bounds_error=False, fill_value=1e-12)
-    smoothed_upper_local_q = RegularGridInterpolator( tuple(xvals), local_upper_q,
-                                                      method='linear', bounds_error=False, fill_value=1e+12)
+#     print( tuple(xvals), local_lower_q )
+#     print( local_lower_q.shape )
+#     # Create functions to interpolate the fits for out-of-sample values
+#     smoothed_lower_local_q = RegularGridInterpolator( tuple(xvals), local_lower_q,
+#                                                       method='linear', bounds_error=False, fill_value=1e-12)
+#     smoothed_upper_local_q = RegularGridInterpolator( tuple(xvals), local_upper_q,
+#                                                       method='linear', bounds_error=False, fill_value=1e+12)
     
-    # CONFORMAILZE
-    # output functions for exponentiating, rescaling and interpolation
-    def scaled_lq(a):
-        #for i,k in enumerate(range(num_params)):
-        #    if i != 0:
-        #        a[:,k] = min_x[0] + (a[:,k] - min_x[k]) / range_x[k] * range_x[0] # (max_x[k]-min_x[k]) * (max_x[0] - min_x[0])
-        #a[:,1] = min_x0 + (a[:,1] - min_x1)/(max_x1 - min_x1) * (max_x0 - min_x0)
-        #a[:,2] = min_x0 + (a[:,2] - min_x2)/(max_x2 - min_x2) * (max_x0 - min_x0)
-        return np.exp( smoothed_lower_local_q(a) )
-    def scaled_uq(a):
-        #for i,k in enumerate(range(num_params)):
-        #    if i != 0:
-        #        a[:,k] = min_x[0] + (a[:,k] - min_x[k]) / range_x[k] * range_x[0] # (max_x[k]-min_x[k]) * (max_x[0] - min_x[0])
-        # a[:,1] = min_x0 + (a[:,1] - min_x1)/(max_x1 - min_x1) * (max_x0 - min_x0)
-        # a[:,2] = min_x0 + (a[:,2] - min_x2)/(max_x2 - min_x2) * (max_x0 - min_x0)
-        return np.exp( smoothed_upper_local_q(a) )
+#     # CONFORMAILZE
+#     # output functions for exponentiating, rescaling and interpolation
+#     def scaled_lq(a):
+#         #for i,k in enumerate(range(num_params)):
+#         #    if i != 0:
+#         #        a[:,k] = min_x[0] + (a[:,k] - min_x[k]) / range_x[k] * range_x[0] # (max_x[k]-min_x[k]) * (max_x[0] - min_x[0])
+#         #a[:,1] = min_x0 + (a[:,1] - min_x1)/(max_x1 - min_x1) * (max_x0 - min_x0)
+#         #a[:,2] = min_x0 + (a[:,2] - min_x2)/(max_x2 - min_x2) * (max_x0 - min_x0)
+#         return np.exp( smoothed_lower_local_q(a) )
+#     def scaled_uq(a):
+#         #for i,k in enumerate(range(num_params)):
+#         #    if i != 0:
+#         #        a[:,k] = min_x[0] + (a[:,k] - min_x[k]) / range_x[k] * range_x[0] # (max_x[k]-min_x[k]) * (max_x[0] - min_x[0])
+#         # a[:,1] = min_x0 + (a[:,1] - min_x1)/(max_x1 - min_x1) * (max_x0 - min_x0)
+#         # a[:,2] = min_x0 + (a[:,2] - min_x2)/(max_x2 - min_x2) * (max_x0 - min_x0)
+#         return np.exp( smoothed_upper_local_q(a) )
 
-    point_test  = xx[20,:]
-    #param_lower = np.exp( smoothed_lower_local_q( point_test )[0] )
-    #param_upper = np.exp( smoothed_upper_local_q( point_test )[0] )
-    param_lower = smoothed_lower_local_q( point_test )[0]
-    param_upper = smoothed_upper_local_q( point_test )[0]
+#     point_test  = xx[20,:]
+#     #param_lower = np.exp( smoothed_lower_local_q( point_test )[0] )
+#     #param_upper = np.exp( smoothed_upper_local_q( point_test )[0] )
+#     param_lower = smoothed_lower_local_q( point_test )[0]
+#     param_upper = smoothed_upper_local_q( point_test )[0]
     
-    print( 'rescaled values        ', f'{point_test[0]}  {point_test[1]}  {point_test[2]}')
-    print( 'rescaled estimate      ', f'{np.exp(point_test[0])}  ({param_lower}   {param_upper})' )
-    print('')
+#     print( 'rescaled values        ', f'{point_test[0]}  {point_test[1]}  {point_test[2]}')
+#     print( 'rescaled estimate      ', f'{np.exp(point_test[0])}  ({param_lower}   {param_upper})' )
+#     print('')
 
-    return scaled_lq, scaled_uq
+#     return scaled_lq, scaled_uq
 
-# # used to predict quantiles from training data
-# def pinball_loss(y_true, y_pred, alpha=0.05):
-#     if y_true - y_pred > 0.:
-#         return alpha * (y_true - y_pred)
-#     else:
+# # # used to predict quantiles from training data
+# # def pinball_loss(y_true, y_pred, alpha=0.05):
+# #     if y_true - y_pred > 0.:
+# #         return alpha * (y_true - y_pred)
+# #     else:
 #         return (1 - alpha) * (y_pred - y_true)
 
 def pinball_loss(y_true, y_pred, alpha):
@@ -1856,12 +1913,21 @@ def get_CQR_constant(x_pred_quantiles, y_true, inner_quantile=0.95):
     # preds axis 0 is the lower and upper quants, axis 1 is the replicates, and axis 2 is the param label
     # compute non-comformity scores
     Q = np.array([])
+    # error tolerance on quantile for E
+    error = 0.001
     # for each parameter
+    #inner_quantile * (1 + 1/x_pred_quantiles.shape[1])
     for i in range(x_pred_quantiles.shape[2]):
         E = np.amax(np.array((x_pred_quantiles[0][:,i] - y_true[:,i], y_true[:,i] - x_pred_quantiles[1][:,i])), axis=0)
 
         # get 1 - alpha/2's quintile of non-comformity scores
-        Q = np.append(Q, np.quantile(E, inner_quantile * (1 + 1/x_pred_quantiles.shape[1])))
+        #print( inner_quantile * (1 + 1/x_pred_quantiles.shape[1]) )
+        quant = inner_quantile * (1 + 1/x_pred_quantiles.shape[1])
+        if quant < 0 and quant > 0 - error:
+            quant = 0.
+        elif quant > 1. and quant < 1. + error:
+            quant = 1.
+        Q = np.append(Q, np.quantile(E, quant))
 
     return Q
 
