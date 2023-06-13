@@ -30,6 +30,13 @@ class GeosseModel(Model.BaseModel):
         self.num_ranges = 2**self.num_char - 1
         return
     
+    # # list of supported model variants
+    # def get_model_variants(self):
+    #     model_variants = { 'free_rates'     : 'independent rates drawn from every event',
+    #                        'equal_rates'    : 'independent rate drawn for each event class, event rates equal among events within class',
+    #                        'density_effect' : 'pairwise interactions influence extinction rates' }
+    #     return model_variants
+
     # make model states
     def make_states(self):
         num_char = self.num_char
@@ -299,6 +306,43 @@ class GeosseModel(Model.BaseModel):
                 e    = Event( g=group, n=name, idx=idx, r=rate, ix=ix, jx=jx )
                 events.append(e)
         return events
+    
+    # # GeoSSE dispersal rate w/ Density Effects
+    # def make_events_d(self, states, rates):
+    #     group = 'Dispersal_DE'
+    #     # how many compound states
+    #     num_states = len(states.int2int)
+    #     # generate on/off bits
+    #     on  = []
+    #     off = []
+    #     for range_state,range_vector in enumerate(states.int2vec):
+    #         on.append( [] )
+    #         off.append( [] )
+    #         for region_idx,region_state in enumerate(range_vector):
+    #             if region_state == 0:
+    #                 off[range_state].append(region_idx)
+    #             else:
+    #                 on[range_state].append(region_idx)
+    #     # convert to dispersal events
+    #     events = []
+    #     for range_state in range(num_states):
+    #         if sum(on[range_state]) == 0:
+    #             next
+    #         for a,new_region_idx in enumerate(off[range_state]):
+    #             rate = 0.0
+    #             for b,curr_region_idx in enumerate(on[range_state]):
+    #                 # sum of dispersal rates into off_region_idx
+    #                 rate += rates[curr_region_idx][new_region_idx]
+    #             new_bits = list(states.int2vec[range_state]).copy()
+    #             new_bits[new_region_idx] = 1
+    #             new_state = states.vec2int[ tuple(new_bits) ]
+    #             name = f'd_{range_state}_{new_state}'
+    #             idx  = {'i':range_state, 'j':new_state}
+    #             ix   = [ f'S[{range_state}]:1' ]
+    #             jx   = [ f'S[{new_state}]:1', f'G[{new_region_idx}]' ]
+    #             e    = Event( g=group, n=name, idx=idx, r=rate, ix=ix, jx=jx )
+    #             events.append(e)
+    #     return events
 
     # GeoSSE between-region speciation rate
     def make_events_b(self, states, rates, normalize_rates=False):

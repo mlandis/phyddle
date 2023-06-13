@@ -33,6 +33,12 @@ class SirmModel(Model.BaseModel):
         super().set_model(idx)
         return
 
+    # # list of supported model variants
+    # def get_model_variants(self):
+    #     model_variants = { 'free_rates'     : 'independent rates drawn from every event',
+    #                        'equal_rates'    : 'independent rate drawn for each event class, event rates equal among events within class' }
+    #     return model_variants
+
     # SIRM state space
     def make_states(self):
         num_char = self.num_char

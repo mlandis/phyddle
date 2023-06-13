@@ -46,6 +46,9 @@ class BaseModel:
         self.df_events = None
         self.df_states = None
     
+    # def get_model_variants(self):
+    #     raise NotImplementedError
+    
     def make_settings(self):
         raise NotImplementedError
     
@@ -64,5 +67,3 @@ class BaseModel:
     def make_start_sizes(self):
         raise NotImplementedError
     
-    #def get_params(self):
-

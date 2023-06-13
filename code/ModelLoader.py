@@ -10,6 +10,7 @@
 
 def load_model(args):
     model_type = args['model_type']
+    #show_model_variants = args['show_model_variants']
     print('Loading', model_type)
     if model_type == 'geosse':
         import GeosseModel
