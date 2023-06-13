@@ -9,6 +9,8 @@ from tqdm import tqdm
 
 import Utilities
 
+#-----------------------------------------------------------------------------------------------------------------#
+
 class Simulator:
     def __init__(self, args, mdl):
         self.set_args(args)
@@ -121,6 +123,7 @@ class Simulator:
     def refresh_model_custom(self, idx):
         return NotImplementedError    
 
+#-----------------------------------------------------------------------------------------------------------------#
 
 ###################################
 # Generic CLI simulator interface #
@@ -131,6 +134,14 @@ class Simulator:
 # - outputs Newick tree file
 # - outputs Nexus data matrix
 # - phyddle handles rest
+
+class GenericSimulator(Simulator):
+    def __init__(self, args, mdl):
+        super().__init__(args, mdl)
+        return
+
+
+#-----------------------------------------------------------------------------------------------------------------#
 
 ##############################
 # MASTER simulator interface #
@@ -159,12 +170,15 @@ class MasterSimulator(Simulator):
 
 
     def sim_one_custom(self, idx):
-        out_path  = self.sim_dir + '/' + self.proj + '/sim'
-        tmp_fn    = out_path + '.' + str(idx)
+        out_path   = self.sim_dir + '/' + self.proj + '/sim'
+        tmp_fn     = out_path + '.' + str(idx)
 
-        beast_fn  = tmp_fn + '.beast.log'
-        xml_fn    = tmp_fn + '.xml'
-        json_fn   = tmp_fn + '.json'
+        beast_fn   = tmp_fn + '.beast.log'
+        xml_fn     = tmp_fn + '.xml'
+        json_fn    = tmp_fn + '.json'
+        phy_nex_fn = tmp_fn + '.phy.nex' # annotated tree, no mtx
+        dat_nex_fn = tmp_fn + '.dat.nex' # no tree, character mtx
+        tre_fn     = tmp_fn + '.tre'
 
         # make XML file
         xml_str = self.xml_str
@@ -174,6 +188,17 @@ class MasterSimulator(Simulator):
         cmd_str = self.cmd_str
         beast_out = subprocess.check_output(cmd_str, shell=True, text=True, stderr=subprocess.STDOUT)
         Utilities.write_to_file(beast_out, beast_fn)
+
+        # this code should convert to standard nexus
+        # convert MASTER tree to standard nexus
+        #taxon_states,
+        # state space
+        int2vec = self.model.states.int2vec
+        # int2vecstr = self.model.states.int2vecstr #[ ''.join([str(y) for y in x]) for x in int2vec ]
+        # vecstr2int = self.model.states.vecstr2int #{ v:i for i,v in enumerate(int2vecstr) }
+        nexus_str = Utilities.convert_phy2dat_nex(phy_nex_fn, int2vec)
+        Utilities.write_to_file(nexus_str, dat_nex_fn)
+
 
         # logging clean-up
         if self.sim_logging == 'clean':
@@ -223,7 +248,7 @@ class MasterSimulator(Simulator):
 
         # file names
         newick_fn = '{sim_dir}/{proj}/sim.{idx}.tre'.format(sim_dir=self.sim_dir, proj=self.proj, idx=idx)
-        nexus_fn  = '{sim_dir}/{proj}/sim.{idx}.nex'.format(sim_dir=self.sim_dir, proj=self.proj, idx=idx)
+        nexus_fn  = '{sim_dir}/{proj}/sim.{idx}.phy.nex'.format(sim_dir=self.sim_dir, proj=self.proj, idx=idx)
         json_fn   = '{sim_dir}/{proj}/sim.{idx}.json'.format(sim_dir=self.sim_dir, proj=self.proj, idx=idx)
 
         # state space

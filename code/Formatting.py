@@ -1,8 +1,9 @@
 import os
-import csv
+#import csv
 import h5py
 import pandas as pd
 import numpy as np
+import dendropy as dp
 from joblib import Parallel, delayed
 from tqdm import tqdm
 
@@ -39,9 +40,9 @@ class Formatter:
         self.num_proc          = args['num_proc']
 
         if self.tree_type == 'serial':
-            self.num_data_row = 2 + self.num_char
+            self.num_data_row = 4 + self.num_char
         if self.tree_type == 'extant':
-            self.num_data_row = 1 + self.num_char
+            self.num_data_row = 3 + self.num_char
             
         self.in_dir        = f'{self.sim_dir}/{self.proj}'
         self.out_dir       = f'{self.fmt_dir}/{self.proj}'
@@ -65,14 +66,14 @@ class Formatter:
             self.write_tensor_hdf5()
     
 
-    def make_settings_str(self, idx, mtx_size):
+    def make_settings_str(self, idx, tree_width):
 
         s = 'setting,value\n'
-        s += 'proj,' + self.proj + '\n'
-        s += 'model_type,' + self.model.model_type + '\n'
-        s += 'model_variant,' + self.model.model_variant + '\n'
+        s += 'proj,'            + self.proj + '\n'
+        s += 'model_type,'      + self.model.model_type + '\n'
+        s += 'model_variant,'   + self.model.model_variant + '\n'
         s += 'replicate_index,' + str(idx) + '\n'
-        s += 'taxon_category,' + str(mtx_size) + '\n'
+        s += 'tree_width,'      + str(tree_width) + '\n'
         
         return s
 
@@ -90,16 +91,20 @@ class Formatter:
             self.phy_tensors[size] = {}
 
         # save all CBLVS/CDVS tensors into phy_tensors
+        #print(res)
+        #print(len(res))
         for i in range(len(res)):
             if res[i] is not None:
-                tensor_length = len(res[i])
-                if self.tree_type == 'serial':
-                    tensor_size = tensor_length / (self.num_char + 2)
-                elif self.tree_type == 'extant':
-                    tensor_size = tensor_length /  (self.num_char + 1)
+                tensor_size = res[i].shape[1]
+                #tensor_length = len(res[i])
+                #if self.tree_type == 'serial':
+                #    tensor_size = tensor_length / (self.num_char + 4)
+                #elif self.tree_type == 'extant':
+                #    tensor_size = tensor_length /  (self.num_char + 3)
                 #print(res[i])
                 #print(tensor_length)
-                tensor_size = int(tensor_size)
+                #tensor_size = int(tensor_size)
+                print(i, tensor_size) #, tensor_length)
                 self.phy_tensors[tensor_size][i] = res[i]
 
         self.summ_stat_names = self.get_summ_stat_names()
@@ -162,7 +167,7 @@ class Formatter:
                 fname_param = fname_base + '.param_row.csv'
                 fname_stat = fname_base + '.summ_stat.csv'
 
-                dat_data[j,:] = phy_tensor
+                dat_data[j,:] = phy_tensor.flatten()
                 dat_stat[j,:] = np.loadtxt(fname_stat, delimiter=',', skiprows=1)
                 dat_labels[j,:] = np.loadtxt(fname_param, delimiter=',', skiprows=1)
 
@@ -299,59 +304,91 @@ class Formatter:
         np.set_printoptions(formatter={'float': lambda x: format(x, '8.6E')}, precision=NUM_DIGITS)
         
         # make filenames
-        geo_fn    = tmp_fn + '.data.nex'
-        tre_fn    = tmp_fn + '.tre'
-        prune_fn  = tmp_fn + '.extant.tre'
-        nex_fn    = tmp_fn + '.nex'
-        cblvs_fn  = tmp_fn + '.cblvs.csv'
-        cdvs_fn   = tmp_fn + '.cdvs.csv'
-        ss_fn     = tmp_fn + '.summ_stat.csv'
-        info_fn   = tmp_fn + '.info.csv'
+        dat_nex_fn = tmp_fn + '.dat.nex'
+        tre_fn     = tmp_fn + '.tre'
+        prune_fn   = tmp_fn + '.extant.tre'
+        #phy_nex_fn = tmp_fn + '.phy.nex'
+        cblvs_fn   = tmp_fn + '.cblvs.csv'
+        cdvs_fn    = tmp_fn + '.cdvs.csv'
+        ss_fn      = tmp_fn + '.summ_stat.csv'
+        info_fn    = tmp_fn + '.info.csv'
         
         # state space
-        int2vec    = self.model.states.int2vec
-        int2vecstr = self.model.states.int2vecstr #[ ''.join([str(y) for y in x]) for x in int2vec ]
+        #int2vec    = self.model.states.int2vec
+        #int2vecstr = self.model.states.int2vecstr #[ ''.join([str(y) for y in x]) for x in int2vec ]
         vecstr2int = self.model.states.vecstr2int #{ v:i for i,v in enumerate(int2vecstr) }
+
+
+        # get tree file
+        phy = Utilities.read_tree(tre_fn)
+        #print(phy)
+        if phy is None:
+            return
+        
+        num_taxa = len(phy.leaf_nodes())
+        #print(num_taxa)
 
         # verify tree size & existence!
         #result_str     = ''
-        n_taxa_idx     = Utilities.get_num_taxa(tre_fn) #, idx, self.tree_sizes)
-        taxon_size_idx = Utilities.find_taxon_size(n_taxa_idx, self.tree_sizes)
+        #n_taxa_idx     = Utilities.get_num_taxa(tre_fn) #, idx, self.tree_sizes)
+        tree_width = Utilities.find_tree_width(num_taxa, self.tree_sizes)
+        #print(num_taxa, tree_size, len(self.tree_sizes), self.tree_sizes)
 
         # handle simulation based on tree size
-        if n_taxa_idx > np.max(self.tree_sizes):
+        if num_taxa > np.max(self.tree_sizes):
             # too many taxa
             return
-        elif n_taxa_idx <= 0:
+        elif num_taxa <= 0:
             # too few taxa
             return
         else:
+
+            #tree_size = self.tree_sizes[tree_size_idx]
             # valid number of taxa
             # generate extinct-pruned tree
             prune_success = Utilities.make_prune_phy(tre_fn, prune_fn)
 
             # generate nexus file 0/1 ranges
-            taxon_states,nexus_str = Utilities.convert_nex(nex_fn, tre_fn, int2vec)
-            Utilities.write_to_file(nexus_str, geo_fn)
+            ## taxon_states,nexus_str = Utilities.convert_nex(nex_fn, tre_fn, int2vec)
+            ## Utilities.write_to_file(nexus_str, geo_fn)
 
             # then get CBLVS working
-            cblv,new_order = Utilities.vectorize_tree(tre_fn, max_taxa=taxon_size_idx, prob=1.0 )
-            cblvs = Utilities.make_cblvs_geosse(cblv, taxon_states, new_order)
+            #### cblv,new_order = Utilities.vectorize_tree(tre_fn, max_taxa=taxon_size_idx, prob=1.0 )
+            #### cblvs = Utilities.make_cblvs_geosse(cblv, taxon_states, new_order)
+            
+            phy = Utilities.read_tree(tre_fn)
+            dat = Utilities.convert_nexus_to_array(dat_nex_fn)
+            
+            # encode CBLVS
+            cblvs = Utilities.encode_phy_tensor(phy, dat, tree_width=tree_width, tree_type='serial')
         
             # NOTE: this if statement should not be needed, but for some reason the "next"
             # seems to run even when make_prune_phy returns False
             # generate CDVS file
+            
+            # encode CDVS
             if prune_success:
-                cdvs = Utilities.make_cdvs(prune_fn, taxon_size_idx, taxon_states, int2vecstr)
-            else:
+                cdvs = Utilities.encode_phy_tensor(phy, dat, tree_width=tree_width, tree_type='extant')
+                #cdvs = Utilities.make_cdvs(prune_fn, taxon_size_idx, taxon_states, int2vecstr)
+            else:    
                 cdvs = None
             
             # output files
-            mtx_size = cblv.shape[1]
+            #mtx_size = cblvs.shape[1]
 
+            if cblvs is None:
+                print('error!', tre_fn)
+                print(phy)
+                print(dat)
+                print(cblvs)
+                
+            #print(cblvs)
+            #print(cblvs.shape)
+            #if prune_success:
+            #    print(cdvs.shape)
 
         # record info
-        info_str = self.make_settings_str(idx, mtx_size)
+        info_str = self.make_settings_str(idx, tree_width)
         Utilities.write_to_file(info_str, info_fn)
 
         if save_phyvec and self.tree_type == 'serial':
@@ -371,7 +408,7 @@ class Formatter:
                 Utilities.write_to_file(cdvs_str, cdvs_fn)
 
         # record summ stat data
-        ss = Utilities.make_summ_stat(tre_fn, geo_fn, vecstr2int)
+        ss = Utilities.make_summ_stat(tre_fn, dat_nex_fn, vecstr2int)
         ss_str = Utilities.make_summ_stat_str(ss)
         #ss_str = Utilities.clean_scientific_notation(ss_str) #re.sub( '\.0+E\+0+', '', ss_str)
         Utilities.write_to_file(ss_str, ss_fn)

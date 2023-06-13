@@ -36,7 +36,7 @@ sim_args = {
     'sim_dir'           : '../raw_data',
     'sim_logging'       : 'verbose',
     'start_idx'         : 0,
-    'end_idx'           : 100,
+    'end_idx'           : 5000,
     'tree_sizes'        : [ 200, 500 ],
     'use_parallel'      : True,
     'num_proc'          : -2,

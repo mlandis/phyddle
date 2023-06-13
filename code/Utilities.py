@@ -2,32 +2,34 @@
 import argparse
 import importlib
 import sys
-import random
 import re
 import os
 #import itertools
 #import dill
+#import random
 
 # Call before importing Tensorflow to suppress INFO messages
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # or any {'0', '1', '2'}
 
 import pandas as pd
 import numpy as np
-#import scipy as sp
+
 import dendropy as dp
+from itertools import chain, combinations
+from keras import backend as K
+
+#import scipy as sp
 #import matplotlib.pyplot as plt
 #import matplotlib.ticker as ticker
 #import tensorflow as tf
-
 #from sklearn.preprocessing import StandardScaler
 #from sklearn.decomposition import PCA
 #from sklearn import metrics
-from collections import Counter
-from itertools import chain, combinations
-from ete3 import Tree
+#from collections import Counter
+#from ete3 import Tree
 #from scipy.interpolate import RegularGridInterpolator
 #from sklearn.neighbors import KDTree
-from keras import backend as K
+
 
 NUM_DIGITS = 10
 np.set_printoptions(floatmode='maxprec', precision=NUM_DIGITS)
@@ -35,14 +37,14 @@ pd.set_option('display.precision', NUM_DIGITS)
 pd.set_option('display.float_format', lambda x: f'{x:,.3f}')
 
 #max_len = 501
-TURN_ONE = 'turn_one'
+# TURN_ONE = 'turn_one'
 
 # the information on state is saved as 't_s' in the newick tree
-T_S = 't_s'
-STATE = 'state'
-DIVERSIFICATION_SCORE = 'diversification_score'
+# T_S = 't_s'
+# STATE = 'state'
+# DIVERSIFICATION_SCORE = 'diversification_score'
 
-sys.setrecursionlimit(100000)
+# sys.setrecursionlimit(100000)
 
 ##################
 # Helper Classes #
@@ -323,581 +325,6 @@ def sort_binary_vectors(binary_vectors):
                 
     return sorted_vectors
 
-def events2df(events):
-    df = pd.DataFrame({
-        'name'     : [ e.name for e in events ],
-        'group'    : [ e.group for e in events ], 
-        'i'        : [ e.i for e in events ],
-        'j'        : [ e.j for e in events ],
-        'k'        : [ e.k for e in events ],
-        'reaction' : [ e.reaction for e in events ],
-        'rate'     : [ e.rate for e in events ]
-    })
-    return df
-
-def states2df(states):
-    df = pd.DataFrame({
-        'lbl' : states.int2lbl,
-        'int' : states.int2int,
-        'set' : states.int2set,
-        'vec' : states.int2vec
-    })
-    return df
-
-#############
-# 1. translate master output into char matrix
-# 2. determine size class of tree
-# 3. call make_phy_tensor(phy, dat, tree_size, tree_type) function
-# 4. make_phy_tensor calls make_cblvs or make_cdvs, depending on input
-# 5. return numpy array
-
-#-----------------------------------------------------------------------------------------------------------------#
-
-################
-# CDVS ENCODER #
-################
-
-### this is where state info is stored
-def set_attribs(tre):
-    """
-    adds t_s attributes to tips based on tip name
-    :param tre: ete3.Tree, the tree on which we measure the branch length
-    :return: void, returns modified tree
-    """
-    for tip in tre.traverse():
-        if "&&NHX-t_s=1" in tip.name:
-            setattr(tip, T_S, 1)
-        elif "&&NHX-t_s=2" in tip.name:
-            setattr(tip, T_S, 2)
-    return None
-
-def attach_tip_states(tr, st):
-    "assign states in st to leaf nodes in tr using shared taxon name"
-    for nd in tr.get_leaves():
-        setattr(nd, STATE, st[nd.name])
-
-def get_average_branch_length(tre):
-    """
-    Returns average branch length for given tree
-    :param tre: ete3.Tree, the tree on which we measure the branch length
-    :return: float, average branch length
-    """
-    br_length = [nod.dist for nod in tre.traverse()]
-    return np.average(br_length)
-
-
-def rescale_tree(tr, rescale_fac):
-    """
-    Rescales a given tree
-    :param tr: ete3.Tree, the tree to be rescaled
-    :param rescale_fac: float, the branches will be multiplied by this factor
-    :return: void, modifies the original tree
-    """
-    for node in tr.traverse():
-        node.dist = node.dist/rescale_fac
-    return None
-
-
-def add_diversification(tr):
-    """
-    to each node adds an attribute, 'diversification_score', i.e. the sum of pathways of branched tips
-    :param tr: ete3.Tree, the tree to be modified
-    :return: void, modifies the original tree
-    """
-    for node in tr.traverse("postorder"):
-        if not node.is_root():
-            # print(label_count)
-            label_node = 0
-            if node.is_leaf():
-                label_node = 1
-                setattr(node, DIVERSIFICATION_SCORE, node.dist)
-            else:
-                children = node.get_children()
-                # print(children)
-                setattr(node, DIVERSIFICATION_SCORE, getattr(children[0], DIVERSIFICATION_SCORE) + getattr(children[1], DIVERSIFICATION_SCORE))
-    return None
-
-
-def add_diversification_sign(tr):
-    """
-    Puts topological signatures based on diversification (i.e. longest path): if the first child of a node has longer
-    path of branches leading to it, then it is prioritized for visit.
-    :param tr: ete3.Tree, the tree to get the topological description
-    :return: void, modifies the original tree
-    """
-    for node in tr.traverse('levelorder'):
-        if not node.is_leaf():
-            diver_child0 = getattr(node.children[0], DIVERSIFICATION_SCORE)
-            diver_child1 = getattr(node.children[1], DIVERSIFICATION_SCORE)
-            if diver_child0 < diver_child1:
-                node.add_feature(TURN_ONE, True)
-            elif diver_child0 == diver_child1:
-                next_sign = random.choice([True, False])
-                if next_sign is True:
-                    node.add_feature(TURN_ONE, True)
-            else:
-                node.add_feature(TURN_ONE, False)
-    return None
-
-
-def name_tree_cdvs(tr):
-    """
-    Names all the tree nodes that are not named, with unique names.
-    :param tr: ete3.Tree, the tree to be named
-    :return: void, modifies the original tree
-    """
-    i = 0
-    for node in tr.traverse('levelorder'):
-        node.name = i
-        i += 1
-    return None
-
-
-def add_dist_to_root_cdvs(tr):
-    # int_nodes_dist = []
-    # tips_dist = []
-    tree_height = 0
-    for node in tr.traverse("preorder"):
-        if node.is_root():
-            node.add_feature("dist_to_root", 0)
-        elif node.is_leaf():
-            node.add_feature("dist_to_root", getattr(node.up, "dist_to_root") + node.dist)
-            # tips_dist.append(getattr(node.up, "dist_to_root") + node.dist)
-            tree_height = getattr(node, "dist_to_root", False)
-
-        else:
-            node.add_feature("dist_to_root", getattr(node.up, "dist_to_root") + node.dist)
-            # int_nodes_dist.append(getattr(node.up, "dist_to_root") + node.dist)
-    return tr, tree_height
-
-
-def get_not_visited_anc(leaf):
-    while getattr(leaf, "visited", False):
-        leaf = leaf.up
-    return leaf
-
-
-def get_dist_to_root(anc):
-    dist_to_root = getattr(anc, "dist_to_root")
-    return dist_to_root
-
-
-def follow_signs(anc):
-    end_leaf = anc
-    while not end_leaf.is_leaf():
-        if getattr(end_leaf, TURN_ONE, False):
-            if getattr(end_leaf.children[1], 'visited', False):
-                end_leaf = end_leaf.children[0]
-            else:
-                end_leaf = end_leaf.children[1]
-        else:
-            if getattr(end_leaf.children[0], 'visited', False):
-                end_leaf = end_leaf.children[1]
-            else:
-                end_leaf = end_leaf.children[0]
-    return end_leaf
-
-
-def enc_diver(anc):
-    leaf = follow_signs(anc)
-    #print(leaf.state)
-    #print([ int(x) for x in leaf.state] )
-    #s = [ int(x) for x in leaf.state ]
-    yield str(leaf.state)
-    #for s in [ int(x) for x in leaf.state ]:
-    #    yield s
-    #yield float(leaf.state)
-    setattr(leaf, 'visited', True)
-    anc = get_not_visited_anc(leaf)
-    if anc is None:
-        # print("what")
-        return
-    setattr(anc, 'visited', True)
-    yield get_dist_to_root(anc)
-    for _ in enc_diver(anc):
-        yield _
-
-
-def type_count(tr, st, lbl):
-    """
-    Returns the counts of type1 and type2 tips
-    :param tr: ete3.Tree, the tree to be named
-    :return: tuple, counts of type 1 and type 2
-    """
-    counts = dict.fromkeys(lbl, 0)
-    #t1 = 0
-    #t2 = 0
-    for leaf in tr:
-        counts[ leaf.state ] = counts[ leaf.state ] + 1
-    
-    #print(counts)
-    return list(counts.values())
-
-
-def complete_coding_old(encoding, max_length):
-    add_vect = np.repeat(0, max_length - len(encoding))
-    add_vect = list(add_vect)
-    encoding.extend(add_vect)
-    return encoding
-
-def complete_coding(encoding, max_length):
-    #add_vect = np.repeat(0, max_length - len(encoding))
-    num_row,num_col = encoding.shape
-    add_zeros = np.zeros( (num_row, max_length-num_col) )
-    #add_vect = np.repeat(0, max_length - num_col)
-    #encoding = np.append(encoding, add_vect)
-    #encoding.extend(add_vect)
-    encoding = np.hstack( [encoding, add_zeros] )
-    return encoding
-
-def expand_tip_states(tips_info):
-    n_idx = len(tips_info)
-    n_char = len(tips_info[1])
-    #print(n_char, n_idx)
-    x = np.zeros( shape=(n_char, n_idx) )
-    #x[:,0] = tips_info[0]  # needed?
-    for i in range(n_idx):
-        x[:,i] = [ int(y) for y in tips_info[i] ]
-    return x
-
-
-def make_cdvs(tree_fn, max_len, states, state_labels):
-    
-    # read tree
-    file = open(tree_fn, mode="r")
-    tree_str = file.read()
-    tree = Tree(tree_str, format=1)
-    
-    # assign states to tips
-    attach_tip_states(tree, states)
-    name_tree_cdvs(tree)
-
-    # rescale tree to average branch length of 1
-    # measure average branch length
-    rescale_factor = get_average_branch_length(tree)
-
-    # rescale tree
-    rescale_tree(tree, rescale_factor)
-
-    # add dist to root attribute
-    tree, tr_height = add_dist_to_root_cdvs(tree)
-
-    # add pathway of visiting priorities for encoding
-    add_diversification(tree)
-    add_diversification_sign(tree)
-
-    # encode the tree
-    tree_embedding = list(enc_diver(tree))
-    
-    # separate info on tips and nodes:
-    tips_info = [tree_embedding[i] for i in range(len(tree_embedding)) if i % 2 == 0]
-    node_info = [tree_embedding[i] for i in range(len(tree_embedding)) if i % 2 == 1]
-    node_info.insert(0,0) # pad with zero to align length of info vec ??
-
-    # expand tip states
-    tips_info = expand_tip_states(tips_info)
-    node_info = np.array([node_info])
-
-    # complete embedding
-    tips_info = complete_coding(tips_info, max_len)
-    node_info = complete_coding(node_info, max_len)
-
-    # vertical stack
-    complete_info = np.vstack( [node_info, tips_info] )
-    
-    # flatten
-    complete_info = complete_info.flatten()
-    
-    return complete_info
-    
-#-----------------------------------------------------------------------------------------------------------------#
-
-#################
-# CBLVS ENCODER #
-#################
-
-
-def add_dist_to_root(tre):
-    """
-    Add distance to root (dist_to_root) attribute to each node
-    :param tre: ete3.Tree, tree on which the dist_to_root should be added
-    :return: void, modifies the original tree
-    """
-
-    for node in tre.traverse("preorder"):
-        if node.is_root():
-            node.add_feature("dist_to_root", 0)
-        elif node.is_leaf():
-            node.add_feature("dist_to_root", getattr(node.up, "dist_to_root") + node.dist)
-            # tips_dist.append(getattr(node.up, "dist_to_root") + node.dist)
-        else:
-            node.add_feature("dist_to_root", getattr(node.up, "dist_to_root") + node.dist)
-            # int_nodes_dist.append(getattr(node.up, "dist_to_root") + node.dist)
-    return None
-
-
-def name_tree(tre, newLeafKeys_inputNameValues):
-    """
-    Names all the tree nodes that are not named, with unique names.
-    :param tre: ete3.Tree, the tree to be named
-    :return: void, modifies the original tree
-    """
-    existing_names = Counter((_.name for _ in tre.traverse() if _.name))
-    
-    i = 0
-    for node in tre.traverse('levelorder'):
-        if(node.is_leaf()): # A.M.T
-        	#new_leaf_order_names.append((i, node.name))
-                newLeafKeys_inputNameValues[i] = node.name
-        node.name = i
-        i += 1
-   
-    return None
-
-
-def rescale_tree(tre, target_avg_length):
-    """
-    Returns branch length metrics (all branches taken into account and external only)
-    :param tre: ete3.Tree, tree on which these metrics are computed
-    :param target_avg_length: float, the average branch length to which we want to rescale the tree
-    :return: float, resc_factor
-    """
-    # branch lengths
-    dist_all = [node.dist for node in tre.traverse("levelorder")]
-
-    all_bl_mean = np.mean(dist_all)
-
-    resc_factor = all_bl_mean/target_avg_length
-
-    for node in tre.traverse():
-        node.dist = node.dist/resc_factor
-
-    return resc_factor
-
-    
-
-
-def encode_into_most_recent(tree_input, max_taxa=[500], summ_stat=[], target_average_brlen=1.0):
-    """Rescales all trees from tree_file so that mean branch length is 1,
-    then encodes them into full tree representation (most recent version)
-
-    :param tree_input: ete3.Tree, that we will represent in the form of a vector
-    :param sampling_proba: float, value between 0 and 1, presumed sampling probability value
-    :return: pd.Dataframe, encoded rescaled input trees in the form of most recent, last column being
-     the rescale factor
-    """
-    leaf_ordered_names = [] # A.M.T
-    new_leaf_order_names = []
-    newLeafKeys_inputNameValues = {}
-
-    # do we want nested functions like this???
-    def real_polytomies(tre):
-        """
-        Replaces internal nodes of zero length with real polytomies.
-        :param tre: ete3.Tree, the tree to be modified
-        :return: void, modifies the original tree
-        """
-        for nod in tre.traverse("postorder"):
-            if not nod.is_leaf() and not nod.is_root():
-                if nod.dist == 0:
-                    for child in nod.children:
-                        nod.up.add_child(child)
-                    nod.up.remove_child(nod)
-        return
-
-    def get_not_visited_anc(leaf):
-        while getattr(leaf, "visited", 0) >= len(leaf.children)-1:
-            leaf = leaf.up
-            if leaf is None:
-                break
-        return leaf
-
-    def get_deepest_not_visited_tip(anc):
-        max_dist = -1
-        tip = None
-        for leaf in anc:
-            if leaf.visited == 0:
-                distance_leaf = getattr(leaf, "dist_to_root") - getattr(anc, "dist_to_root")
-                if distance_leaf > max_dist:
-                    max_dist = distance_leaf
-                    tip = leaf
-        leaf_ordered_names.append(getattr(tip, "name")) # A.M.T
-        return tip
-
-    def get_dist_to_root(anc):
-        dist_to_root = getattr(anc, "dist_to_root")
-        return dist_to_root
-
-    def get_dist_to_anc(feuille, anc):
-        dist_to_anc = getattr(feuille, "dist_to_root") - getattr(anc, "dist_to_root")
-        return dist_to_anc
-
-    def encode(anc):
-        leaf = get_deepest_not_visited_tip(anc)
-        new_leaf_order_names.append(leaf.name) # A.M.T.
-        yield get_dist_to_anc(leaf, anc)
-        leaf.visited += 1
-        anc = get_not_visited_anc(leaf)
-
-        if anc is None:
-            return
-        anc.visited += 1
-        yield get_dist_to_root(anc)
-        for _ in encode(anc):
-            yield _
-
-    def complete_coding(encoding, cblv_length):
-        #print(encoding, max_length, max_length - len(encoding) )
-        add_vect = np.repeat(0, cblv_length - len(encoding))
-        add_vect = list(add_vect)
-        encoding.extend(add_vect)
-        return encoding
-
-    def refactor_to_final_shape(result_v, maxl, summ_stat=[]):
-        def reshape_coor(max_length):
-            tips_coor = np.arange(0, max_length, 2)  # second row
-            #tips_coor = np.insert(tips_coor, -1, max_length + 1)
-            int_nodes_coor = np.arange(1, max_length - 1, 2) # first row
-            int_nodes_coor = np.insert(int_nodes_coor, 0, max_length) # prepend 0??
-            #int_nodes_coor = np.insert(int_nodes_coor, -1, max_length + 2)
-            order_coor = np.append(int_nodes_coor, tips_coor)
-            return order_coor
-       
-        #print('test')
-        reshape_coordinates = reshape_coor(maxl)
-
-        #print(reshape_coordinates.shape)
-        result_v.loc[:, maxl] = 0
-
-        # reorder the columns        
-        result_v = result_v.iloc[:,reshape_coordinates]
-
-        return result_v
-
-    # local copy of input tree
-    tree = tree_input.copy()
-    
-    # CBLV size
-    cblv_length = 2*max_taxa
-    
-    # remove the edge above root if there is one
-    if len(tree.children) < 2:
-        tree = tree.children[0]
-        tree.detach()
-
-    # set to real polytomy
-    real_polytomies(tree)
-
-    # rescale branch lengths
-    rescale_factor = rescale_tree(tree, target_avg_length=target_average_brlen)
-
-    # set all nodes to non visited:
-    for node in tree.traverse():
-        setattr(node, "visited", 0)
-
-    name_tree(tree, newLeafKeys_inputNameValues)
-    
-    add_dist_to_root(tree)
-
-    tree_embedding = list(encode(tree))
-    tree_embedding = complete_coding(tree_embedding, cblv_length)
-    result = pd.DataFrame(tree_embedding, columns=[0])
-    result = result.T
-    result = refactor_to_final_shape(result, cblv_length)
-
-    return result, rescale_factor, new_leaf_order_names, newLeafKeys_inputNameValues
-
-#-----------------------------------------------------------------------------------------------------------------#
-
-##############
-# READ TREES #
-##############
-
-def read_tree(newick_tree):
-    """ Tries all nwk formats and returns an ete3 Tree
-
-    :param newick_tree: str, a tree in newick format
-    :return: ete3.Tree
-    """
-    tree = None
-    for f in (3, 2, 5, 0, 1, 4, 6, 7, 8, 9):
-        try:
-            tree = Tree(newick_tree, format=f)
-            break
-        except:
-            continue
-    if not tree:
-        raise ValueError('Could not read the tree {}. Is it a valid newick?'.format(newick_tree))
-    return tree
-
-
-def read_tree_file(tree_path):
-    with open(tree_path, 'r') as f:
-        nwk = f.read().replace('\n', '').split(';')
-        if nwk[-1] == '':
-            nwk = nwk[:-1]
-    if not nwk:
-        raise ValueError('Could not find any trees (in newick format) in the file {}.'.format(tree_path))
-    if len(nwk) > 1:
-        raise ValueError('There are more than 1 tree in the file {}. Now, we accept only one tree per inference.'.format(tree_path))
-    return read_tree(nwk[0] + ';')
-
-
-def check_tree_size(tre):
-    """
-    Verifies whether input tree is of correct size and determines the tree size range for models to use
-    :param tre: ete3.Tree
-    :return: int, tree_size
-    """
-    if 49 < len(tre) < 200:
-        tre_size = 'SMALL'
-    elif 199 < len(tre) < 501:
-        tre_size = 'LARGE'
-    else:
-        raise ValueError('Your input tree is of incorrect size (either smaller than 50 tips or larger than 500 tips.')
-
-    return tre_size
-
-
-def annotator(predict, mod):
-    """
-    annotates the pd.DataFrame containing predicted values
-    :param predict: predicted values
-    :type: pd.DataFrame
-    :param mod: model under which the parameters were estimated
-    :type: str
-    :return:
-    """
-
-    if mod == "BD":
-        predict.columns = ["R_naught", "Infectious_period"]
-    elif mod == "BDEI":
-        predict.columns = ["R_naught", "Infectious_period", "Incubation_period"]
-    elif mod == "BDSS":
-        predict.columns = ["R_naught", "Infectious_period", "X_transmission", "Superspreading_individuals_fraction"]
-    elif mod == "BD_vs_BDEI_vs_BDSS":
-        predict.columns = ["Probability_BDEI", "Probability_BD", "Probability_BDSS"]
-    elif mod == "BD_vs_BDEI":
-        predict.columns = ["Probability_BD", "Probability_BDEI"]
-    return predict
-
-
-def rescaler(predict, rescale_f):
-    """
-    rescales the predictions back to the initial tree scale (e.g. days, weeks, years)
-    :param predict: predicted values
-    :type: pd.DataFrame
-    :param rescale_f: rescale factor by which the initial tree was scaled
-    :type: float
-    :return:
-    """
-
-    for elt in predict.columns:
-        if "period" in elt:
-            predict[elt] = predict[elt]*rescale_f
-
-    return predict
-
 
 # helper functions
 def powerset(iterable):
@@ -906,7 +333,35 @@ def powerset(iterable):
     return chain.from_iterable(combinations(s, r) for r in range(len(s)+1))
 
 
-def find_taxon_size(num_taxa, max_taxa):
+#-----------------------------------------------------------------------------------------------------------------#
+
+
+#######################
+# FILE/STRING HELPERS #
+#######################
+
+def write_to_file(s, fn):
+    f = open(fn, 'w')
+    f.write(s)
+    f.close()
+
+def read_tree(tre_fn):
+    # check that file exists 
+    if not os.path.exists(tre_fn):
+        raise FileNotFoundError(f'Could not find tree file at {tre_fn}')
+    
+    phy = None
+    for schema in [ 'newick', 'nexus' ]:
+        try:
+            phy_tmp = dp.Tree.get(path=tre_fn, schema=schema)
+        except:
+            phy_tmp = None
+        else:
+             if phy_tmp is not None:
+                phy = phy_tmp
+    return phy
+
+def find_tree_width(num_taxa, max_taxa):
     if num_taxa == 0:
         return 0
     elif num_taxa > max_taxa[-1]:
@@ -915,79 +370,20 @@ def find_taxon_size(num_taxa, max_taxa):
         if num_taxa <= i:
             return i
     # should never call this
-    raise Exception('error in find_taxon_size()', num_taxa, max_taxa)
+    raise Exception('error in find_tree_width()', num_taxa, max_taxa)
     return -2
-    
 
-
-# Used in Encoding
-def settings_to_str(settings, taxon_category):
-    s = 'setting,value\n'
-    s += 'model_name,' + settings['model_name'] + '\n'
-    s += 'model_type,' + settings['model_type'] + '\n'
-    s += 'replicate_index,' + str(settings['replicate_index']) + '\n'
-    s += 'taxon_category,' + str(taxon_category) + '\n'
-    return s
-
-def param_dict_to_str(params):
-    s1 = 'param,i,j,value\n'
-    s2 = ''
-    s3 = ''
-    for k,v in params.items():
-        for i,x in enumerate(v):
-            if len(v.shape) == 1:
-                rate = np.round(x, NUM_DIGITS)
-                s1 += '{k},{i},{i},{v}\n'.format(k=k,i=i,v=rate)
-                s2 += '{k}_{i},'.format(k=k,i=i)
-                s3 += str(rate) + ','
-            else:
-                for j,y in enumerate(x):
-                    rate = np.round(y, NUM_DIGITS)
-                    s1 += '{k},{i},{j},{v}\n'.format(k=k,i=i,j=j,v=rate)
-                    s2 += '{k}_{i}_{j},'.format(k=k,i=i,j=j)
-                    s3 += str(rate) + ','
-
-    s4 = s2.rstrip(',') + '\n' + s3.rstrip(',') + '\n'
-    return s1,s4
+def clean_scientific_notation(s):
+    return re.sub( '\.0+E\+0+', '', s)
 
 
 
-## set return None if bad, then flag the index as a bad sim.
-def make_prune_phy(tre_fn, prune_fn):
-    # read tree
-    phy = dp.Tree.get(path=tre_fn, schema='newick')
-    # compute all root-to-node distances
-    root_distances = phy.calc_node_root_distances()
-    # find tree height (max root-to-node distance)
-    tree_height = np.max( root_distances )
-    # create empty dictionary
-    d = {}
-    # loop through all leaf nodes
-    leaf_nodes = phy.leaf_nodes()
-    for i,nd in enumerate(leaf_nodes):
-        # convert root-distances to ages
-        age = tree_height - nd.root_distance
-        nd.annotations.add_new('age', age)
-        # ultrametricize ages for extant taxa
-        if age < 1e-6:
-            age = 0.0
-        # store taxon and age in dictionary
-        taxon_name = str(nd.taxon).strip('\'')
-        taxon_name = taxon_name.replace(' ', '_')
-        d[ taxon_name ] = age
-    # determine what to drop
-    drop_taxon_labels = [ k for k,v in d.items() if v > 1e-12 ]
-    # inform user if pruning yields valid tree
-    if len(leaf_nodes) - len(drop_taxon_labels) < 2:
-        return False
-    else:
-        # prune non-extant taxa
-        phy.prune_taxa_with_labels( drop_taxon_labels )
-        # write pruned tree
-        phy.write(path=prune_fn, schema='newick')
-        return True
+#-----------------------------------------------------------------------------------------------------------------#
 
-#
+#####################
+# FORMAT CONVERTERS #
+#####################
+
 def convert_nexus_to_array(dat_fn):
     
     # read file
@@ -1017,7 +413,6 @@ def convert_nexus_to_array(dat_fn):
                 if 'NTAX' in x.upper():
                     num_taxa = int(x.split('=')[1])
                 elif 'NCHAR' in x.upper():
-                    print(x)
                     num_char = int(x.split('=')[1])
             dat = np.zeros((num_char, num_taxa), dtype='int')
 
@@ -1031,7 +426,8 @@ def convert_nexus_to_array(dat_fn):
             if tok[0] == ';':
                 found_matrix = False
                 break
-            else:
+            elif len(tok) == 2:
+                #print(tok)
                 name = tok[0]
                 state = tok[1]
                 taxon_names.append(name)
@@ -1088,125 +484,30 @@ def convert_table_to_array(dat_fn, sep=","):
     return df
 
 
-#
-def encode_phy_tensor(phy, dat, tree_size, tree_type):
-    if tree_type == 'serial':
-        encode_cblvs(phy, dat, tree_size)
-    elif tree_type == 'extant':
-        encode_cdvs(phy, dat, tree_size)
-    else:
-        ValueError(f'Unrecognized {tree_type}')
-
-    return
-
-def encode_cdvs(phy, dat, tree_size):
-    # data dimensions
-    num_char  = dat.shape[0]
-
-    # initialize workspace
-    null       = phy.calc_node_root_distances(return_leaf_distances_only=False)
-    heights    = np.zeros( (       1, tree_size) )
-    states     = np.zeros( (num_char, tree_size) )
-    state_idx  = 0
-    height_idx = 0
-
-    # postorder traversal to rotate nodes by clade-length
-    for nd in phy.postorder_node_iter():
-        if nd.is_leaf():
-            nd.treelen = 0.
-        else:
-            children         = nd.child_nodes()
-            ch_treelen       = [ (ch.edge.length + ch.treelen) for ch in children ]
-            nd.treelen       = sum(ch_treelen)
-            ch_treelen_rank  = np.argsort( ch_treelen )[::-1] 
-            children         = [ children[i] for i in ch_treelen_rank ]
-            nd.set_children(children)
-
-    # inorder traversal to fill matrix
-    for nd in phy.inorder_node_iter():
-        if nd.is_leaf():
-            states[:,state_idx] = dat[nd.taxon.label].to_list()
-            state_idx += 1
-        else:
-            heights[:,height_idx] = nd.root_distance
-            height_idx += 1
-
-    # fill in phylo tensor
-    phylo_tensor = np.vstack( [heights, states] )
-
-    return phylo_tensor
-
-def encode_cblvs(phy, dat, tree_size):
-    # data dimensions
-    num_char  = dat.shape[0]
-
-    # initialize workspace
-    null       = phy.calc_node_root_distances(return_leaf_distances_only=False)
-    heights    = np.zeros( (2, tree_size) ) 
-    states     = np.zeros( (num_char, tree_size) )
-    state_idx  = 0
-    height_idx = 0
-
-    # postorder traversal to rotate nodes by max-root-distance
-    for nd in phy.postorder_node_iter():
-        if nd.is_leaf():
-            nd.max_root_distance = nd.root_distance
-        else:
-
-            children                  = nd.child_nodes()
-            ch_max_root_distance      = [ ch.max_root_distance for ch in children ]
-            ch_max_root_distance_rank = np.argsort( ch_max_root_distance )[::-1] 
-            children                  = [ children[i] for i in ch_max_root_distance_rank ]
-            nd.max_root_distance      = max(ch_max_root_distance)
-            nd.set_children(children)
-
-    # inorder traversal to fill matrix
-    last_int_node = phy.seed_node
-    for nd in phy.inorder_node_iter():
-        if nd.is_leaf():
-            heights[0,height_idx] = nd.root_distance - last_int_node.root_distance
-            states[:,state_idx] = dat[nd.taxon.label].to_list()
-            state_idx += 1
-        else:
-            heights[1,height_idx+1] = nd.root_distance
-            last_int_node = nd
-            height_idx += 1
-
-    # fill in phylo tensor
-    heights.shape = (2, tree_size)
-    phylo_tensor = np.vstack( [heights, states] )
-    
-    return phylo_tensor
-
-
 # Converts MASTER output into nex
-def convert_nex(nex_fn, tre_fn, int2vec):
+# move to MasterSimulator?
+def convert_phy2dat_nex(phy_nex_fn, int2vec):
 
     # get num regions from size of bit vector
     num_char = len(int2vec[0])
 
     # get tip names and states from NHX tree
-    nex_file = open(nex_fn, 'r')
-    nex_str = nex_file.readlines()[3]
-    m = re.findall(pattern='([0-9]+)\[\&type="([A-Z]+)",location="([0-9]+)"', string=nex_str)
-    num_taxa = len(m)
+    nex_file = open(phy_nex_fn, 'r')
+    nex_str  = nex_file.readlines()[3]
+    matches  = re.findall(pattern='([0-9]+)\[\&type="([A-Z]+)",location="([0-9]+)"', string=nex_str)
+    num_taxa = len(matches)
     nex_file.close()
 
     # generate taxon-state data
-    d = {}
+    #d = {}
     s_state_str = ''
-    for i,v in enumerate(m):
-        taxon = v[0]
-        state = int(v[2])
-        vec_str = ''.join([ str(x) for x in int2vec[state] ])
+    for i,v in enumerate(matches):
+        taxon        = v[0]
+        state        = int(v[2])
+        vec_str      = ''.join([ str(x) for x in int2vec[state] ])
+        #d[ taxon ]   = vec_str
         s_state_str += taxon + '  ' + vec_str + '\n'
-        d[ taxon ] = vec_str
     
-    # get newick string (no annotations)
-    tre_file = open(tre_fn, 'r')
-    tre_str = tre_file.readlines()[0]
-    tre_file.close()
-
     # build new nexus string
     s = \
 '''#NEXUS
@@ -1217,143 +518,192 @@ Matrix
 {s_state_str}
 ;
 END;
+'''.format(num_taxa=num_taxa, num_char=num_char, s_state_str=s_state_str)
 
-Begin trees;
-    tree 1={tre_str}
-END;
-'''.format(num_taxa=num_taxa, num_char=num_char, tre_str=tre_str, s_state_str=s_state_str)
+    return s
 
-    return d,s
+## set return None if bad, then flag the index as a bad sim.
+def make_prune_phy(tre_fn, prune_fn):
+    # read tree
+    phy_ = dp.Tree.get(path=tre_fn, schema='newick')
+    # compute all root-to-node distances
+    root_distances = phy_.calc_node_root_distances()
+    # find tree height (max root-to-node distance)
+    tree_height = np.max( root_distances )
+    # create empty dictionary
+    d = {}
+    # loop through all leaf nodes
+    leaf_nodes = phy_.leaf_nodes()
+    for i,nd in enumerate(leaf_nodes):
+        # convert root-distances to ages
+        age = tree_height - nd.root_distance
+        nd.annotations.add_new('age', age)
+        # ultrametricize ages for extant taxa
+        if age < 1e-6:
+            age = 0.0
+        # store taxon and age in dictionary
+        taxon_name = str(nd.taxon).strip('\'')
+        taxon_name = taxon_name.replace(' ', '_')
+        d[ taxon_name ] = age
+    # determine what to drop
+    drop_taxon_labels = [ k for k,v in d.items() if v > 1e-12 ]
+    # inform user if pruning yields valid tree
+    if len(leaf_nodes) - len(drop_taxon_labels) < 2:
+        return False
+    else:
+        # prune non-extant taxa
+        phy_.prune_taxa_with_labels( drop_taxon_labels )
+        # write pruned tree
+        phy_.write(path=prune_fn, schema='newick')
+        return True
 
-# def vectorize_tree_cdv(tre_fn, max_taxa=[500], summ_stat=[], prob=1.0):
-#     # get tree and tip labels
-#     tree = read_tree_file(tre_fn)    
-#     ordered_tip_names = []
-#     for i in tree.get_leaves():
-#         ordered_tip_names.append(i.name)
 
-#     # returns result, rescale_factor, new_leaf_order_names, newLeafKeys_inputNameValues
-#     vv = encode_into_most_recent(tree, max_taxa=max_taxa, summ_stat=summ_stat, target_average_brlen=1.0)
-#     otn = np.asarray(ordered_tip_names) # ordered list of the input tip labels
-#     vv2 = np.asarray(vv[2]) # ordered list of the new tip labels
-#     new_order = [vv[3][i] for i in vv2]
 
-#     if False:
-#         print( 'otn ==> ', otn, '\n' )
-#         print( 'vv[0] ==>', vv[0], '\n' )
-#         print( 'vv[1] ==>', vv[1], '\n' )
-#         print( 'vv[2] ==>', vv[2], '\n' )
-#         print( 'vv[3] ==>', vv[3], '\n' )
+# Used in Encoding
+def settings_to_str(settings, taxon_category):
+    s = 'setting,value\n'
+    s += 'model_name,' + settings['model_name'] + '\n'
+    s += 'model_type,' + settings['model_type'] + '\n'
+    s += 'replicate_index,' + str(settings['replicate_index']) + '\n'
+    s += 'taxon_category,' + str(taxon_category) + '\n'
+    return s
 
-#     cblv = np.asarray( vv[0] )
-#     cblv.shape = (2, -1)
-#     cblv_df = pd.DataFrame( cblv )
+def param_dict_to_str(params):
+    s1 = 'param,i,j,value\n'
+    s2 = ''
+    s3 = ''
+    for k,v in params.items():
+        for i,x in enumerate(v):
+            if len(v.shape) == 1:
+                rate = np.round(x, NUM_DIGITS)
+                s1 += '{k},{i},{i},{v}\n'.format(k=k,i=i,v=rate)
+                s2 += '{k}_{i},'.format(k=k,i=i)
+                s3 += str(rate) + ','
+            else:
+                for j,y in enumerate(x):
+                    rate = np.round(y, NUM_DIGITS)
+                    s1 += '{k},{i},{j},{v}\n'.format(k=k,i=i,j=j,v=rate)
+                    s2 += '{k}_{i}_{j},'.format(k=k,i=i,j=j)
+                    s3 += str(rate) + ','
 
-#     return cblv_df,new_order
-
-def vectorize_tree(tre_fn, max_taxa=500, summ_stat=[], prob=1.0):
-
-    # get tree and tip labels
-    tree = read_tree_file(tre_fn)    
-    ordered_tip_names = []
-    for i in tree.get_leaves():
-        ordered_tip_names.append(i.name)
-
-    # returns result, rescale_factor, new_leaf_order_names, newLeafKeys_inputNameValues
-    vv = encode_into_most_recent(tree, max_taxa=max_taxa, summ_stat=summ_stat, target_average_brlen=1.0)
-    otn = np.asarray(ordered_tip_names) # ordered list of the input tip labels
-    vv2 = np.asarray(vv[2]) # ordered list of the new tip labels
-    new_order = [vv[3][i] for i in vv2]
-
-    #if False:
-    #    print( 'otn ==> ', otn, '\n' )
-    #    print( 'vv[0] ==>', vv[0], '\n' )
-    #    print( 'vv[1] ==>', vv[1], '\n' )
-    #    print( 'vv[2] ==>', vv[2], '\n' )
-    #    print( 'vv[3] ==>', vv[3], '\n' )
-
-    cblv = np.asarray( vv[0] )
-    cblv.shape = (2, -1)
-    cblv_df = pd.DataFrame( cblv )
-
-    return cblv_df,new_order
+    s4 = s2.rstrip(',') + '\n' + s3.rstrip(',') + '\n'
+    return s1,s4
 
 
 #-----------------------------------------------------------------------------------------------------------------#
 
-#####################
-# FORMAT CONVERSION #
-#####################
+#########################
+# PHYLO TENSOR ENCODING #
+#########################
 
-def make_cblvs_geosse(cblv_df, taxon_states, new_order):
+# ==> move to Formatting? <==
+
+def encode_phy_tensor(phy, dat, tree_width, tree_type, rescale=True):
+    if tree_type == 'serial':
+        phy_tensor = encode_cblvs(phy, dat, tree_width, rescale)
+    elif tree_type == 'extant':
+        phy_tensor = encode_cdvs(phy, dat, tree_width, rescale)
+    else:
+        ValueError(f'Unrecognized {tree_type}')
+    return phy_tensor
+
+def encode_cdvs(phy, dat, tree_width, rescale=True):
     
-    # array dimensions for GeoSSE states
-    n_taxon_cols = cblv_df.shape[1]
-    n_region = len(list(taxon_states.values())[0])
-
-    # create states array
-    states_df = np.zeros( shape=(n_region,n_taxon_cols), dtype='int')
+    # num columns equals tree_size, 0-padding
+    # returns tensor with following rows
+    # 0: terminal brlen, 1: last-int-node brlen, 2: last-int-node root-dist
     
-    # populate states (not sure if this is how new_order works!)
-    for i,v in enumerate(new_order):
-        y =  [ int(x) for x in taxon_states[v] ]
-        z = np.array(y, dtype='int' )
-        states_df[:,i] = z
+    # data dimensions
+    num_char  = dat.shape[0]
 
-    # append states
-    cblvs_df = np.concatenate( (cblv_df, states_df), axis=0 )
-    cblvs_df = cblvs_df.flatten() #T.reshape((1,-1))
-    #cblvs_df = cblvs_df.T.reshape((1,-1))
-    #cblvs_df.shape = (1,-1)
+    # initialize workspace
+    root_distances = phy.calc_node_root_distances(return_leaf_distances_only=False)
+    heights    = np.zeros( (3, tree_width) )
+    states     = np.zeros( (num_char, tree_width) )
+    state_idx  = 0
+    height_idx = 0
 
-    # done!
-    return cblvs_df
+    # postorder traversal to rotate nodes by clade-length
+    for nd in phy.postorder_node_iter():
+        if nd.is_leaf():
+            nd.treelen = 0.
+        else:
+            children           = nd.child_nodes()
+            ch_treelen         = [ (ch.edge.length + ch.treelen) for ch in children ]
+            nd.treelen         = sum(ch_treelen)
+            ch_treelen_rank    = np.argsort( ch_treelen )[::-1] 
+            children_reordered = [ children[i] for i in ch_treelen_rank ]
+            nd.set_children(children_reordered)
 
-def make_cdv_geosse(cdv_df, taxon_states, new_order):
-    
-    # array dimensions for GeoSSE states
-    n_taxon_cols = cdv_df.shape[1]
-    n_region = len(list(taxon_states.values())[0])
+    # inorder traversal to fill matrix
+    phy.seed_node.edge.length = 0
+    for nd in phy.inorder_node_iter():
+        
+        if nd.is_leaf():
+            heights[0,height_idx] = nd.edge.length
+            states[:,state_idx]   = dat[nd.taxon.label].to_list()
+            state_idx += 1
+        else:
+            heights[1,height_idx] = nd.edge.length
+            heights[2,height_idx] = nd.root_distance
+            height_idx += 1
 
-    # create states array
-    states_df = np.zeros( shape=(n_region,n_taxon_cols), dtype='int')
-    
-    # populate states (not sure if this is how new_order works!)
-    for i,v in enumerate(new_order):
-        y =  [ int(x) for x in taxon_states[v] ]
-        z = np.array(y, dtype='int' )
-        states_df[:,i] = z
+    # fill in phylo tensor
+    if rescale:
+        heights = heights / np.max(heights)
+    phylo_tensor = np.vstack( [heights, states] )
 
-    # append states
-    cblvs_df = np.concatenate( (cblv_df, states_df), axis=0 )
-    cblvs_df = cblvs_df.T.reshape((1,-1))
-    #cblvs_df.shape = (1,-1)
-
-    # done!
-    return cblvs_df
-
-
-#######################
-# FILE/STRING HELPERS #
-#######################
-
-def write_to_file(s, fn):
-    f = open(fn, 'w')
-    f.write(s)
-    f.close()
+    return phylo_tensor
 
 
-#####################################
-# DATA DIMENSION/VALIDATION HELPERS #
-#####################################
+def encode_cblvs(phy, dat, tree_width, rescale=True):
+    # data dimensions
+    num_char   = dat.shape[0]
 
-def get_num_taxa(tre_fn):
-    try:
-        tree = read_tree_file(tre_fn)
-        num_taxa = len(tree.get_leaves())
-    except ValueError:
-        return 0
-    return num_taxa
+    # initialize workspace
+    null       = phy.calc_node_root_distances(return_leaf_distances_only=False)
+    heights    = np.zeros( (4, tree_width) ) 
+    states     = np.zeros( (num_char, tree_width) )
+    state_idx  = 0
+    height_idx = 0
+
+    # postorder traversal to rotate nodes by max-root-distance
+    for nd in phy.postorder_node_iter():
+        if nd.is_leaf():
+            nd.max_root_distance = nd.root_distance
+        else:
+            children                  = nd.child_nodes()
+            ch_max_root_distance      = [ ch.max_root_distance for ch in children ]
+            ch_max_root_distance_rank = np.argsort( ch_max_root_distance )[::-1] # [0,1] or [1,0]
+            children_reordered        = [ children[i] for i in ch_max_root_distance_rank ]
+            nd.max_root_distance      = max(ch_max_root_distance)
+            nd.set_children(children_reordered)
+
+    # inorder traversal to fill matrix
+    last_int_node = phy.seed_node
+    last_int_node.edge.length = 0
+    for nd in phy.inorder_node_iter():
+        if nd.is_leaf():
+            heights[0,height_idx] = nd.edge.length
+            heights[2,height_idx] = nd.root_distance - last_int_node.root_distance
+            states[:,state_idx]   = dat[nd.taxon.label].to_list()
+            state_idx += 1
+        else:
+            #print(last_int_node.edge.length)
+            heights[1,height_idx+1] = nd.edge.length
+            heights[3,height_idx+1] = nd.root_distance
+            last_int_node = nd
+            height_idx += 1
+
+    # fill in phylo tensor
+    #heights.shape = (2, tree_size)
+    # 0: leaf brlen; 1: intnode brlen; 2:leaf-to-lastintnode len; 3:lastintnode-to-root len
+    if rescale:
+        heights = heights / np.max(heights)
+    phylo_tensor = np.vstack( [heights, states] )
+
+    return phylo_tensor
+
 
 #-----------------------------------------------------------------------------------------------------------------#
 
@@ -1361,8 +711,7 @@ def get_num_taxa(tre_fn):
 # SUMMARY STATS #
 #################
 
-def clean_scientific_notation(s):
-    return re.sub( '\.0+E\+0+', '', s)
+# ==> move to Formatting? <==
 
 def make_summ_stat(tre_fn, geo_fn, states_bits_str_inv):
     
@@ -1430,7 +779,14 @@ def make_summ_stat_str(ss):
     keys_str = ','.join( list(ss.keys()) ) + '\n'
     vals_str = ','.join( [ str(x) for x in ss.values() ] ) + '\n'
     return keys_str + vals_str
-    
+
+
+#-----------------------------------------------------------------------------------------------------------------#
+
+#########################
+# Tensor de/normalizing #
+#########################
+
 def normalize(data, m_sd = None):
     if(type(m_sd) == type(None)):
         m = data.mean(axis = 0)
@@ -1450,6 +806,8 @@ def denormalize(data, train_mean, train_sd, log_labels = False):
 #######################
 # CQR functions      ##
 #######################
+
+# ==> Move to Learning? <==
 
 def pinball_loss(y_true, y_pred, alpha):
     err = y_true - y_pred
@@ -1531,3 +889,733 @@ def make_param_VLU_mtx(A, param_names):
     df.columns = new_col_names
 
     return df
+
+
+
+#-----------------------------------------------------------------------------------------------------------------#
+
+
+
+# graveyard
+
+
+
+
+# def read_tree2(newick_tree):
+#     """ Tries all nwk formats and returns an ete3 Tree
+
+#     :param newick_tree: str, a tree in newick format
+#     :return: ete3.Tree
+#     """
+#     tree = None
+#     for f in (3, 2, 5, 0, 1, 4, 6, 7, 8, 9):
+#         try:
+#             tree = Tree(newick_tree, format=f)
+#             break
+#         except:
+#             continue
+#     if not tree:
+#         raise ValueError('Could not read the tree {}. Is it a valid newick?'.format(newick_tree))
+#     return tree
+
+
+# def read_tree_file(tree_path):
+#     with open(tree_path, 'r') as f:
+#         nwk = f.read().replace('\n', '').split(';')
+#         if nwk[-1] == '':
+#             nwk = nwk[:-1]
+#     if not nwk:
+#         raise ValueError('Could not find any trees (in newick format) in the file {}.'.format(tree_path))
+#     if len(nwk) > 1:
+#         raise ValueError('There are more than 1 tree in the file {}. Now, we accept only one tree per inference.'.format(tree_path))
+#     return read_tree(nwk[0] + ';')
+
+
+# def check_tree_size(tre):
+#     """
+#     Verifies whether input tree is of correct size and determines the tree size range for models to use
+#     :param tre: ete3.Tree
+#     :return: int, tree_size
+#     """
+#     if 49 < len(tre) < 200:
+#         tre_size = 'SMALL'
+#     elif 199 < len(tre) < 501:
+#         tre_size = 'LARGE'
+#     else:
+#         raise ValueError('Your input tree is of incorrect size (either smaller than 50 tips or larger than 500 tips.')
+
+#     return tre_size
+
+
+# def annotator(predict, mod):
+#     """
+#     annotates the pd.DataFrame containing predicted values
+#     :param predict: predicted values
+#     :type: pd.DataFrame
+#     :param mod: model under which the parameters were estimated
+#     :type: str
+#     :return:
+#     """
+
+#     if mod == "BD":
+#         predict.columns = ["R_naught", "Infectious_period"]
+#     elif mod == "BDEI":
+#         predict.columns = ["R_naught", "Infectious_period", "Incubation_period"]
+#     elif mod == "BDSS":
+#         predict.columns = ["R_naught", "Infectious_period", "X_transmission", "Superspreading_individuals_fraction"]
+#     elif mod == "BD_vs_BDEI_vs_BDSS":
+#         predict.columns = ["Probability_BDEI", "Probability_BD", "Probability_BDSS"]
+#     elif mod == "BD_vs_BDEI":
+#         predict.columns = ["Probability_BD", "Probability_BDEI"]
+#     return predict
+
+
+# def rescaler(predict, rescale_f):
+#     """
+#     rescales the predictions back to the initial tree scale (e.g. days, weeks, years)
+#     :param predict: predicted values
+#     :type: pd.DataFrame
+#     :param rescale_f: rescale factor by which the initial tree was scaled
+#     :type: float
+#     :return:
+#     """
+
+#     for elt in predict.columns:
+#         if "period" in elt:
+#             predict[elt] = predict[elt]*rescale_f
+
+#     return predict
+
+
+
+# #####################
+# # FORMAT CONVERSION #
+# #####################
+
+# def make_cblvs_geosse(cblv_df, taxon_states, new_order):
+    
+#     # array dimensions for GeoSSE states
+#     n_taxon_cols = cblv_df.shape[1]
+#     n_region = len(list(taxon_states.values())[0])
+
+#     # create states array
+#     states_df = np.zeros( shape=(n_region,n_taxon_cols), dtype='int')
+    
+#     # populate states (not sure if this is how new_order works!)
+#     for i,v in enumerate(new_order):
+#         y =  [ int(x) for x in taxon_states[v] ]
+#         z = np.array(y, dtype='int' )
+#         states_df[:,i] = z
+
+#     # append states
+#     cblvs_df = np.concatenate( (cblv_df, states_df), axis=0 )
+#     cblvs_df = cblvs_df.flatten() #T.reshape((1,-1))
+#     #cblvs_df = cblvs_df.T.reshape((1,-1))
+#     #cblvs_df.shape = (1,-1)
+
+#     # done!
+#     return cblvs_df
+
+# def make_cdv_geosse(cdv_df, taxon_states, new_order):
+    
+#     # array dimensions for GeoSSE states
+#     n_taxon_cols = cdv_df.shape[1]
+#     n_region = len(list(taxon_states.values())[0])
+
+#     # create states array
+#     states_df = np.zeros( shape=(n_region,n_taxon_cols), dtype='int')
+    
+#     # populate states (not sure if this is how new_order works!)
+#     for i,v in enumerate(new_order):
+#         y =  [ int(x) for x in taxon_states[v] ]
+#         z = np.array(y, dtype='int' )
+#         states_df[:,i] = z
+
+#     # append states
+#     cblvs_df = np.concatenate( (cblv_df, states_df), axis=0 )
+#     cblvs_df = cblvs_df.T.reshape((1,-1))
+#     #cblvs_df.shape = (1,-1)
+
+#     # done!
+#     return cblvs_df
+
+
+#####################################
+# DATA DIMENSION/VALIDATION HELPERS #
+#####################################
+
+# def get_num_taxa(tre_fn):
+#     try:
+#         tree = read_tree_file(tre_fn)
+#         num_taxa = len(tree.get_leaves())
+#     except ValueError:
+#         return 0
+#     return num_taxa
+
+
+
+#############
+# 1. translate master output into char matrix
+# 2. determine size class of tree
+# 3. call make_phy_tensor(phy, dat, tree_size, tree_type) function
+# 4. make_phy_tensor calls make_cblvs or make_cdvs, depending on input
+# 5. return numpy array
+
+#-----------------------------------------------------------------------------------------------------------------#
+
+################
+# CDVS ENCODER #
+################
+
+# ### this is where state info is stored
+# def set_attribs(tre):
+#     """
+#     adds t_s attributes to tips based on tip name
+#     :param tre: ete3.Tree, the tree on which we measure the branch length
+#     :return: void, returns modified tree
+#     """
+#     for tip in tre.traverse():
+#         if "&&NHX-t_s=1" in tip.name:
+#             setattr(tip, T_S, 1)
+#         elif "&&NHX-t_s=2" in tip.name:
+#             setattr(tip, T_S, 2)
+#     return None
+
+# def attach_tip_states(tr, st):
+#     "assign states in st to leaf nodes in tr using shared taxon name"
+#     for nd in tr.get_leaves():
+#         setattr(nd, STATE, st[nd.name])
+
+# def get_average_branch_length(tre):
+#     """
+#     Returns average branch length for given tree
+#     :param tre: ete3.Tree, the tree on which we measure the branch length
+#     :return: float, average branch length
+#     """
+#     br_length = [nod.dist for nod in tre.traverse()]
+#     return np.average(br_length)
+
+
+# def rescale_tree(tr, rescale_fac):
+#     """
+#     Rescales a given tree
+#     :param tr: ete3.Tree, the tree to be rescaled
+#     :param rescale_fac: float, the branches will be multiplied by this factor
+#     :return: void, modifies the original tree
+#     """
+#     for node in tr.traverse():
+#         node.dist = node.dist/rescale_fac
+#     return None
+
+
+# def add_diversification(tr):
+#     """
+#     to each node adds an attribute, 'diversification_score', i.e. the sum of pathways of branched tips
+#     :param tr: ete3.Tree, the tree to be modified
+#     :return: void, modifies the original tree
+#     """
+#     for node in tr.traverse("postorder"):
+#         if not node.is_root():
+#             # print(label_count)
+#             label_node = 0
+#             if node.is_leaf():
+#                 label_node = 1
+#                 setattr(node, DIVERSIFICATION_SCORE, node.dist)
+#             else:
+#                 children = node.get_children()
+#                 # print(children)
+#                 setattr(node, DIVERSIFICATION_SCORE, getattr(children[0], DIVERSIFICATION_SCORE) + getattr(children[1], DIVERSIFICATION_SCORE))
+#     return None
+
+
+# def add_diversification_sign(tr):
+#     """
+#     Puts topological signatures based on diversification (i.e. longest path): if the first child of a node has longer
+#     path of branches leading to it, then it is prioritized for visit.
+#     :param tr: ete3.Tree, the tree to get the topological description
+#     :return: void, modifies the original tree
+#     """
+#     for node in tr.traverse('levelorder'):
+#         if not node.is_leaf():
+#             diver_child0 = getattr(node.children[0], DIVERSIFICATION_SCORE)
+#             diver_child1 = getattr(node.children[1], DIVERSIFICATION_SCORE)
+#             if diver_child0 < diver_child1:
+#                 node.add_feature(TURN_ONE, True)
+#             elif diver_child0 == diver_child1:
+#                 next_sign = random.choice([True, False])
+#                 if next_sign is True:
+#                     node.add_feature(TURN_ONE, True)
+#             else:
+#                 node.add_feature(TURN_ONE, False)
+#     return None
+
+
+# def name_tree_cdvs(tr):
+#     """
+#     Names all the tree nodes that are not named, with unique names.
+#     :param tr: ete3.Tree, the tree to be named
+#     :return: void, modifies the original tree
+#     """
+#     i = 0
+#     for node in tr.traverse('levelorder'):
+#         node.name = i
+#         i += 1
+#     return None
+
+
+# def add_dist_to_root_cdvs(tr):
+#     # int_nodes_dist = []
+#     # tips_dist = []
+#     tree_height = 0
+#     for node in tr.traverse("preorder"):
+#         if node.is_root():
+#             node.add_feature("dist_to_root", 0)
+#         elif node.is_leaf():
+#             node.add_feature("dist_to_root", getattr(node.up, "dist_to_root") + node.dist)
+#             # tips_dist.append(getattr(node.up, "dist_to_root") + node.dist)
+#             tree_height = getattr(node, "dist_to_root", False)
+
+#         else:
+#             node.add_feature("dist_to_root", getattr(node.up, "dist_to_root") + node.dist)
+#             # int_nodes_dist.append(getattr(node.up, "dist_to_root") + node.dist)
+#     return tr, tree_height
+
+
+# def get_not_visited_anc(leaf):
+#     while getattr(leaf, "visited", False):
+#         leaf = leaf.up
+#     return leaf
+
+
+# def get_dist_to_root(anc):
+#     dist_to_root = getattr(anc, "dist_to_root")
+#     return dist_to_root
+
+
+# def follow_signs(anc):
+#     end_leaf = anc
+#     while not end_leaf.is_leaf():
+#         if getattr(end_leaf, TURN_ONE, False):
+#             if getattr(end_leaf.children[1], 'visited', False):
+#                 end_leaf = end_leaf.children[0]
+#             else:
+#                 end_leaf = end_leaf.children[1]
+#         else:
+#             if getattr(end_leaf.children[0], 'visited', False):
+#                 end_leaf = end_leaf.children[1]
+#             else:
+#                 end_leaf = end_leaf.children[0]
+#     return end_leaf
+
+
+# def enc_diver(anc):
+#     leaf = follow_signs(anc)
+#     #print(leaf.state)
+#     #print([ int(x) for x in leaf.state] )
+#     #s = [ int(x) for x in leaf.state ]
+#     yield str(leaf.state)
+#     #for s in [ int(x) for x in leaf.state ]:
+#     #    yield s
+#     #yield float(leaf.state)
+#     setattr(leaf, 'visited', True)
+#     anc = get_not_visited_anc(leaf)
+#     if anc is None:
+#         # print("what")
+#         return
+#     setattr(anc, 'visited', True)
+#     yield get_dist_to_root(anc)
+#     for _ in enc_diver(anc):
+#         yield _
+
+
+# def type_count(tr, st, lbl):
+#     """
+#     Returns the counts of type1 and type2 tips
+#     :param tr: ete3.Tree, the tree to be named
+#     :return: tuple, counts of type 1 and type 2
+#     """
+#     counts = dict.fromkeys(lbl, 0)
+#     #t1 = 0
+#     #t2 = 0
+#     for leaf in tr:
+#         counts[ leaf.state ] = counts[ leaf.state ] + 1
+    
+#     #print(counts)
+#     return list(counts.values())
+
+
+# def complete_coding_old(encoding, max_length):
+#     add_vect = np.repeat(0, max_length - len(encoding))
+#     add_vect = list(add_vect)
+#     encoding.extend(add_vect)
+#     return encoding
+
+# def complete_coding(encoding, max_length):
+#     #add_vect = np.repeat(0, max_length - len(encoding))
+#     num_row,num_col = encoding.shape
+#     add_zeros = np.zeros( (num_row, max_length-num_col) )
+#     #add_vect = np.repeat(0, max_length - num_col)
+#     #encoding = np.append(encoding, add_vect)
+#     #encoding.extend(add_vect)
+#     encoding = np.hstack( [encoding, add_zeros] )
+#     return encoding
+
+# def expand_tip_states(tips_info):
+#     n_idx = len(tips_info)
+#     n_char = len(tips_info[1])
+#     #print(n_char, n_idx)
+#     x = np.zeros( shape=(n_char, n_idx) )
+#     #x[:,0] = tips_info[0]  # needed?
+#     for i in range(n_idx):
+#         x[:,i] = [ int(y) for y in tips_info[i] ]
+#     return x
+
+
+# def make_cdvs(tree_fn, max_len, states, state_labels):
+    
+#     # read tree
+#     file = open(tree_fn, mode="r")
+#     tree_str = file.read()
+#     tree = Tree(tree_str, format=1)
+    
+#     # assign states to tips
+#     attach_tip_states(tree, states)
+#     name_tree_cdvs(tree)
+
+#     # rescale tree to average branch length of 1
+#     # measure average branch length
+#     rescale_factor = get_average_branch_length(tree)
+
+#     # rescale tree
+#     rescale_tree(tree, rescale_factor)
+
+#     # add dist to root attribute
+#     tree, tr_height = add_dist_to_root_cdvs(tree)
+
+#     # add pathway of visiting priorities for encoding
+#     add_diversification(tree)
+#     add_diversification_sign(tree)
+
+#     # encode the tree
+#     tree_embedding = list(enc_diver(tree))
+    
+#     # separate info on tips and nodes:
+#     tips_info = [tree_embedding[i] for i in range(len(tree_embedding)) if i % 2 == 0]
+#     node_info = [tree_embedding[i] for i in range(len(tree_embedding)) if i % 2 == 1]
+#     node_info.insert(0,0) # pad with zero to align length of info vec ??
+
+#     # expand tip states
+#     tips_info = expand_tip_states(tips_info)
+#     node_info = np.array([node_info])
+
+#     # complete embedding
+#     tips_info = complete_coding(tips_info, max_len)
+#     node_info = complete_coding(node_info, max_len)
+
+#     # vertical stack
+#     complete_info = np.vstack( [node_info, tips_info] )
+    
+#     # flatten
+#     complete_info = complete_info.flatten()
+    
+#     return complete_info
+    
+#-----------------------------------------------------------------------------------------------------------------#
+
+#################
+# CBLVS ENCODER #
+#################
+
+
+# def add_dist_to_root(tre):
+#     """
+#     Add distance to root (dist_to_root) attribute to each node
+#     :param tre: ete3.Tree, tree on which the dist_to_root should be added
+#     :return: void, modifies the original tree
+#     """
+
+#     for node in tre.traverse("preorder"):
+#         if node.is_root():
+#             node.add_feature("dist_to_root", 0)
+#         elif node.is_leaf():
+#             node.add_feature("dist_to_root", getattr(node.up, "dist_to_root") + node.dist)
+#             # tips_dist.append(getattr(node.up, "dist_to_root") + node.dist)
+#         else:
+#             node.add_feature("dist_to_root", getattr(node.up, "dist_to_root") + node.dist)
+#             # int_nodes_dist.append(getattr(node.up, "dist_to_root") + node.dist)
+#     return None
+
+
+# def name_tree(tre, newLeafKeys_inputNameValues):
+#     """
+#     Names all the tree nodes that are not named, with unique names.
+#     :param tre: ete3.Tree, the tree to be named
+#     :return: void, modifies the original tree
+#     """
+#     existing_names = Counter((_.name for _ in tre.traverse() if _.name))
+    
+#     i = 0
+#     for node in tre.traverse('levelorder'):
+#         if(node.is_leaf()): # A.M.T
+#         	#new_leaf_order_names.append((i, node.name))
+#                 newLeafKeys_inputNameValues[i] = node.name
+#         node.name = i
+#         i += 1
+   
+#     return None
+
+
+# def rescale_tree(tre, target_avg_length):
+#     """
+#     Returns branch length metrics (all branches taken into account and external only)
+#     :param tre: ete3.Tree, tree on which these metrics are computed
+#     :param target_avg_length: float, the average branch length to which we want to rescale the tree
+#     :return: float, resc_factor
+#     """
+#     # branch lengths
+#     dist_all = [node.dist for node in tre.traverse("levelorder")]
+
+#     all_bl_mean = np.mean(dist_all)
+
+#     resc_factor = all_bl_mean/target_avg_length
+
+#     for node in tre.traverse():
+#         node.dist = node.dist/resc_factor
+
+#     return resc_factor
+
+    
+
+
+# def encode_into_most_recent(tree_input, max_taxa=[500], summ_stat=[], target_average_brlen=1.0):
+#     """Rescales all trees from tree_file so that mean branch length is 1,
+#     then encodes them into full tree representation (most recent version)
+
+#     :param tree_input: ete3.Tree, that we will represent in the form of a vector
+#     :param sampling_proba: float, value between 0 and 1, presumed sampling probability value
+#     :return: pd.Dataframe, encoded rescaled input trees in the form of most recent, last column being
+#      the rescale factor
+#     """
+#     leaf_ordered_names = [] # A.M.T
+#     new_leaf_order_names = []
+#     newLeafKeys_inputNameValues = {}
+
+#     # do we want nested functions like this???
+#     def real_polytomies(tre):
+#         """
+#         Replaces internal nodes of zero length with real polytomies.
+#         :param tre: ete3.Tree, the tree to be modified
+#         :return: void, modifies the original tree
+#         """
+#         for nod in tre.traverse("postorder"):
+#             if not nod.is_leaf() and not nod.is_root():
+#                 if nod.dist == 0:
+#                     for child in nod.children:
+#                         nod.up.add_child(child)
+#                     nod.up.remove_child(nod)
+#         return
+
+#     def get_not_visited_anc(leaf):
+#         while getattr(leaf, "visited", 0) >= len(leaf.children)-1:
+#             leaf = leaf.up
+#             if leaf is None:
+#                 break
+#         return leaf
+
+#     def get_deepest_not_visited_tip(anc):
+#         max_dist = -1
+#         tip = None
+#         for leaf in anc:
+#             if leaf.visited == 0:
+#                 distance_leaf = getattr(leaf, "dist_to_root") - getattr(anc, "dist_to_root")
+#                 if distance_leaf > max_dist:
+#                     max_dist = distance_leaf
+#                     tip = leaf
+#         leaf_ordered_names.append(getattr(tip, "name")) # A.M.T
+#         return tip
+
+#     def get_dist_to_root(anc):
+#         dist_to_root = getattr(anc, "dist_to_root")
+#         return dist_to_root
+
+#     def get_dist_to_anc(feuille, anc):
+#         dist_to_anc = getattr(feuille, "dist_to_root") - getattr(anc, "dist_to_root")
+#         return dist_to_anc
+
+#     def encode(anc):
+#         leaf = get_deepest_not_visited_tip(anc)
+#         new_leaf_order_names.append(leaf.name) # A.M.T.
+#         yield get_dist_to_anc(leaf, anc)
+#         leaf.visited += 1
+#         anc = get_not_visited_anc(leaf)
+
+#         if anc is None:
+#             return
+#         anc.visited += 1
+#         yield get_dist_to_root(anc)
+#         for _ in encode(anc):
+#             yield _
+
+#     def complete_coding(encoding, cblv_length):
+#         #print(encoding, max_length, max_length - len(encoding) )
+#         add_vect = np.repeat(0, cblv_length - len(encoding))
+#         add_vect = list(add_vect)
+#         encoding.extend(add_vect)
+#         return encoding
+
+#     def refactor_to_final_shape(result_v, maxl, summ_stat=[]):
+#         def reshape_coor(max_length):
+#             tips_coor = np.arange(0, max_length, 2)  # second row
+#             #tips_coor = np.insert(tips_coor, -1, max_length + 1)
+#             int_nodes_coor = np.arange(1, max_length - 1, 2) # first row
+#             int_nodes_coor = np.insert(int_nodes_coor, 0, max_length) # prepend 0??
+#             #int_nodes_coor = np.insert(int_nodes_coor, -1, max_length + 2)
+#             order_coor = np.append(int_nodes_coor, tips_coor)
+#             return order_coor
+       
+#         #print('test')
+#         reshape_coordinates = reshape_coor(maxl)
+
+#         #print(reshape_coordinates.shape)
+#         result_v.loc[:, maxl] = 0
+
+#         # reorder the columns        
+#         result_v = result_v.iloc[:,reshape_coordinates]
+
+#         return result_v
+
+#     # local copy of input tree
+#     tree = tree_input.copy()
+    
+#     # CBLV size
+#     cblv_length = 2*max_taxa
+    
+#     # remove the edge above root if there is one
+#     if len(tree.children) < 2:
+#         tree = tree.children[0]
+#         tree.detach()
+
+#     # set to real polytomy
+#     real_polytomies(tree)
+
+#     # rescale branch lengths
+#     rescale_factor = rescale_tree(tree, target_avg_length=target_average_brlen)
+
+#     # set all nodes to non visited:
+#     for node in tree.traverse():
+#         setattr(node, "visited", 0)
+
+#     name_tree(tree, newLeafKeys_inputNameValues)
+    
+#     add_dist_to_root(tree)
+
+#     tree_embedding = list(encode(tree))
+#     tree_embedding = complete_coding(tree_embedding, cblv_length)
+#     result = pd.DataFrame(tree_embedding, columns=[0])
+#     result = result.T
+#     result = refactor_to_final_shape(result, cblv_length)
+
+#     return result, rescale_factor, new_leaf_order_names, newLeafKeys_inputNameValues
+
+#-----------------------------------------------------------------------------------------------------------------#
+
+
+# def vectorize_tree_cdv(tre_fn, max_taxa=[500], summ_stat=[], prob=1.0):
+#     # get tree and tip labels
+#     tree = read_tree_file(tre_fn)    
+#     ordered_tip_names = []
+#     for i in tree.get_leaves():
+#         ordered_tip_names.append(i.name)
+
+#     # returns result, rescale_factor, new_leaf_order_names, newLeafKeys_inputNameValues
+#     vv = encode_into_most_recent(tree, max_taxa=max_taxa, summ_stat=summ_stat, target_average_brlen=1.0)
+#     otn = np.asarray(ordered_tip_names) # ordered list of the input tip labels
+#     vv2 = np.asarray(vv[2]) # ordered list of the new tip labels
+#     new_order = [vv[3][i] for i in vv2]
+
+#     if False:
+#         print( 'otn ==> ', otn, '\n' )
+#         print( 'vv[0] ==>', vv[0], '\n' )
+#         print( 'vv[1] ==>', vv[1], '\n' )
+#         print( 'vv[2] ==>', vv[2], '\n' )
+#         print( 'vv[3] ==>', vv[3], '\n' )
+
+#     cblv = np.asarray( vv[0] )
+#     cblv.shape = (2, -1)
+#     cblv_df = pd.DataFrame( cblv )
+
+#     return cblv_df,new_order
+
+# def vectorize_tree(tre_fn, max_taxa=500, summ_stat=[], prob=1.0):
+
+#     # get tree and tip labels
+#     tree = read_tree_file(tre_fn)    
+#     ordered_tip_names = []
+#     for i in tree.get_leaves():
+#         ordered_tip_names.append(i.name)
+
+#     # returns result, rescale_factor, new_leaf_order_names, newLeafKeys_inputNameValues
+#     vv = encode_into_most_recent(tree, max_taxa=max_taxa, summ_stat=summ_stat, target_average_brlen=1.0)
+#     otn = np.asarray(ordered_tip_names) # ordered list of the input tip labels
+#     vv2 = np.asarray(vv[2]) # ordered list of the new tip labels
+#     new_order = [vv[3][i] for i in vv2]
+
+#     #if False:
+#     #    print( 'otn ==> ', otn, '\n' )
+#     #    print( 'vv[0] ==>', vv[0], '\n' )
+#     #    print( 'vv[1] ==>', vv[1], '\n' )
+#     #    print( 'vv[2] ==>', vv[2], '\n' )
+#     #    print( 'vv[3] ==>', vv[3], '\n' )
+
+#     cblv = np.asarray( vv[0] )
+#     cblv.shape = (2, -1)
+#     cblv_df = pd.DataFrame( cblv )
+
+#     return cblv_df,new_order
+
+
+# # Converts MASTER output into nex
+# def convert_nex(nex_fn, tre_fn, int2vec):
+
+#     # get num regions from size of bit vector
+#     num_char = len(int2vec[0])
+
+#     # get tip names and states from NHX tree
+#     nex_file = open(nex_fn, 'r')
+#     nex_str = nex_file.readlines()[3]
+#     m = re.findall(pattern='([0-9]+)\[\&type="([A-Z]+)",location="([0-9]+)"', string=nex_str)
+#     num_taxa = len(m)
+#     nex_file.close()
+
+#     # generate taxon-state data
+#     d = {}
+#     s_state_str = ''
+#     for i,v in enumerate(m):
+#         taxon = v[0]
+#         state = int(v[2])
+#         vec_str = ''.join([ str(x) for x in int2vec[state] ])
+#         s_state_str += taxon + '  ' + vec_str + '\n'
+#         d[ taxon ] = vec_str
+    
+#     # get newick string (no annotations)
+#     tre_file = open(tre_fn, 'r')
+#     tre_str = tre_file.readlines()[0]
+#     tre_file.close()
+
+#     # build new nexus string
+#     s = \
+# '''#NEXUS
+# Begin DATA;
+# Dimensions NTAX={num_taxa} NCHAR={num_char}
+# Format MISSING=? GAP=- DATATYPE=STANDARD SYMBOLS="01";
+# Matrix
+# {s_state_str}
+# ;
+# END;
+
+# Begin trees;
+#     tree 1={tre_str}
+# END;
+# '''.format(num_taxa=num_taxa, num_char=num_char, tre_str=tre_str, s_state_str=s_state_str)
+
+#     return d,s
