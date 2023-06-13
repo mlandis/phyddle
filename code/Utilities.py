@@ -5,28 +5,28 @@ import sys
 import random
 import re
 import os
-import itertools
-import dill
+#import itertools
+#import dill
 
 # Call before importing Tensorflow to suppress INFO messages
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # or any {'0', '1', '2'}
 
 import pandas as pd
 import numpy as np
-import scipy as sp
+#import scipy as sp
 import dendropy as dp
-import matplotlib.pyplot as plt
-import matplotlib.ticker as ticker
-import tensorflow as tf
+#import matplotlib.pyplot as plt
+#import matplotlib.ticker as ticker
+#import tensorflow as tf
 
-from sklearn.preprocessing import StandardScaler
-from sklearn.decomposition import PCA
-from sklearn import metrics
+#from sklearn.preprocessing import StandardScaler
+#from sklearn.decomposition import PCA
+#from sklearn import metrics
 from collections import Counter
 from itertools import chain, combinations
 from ete3 import Tree
-from scipy.interpolate import RegularGridInterpolator
-from sklearn.neighbors import KDTree
+#from scipy.interpolate import RegularGridInterpolator
+#from sklearn.neighbors import KDTree
 from keras import backend as K
 
 NUM_DIGITS = 10
@@ -134,53 +134,103 @@ class States:
 
 
 
+#-----------------------------------------------------------------------------------------------------------------#
+
 #################
 # FILE HANDLERS #
 #################
 
 def load_config(config_fn, arg_overwrite=True):
     
+    # KEEP THIS: Want to improve precedence so CLI-provided-arg > CFG-arg > CLI-default-arg
+
+    # # argument parsing
+    # parser = argparse.ArgumentParser(description='phyddle pipeline config', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    # parser.add_argument('-c', '--cfg',          dest='config_fn', type=str, default='config', help='Config file name')
+    # parser.add_argument('-f', '--force',        action='store_true', help='Arguments override config file settings')
+    # parser.add_argument('--proj',               dest='proj', type=str, default='my_project', help='Project name used as directory across pipeline stages')
+    # parser.add_argument('--use_parallel',       dest='use_parallel', type=bool, default=True, help='Use parallelization? (recommended)')
+    # parser.add_argument('--num_proc',           dest='num_proc', type=int, default=-2, help='How many cores for multiprocessing? (e.g. 4 uses 4, -2 uses all but 2)')
+    # # directory settings
+    # parser.add_argument('--sim_dir',            dest='sim_dir', type=str, default='../raw_data', help='Directory for raw simulated data')
+    # parser.add_argument('--fmt_dir',            dest='fmt_dir', type=str, default='../tensor_data', help='Directory for tensor-formatted simulated data')
+    # parser.add_argument('--net_dir',            dest='net_dir', type=str, default='../network', help='Directory for trained networks and predictions')
+    # parser.add_argument('--plt_dir',            dest='plt_dir', type=str, default='../plot', help='Directory for plotted results')
+    # parser.add_argument('--pred_dir',           dest='pred_dir', type=str, help='Predict results for dataset located in this directory')
+    # # model settings
+    # #parser.add_argument('--show_models',        dest='show_models', type=bool, default=False, help='Print all available model types and variants?')
+    # parser.add_argument('--model_type',         dest='model_type', type=str, help='Model type')
+    # parser.add_argument('--model_variant',      dest='model_variant', type=str, help='Model variant')
+    # parser.add_argument('--num_char',           dest='num_char', type=int, help='Number of characters')
+    # # simulation settings
+    # parser.add_argument('--sim_logging',        dest='sim_logging', type=str, default='verbose', choices=['clean', 'verbose', 'compress'], help='Simulation logging style')
+    # parser.add_argument('--start_idx',          dest='start_idx', type=int, default=0, help='Start index for simulation')
+    # parser.add_argument('--end_idx',            dest='end_idx', type=int, default=100, help='End index for simulation')
+    # parser.add_argument('--stop_time',          dest='stop_time', type=float, default=10.0, help='Maximum duration of evolution for each simulation')
+    # parser.add_argument('--stop_floor_sizes',   dest='stop_floor_sizes', type=int, default=0, help='Minimum number of taxa for each simulation')
+    # parser.add_argument('--stop_ceil_sizes',    dest='stop_ceil_sizes', type=int, default=500, help='Maximum number of taxa for each simulation')
+    # # formatting settings
+    # parser.add_argument('--tensor_format',      dest='tensor_format', type=str, default='hdf5', choices=['hdf5', 'csv'], help='Storage format for simulation tensors')
+    # parser.add_argument('--tree_type',          dest='tree_type', type=str, choices=['extant', 'serial'], help='Type of tree')
+    # # learning settings
+    # parser.add_argument('--tree_size',          dest='tree_size', type=int, help='Number of taxa in phylogenetic tensor')
+    # parser.add_argument('--num_epochs',         dest='num_epochs', type=int, default=21, help='Number of learning epochs')
+    # parser.add_argument('--batch_size',         dest='batch_size', type=int, default=128, help='Training batch sizes during learning')
+    # parser.add_argument('--prop_test',          dest='prop_test', type=float, default=0.05, help='Proportion of data used as test examples (demonstrate trained network performance)')
+    # parser.add_argument('--prop_validation',    dest='prop_validation', type=float, default=0.05, help='Proportion of data used as validation examples (diagnose network overtraining)')
+    # parser.add_argument('--prop_calibration',   dest='prop_calibration', type=float, default=0.20, help='Proportion of data used as calibration examples (calibrate conformal prediction intervals)')
+    # parser.add_argument('--alpha_CQRI',         dest='alpha_CQRI', type=float, default=0.95, help='Expected coverage percent for prediction intervals')
+    # parser.add_argument('--loss',               dest='loss', type=str, default='mse', help='Loss function used as optimization criterion')
+    # parser.add_argument('--optimizer',          dest='optimizer', type=str, default='adam', help='Method used for optimizing neural network')
+    # # plotting settings
+    # parser.add_argument('--network_prefix',     dest='network_prefix', type=str, help='Plot results related to this network prefix')
+    # # prediction settings
+    # parser.add_argument('--pred_prefix',        dest='pred_prefix', type=str, help='Predict results for this dataset')
+    
     # argument parsing
-    parser = argparse.ArgumentParser(description='phyddle pipeline config')
-    parser.add_argument('--cfg',                dest='config_fn', type=str, default='config', help='Config file name')
-    parser.add_argument('--proj',               dest='proj', type=str, default='my_project', help='Project name used as directory across pipeline stages')
-    parser.add_argument('--use_parallel',       dest='use_parallel', type=bool, default=True, help='Use parallelization? (recommended)')
-    parser.add_argument('--num_proc',           dest='num_proc', type=int, default=-2, help='How many cores for multiprocessing? (e.g. 4 uses 4, -2 uses all but 2)')
+    parser = argparse.ArgumentParser(description='phyddle pipeline config', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('-c', '--cfg',          dest='config_fn', type=str, help='Config file name')
+    #parser.add_argument('-f', '--force',        action='store_true', help='Arguments override config file settings')
+    parser.add_argument('--proj',               dest='proj', type=str, help='Project name used as directory across pipeline stages')
+    parser.add_argument('--use_parallel',       dest='use_parallel', type=bool, help='Use parallelization? (recommended)')
+    parser.add_argument('--num_proc',           dest='num_proc', type=int, help='How many cores for multiprocessing? (e.g. 4 uses 4, -2 uses all but 2)')
     # directory settings
-    parser.add_argument('--sim_dir',            dest='sim_dir', type=str, default='../raw_data', help='Directory for raw simulated data')
-    parser.add_argument('--fmt_dir',            dest='fmt_dir', type=str, default='../tensor_data', help='Directory for tensor-formatted simulated data')
-    parser.add_argument('--net_dir',            dest='net_dir', type=str, default='../network', help='Directory for trained networks and predictions')
-    parser.add_argument('--plt_dir',            dest='plt_dir', type=str, default='../plot', help='Directory for plotted results')
+    parser.add_argument('--sim_dir',            dest='sim_dir', type=str, help='Directory for raw simulated data')
+    parser.add_argument('--fmt_dir',            dest='fmt_dir', type=str, help='Directory for tensor-formatted simulated data')
+    parser.add_argument('--net_dir',            dest='net_dir', type=str, help='Directory for trained networks and predictions')
+    parser.add_argument('--plt_dir',            dest='plt_dir', type=str, help='Directory for plotted results')
     parser.add_argument('--pred_dir',           dest='pred_dir', type=str, help='Predict results for dataset located in this directory')
     # model settings
-    parser.add_argument('--show_models',        dest='show_models', type=bool, default=False, help='Print all available model types and variants?')
+    #parser.add_argument('--show_models',        dest='show_models', type=bool, default=False, help='Print all available model types and variants?')
     parser.add_argument('--model_type',         dest='model_type', type=str, help='Model type')
     parser.add_argument('--model_variant',      dest='model_variant', type=str, help='Model variant')
     parser.add_argument('--num_char',           dest='num_char', type=int, help='Number of characters')
     # simulation settings
-    parser.add_argument('--sim_logging',        dest='sim_logging', type=str, default='verbose', help='Simulationg logging style (clean/verbose)')
-    parser.add_argument('--start_idx',          dest='start_idx', type=int, default=0, help='Start index for simulation')
-    parser.add_argument('--end_idx',            dest='end_idx', type=int, default=100, help='End index for simulation')
-    parser.add_argument('--stop_time',          dest='stop_time', type=float, default=10.0, help='Maximum duration of evolution for each simulation')
-    parser.add_argument('--stop_floor_sizes',   dest='stop_floor_sizes', type=int, default=0, help='Minimum number of taxa for each simulation')
-    parser.add_argument('--stop_ceil_sizes',    dest='stop_ceil_sizes', type=int, default=500, help='Maximum number of taxa for each simulation')
+    parser.add_argument('--sim_logging',        dest='sim_logging', type=str, choices=['clean', 'verbose', 'compress'], help='Simulation logging style')
+    parser.add_argument('--start_idx',          dest='start_idx', type=int, help='Start index for simulation')
+    parser.add_argument('--end_idx',            dest='end_idx', type=int, help='End index for simulation')
+    parser.add_argument('--stop_time',          dest='stop_time', type=float, help='Maximum duration of evolution for each simulation')
+    parser.add_argument('--stop_floor_sizes',   dest='stop_floor_sizes', type=int, help='Minimum number of taxa for each simulation')
+    parser.add_argument('--stop_ceil_sizes',    dest='stop_ceil_sizes', type=int, help='Maximum number of taxa for each simulation')
     # formatting settings
-    parser.add_argument('--tensor_format',      dest='tensor_format', type=str, default='hdf5', help='Storage format for simulation tensors (hdf5/csv)')
-    parser.add_argument('--tree_type',          dest='tree_type', type=str, help='Type of tree (extant/serial)')
+    parser.add_argument('--tensor_format',      dest='tensor_format', type=str, choices=['hdf5', 'csv'], help='Storage format for simulation tensors')
+    parser.add_argument('--tree_type',          dest='tree_type', type=str, choices=['extant', 'serial'], help='Type of tree')
     # learning settings
     parser.add_argument('--tree_size',          dest='tree_size', type=int, help='Number of taxa in phylogenetic tensor')
-    parser.add_argument('--num_epochs',         dest='num_epochs', type=int, default=20, help='Number of learning epochs')
-    parser.add_argument('--batch_size',         dest='batch_size', type=int, default=128, help='Training batch sizes during learning')
-    parser.add_argument('--prop_test',          dest='prop_test', type=float, default=0.05, help='Proportion of data used as test examples (demonstrate trained network performance)')
-    parser.add_argument('--prop_validation',    dest='prop_validation', type=float, default=0.05, help='Proportion of data used as validation examples (diagnose network overtraining)')
-    parser.add_argument('--prop_calibration',   dest='prop_calibration', type=float, default=0.20, help='Proportion of data used as calibration examples (calibrate conformal prediction intervals)')
-    parser.add_argument('--alpha_CQRI',         dest='alpha_CQRI', type=float, default=0.95, help='Expected coverage percent for prediction intervals')
-    parser.add_argument('--loss',               dest='loss', type=str, default='mse', help='Loss function used as optimization criterion')
-    parser.add_argument('--optimizer',          dest='optimizer', type=str, default='adam', help='Method used for optimizing neural network')
+    parser.add_argument('--num_epochs',         dest='num_epochs', type=int, help='Number of learning epochs')
+    parser.add_argument('--batch_size',         dest='batch_size', type=int, help='Training batch sizes during learning')
+    parser.add_argument('--prop_test',          dest='prop_test', type=float, help='Proportion of data used as test examples (demonstrate trained network performance)')
+    parser.add_argument('--prop_validation',    dest='prop_validation', type=float, help='Proportion of data used as validation examples (diagnose network overtraining)')
+    parser.add_argument('--prop_calibration',   dest='prop_calibration', type=float, help='Proportion of data used as calibration examples (calibrate conformal prediction intervals)')
+    parser.add_argument('--alpha_CQRI',         dest='alpha_CQRI', type=float, help='Expected coverage percent for prediction intervals')
+    parser.add_argument('--loss',               dest='loss', type=str, help='Loss function used as optimization criterion')
+    parser.add_argument('--optimizer',          dest='optimizer', type=str, help='Method used for optimizing neural network')
     # plotting settings
     parser.add_argument('--network_prefix',     dest='network_prefix', type=str, help='Plot results related to this network prefix')
     # prediction settings
     parser.add_argument('--pred_prefix',        dest='pred_prefix', type=str, help='Predict results for this dataset')
+
+    # parse arguments
     args = parser.parse_args()
     
     # overwrite config_fn is argument passed
@@ -194,12 +244,15 @@ def load_config(config_fn, arg_overwrite=True):
     def overwrite_defaults(m, args, var):
         x = getattr(args, var)
         if x is not None:
+            # if args.force == True:
+            #     m.args[var] = x
+            # elif var not in m.args:
+            #     m.args[var] = x
             m.args[var] = x
         return m
     
-    if args.proj is not None:
-        m.args['proj'] = args.proj
-    
+    # update arguments from defaults, when provided
+    m = overwrite_defaults(m, args, 'proj')
     m = overwrite_defaults(m, args, 'use_parallel')
     m = overwrite_defaults(m, args, 'num_proc')
     m = overwrite_defaults(m, args, 'sim_dir')
@@ -207,7 +260,7 @@ def load_config(config_fn, arg_overwrite=True):
     m = overwrite_defaults(m, args, 'net_dir')
     m = overwrite_defaults(m, args, 'plt_dir')
     m = overwrite_defaults(m, args, 'pred_dir')
-    m = overwrite_defaults(m, args, 'show_models')
+    #m = overwrite_defaults(m, args, 'show_models')
     m = overwrite_defaults(m, args, 'model_type')
     m = overwrite_defaults(m, args, 'model_variant')
     m = overwrite_defaults(m, args, 'sim_logging')
@@ -232,6 +285,8 @@ def load_config(config_fn, arg_overwrite=True):
     return m.args
 
 
+
+#-----------------------------------------------------------------------------------------------------------------#
 
 #################
 # MODEL HELPERS #
@@ -289,6 +344,14 @@ def states2df(states):
     })
     return df
 
+#############
+# 1. translate master output into char matrix
+# 2. determine size class of tree
+# 3. call make_phy_tensor(phy, dat, tree_size, tree_type) function
+# 4. make_phy_tensor calls make_cblvs or make_cdvs, depending on input
+# 5. return numpy array
+
+#-----------------------------------------------------------------------------------------------------------------#
 
 ################
 # CDVS ENCODER #
@@ -499,19 +562,15 @@ def expand_tip_states(tips_info):
 
 
 def make_cdvs(tree_fn, max_len, states, state_labels):
-
+    
+    # read tree
     file = open(tree_fn, mode="r")
-    
     tree_str = file.read()
-    
     tree = Tree(tree_str, format=1)
-
+    
+    # assign states to tips
     attach_tip_states(tree, states)
-    #set_attribs(tree)
     name_tree_cdvs(tree)
-
-    #print('max_len ==>', max_len)
-    #print('states ==>', states)
 
     # rescale tree to average branch length of 1
     # measure average branch length
@@ -535,9 +594,6 @@ def make_cdvs(tree_fn, max_len, states, state_labels):
     node_info = [tree_embedding[i] for i in range(len(tree_embedding)) if i % 2 == 1]
     node_info.insert(0,0) # pad with zero to align length of info vec ??
 
-    #print('tips_info ==> ', tips_info)
-    #print('node_info ==>', node_info)
-
     # expand tip states
     tips_info = expand_tip_states(tips_info)
     node_info = np.array([node_info])
@@ -547,29 +603,14 @@ def make_cdvs(tree_fn, max_len, states, state_labels):
     node_info = complete_coding(node_info, max_len)
 
     # vertical stack
-    #complete_info = np.vstack( [tips_info, node_info] )
     complete_info = np.vstack( [node_info, tips_info] )
     
-    # extra info
-    #nrow = complete_info.shape[0]
-    #state_counts = type_count(tree, states, state_labels)
-    #extra_info = [ tr_height, rescale_factor ] + state_counts
-    #for x in extra_info:
-    #    complete_info = np.append( complete_info, np.repeat(x, nrow).reshape(-1,1) )
-    
-
     # flatten
-    complete_info = complete_info.flatten() #reshape(-1)
-    #print(complete_info.shape)
+    complete_info = complete_info.flatten()
     
     return complete_info
-    # make output
-    #result = pd.DataFrame(complete_info) #, columns=[id + 0])
-    #result = result.T
-
-    #return result
-
-
+    
+#-----------------------------------------------------------------------------------------------------------------#
 
 #################
 # CBLVS ENCODER #
@@ -728,18 +769,6 @@ def encode_into_most_recent(tree_input, max_taxa=[500], summ_stat=[], target_ave
         #print(reshape_coordinates.shape)
         result_v.loc[:, maxl] = 0
 
-        # append summ stats to final columns
-        
-        # # add sampling probability:
-        # if maxl == 999:
-        #     result_v.loc[:, 1000] = 0
-        #     result_v['1001'] = sampling_p
-        #     result_v['1002'] = sampling_p
-        # else:
-        #     result_v.loc[:, 400] = 0
-        #     result_v['401'] = sampling_p
-        #     result_v['402'] = sampling_p
-
         # reorder the columns        
         result_v = result_v.iloc[:,reshape_coordinates]
 
@@ -748,20 +777,9 @@ def encode_into_most_recent(tree_input, max_taxa=[500], summ_stat=[], target_ave
     # local copy of input tree
     tree = tree_input.copy()
     
-    #if len(tree) < 200:
-    #    max_len = 399
-    num_summ_stat = len(summ_stat)
-
-    cblv_length = 2*(max_taxa + num_summ_stat)
-    # cblv_length = -1
-    # for mt in max_taxa:
-    #     if len(tree) <= mt:
-    #         cblv_length = 2*(mt + num_summ_stat)
-    #         break
-
-    # if cblv_length == -1:
-    #     raise Exception('tree too large')
-
+    # CBLV size
+    cblv_length = 2*max_taxa
+    
     # remove the edge above root if there is one
     if len(tree.children) < 2:
         tree = tree.children[0]
@@ -782,17 +800,14 @@ def encode_into_most_recent(tree_input, max_taxa=[500], summ_stat=[], target_ave
     add_dist_to_root(tree)
 
     tree_embedding = list(encode(tree))
-    
     tree_embedding = complete_coding(tree_embedding, cblv_length)
-   
     result = pd.DataFrame(tree_embedding, columns=[0])
-
     result = result.T
- 
     result = refactor_to_final_shape(result, cblv_length)
 
     return result, rescale_factor, new_leaf_order_names, newLeafKeys_inputNameValues
 
+#-----------------------------------------------------------------------------------------------------------------#
 
 ##############
 # READ TREES #
@@ -905,7 +920,7 @@ def find_taxon_size(num_taxa, max_taxa):
     
 
 
-
+# Used in Encoding
 def settings_to_str(settings, taxon_category):
     s = 'setting,value\n'
     s += 'model_name,' + settings['model_name'] + '\n'
@@ -936,15 +951,6 @@ def param_dict_to_str(params):
     return s1,s4
 
 
-# unused??
-def regions_to_binary(states, states_str, regions):
-    num_regions = len(regions)
-    x = {}
-    for i,v in enumerate(states):
-        x[ states_str[i] ] = ['0']*num_regions
-        for j in v:
-            x[states_str[i]][j] = '1'
-    return x
 
 ## set return None if bad, then flag the index as a bad sim.
 def make_prune_phy(tre_fn, prune_fn):
@@ -969,15 +975,10 @@ def make_prune_phy(tre_fn, prune_fn):
         taxon_name = str(nd.taxon).strip('\'')
         taxon_name = taxon_name.replace(' ', '_')
         d[ taxon_name ] = age
-
     # determine what to drop
     drop_taxon_labels = [ k for k,v in d.items() if v > 1e-12 ]
-    # abort if pruned tree would be invalid
+    # inform user if pruning yields valid tree
     if len(leaf_nodes) - len(drop_taxon_labels) < 2:
-        #print( "leaf_nodes ==>", leaf_nodes)
-        #print( "drop_taxon_labels ==>", drop_taxon_labels )
-        #print( "len(leaf_nodes) ==>", len(leaf_nodes))
-        #print( "len(drop_taxon_labels) ==>", len(drop_taxon_labels) )
         return False
     else:
         # prune non-extant taxa
@@ -986,13 +987,199 @@ def make_prune_phy(tre_fn, prune_fn):
         phy.write(path=prune_fn, schema='newick')
         return True
 
-# def categorize_sizes(raw_data_dir):
-#     # get all files
-#     # learn sizes from param files
-#     # sort into groups
-#     # return dictionary of { size_key: [ index_list ] }
-#     return
+#
+def convert_nexus_to_array(dat_fn):
+    
+    # read file
+    f = open(dat_fn, 'r')
+    lines = f.readlines()
+    f.close()
 
+    # process file
+    found_matrix = False
+    num_taxa    = 0
+    num_char    = 0
+    taxon_idx   = 0
+    taxon_names = []
+    for line in lines:
+        # purge whitespace
+        line = ' '.join(line.split()).rstrip('\n')
+        tok = line.split(' ')
+        
+        # skip lines with comments
+        if tok[0] == '[':
+            continue
+
+        # get data dimenions
+        if tok[0].upper() == 'DIMENSIONS':
+            for x in tok:
+                x = x.rstrip(';')
+                if 'NTAX' in x.upper():
+                    num_taxa = int(x.split('=')[1])
+                elif 'NCHAR' in x.upper():
+                    print(x)
+                    num_char = int(x.split('=')[1])
+            dat = np.zeros((num_char, num_taxa), dtype='int')
+
+        # entering data matrix
+        if tok[0].upper() == 'MATRIX':
+            found_matrix = True
+            continue
+
+        # process data matrix
+        if found_matrix:
+            if tok[0] == ';':
+                found_matrix = False
+                break
+            else:
+                name = tok[0]
+                state = tok[1]
+                taxon_names.append(name)
+                dat[:,taxon_idx] = [ int(z) for z in state ]
+                taxon_idx += 1
+
+    # construct data frame
+    # rows: char states
+    # cols: taxa
+    df = pd.DataFrame(dat, columns=taxon_names)
+    
+    return df
+
+
+def convert_table_to_array(dat_fn, sep=","):
+    
+    # read file
+    f = open(dat_fn, 'r')
+    lines = f.readlines()
+    f.close()
+
+    # process file
+    num_taxa    = len(lines)
+    num_char    = 0
+    taxon_idx   = 0
+    taxon_names = []
+    first_taxon = True
+
+    for line in lines:
+        # purge whitespace
+        line = ' '.join(line.split()).rstrip('\n')
+        tok = line.split(sep)
+        
+        # get taxon + state
+        name = tok[0]
+        state = tok[1]
+
+        # construct matrix based on num char
+        if first_taxon:
+            first_taxon = False
+            num_char = len(state)
+            dat = np.zeros((num_char, num_taxa), dtype='int')
+
+        # save taxon name, populate array
+        taxon_names.append(name)
+        dat[:,taxon_idx] = [ int(z) for z in state ]
+        taxon_idx += 1
+
+    # construct data frame
+    # rows: char states
+    # cols: taxa
+    df = pd.DataFrame(dat, columns=taxon_names)
+    
+    return df
+
+
+#
+def encode_phy_tensor(phy, dat, tree_size, tree_type):
+    if tree_type == 'serial':
+        encode_cblvs(phy, dat, tree_size)
+    elif tree_type == 'extant':
+        encode_cdvs(phy, dat, tree_size)
+    else:
+        ValueError(f'Unrecognized {tree_type}')
+
+    return
+
+def encode_cdvs(phy, dat, tree_size):
+    # data dimensions
+    num_char  = dat.shape[0]
+
+    # initialize workspace
+    null       = phy.calc_node_root_distances(return_leaf_distances_only=False)
+    heights    = np.zeros( (       1, tree_size) )
+    states     = np.zeros( (num_char, tree_size) )
+    state_idx  = 0
+    height_idx = 0
+
+    # postorder traversal to rotate nodes by clade-length
+    for nd in phy.postorder_node_iter():
+        if nd.is_leaf():
+            nd.treelen = 0.
+        else:
+            children         = nd.child_nodes()
+            ch_treelen       = [ (ch.edge.length + ch.treelen) for ch in children ]
+            nd.treelen       = sum(ch_treelen)
+            ch_treelen_rank  = np.argsort( ch_treelen )[::-1] 
+            children         = [ children[i] for i in ch_treelen_rank ]
+            nd.set_children(children)
+
+    # inorder traversal to fill matrix
+    for nd in phy.inorder_node_iter():
+        if nd.is_leaf():
+            states[:,state_idx] = dat[nd.taxon.label].to_list()
+            state_idx += 1
+        else:
+            heights[:,height_idx] = nd.root_distance
+            height_idx += 1
+
+    # fill in phylo tensor
+    phylo_tensor = np.vstack( [heights, states] )
+
+    return phylo_tensor
+
+def encode_cblvs(phy, dat, tree_size):
+    # data dimensions
+    num_char  = dat.shape[0]
+
+    # initialize workspace
+    null       = phy.calc_node_root_distances(return_leaf_distances_only=False)
+    heights    = np.zeros( (2, tree_size) ) 
+    states     = np.zeros( (num_char, tree_size) )
+    state_idx  = 0
+    height_idx = 0
+
+    # postorder traversal to rotate nodes by max-root-distance
+    for nd in phy.postorder_node_iter():
+        if nd.is_leaf():
+            nd.max_root_distance = nd.root_distance
+        else:
+
+            children                  = nd.child_nodes()
+            ch_max_root_distance      = [ ch.max_root_distance for ch in children ]
+            ch_max_root_distance_rank = np.argsort( ch_max_root_distance )[::-1] 
+            children                  = [ children[i] for i in ch_max_root_distance_rank ]
+            nd.max_root_distance      = max(ch_max_root_distance)
+            nd.set_children(children)
+
+    # inorder traversal to fill matrix
+    last_int_node = phy.seed_node
+    for nd in phy.inorder_node_iter():
+        if nd.is_leaf():
+            heights[0,height_idx] = nd.root_distance - last_int_node.root_distance
+            states[:,state_idx] = dat[nd.taxon.label].to_list()
+            state_idx += 1
+        else:
+            heights[1,height_idx+1] = nd.root_distance
+            last_int_node = nd
+            height_idx += 1
+
+    # fill in phylo tensor
+    heights.shape = (2, tree_size)
+    phylo_tensor = np.vstack( [heights, states] )
+    
+    return phylo_tensor
+
+
+# Converts MASTER output into nex
 def convert_nex(nex_fn, tre_fn, int2vec):
 
     # get num regions from size of bit vector
@@ -1038,31 +1225,31 @@ END;
 
     return d,s
 
-def vectorize_tree_cdv(tre_fn, max_taxa=[500], summ_stat=[], prob=1.0):
-    # get tree and tip labels
-    tree = read_tree_file(tre_fn)    
-    ordered_tip_names = []
-    for i in tree.get_leaves():
-        ordered_tip_names.append(i.name)
+# def vectorize_tree_cdv(tre_fn, max_taxa=[500], summ_stat=[], prob=1.0):
+#     # get tree and tip labels
+#     tree = read_tree_file(tre_fn)    
+#     ordered_tip_names = []
+#     for i in tree.get_leaves():
+#         ordered_tip_names.append(i.name)
 
-    # returns result, rescale_factor, new_leaf_order_names, newLeafKeys_inputNameValues
-    vv = encode_into_most_recent(tree, max_taxa=max_taxa, summ_stat=summ_stat, target_average_brlen=1.0)
-    otn = np.asarray(ordered_tip_names) # ordered list of the input tip labels
-    vv2 = np.asarray(vv[2]) # ordered list of the new tip labels
-    new_order = [vv[3][i] for i in vv2]
+#     # returns result, rescale_factor, new_leaf_order_names, newLeafKeys_inputNameValues
+#     vv = encode_into_most_recent(tree, max_taxa=max_taxa, summ_stat=summ_stat, target_average_brlen=1.0)
+#     otn = np.asarray(ordered_tip_names) # ordered list of the input tip labels
+#     vv2 = np.asarray(vv[2]) # ordered list of the new tip labels
+#     new_order = [vv[3][i] for i in vv2]
 
-    if False:
-        print( 'otn ==> ', otn, '\n' )
-        print( 'vv[0] ==>', vv[0], '\n' )
-        print( 'vv[1] ==>', vv[1], '\n' )
-        print( 'vv[2] ==>', vv[2], '\n' )
-        print( 'vv[3] ==>', vv[3], '\n' )
+#     if False:
+#         print( 'otn ==> ', otn, '\n' )
+#         print( 'vv[0] ==>', vv[0], '\n' )
+#         print( 'vv[1] ==>', vv[1], '\n' )
+#         print( 'vv[2] ==>', vv[2], '\n' )
+#         print( 'vv[3] ==>', vv[3], '\n' )
 
-    cblv = np.asarray( vv[0] )
-    cblv.shape = (2, -1)
-    cblv_df = pd.DataFrame( cblv )
+#     cblv = np.asarray( vv[0] )
+#     cblv.shape = (2, -1)
+#     cblv_df = pd.DataFrame( cblv )
 
-    return cblv_df,new_order
+#     return cblv_df,new_order
 
 def vectorize_tree(tre_fn, max_taxa=500, summ_stat=[], prob=1.0):
 
@@ -1091,6 +1278,8 @@ def vectorize_tree(tre_fn, max_taxa=500, summ_stat=[], prob=1.0):
 
     return cblv_df,new_order
 
+
+#-----------------------------------------------------------------------------------------------------------------#
 
 #####################
 # FORMAT CONVERSION #
@@ -1123,7 +1312,7 @@ def make_cblvs_geosse(cblv_df, taxon_states, new_order):
 def make_cdv_geosse(cdv_df, taxon_states, new_order):
     
     # array dimensions for GeoSSE states
-    n_taxon_cols = cblv_df.shape[1]
+    n_taxon_cols = cdv_df.shape[1]
     n_region = len(list(taxon_states.values())[0])
 
     # create states array
@@ -1165,6 +1354,8 @@ def get_num_taxa(tre_fn):
     except ValueError:
         return 0
     return num_taxa
+
+#-----------------------------------------------------------------------------------------------------------------#
 
 #################
 # SUMMARY STATS #
@@ -1239,76 +1430,9 @@ def make_summ_stat_str(ss):
     keys_str = ','.join( list(ss.keys()) ) + '\n'
     vals_str = ','.join( [ str(x) for x in ss.values() ] ) + '\n'
     return keys_str + vals_str
-
-
-# file handling
-def load_input( data_fn, label_fn ):
-    data = pd.read_csv(data_fn, header=None, on_bad_lines='skip').to_numpy()
-    labels = pd.read_csv(label_fn, header=None, on_bad_lines='skip').to_numpy()
-    return data,labels
-
-# loss functions
-def myLoss(y_true, y_pred):
-    power = 2 # 3
-    power_loss = tf.math.abs(y_true - y_pred)**power
-    return tf.reduce_mean(power_loss, axis=-1)
-
-
-def summarize_categorical_performance(y_true, y_pred):
-    accuracy = np.max(y_pred * y_true[:,:5], axis = 1)
-    auc = metrics.roc_auc_score(y_true[:,:5], y_pred)
-    
-    ### eps set due to 3 sig digits rounding in get_root_state_probs.sh script. 
-    # set to midpoint between 0 and 0.001
-    cross_entropy = metrics.log_loss(y_true[:,:5], y_pred, eps = 5e-4) 
-    
-    return accuracy, auc, cross_entropy
-
-    
-def tip_freq_accuracy(treeLocation_tensor, labels, num_locs = 5):
-
-    tip_loc_counts = np.zeros((treeLocation_tensor.shape[0], num_locs))
-    tip_loc_distro = np.zeros((treeLocation_tensor.shape[0], num_locs))
-    accuracy_tipfreq = np.zeros((treeLocation_tensor.shape[0]))
-
-    for i in range(0, treeLocation_tensor.shape[0]):    
-        tip_loc_counts[i,:] = sum(treeLocation_tensor[i,:,2:2+num_locs])
-        tip_loc_distro[i,:] = tip_loc_counts[i,:] / sum(tip_loc_counts[i,:])
-        accuracy_tipfreq[i] = sum(tip_loc_distro[i,:] * labels[i,:5])
-        
-    return accuracy_tipfreq, tip_loc_distro
-
-    
-def get_num_tips(tree_data_tensor):
-    # tree size
-    num_sample = tree_data_tensor.shape[0]
-    tree_data_tensor = tree_data_tensor.reshape((num_sample, 502, 7), order = 'C')
-    num_tips = []
-    for i in range(tree_data_tensor.shape[0]):
-        num_tips.append(len(np.where(tree_data_tensor[i,:,0] > 0)[0]))
-    num_tips = np.asarray(num_tips)
-    
-    return np.array(num_tips)
-
-
-def normalize_01(data, min_max = None):
-    if(type(min_max) == type(None)):
-        max_value = data.max(axis = 0)
-        min_value = data.min(axis = 0)
-        difference = max_value - min_value
-        difference[np.where(difference <= 0)] = 1
-        return (max_value - data)/difference, min_value, max_value
-    else:
-        min_value = min_max[0]
-        max_value = min_max[1]
-        difference = max_value - min_value
-        difference[np.where(difference <= 0)] = 1
-        return (max_value - data)/difference
-
-    
     
 def normalize(data, m_sd = None):
-    if(type(m_sd) == type(None )):
+    if(type(m_sd) == type(None)):
         m = data.mean(axis = 0)
         sd = data.std(axis = 0)
         sd[np.where(sd == 0)] = 1
@@ -1318,553 +1442,14 @@ def normalize(data, m_sd = None):
         return (data - m_sd[0])/m_sd[1]
         
     
-
-    
 def denormalize(data, train_mean, train_sd, log_labels = False):
     return data * train_sd + train_mean
 
-
-def denormalize_01(data, train_min, train_max):
-    return train_max - data * (train_max - train_min)
-
-        
-def create_data_tensors2(data, mu, subsample_prop,
-                            tmrca, mean_bl, num_tips, num_locs, max_tips,
-                           cblv_contains_mu_rho = True):
-    
-    num_sample = data.shape[0]
-    
-    # reshape data tensor    
-    full_data_tensor = data.reshape((num_sample, max_tips, num_locs + 2), order = 'C')
-
-    # create tree/location tensor
-    if(cblv_contains_mu_rho):
-        full_treeLocation_tensor = full_data_tensor[:,:max_tips-3,:]
-    else:
-        full_treeLocation_tensor = full_data_tensor
-        
-    
-    # create prior tensor
-    subsample_prop = np.repeat(subsample_prop, 2)
-    subsample_prop = subsample_prop.reshape((num_sample, 1, 2))
-    mu = np.repeat(mu , 2)
-    mu = mu.reshape((num_sample , 1, 2))
-    num_tips = np.repeat(num_tips, 2)
-    num_tips = num_tips.reshape((num_sample, 1, 2))
-    tmrca = np.repeat(tmrca, 2)
-    tmrca = tmrca.reshape((num_sample, 1, 2))
-    mean_bl = np.repeat(mean_bl, 2)
-    mean_bl = mean_bl.reshape((num_sample, 1, 2))
-    
-    full_prior_tensor = np.concatenate((mu, subsample_prop, num_tips, tmrca, mean_bl), axis = 1)
-    
-    return full_treeLocation_tensor, full_prior_tensor
-
-def create_train_val_test_tensors(full_tensor, num_validation, num_test):
-    # training tensors
-    train_tensor = full_tensor[num_test + num_validation:,:,:]
-
-    # validation tensors
-    validation_tensor = full_tensor[num_test:num_test + num_validation,:,:]
-
-    # testing tensors
-    test_tensor = full_tensor[:num_test,:,:]
-
-    return train_tensor, validation_tensor, test_tensor
-
-
+#-----------------------------------------------------------------------------------------------------------------#
 
 #######################
-# PLotting functions ##
+# CQR functions      ##
 #######################
-
-def make_history_plot(history, prefix, plot_dir):
-    epochs      = range(1, len(history['loss']) + 1)
-    train_keys  = [ x for x in history.keys() if 'val' not in x ]
-    val_keys = [ 'val_'+x for x in train_keys ]
-    for i,v in enumerate(train_keys): #range(0,num_metrics):
-        plt.plot(epochs, history[train_keys[i]], color='blue', label = train_keys[i])
-        plt.scatter(epochs, history[train_keys[i]], color='blue', label = train_keys[i])
-        plt.plot(epochs, history[val_keys[i]], color='red', label = val_keys[i])
-        plt.scatter(epochs, history[val_keys[i]], color='red', label = val_keys[i])
-        plt.title('Train and val ' + train_keys[i])
-        plt.xlabel('Epochs')
-        plt.ylabel(train_keys[i])
-        plt.legend()
-        save_fn = plot_dir + '/' + prefix + '_' + train_keys[i] + '.pdf'
-        plt.savefig(save_fn, format='pdf')
-        plt.clf()
-
-
-def plot_preds_labels(preds, labels, param_names, plot_dir, prefix, color="blue", axis_labels = ["prediction", "truth"], title = ''):
-    for i in range(0, len(param_names)):
-        plt.title(title)
-        plt.scatter(preds[:,i], labels[:,i], alpha=0.25, color=color)
-        plt.xlabel(param_names[i] + " " +  axis_labels[0])
-        plt.ylabel(param_names[i] + " " +  axis_labels[1])
-        plt.axline((np.min(labels[:,i]),np.min(labels[:,i])), slope=1, color=color, alpha=0.75)
-        save_fn = plot_dir + '/' + prefix + '_' + param_names[i] + '.pdf'
-        plt.savefig(save_fn, format='pdf')
-        plt.clf()
-        #plt.show()
-
-
-def plot_root_pred_examples(labels, preds, phylo_post, tip_loc_distro, num_plots = 10, num_locs = 5):
-    cats = np.arange(num_locs)
-    barwidth = 0.2
-    randidx = np.random.permutation(labels.shape[0]-1)[0:num_plots]
-    for i in randidx:
-        plt.figure(figsize=(num_locs+2, 1))
-        plt.bar(cats + barwidth, preds[i,:], barwidth, label = "prediction")
-        plt.bar(cats, labels[i,:5], barwidth, label = "truth")
-        plt.bar(cats + 2 * barwidth, phylo_post[i,:], barwidth, label = "phylo", color = "red")
-        plt.bar(cats + 3 * barwidth, tip_loc_distro[i,:], barwidth, label = 'tip frequency')
-        plt.show()
-    plt.close()
-
-
-def root_summary_plots(cnn_root_accuracy, phylo_root_accuracy, accuracy_tipfreq):
-
-    plt.hist(cnn_root_accuracy, bins = 20, range = [0,1], color = 'blue')
-    plt.xlabel('CNN and Phylo accuracy')
-    plt.hist(phylo_root_accuracy, bins = 20, range = [0,1], alpha = 0.5, color = 'red')
-    plt.legend(['CNN', 'Phylo'])
-    plt.show()
-
-    plt.hist(phylo_root_accuracy - cnn_root_accuracy, bins = 20)
-    plt.axline((0,0), slope = 100000, color = 'red', alpha=0.75)
-    plt.xlabel("phylo_accuracy - cnn accuracy")
-    plt.show()
-
-    plt.hist(accuracy_tipfreq, bins = 20, range = [0,1])
-    plt.xlabel('Tip frequency accuracy')
-    plt.show()
-
-    plt.scatter(cnn_root_accuracy, phylo_root_accuracy)
-    plt.xlabel("CNN accuracy")
-    plt.ylabel("phylo accuracy")
-    plt.axline((np.min(cnn_root_accuracy),np.min(phylo_root_accuracy)), slope = 1, color = 'red', alpha=0.75)
-    plt.show()
-
-
-def plot_overlaid_scatter(sample_1, sample_2, reference_sample, 
-                          sample_names = ['CNN', 'phylo'],
-                          param_names = ["R0", "sample rate", "migration rate"], 
-                          axis_labels = ["estimate", "truth"]):
-    dot_colors = ['blue', 'red']
-    for i in range(0, sample_1.shape[1]):
-        minimum = np.min([sample_1[:,i], reference_sample[:,i]])
-        plt.scatter(sample_1[:,i], reference_sample[:,i], alpha =0.75, color = dot_colors[0])
-        plt.scatter(sample_2[:,i], reference_sample[:,i], alpha =0.75, color = dot_colors[1])
-        plt.xlabel(param_names[i] + " " + axis_labels[0])
-        plt.ylabel(param_names[i] + " " + axis_labels[1])
-        plt.legend(sample_names)
-        plt.axline((minimum, minimum), slope = 1, color = 'red', alpha=0.75)
-        plt.show()
-        
-
-def plot_convlayer_weights(model, layer_num):
-    layer_num = layer_num
-    print(model.layers[layer_num].get_config())
-    print(model.layers[layer_num].get_weights()[0].shape)
-    layer_biases = model.layers[layer_num].get_weights()[1]
-    layer_weights = model.layers[layer_num].get_weights()[0]
-    for j in range(0, layer_weights.shape[2]):
-        filter_num = j
-        print(filter_num)
-        for k in range(0,layer_weights.shape[1]):    
-            plt.hlines(0,0,layer_weights.shape[0]-1, linestyle='dashed', color = "black")
-            plt.plot(layer_weights[:,k,filter_num], color=np.random.rand(3,))
-            plt.vlines(0,-0.5,0.5, color = "white")
-        plt.show()
-    
-    
-def plot_denselayer_weights(model, layer_num):
-    layer_num = layer_num
-    print(model.layers[layer_num].get_config())
-    print(model.layers[layer_num].get_weights()[0].shape)
-    layer_biases = model.layers[layer_num].get_weights()[1]
-    layer_weights = model.layers[layer_num].get_weights()[0]
-    for j in range(0, layer_weights.shape[1]):
-        filter_num = j
-        print(filter_num)
-        plt.hlines(0,0,layer_weights.shape[0]-1, linestyle='dashed', color = "black")
-        plt.plot(layer_weights[:,filter_num], color=np.random.rand(3,))
-        plt.vlines(0,-0.5,0.5, color = "white")
-        # set to true for first dense layer after concatenation
-        if(False):
-            plt.vlines([w_global_avg.shape[1], 
-                        w_global_avg.shape[1] + w_dilated_global_avg.shape[1]],-0.5,0.5)
-        plt.show()
-
-
-def qq_plot(sample_1, sample_2, num_quantiles=100, axlabels=['sample 1', 'sample 2']):
-    plt.scatter(np.quantile(sample_1, np.arange(0,1,1/num_quantiles)), 
-           np.quantile(sample_2, np.arange(0,1,1/num_quantiles)))
-    plt.axline((np.mean(sample_1), np.mean(sample_2)), slope = 1, color = "red")
-    plt.xlabel(axlabels[0])
-    plt.ylabel(axlabels[1])
-    plt.show()
-
-
-def make_experiment_density_plots(ref_pred_ape, ref_phylo_ape, 
-                         misspec_pred_ape,  misspec_phylo_ape, 
-                         baseline_ape, 
-                            xlabel = ["R0", "sample rate", "migration rate"],
-                           plot_legend = ['random', 'CNN', 'CNN misspec', 'Phylo', 'Phylo misspec']):
-    # ref for cnn and phylo, then misspecified for cnn and phylo
-    
-    colors = ['g', 'b', 'b', 'r', 'r']
-    line_styles = [':','-','--', '-','--']
-    
-    # make density plots
-    for i in range(0, ref_pred_ape.shape[1]):
-        xlim_low = np.min(np.concatenate([np.log(baseline_ape[:,i]),
-          np.log(ref_pred_ape[:,i]),
-          np.log(misspec_pred_ape[:,i]), 
-          np.log(ref_phylo_ape[:,i]),
-          np.log(misspec_phylo_ape[:,i])]))
-        xlim_high = np.max(np.concatenate([np.log(baseline_ape[:,i]),
-          np.log(ref_pred_ape[:,i]),
-          np.log(misspec_pred_ape[:,i]), 
-          np.log(ref_phylo_ape[:,i]),
-          np.log(misspec_phylo_ape[:,i])]))
-        df = pd.DataFrame([np.log(baseline_ape[:,i]),
-          np.log(ref_pred_ape[:,i]),
-          np.log(misspec_pred_ape[:,i]), 
-          np.log(ref_phylo_ape[:,i]),
-          np.log(misspec_phylo_ape[:,i])])
-        df.transpose().plot(kind = 'density',
-                           style = line_styles,
-                           color = colors,
-                           xlim = [xlim_low-1, xlim_high+1])
-        plt.xlabel(xlabel[i] + " log abs. % error ")
-        plt.legend(plot_legend)
-        plt.show()
-
-        # make boxplots
-        box = plt.boxplot([ref_pred_ape[:,i],
-          misspec_pred_ape[:,i], 
-          ref_phylo_ape[:,i],
-          misspec_phylo_ape[:,i]],
-                   labels = ['CNN true', 'CNN misspec', 
-                            'phylo true', 'phylo misspec'], 
-                          showfliers = False, widths = 0.9, patch_artist = True)
-        plt.axline((0.5,0), slope = 0, color = "red")
-        plt.ylabel('percent error (APE)')
-        plt.title(xlabel[i])
-        for box, color in zip(box['boxes'], colors[1:]):
-            box.set_edgecolor(color)
-            box.set_facecolor('w')
-        plt.show()
-        
-        # make histograms        
-        plt.hist((misspec_pred_ape[:,i]) - (misspec_phylo_ape[:,i]), bins = 20)
-        plt.axline((0,0), slope = 1000000, color = "red")
-        plt.xlabel('cnn APE - phylo APE')
-        plt.title(xlabel[i])
-        plt.show()
-
-        # print summary stats
-
-
-
-############
-# plotting #
-############
-
-
-
-
-# ax = sns.heatmap(pcamodel.components_,
-#                  cmap='YlGnBu',
-#                  yticklabels=[ "PCA"+str(x) for x in range(1,pcamodel.n_components_+1)],
-#                  xticklabels=list(x.columns),
-#                  cbar_kws={"orientation": "horizontal"})
-# ax.set_aspect("equal")
-
-# def myplot(score,coeff,labels=None):
-#     xs = score[:,0]
-#     ys = score[:,1]
-#     n = coeff.shape[0]
-#     scalex = 1.0/(xs.max() - xs.min())
-#     scaley = 1.0/(ys.max() - ys.min())
-#     plt.scatter(xs * scalex,ys * scaley,s=5)
-#     for i in range(n):
-#         plt.arrow(0, 0, coeff[i,0], coeff[i,1],color = 'r',alpha = 0.5)
-#         if labels is None:
-#             plt.text(coeff[i,0]* 1.15, coeff[i,1] * 1.15, "Var"+str(i+1), color = 'green', ha = 'center', va = 'center')
-#         else:
-#             plt.text(coeff[i,0]* 1.15, coeff[i,1] * 1.15, labels[i], color = 'g', ha = 'center', va = 'center')
- 
-#     plt.xlabel("PC{}".format(1))
-#     plt.ylabel("PC{}".format(2))
-#     plt.grid()
-
-# myplot(pca[:,0:2],np.transpose(pcamodel.components_[0:2, :]),list(x.columns))
-# plt.show()
-
-
-
-def concat_csv(fp):
-    files = os.listdir(fp)
-    files = [ fp + '/' + x for x in files if 'param2' in x ]
-    df = pd.concat(map(pd.read_csv, files))
-    return df
-
-def plot_ss_param_hist(df, save_fn):
-    df.hist(alpha=0.5, figsize=(20,10))
-    plt.tight_layout()
-    plt.savefig(save_fn, format='pdf')
-    plt.clf()
-
-def plot_pca(df, save_fn, num_comp=4, f_show=1.0):
-    #print(df.shape)
-    x = StandardScaler().fit_transform(df)
-    x = pd.DataFrame(x, columns=df.columns)
-    nrow_keep = int(x.shape[0] * f_show)
-    alpha = 100. / nrow_keep
-    #print(nrow_keep)
-    pca_model = PCA(n_components=num_comp)
-    pca = pca_model.fit_transform(x)
-    pca_var = pca_model.explained_variance_ratio_
-    fig, axs = plt.subplots(num_comp-1, num_comp-1, sharex=True, sharey=True)
-    tick_spacing = 3
-    for i in range(0, num_comp-1):
-        for j in range(0, i+1):
-            axs[i,j].scatter( pca[0:nrow_keep,i+1], pca[0:nrow_keep,j], alpha=alpha, color='blue', marker='x')
-            axs[i,j].xaxis.set_major_locator(ticker.MultipleLocator(tick_spacing))
-            axs[i,j].yaxis.set_major_locator(ticker.MultipleLocator(tick_spacing))
-            if j == 0:
-                ylabel = 'PC{idx} ({var}%)'.format( idx=str(i+2), var=int(100*round(pca_var[i+1], ndigits=2)) )
-                axs[i,j].set_ylabel(ylabel, fontsize=12)
-            if i == (num_comp-2):
-                xlabel = 'PC{idx} ({var}%)'.format( idx=str(j+1), var=int(100*round(pca_var[j], ndigits=2)) )
-                axs[i,j].set_xlabel(xlabel, fontsize=12)
-    plt.tight_layout()
-    plt.savefig(save_fn, format='pdf')
-    plt.clf()
-
-
-
-
-# def get_CPI(x, y, idx=0, frac=0.1, inner_quantile=0.95, num_grid_points=20):
-    
-#     # sizes of training dataset and KNN used for CPIs
-#     num_samples = x.shape[0]
-#     num_param = x.shape[1]
-#     num_frac = int(round(frac * num_samples))
-    
-#     # define quantiles
-#     lower_q = (1-inner_quantile)/2
-#     upper_q = 1 - lower_q
-    
-#     # input values are log, convert to exp on return
-#     # X probably represents the tree stats used for filtering
-#     # because the num_frac seems to be based on the sorted version of xx
-#     # ... butpossibly represents the different SIRM model parameters (R0, delta, m)
-#     min_x0 = np.min(x[:,0])
-#     max_x0 = np.max(x[:,0])
-#     min_x1 = np.min(x[:,1])
-#     max_x1 = np.max(x[:,1])
-#     min_x2 = np.min(x[:,2])
-#     max_x2 = np.max(x[:,2])
-    
-#     # put X1 and X2 on scale of X0 
-#     # ...but why isn't X0 rescaled against (max_x0 - min_x0)????
-#     # ... regardless, we unrescale them later
-#     # I think this so X1/X2/X3 are on common scale, important for kmeans etc
-#     x[:,1] = min_x0 + (x[:,1] - min_x1)/(max_x1 - min_x1) * (max_x0 - min_x0)
-#     x[:,2] = min_x0 + (x[:,2] - min_x2)/(max_x2 - min_x2) * (max_x0 - min_x0)
-    
-#     # not sure why we need to sort, but seems to be for num_frac
-#     # Sort X by multiple columns, from left to right??
-#     # Sorted in terms of closest points, I guess
-#     # But L2 distance should be based on sqrt(sum((x0-xi)^2) ????
-#     sorted_idx = np.lexsort((x[:,2], x[:,1], x[:,0]))
-#     xx = x[sorted_idx,:]
-#     yy = y[sorted_idx]
-    
-#     # Construct kNN Tree based on sorted summ. stats in x
-#     print(xx.shape)
-#     tree = KDTree(xx)
-    
-#     # Construct grid for parameters
-#     xvals = [ np.linspace(np.min(xx[:,i]), np.max(xx[:,i]), num_grid_points) for i in range(3) ]
-#     local_lower_q = np.empty((num_grid_points, num_grid_points, num_grid_points))
-#     local_upper_q = np.empty((num_grid_points, num_grid_points, num_grid_points))
-
-#     # Visit each grid point
-#     for i in range(num_grid_points):
-#         for j in range(num_grid_points):
-#             for k in range(num_grid_points):
-#                 # Get the coordinates for each grid point
-#                 point = np.array( [ xvals[0][i], xvals[1][j], xvals[2][k] ] )
-#                 point = point.reshape(1,-1)
-#                 # Get windows of num_frac values xx and yy close to point
-#                 dist, indices = tree.query(point, num_frac)
-#                 window_x = xx[indices, :].reshape(-1, num_param)
-#                 window_y = yy[indices].reshape(-1)
-#                 # Get the residuals between window_y and window_x (not sure what these represent)
-#                 residuals = window_y - window_x[:,idx]  #window_x[:, 0]  # Assuming y is 1-D
-#                 # Build upper/lower quantiles at i,j,k in grid based on upper/lower quanitiles at point i,j,k
-#                 local_lower_q[i, j, k] = point[:,idx] + np.quantile(residuals, lower_q)
-#                 local_upper_q[i, j, k] = point[:,idx] + np.quantile(residuals, upper_q)
-    
-#     # Create functions to interpolate the fits for out-of-sample values
-#     smoothed_lower_local_q = RegularGridInterpolator((xvals[0], xvals[1], xvals[2]),
-#                                                      local_lower_q, method='linear', bounds_error=False, fill_value=None)
-#     smoothed_upper_local_q = RegularGridInterpolator((xvals[0], xvals[1], xvals[2]),
-#                                                      local_upper_q, method='linear', bounds_error=False, fill_value=None)
-#     # CONFORMAILZE
-#     # output functions for exponentiating, rescaling and interpolation
-#     def scaled_lq(a):
-#         # rescale stats for a, return CPI
-#         a[:,1] = min_x0 + (a[:,1] - min_x1)/(max_x1 - min_x1) * (max_x0 - min_x0)
-#         a[:,2] = min_x0 + (a[:,2] - min_x2)/(max_x2 - min_x2) * (max_x0 - min_x0)
-#         result = np.exp(smoothed_lower_local_q(a))
-#         return result
-    
-#     def scaled_uq(a):
-#         # rescale states for a, return CPI UQ
-#         a[:,1] = min_x0 + (a[:,1] - min_x1)/(max_x1 - min_x1) * (max_x0 - min_x0)
-#         a[:,2] = min_x0 + (a[:,2] - min_x2)/(max_x2 - min_x2) * (max_x0 - min_x0)
-#         result = np.exp(smoothed_upper_local_q(a))
-#         return result
-    
-#     return scaled_lq, scaled_uq
-
-
-
-
-# # x are the summstats to restrict the neighborhooed
-# # y are the model parameters we're constructing CPI for
-# # x_pred is the predicted value for the parameter of interest
-# # x_stat are other summary stats for filtering
-# # x_true is the true value for the parameter of interest
-# def get_CPI2(x_pred, x_stat, x_true, frac=0.1, inner_quantile=0.95, num_grid_points=20):
-    
-#     # accept all input on linear scale
-#     # convert to log for interpolation
-#     x_pred = np.log(x_pred)
-#     x_true = np.log(x_true)
-
-#     # construct x,y objects
-#     x = np.hstack( [x_pred, x_stat] )
-#     y = x_true
-
-#     # Fit using residuals around CNN predictions
-#     # get basic CPI settings
-#     lower_q     = (1-inner_quantile)/2
-#     upper_q     = 1 - lower_q
-#     num_params  = x.shape[1]
-#     num_samples = x.shape[0]
-#     num_frac    = int(round(frac * num_samples))
-
-#     # standardize data to loc/scale of x0
-#     # scale and shift columns k!=0 to have same spread as column 0
-#     min_x = {}
-#     max_x = {}
-#     range_x = {}
-#     for i,k in enumerate(range(num_params)):
-#         min_x[k] = np.min(x[:,k])
-#         max_x[k] = np.max(x[:,k])
-#         range_x[k] = max_x[k] - min_x[k]
-#         #if i != 0:
-#         #    x[:,k] = min_x[0] + (x[:,k] - min_x[k]) / range_x[k] * range_x[0] #(max_x[k]-min_x[k]) * (max_x[0] - min_x[0])
-    
-#     # created sorted containers
-#     # reverse order of columns in x = (x_pred, x_stat)
-#     sorted_idx = np.lexsort( tuple([ x[:,k] for k in range(num_params)[::-1]])  )
-#     xx = x[sorted_idx,:]
-#     yy = y[sorted_idx,:]
-    
-#     # create KNN tree to access
-#     tree = KDTree(xx)
-
-#     # construct grid
-#     xvals = [ np.linspace(min_x[i], max_x[i], num_grid_points) for i in range(num_params) ]
-
-#     # for storing lower/upper quantiles (data at grid-points for interpolation)
-#     local_lower_q = np.empty( np.repeat(num_grid_points, num_params) )
-#     local_upper_q = np.empty( np.repeat(num_grid_points, num_params) )
-
-#     # list of all possible grid-point indices
-#     grid_idx_list = list(itertools.combinations_with_replacement(list(range(num_grid_points)), num_params))
-    
-#     # get focal param quantiles for each grid point
-#     for grid_idx in grid_idx_list:
-#         # point has 1 row and num_params columns
-#         # value of point equals a grid-point's value
-#         point = np.zeros( (1,num_params) )
-#         for j in range(num_params):
-#             k = grid_idx[j]
-#             point[0,j] = xvals[j][k]
-
-#         # compute residuals for y-x near grid-point
-#         dist, indices = tree.query(point, num_frac)
-#         window_x = xx[indices, 0]
-#         window_y = yy[indices, 0]
-#         residuals = window_y - window_x
-        
-#         # get lower/upper quantiles relative to grid-point
-#         param_est = point[0,0]
-#         param_lower = param_est + np.quantile(residuals, lower_q)
-#         param_upper = param_est + np.quantile(residuals, upper_q)
-        
-#         # debug printing
-#         #print( point[0] )
-#         #print( f'{param_est}  ({param_lower}   {param_upper})')
-#         #print('')
-        
-#         # store lower/upper quantiles corresponding to grid-point
-#         local_lower_q[ tuple(grid_idx) ] = param_lower  # point[0,0] + np.quantile(residuals, lower_q)
-#         local_upper_q[ tuple(grid_idx) ] = param_upper  # point[0,0] + np.quantile(residuals, upper_q)
-    
-
-#     print( tuple(xvals), local_lower_q )
-#     print( local_lower_q.shape )
-#     # Create functions to interpolate the fits for out-of-sample values
-#     smoothed_lower_local_q = RegularGridInterpolator( tuple(xvals), local_lower_q,
-#                                                       method='linear', bounds_error=False, fill_value=1e-12)
-#     smoothed_upper_local_q = RegularGridInterpolator( tuple(xvals), local_upper_q,
-#                                                       method='linear', bounds_error=False, fill_value=1e+12)
-    
-#     # CONFORMAILZE
-#     # output functions for exponentiating, rescaling and interpolation
-#     def scaled_lq(a):
-#         #for i,k in enumerate(range(num_params)):
-#         #    if i != 0:
-#         #        a[:,k] = min_x[0] + (a[:,k] - min_x[k]) / range_x[k] * range_x[0] # (max_x[k]-min_x[k]) * (max_x[0] - min_x[0])
-#         #a[:,1] = min_x0 + (a[:,1] - min_x1)/(max_x1 - min_x1) * (max_x0 - min_x0)
-#         #a[:,2] = min_x0 + (a[:,2] - min_x2)/(max_x2 - min_x2) * (max_x0 - min_x0)
-#         return np.exp( smoothed_lower_local_q(a) )
-#     def scaled_uq(a):
-#         #for i,k in enumerate(range(num_params)):
-#         #    if i != 0:
-#         #        a[:,k] = min_x[0] + (a[:,k] - min_x[k]) / range_x[k] * range_x[0] # (max_x[k]-min_x[k]) * (max_x[0] - min_x[0])
-#         # a[:,1] = min_x0 + (a[:,1] - min_x1)/(max_x1 - min_x1) * (max_x0 - min_x0)
-#         # a[:,2] = min_x0 + (a[:,2] - min_x2)/(max_x2 - min_x2) * (max_x0 - min_x0)
-#         return np.exp( smoothed_upper_local_q(a) )
-
-#     point_test  = xx[20,:]
-#     #param_lower = np.exp( smoothed_lower_local_q( point_test )[0] )
-#     #param_upper = np.exp( smoothed_upper_local_q( point_test )[0] )
-#     param_lower = smoothed_lower_local_q( point_test )[0]
-#     param_upper = smoothed_upper_local_q( point_test )[0]
-    
-#     print( 'rescaled values        ', f'{point_test[0]}  {point_test[1]}  {point_test[2]}')
-#     print( 'rescaled estimate      ', f'{np.exp(point_test[0])}  ({param_lower}   {param_upper})' )
-#     print('')
-
-#     return scaled_lq, scaled_uq
-
-# # # used to predict quantiles from training data
-# # def pinball_loss(y_true, y_pred, alpha=0.05):
-# #     if y_true - y_pred > 0.:
-# #         return alpha * (y_true - y_pred)
-# #     else:
-#         return (1 - alpha) * (y_pred - y_true)
 
 def pinball_loss(y_true, y_pred, alpha):
     err = y_true - y_pred
@@ -1894,12 +1479,6 @@ def pinball_loss_q_0_15(y_true, y_pred):
 def pinball_loss_q_0_85(y_true, y_pred):
     return pinball_loss(y_true, y_pred, alpha=0.85)
 
-
-
-# def pinball_loss(y_true, y_pred, alpha=0.05):
-#     err = y_true - y_pred
-#     return K.mean(K.maximum(alpha * err, (alpha - 1) * err), axis=-1)
-
 # computes the distance y_i is inside/outside the lower(x_i) and upper(x_i) quantiles
 # there are three cases to consider:
 #   1. y_i is under the lower bound: max-value will be q_lower(x_i) - y_i & positive
@@ -1923,10 +1502,10 @@ def get_CQR_constant(x_pred_quantiles, y_true, inner_quantile=0.95):
         # get 1 - alpha/2's quintile of non-comformity scores
         #print( inner_quantile * (1 + 1/x_pred_quantiles.shape[1]) )
         quant = inner_quantile * (1 + 1/x_pred_quantiles.shape[1])
-        if quant < 0 and quant > 0 - error:
-            quant = 0.
-        elif quant > 1. and quant < 1. + error:
-            quant = 1.
+        # if quant < 0 and quant > 0 - error:
+        #     quant = 0.
+        # elif quant > 1. and quant < 1. + error:
+        #     quant = 1.
         Q = np.append(Q, np.quantile(E, quant))
 
     return Q
@@ -1950,15 +1529,5 @@ def make_param_VLU_mtx(A, param_names):
 
     new_col_names = [ f'{param_names[y]}_{stat_names[x]}' for x,y in df.columns ]
     df.columns = new_col_names
-
-    return df
-
-# unmake VLU mtx: 2D -> 3D
-def unmake_param_VLU_mtx(A, param_names):
-    
-    # axis labels
-    stat_names = ['value', 'lower', 'upper']
-
-
 
     return df
