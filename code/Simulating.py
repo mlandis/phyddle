@@ -2,6 +2,8 @@ import os
 import re
 import subprocess
 import numpy as np
+import gzip
+import shutil
 from joblib import Parallel, delayed
 from tqdm import tqdm
 
@@ -62,8 +64,6 @@ class Simulator:
         # make filenames
         out_path  = self.sim_dir + '/' + self.proj + '/sim'
         tmp_fn    = out_path + '.' + str(idx)
-        beast_fn  = tmp_fn + '.beast.log'
-        xml_fn    = tmp_fn + '.xml'
         param_mtx_fn = tmp_fn + '.param_col.csv'
         param_vec_fn = tmp_fn + '.param_row.csv'
         
@@ -75,6 +75,97 @@ class Simulator:
         Utilities.write_to_file(param_mtx_str, param_mtx_fn)
         Utilities.write_to_file(param_vec_str, param_vec_fn)
         
+        # delegate simulation to derived Simulator
+        self.sim_one_custom(idx)
+
+        # # make XML file
+        # xml_str = self.xml_str
+        # Utilities.write_to_file(xml_str, xml_fn)
+
+        # # run BEAST job
+        # cmd_str = self.cmd_str
+        # beast_out = subprocess.check_output(cmd_str, shell=True, text=True, stderr=subprocess.STDOUT)
+        # Utilities.write_to_file(beast_out, beast_fn)
+
+        # if self.sim_logging == 'clean':
+        #     for x in [ xml_fn, beast_fn, json_fn ]:
+        #         if os.path.exists(x):
+        #             os.remove(x)
+        # elif self.sim_logging == 'compress':
+        #     for x in [ xml_fn, beast_fn, json_fn ]:
+        #         if os.path.exists(x):
+        #             with open(x, 'rb') as f_in:
+        #                 with gzip.open(x+'.gz', 'wb') as f_out:
+        #                     shutil.copyfileobj(f_in, f_out)        
+        #             os.remove(x)
+        # elif self.sim_logging == 'verbose':
+        #     pass
+        #     # do nothing
+
+        return
+
+    def refresh_model(self, idx):
+        self.model.set_model(idx)
+        self.start_state   = self.model.start_state
+        self.start_sizes   = self.model.start_sizes
+        self.df_events     = self.model.df_events
+        self.refresh_model_custom(idx)
+        #self.reaction_vars = self.make_reaction_vars()
+        #self.xml_str       = self.make_xml(idx)
+        #self.cmd_str       = 'beast {sim_dir}/{proj}/sim.{idx}.xml'.format(sim_dir=self.sim_dir, proj=self.proj, idx=idx)
+        return
+
+    def sim_one_custom(self, idx):
+        return NotImplementedError
+    
+    def refresh_model_custom(self, idx):
+        return NotImplementedError    
+
+
+###################################
+# Generic CLI simulator interface #
+###################################
+
+# must be command line tool
+# - accepts input model parameters
+# - outputs Newick tree file
+# - outputs Nexus data matrix
+# - phyddle handles rest
+
+##############################
+# MASTER simulator interface #
+##############################
+
+class MasterSimulator(Simulator):
+    def __init__(self, args, mdl):
+        # call base constructor
+        super().__init__(args, mdl)
+        return
+    
+    # def refresh_model(self, idx):
+    #     self.model.set_model(idx)
+    #     self.start_state   = self.model.start_state
+    #     self.start_sizes   = self.model.start_sizes
+    #     self.df_events     = self.model.df_events
+    #     self.reaction_vars = self.make_reaction_vars()
+    #     self.xml_str       = self.make_xml(idx)
+    #     self.cmd_str       = 'beast {sim_dir}/{proj}/sim.{idx}.xml'.format(sim_dir=self.sim_dir, proj=self.proj, idx=idx)
+    #     return
+
+    def refresh_model_custom(self, idx):
+        self.reaction_vars = self.make_reaction_vars()
+        self.xml_str       = self.make_xml(idx)
+        self.cmd_str       = 'beast {sim_dir}/{proj}/sim.{idx}.xml'.format(sim_dir=self.sim_dir, proj=self.proj, idx=idx)
+
+
+    def sim_one_custom(self, idx):
+        out_path  = self.sim_dir + '/' + self.proj + '/sim'
+        tmp_fn    = out_path + '.' + str(idx)
+
+        beast_fn  = tmp_fn + '.beast.log'
+        xml_fn    = tmp_fn + '.xml'
+        json_fn   = tmp_fn + '.json'
+
         # make XML file
         xml_str = self.xml_str
         Utilities.write_to_file(xml_str, xml_fn)
@@ -84,31 +175,23 @@ class Simulator:
         beast_out = subprocess.check_output(cmd_str, shell=True, text=True, stderr=subprocess.STDOUT)
         Utilities.write_to_file(beast_out, beast_fn)
 
+        # logging clean-up
         if self.sim_logging == 'clean':
-            os.remove(xml_fn)
-            os.remove(beast_fn)
+            for x in [ xml_fn, beast_fn, json_fn ]:
+                if os.path.exists(x):
+                    os.remove(x)
+        elif self.sim_logging == 'compress':
+            for x in [ xml_fn, beast_fn, json_fn ]:
+                if os.path.exists(x):
+                    with open(x, 'rb') as f_in:
+                        with gzip.open(x+'.gz', 'wb') as f_out:
+                            shutil.copyfileobj(f_in, f_out)        
+                    os.remove(x)
         elif self.sim_logging == 'verbose':
             pass
             # do nothing
-
-        return
-
-class MasterSimulator(Simulator):
-    def __init__(self, args, mdl):
-        # call base constructor
-        super().__init__(args, mdl)
         return
     
-    def refresh_model(self, idx):
-        self.model.set_model(idx)
-        self.start_state   = self.model.start_state
-        self.start_sizes   = self.model.start_sizes
-        self.df_events     = self.model.df_events
-        self.reaction_vars = self.make_reaction_vars()
-        self.xml_str       = self.make_xml(idx)
-        self.cmd_str       = 'beast {sim_dir}/{proj}/sim.{idx}.xml'.format(sim_dir=self.sim_dir, proj=self.proj, idx=idx)
-        return
-
     def make_reaction_vars(self):
         qty = {}
         # get list of all reaction variables
