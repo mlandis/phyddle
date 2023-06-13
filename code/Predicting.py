@@ -21,7 +21,7 @@ class Predictor:
     
     def set_args(self, args):
         self.args              = args
-        self.job_name          = args['job_name']
+        self.project_name      = args['proj']
         self.net_dir           = args['net_dir']
         self.pred_dir          = args['pred_dir']
         self.pred_prefix       = args['pred_prefix']
@@ -36,7 +36,7 @@ class Predictor:
     def prepare_files(self):
 
         # main directories
-        self.network_dir    = self.net_dir + '/' + self.job_name
+        self.network_dir    = self.net_dir + '/' + self.project_name
 
         # main job filenames
         self.model_prefix           = f'sim_batchsize{self.batch_size}_numepoch{self.num_epochs}_nt{self.tree_size}'

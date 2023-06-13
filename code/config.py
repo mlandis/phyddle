@@ -67,7 +67,7 @@ args = args | fmt_args
 lrn_args = { 
     'net_dir'        : '../network',
     'tree_size'      : 500,
-    'num_epochs'     : 20,
+    'num_epochs'     : 40,
     'prop_test'        : 0.05,
     'prop_validation'  : 0.05,
     'prop_calibration' : 0.20,
@@ -96,6 +96,6 @@ args = args | plt_args
 
 prd_args = {
     'pred_dir'    : '../raw_data/geosse1_test',
-    'pred_prefix' : 'sim.4'
+    'pred_prefix' : 'sim.5'
 }
 args = args | prd_args
