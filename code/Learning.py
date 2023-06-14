@@ -30,9 +30,9 @@ class Learner:
         self.tree_size         = args['tree_size']
         self.tree_type         = args['tree_type']
         if self.tree_type == 'extant':
-            self.num_tree_row = 1
+            self.num_tree_row = 3
         elif self.tree_type == 'serial':
-            self.num_tree_row = 2
+            self.num_tree_row = 4
         else:
             raise NotImplementedError
         self.tensor_format     = args['tensor_format']
@@ -360,21 +360,22 @@ class CnnLearner(Learner):
         # drop 0th column containing point estimate predictions for calibration dataset
         norm_calib_pred_quantiles = self.normalized_calib_preds[1:,:,:]
         self.cqr_interval_adjustments = Utilities.get_CQR_constant(norm_calib_pred_quantiles, self.norm_calib_labels, inner_quantile=self.alpha_CQRI)
-        self.cqr_interval_adjustments = np.array( self.cqr_interval_adjustments ).reshape((1,-1))
+        self.cqr_interval_adjustments = np.array( self.cqr_interval_adjustments ).reshape((2,-1))
+        print(self.cqr_interval_adjustments.shape)
 
         # note to self: should I save all copies of calibrated/uncalibrated predictions test/train/calib??
 
         # training predictions with calibrated CQR CIs
         self.denorm_train_preds_calib        = self.normalized_train_preds
-        self.denorm_train_preds_calib[1,:,:] = self.denorm_train_preds_calib[1,:,:] - self.cqr_interval_adjustments
-        self.denorm_train_preds_calib[2,:,:] = self.denorm_train_preds_calib[2,:,:] + self.cqr_interval_adjustments
+        self.denorm_train_preds_calib[1,:,:] = self.denorm_train_preds_calib[1,:,:] - self.cqr_interval_adjustments[0,:]
+        self.denorm_train_preds_calib[2,:,:] = self.denorm_train_preds_calib[2,:,:] + self.cqr_interval_adjustments[1,:]
         self.denorm_train_preds_calib        = Utilities.denormalize(self.denorm_train_preds_calib, self.train_label_means, self.train_label_sd)
         self.denorm_train_preds_calib        = np.exp(self.denorm_train_preds_calib)
 
         # test predictions with calibrated CQR CIs
         self.denorm_test_preds_calib        = self.normalized_test_preds
-        self.denorm_test_preds_calib[1,:,:] = self.denorm_test_preds_calib[1,:,:] - self.cqr_interval_adjustments
-        self.denorm_test_preds_calib[2,:,:] = self.denorm_test_preds_calib[2,:,:] + self.cqr_interval_adjustments
+        self.denorm_test_preds_calib[1,:,:] = self.denorm_test_preds_calib[1,:,:] - self.cqr_interval_adjustments[0,:]
+        self.denorm_test_preds_calib[2,:,:] = self.denorm_test_preds_calib[2,:,:] + self.cqr_interval_adjustments[1,:]
         self.denorm_test_preds_calib        = Utilities.denormalize(self.denorm_test_preds_calib, self.train_label_means, self.train_label_sd)
         self.denorm_test_preds_calib        = np.exp(self.denorm_test_preds_calib)
 

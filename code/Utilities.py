@@ -1,7 +1,7 @@
 # general libraries
 import argparse
 import importlib
-import sys
+#import sys
 import re
 import os
 #import itertools
@@ -13,10 +13,9 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # or any {'0', '1', '2'}
 
 import pandas as pd
 import numpy as np
-
 import dendropy as dp
 from itertools import chain, combinations
-from keras import backend as K
+from keras import backend as K    # <- move this into Learning if possible
 
 #import scipy as sp
 #import matplotlib.pyplot as plt
@@ -138,9 +137,9 @@ class States:
 
 #-----------------------------------------------------------------------------------------------------------------#
 
-#################
-# FILE HANDLERS #
-#################
+###################
+# CONFIG LOADER   #
+###################
 
 def load_config(config_fn, arg_overwrite=True):
     
@@ -190,7 +189,9 @@ def load_config(config_fn, arg_overwrite=True):
     # parser.add_argument('--pred_prefix',        dest='pred_prefix', type=str, help='Predict results for this dataset')
     
     # argument parsing
-    parser = argparse.ArgumentParser(description='phyddle pipeline config', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(description='phyddle pipeline config',
+                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    
     parser.add_argument('-c', '--cfg',          dest='config_fn', type=str, help='Config file name')
     #parser.add_argument('-f', '--force',        action='store_true', help='Arguments override config file settings')
     parser.add_argument('--proj',               dest='proj', type=str, help='Project name used as directory across pipeline stages')
@@ -206,7 +207,7 @@ def load_config(config_fn, arg_overwrite=True):
     #parser.add_argument('--show_models',        dest='show_models', type=bool, default=False, help='Print all available model types and variants?')
     parser.add_argument('--model_type',         dest='model_type', type=str, help='Model type')
     parser.add_argument('--model_variant',      dest='model_variant', type=str, help='Model variant')
-    parser.add_argument('--num_char',           dest='num_char', type=int, help='Number of characters')
+    parser.add_argument('--num_char',            dest='num_char', type=int, help='Number of characters')
     # simulation settings
     parser.add_argument('--sim_logging',        dest='sim_logging', type=str, choices=['clean', 'verbose', 'compress'], help='Simulation logging style')
     parser.add_argument('--start_idx',          dest='start_idx', type=int, help='Start index for simulation')
@@ -217,6 +218,7 @@ def load_config(config_fn, arg_overwrite=True):
     # formatting settings
     parser.add_argument('--tensor_format',      dest='tensor_format', type=str, choices=['hdf5', 'csv'], help='Storage format for simulation tensors')
     parser.add_argument('--tree_type',          dest='tree_type', type=str, choices=['extant', 'serial'], help='Type of tree')
+    parser.add_argument('--save_phyenc_csv',    dest='save_phyenc_csv', type=bool, help='Save encoded phylogenetic tensor encoding to csv?')
     # learning settings
     parser.add_argument('--tree_size',          dest='tree_size', type=int, help='Number of taxa in phylogenetic tensor')
     parser.add_argument('--num_epochs',         dest='num_epochs', type=int, help='Number of learning epochs')
@@ -265,6 +267,7 @@ def load_config(config_fn, arg_overwrite=True):
     #m = overwrite_defaults(m, args, 'show_models')
     m = overwrite_defaults(m, args, 'model_type')
     m = overwrite_defaults(m, args, 'model_variant')
+    m = overwrite_defaults(m, args, 'num_char')
     m = overwrite_defaults(m, args, 'sim_logging')
     m = overwrite_defaults(m, args, 'start_idx')
     m = overwrite_defaults(m, args, 'end_idx')
@@ -272,6 +275,7 @@ def load_config(config_fn, arg_overwrite=True):
     m = overwrite_defaults(m, args, 'stop_floor_sizes')
     m = overwrite_defaults(m, args, 'stop_ceil_sizes')
     m = overwrite_defaults(m, args, 'tree_size')
+    m = overwrite_defaults(m, args, 'save_phyenc_csv')
     m = overwrite_defaults(m, args, 'num_epochs')
     m = overwrite_defaults(m, args, 'batch_size')
     m = overwrite_defaults(m, args, 'prop_test')
@@ -286,13 +290,11 @@ def load_config(config_fn, arg_overwrite=True):
     # return new args
     return m.args
 
-
-
 #-----------------------------------------------------------------------------------------------------------------#
 
-#################
-# MODEL HELPERS #
-#################
+###################
+# GENERAL HELPERS #
+###################
 
 def make_symm(m):
     d = np.diag(m)
@@ -332,13 +334,27 @@ def powerset(iterable):
     s = list(iterable)
     return chain.from_iterable(combinations(s, r) for r in range(len(s)+1))
 
+def find_tree_width(num_taxa, max_taxa):
+    if num_taxa == 0:
+        return 0
+    elif num_taxa > max_taxa[-1]:
+        return -1
+    for i in max_taxa:
+        if num_taxa <= i:
+            return i
+    # should never call this
+    raise Exception('error in find_tree_width()', num_taxa, max_taxa)
+    return -2
+
+def clean_scientific_notation(s):
+    return re.sub( '\.0+E\+0+', '', s)
 
 #-----------------------------------------------------------------------------------------------------------------#
 
 
-#######################
-# FILE/STRING HELPERS #
-#######################
+################
+# FILE HELPERS #
+################
 
 def write_to_file(s, fn):
     f = open(fn, 'w')
@@ -361,21 +377,12 @@ def read_tree(tre_fn):
                 phy = phy_tmp
     return phy
 
-def find_tree_width(num_taxa, max_taxa):
-    if num_taxa == 0:
-        return 0
-    elif num_taxa > max_taxa[-1]:
-        return -1
-    for i in max_taxa:
-        if num_taxa <= i:
-            return i
-    # should never call this
-    raise Exception('error in find_tree_width()', num_taxa, max_taxa)
-    return -2
-
-def clean_scientific_notation(s):
-    return re.sub( '\.0+E\+0+', '', s)
-
+def make_clean_phyloenc_str(x):
+    s = np.array2string(x, separator=',', max_line_width=1e200, threshold=1e200, edgeitems=1e200, precision=10, floatmode='maxprec')
+    s = re.sub(r'[\[\]]', '', string=s)
+    s = re.sub(r',\n ', '\n', string=s)
+    s = s + '\n'
+    return s
 
 
 #-----------------------------------------------------------------------------------------------------------------#
@@ -589,6 +596,26 @@ def param_dict_to_str(params):
     s4 = s2.rstrip(',') + '\n' + s3.rstrip(',') + '\n'
     return s1,s4
 
+def events2df(events):
+    df = pd.DataFrame({
+        'name'     : [ e.name for e in events ],
+        'group'    : [ e.group for e in events ], 
+        'i'        : [ e.i for e in events ],
+        'j'        : [ e.j for e in events ],
+        'k'        : [ e.k for e in events ],
+        'reaction' : [ e.reaction for e in events ],
+        'rate'     : [ e.rate for e in events ]
+    })
+    return df
+
+def states2df(states):
+    df = pd.DataFrame({
+        'lbl' : states.int2lbl,
+        'int' : states.int2int,
+        'set' : states.int2set,
+        'vec' : states.int2vec
+    })
+    return df
 
 #-----------------------------------------------------------------------------------------------------------------#
 
@@ -846,26 +873,70 @@ def compute_conformity_scores(x, y, q_lower, q_upper):
     return np.max( q_lower(x)-y, y-q_upper(x) )
 
 
-def get_CQR_constant(x_pred_quantiles, y_true, inner_quantile=0.95):
-    # preds axis 0 is the lower and upper quants, axis 1 is the replicates, and axis 2 is the param label
+# def get_CQR_constant(x_pred_quantiles, y_true, inner_quantile=0.95):
+#     # preds axis 0 is the lower and upper quants, axis 1 is the replicates, and axis 2 is the param label
+#     # compute non-comformity scores
+#     Q = np.array([])
+#     # error tolerance on quantile for E
+#     error = 0.001
+#     # for each parameter
+#     #inner_quantile * (1 + 1/x_pred_quantiles.shape[1])
+#     for i in range(x_pred_quantiles.shape[2]):
+#         E = np.amax(np.array((x_pred_quantiles[0][:,i] - y_true[:,i], y_true[:,i] - x_pred_quantiles[1][:,i])), axis=0)
+
+#         # get 1 - alpha/2's quintile of non-comformity scores
+#         #print( inner_quantile * (1 + 1/x_pred_quantiles.shape[1]) )
+#         quant = inner_quantile * (1 + 1/x_pred_quantiles.shape[1])
+#         # if quant < 0 and quant > 0 - error:
+#         #     quant = 0.
+#         # elif quant > 1. and quant < 1. + error:
+#         #     quant = 1.
+#         Q = np.append(Q, np.quantile(E, quant))
+
+#     return Q
+def get_CQR_constant_old(preds, true, inner_quantile=0.95, symmetric = True):
+    #preds axis 0 is the lower and upper quants, axis 1 is the replicates, and axis 2 is the params
     # compute non-comformity scores
-    Q = np.array([])
-    # error tolerance on quantile for E
-    error = 0.001
-    # for each parameter
-    #inner_quantile * (1 + 1/x_pred_quantiles.shape[1])
-    for i in range(x_pred_quantiles.shape[2]):
-        E = np.amax(np.array((x_pred_quantiles[0][:,i] - y_true[:,i], y_true[:,i] - x_pred_quantiles[1][:,i])), axis=0)
+    Q = np.array([]) if symmetric else np.empty((2, preds.shape[2]))
+    for i in range(preds.shape[2]):
+        if symmetric:
+            # Symmetric non-comformity score
+            s = np.amax(np.array((preds[0][:,i] - true[:,i], true[:,i] - preds[1][:,i])), axis=0)
+            # get adjustment constant: 1 - alpha/2's quintile of non-comformity scores
+            Q = np.append(Q, np.quantile(s, inner_quantile * (1 + 1/preds.shape[1])))
+        else:
+            # Asymmetric non-comformity score
+            lower_s = np.array(true[:,i] - preds[0][:,i])
+            upper_s = np.array(true[:,i] - preds[1][:,i])
+            # get (lower_q adjustment, upper_q adjustment)
+            Q[:,i] = np.array((np.quantile(lower_s, (1 - inner_quantile)/2 * (1 + 1/preds.shape[1])),
+                               np.quantile(upper_s, (1 + inner_quantile)/2 * (1 + 1/preds.shape[1]))))
+    return Q
 
-        # get 1 - alpha/2's quintile of non-comformity scores
-        #print( inner_quantile * (1 + 1/x_pred_quantiles.shape[1]) )
-        quant = inner_quantile * (1 + 1/x_pred_quantiles.shape[1])
-        # if quant < 0 and quant > 0 - error:
-        #     quant = 0.
-        # elif quant > 1. and quant < 1. + error:
-        #     quant = 1.
-        Q = np.append(Q, np.quantile(E, quant))
+def get_CQR_constant(preds, true, inner_quantile=0.95, symmetric = True):
+    #preds axis 0 is the lower and upper quants, axis 1 is the replicates, and axis 2 is the params
+    # compute non-comformity scores
+    Q = np.empty((2, preds.shape[2]))
+    
+    for i in range(preds.shape[2]):
+        if symmetric:
+            # Symmetric non-comformity score
+            s = np.amax(np.array((preds[0][:,i] - true[:,i], true[:,i] - preds[1][:,i])), axis=0)
+            # get adjustment constant: 1 - alpha/2's quintile of non-comformity scores
+            #Q = np.append(Q, np.quantile(s, inner_quantile * (1 + 1/preds.shape[1])))
+            lower_q = np.quantile(s, inner_quantile * (1 + 1/preds.shape[1]))
+            upper_q = lower_q
+            #Q[:,i] = np.array([lower_q, upper_q])
+        else:
+            # Asymmetric non-comformity score
+            lower_s = np.array(true[:,i] - preds[0][:,i])
+            upper_s = np.array(true[:,i] - preds[1][:,i])
+            lower_q = np.quantile(lower_s, (1 - inner_quantile)/2 * (1 + 1/preds.shape[1]))
+            upper_q = np.quantile(upper_s, (1 + inner_quantile)/2 * (1 + 1/preds.shape[1]))
+            # get (lower_q adjustment, upper_q adjustment)
 
+        Q[:,i] = np.array([lower_q, upper_q])
+                               
     return Q
 
 # make matrix with parameter values, lower-bounds, upper-bounds: 3D->2D

@@ -55,10 +55,10 @@ class Predictor:
         # test phy vector
         if self.tree_type == 'extant':
             self.pred_phyvec_fn     = f'{self.pred_dir}/{self.pred_prefix}.cdvs.csv'    
-            self.num_tree_row       = 1
+            self.num_tree_row       = 3
         elif self.tree_type == 'serial':
             self.pred_phyvec_fn     = f'{self.pred_dir}/{self.pred_prefix}.cblvs.csv'
-            self.num_tree_row       = 2   
+            self.num_tree_row       = 4   
         else:
             raise NotImplementedError
         
@@ -86,7 +86,10 @@ class Predictor:
 
         # read & reshape new test data
         self.pred_data_tensor        = pd.read_csv(self.pred_phyvec_fn, header=None, sep=',', index_col=False).to_numpy()
-        self.pred_data_tensor.shape  = ( 1, -1, (self.num_tree_row+self.num_char_row) )
+        print(self.pred_data_tensor.shape)
+        print(self.num_tree_row+self.num_char_row)
+        #self.pred_data_tensor.shape  = ( 1, -1, (self.num_tree_row+self.num_char_row) )
+        self.pred_data_tensor = self.pred_data_tensor.reshape( (1, -1, (self.num_tree_row+self.num_char_row)) )
         
         # read & normalize new summary stats
         self.pred_stats_tensor       = pd.read_csv(self.pred_summ_stat_fn, sep=',', index_col=False).to_numpy().flatten()
@@ -97,7 +100,7 @@ class Predictor:
 
 
         # read in CQR interval adjustments
-        self.cqr_interval_adjustments = pd.read_csv(self.model_cqr_fn, sep=',', index_col=False).to_numpy().flatten()
+        self.cqr_interval_adjustments = pd.read_csv(self.model_cqr_fn, sep=',', index_col=False).to_numpy()
         # # CPI functions
         # with open(self.model_cpi_func_fn, 'rb') as f:
         #     self.cpi_func = dill.load(f)
@@ -113,8 +116,8 @@ class Predictor:
         # get predictions
         self.norm_preds                = self.mymodel.predict([self.pred_data_tensor, self.norm_pred_stats])
         self.norm_preds                = np.array( self.norm_preds )
-        self.norm_preds[1,:,:]         = self.norm_preds[1,:,:] - self.cqr_interval_adjustments
-        self.norm_preds[2,:,:]         = self.norm_preds[2,:,:] + self.cqr_interval_adjustments
+        self.norm_preds[1,:,:]         = self.norm_preds[1,:,:] - self.cqr_interval_adjustments[0,:]
+        self.norm_preds[2,:,:]         = self.norm_preds[2,:,:] + self.cqr_interval_adjustments[1,:]
         self.denormalized_pred_labels  = Utilities.denormalize(self.norm_preds, self.train_labels_means, self.train_labels_sd)
         self.pred_labels               = np.exp( self.denormalized_pred_labels )
        

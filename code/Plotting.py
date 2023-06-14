@@ -237,7 +237,7 @@ class Plotter:
         fig_height = 1 + int(np.ceil(2*nrow))
 
         # basic figure structure
-        fig, axes = plt.subplots(ncols=ncol_plot, nrows=nrow, figsize=(fig_width, fig_height))
+        fig, axes = plt.subplots(ncols=ncol_plot, nrows=nrow, squeeze=False, figsize=(fig_width, fig_height))
         fig.tight_layout() #h_pad=2.25)
         #fig.subplots_adjust(bottom=0.05)
 

@@ -38,6 +38,7 @@ class Formatter:
         self.end_idx           = args['end_idx']
         self.use_parallel      = args['use_parallel']
         self.num_proc          = args['num_proc']
+        self.save_phyenc_csv   = args['save_phyenc_csv']
 
         if self.tree_type == 'serial':
             self.num_data_row = 4 + self.num_char
@@ -104,7 +105,7 @@ class Formatter:
                 #print(res[i])
                 #print(tensor_length)
                 #tensor_size = int(tensor_size)
-                print(i, tensor_size) #, tensor_length)
+                #print(i, tensor_size) #, tensor_length)
                 self.phy_tensors[tensor_size][i] = res[i]
 
         self.summ_stat_names = self.get_summ_stat_names()
@@ -298,7 +299,7 @@ class Formatter:
 
         return
 
-    def encode_one(self, tmp_fn, idx, save_phyvec=False):
+    def encode_one(self, tmp_fn, idx, save_phyenc_csv=False):
 
         NUM_DIGITS = 10
         np.set_printoptions(formatter={'float': lambda x: format(x, '8.6E')}, precision=NUM_DIGITS)
@@ -376,11 +377,11 @@ class Formatter:
             # output files
             #mtx_size = cblvs.shape[1]
 
-            if cblvs is None:
-                print('error!', tre_fn)
-                print(phy)
-                print(dat)
-                print(cblvs)
+            # if cblvs is None:
+            #     print('error!', tre_fn)
+            #     print(phy)
+            #     print(dat)
+            #     print(cblvs)
                 
             #print(cblvs)
             #print(cblvs.shape)
@@ -391,20 +392,14 @@ class Formatter:
         info_str = self.make_settings_str(idx, tree_width)
         Utilities.write_to_file(info_str, info_fn)
 
-        if save_phyvec and self.tree_type == 'serial':
-            # record CBLVS data
-            cblvs_str = np.array2string(cblvs, separator=',', max_line_width=1e200, threshold=1e200, edgeitems=1e200, precision=10, floatmode='maxprec')
-            cblvs_str = cblvs_str.replace(' ','').replace('.,',',').strip('[].') + '\n'
-            #cblvs_str = Utilities.clean_scientific_notation(cblvs_str)
-            Utilities.write_to_file(cblvs_str, cblvs_fn)
+        if self.save_phyenc_csv or save_phyenc_csv:
+            if self.tree_type == 'serial':
+                cblvs_str = Utilities.make_clean_phyloenc_str(cblvs)
+                Utilities.write_to_file(cblvs_str, cblvs_fn)
 
-        if save_phyvec and self.tree_type == 'extant':
             # record CDVS data
-            if prune_success:
-                cdvs_str = np.array2string(cdvs, separator=',', max_line_width=1e200, threshold=1e200, edgeitems=1e200, precision=10, floatmode='maxprec')
-                cdvs_str = cdvs_str.replace(' ','').replace('.,',',').strip('[].') + '\n'
-                #print(cdvs_str)
-                #cdvs_str = Utilities.clean_scientific_notation(cdvs_str)
+            if self.tree_type == 'extant' and prune_success:
+                cdvs_str = Utilities.make_clean_phyloenc_str(cdvs)
                 Utilities.write_to_file(cdvs_str, cdvs_fn)
 
         # record summ stat data

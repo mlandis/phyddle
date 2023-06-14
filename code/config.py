@@ -36,7 +36,7 @@ sim_args = {
     'sim_dir'           : '../raw_data',
     'sim_logging'       : 'verbose',
     'start_idx'         : 0,
-    'end_idx'           : 5000,
+    'end_idx'           : 100,
     'tree_sizes'        : [ 200, 500 ],
     'use_parallel'      : True,
     'num_proc'          : -2,
@@ -57,6 +57,7 @@ fmt_args = {
     'tree_type'  : 'extant',
     'param_pred' : ['w_0', 'e_0', 'd_0_1', 'b_0_1'],
     'param_data' : [],
+    'save_phyenc_csv' : False,
     'tensor_format' : 'hdf5'
 } #| args
 args = args | fmt_args
@@ -95,7 +96,7 @@ args = args | plt_args
 #######################
 
 prd_args = {
-    'pred_dir'    : '../raw_data/geosse1_test',
-    'pred_prefix' : 'sim.5'
+    'pred_dir'    : '../raw_data/my_predict',
+    'pred_prefix' : 'sim.1'
 }
 args = args | prd_args
