@@ -30,8 +30,8 @@ class Simulator:
         self.num_proc          = args['num_proc']
         self.use_parallel      = args['use_parallel']
         self.sample_population = args['sample_population']
-        self.stop_floor_sizes  = args['stop_floor_sizes']
-        self.stop_ceil_sizes   = args['stop_ceil_sizes']
+        self.min_num_taxa      = args['min_num_taxa']
+        self.max_num_taxa      = args['max_num_taxa']
         self.sim_logging       = args['sim_logging']
         self.rep_idx           = list(range(self.start_idx, self.end_idx))
         return
@@ -80,30 +80,7 @@ class Simulator:
         # delegate simulation to derived Simulator
         self.sim_one_custom(idx)
 
-        # # make XML file
-        # xml_str = self.xml_str
-        # Utilities.write_to_file(xml_str, xml_fn)
-
-        # # run BEAST job
-        # cmd_str = self.cmd_str
-        # beast_out = subprocess.check_output(cmd_str, shell=True, text=True, stderr=subprocess.STDOUT)
-        # Utilities.write_to_file(beast_out, beast_fn)
-
-        # if self.sim_logging == 'clean':
-        #     for x in [ xml_fn, beast_fn, json_fn ]:
-        #         if os.path.exists(x):
-        #             os.remove(x)
-        # elif self.sim_logging == 'compress':
-        #     for x in [ xml_fn, beast_fn, json_fn ]:
-        #         if os.path.exists(x):
-        #             with open(x, 'rb') as f_in:
-        #                 with gzip.open(x+'.gz', 'wb') as f_out:
-        #                     shutil.copyfileobj(f_in, f_out)        
-        #             os.remove(x)
-        # elif self.sim_logging == 'verbose':
-        #     pass
-        #     # do nothing
-
+        # done!
         return
 
     def refresh_model(self, idx):
@@ -112,9 +89,6 @@ class Simulator:
         self.start_sizes   = self.model.start_sizes
         self.df_events     = self.model.df_events
         self.refresh_model_custom(idx)
-        #self.reaction_vars = self.make_reaction_vars()
-        #self.xml_str       = self.make_xml(idx)
-        #self.cmd_str       = 'beast {sim_dir}/{proj}/sim.{idx}.xml'.format(sim_dir=self.sim_dir, proj=self.proj, idx=idx)
         return
 
     def sim_one_custom(self, idx):
@@ -194,8 +168,6 @@ class MasterSimulator(Simulator):
         #taxon_states,
         # state space
         int2vec = self.model.states.int2vec
-        # int2vecstr = self.model.states.int2vecstr #[ ''.join([str(y) for y in x]) for x in int2vec ]
-        # vecstr2int = self.model.states.vecstr2int #{ v:i for i,v in enumerate(int2vecstr) }
         nexus_str = Utilities.convert_phy2dat_nex(phy_nex_fn, int2vec)
         Utilities.write_to_file(nexus_str, dat_nex_fn)
 
@@ -292,9 +264,9 @@ class MasterSimulator(Simulator):
 
         # sim conditions
         xml_sim_conditions = ""
-        xml_sim_conditions += "<lineageEndCondition spec='LineageEndCondition' nLineages='{stop_ceil_sizes}' alsoGreaterThan='true' isRejection='false'/>\n".format(stop_ceil_sizes=self.stop_ceil_sizes)
-        xml_sim_conditions += "<lineageEndCondition spec='LineageEndCondition' nLineages='{stop_floor_sizes}' alsoGreaterThan='false' isRejection='false'/>\n".format(stop_floor_sizes=self.stop_floor_sizes)
-        xml_sim_conditions += "<postSimCondition spec='LeafCountPostSimCondition' nLeaves='10' exact='false' exceedCondition='true'/>\n"
+        xml_sim_conditions += f"<lineageEndCondition spec='LineageEndCondition' nLineages='{self.max_num_taxa}' alsoGreaterThan='true' isRejection='false'/>\n" #.format(stop_ceil_sizes=self.stop_ceil_sizes)
+        # xml_sim_conditions += f"<lineageEndCondition spec='LineageEndCondition' nLineages='{self.min_num_taxa}' alsoGreaterThan='false' isRejection='false'/>\n" #.format(stop_floor_sizes=self.stop_floor_sizes)
+        # xml_sim_conditions += "<postSimCondition spec='LeafCountPostSimCondition' nLeaves='10' exact='false' exceedCondition='true'/>\n"
 
         # post-processing filter
         sample_population = self.sample_population #settings['sample_population']
