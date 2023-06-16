@@ -85,9 +85,9 @@ class Predictor:
         self.stat_names         = train_stats_norm['name'].to_list()
 
         # read & reshape new test data
-        self.pred_data_tensor        = pd.read_csv(self.pred_phyvec_fn, header=None, sep=',', index_col=False).to_numpy()
+        self.pred_data_tensor    = pd.read_csv(self.pred_phyvec_fn, header=None, sep=',', index_col=False).to_numpy()
         #self.pred_data_tensor.shape  = ( 1, -1, (self.num_tree_row+self.num_char_row) )
-        self.pred_data_tensor = self.pred_data_tensor.reshape( (1, -1, (self.num_tree_row+self.num_char_row)) )
+        self.pred_data_tensor    = self.pred_data_tensor.reshape( (1, -1, (self.num_tree_row+self.num_char_row)) )
         
         # read & normalize new summary stats
         self.pred_stats_tensor       = pd.read_csv(self.pred_summ_stat_fn, sep=',', index_col=False).to_numpy().flatten()

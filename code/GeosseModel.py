@@ -139,6 +139,13 @@ class GeosseModel(Model.BaseModel):
                     'b': np.full((num_char,num_char), rv_fn['b'](size=1, random_state=self.rng, **rv_arg['b'])[0]),
                     'ed': np.full(num_char, rv_fn['ed'](size=1, random_state=self.rng, **rv_arg['ed'])[0])
                 }
+            # params = {
+            #         'w': rv_fn['w'](size=num_char, random_state=self.rng, **rv_arg['w']),
+            #         'e': rv_fn['e'](size=num_char, random_state=self.rng, **rv_arg['e']),
+            #         'd': np.full((num_char,num_char), rv_fn['d'](size=1, random_state=self.rng, **rv_arg['d'])[0]),
+            #         'b': np.full((num_char,num_char), rv_fn['b'](size=1, random_state=self.rng, **rv_arg['b'])[0]),
+            #         'ed': rv_fn['ed'](size=num_char, random_state=self.rng, **rv_arg['ed']),
+            #     }
             params['x'] = params['e']
             params['xd'] = params['ed']
 

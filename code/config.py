@@ -42,9 +42,9 @@ sim_args = {
     'num_proc'          : -2,
     'sample_population' : ['S'],
     'stop_time'         : 10,
-    'stop_floor_sizes'  : 0,
-    'stop_ceil_sizes'   : 400                # MASTER seems to generate too many taxa?
-} #| args
+    'min_num_taxa'      : 0,
+    'max_num_taxa'      : 400                # MASTER seems to generate too many taxa?
+}
 args = args | sim_args
 
 
@@ -59,7 +59,7 @@ fmt_args = {
     'param_data' : [],
     'save_phyenc_csv' : False,
     'tensor_format' : 'hdf5'
-} #| args
+}
 args = args | fmt_args
 
 #####################

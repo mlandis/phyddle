@@ -1,12 +1,12 @@
 import scipy as sp
 
 # helper variables
-num_char = 6
+num_char = 4
 
 #####################
 # PIPELINE SETTINGS #
 #####################
-args = { 'proj' : 'geosse_de_1' }
+args = { 'proj' : 'geosse_de_n4_2' }
 
 ##################
 # MODEL SETTINGS #
@@ -22,11 +22,11 @@ mdl_args = {
         'b': sp.stats.expon.rvs,
         'ed': sp.stats.expon.rvs },
     'rv_arg' : {
-        'w':  { 'scale' : 0.3 },
-        'e':  { 'scale' : 0.1 },
-        'd':  { 'scale' : 0.1 },
+        'w':  { 'scale' : 1.0 },
+        'e':  { 'scale' : 0.5 },
+        'd':  { 'scale' : 0.4 },
         'b':  { 'scale' : 1.0 },
-        'ed': { 'scale' : 0.1 }
+        'ed': { 'scale' : 0.2 }
     }
 }
 args = args | mdl_args
@@ -39,13 +39,13 @@ sim_args = {
     'sim_logging'       : 'compress',
     'start_idx'         : 0,
     'end_idx'           : 100,
-    'tree_sizes'        : [ 200 ],
+    'tree_sizes'        : [ 250 ],
     'use_parallel'      : True,
     'num_proc'          : -2,
     'sample_population' : ['S'],
-    'stop_time'         : 10,
-    'stop_floor_sizes'  : 0,
-    'stop_ceil_sizes'   : 200                # MASTER seems to generate too many taxa?
+    'stop_time'         : 100,
+    'min_num_taxa'      : 50,
+    'max_num_taxa'      : 400                # MASTER seems to generate too many taxa?
 }
 args = args | sim_args
 
@@ -57,7 +57,8 @@ fmt_args = {
     'tree_type'  : 'extant',
     'param_pred' : ['w_0', 'e_0', 'd_0_1', 'b_0_1', 'ed_0'],
     'param_data' : [],
-    'tensor_format' : 'hdf5'
+    'tensor_format' : 'hdf5',
+    'save_phyenc_csv' : False,
 }
 args = args | fmt_args
 
@@ -66,8 +67,8 @@ args = args | fmt_args
 #####################
 lrn_args = { 
     'net_dir'        : '../network',
-    'tree_size'      : 200,
-    'num_epochs'     : 20,
+    'tree_size'      : 250,
+    'num_epochs'     : 10,
     'prop_test'        : 0.05,
     'prop_validation'  : 0.05,
     'prop_calibration' : 0.20,
@@ -75,7 +76,7 @@ lrn_args = {
     'batch_size'     : 128,
     'loss'           : 'mse',
     'optimizer'      : 'adam',
-    'metrics'        : ['mae', 'acc', 'mape']
+    'metrics'        : ['mae', 'acc']
 }
 args = args | lrn_args
 
@@ -96,6 +97,6 @@ args = args | plt_args
 
 prd_args = {
     'pred_dir'    : '../raw_data/anolis',
-    'pred_prefix' : 'anolis_island_n6'
+    'pred_prefix' : f'anolis_island_n{num_char}'
 }
 args = args | prd_args
