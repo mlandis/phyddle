@@ -306,12 +306,13 @@ class Plotter:
 
     
 
-    def plot_pca(self, save_fn, sim_stat, pred_stat=None, num_comp=4, f_show=1.0, color='blue'):
+    def plot_pca(self, save_fn, sim_stat, pred_stat=None, num_comp=4, f_show=0.05, color='blue'):
 
         #x = sim_stat #StandardScaler().fit_transform(df)
         x = sim_stat # pd.DataFrame(sim_stat, columns=sim_stat.columns)
         nrow_keep = int(x.shape[0] * f_show)
-        alpha = 100 / nrow_keep
+        alpha = np.min( [1, 100 / nrow_keep] )
+        
         pca_model = PCA(n_components=num_comp)
         pca = pca_model.fit_transform(x)
         if self.pred_aux_loaded:
@@ -403,12 +404,23 @@ class Plotter:
             y_lower = preds[f'{p}_lower'][:].to_numpy()
             y_upper = preds[f'{p}_upper'][:].to_numpy()
             x_value = labels[p][:].to_numpy()
+
+            # accuracy stats
+            y_mae = np.mean( np.abs(y_value - x_value) )
+            y_mape = 100 * np.mean( np.abs(x_value - y_value) / x_value )
+            y_mse = np.mean( np.power(y_value - x_value, 2) )
+            y_rmse = np.sqrt( y_mse )
             
+            s_mae  = '{:.2E}'.format(y_mae)
+            s_mse  = '{:.2E}'.format(y_mse)
+            s_rmse = '{:.2E}'.format(y_rmse)
+            s_mape = '{:.1f}%'.format(y_mape)
+
             # coverage stats
             y_cover = np.logical_and(y_lower < x_value, x_value < y_upper )
             y_not_cover = np.logical_not(y_cover)
             f_cover = sum(y_cover) / len(y_cover) * 100
-            s_cover = '{:.1f}'.format(f_cover)
+            s_cover = '{:.1f}%'.format(f_cover)
             
             # covered predictions
             alpha = 0.5 # 50. / len(y_cover)
@@ -447,7 +459,12 @@ class Plotter:
             #plt.xlim( 0, maxlim )
             #plt.ylim( 0, maxlim )
             
-            plt.annotate(f'Coverage: {s_cover}%', xy=(0.01,0.99), xycoords='axes fraction', fontsize=10, horizontalalignment='left', verticalalignment='top', color='black')
+            dx = 0.03
+            plt.annotate(f'MAE: {s_mae}',        xy=(0.01,0.99-0*dx), xycoords='axes fraction', fontsize=10, horizontalalignment='left', verticalalignment='top', color='black')
+            plt.annotate(f'MAPE: {s_mape}',      xy=(0.01,0.99-1*dx), xycoords='axes fraction', fontsize=10, horizontalalignment='left', verticalalignment='top', color='black')
+            plt.annotate(f'MSE: {s_mse}',        xy=(0.01,0.99-2*dx), xycoords='axes fraction', fontsize=10, horizontalalignment='left', verticalalignment='top', color='black')
+            plt.annotate(f'RMSE: {s_rmse}',      xy=(0.01,0.99-3*dx), xycoords='axes fraction', fontsize=10, horizontalalignment='left', verticalalignment='top', color='black')
+            plt.annotate(f'Coverage: {s_cover}', xy=(0.01,0.99-4*dx), xycoords='axes fraction', fontsize=10, horizontalalignment='left', verticalalignment='top', color='black')
 
             # cosmetics
             plt.title(f'{title} predictions: {p}')
