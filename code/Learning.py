@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import os
 import json
-import dill # richer serialization than pickle
+#import dill # richer serialization than pickle
 import h5py
 # import itertools
 
@@ -11,6 +11,7 @@ from PyPDF2 import PdfMerger
 
 from keras import *
 from keras import layers
+from keras import backend as K    # <- move this into Learning if possible
 
 import Utilities
 
@@ -309,7 +310,7 @@ class CnnLearner(Learner):
 
     def train(self):
 
-        my_loss = [ self.loss, Utilities.pinball_loss_q_0_025, Utilities.pinball_loss_q_0_975 ]
+        my_loss = [ self.loss, self.pinball_loss_q_0_025, self.pinball_loss_q_0_975 ]
 
         # compile model        
         self.mymodel.compile(optimizer = self.optimizer, 
@@ -404,8 +405,6 @@ class CnnLearner(Learner):
         #print(param_pred_names)
         #print(self.denormalized_train_preds.shape)
 
-
-
         # save train prediction scatter data
         df_train_pred_nocalib   = Utilities.make_param_VLU_mtx(self.denormalized_train_preds[0:max_idx,:], self.param_names )
         df_test_pred_nocalib    = Utilities.make_param_VLU_mtx(self.denormalized_test_preds[0:max_idx,:], self.param_names )
@@ -437,6 +436,73 @@ class CnnLearner(Learner):
         # cpi_file_obj.close()
 
         return
+
+
+    def pinball_loss(self, y_true, y_pred, alpha):
+        err = y_true - y_pred
+        return K.mean(K.maximum(alpha*err, (alpha-1)*err), axis=-1)
+
+    # lower 95% quantile
+    def pinball_loss_q_0_025(self, y_true, y_pred):
+        return self.pinball_loss(y_true, y_pred, alpha=0.025)
+    # upper 95% quantile
+    def pinball_loss_q_0_975(self, y_true, y_pred):
+        return self.pinball_loss(y_true, y_pred, alpha=0.975)
+
+    # lower 90% quantile
+    def pinball_loss_q_0_05(self, y_true, y_pred):
+        return self.pinball_loss(y_true, y_pred, alpha=0.05)
+    # upper 90% quantile
+    def pinball_loss_q_0_95(self, y_true, y_pred):
+        return self.pinball_loss(y_true, y_pred, alpha=0.95)
+
+    # lower 80% quantile
+    def pinball_loss_q_0_10(self, y_true, y_pred):
+        return self.pinball_loss(y_true, y_pred, alpha=0.10)
+    # upper 80% quantile
+    def pinball_loss_q_0_90(self, y_true, y_pred):
+        return self.pinball_loss(y_true, y_pred, alpha=0.90)
+
+    # lower 70% quantile
+    def pinball_loss_q_0_15(self, y_true, y_pred):
+        return self.pinball_loss(y_true, y_pred, alpha=0.15)
+    # lower 80% quantile
+    def pinball_loss_q_0_85(self, y_true, y_pred):
+        return self.pinball_loss(y_true, y_pred, alpha=0.85)
+
+    # computes the distance y_i is inside/outside the lower(x_i) and upper(x_i) quantiles
+    # there are three cases to consider:
+    #   1. y_i is under the lower bound: max-value will be q_lower(x_i) - y_i & positive
+    #   2. y_i is over the upper bound:  max-value will be y_i - q_upper(x_i) & positive
+    #   3. y_i is between the bounds:    max-value will be the difference between y_i and the closest bound & negative
+    def compute_conformity_scores(self, x, y, q_lower, q_upper):
+        return np.max( q_lower(x)-y, y-q_upper(x) )
+
+    def get_CQR_constant(self, preds, true, inner_quantile=0.95, symmetric = True):
+        #preds axis 0 is the lower and upper quants, axis 1 is the replicates, and axis 2 is the params
+        # compute non-comformity scores
+        Q = np.empty((2, preds.shape[2]))
+        
+        for i in range(preds.shape[2]):
+            if symmetric:
+                # Symmetric non-comformity score
+                s = np.amax(np.array((preds[0][:,i] - true[:,i], true[:,i] - preds[1][:,i])), axis=0)
+                # get adjustment constant: 1 - alpha/2's quintile of non-comformity scores
+                #Q = np.append(Q, np.quantile(s, inner_quantile * (1 + 1/preds.shape[1])))
+                lower_q = np.quantile(s, inner_quantile * (1 + 1/preds.shape[1]))
+                upper_q = lower_q
+                #Q[:,i] = np.array([lower_q, upper_q])
+            else:
+                # Asymmetric non-comformity score
+                lower_s = np.array(true[:,i] - preds[0][:,i])
+                upper_s = np.array(true[:,i] - preds[1][:,i])
+                lower_q = np.quantile(lower_s, (1 - inner_quantile)/2 * (1 + 1/preds.shape[1]))
+                upper_q = np.quantile(upper_s, (1 + inner_quantile)/2 * (1 + 1/preds.shape[1]))
+                # get (lower_q adjustment, upper_q adjustment)
+
+            Q[:,i] = np.array([lower_q, upper_q])
+                                
+        return Q
 
 
     # def build_network2(self):
