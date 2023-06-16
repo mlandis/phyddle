@@ -86,8 +86,6 @@ class Predictor:
 
         # read & reshape new test data
         self.pred_data_tensor        = pd.read_csv(self.pred_phyvec_fn, header=None, sep=',', index_col=False).to_numpy()
-        print(self.pred_data_tensor.shape)
-        print(self.num_tree_row+self.num_char_row)
         #self.pred_data_tensor.shape  = ( 1, -1, (self.num_tree_row+self.num_char_row) )
         self.pred_data_tensor = self.pred_data_tensor.reshape( (1, -1, (self.num_tree_row+self.num_char_row)) )
         

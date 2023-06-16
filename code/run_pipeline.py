@@ -8,6 +8,7 @@ import ModelLoader
 import Simulating
 import Formatting
 import Learning
+import Predicting
 import Plotting
 import Utilities
 
@@ -16,7 +17,6 @@ import Utilities
 ########################
 
 my_args = Utilities.load_config('config', arg_overwrite=True)
-
 
 #########################
 # DEFINE PIPELINE STEPS #
@@ -31,9 +31,13 @@ my_sim = MySimulator(my_args, my_mdl)
 MyFormatter = Formatting.Formatter
 my_fmt = MyFormatter(my_args, my_mdl)
 
-# trainer fits neural network
+# learner fits neural network
 MyLearner = Learning.CnnLearner
 my_lrn = MyLearner(my_args)
+
+# predicter uses trained network for estimates on new dataset
+MyPredictor = Predicting.Predictor
+my_prd = MyPredictor(my_args)
 
 # plotter generates figures
 MyPlotter = Plotting.Plotter
@@ -53,8 +57,11 @@ my_fmt.run()
 # Step 3: train network
 my_lrn.run()
 
-# Step 4: plot results
+# Step 4: predict against new test dataset
+pred_prefix = f"{my_args['pred_dir']}/{ my_args['pred_prefix']}"
+my_fmt.encode_one(tmp_fn=pred_prefix, idx=-1, save_phyenc_csv=True)
+my_pred.run()
+
+# Step 5: plot results
 my_plt.run()
 
-# Step 5: predict against new test dataset
-# my_pred.run()
