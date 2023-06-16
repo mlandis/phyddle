@@ -1,4 +1,6 @@
 import os
+import re
+import copy
 #import csv
 import h5py
 import pandas as pd
@@ -33,7 +35,9 @@ class Formatter:
         # encoder arguments
         self.model_name        = args['model_type']
         self.model_variant     = args['model_variant']
-        self.tree_sizes        = [ 200, 500 ]
+        self.tree_sizes        = args['tree_sizes'] #[ 200, 500 ]
+        self.min_num_taxa      = args['min_num_taxa']
+        self.max_num_taxa      = args['max_num_taxa']
         self.start_idx         = args['start_idx']
         self.end_idx           = args['end_idx']
         self.use_parallel      = args['use_parallel']
@@ -308,110 +312,150 @@ class Formatter:
         dat_nex_fn = tmp_fn + '.dat.nex'
         tre_fn     = tmp_fn + '.tre'
         prune_fn   = tmp_fn + '.extant.tre'
-        #phy_nex_fn = tmp_fn + '.phy.nex'
         cblvs_fn   = tmp_fn + '.cblvs.csv'
         cdvs_fn    = tmp_fn + '.cdvs.csv'
         ss_fn      = tmp_fn + '.summ_stat.csv'
         info_fn    = tmp_fn + '.info.csv'
         
         # state space
-        #int2vec    = self.model.states.int2vec
-        #int2vecstr = self.model.states.int2vecstr #[ ''.join([str(y) for y in x]) for x in int2vec ]
         vecstr2int = self.model.states.vecstr2int #{ v:i for i,v in enumerate(int2vecstr) }
 
+        # read in nexus data file
+        dat = Utilities.convert_nexus_to_array(dat_nex_fn)
 
         # get tree file
         phy = Utilities.read_tree(tre_fn)
-        #print(phy)
         if phy is None:
             return
-        
+
+        # prune tree, if needed
+        if self.tree_type == 'extant':
+            phy_prune = Utilities.make_prune_phy(phy, prune_fn)
+            if phy_prune is None:
+                return # abort, no valid pruned tree
+            else:
+                phy = copy.deepcopy(phy_prune)  # valid pruned tree
+
+        # get tree size
         num_taxa = len(phy.leaf_nodes())
-        #print(num_taxa)
-
-        # verify tree size & existence!
-        #result_str     = ''
-        #n_taxa_idx     = Utilities.get_num_taxa(tre_fn) #, idx, self.tree_sizes)
-        tree_width = Utilities.find_tree_width(num_taxa, self.tree_sizes)
-        #print(num_taxa, tree_size, len(self.tree_sizes), self.tree_sizes)
-
-        # handle simulation based on tree size
         if num_taxa > np.max(self.tree_sizes):
-            # too many taxa
-            return
-        elif num_taxa <= 0:
-            # too few taxa
-            return
-        else:
+            return  # abort, too many taxa
+        elif num_taxa < self.min_num_taxa or num_taxa < 0:
+            return # abort, too few taxa
 
-            #tree_size = self.tree_sizes[tree_size_idx]
-            # valid number of taxa
-            # generate extinct-pruned tree
-            prune_success = Utilities.make_prune_phy(tre_fn, prune_fn)
+        # get tree width from resulting vector
+        tree_width = Utilities.find_tree_width(num_taxa, self.tree_sizes)
 
-            # generate nexus file 0/1 ranges
-            ## taxon_states,nexus_str = Utilities.convert_nex(nex_fn, tre_fn, int2vec)
-            ## Utilities.write_to_file(nexus_str, geo_fn)
+        # create compact phylo-state tensor (CPST)
+        cblvs = None
+        cdvs = None
 
-            # then get CBLVS working
-            #### cblv,new_order = Utilities.vectorize_tree(tre_fn, max_taxa=taxon_size_idx, prob=1.0 )
-            #### cblvs = Utilities.make_cblvs_geosse(cblv, taxon_states, new_order)
-            
-            phy = Utilities.read_tree(tre_fn)
-            dat = Utilities.convert_nexus_to_array(dat_nex_fn)
-            
-            # encode CBLVS
+        # encode CBLVS
+        if self.tree_type == 'serial':
             cblvs = Utilities.encode_phy_tensor(phy, dat, tree_width=tree_width, tree_type='serial')
-        
-            # NOTE: this if statement should not be needed, but for some reason the "next"
-            # seems to run even when make_prune_phy returns False
-            # generate CDVS file
-            
-            # encode CDVS
-            if prune_success:
-                cdvs = Utilities.encode_phy_tensor(phy, dat, tree_width=tree_width, tree_type='extant')
-                #cdvs = Utilities.make_cdvs(prune_fn, taxon_size_idx, taxon_states, int2vecstr)
-            else:    
-                cdvs = None
-            
-            # output files
-            #mtx_size = cblvs.shape[1]
+            cpsv = cblvs
+            cpsv_fn = cblvs_fn
 
-            # if cblvs is None:
-            #     print('error!', tre_fn)
-            #     print(phy)
-            #     print(dat)
-            #     print(cblvs)
-                
-            #print(cblvs)
-            #print(cblvs.shape)
-            #if prune_success:
-            #    print(cdvs.shape)
+        # encode CDVS
+        elif self.tree_type == 'extant':
+            cdvs = Utilities.encode_phy_tensor(phy, dat, tree_width=tree_width, tree_type='extant')
+            cpsv = cdvs
+            cpsv_fn = cdvs_fn
+
+        # save CPSV
+        save_phyenc_csv_ = self.save_phyenc_csv or save_phyenc_csv
+        if save_phyenc_csv_ and cpsv is not None:
+            cpsv_str = Utilities.make_clean_phyloenc_str(cpsv.flatten())
+            Utilities.write_to_file(cpsv_str, cpsv_fn)
 
         # record info
         info_str = self.make_settings_str(idx, tree_width)
         Utilities.write_to_file(info_str, info_fn)
 
-        if self.save_phyenc_csv or save_phyenc_csv:
-            if self.tree_type == 'serial':
-                cblvs_str = Utilities.make_clean_phyloenc_str(cblvs)
-                Utilities.write_to_file(cblvs_str, cblvs_fn)
-
-            # record CDVS data
-            if self.tree_type == 'extant' and prune_success:
-                cdvs_str = Utilities.make_clean_phyloenc_str(cdvs)
-                Utilities.write_to_file(cdvs_str, cdvs_fn)
-
         # record summ stat data
-        ss = Utilities.make_summ_stat(tre_fn, dat_nex_fn, vecstr2int)
-        ss_str = Utilities.make_summ_stat_str(ss)
-        #ss_str = Utilities.clean_scientific_notation(ss_str) #re.sub( '\.0+E\+0+', '', ss_str)
+        ss     = self.make_summ_stat(phy, dat, vecstr2int)
+        ss_str = self.make_summ_stat_str(ss)
         Utilities.write_to_file(ss_str, ss_fn)
-
-        if self.tree_type == 'extant':
-            data = cdvs
-        elif self.tree_type == 'serial':
-            data = cblvs
-
-        return data
+        
+        # done!
+        return cpsv
     
+
+    # ==> move to Formatting? <==
+
+    #def make_summ_stat(self, tre_fn, geo_fn, states_bits_str_inv):
+    def make_summ_stat(self, phy, dat, states_bits_str_inv):
+
+        # build summary stats
+        summ_stats = {}
+
+        # read tree + states
+        #phy = dp.Tree.get(path=tre_fn, schema="newick")
+        num_taxa                  = len(phy.leaf_nodes())
+        root_distances            = phy.calc_node_root_distances()
+        tree_height               = np.max( root_distances )
+        branch_lengths            = [ nd.edge.length for nd in phy.nodes() if nd != phy.seed_node ]
+
+        # tree statistics
+        summ_stats['n_taxa']      = num_taxa
+        summ_stats['tree_length'] = phy.length()
+        summ_stats['tree_height'] = tree_height
+        summ_stats['brlen_mean']  = np.mean(branch_lengths)
+        summ_stats['brlen_var']   = np.var(branch_lengths)
+        #summ_stats['brlen_skew']  = sp.stats.skew(branch_lengths)
+        #summ_stats['brlen_kurt']  = sp.stats.kurtosis(branch_lengths)
+        summ_stats['age_mean']    = np.mean(root_distances)
+        summ_stats['age_var']     = np.var(root_distances)
+        #summ_stats['age_skew']    = sp.stats.skew(root_distances)
+        #summ_stats['age_kurt']    = sp.stats.kurtosis(root_distances)
+        summ_stats['B1']          = dp.calculate.treemeasure.B1(phy)
+        summ_stats['N_bar']       = dp.calculate.treemeasure.N_bar(phy)
+        summ_stats['colless']     = dp.calculate.treemeasure.colless_tree_imbalance(phy)
+        summ_stats['treeness']    = dp.calculate.treemeasure.treeness(phy)
+        #summ_stats['gamma']       = dp.calculate.treemeasure.pybus_harvey_gamma(phy)
+        #summ_stats['sackin']      = dp.calculate.treemeasure.sackin_index(phy)
+
+        # read characters + states
+        # f = open(geo_fn, 'r')
+        # m = f.read().splitlines()
+        # f.close()
+        # y = re.search(string=m[2], pattern='NCHAR=([0-9]+)')
+        # z = re.search(string=m[3], pattern='SYMBOLS="([0-9A-Za-z]+)"')
+        # num_char = int(y.group(1))
+        # states = z.group(1)
+        # #num_states = len(states)
+        # #num_combo = num_char * num_states
+
+        # # get taxon data
+        # taxon_state_block = m[ m.index('Matrix')+1 : m.index('END;')-1 ]
+        # taxon_states = [ x.split(' ')[-1] for x in taxon_state_block ]
+
+        num_char = dat.shape[0]
+        taxon_states = []
+        #print(dat)
+        for col in dat:
+            taxon_states.append( ''.join([ str(x) for x in dat[col].to_list() ]) )
+
+        # for col in range(dat.shape[1]):
+        #     taxon_states.append( ''.join([ str(x) for x in dat.iloc[col].to_list() ]) )
+
+        # freqs of entire char-set
+        # freq_taxon_states = np.zeros(num_char, dtype='float')
+        for i in range(num_char):
+            summ_stats['n_char_' + str(i)] = 0
+            #summ_stats['f_char_' + str(i)] = 0.
+        for k in list(states_bits_str_inv.keys()):
+            #freq_taxon_states[ states_bits_str_inv[k] ] = taxon_states.count(k) / num_taxa
+            summ_stats['n_state_' + str(k)] = taxon_states.count(k)
+            #summ_stats['f_state_' + str(k)] = taxon_states.count(k) / num_taxa
+            for i,j in enumerate(k):
+                if j != '0':
+                    summ_stats['n_char_' + str(i)] += summ_stats['n_state_' + k]
+                    #summ_stats['f_char_' + str(i)] += summ_stats['f_state_' + k]
+
+        return summ_stats
+    
+    def make_summ_stat_str(self, ss):
+        keys_str = ','.join( list(ss.keys()) ) + '\n'
+        vals_str = ','.join( [ str(x) for x in ss.values() ] ) + '\n'
+        return keys_str + vals_str
