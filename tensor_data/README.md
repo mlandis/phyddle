@@ -2,7 +2,7 @@
 
 The `tensor_data` directory contains formatted versions of the raw data for tensor datasets. Subdirectories represent different pipeline projects.
 
-Raw datasets are categorized into different "tree-size" classes, which defines the number of columns in the compact phylo-state tensors. Possible tree-size classes are defined by the `'tree_size'` setting. Each individual dataset (a tree and character matrix pair) describing $n$ species is assigned to the largest tree-size class $m$ such that $n \leq m$.
+The Formatting step categorizes raw simulated data into different "tree-size" classes, which define the number of columns in the compact phylo-state tensors. Possible tree-size classes are defined by the `'tree_size'` setting. Each individual dataset (a tree and character matrix pair) describing $n$ species is assigned to the largest tree-size class $m$ such that $n \leq m$.
 
 Categorized raw datasets are then formatted are stored either as gzip-compressed `.hdf5` format (default) or simple, uncompressed `.csv` table format. Compression typically results in ~20-30x smaller storage sizes, but cannot be read and parsed as simple text.
 
