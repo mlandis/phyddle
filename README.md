@@ -2,7 +2,11 @@
 
 A pipeline-based toolkit for fiddling around with Phylogenetic Deep Learning.
 
+
+
 ## Brief guide
+
+<img align="right" src="https://github.com/landislab/landislab.github.io/blob/5bb4685a12ebf4c99dd773de6d87b44cc3c47090/assets/research/img/phyddle_pipeline.png?raw=true" height="400" width="400">
 
 A standard phyddle analysis performs the following tasks for you:
 - **Pipeline configuration**, applies analysis settings provided through a config file and/or command line arguments
@@ -67,6 +71,7 @@ Planned features:
 - expanded library of model types/variants for discrete and continuous state types
 - expanded support for standard simulators and a generic script-based simulator interface
 - better parallelization for hdf5-chunking of very large datasets
+- better subsampling support
 - expansion of standard prediction tasks
 - expansion of unit/integration testing
 
