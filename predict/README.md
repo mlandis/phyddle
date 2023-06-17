@@ -5,8 +5,8 @@ The `predict` directory stores prediction results for new datasets in various pr
 The new dataset should have one tree file (`.tre`) and one character matrix file (`.dat.nex`) that share a prefix name (e.g. `new.1`):
 
 ```
-predict/my_project/new.1.tre
-predict/my_project/new.dat.nex
+predict/example/new.1.tre
+predict/example/new.dat.nex
 ```
 
 These files can then be passed through Formatting to encode a phylo-state tensor, an auxiliary data tensor (contains summ. stats), and an extant version of the provided tree (if needed). The Python code for this would be:
@@ -21,15 +21,15 @@ my_fmt.encode_one(tmp_fn=pred_prefix, idx=-1, save_phyenc_csv=True)
 
 to create:
 ```
-predict/my_project/new.1.info.csv
-predict/my_project/new.1.summ_stat.csv 
-predict/my_project/new.1.extant.tre     # if 'tree_type'=='extant'
-predict/my_project/new.1.cdvs.csv       # if 'tree_type'=='extant'
-predict/my_project/new.1.cblvs.csv      # if 'tree_type'=='serial'
+predict/example/new.1.info.csv
+predict/example/new.1.summ_stat.csv 
+predict/example/new.1.extant.tre     # if 'tree_type'=='extant'
+predict/example/new.1.cdvs.csv       # if 'tree_type'=='extant'
+predict/example/new.1.cblvs.csv      # if 'tree_type'=='serial'
 ```
 
 The actual predictions produced by Predicting will output as a simple comma-separated value file:
 
 ```
-predict/my_project/new.1.sim_batchsize128_numepoch20_nt500.pred_labels.csv
+predict/example/new.1.sim_batchsize128_numepoch20_nt500.pred_labels.csv
 ```
