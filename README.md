@@ -11,6 +11,7 @@ A pipeline-based toolkit for fiddling around with phylogenetic models and deep l
 <img align="right" src="https://github.com/landislab/landislab.github.io/blob/5bb4685a12ebf4c99dd773de6d87b44cc3c47090/assets/research/img/phyddle_pipeline.png?raw=true" width="35%">
 
 A standard phyddle analysis performs the following tasks for you:
+
 - **Pipeline configuration** applies analysis settings provided through a config file and/or command line arguments.
 - **Model configuration** constructs a base simulating model to be *Simulated* (states, events, rates).
 - **Simulating** simulates a large training dataset under the model to be *Formatted* (parallelized, partly compressed). Saves output in the [`raw_data`](raw_data) directory.
@@ -18,6 +19,8 @@ A standard phyddle analysis performs the following tasks for you:
 - **Learning** shuffles and splits training data, builds a network, then trains and saves the network with the data for *Prediction*. Saves output in the [`network`](network) directory.
 - **Predicting** estimates model parameters for a new dataset with the trained network. Saves output in the [`predict`](predict) directory.
 - **Plotting** generates figures that summarize the training data (*Formatting*), the network and its training (*Learning*), and any new predictions (*Predicting*). Saves output in the [`plot`](plot) directory.
+
+## Quick start
 
 To run a phyddle analysis enter the `code` directory:
 ```shell
