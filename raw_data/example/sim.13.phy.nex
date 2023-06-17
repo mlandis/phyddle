@@ -1,0 +1,5 @@
+#nexus
+
+Begin trees;
+tree TREE_0 = 1[&type="S",location="1",reaction="Extinction",time=1.3466689900461475]:1.3466689900461475;
+End;

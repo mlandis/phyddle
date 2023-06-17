@@ -1,0 +1,67 @@
+
+                        BEAST v2.7.3, 2002-2022
+             Bayesian Evolutionary Analysis Sampling Trees
+                       Designed and developed by
+ Remco Bouckaert, Alexei J. Drummond, Andrew Rambaut & Marc A. Suchard
+                                    
+                   Centre for Computational Evolution
+                         University of Auckland
+                       r.bouckaert@auckland.ac.nz
+                        alexei@cs.auckland.ac.nz
+                                    
+                   Institute of Evolutionary Biology
+                        University of Edinburgh
+                           a.rambaut@ed.ac.uk
+                                    
+                    David Geffen School of Medicine
+                 University of California, Los Angeles
+                           msuchard@ucla.edu
+                                    
+                      Downloads, Help & Resources:
+                           http://beast2.org/
+                                    
+  Source code distributed under the GNU Lesser General Public License:
+                   http://github.com/CompEvol/beast2
+                                    
+                           BEAST developers:
+   Alex Alekseyenko, Trevor Bedford, Erik Bloomquist, Joseph Heled, 
+ Sebastian Hoehna, Denise Kuehnert, Philippe Lemey, Wai Lok Sibon Li, 
+Gerton Lunter, Sidney Markowitz, Vladimir Minin, Michael Defoin Platel, 
+          Oliver Pybus, Tim Vaughan, Chieh-Hsi Wu, Walter Xie
+                                    
+                               Thanks to:
+          Roald Forsberg, Beth Shapiro and Korbinian Strimmer
+
+Random number seed: 1687028835689
+
+File: sim.6.xml seed: 1687028835689 threads: 1
+Loading package BEAST.base v2.7.3 MASTER v7.0.0 BEAST.app v2.7.3    
+Assembling model...
+Setting up populations... done.
+Setting up reactions... Extirpation... Extirpation... Extirpation... Extirpation... Extirpation... Extirpation... Extirpation... Extirpation... Extirpation... Dispersal... Dispersal... Dispersal... Dispersal... Dispersal... Dispersal... Dispersal... Dispersal... Dispersal... Between-region speciation... Between-region speciation... Between-region speciation... Between-region speciation... Between-region speciation... Between-region speciation... Between-region speciation... Between-region speciation... Between-region speciation... Between-region speciation... Between-region speciation... Between-region speciation... Extinction... Extinction... Extinction... Within-region speciation... Within-region speciation... Within-region speciation... Within-region speciation... Within-region speciation... Within-region speciation... Within-region speciation... Within-region speciation... Within-region speciation... Within-region speciation... Within-region speciation... Within-region speciation... done.
+Model assembled.
+Generating inheritance trajectory 1 of 1
+Simulation arrived at time 0.0
+Simulation arrived at time 1.545085169416048
+Simulation arrived at time 3.2931177544000043
+Simulation arrived at time 3.9046610678612614
+Simulation arrived at time 4.473320909809124
+Simulation arrived at time 6.2119552544926275
+Simulation arrived at time 6.321654903135127
+Simulation arrived at time 6.451001184712167
+Simulation arrived at time 6.581443898639838
+Simulation arrived at time 6.916187679205889
+Simulation arrived at time 7.762836914127
+Simulation arrived at time 8.438005766410415
+Simulation arrived at time 8.517812163712344
+Simulation arrived at time 9.26787505779779
+Simulation arrived at time 9.400464793743854
+Simulation arrived at time 9.563195126488054
+Simulation arrived at time 9.822606498097448
+Simulation arrived at time 9.8367340482371
+Simulation arrived at time 9.983047447686628
+Writing Newick output...
+Writing NEXUS output...
+Writing JSON output...
+Done.
+Done!

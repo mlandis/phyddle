@@ -1,0 +1,197 @@
+<beast version='2.0' namespace='master:master.model:master.steppers:master.conditions:master.postprocessors:master.outputs'>
+
+<run spec='InheritanceEnsemble'
+    verbosity='3'
+    nTraj='1'
+    nSamples='1000'
+    samplePopulationSizes='true'
+    simulationTime='10'
+    maxConditionRejects='1'>
+
+<model spec='Model'>
+
+<populationType spec='PopulationType' typeName='S' id='S' dim='7'/>
+<populationType spec='PopulationType' typeName='G' id='G' dim='3'/>
+<populationType spec='PopulationType' typeName='X' id='X' dim='3'/>
+<populationType spec='PopulationType' typeName='L' id='L' dim='3'/>
+
+
+<reactionGroup spec='ReactionGroup' reactionGroupName='Within-region speciation'>
+	<reaction spec='Reaction' reactionName='w_0_0_0' rate='0.19680000514441'>
+		S[0]:1 -> S[0]:1 + S[0]:1 + G[0]
+	</reaction>
+	<reaction spec='Reaction' reactionName='w_1_1_1' rate='0.19680000514441'>
+		S[1]:1 -> S[1]:1 + S[1]:1 + G[1]
+	</reaction>
+	<reaction spec='Reaction' reactionName='w_2_2_2' rate='0.19680000514441'>
+		S[2]:1 -> S[2]:1 + S[2]:1 + G[2]
+	</reaction>
+	<reaction spec='Reaction' reactionName='w_3_3_0' rate='0.19680000514441'>
+		S[3]:1 -> S[3]:1 + S[0]:1 + G[0]
+	</reaction>
+	<reaction spec='Reaction' reactionName='w_3_3_1' rate='0.19680000514441'>
+		S[3]:1 -> S[3]:1 + S[1]:1 + G[1]
+	</reaction>
+	<reaction spec='Reaction' reactionName='w_4_4_0' rate='0.19680000514441'>
+		S[4]:1 -> S[4]:1 + S[0]:1 + G[0]
+	</reaction>
+	<reaction spec='Reaction' reactionName='w_4_4_2' rate='0.19680000514441'>
+		S[4]:1 -> S[4]:1 + S[2]:1 + G[2]
+	</reaction>
+	<reaction spec='Reaction' reactionName='w_5_5_1' rate='0.19680000514441'>
+		S[5]:1 -> S[5]:1 + S[1]:1 + G[1]
+	</reaction>
+	<reaction spec='Reaction' reactionName='w_5_5_2' rate='0.19680000514441'>
+		S[5]:1 -> S[5]:1 + S[2]:1 + G[2]
+	</reaction>
+	<reaction spec='Reaction' reactionName='w_6_6_0' rate='0.19680000514441'>
+		S[6]:1 -> S[6]:1 + S[0]:1 + G[0]
+	</reaction>
+	<reaction spec='Reaction' reactionName='w_6_6_1' rate='0.19680000514441'>
+		S[6]:1 -> S[6]:1 + S[1]:1 + G[1]
+	</reaction>
+	<reaction spec='Reaction' reactionName='w_6_6_2' rate='0.19680000514441'>
+		S[6]:1 -> S[6]:1 + S[2]:1 + G[2]
+	</reaction>
+</reactionGroup>
+
+<reactionGroup spec='ReactionGroup' reactionGroupName='Extirpation'>
+	<reaction spec='Reaction' reactionName='e_3_1' rate='0.3052406816447706'>
+		S[3]:1 -> S[1]:1 + L[0]
+	</reaction>
+	<reaction spec='Reaction' reactionName='e_3_0' rate='0.3052406816447706'>
+		S[3]:1 -> S[0]:1 + L[1]
+	</reaction>
+	<reaction spec='Reaction' reactionName='e_4_2' rate='0.3052406816447706'>
+		S[4]:1 -> S[2]:1 + L[0]
+	</reaction>
+	<reaction spec='Reaction' reactionName='e_4_0' rate='0.3052406816447706'>
+		S[4]:1 -> S[0]:1 + L[2]
+	</reaction>
+	<reaction spec='Reaction' reactionName='e_5_2' rate='0.3052406816447706'>
+		S[5]:1 -> S[2]:1 + L[1]
+	</reaction>
+	<reaction spec='Reaction' reactionName='e_5_1' rate='0.3052406816447706'>
+		S[5]:1 -> S[1]:1 + L[2]
+	</reaction>
+	<reaction spec='Reaction' reactionName='e_6_5' rate='0.3052406816447706'>
+		S[6]:1 -> S[5]:1 + L[0]
+	</reaction>
+	<reaction spec='Reaction' reactionName='e_6_4' rate='0.3052406816447706'>
+		S[6]:1 -> S[4]:1 + L[1]
+	</reaction>
+	<reaction spec='Reaction' reactionName='e_6_3' rate='0.3052406816447706'>
+		S[6]:1 -> S[3]:1 + L[2]
+	</reaction>
+</reactionGroup>
+
+<reactionGroup spec='ReactionGroup' reactionGroupName='Between-region speciation'>
+	<reaction spec='Reaction' reactionName='b_3_0_1' rate='0.10243386475025529'>
+		S[3]:1 -> S[0]:1 + S[1]:1
+	</reaction>
+	<reaction spec='Reaction' reactionName='b_3_1_0' rate='0.10243386475025529'>
+		S[3]:1 -> S[1]:1 + S[0]:1
+	</reaction>
+	<reaction spec='Reaction' reactionName='b_4_0_2' rate='0.10243386475025529'>
+		S[4]:1 -> S[0]:1 + S[2]:1
+	</reaction>
+	<reaction spec='Reaction' reactionName='b_4_2_0' rate='0.10243386475025529'>
+		S[4]:1 -> S[2]:1 + S[0]:1
+	</reaction>
+	<reaction spec='Reaction' reactionName='b_5_1_2' rate='0.10243386475025529'>
+		S[5]:1 -> S[1]:1 + S[2]:1
+	</reaction>
+	<reaction spec='Reaction' reactionName='b_5_2_1' rate='0.10243386475025529'>
+		S[5]:1 -> S[2]:1 + S[1]:1
+	</reaction>
+	<reaction spec='Reaction' reactionName='b_6_0_5' rate='0.051216932375127644'>
+		S[6]:1 -> S[0]:1 + S[5]:1
+	</reaction>
+	<reaction spec='Reaction' reactionName='b_6_1_4' rate='0.051216932375127644'>
+		S[6]:1 -> S[1]:1 + S[4]:1
+	</reaction>
+	<reaction spec='Reaction' reactionName='b_6_2_3' rate='0.051216932375127644'>
+		S[6]:1 -> S[2]:1 + S[3]:1
+	</reaction>
+	<reaction spec='Reaction' reactionName='b_6_3_2' rate='0.051216932375127644'>
+		S[6]:1 -> S[3]:1 + S[2]:1
+	</reaction>
+	<reaction spec='Reaction' reactionName='b_6_4_1' rate='0.051216932375127644'>
+		S[6]:1 -> S[4]:1 + S[1]:1
+	</reaction>
+	<reaction spec='Reaction' reactionName='b_6_5_0' rate='0.051216932375127644'>
+		S[6]:1 -> S[5]:1 + S[0]:1
+	</reaction>
+</reactionGroup>
+
+<reactionGroup spec='ReactionGroup' reactionGroupName='Dispersal'>
+	<reaction spec='Reaction' reactionName='d_0_3' rate='0.006747373966199798'>
+		S[0]:1 -> S[3]:1 + G[1]
+	</reaction>
+	<reaction spec='Reaction' reactionName='d_0_4' rate='0.006747373966199798'>
+		S[0]:1 -> S[4]:1 + G[2]
+	</reaction>
+	<reaction spec='Reaction' reactionName='d_1_3' rate='0.006747373966199798'>
+		S[1]:1 -> S[3]:1 + G[0]
+	</reaction>
+	<reaction spec='Reaction' reactionName='d_1_5' rate='0.006747373966199798'>
+		S[1]:1 -> S[5]:1 + G[2]
+	</reaction>
+	<reaction spec='Reaction' reactionName='d_2_4' rate='0.006747373966199798'>
+		S[2]:1 -> S[4]:1 + G[0]
+	</reaction>
+	<reaction spec='Reaction' reactionName='d_2_5' rate='0.006747373966199798'>
+		S[2]:1 -> S[5]:1 + G[1]
+	</reaction>
+	<reaction spec='Reaction' reactionName='d_3_6' rate='0.013494747932399596'>
+		S[3]:1 -> S[6]:1 + G[2]
+	</reaction>
+	<reaction spec='Reaction' reactionName='d_4_6' rate='0.013494747932399596'>
+		S[4]:1 -> S[6]:1 + G[1]
+	</reaction>
+	<reaction spec='Reaction' reactionName='d_5_6' rate='0.013494747932399596'>
+		S[5]:1 -> S[6]:1 + G[0]
+	</reaction>
+</reactionGroup>
+
+<reactionGroup spec='ReactionGroup' reactionGroupName='Extinction'>
+	<reaction spec='Reaction' reactionName='r_x_0' rate='0.3052406816447706'>
+		S[0]:1 -> X[0] + L[0]
+	</reaction>
+	<reaction spec='Reaction' reactionName='r_x_1' rate='0.3052406816447706'>
+		S[1]:1 -> X[1] + L[1]
+	</reaction>
+	<reaction spec='Reaction' reactionName='r_x_2' rate='0.3052406816447706'>
+		S[2]:1 -> X[2] + L[2]
+	</reaction>
+</reactionGroup>
+
+
+
+</model>
+
+<initialState spec='InitState'>
+	<populationSize spec='PopulationSize' size='1'>
+		<population spec='Population' type='@G' location='0'/>
+	</populationSize>
+	<populationSize spec='PopulationSize' size='1'>
+		<population spec='Population' type='@G' location='2'/>
+	</populationSize>
+	<lineageSeedMultiple spec='MultipleIndividuals' copies='1'>
+		<population spec ='Population' type='@S' location='4'/>
+	</lineageSeedMultiple>
+</initialState>
+
+
+<lineageEndCondition spec='LineageEndCondition' nLineages='500' alsoGreaterThan='true' isRejection='false'/>
+
+
+<inheritancePostProcessor spec='LineageFilter' populationName='S' reverseTime='false' discard='false' leavesOnly='true' noClean='true'/>
+
+
+<output spec='NewickOutput' collapseSingleChildNodes='true' fileName='../raw_data/example/sim.12.tre'/>
+<output spec='NexusOutput' fileName='../raw_data/example/sim.12.phy.nex'/>
+<output spec='JsonOutput' fileName='../raw_data/example/sim.12.json' />
+
+</run>
+</beast>

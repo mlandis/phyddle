@@ -1,0 +1,6 @@
+setting,value
+proj,example
+model_type,geosse
+model_variant,equal_rates
+replicate_index,6
+tree_width,200
