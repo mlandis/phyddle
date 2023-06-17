@@ -65,7 +65,7 @@ Current features:
 - automatic figure generation with Matplotlib
 
 Planned features:
-- better back-end documentation
+- better back-end documentation for developers/hackers/etc.
 - expanded library of model types/variants for discrete and continuous state types
 - expanded support for standard simulators and a generic script-based simulator interface
 - better parallelization for hdf5-chunking of very large datasets
@@ -73,9 +73,16 @@ Planned features:
 - expansion of standard prediction tasks
 - expansion of unit/integration testing
 
-## Longer guide
 
+## Developer guide
+(to be done)
+We plan to host documentation with `sphinx` to help developers read, use, and modify the back-end Python source code for their purposes. For now, anyone who clones the repository can make local changes to the code, though not without risk of introducing errors into tested behavior of phyddle.
+
+
+## User guide
 (under development)
+
+This guide provides phyddle users with an overview for how the toolkit works, how to configure it, where it stores files, and how to interpret files and figures.
 
 In general, the pipeline assumes that the user supplies runs scripts in `code` using a consistent *project name* (e.g. `my_project`) to coordinate the analysis across the `raw_data`, `tensor_data`, `network`, and `plot` directories.
 
