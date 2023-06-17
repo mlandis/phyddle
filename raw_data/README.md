@@ -19,9 +19,9 @@ sim.i.extant.tre      # Newick phylogeny string with only extant taxa
 
 Phylogenetic-state tensor encodings are also stored only when `'save_phyenc_csv' == True`:
 ```
-sim.i.cdvs.tre        # compact diversity vector + states + brlen info expansion
+sim.i.cdvs.tre        # compact diversity vector + brlen info expansion + states
                       # when 'tree_type' == 'extant'
-sim.i.cblvs.tre       # compact bijective ladderized vector + states + brlen info expansion
+sim.i.cblvs.tre       # compact bijective ladderized vector + brlen info expansion + states
                       # when 'tree_type' == 'serial')
 ```
 
