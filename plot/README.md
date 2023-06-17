@@ -28,3 +28,19 @@ plot/my_project/sim_batchsize128_numepoch20_nt200_test_e_0.pdf
 
 The density (histogram) plots summarize the extent of your training dataset and labels.
 Densities are plotted for all training input auxiliary data (summary statistics and "known" parameters) and for labels (model parameters). In addition, PCA for the input training auxiliary data is plotted. When a prediction dataset is provided in the settings file, Plotting will include information about that new dataset's value with respect to the densities and PCA, typically indicated with a red line, dot, and text. If the new dataset is an extreme value with represent to the training dataset, it suggests the network will not make good predictions.
+
+```
+plot/my_project/sim_batchsize128_numepoch20_nt200.histogram_aux.pdf
+plot/my_project/sim_batchsize128_numepoch20_nt200.histogram_label.pdf
+plot/my_project/sim_batchsize128_numepoch20_nt200.pca_aux.pdf
+```
+
+The predicted values and calibrated prediction intervals of a new dataset for all parameters are plotted side-by-side here:
+```
+plot/my_project/sim_batchsize128_numepoch20_nt200.pred_est_CI.pdf
+```
+
+Lastly, trained network's architecture, tensor dimensions, and activation function settings are displayed here:
+```
+plot/my_project/sim_batchsize128_numepoch20_nt200.network_architecture.pdf
+```
