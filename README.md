@@ -18,19 +18,19 @@ A standard phyddle analysis performs the following tasks for you:
 - **Plotting** generates figures that summarize the training data (*Formatting*), the network and its training (*Learning*), and any new predictions (*Predicting*)
 
 To run a phyddle analysis enter the `code` directory:
-```
+```shell
 cd ~/projects/phyddle/code
 ```
 
 Then create and run a pipeline under the settings you've specified in `my_config.py`:
-```
+```shell
 ./run_pipeline.sh --cfg my_config
 ```
 
 This will run a phyddle analysis for a simple 3-region GeoSSE model with just 500 training examples. In practice, you'll want to generate a larger training dataset with anywhere from 10k to 1M examples, depending on the model.
 
 To add new examples to your training set
-```
+```shell
 # simulate new training examples and store in raw_data/my_project
 ./run_simulate.sh --cfg my_config --start_idx 500 --end_idx 15000
 
@@ -48,7 +48,7 @@ To add new examples to your training set
 ```
 
 Pipeline options are applied to all pipeline stages. See the full list of currently supported options with
-```
+```shell
 ./run_pipeline.sh --help
 ```
 
@@ -114,7 +114,7 @@ The config file is a Python dictionary that specifies various program settings (
 
 **NOTE: phyddle assumes you want to use the config file calle `my_config.py`. Use a different config file by calling, e.g. `./run_pipline --cfg my_other_config.py`**
 
-```
+```python
 import scipy as sp
 
 # helper variables
