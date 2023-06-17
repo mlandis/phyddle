@@ -2,7 +2,9 @@
 
 A pipeline-based toolkit for fiddling around with phylogenetic models and deep learning 
 
-*NOTE: This **beta version** of phyddle is still under development. Although it's tested and stable, much of the documentation and some key features are still missing. Feed back is appreciated! Please send it to [Michael Landis](michael.landis@wustl.edu).*
+*NOTE:*
+
+*This **beta version** of phyddle is still under development. Although it's tested and stable, much of the documentation and some key features are still missing. Most phyddle development occurs on a 64-core Ubuntu server and a 16-core Intel Macbook Pro laptop, so there are also unknown portability/scalability issues to correct. Any feedback is appreciated! Please send it to [Michael Landis](michael.landis@wustl.edu).*
 
 ## Overview
 
