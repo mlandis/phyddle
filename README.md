@@ -343,27 +343,27 @@ options:
 
 ### Model configuration
 
-Add text.
+(to be done)
 
 ### Simulating
 
-Add text.
+(to be done)
 
 ### Formatting
 
-Add text.
+(to be done)
 
 ### Learning
 
-Add text.
+(to be done)
 
 ### Predicting
 
-Add text.
+(to be done)
 
 ### Plotting
 
-Add text.
+(to be done)
 
 
 
