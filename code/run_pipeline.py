@@ -58,9 +58,9 @@ my_fmt.run()
 my_lrn.run()
 
 # Step 4: predict against new test dataset
-pred_prefix = f"{my_args['pred_dir']}/{ my_args['pred_prefix']}"
+pred_prefix = f"{my_args['pred_dir']}/{my_args['proj']}/{my_args['pred_prefix']}"
 my_fmt.encode_one(tmp_fn=pred_prefix, idx=-1, save_phyenc_csv=True)
-my_pred.run()
+my_prd.run()
 
 # Step 5: plot results
 my_plt.run()
