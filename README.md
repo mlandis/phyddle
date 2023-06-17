@@ -1,8 +1,64 @@
 # phyddle
 
-A repository for fiddling around with Phylogenetic Deep Learning.
+A pipeline-based toolkit for fiddling around with Phylogenetic Deep Learning.
 
-Python pipeline scripts for using CNNs + deep learning to estimate SSE model parameters.
+Python scripts for using CNNs + deep learning to estimate SSE model parameters.
+
+
+## Brief guide
+
+
+
+A standard phyddle analysis performs the following tasks for you:
+- **Pipeline conifiguration**, applies analysis settings provided through a config file and/or command line arguments
+- **Model configuration**, constructs a base simulating model to be *Simulated* (states, events, rates)
+- **Simulating**, simulates a large training dataset under the model to be *Formatted* (parallelized, partly compressed)
+- **Formatting**, encodes the raw simulated data into tensor format for *Learning* (parallelized, compressed)
+- **Learning**, shuffles and splits training data, builds a network, then trains and saves the network with the data for *Prediction*
+- **Predicting**, estimates model parameters for a new dataset with the trained network
+- **Plotting**, generates figures that summarize the training data (*Formatting*), the network and its training (*Learning*), and any new predictions (*Predicting*)
+
+To run a phyddle analysis enter the `code` directory:
+```
+cd ~/projects/phyddle/code
+```
+
+Then create and run a pipeline under the settings you've specified in `my_config.py`:
+```
+./run_pipeline.sh --cfg my_config
+```
+
+This will run a phyddle analysis for a simple 3-region GeoSSE model with just 500 training examples. In practice, you'll want to generate a larger training dataset with anywhere from 10k to 1M examples, depending on the model.
+
+To add new examples to your training set
+```
+# simulate new training examples and store in raw_data/my_project
+./run_simulate.sh --cfg my_config --start_idx 500 --end_idx 15000
+
+# encode all raw_data examples as tensors in tensor_data/my_project
+./run_format.sh --cfg my_config --start_idx 0 --end_idx 15000
+
+# train network with tensor_data, but override batch size, then store in network/my_project
+./run_learn.sh --cfg my_config --batch_size 256
+
+# make prediction with example dataset
+./run_predict.sh --cfg my_config
+
+# generate figures and store in plot
+./run_plot.sh --cfg my_config
+```
+
+Pipeline options are applied to all pipeline stages. See the full list of currently supported options with
+```
+./run_pipeline.sh --help
+```
+
+## Features
+
+
+
+
+## Longer guide
 
 The repository has five main directories:
 - `code` contains scripts to generate and process data
@@ -12,3 +68,5 @@ The repository has five main directories:
 - `plot` contains figures of training and validation procedures
 
 In general, the pipeline assumes that the user supplies runs scripts in `code` using a consistent *project name* (e.g. `my_project`) to coordinate the analysis across the `raw_data`, `tensor_data`, `network`, and `plot` directories.
+
+
