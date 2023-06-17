@@ -4,16 +4,16 @@ A pipeline-based toolkit for fiddling around with Phylogenetic Deep Learning.
 
 ## Overview
 
-<img align="right" src="https://github.com/landislab/landislab.github.io/blob/5bb4685a12ebf4c99dd773de6d87b44cc3c47090/assets/research/img/phyddle_pipeline.png?raw=true" height="400" width="400">
+<img align="right" src="https://github.com/landislab/landislab.github.io/blob/5bb4685a12ebf4c99dd773de6d87b44cc3c47090/assets/research/img/phyddle_pipeline.png?raw=true" width="35%">
 
 A standard phyddle analysis performs the following tasks for you:
-- **Pipeline configuration**, applies analysis settings provided through a config file and/or command line arguments
-- **Model configuration**, constructs a base simulating model to be *Simulated* (states, events, rates)
-- **Simulating**, simulates a large training dataset under the model to be *Formatted* (parallelized, partly compressed)
-- **Formatting**, encodes the raw simulated data into tensor format for *Learning* (parallelized, compressed)
-- **Learning**, shuffles and splits training data, builds a network, then trains and saves the network with the data for *Prediction*
-- **Predicting**, estimates model parameters for a new dataset with the trained network
-- **Plotting**, generates figures that summarize the training data (*Formatting*), the network and its training (*Learning*), and any new predictions (*Predicting*)
+- **Pipeline configuration** applies analysis settings provided through a config file and/or command line arguments
+- **Model configuration** constructs a base simulating model to be *Simulated* (states, events, rates)
+- **Simulating** simulates a large training dataset under the model to be *Formatted* (parallelized, partly compressed)
+- **Formatting** encodes the raw simulated data into tensor format for *Learning* (parallelized, compressed)
+- **Learning** shuffles and splits training data, builds a network, then trains and saves the network with the data for *Prediction*
+- **Predicting** estimates model parameters for a new dataset with the trained network
+- **Plotting** generates figures that summarize the training data (*Formatting*), the network and its training (*Learning*), and any new predictions (*Predicting*)
 
 To run a phyddle analysis enter the `code` directory:
 ```
