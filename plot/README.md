@@ -2,7 +2,10 @@
 
 The `plot` directory contains subdirectories for different projects with figures produced by the Plotting step.
 
-The `summary.pdf` contains all figures produced by Plotting. The prefix for the figure names corresponds to the trained network name.
+The summary figure includes all other figures produced by Plotting. The prefix for the figure names corresponds to the trained network name.
+```
+plot/my_project/sim_batchsize128_numepoch20_nt200.summary.pdf
+```
 
 Training history plots are report how training metrics (loss, MSE, etc.) changed across epochs for training and validation datasets. The `history_.pdf` figure reports the loss for the entire network during training, while other history files report all training metrics for that particular prediction target's output layer.
 
