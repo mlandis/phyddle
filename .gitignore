@@ -1,6 +1,18 @@
+# Ignore phyddle dirs
 code/__pycache__/*
 raw_data/*/*
 tensor_data/*/*
 network/*/*
 plot/*/*
-code/Models/__pycache__/*.*
+
+# Ignore OS files
+.DS_Store
+.DS_Store?
+
+# Exceptions for `example` project
+!raw_data/example/*
+!tensor_data/example/*
+!network/example/*
+!predict/example/*
+!plot/example/*
+
