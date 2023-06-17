@@ -254,8 +254,8 @@ args = args | plt_args
 #######################
 
 prd_args = {
-    'pred_dir'    : '../raw_data/my_predict',
-    'pred_prefix' : 'sim.1'
+    'pred_dir'    : '../predict',
+    'pred_prefix' : 'new.1'
 }
 args = args | prd_args
 ```
