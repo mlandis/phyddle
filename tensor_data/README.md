@@ -13,7 +13,7 @@ For example, if `'tree_size' == [200, 500]` and `'tensor_format' == 'hdf5'` then
 tensor_data/my_project/sim.nt200.hdf5
 tensor_data/my_project/sim.nt500.hdf5
 ```
-while if `'tree_size' == [100, 1000, 10000]` and `'tensor_format' == 'csv'` then the project directory might contain:
+Alternatively, if `'tree_size' == [100, 1000, 10000]` and `'tensor_format' == 'csv'` then the project directory might contain:
 ```
 tensor_data/my_project/sim.nt100.cdvs.csv
 tensor_data/my_project/sim.nt100.summ_stat.csv
