@@ -54,11 +54,6 @@ Pipeline options are applied to all pipeline stages. See the full list of curren
 ./run_pipeline.sh --help
 ```
 
-## Issues & Troubleshooting
-
-Please use [Issues](https://github.com/mlandis/phyddle/issues) to report bugs or feature requests that require modifying phyddle source code. Please contact [Michael Landis](mailto:michael.landis@wustl.edu) to request troubleshooting support using phyddle.
-
-
 ## Features
 
 Current features:
@@ -82,6 +77,48 @@ Planned features:
 - expansion of standard prediction tasks
 - expansion of unit/integration testing
 
+## Issues & Troubleshooting
+
+Please use [Issues](https://github.com/mlandis/phyddle/issues) to report bugs or feature requests that require modifying phyddle source code. Please contact [Michael Landis](mailto:michael.landis@wustl.edu) to request troubleshooting support using phyddle.
+
+
+## Requirements
+
+phyddle was last tested using with Mac OS X 11.6.4 (Intel CPU) using Python 3.11.3 (installed with homebrew) with the following versions of the required third-party package dependencies (installed with pip):
+```
+PIL 9.5.0
+PyPDF2 3.0.1
+argparse 1.1
+h5py 3.8.0
+joblib 1.2.0
+keras 2.12.0
+matplotlib 3.7.1
+numpy 1.23.5
+pandas 2.0.0
+pydot_ng 2.0.0
+scipy 1.10.1
+sklearn 1.2.2
+tensorflow 2.12.0
+tqdm 4.65.0
+```
+
+phyddle is also tested using a 64-core Ubuntu LTS 22.04 server using Python 3.xx.xx (aptitude) and similar package versions. phyddle has yet not been tested using conda, Windows, M1 Macs, various GPUs, etc.
+
+phyddle also currently relies on the BEAST plugin MASTER for simulation. BEAST must be accessible as the `beast` executable through the `$PATH` shell variable. How this is done will differ from case to case among operating systems, 
+```
+$ ls -lart /Users/mlandis/.local/bin/beast
+lrwxr-xr-x  1 mlandis  staff  35 Feb 14 10:32 /Users/mlandis/.local/bin/beast -> /Applications/BEAST 2.7.3/bin/beast
+$  which beast
+/Users/mlandis/.local/bin/beast
+$ beast -version                                                                                                       1 ↵
+BEAST v2.7.3
+---
+BEAST.base v2.7.3
+MASTER v7.0.0
+BEAST.app v2.7.3
+---
+Java version 17.0.5
+```
 
 ## Developer guide
 (to be done)
