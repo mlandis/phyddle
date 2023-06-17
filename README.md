@@ -62,6 +62,14 @@ Current features:
 - trains network and saves history
 - automatic figure generation with Matplotlib
 
+Planned features:
+- better back-end documentation
+- expanded library of model types/variants for discrete and continuous state types
+- expanded support for standard simulators and a generic script-based simulator interface
+- better parallelization for hdf5-chunking of very large datasets
+- expansion of standard prediction tasks
+- expansion of unit/integration testing
+
 ## Longer guide
 
 The repository has five main directories:
@@ -73,4 +81,187 @@ The repository has five main directories:
 
 In general, the pipeline assumes that the user supplies runs scripts in `code` using a consistent *project name* (e.g. `my_project`) to coordinate the analysis across the `raw_data`, `tensor_data`, `network`, and `plot` directories.
 
+### Config file
 
+The config file is a Python dictionary that specifies various program settings (arguments or `args`) that configure how the underlying pipeline steps behave. Because it's a Python script, you can write code within the config file to specify your analysis, if you find that helpful. The below example defines settings into different blocks based on which pipeline step first needs a given setting. However, any setting might be used by different pipeline steps, so we concatenate all settings into a single dictionary called `args`, which is then used by all pipeline steps.
+
+**NOTE: phyddle assumes you want to use the config file calle `my_config.py`. Use a different config file by calling, e.g. `./run_pipline --cfg my_other_config.py`**
+
+```
+import scipy as sp
+
+# helper variables
+num_char = 3
+
+#####################
+# PIPELINE SETTINGS #
+#####################
+args = { 'proj' : 'my_project' }
+
+##################
+# MODEL SETTINGS #
+##################
+mdl_args = {
+    'model_type'    : 'geosse',
+    'model_variant' : 'equal_rates',
+    'num_char'      : num_char,
+    'rv_fn' : {
+        'w': sp.stats.expon.rvs,
+        'e': sp.stats.expon.rvs,
+        'd': sp.stats.expon.rvs,
+        'b': sp.stats.expon.rvs },
+    'rv_arg' : {
+        'w': { 'scale' : 0.2 },
+        'e': { 'scale' : 0.1 },
+        'd': { 'scale' : 0.1 },
+        'b': { 'scale' : 0.5 }
+    }
+}
+args = args | mdl_args
+
+######################
+# SIMULATOR SETTINGS #
+######################
+sim_args = {
+    'sim_dir'           : '../raw_data',
+    'sim_logging'       : 'verbose',
+    'start_idx'         : 0,
+    'end_idx'           : 100,
+    'tree_sizes'        : [ 200, 500 ],
+    'use_parallel'      : True,
+    'num_proc'          : -2,
+    'sample_population' : ['S'],
+    'stop_time'         : 10,
+    'min_num_taxa'      : 0,
+    'max_num_taxa'      : 400                # MASTER seems to generate too many taxa?
+}
+args = args | sim_args
+
+
+#############################
+# TENSOR-FORMATTER SETTINGS #
+#############################
+fmt_args = {
+    'fmt_dir' : '../tensor_data',
+    'tree_type'  : 'extant',
+    'param_pred' : ['w_0', 'e_0', 'd_0_1', 'b_0_1'],
+    'param_data' : [],
+    'save_phyenc_csv' : False,
+    'tensor_format' : 'hdf5'
+}
+args = args | fmt_args
+
+#####################
+# LEARNING SETTINGS #
+#####################
+lrn_args = {
+    'net_dir'        : '../network',
+    'tree_size'      : 500,
+    'num_epochs'     : 40,
+    'prop_test'        : 0.05,
+    'prop_validation'  : 0.05,
+    'prop_calibration' : 0.20,
+    'alpha_CQRI'     : 0.95,
+    'batch_size'     : 128,
+    'loss'           : 'mse',
+    'optimizer'      : 'adam',
+    'metrics'        : ['mae', 'acc']
+}
+args = args | lrn_args
+
+
+#####################
+# PLOTTING SETTINGS #
+#####################
+plt_args = {
+    'plt_dir'        : '../plot',
+    'network_prefix' : 'sim_batchsize128_numepoch20_nt200'
+}
+args = args | plt_args
+
+
+#######################
+# PREDICTING SETTINGS #
+#######################
+
+prd_args = {
+    'pred_dir'    : '../raw_data/my_predict',
+    'pred_prefix' : 'sim.1'
+}
+args = args | prd_args
+```
+
+### Command line arguments
+
+Settings applied through the config file can be overwritten by setting options when running phyddle from the command line. The names of settings are the same for the command line options and in the config file. Using command line options makes it easy to adjust the behavior of pipeline steps without needing to edit the config file. List all settings that can be adjusted with the command line using the `--help` option:
+
+```
+./run_pipeline.py --help
+
+usage: run_pipeline.py [-h] [-c CONFIG_FN] [--proj PROJ] [--use_parallel USE_PARALLEL] [--num_proc NUM_PROC] [--sim_dir SIM_DIR] [--fmt_dir FMT_DIR]
+                       [--net_dir NET_DIR] [--plt_dir PLT_DIR] [--pred_dir PRED_DIR] [--model_type MODEL_TYPE] [--model_variant MODEL_VARIANT]
+                       [--num_char NUM_CHAR] [--sim_logging {clean,verbose,compress}] [--start_idx START_IDX] [--end_idx END_IDX] [--stop_time STOP_TIME]
+                       [--min_num_taxa MIN_NUM_TAXA] [--max_num_taxa MAX_NUM_TAXA] [--tensor_format {hdf5,csv}] [--tree_type {extant,serial}]
+                       [--save_phyenc_csv SAVE_PHYENC_CSV] [--tree_size TREE_SIZE] [--num_epochs NUM_EPOCHS] [--batch_size BATCH_SIZE]
+                       [--prop_test PROP_TEST] [--prop_validation PROP_VALIDATION] [--prop_calibration PROP_CALIBRATION] [--alpha_CQRI ALPHA_CQRI]
+                       [--loss LOSS] [--optimizer OPTIMIZER] [--network_prefix NETWORK_PREFIX] [--pred_prefix PRED_PREFIX]
+
+phyddle pipeline config
+
+options:
+  -h, --help            show this help message and exit
+  -c CONFIG_FN, --cfg CONFIG_FN
+                        Config file name (default: None)
+  --proj PROJ           Project name used as directory across pipeline stages (default: None)
+  --use_parallel USE_PARALLEL
+                        Use parallelization? (recommended) (default: None)
+  --num_proc NUM_PROC   How many cores for multiprocessing? (e.g. 4 uses 4, -2 uses all but 2) (default: None)
+  --sim_dir SIM_DIR     Directory for raw simulated data (default: None)
+  --fmt_dir FMT_DIR     Directory for tensor-formatted simulated data (default: None)
+  --net_dir NET_DIR     Directory for trained networks and predictions (default: None)
+  --plt_dir PLT_DIR     Directory for plotted results (default: None)
+  --pred_dir PRED_DIR   Predict results for dataset located in this directory (default: None)
+  --model_type MODEL_TYPE
+                        Model type (default: None)
+  --model_variant MODEL_VARIANT
+                        Model variant (default: None)
+  --num_char NUM_CHAR   Number of characters (default: None)
+  --sim_logging {clean,verbose,compress}
+                        Simulation logging style (default: None)
+  --start_idx START_IDX
+                        Start index for simulation (default: None)
+  --end_idx END_IDX     End index for simulation (default: None)
+  --stop_time STOP_TIME
+                        Maximum duration of evolution for each simulation (default: None)
+  --min_num_taxa MIN_NUM_TAXA
+                        Minimum number of taxa for each simulation (default: None)
+  --max_num_taxa MAX_NUM_TAXA
+                        Maximum number of taxa for each simulation (default: None)
+  --tensor_format {hdf5,csv}
+                        Storage format for simulation tensors (default: None)
+  --tree_type {extant,serial}
+                        Type of tree (default: None)
+  --save_phyenc_csv SAVE_PHYENC_CSV
+                        Save encoded phylogenetic tensor encoding to csv? (default: None)
+  --tree_size TREE_SIZE
+                        Number of taxa in phylogenetic tensor (default: None)
+  --num_epochs NUM_EPOCHS
+                        Number of learning epochs (default: None)
+  --batch_size BATCH_SIZE
+                        Training batch sizes during learning (default: None)
+  --prop_test PROP_TEST
+                        Proportion of data used as test examples (demonstrate trained network performance) (default: None)
+  --prop_validation PROP_VALIDATION
+                        Proportion of data used as validation examples (diagnose network overtraining) (default: None)
+  --prop_calibration PROP_CALIBRATION
+                        Proportion of data used as calibration examples (calibrate conformal prediction intervals) (default: None)
+  --alpha_CQRI ALPHA_CQRI
+                        Expected coverage percent for prediction intervals (default: None)
+  --loss LOSS           Loss function used as optimization criterion (default: None)
+  --optimizer OPTIMIZER
+                        Method used for optimizing neural network (default: None)
+  --network_prefix NETWORK_PREFIX
+                        Plot results related to this network prefix (default: None)
+  --pred_prefix PRED_PREFIX
+                        Predict results for this dataset (default: None)
+```
