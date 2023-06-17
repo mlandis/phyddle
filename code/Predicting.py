@@ -44,7 +44,7 @@ class Predictor:
         self.model_sav_fn           = f'{self.network_dir}/{self.model_prefix}.hdf5'
         self.model_trn_lbl_norm_fn  = f'{self.network_dir}/{self.model_prefix}.train_label_norm.csv'
         self.model_trn_ss_norm_fn   = f'{self.network_dir}/{self.model_prefix}.train_summ_stat_norm.csv'
-        self.model_cpi_func_fn      = f'{self.network_dir}/{self.model_prefix}.cpi_func.obj'
+        #self.model_cpi_func_fn      = f'{self.network_dir}/{self.model_prefix}.cpi_func.obj'
         self.model_cqr_fn           = f'{self.network_dir}/{self.model_prefix}.cqr_interval_adjustments.csv'
 
         # save predictions to file
