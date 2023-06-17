@@ -1,6 +1,6 @@
 # Raw data
 
-This directory contains directories of simulated training replicates for each model.
+The `raw_data` directory contains directories of simulated training replicates for each model. Subdirectories represent different pipeline projects.
 
 The Simulating step will create the following files for simulation replicate `i`:
 ```
