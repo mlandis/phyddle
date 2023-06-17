@@ -4,7 +4,7 @@ A pipeline-based toolkit for fiddling around with phylogenetic models and deep l
 
 *NOTE:*
 
-*This **private beta version** of phyddle is still under development. Although it's tested and stable, much of the documentation and some key features are still missing. Most phyddle development occurs on a 64-core Ubuntu server and a 16-core Intel Macbook Pro laptop, so there are also unknown portability/scalability issues to correct. Any feedback is appreciated! michael.landis@wustl.edu*
+* **This private beta version of phyddle is still under development.** Although it's tested and stable, much of the documentation and some key features are still missing. Most phyddle development occurs on a 64-core Ubuntu server and a 16-core Intel Macbook Pro laptop, so there are also unknown portability/scalability issues to correct. Any feedback is appreciated! michael.landis@wustl.edu*
 
 
 
@@ -140,6 +140,10 @@ This guide provides phyddle users with an overview for how the toolkit works, ho
 
 In general, the pipeline assumes that the user supplies runs scripts in `code` using a consistent *project name* (e.g. `my_project`) to coordinate the analysis across the `raw_data`, `tensor_data`, `network`, and `plot` directories.
 
+### Example dataset
+
+The `example` project bundled with phyddle was generated using the command `./code/run_pipeline.sh --cfg config --proj example --end_idx 25000`. This corresponds to a 3-region equal-rates GeoSSE model. All directories are populated, except `raw_data/example` contains only 20 original examples.
+
 ### Directory structure
 
 The repository has five main directories:
@@ -150,7 +154,7 @@ The repository has five main directories:
 - [`predict`](predict) contains new test datasets their predictions
 - [`plot`](plot) contains figures of training and validation procedures
 
-If a user runs an analysis with the project name `my_project`, then pipeline files created by the analysis would be stored in `raw_data/my_project`, `tensor_data/my_project`, `network/my_project`, `predict/my_projects`, and `plot/my_project`. The `example` project is bundled with phyddle.
+If a user runs an analysis with the project name `my_project`, then pipeline files created by the analysis would be stored in `raw_data/my_project`, `tensor_data/my_project`, `network/my_project`, `predict/my_projects`, and `plot/my_project`.
 
 ### Analysis configuration
 
