@@ -68,12 +68,12 @@ args = args | fmt_args
 lrn_args = { 
     'net_dir'        : '../network',
     'tree_size'      : 250,
-    'num_epochs'     : 10,
+    'num_epochs'     : 15,
     'prop_test'        : 0.05,
     'prop_validation'  : 0.05,
     'prop_calibration' : 0.20,
     'alpha_CQRI'     : 0.95,
-    'batch_size'     : 128,
+    'batch_size'     : 256,
     'loss'           : 'mse',
     'optimizer'      : 'adam',
     'metrics'        : ['mae', 'acc']
