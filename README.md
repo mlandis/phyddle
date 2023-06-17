@@ -82,7 +82,9 @@ Planned features:
 Please use [Issues](https://github.com/mlandis/phyddle/issues) to report bugs or feature requests that require modifying phyddle source code. Please contact [Michael Landis](mailto:michael.landis@wustl.edu) to request troubleshooting support using phyddle.
 
 
-## Requirements
+## Installation & Requirements
+
+To install phyddle on your computer, you can either clone the repository or you can [download](https://github.com/mlandis/phyddle/archive/refs/heads/main.zip) and unzip the current version of the main branch.
 
 phyddle was last tested using with Mac OS X 11.6.4 (Intel CPU) using Python 3.11.3 (installed with homebrew) with the following versions of the required third-party package dependencies (installed with pip):
 ```
@@ -102,7 +104,7 @@ tensorflow 2.12.0
 tqdm 4.65.0
 ```
 
-phyddle is also tested using a 64-core Ubuntu LTS 22.04 server using Python 3.xx.xx (aptitude) and similar package versions. phyddle has yet not been tested using conda, Windows, M1 Macs, various GPUs, etc.
+phyddle is also used with a 64-core Ubuntu LTS 22.04 server using Python 3.xx.xx (aptitude) and similar package versions. phyddle has yet not been tested using conda, Windows, M1 Macs, various GPUs, etc.
 
 phyddle also currently relies on the BEAST plugin MASTER for simulation. The operating system must be able to call BEAST from anywhere in the filesystem through the `beast` command. This can be done by adding the BEAST executable to be covered by the `$PATH` shell variable. Creating a symbolic link (shortcut) to the BEAST binary `beast` with `ln -s` in `~/.local/bin` is one an easy way to make `beast` globally accessible on Mac OS X.
 ```
