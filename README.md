@@ -2,9 +2,7 @@
 
 A pipeline-based toolkit for fiddling around with Phylogenetic Deep Learning.
 
-
-
-## Brief guide
+## Overview
 
 <img align="right" src="https://github.com/landislab/landislab.github.io/blob/5bb4685a12ebf4c99dd773de6d87b44cc3c47090/assets/research/img/phyddle_pipeline.png?raw=true" height="400" width="400">
 
@@ -76,6 +74,8 @@ Planned features:
 - expansion of unit/integration testing
 
 ## Longer guide
+
+(under development)
 
 In general, the pipeline assumes that the user supplies runs scripts in `code` using a consistent *project name* (e.g. `my_project`) to coordinate the analysis across the `raw_data`, `tensor_data`, `network`, and `plot` directories.
 
