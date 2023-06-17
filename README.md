@@ -2,6 +2,8 @@
 
 A pipeline-based toolkit for fiddling around with phylogenetic models and deep learning
 
+**NOTE: we are currently beta-testing phyddle**
+
 ## Overview
 
 <img align="right" src="https://github.com/landislab/landislab.github.io/blob/5bb4685a12ebf4c99dd773de6d87b44cc3c47090/assets/research/img/phyddle_pipeline.png?raw=true" width="35%">
@@ -315,5 +317,7 @@ Add text.
 
 Add text.
 
-## Thanks
-Thanks for your interest in phyddle. The project is developed by [Michael Landis](mailto:michael.landis@wustl.edu) and Ammon Thompson.
+## About
+Thanks for your interest in phyddle. The phyddle project emerged from a phylogenetic deep learning study led by Ammon Thompson. The goal of phyddle is to provide its users with a generalizable pipeline workflow for phylogenetic modeling and deep learning. This hopefully will make it easier for phylogenetic model enthusiasts and developers to explore and apply models that do not have tractable likelihood functions. It's also intended for use by methods developers who want to characterize how deep learning methods perform under different conditions for standard phylogenetic estimation tasks.
+
+phyddle is developed by [Michael Landis](mailto:michael.landis@wustl.edu) and Ammon Thompson.
