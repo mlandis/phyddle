@@ -129,7 +129,8 @@ Java version 17.0.5
 
 ## Developer guide
 (to be done)
-We plan to host documentation with `sphinx` to help developers read, use, and modify the back-end Python source code for their purposes. For now, anyone who clones the repository can make local changes to the code, though not without risk of introducing errors into tested behavior of phyddle.
+
+We will host documentation built with `sphinx` to help developers read, use, and modify the back-end Python source code for their purposes. For now, anyone who clones the repository can make local changes to the code, though with some risk of introducing errors to how the tested version of phyddle behaves.
 
 
 ## User guide
