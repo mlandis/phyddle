@@ -13,13 +13,16 @@ sim.i.param_col.csv   # simulation parameters with one parameter per column
 The Formatting step additionally creates the following files when preparing the encoded tensor:
 ```
 sim.i.info.csv        # information about replicate settings
-sim.i.extant.tre      # Newick phylogeny string with only extant taxa (when tree_type is 'extant')
+sim.i.extant.tre      # Newick phylogeny string with only extant taxa
+                      # when 'tree_type' == 'extant'
 ```
 
-Phylogenetic-state tensor encodings are also stored only when `save_phyenc_csv == True`:
+Phylogenetic-state tensor encodings are also stored only when `'save_phyenc_csv' == True`:
 ```
-sim.i.cdvs.tre        # compact diversity vector + states, when tree_type == 'extant'
-sim.i.cblvs.tre       # compact bijective ladderized vector + states when tree_type == 'serial')
+sim.i.cdvs.tre        # compact diversity vector + states + branch length info expansion
+                      # when 'tree_type' == 'extant'
+sim.i.cblvs.tre       # compact bijective ladderized vector + states + branch length info expansion
+                      # when 'tree_type' == 'serial')
 ```
 
 When MASTER is used to simulate data, the follow additional files may appear:
