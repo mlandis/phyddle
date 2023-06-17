@@ -6,6 +6,8 @@ A pipeline-based toolkit for fiddling around with phylogenetic models and deep l
 
 *This **beta version** of phyddle is still under development. Although it's tested and stable, much of the documentation and some key features are still missing. Most phyddle development occurs on a 64-core Ubuntu server and a 16-core Intel Macbook Pro laptop, so there are also unknown portability/scalability issues to correct. Any feedback is appreciated! michael.landis@wustl.edu
 
+
+
 ## Overview
 
 <img align="right" src="https://github.com/landislab/landislab.github.io/blob/5bb4685a12ebf4c99dd773de6d87b44cc3c47090/assets/research/img/phyddle_pipeline.png?raw=true" width="35%">
@@ -19,6 +21,8 @@ A standard phyddle analysis performs the following tasks for you:
 - **Learning** shuffles and splits training data, builds a network, then trains and saves the network with the data for *Prediction*. Saves output in the [`network`](network) directory.
 - **Predicting** estimates model parameters for a new dataset with the trained network. Saves output in the [`predict`](predict) directory.
 - **Plotting** generates figures that summarize the training data (*Formatting*), the network and its training (*Learning*), and any new predictions (*Predicting*). Saves output in the [`plot`](plot) directory.
+
+
 
 ## Quick start
 
@@ -57,6 +61,7 @@ Pipeline options are applied to all pipeline stages. See the full list of curren
 ./run_pipeline.sh --help
 ```
 
+
 ## Features
 
 Current features:
@@ -80,9 +85,6 @@ Planned features:
 - expansion of standard prediction tasks
 - expansion of unit/integration testing
 
-## Issues & Troubleshooting
-
-Please use [Issues](https://github.com/mlandis/phyddle/issues) to report bugs or feature requests that require modifying phyddle source code. Please contact [Michael Landis](mailto:michael.landis@wustl.edu) to request troubleshooting support using phyddle.
 
 
 ## Installation & Requirements
@@ -361,6 +363,14 @@ Add text.
 ### Plotting
 
 Add text.
+
+
+
+## Issues & Troubleshooting
+
+Please use [Issues](https://github.com/mlandis/phyddle/issues) to report bugs or feature requests that require modifying phyddle source code. Please contact [Michael Landis](mailto:michael.landis@wustl.edu) to request troubleshooting support using phyddle.
+
+
 
 ## About
 Thanks for your interest in phyddle. The phyddle project emerged from a phylogenetic deep learning study led by Ammon Thompson ([paper](https://www.biorxiv.org/content/10.1101/2023.02.08.527714v2)). The goal of phyddle is to provide its users with a generalizable pipeline workflow for phylogenetic modeling and deep learning. This hopefully will make it easier for phylogenetic model enthusiasts and developers to explore and apply models that do not have tractable likelihood functions. It's also intended for use by methods developers who want to characterize how deep learning methods perform under different conditions for standard phylogenetic estimation tasks.
