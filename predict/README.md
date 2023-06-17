@@ -12,10 +12,9 @@ predict/my_project/new.dat.nex
 These files can then be passed through Formatting to encode a phylo-state tensor, an auxiliary data tensor (contains summ. stats), and an extant version of the provided tree (if needed). The Python code for this would be:
 
 ```python
-MyFormatter = Formatting.Formatter
+import Formatting
 my_mdl = ModelLoader.load_model(my_args)
-my_fmt = MyFormatter(my_args, my_mdl)
-
+my_fmt = Formatting.Formatter(my_args, my_mdl)
 pred_prefix = f"{my_args['pred_dir']}/{my_args['proj']}/{my_args['pred_prefix']}"
 my_fmt.encode_one(tmp_fn=pred_prefix, idx=-1, save_phyenc_csv=True)
 ```
