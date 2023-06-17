@@ -50,6 +50,11 @@ Pipeline options are applied to all pipeline stages. See the full list of curren
 ./run_pipeline.sh --help
 ```
 
+## Issues & Troubleshooting
+
+Please use [Issues](https://github.com/mlandis/phyddle/issues) to report bugs or feature requests that require modifying phyddle source code. Please contact [Michael Landis](mailto:michael.landis@wustl.edu) to request troubleshooting support using phyddle.
+
+
 ## Features
 
 Current features:
@@ -309,3 +314,6 @@ Add text.
 ### Plotting
 
 Add text.
+
+## Thanks
+Thanks for your interest in phyddle. The project is developed by [Michael Landis](mailto:michael.landis@wustl.edu) and Ammon Thompson.
