@@ -1,8 +1,6 @@
 # Tensor data
 
-This directory contains formatted versions of the raw data for tensor datasets.
-
-Subdirectories represent different pipeline projects.
+The `tensor_data` directory contains formatted versions of the raw data for tensor datasets. Subdirectories represent different pipeline projects.
 
 Raw datasets are categorized into different "tree-size" classes, which defines the number of columns in the compact phylo-state tensors. Possible tree-size classes are defined by the `'tree_size'` setting. Each individual dataset (a tree and character matrix pair) describing $n$ species is assigned to the largest tree-size class $m$ such that $n \leq m$.
 
