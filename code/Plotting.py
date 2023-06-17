@@ -39,6 +39,7 @@ class Plotter:
         self.proj              = args['proj']
         self.network_dir       = args['net_dir']
         self.plot_dir          = args['plt_dir']
+        self.pred_dir          = args['pred_dir']
         self.tensor_dir        = args['fmt_dir']
         self.batch_size        = args['batch_size']
         self.num_epochs        = args['num_epochs']
@@ -54,6 +55,7 @@ class Plotter:
         self.net_job_dir        = f'{self.network_dir}/{self.proj}'
         self.fmt_job_dir        = f'{self.tensor_dir}/{self.proj}'
         self.plt_job_dir        = f'{self.plot_dir}/{self.proj}'
+        self.pred_job_dir       = f'{self.pred_dir}/{self.proj}'
 
         # tensors
         self.input_stats_fn     = f'{self.fmt_job_dir}/sim.nt{self.tree_size}.summ_stat.csv'
@@ -69,13 +71,13 @@ class Plotter:
         self.history_json_fn    = f'{self.net_job_dir}/{self.network_prefix}.train_history.json'
 
         # predictions
-        self.pred_aux_fn        = f'{self.pred_dir}/{self.pred_prefix}.summ_stat.csv'
-
-        # plotting
+        self.pred_aux_fn        = f'{self.pred_job_dir}/{self.pred_prefix}.summ_stat.csv'
+        self.pred_lbl_fn        = f'{self.pred_job_dir}/{self.pred_prefix}.{self.network_prefix}.pred_labels.csv'
+        
+        # plotting output
         self.save_hist_aux_fn   = f'{self.plt_job_dir}/{self.network_prefix}.histogram_aux.pdf'
         self.save_hist_label_fn = f'{self.plt_job_dir}/{self.network_prefix}.histogram_label.pdf'
         self.save_pca_aux_fn    = f'{self.plt_job_dir}/{self.network_prefix}.pca_aux.pdf'
-        self.pred_lbl_fn        = f'{self.net_job_dir}/{self.pred_prefix}.{self.network_prefix}.pred_labels.csv'
         self.save_cqr_test_fn   = f'{self.plt_job_dir}/{self.network_prefix}.train_est_CI.pdf'
         self.save_cqr_pred_fn   = f'{self.plt_job_dir}/{self.network_prefix}.pred_est_CI.pdf'
         self.save_network_fn    = f'{self.plt_job_dir}/{self.network_prefix}.network_architecture.pdf'

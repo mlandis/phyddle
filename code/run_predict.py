@@ -25,7 +25,7 @@ MyFormatter = Formatting.Formatter
 my_mdl = ModelLoader.load_model(my_args)
 my_fmt = MyFormatter(my_args, my_mdl)
 
-pred_prefix = my_args['pred_dir'] + '/' + my_args['pred_prefix']
+pred_prefix = f"{my_args['pred_dir']}/{my_args['proj']}/{my_args['pred_prefix']}"
 my_fmt.encode_one(tmp_fn=pred_prefix, idx=-1, save_phyenc_csv=True)
 
 MyPredictor = Predicting.Predictor

@@ -360,9 +360,8 @@ class CnnLearner(Learner):
 
         # drop 0th column containing point estimate predictions for calibration dataset
         norm_calib_pred_quantiles = self.normalized_calib_preds[1:,:,:]
-        self.cqr_interval_adjustments = Utilities.get_CQR_constant(norm_calib_pred_quantiles, self.norm_calib_labels, inner_quantile=self.alpha_CQRI)
+        self.cqr_interval_adjustments = self.get_CQR_constant(norm_calib_pred_quantiles, self.norm_calib_labels, inner_quantile=self.alpha_CQRI)
         self.cqr_interval_adjustments = np.array( self.cqr_interval_adjustments ).reshape((2,-1))
-        print(self.cqr_interval_adjustments.shape)
 
         # note to self: should I save all copies of calibrated/uncalibrated predictions test/train/calib??
 

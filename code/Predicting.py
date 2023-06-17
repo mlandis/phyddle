@@ -2,7 +2,7 @@
 #import cnn_utilities as cn
 import pandas as pd
 import numpy as np
-import dill
+#import dill
 #import os
 #import csv
 #import json
@@ -36,7 +36,8 @@ class Predictor:
     def prepare_files(self):
 
         # main directories
-        self.network_dir    = self.net_dir + '/' + self.project_name
+        self.network_dir            = f'{self.net_dir}/{self.project_name}'
+        self.predict_dir            = f'{self.pred_dir}/{self.project_name}'
 
         # main job filenames
         self.model_prefix           = f'sim_batchsize{self.batch_size}_numepoch{self.num_epochs}_nt{self.tree_size}'
@@ -47,17 +48,17 @@ class Predictor:
         self.model_cqr_fn           = f'{self.network_dir}/{self.model_prefix}.cqr_interval_adjustments.csv'
 
         # save predictions to file
-        self.model_pred_fn          = f'{self.network_dir}/{self.pred_prefix}.{self.model_prefix}.pred_labels.csv'
+        self.model_pred_fn          = f'{self.predict_dir}/{self.pred_prefix}.{self.model_prefix}.pred_labels.csv'
 
         # test summ stats
-        self.pred_summ_stat_fn      = f'{self.pred_dir}/{self.pred_prefix}.summ_stat.csv'
+        self.pred_summ_stat_fn      = f'{self.predict_dir}/{self.pred_prefix}.summ_stat.csv'
 
         # test phy vector
         if self.tree_type == 'extant':
-            self.pred_phyvec_fn     = f'{self.pred_dir}/{self.pred_prefix}.cdvs.csv'    
+            self.pred_phyvec_fn     = f'{self.predict_dir}/{self.pred_prefix}.cdvs.csv'    
             self.num_tree_row       = 3
         elif self.tree_type == 'serial':
-            self.pred_phyvec_fn     = f'{self.pred_dir}/{self.pred_prefix}.cblvs.csv'
+            self.pred_phyvec_fn     = f'{self.predict_dir}/{self.pred_prefix}.cblvs.csv'
             self.num_tree_row       = 4   
         else:
             raise NotImplementedError
@@ -85,9 +86,9 @@ class Predictor:
         self.stat_names         = train_stats_norm['name'].to_list()
 
         # read & reshape new test data
-        self.pred_data_tensor    = pd.read_csv(self.pred_phyvec_fn, header=None, sep=',', index_col=False).to_numpy()
+        self.pred_data_tensor   = pd.read_csv(self.pred_phyvec_fn, header=None, sep=',', index_col=False).to_numpy()
         #self.pred_data_tensor.shape  = ( 1, -1, (self.num_tree_row+self.num_char_row) )
-        self.pred_data_tensor    = self.pred_data_tensor.reshape( (1, -1, (self.num_tree_row+self.num_char_row)) )
+        self.pred_data_tensor   = self.pred_data_tensor.reshape( (1, -1, (self.num_tree_row+self.num_char_row)) )
         
         # read & normalize new summary stats
         self.pred_stats_tensor       = pd.read_csv(self.pred_summ_stat_fn, sep=',', index_col=False).to_numpy().flatten()

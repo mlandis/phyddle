@@ -42,8 +42,8 @@ sim_args = {
     'num_proc'          : -2,
     'sample_population' : ['S'],
     'stop_time'         : 10,
-    'min_num_taxa'      : 0,
-    'max_num_taxa'      : 400                # MASTER seems to generate too many taxa?
+    'min_num_taxa'      : 10,
+    'max_num_taxa'      : 500                # MASTER seems to generate too many taxa?
 }
 args = args | sim_args
 
@@ -68,7 +68,7 @@ args = args | fmt_args
 lrn_args = { 
     'net_dir'        : '../network',
     'tree_size'      : 500,
-    'num_epochs'     : 40,
+    'num_epochs'     : 20,
     'prop_test'        : 0.05,
     'prop_validation'  : 0.05,
     'prop_calibration' : 0.20,
@@ -96,7 +96,7 @@ args = args | plt_args
 #######################
 
 prd_args = {
-    'pred_dir'    : '../raw_data/my_predict',
-    'pred_prefix' : 'sim.1'
+    'pred_dir'    : '../predict',
+    'pred_prefix' : 'new.1'
 }
 args = args | prd_args
