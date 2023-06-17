@@ -1,8 +1,8 @@
 # phyddle
 
-A pipeline-based toolkit for fiddling around with phylogenetic models and deep learning
+A pipeline-based toolkit for fiddling around with phylogenetic models and deep learning 
 
-**NOTE: we are currently beta-testing phyddle**
+**NOTE:** This *beta version* is still under development. Although it's tested and stable, much of the documentation and some key features are still missing. Feedback appreciated!
 
 ## Overview
 
