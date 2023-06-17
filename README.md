@@ -1,6 +1,6 @@
 # phyddle
 
-A pipeline-based toolkit for fiddling around with Phylogenetic Deep Learning.
+A pipeline-based toolkit for fiddling around with phylogenetic models and deep learning
 
 ## Overview
 
