@@ -8,17 +8,17 @@ Categorized raw datasets are then formatted are stored either as gzip-compressed
 
 For example, if `'tree_size' == [100, 1000, 1000]` and `'tensor_format' == 'hdf5'` then the project directory might contain:
 ```
-tensor_data/my_project/sim.nt100.hdf5
-tensor_data/my_project/sim.nt1000.hdf5
-tensor_data/my_project/sim.nt10000.hdf5
+tensor_data/example/sim.nt100.hdf5
+tensor_data/example/sim.nt1000.hdf5
+tensor_data/example/sim.nt10000.hdf5
 ```
 
 Alternatively, if `'tree_size' == [200, 500]` and `'tensor_format' == 'csv'` then the project directory might contain:
 ```
-tensor_data/my_project/sim.nt200.cdvs.csv
-tensor_data/my_project/sim.nt200.summ_stat.csv
-tensor_data/my_project/sim.nt200.labels.csv
-tensor_data/my_project/sim.nt500.cdvs.csv
-tensor_data/my_project/sim.nt500.summ_stat.csv
-tensor_data/my_project/sim.nt500.labels.csv
+tensor_data/example/sim.nt200.cdvs.csv
+tensor_data/example/sim.nt200.summ_stat.csv
+tensor_data/example/sim.nt200.labels.csv
+tensor_data/example/sim.nt500.cdvs.csv
+tensor_data/example/sim.nt500.summ_stat.csv
+tensor_data/example/sim.nt500.labels.csv
 ```
