@@ -1,18 +1,28 @@
-#!/usr/local/bin/python3
-#from model import *
-#from model_util import *
-#from sirm_model_util import *
-#import string
-#import model_util
-#from model_util import states2df,events2df
-
 import itertools
 import scipy as sp
 import numpy as np
+import pandas as pd
 
 from Utilities import States,Event
-#from Model import *
 import Model
+
+model_type = 'SIRM'
+model_variants = {
+    'free_rates' : {
+        'desc':'all event rates have independent values',
+        'params':['R0','S0','sampling','recovery','migration']
+    },
+    'equal_rates' : {
+        'desc':'all event rates of type share one value',
+        'params':['R0','S0','sampling','recovery','migration']
+    }
+}
+
+variant_registry = []
+variant_registry_names = ['variant_name',      'description'  ] 
+variant_registry.append( ['free-rates',        'rates differ among all events within type'] )
+variant_registry.append( ['equal-rates',       'rates equal among all events within type'] )
+variant_registry = pd.DataFrame( variant_registry, columns = variant_registry_names)
 
 class SirmModel(Model.BaseModel):
 
@@ -32,12 +42,6 @@ class SirmModel(Model.BaseModel):
     def set_model(self, idx):
         super().set_model(idx)
         return
-
-    # # list of supported model variants
-    # def get_model_variants(self):
-    #     model_variants = { 'free_rates'     : 'independent rates drawn from every event',
-    #                        'equal_rates'    : 'independent rate drawn for each event class, event rates equal among events within class' }
-    #     return model_variants
 
     # SIRM state space
     def make_states(self):

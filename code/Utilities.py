@@ -3,6 +3,7 @@ import argparse
 import importlib
 import re
 import os
+import sys
 import copy
 from itertools import chain, combinations
 
@@ -180,10 +181,11 @@ def load_config(config_fn, arg_overwrite=True):
     parser.add_argument('--plt_dir',            dest='plt_dir', type=str, help='Directory for plotted results')
     parser.add_argument('--pred_dir',           dest='pred_dir', type=str, help='Predict results for dataset located in this directory')
     # model settings
-    #parser.add_argument('--show_models',        dest='show_models', type=bool, default=False, help='Print all available model types and variants?')
+    #parser.add_argument('--show_models',        dest='show_models', type=bool, help='Print all available model types and variants?')
+    parser.add_argument('--show_models',        action='store_true', help='Print all available model types and variants?')
     parser.add_argument('--model_type',         dest='model_type', type=str, help='Model type')
     parser.add_argument('--model_variant',      dest='model_variant', type=str, help='Model variant')
-    parser.add_argument('--num_char',            dest='num_char', type=int, help='Number of characters')
+    parser.add_argument('--num_char',           dest='num_char', type=int, help='Number of characters')
     # simulation settings
     parser.add_argument('--sim_logging',        dest='sim_logging', type=str, choices=['clean', 'verbose', 'compress'], help='Simulation logging style')
     parser.add_argument('--start_idx',          dest='start_idx', type=int, help='Start index for simulation')
@@ -220,11 +222,18 @@ def load_config(config_fn, arg_overwrite=True):
     # parse arguments
     args = parser.parse_args()
     
+    # print models & exit
+    if args.show_models is not None:
+         import ModelLoader
+         model_str = ModelLoader.make_model_registry_str()
+         print(model_str)
+         sys.exit()
+
     # overwrite config_fn is argument passed
     if arg_overwrite and args.config_fn != None:
         config_fn = args.config_fn
     config_fn = config_fn.rstrip('.py')
-    
+
     # config from file
     m = importlib.import_module(config_fn)
 
@@ -269,16 +278,50 @@ def load_config(config_fn, arg_overwrite=True):
     m = overwrite_defaults(m, args, 'optimizer')
     #m = overwrite_defaults(m, args, 'network_prefix')
     m = overwrite_defaults(m, args, 'pred_prefix')
-
     m = overwrite_defaults(m, args, 'plot_train_color')
     m = overwrite_defaults(m, args, 'plot_test_color')
     m = overwrite_defaults(m, args, 'plot_validation_color')
     m = overwrite_defaults(m, args, 'plot_aux_data_color')
     m = overwrite_defaults(m, args, 'plot_label_color')
-    m = overwrite_defaults(m, args, 'plot_pred_color')
+    m = overwrite_defaults(m, args, 'plot_pred_color')         
 
     # return new args
     return m.args
+
+
+#-----------------------------------------------------------------------------------------------------------------#
+
+#########################
+# Model registry        #
+#########################
+
+# def show_models(args):
+
+#     model_variants = {
+#         'GeoSSE' : {
+#             'variants': {
+#                 'equal-rates',
+#                 'free-rates',
+#                 'density-extinction'
+#             },
+                    
+#         'SIRM'   : { 'equal-rates', 'free-rates' }
+#     }
+#     model_
+#     cw = [20, 20, 40]
+#     s  = 'Model type'.ljust(cw[0], ' ')  + 'Model variant'.ljust(cw[1], ' ') + 'Parameters'.ljust(cw[2], ' ') + '\n'
+#     s += ''.ljust(sum(cw), '-') + '\n'
+#     for i,model_type in enumerate(ModelLoader.model_type_list):
+#         s += model_type.ljust(cw[0], ' ')
+#         model = ModelLoader.load_model(model_type)
+#         # for j,model_variant in enumerate(model.get_model_variants()):
+#         #     if j == 0:
+#         #         s += '' + model_variant.ljust(cw[1], ' ')
+#         #     else:
+#         #         s += ''.ljust(cw[0], ' ')  + model_variant.ljust(cw[1], ' ')
+#     return s
+
+
 
 #-----------------------------------------------------------------------------------------------------------------#
 
@@ -635,12 +678,6 @@ def make_clean_phyloenc_str(x):
 
 def clean_scientific_notation(s):
     return re.sub( '\.0+E\+0+', '', s)
-
-#-----------------------------------------------------------------------------------------------------------------#
-
-#########################
-# PHYLO TENSOR ENCODING #
-#########################
 
 
 

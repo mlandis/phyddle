@@ -3,16 +3,17 @@ import string
 import itertools
 import numpy as np
 import scipy as sp
+import pandas as pd
 
-#from model_util import States,Event
-#from Model import *
 import Model
-#import Utilities
-#from Utilities import sort_binary_vectors
 from Utilities import sort_binary_vectors,States,Event
 
-#from model_util import states2df,events2df
-#from geosse_model_util import *
+variant_registry = []
+variant_registry_names = ['variant_name',      'description'  ] 
+variant_registry.append( ['free-rates',        'rates differ among all events within type'] )
+variant_registry.append( ['equal-rates',       'rates equal among all events within type'] )
+variant_registry.append( ['density-effect',    'equal-rates + local density-dependent extinction'] )
+variant_registry = pd.DataFrame( variant_registry, columns = variant_registry_names)
 
 class GeosseModel(Model.BaseModel):
     
