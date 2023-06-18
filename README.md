@@ -275,7 +275,7 @@ args = args | prd_args
 Settings applied through the config file can be overwritten by setting options when running phyddle from the command line. The names of settings are the same for the command line options and in the config file. Using command line options makes it easy to adjust the behavior of pipeline steps without needing to edit the config file. List all settings that can be adjusted with the command line using the `--help` option:
 
 ```
-./run_pipeline.py --help
+$ ./run_pipeline.py --help
 
 usage: run_pipeline.py [-h] [-c CONFIG_FN] [--proj PROJ] [--use_parallel USE_PARALLEL] [--num_proc NUM_PROC] [--sim_dir SIM_DIR] [--fmt_dir FMT_DIR]
                        [--net_dir NET_DIR] [--plt_dir PLT_DIR] [--pred_dir PRED_DIR] [--model_type MODEL_TYPE] [--model_variant MODEL_VARIANT]
