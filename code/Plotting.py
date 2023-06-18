@@ -23,7 +23,6 @@ class Plotter:
         return
 
     def set_args(self, args):
-        # simulator arguments
         self.args              = args
         self.proj              = args['proj']
         self.network_dir       = args['net_dir']
@@ -36,7 +35,6 @@ class Plotter:
         self.tensor_format     = args['tensor_format']
         self.pred_dir          = args['pred_dir'] if 'pred_dir' in args else ''
         self.pred_prefix       = args['pred_prefix'] if 'pred_prefix' in args else ''
-
         self.train_color       = args['plot_train_color']
         self.test_color        = args['plot_test_color']
         self.validation_color  = args['plot_validation_color']
@@ -48,6 +46,7 @@ class Plotter:
     def prepare_files(self):
         self.network_prefix     = f'sim_batchsize{self.batch_size}_numepoch{self.num_epochs}_nt{self.tree_size}'
 
+        # directories
         self.net_job_dir        = f'{self.network_dir}/{self.proj}'
         self.fmt_job_dir        = f'{self.tensor_dir}/{self.proj}'
         self.plt_job_dir        = f'{self.plot_dir}/{self.proj}'
@@ -69,6 +68,7 @@ class Plotter:
         # predictions
         self.pred_aux_fn        = f'{self.pred_job_dir}/{self.pred_prefix}.summ_stat.csv'
         self.pred_lbl_fn        = f'{self.pred_job_dir}/{self.pred_prefix}.{self.network_prefix}.pred_labels.csv'
+        self.pred_known_param_fn = f'{self.pred_job_dir}/{self.pred_prefix}.known_param.csv'
         
         # plotting output
         self.save_hist_aux_fn   = f'{self.plt_job_dir}/{self.network_prefix}.histogram_aux.pdf'
@@ -121,10 +121,18 @@ class Plotter:
         self.history_dict = json.load(open(self.history_json_fn, 'r'))
 
         # read in prediction aux dataset, if it exists
-        self.pred_aux_loaded = os.path.isfile(self.pred_aux_fn) 
+        self.pred_aux_loaded         = os.path.isfile(self.pred_aux_fn) 
+        self.pred_known_param_loaded = os.path.isfile(self.pred_known_param_fn)
+            
         if self.pred_aux_loaded:
-            self.pred_aux_data = pd.read_csv(self.pred_aux_fn)
-        else:
+            self.pred_aux_data       = pd.read_csv(self.pred_aux_fn)
+        if self.pred_known_param_loaded:
+            self.pred_known_params = pd.read_csv(self.pred_known_param_fn) #, sep=',', index_col=False).to_numpy().flatten()
+            #print(self.pred_aux_data.shape)
+            #print(self.pred_known_params.shape)
+            self.pred_aux_data = pd.concat( [self.pred_aux_data, self.pred_known_params], axis=1)
+            self.pred_aux_data = self.pred_aux_data[self.input_stats.columns]
+        if not self.pred_aux_loaded and not self.pred_known_param_loaded:
             self.pred_aux_data = None
         
         # read in predicted label dataset, if it exists
@@ -306,6 +314,7 @@ class Plotter:
         
         pca_model = PCA(n_components=num_comp)
         pca = pca_model.fit_transform(x)
+        
         if self.pred_aux_loaded:
             pca_pred = pca_model.transform(pred_stat)
         
