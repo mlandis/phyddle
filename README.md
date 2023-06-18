@@ -111,7 +111,7 @@ tqdm 4.65.0
 
 phyddle is also used with a 64-core Ubuntu LTS 22.04 server using Python 3.xx.xx (aptitude) and similar package versions. phyddle has yet not been tested using conda, Windows, M1 Macs, various GPUs, etc.
 
-phyddle also currently relies on the BEAST plugin MASTER for simulation. The operating system must be able to call BEAST from anywhere in the filesystem through the `beast` command. This can be done by adding the BEAST executable to be covered by the `$PATH` shell variable. Creating a symbolic link (shortcut) to the BEAST binary `beast` with `ln -s` in `~/.local/bin` is one an easy way to make `beast` globally accessible on Mac OS X.
+phyddle currently relies on the BEAST plugin MASTER for simulation. The operating system must be able to call BEAST from anywhere in the filesystem through the `beast` command. This can be done by adding the BEAST executable to be covered by the `$PATH` shell variable. Creating a symbolic link (shortcut) to the BEAST binary `beast` with `ln -s` in `~/.local/bin` is one an easy way to make `beast` globally accessible on Mac OS X.
 ```
 $ ls -lart /Users/mlandis/.local/bin/beast
 lrwxr-xr-x  1 mlandis  staff  35 Feb 14 10:32 /Users/mlandis/.local/bin/beast -> /Applications/BEAST 2.7.3/bin/beast
@@ -167,107 +167,106 @@ The config file is a Python dictionary that specifies various program settings (
 **NOTE: phyddle assumes you want to use the config file calle `my_config.py`. Use a different config file by calling, e.g. `./run_pipline --cfg my_other_config.py`**
 
 ```python
+#==============================================================================#
+# Default phyddle config file                                                  #
+#==============================================================================#
+
+# helper libraries
 import scipy as sp
 
 # helper variables
 num_char = 3
 
-#####################
-# PIPELINE SETTINGS #
-#####################
-args = { 'proj' : 'my_project' }
+args = {
 
-##################
-# MODEL SETTINGS #
-##################
-mdl_args = {
-    'model_type'    : 'geosse',
-    'model_variant' : 'equal_rates',
-    'num_char'      : num_char,
-    'rv_fn' : {
+    #-------------------------------#
+    # Project organization          #
+    #-------------------------------#
+    'proj'           : 'my_project',        # directory name for pipeline project
+    'sim_dir'        : '../raw_data',       # directory for simulated data
+    'fmt_dir'        : '../tensor_data',    # directory for tensor-formatted data
+    'net_dir'        : '../network',        # directory for trained network
+    'plt_dir'        : '../plot',           # directory for plotted figures
+    'pred_dir'       : '../predict',        # directory for predictions on new data
+    'pred_prefix'    : 'new.1',             # prefix for new dataset to predict
+
+    #-------------------------------#
+    # Multiprocessing               #
+    #-------------------------------#
+    'use_parallel'   : True,                # use multiprocessing to speed up jobs?
+    'num_proc'       : -2,                  # how many CPUs to use (-2 means all but 2)
+
+    #-------------------------------#
+    # Model Configuration           #
+    #-------------------------------#
+    'model_type'         : 'geosse',        # model type defines general states and events
+    'model_variant'      : 'equal_rates',   # model variant defines rate assignments
+    'num_char'           : num_char,        # number of evolutionary characters
+    'rv_fn'              : {                # distributions for model parameters
         'w': sp.stats.expon.rvs,
         'e': sp.stats.expon.rvs,
         'd': sp.stats.expon.rvs,
-        'b': sp.stats.expon.rvs },
-    'rv_arg' : {
+        'b': sp.stats.expon.rvs
+    },
+    'rv_arg'             : {                # loc/scale/shape for model parameter dists
         'w': { 'scale' : 0.2 },
         'e': { 'scale' : 0.1 },
         'd': { 'scale' : 0.1 },
         'b': { 'scale' : 0.5 }
-    }
+    },
+
+    #-------------------------------#
+    # Simulating Step settings      #
+    #-------------------------------#
+    'sim_logging'       : 'verbose',        # verbose, compressed, or clean
+    'start_idx'         : 0,                # first simulation replicate index
+    'end_idx'           : 1000,             # last simulation replicate index
+    'sample_population' : ['S'],            # name of population to sample
+    'stop_time'         : 10,               # time to stop simulation
+    'min_num_taxa'      : 10,               # min number of taxa for valid sim
+    'max_num_taxa'      : 500,              # max number of taxa for valid sim
+
+    #-------------------------------#
+    # Formatting Step settings      #
+    #-------------------------------#
+    'tree_type'         : 'extant',         # use model with serial or extant tree
+    'tree_sizes'        : [ 200, 500 ],     # tree size classes for phylo-state tensors
+    'param_pred'        : [                 # model parameters to predict (labels)
+        'w_0', 'e_0', 'd_0_1', 'b_0_1'
+    ],
+    'param_data'        : [],               # model parameters that are known (aux. data)
+    'tensor_format'     : 'hdf5',           # save as compressed HDF5 or raw csv
+    'save_phyenc_csv'   : False,            # save intermediate phylo-state vectors to file
+
+    #-------------------------------#
+    # Learning Step settings        #
+    #-------------------------------#
+    'tree_size'         : 500,              # tree size class used to train network
+    'num_epochs'        : 20,               # number of training intervals (epochs)
+    'prop_test'         : 0.05,             # proportion of sims in test dataset
+    'prop_validation'   : 0.05,             # proportion of sims in validation dataset
+    'prop_calibration'  : 0.20,             # proportion of sims in CPI calibration dataset
+    'cpi_coverage'      : 0.95,             # coverage level for CPIs
+    'batch_size'        : 128,              # number of samples in each training batch
+    'loss'              : 'mse',            # loss function for learning
+    'optimizer'         : 'adam',           # optimizer for network weight/bias parameters
+    'metrics'           : ['mae', 'acc'],   # recorded training metrics
+
+    #-------------------------------#
+    # Plotting Step settings        #
+    #-------------------------------#
+    'plot_train_color'      : 'blue',       # plot color for training data
+    'plot_test_color'       : 'purple',     # plot color for test data
+    'plot_validation_color' : 'red',        # plot color for validation data
+    'plot_aux_data_color'   : 'green',      # plot color for input auxiliary data
+    'plot_label_color'      : 'orange',     # plot color for labels (params)
+    'plot_pred_color'       : 'black'       # plot color for predictions
+
+    #-------------------------------#
+    # Predicting Step settings      #
+    #-------------------------------#
+    # none currently implemented
 }
-args = args | mdl_args
-
-######################
-# SIMULATOR SETTINGS #
-######################
-sim_args = {
-    'sim_dir'           : '../raw_data',
-    'sim_logging'       : 'verbose',
-    'start_idx'         : 0,
-    'end_idx'           : 100,
-    'tree_sizes'        : [ 200, 500 ],
-    'use_parallel'      : True,
-    'num_proc'          : -2,
-    'sample_population' : ['S'],
-    'stop_time'         : 10,
-    'min_num_taxa'      : 0,
-    'max_num_taxa'      : 400                # MASTER seems to generate too many taxa?
-}
-args = args | sim_args
-
-
-#############################
-# TENSOR-FORMATTER SETTINGS #
-#############################
-fmt_args = {
-    'fmt_dir' : '../tensor_data',
-    'tree_type'  : 'extant',
-    'param_pred' : ['w_0', 'e_0', 'd_0_1', 'b_0_1'],
-    'param_data' : [],
-    'save_phyenc_csv' : False,
-    'tensor_format' : 'hdf5'
-}
-args = args | fmt_args
-
-#####################
-# LEARNING SETTINGS #
-#####################
-lrn_args = {
-    'net_dir'        : '../network',
-    'tree_size'      : 500,
-    'num_epochs'     : 40,
-    'prop_test'        : 0.05,
-    'prop_validation'  : 0.05,
-    'prop_calibration' : 0.20,
-    'alpha_CQRI'     : 0.95,
-    'batch_size'     : 128,
-    'loss'           : 'mse',
-    'optimizer'      : 'adam',
-    'metrics'        : ['mae', 'acc']
-}
-args = args | lrn_args
-
-
-#####################
-# PLOTTING SETTINGS #
-#####################
-plt_args = {
-    'plt_dir'        : '../plot',
-    'network_prefix' : 'sim_batchsize128_numepoch20_nt200'
-}
-args = args | plt_args
-
-
-#######################
-# PREDICTING SETTINGS #
-#######################
-
-prd_args = {
-    'pred_dir'    : '../predict',
-    'pred_prefix' : 'new.1'
-}
-args = args | prd_args
 ```
 
 ### Command line arguments
@@ -275,74 +274,89 @@ args = args | prd_args
 Settings applied through the config file can be overwritten by setting options when running phyddle from the command line. The names of settings are the same for the command line options and in the config file. Using command line options makes it easy to adjust the behavior of pipeline steps without needing to edit the config file. List all settings that can be adjusted with the command line using the `--help` option:
 
 ```
-./run_pipeline.py --help
+$ ./run_pipeline.py --help
 
-usage: run_pipeline.py [-h] [-c CONFIG_FN] [--proj PROJ] [--use_parallel USE_PARALLEL] [--num_proc NUM_PROC] [--sim_dir SIM_DIR] [--fmt_dir FMT_DIR]
-                       [--net_dir NET_DIR] [--plt_dir PLT_DIR] [--pred_dir PRED_DIR] [--model_type MODEL_TYPE] [--model_variant MODEL_VARIANT]
-                       [--num_char NUM_CHAR] [--sim_logging {clean,verbose,compress}] [--start_idx START_IDX] [--end_idx END_IDX] [--stop_time STOP_TIME]
-                       [--min_num_taxa MIN_NUM_TAXA] [--max_num_taxa MAX_NUM_TAXA] [--tensor_format {hdf5,csv}] [--tree_type {extant,serial}]
-                       [--save_phyenc_csv SAVE_PHYENC_CSV] [--tree_size TREE_SIZE] [--num_epochs NUM_EPOCHS] [--batch_size BATCH_SIZE]
-                       [--prop_test PROP_TEST] [--prop_validation PROP_VALIDATION] [--prop_calibration PROP_CALIBRATION] [--alpha_CQRI ALPHA_CQRI]
-                       [--loss LOSS] [--optimizer OPTIMIZER] [--network_prefix NETWORK_PREFIX] [--pred_prefix PRED_PREFIX]
+usage: run_plot.py [-h] [-c CONFIG_FN] [-p PROJ] [--use_parallel USE_PARALLEL] [--num_proc NUM_PROC] [--sim_dir SIM_DIR]
+                   [--fmt_dir FMT_DIR] [--net_dir NET_DIR] [--plt_dir PLT_DIR] [--pred_dir PRED_DIR]
+                   [--model_type MODEL_TYPE] [--model_variant MODEL_VARIANT] [--num_char NUM_CHAR]
+                   [--sim_logging {clean,verbose,compress}] [--start_idx START_IDX] [--end_idx END_IDX]
+                   [--stop_time STOP_TIME] [--min_num_taxa MIN_NUM_TAXA] [--max_num_taxa MAX_NUM_TAXA]
+                   [--tensor_format {hdf5,csv}] [--tree_type {extant,serial}] [--save_phyenc_csv SAVE_PHYENC_CSV]
+                   [--tree_size TREE_SIZE] [--num_epochs NUM_EPOCHS] [--batch_size BATCH_SIZE] [--prop_test PROP_TEST]
+                   [--prop_validation PROP_VALIDATION] [--prop_calibration PROP_CALIBRATION] [--cpi_coverage CPI_COVERAGE]
+                   [--loss LOSS] [--optimizer OPTIMIZER] [--pred_prefix PRED_PREFIX] [--plot_train_color PLOT_TRAIN_COLOR]
+                   [--plot_label_color PLOT_LABEL_COLOR] [--plot_test_color PLOT_TEST_COLOR]
+                   [--plot_validation_color PLOT_VALIDATION_COLOR] [--plot_aux_data_color PLOT_AUX_DATA_COLOR]
+                   [--plot_pred_color PLOT_PRED_COLOR]
 
 phyddle pipeline config
 
 options:
   -h, --help            show this help message and exit
   -c CONFIG_FN, --cfg CONFIG_FN
-                        Config file name (default: None)
-  --proj PROJ           Project name used as directory across pipeline stages (default: None)
+                        Config file name
+  -p PROJ, --proj PROJ  Project name used as directory across pipeline stages
   --use_parallel USE_PARALLEL
-                        Use parallelization? (recommended) (default: None)
-  --num_proc NUM_PROC   How many cores for multiprocessing? (e.g. 4 uses 4, -2 uses all but 2) (default: None)
-  --sim_dir SIM_DIR     Directory for raw simulated data (default: None)
-  --fmt_dir FMT_DIR     Directory for tensor-formatted simulated data (default: None)
-  --net_dir NET_DIR     Directory for trained networks and predictions (default: None)
-  --plt_dir PLT_DIR     Directory for plotted results (default: None)
-  --pred_dir PRED_DIR   Predict results for dataset located in this directory (default: None)
+                        Use parallelization? (recommended)
+  --num_proc NUM_PROC   How many cores for multiprocessing? (e.g. 4 uses 4, -2 uses all but 2)
+  --sim_dir SIM_DIR     Directory for raw simulated data
+  --fmt_dir FMT_DIR     Directory for tensor-formatted simulated data
+  --net_dir NET_DIR     Directory for trained networks and predictions
+  --plt_dir PLT_DIR     Directory for plotted results
+  --pred_dir PRED_DIR   Predict results for dataset located in this directory
   --model_type MODEL_TYPE
-                        Model type (default: None)
+                        Model type
   --model_variant MODEL_VARIANT
-                        Model variant (default: None)
-  --num_char NUM_CHAR   Number of characters (default: None)
+                        Model variant
+  --num_char NUM_CHAR   Number of characters
   --sim_logging {clean,verbose,compress}
-                        Simulation logging style (default: None)
+                        Simulation logging style
   --start_idx START_IDX
-                        Start index for simulation (default: None)
-  --end_idx END_IDX     End index for simulation (default: None)
+                        Start index for simulation
+  --end_idx END_IDX     End index for simulation
   --stop_time STOP_TIME
-                        Maximum duration of evolution for each simulation (default: None)
+                        Maximum duration of evolution for each simulation
   --min_num_taxa MIN_NUM_TAXA
-                        Minimum number of taxa for each simulation (default: None)
+                        Minimum number of taxa for each simulation
   --max_num_taxa MAX_NUM_TAXA
-                        Maximum number of taxa for each simulation (default: None)
+                        Maximum number of taxa for each simulation
   --tensor_format {hdf5,csv}
-                        Storage format for simulation tensors (default: None)
+                        Storage format for simulation tensors
   --tree_type {extant,serial}
-                        Type of tree (default: None)
+                        Type of tree
   --save_phyenc_csv SAVE_PHYENC_CSV
-                        Save encoded phylogenetic tensor encoding to csv? (default: None)
+                        Save encoded phylogenetic tensor encoding to csv?
   --tree_size TREE_SIZE
-                        Number of taxa in phylogenetic tensor (default: None)
+                        Number of taxa in phylogenetic tensor
   --num_epochs NUM_EPOCHS
-                        Number of learning epochs (default: None)
+                        Number of learning epochs
   --batch_size BATCH_SIZE
-                        Training batch sizes during learning (default: None)
+                        Training batch sizes during learning
   --prop_test PROP_TEST
-                        Proportion of data used as test examples (demonstrate trained network performance) (default: None)
+                        Proportion of data used as test examples (demonstrate trained network performance)
   --prop_validation PROP_VALIDATION
-                        Proportion of data used as validation examples (diagnose network overtraining) (default: None)
+                        Proportion of data used as validation examples (diagnose network overtraining)
   --prop_calibration PROP_CALIBRATION
-                        Proportion of data used as calibration examples (calibrate conformal prediction intervals) (default: None)
-  --alpha_CQRI ALPHA_CQRI
-                        Expected coverage percent for prediction intervals (default: None)
-  --loss LOSS           Loss function used as optimization criterion (default: None)
+                        Proportion of data used as calibration examples (calibrate conformal prediction intervals)
+  --cpi_coverage CPI_COVERAGE
+                        Expected coverage percent for calibrated prediction intervals
+  --loss LOSS           Loss function used as optimization criterion
   --optimizer OPTIMIZER
-                        Method used for optimizing neural network (default: None)
-  --network_prefix NETWORK_PREFIX
-                        Plot results related to this network prefix (default: None)
+                        Method used for optimizing neural network
   --pred_prefix PRED_PREFIX
-                        Predict results for this dataset (default: None)
+                        Predict results for this dataset
+  --plot_train_color PLOT_TRAIN_COLOR
+                        Plotting color for training data elements
+  --plot_label_color PLOT_LABEL_COLOR
+                        Plotting color for training label elements
+  --plot_test_color PLOT_TEST_COLOR
+                        Plotting color for test data elements
+  --plot_validation_color PLOT_VALIDATION_COLOR
+                        Plotting color for validation data elements
+  --plot_aux_data_color PLOT_AUX_DATA_COLOR
+                        Plotting color for auxiliary input data elements
+  --plot_pred_color PLOT_PRED_COLOR
+                        Plotting color for prediction data elements
 ```
 
 ### Model configuration
