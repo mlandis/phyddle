@@ -111,7 +111,7 @@ tqdm 4.65.0
 
 phyddle is also used with a 64-core Ubuntu LTS 22.04 server using Python 3.xx.xx (aptitude) and similar package versions. phyddle has yet not been tested using conda, Windows, M1 Macs, various GPUs, etc.
 
-phyddle also currently relies on the BEAST plugin MASTER for simulation. The operating system must be able to call BEAST from anywhere in the filesystem through the `beast` command. This can be done by adding the BEAST executable to be covered by the `$PATH` shell variable. Creating a symbolic link (shortcut) to the BEAST binary `beast` with `ln -s` in `~/.local/bin` is one an easy way to make `beast` globally accessible on Mac OS X.
+phyddle currently relies on the BEAST plugin MASTER for simulation. The operating system must be able to call BEAST from anywhere in the filesystem through the `beast` command. This can be done by adding the BEAST executable to be covered by the `$PATH` shell variable. Creating a symbolic link (shortcut) to the BEAST binary `beast` with `ln -s` in `~/.local/bin` is one an easy way to make `beast` globally accessible on Mac OS X.
 ```
 $ ls -lart /Users/mlandis/.local/bin/beast
 lrwxr-xr-x  1 mlandis  staff  35 Feb 14 10:32 /Users/mlandis/.local/bin/beast -> /Applications/BEAST 2.7.3/bin/beast
