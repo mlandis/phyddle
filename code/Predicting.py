@@ -89,17 +89,15 @@ class Predictor:
         #self.pred_data_tensor.shape  = ( 1, -1, (self.num_tree_row+self.num_char_row) )
         self.pred_data_tensor   = self.pred_data_tensor.reshape( (1, -1, (self.num_tree_row+self.num_char_row)) )
         
-        # read & normalize new summary stats
-        self.pred_summ_stats_tensor  = pd.read_csv(self.pred_summ_stat_fn, sep=',', index_col=False).to_numpy().flatten()
-        self.pred_known_param_tensor = pd.read_csv(self.pred_known_param_fn, sep=',', index_col=False).to_numpy().flatten()
-        self.pred_stats_tensor = np.concatenate( [self.pred_summ_stats_tensor, self.pred_known_param_tensor] )
-        self.pred_stats_tensor.shape = ( 1, -1 )
+        # read & normalize new aux data
+        self.pred_summ_stats     = pd.read_csv(self.pred_summ_stat_fn, sep=',', index_col=False).to_numpy().flatten()
+        self.pred_known_params   = pd.read_csv(self.pred_known_param_fn, sep=',', index_col=False).to_numpy().flatten()
+        self.pred_auxdata_tensor = np.concatenate( [self.pred_summ_stats, self.pred_known_params] )
+        self.pred_auxdata_tensor.shape = ( 1, -1 )
 
-        print(self.pred_summ_stat_fn)
-        print(self.pred_stats_tensor.shape)
-        print(self.train_stats_means.shape)
+        #print(self.pred_auxdata_tensor)
 
-        self.norm_pred_stats          = Utilities.normalize(self.pred_stats_tensor, (self.train_stats_means, self.train_stats_sd))
+        self.norm_pred_stats          = Utilities.normalize(self.pred_auxdata_tensor, (self.train_stats_means, self.train_stats_sd))
         self.denormalized_pred_stats  = Utilities.denormalize(self.norm_pred_stats, self.train_stats_means, self.train_stats_sd)
 
 
@@ -123,7 +121,10 @@ class Predictor:
         self.norm_preds[1,:,:]         = self.norm_preds[1,:,:] - self.cpi_adjustments[0,:]
         self.norm_preds[2,:,:]         = self.norm_preds[2,:,:] + self.cpi_adjustments[1,:]
         self.denormalized_pred_labels  = Utilities.denormalize(self.norm_preds, self.train_labels_means, self.train_labels_sd)
+        #print(self.denormalized_pred_labels)
+        self.denormalized_pred_labels[ self.denormalized_pred_labels > 300. ] = 300.
         self.pred_labels               = np.exp( self.denormalized_pred_labels )
+        #print(np.exp( self.denormalized_pred_labels ))
        
         # output predictions
         self.df_pred_all_labels = Utilities.make_param_VLU_mtx(self.pred_labels, self.param_names)
