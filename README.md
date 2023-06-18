@@ -276,72 +276,87 @@ Settings applied through the config file can be overwritten by setting options w
 ```
 $ ./run_pipeline.py --help
 
-usage: run_pipeline.py [-h] [-c CONFIG_FN] [--proj PROJ] [--use_parallel USE_PARALLEL] [--num_proc NUM_PROC] [--sim_dir SIM_DIR] [--fmt_dir FMT_DIR]
-                       [--net_dir NET_DIR] [--plt_dir PLT_DIR] [--pred_dir PRED_DIR] [--model_type MODEL_TYPE] [--model_variant MODEL_VARIANT]
-                       [--num_char NUM_CHAR] [--sim_logging {clean,verbose,compress}] [--start_idx START_IDX] [--end_idx END_IDX] [--stop_time STOP_TIME]
-                       [--min_num_taxa MIN_NUM_TAXA] [--max_num_taxa MAX_NUM_TAXA] [--tensor_format {hdf5,csv}] [--tree_type {extant,serial}]
-                       [--save_phyenc_csv SAVE_PHYENC_CSV] [--tree_size TREE_SIZE] [--num_epochs NUM_EPOCHS] [--batch_size BATCH_SIZE]
-                       [--prop_test PROP_TEST] [--prop_validation PROP_VALIDATION] [--prop_calibration PROP_CALIBRATION] [--alpha_CQRI ALPHA_CQRI]
-                       [--loss LOSS] [--optimizer OPTIMIZER] [--network_prefix NETWORK_PREFIX] [--pred_prefix PRED_PREFIX]
+usage: run_plot.py [-h] [-c CONFIG_FN] [-p PROJ] [--use_parallel USE_PARALLEL] [--num_proc NUM_PROC] [--sim_dir SIM_DIR]
+                   [--fmt_dir FMT_DIR] [--net_dir NET_DIR] [--plt_dir PLT_DIR] [--pred_dir PRED_DIR]
+                   [--model_type MODEL_TYPE] [--model_variant MODEL_VARIANT] [--num_char NUM_CHAR]
+                   [--sim_logging {clean,verbose,compress}] [--start_idx START_IDX] [--end_idx END_IDX]
+                   [--stop_time STOP_TIME] [--min_num_taxa MIN_NUM_TAXA] [--max_num_taxa MAX_NUM_TAXA]
+                   [--tensor_format {hdf5,csv}] [--tree_type {extant,serial}] [--save_phyenc_csv SAVE_PHYENC_CSV]
+                   [--tree_size TREE_SIZE] [--num_epochs NUM_EPOCHS] [--batch_size BATCH_SIZE] [--prop_test PROP_TEST]
+                   [--prop_validation PROP_VALIDATION] [--prop_calibration PROP_CALIBRATION] [--cpi_coverage CPI_COVERAGE]
+                   [--loss LOSS] [--optimizer OPTIMIZER] [--pred_prefix PRED_PREFIX] [--plot_train_color PLOT_TRAIN_COLOR]
+                   [--plot_label_color PLOT_LABEL_COLOR] [--plot_test_color PLOT_TEST_COLOR]
+                   [--plot_validation_color PLOT_VALIDATION_COLOR] [--plot_aux_data_color PLOT_AUX_DATA_COLOR]
+                   [--plot_pred_color PLOT_PRED_COLOR]
 
 phyddle pipeline config
 
 options:
   -h, --help            show this help message and exit
   -c CONFIG_FN, --cfg CONFIG_FN
-                        Config file name (default: None)
-  --proj PROJ           Project name used as directory across pipeline stages (default: None)
+                        Config file name
+  -p PROJ, --proj PROJ  Project name used as directory across pipeline stages
   --use_parallel USE_PARALLEL
-                        Use parallelization? (recommended) (default: None)
-  --num_proc NUM_PROC   How many cores for multiprocessing? (e.g. 4 uses 4, -2 uses all but 2) (default: None)
-  --sim_dir SIM_DIR     Directory for raw simulated data (default: None)
-  --fmt_dir FMT_DIR     Directory for tensor-formatted simulated data (default: None)
-  --net_dir NET_DIR     Directory for trained networks and predictions (default: None)
-  --plt_dir PLT_DIR     Directory for plotted results (default: None)
-  --pred_dir PRED_DIR   Predict results for dataset located in this directory (default: None)
+                        Use parallelization? (recommended)
+  --num_proc NUM_PROC   How many cores for multiprocessing? (e.g. 4 uses 4, -2 uses all but 2)
+  --sim_dir SIM_DIR     Directory for raw simulated data
+  --fmt_dir FMT_DIR     Directory for tensor-formatted simulated data
+  --net_dir NET_DIR     Directory for trained networks and predictions
+  --plt_dir PLT_DIR     Directory for plotted results
+  --pred_dir PRED_DIR   Predict results for dataset located in this directory
   --model_type MODEL_TYPE
-                        Model type (default: None)
+                        Model type
   --model_variant MODEL_VARIANT
-                        Model variant (default: None)
-  --num_char NUM_CHAR   Number of characters (default: None)
+                        Model variant
+  --num_char NUM_CHAR   Number of characters
   --sim_logging {clean,verbose,compress}
-                        Simulation logging style (default: None)
+                        Simulation logging style
   --start_idx START_IDX
-                        Start index for simulation (default: None)
-  --end_idx END_IDX     End index for simulation (default: None)
+                        Start index for simulation
+  --end_idx END_IDX     End index for simulation
   --stop_time STOP_TIME
-                        Maximum duration of evolution for each simulation (default: None)
+                        Maximum duration of evolution for each simulation
   --min_num_taxa MIN_NUM_TAXA
-                        Minimum number of taxa for each simulation (default: None)
+                        Minimum number of taxa for each simulation
   --max_num_taxa MAX_NUM_TAXA
-                        Maximum number of taxa for each simulation (default: None)
+                        Maximum number of taxa for each simulation
   --tensor_format {hdf5,csv}
-                        Storage format for simulation tensors (default: None)
+                        Storage format for simulation tensors
   --tree_type {extant,serial}
-                        Type of tree (default: None)
+                        Type of tree
   --save_phyenc_csv SAVE_PHYENC_CSV
-                        Save encoded phylogenetic tensor encoding to csv? (default: None)
+                        Save encoded phylogenetic tensor encoding to csv?
   --tree_size TREE_SIZE
-                        Number of taxa in phylogenetic tensor (default: None)
+                        Number of taxa in phylogenetic tensor
   --num_epochs NUM_EPOCHS
-                        Number of learning epochs (default: None)
+                        Number of learning epochs
   --batch_size BATCH_SIZE
-                        Training batch sizes during learning (default: None)
+                        Training batch sizes during learning
   --prop_test PROP_TEST
-                        Proportion of data used as test examples (demonstrate trained network performance) (default: None)
+                        Proportion of data used as test examples (demonstrate trained network performance)
   --prop_validation PROP_VALIDATION
-                        Proportion of data used as validation examples (diagnose network overtraining) (default: None)
+                        Proportion of data used as validation examples (diagnose network overtraining)
   --prop_calibration PROP_CALIBRATION
-                        Proportion of data used as calibration examples (calibrate conformal prediction intervals) (default: None)
-  --alpha_CQRI ALPHA_CQRI
-                        Expected coverage percent for prediction intervals (default: None)
-  --loss LOSS           Loss function used as optimization criterion (default: None)
+                        Proportion of data used as calibration examples (calibrate conformal prediction intervals)
+  --cpi_coverage CPI_COVERAGE
+                        Expected coverage percent for prediction intervals
+  --loss LOSS           Loss function used as optimization criterion
   --optimizer OPTIMIZER
-                        Method used for optimizing neural network (default: None)
-  --network_prefix NETWORK_PREFIX
-                        Plot results related to this network prefix (default: None)
+                        Method used for optimizing neural network
   --pred_prefix PRED_PREFIX
-                        Predict results for this dataset (default: None)
+                        Predict results for this dataset
+  --plot_train_color PLOT_TRAIN_COLOR
+                        Plotting color for training data elements
+  --plot_label_color PLOT_LABEL_COLOR
+                        Plotting color for training label elements
+  --plot_test_color PLOT_TEST_COLOR
+                        Plotting color for test data elements
+  --plot_validation_color PLOT_VALIDATION_COLOR
+                        Plotting color for validation data elements
+  --plot_aux_data_color PLOT_AUX_DATA_COLOR
+                        Plotting color for auxiliary input data elements
+  --plot_pred_color PLOT_PRED_COLOR
+                        Plotting color for prediction data elements
 ```
 
 ### Model configuration
