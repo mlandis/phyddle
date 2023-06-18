@@ -1,13 +1,13 @@
-# standard packages
+# standard imports
 import os
 
-# external packages
-import pandas as pd
+# external imports
 import numpy as np
+import pandas as pd
 import tensorflow as tf
 from keras import *
 
-# phyddle packages
+# phyddle imports
 import Utilities
 
 class Predictor:
@@ -49,6 +49,7 @@ class Predictor:
 
         # test summ stats
         self.pred_summ_stat_fn      = f'{self.predict_dir}/{self.pred_prefix}.summ_stat.csv'
+        self.pred_known_param_fn    = f'{self.predict_dir}/{self.pred_prefix}.known_param.csv'
 
         # test phy vector
         if self.tree_type == 'extant':
@@ -89,8 +90,14 @@ class Predictor:
         self.pred_data_tensor   = self.pred_data_tensor.reshape( (1, -1, (self.num_tree_row+self.num_char_row)) )
         
         # read & normalize new summary stats
-        self.pred_stats_tensor       = pd.read_csv(self.pred_summ_stat_fn, sep=',', index_col=False).to_numpy().flatten()
+        self.pred_summ_stats_tensor  = pd.read_csv(self.pred_summ_stat_fn, sep=',', index_col=False).to_numpy().flatten()
+        self.pred_known_param_tensor = pd.read_csv(self.pred_known_param_fn, sep=',', index_col=False).to_numpy().flatten()
+        self.pred_stats_tensor = np.concatenate( [self.pred_summ_stats_tensor, self.pred_known_param_tensor] )
         self.pred_stats_tensor.shape = ( 1, -1 )
+
+        print(self.pred_summ_stat_fn)
+        print(self.pred_stats_tensor.shape)
+        print(self.train_stats_means.shape)
 
         self.norm_pred_stats          = Utilities.normalize(self.pred_stats_tensor, (self.train_stats_means, self.train_stats_sd))
         self.denormalized_pred_stats  = Utilities.denormalize(self.norm_pred_stats, self.train_stats_means, self.train_stats_sd)

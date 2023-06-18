@@ -1,18 +1,16 @@
-
-import pandas as pd
-import numpy as np
-import os
+# standard imports
 import json
-#import dill # richer serialization than pickle
+import os
+
+# external imports
 import h5py
-# import itertools
-
-from PyPDF2 import PdfMerger
-
+import numpy as np
+import pandas as pd
 from keras import *
 from keras import layers
-from keras import backend as K    # <- move this into Learning if possible
+from keras import backend as K
 
+# phyddle imports
 import Utilities
 
 class Learner:

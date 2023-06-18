@@ -1,18 +1,16 @@
-# standard packages
-import os
+# standard imports
 import copy
-#import re
-#import csv
+import os
 
-# external packages
-import h5py
-import pandas as pd
-import numpy as np
+# external imports
 import dendropy as dp
+import h5py
+import numpy as np
+import pandas as pd
 from joblib import Parallel, delayed
 from tqdm import tqdm
 
-# phyddle packages
+# phyddle imports
 import Utilities
 
 class Formatter:
@@ -102,15 +100,6 @@ class Formatter:
         for i in range(len(res)):
             if res[i] is not None:
                 tensor_size = res[i].shape[1]
-                #tensor_length = len(res[i])
-                #if self.tree_type == 'serial':
-                #    tensor_size = tensor_length / (self.num_char + 4)
-                #elif self.tree_type == 'extant':
-                #    tensor_size = tensor_length /  (self.num_char + 3)
-                #print(res[i])
-                #print(tensor_length)
-                #tensor_size = int(tensor_size)
-                #print(i, tensor_size) #, tensor_length)
                 self.phy_tensors[tensor_size][i] = res[i]
 
         self.summ_stat_names = self.get_summ_stat_names()

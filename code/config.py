@@ -1,10 +1,8 @@
-
-
 #==============================================================================#
 # Default phyddle config file                                                  #
 #==============================================================================#
 
-# helper libraries
+# external import
 import scipy as sp
 
 # helper variables
@@ -98,6 +96,7 @@ args = {
     #-------------------------------#
     # Predicting Step settings      #
     #-------------------------------#
-    # none currently implemented
+    # prediction already handled by previously defined settings
+    # no prediction-specific settings currently implemented
 }
 

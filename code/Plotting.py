@@ -1,30 +1,19 @@
-# takes inputs and outputs and produces report of figures
-
-# PCA test vs. training data
-# training conformal prediction intervals
-# CNN training diagnostics
-# training/validation accuracy
-# network architecture
-# loadings?
-# parameter point estimates and CIs
-
-import pandas as pd
-import numpy as np
-import os
+# standard imports
 import json
+import os
+
+# external imports
 import h5py
-import scipy as sp
 import matplotlib.pyplot as plt
-import matplotlib.ticker as ticker
+import numpy as np
+import pandas as pd
+import scipy as sp
 import tensorflow as tf
-from sklearn.preprocessing import StandardScaler
-from sklearn.decomposition import PCA
-#from tensorflow.keras.utils import plot_model
-#from sklearn import metrics
-
-import Utilities
-
 from PyPDF2 import PdfMerger
+from sklearn.decomposition import PCA
+
+# phyddle imports
+# none
 
 class Plotter:
 
@@ -48,12 +37,12 @@ class Plotter:
         self.pred_dir          = args['pred_dir'] if 'pred_dir' in args else ''
         self.pred_prefix       = args['pred_prefix'] if 'pred_prefix' in args else ''
 
-        self.train_color       = args['plot_train_color']       #'blue'
-        self.test_color        = args['plot_test_color']        #'purple'
-        self.validation_color  = args['plot_validation_color']  #'red'
-        self.aux_color         = args['plot_aux_data_color']     #'green'
-        self.label_color       = args['plot_label_color']       #'orange'
-        self.pred_color        = args['plot_pred_color']         #'black'
+        self.train_color       = args['plot_train_color']
+        self.test_color        = args['plot_test_color']
+        self.validation_color  = args['plot_validation_color']
+        self.aux_color         = args['plot_aux_data_color']
+        self.label_color       = args['plot_label_color']
+        self.pred_color        = args['plot_pred_color']
         return
 
     def prepare_files(self):
@@ -325,7 +314,6 @@ class Plotter:
 
         pca_var = pca_model.explained_variance_ratio_
         fig, axs = plt.subplots(num_comp-1, num_comp-1, sharex=True, sharey=True, figsize=(fig_width, fig_height))
-        #tick_spacing = 2
 
         # use this to turn off subplots
         #axes[i_row,j_col].axis('off')
@@ -346,8 +334,6 @@ class Plotter:
                 if i == (num_comp-2):
                     xlabel = 'PC{idx} ({var}%)'.format( idx=str(j+1), var=int(100*round(pca_var[j], ndigits=2)) )
                     axs[i,j].set_xlabel(xlabel, fontsize=12)
-                #axs[i,j].xaxis.set_major_locator(ticker.MultipleLocator(tick_spacing))
-                #axs[i,j].yaxis.set_major_locator(ticker.MultipleLocator(tick_spacing))
                 
         plt.tight_layout()
         fig.suptitle('PCA: aux. data')

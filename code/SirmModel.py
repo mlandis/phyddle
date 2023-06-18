@@ -20,8 +20,8 @@ model_variants = {
 
 variant_registry = []
 variant_registry_names = ['variant_name',      'description'  ] 
-variant_registry.append( ['free-rates',        'rates differ among all events within type'] )
-variant_registry.append( ['equal-rates',       'rates equal among all events within type'] )
+variant_registry.append( ['free_rates',        'rates differ among all events within type'] )
+variant_registry.append( ['equal_rates',       'rates equal among all events within type'] )
 variant_registry = pd.DataFrame( variant_registry, columns = variant_registry_names)
 
 class SirmModel(Model.BaseModel):

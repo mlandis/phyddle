@@ -223,7 +223,8 @@ def load_config(config_fn, arg_overwrite=True):
     args = parser.parse_args()
     
     # print models & exit
-    if args.show_models is not None:
+    if args.show_models:
+         print(args.show_models)
          import ModelLoader
          model_str = ModelLoader.make_model_registry_str()
          print(model_str)

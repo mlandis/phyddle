@@ -11,7 +11,7 @@ model_registry = pd.DataFrame( model_registry, columns = model_registry_names)
 
 # convert model_name into class_name through registry
 def get_model_class(model_type):
-    model_class_name = model_registry.class_name[ model_registry.model_name == model_type ][0]
+    model_class_name = model_registry.class_name[ model_registry.model_name == model_type ].iat[0]
     MyModelModule = importlib.import_module(model_class_name)
     MyModelClass = getattr(MyModelModule, model_class_name)
     return MyModelClass
@@ -45,16 +45,5 @@ def make_model_registry_str():
 def load_model(args):
     model_type   = args['model_type']
     MyModelClass = get_model_class(model_type)
-    # if model_type == 'geosse':
-    #     import GeosseModel
-    #     mdl = GeosseModel.GeosseModel
-    # elif model_type == 'sirm':
-    #     import SirmModel
-    #     mdl = SirmModel.SirmModel
-    # elif model_type == 'cont_trait':
-    #     import ContTraitModel
-    #     mdl = ContTraitModel.ContTraitModel
-    # else:
-        # return None
     return MyModelClass(args)
 

@@ -1,12 +1,16 @@
+# standard imports
+import gzip
 import os
 import re
-import subprocess
-import numpy as np
-import gzip
 import shutil
+import subprocess
+
+# external imports
+import numpy as np
 from joblib import Parallel, delayed
 from tqdm import tqdm
 
+# phyddle imports
 import Utilities
 
 #-----------------------------------------------------------------------------------------------------------------#
@@ -25,7 +29,6 @@ class Simulator:
         self.sim_dir           = args['sim_dir']
         self.start_idx         = args['start_idx']
         self.end_idx           = args['end_idx']
-        self.tree_sizes        = args['tree_sizes']
         self.stop_time         = args['stop_time']
         self.num_proc          = args['num_proc']
         self.use_parallel      = args['use_parallel']
