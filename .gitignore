@@ -4,10 +4,17 @@ raw_data/*/*
 tensor_data/*/*
 network/*/*
 plot/*/*
+sandbox/
 
 # Ignore OS files
 .DS_Store
 .DS_Store?
+
+# Ignore programming files
+.Rhistory
+.swp
+.vscode/
+.ipynb_checkpoints/
 
 # Exceptions for `example` project
 !raw_data/example/*
@@ -15,4 +22,5 @@ plot/*/*
 !network/example/*
 !predict/example/*
 !plot/example/*
+raw_data/example.zip
 

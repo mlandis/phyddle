@@ -52,7 +52,7 @@ class Learner:
             self.prop_test         = args['prop_test']
             self.prop_validation   = args['prop_validation']
             self.prop_calibration  = args['prop_calibration']
-        self.alpha_CQRI        = args['alpha_CQRI']
+        self.cpi_coverage          = args['cpi_coverage']
         self.loss              = args['loss']
         self.optimizer         = args['optimizer']
         self.metrics           = args['metrics']
@@ -77,8 +77,8 @@ class Learner:
         self.model_trn_lbl_norm_fn  = f'{self.network_dir}/{self.model_prefix}.train_label_norm.csv'
         self.model_trn_ss_norm_fn   = f'{self.network_dir}/{self.model_prefix}.train_summ_stat_norm.csv'
         self.model_hist_fn      = f'{self.network_dir}/{self.model_prefix}.train_history.json'
-        self.model_cpi_func_fn  = f'{self.network_dir}/{self.model_prefix}.cpi_func.obj'
-        self.model_cqr_fn       = f'{self.network_dir}/{self.model_prefix}.cqr_interval_adjustments.csv'
+        #self.model_cpi_func_fn  = f'{self.network_dir}/{self.model_prefix}.cpi_func.obj'
+        self.model_cpi_fn       = f'{self.network_dir}/{self.model_prefix}.cpi_adjustments.csv'
         self.train_pred_calib_fn      = f'{self.network_dir}/{self.model_prefix}.train_pred.csv'
         self.test_pred_calib_fn       = f'{self.network_dir}/{self.model_prefix}.test_pred.csv'
         self.train_pred_nocalib_fn    = f'{self.network_dir}/{self.model_prefix}.train_pred_nocalib.csv'
@@ -310,6 +310,9 @@ class CnnLearner(Learner):
 
     def train(self):
 
+        lower_quantile_loss,upper_quantile_loss = self.get_pinball_loss_fns(self.cpi_coverage)
+        
+        self.pinball_loss_q_0_025, self.pinball_loss_q_0_975
         my_loss = [ self.loss, self.pinball_loss_q_0_025, self.pinball_loss_q_0_975 ]
 
         # compile model        
@@ -359,23 +362,22 @@ class CnnLearner(Learner):
         self.normalized_calib_preds       = np.array(self.normalized_calib_preds)
 
         # drop 0th column containing point estimate predictions for calibration dataset
-        norm_calib_pred_quantiles = self.normalized_calib_preds[1:,:,:]
-        self.cqr_interval_adjustments = self.get_CQR_constant(norm_calib_pred_quantiles, self.norm_calib_labels, inner_quantile=self.alpha_CQRI)
-        self.cqr_interval_adjustments = np.array( self.cqr_interval_adjustments ).reshape((2,-1))
+        norm_calib_pred_quantiles         = self.normalized_calib_preds[1:,:,:]
+        self.cpi_adjustments              = self.get_CQR_constant(norm_calib_pred_quantiles, self.norm_calib_labels, inner_quantile=self.cpi_coverage)
+        self.cpi_adjustments              = np.array( self.cpi_adjustments ).reshape((2,-1))
 
-        # note to self: should I save all copies of calibrated/uncalibrated predictions test/train/calib??
 
         # training predictions with calibrated CQR CIs
         self.denorm_train_preds_calib        = self.normalized_train_preds
-        self.denorm_train_preds_calib[1,:,:] = self.denorm_train_preds_calib[1,:,:] - self.cqr_interval_adjustments[0,:]
-        self.denorm_train_preds_calib[2,:,:] = self.denorm_train_preds_calib[2,:,:] + self.cqr_interval_adjustments[1,:]
+        self.denorm_train_preds_calib[1,:,:] = self.denorm_train_preds_calib[1,:,:] - self.cpi_adjustments[0,:]
+        self.denorm_train_preds_calib[2,:,:] = self.denorm_train_preds_calib[2,:,:] + self.cpi_adjustments[1,:]
         self.denorm_train_preds_calib        = Utilities.denormalize(self.denorm_train_preds_calib, self.train_label_means, self.train_label_sd)
         self.denorm_train_preds_calib        = np.exp(self.denorm_train_preds_calib)
 
         # test predictions with calibrated CQR CIs
         self.denorm_test_preds_calib        = self.normalized_test_preds
-        self.denorm_test_preds_calib[1,:,:] = self.denorm_test_preds_calib[1,:,:] - self.cqr_interval_adjustments[0,:]
-        self.denorm_test_preds_calib[2,:,:] = self.denorm_test_preds_calib[2,:,:] + self.cqr_interval_adjustments[1,:]
+        self.denorm_test_preds_calib[1,:,:] = self.denorm_test_preds_calib[1,:,:] - self.cpi_adjustments[0,:]
+        self.denorm_test_preds_calib[2,:,:] = self.denorm_test_preds_calib[2,:,:] + self.cpi_adjustments[1,:]
         self.denorm_test_preds_calib        = Utilities.denormalize(self.denorm_test_preds_calib, self.train_label_means, self.train_label_sd)
         self.denorm_test_preds_calib        = np.exp(self.denorm_test_preds_calib)
 
@@ -416,7 +418,7 @@ class CnnLearner(Learner):
         #print(self.cqr_interval_adjustments.shape)
         df_train_labels  = pd.DataFrame( self.denormalized_train_labels[0:max_idx,:], columns=self.param_names )
         df_test_labels   = pd.DataFrame( self.denormalized_test_labels[0:max_idx,:], columns=self.param_names )
-        df_cqr_intervals = pd.DataFrame( self.cqr_interval_adjustments, columns=self.param_names )
+        df_cpi_intervals = pd.DataFrame( self.cpi_adjustments, columns=self.param_names )
 
         df_train_pred_nocalib.to_csv(self.train_pred_nocalib_fn, index=False, sep=',')
         df_test_pred_nocalib.to_csv(self.test_pred_nocalib_fn, index=False, sep=',')
@@ -424,7 +426,7 @@ class CnnLearner(Learner):
         df_test_pred_calib.to_csv(self.test_pred_calib_fn, index=False, sep=',')
         df_train_labels.to_csv(self.train_labels_fn, index=False, sep=',')
         df_test_labels.to_csv(self.test_labels_fn, index=False, sep=',')
-        df_cqr_intervals.to_csv(self.model_cqr_fn, index=False, sep=',')
+        df_cpi_intervals.to_csv(self.model_cpi_fn, index=False, sep=',')
         
         #, self.denormalized_train_labels[0:1000,:] ], )
         json.dump(self.history_dict, open(self.model_hist_fn, 'w'))
@@ -447,27 +449,37 @@ class CnnLearner(Learner):
     # upper 95% quantile
     def pinball_loss_q_0_975(self, y_true, y_pred):
         return self.pinball_loss(y_true, y_pred, alpha=0.975)
-
     # lower 90% quantile
     def pinball_loss_q_0_05(self, y_true, y_pred):
         return self.pinball_loss(y_true, y_pred, alpha=0.05)
     # upper 90% quantile
     def pinball_loss_q_0_95(self, y_true, y_pred):
         return self.pinball_loss(y_true, y_pred, alpha=0.95)
-
     # lower 80% quantile
     def pinball_loss_q_0_10(self, y_true, y_pred):
         return self.pinball_loss(y_true, y_pred, alpha=0.10)
     # upper 80% quantile
     def pinball_loss_q_0_90(self, y_true, y_pred):
         return self.pinball_loss(y_true, y_pred, alpha=0.90)
-
     # lower 70% quantile
     def pinball_loss_q_0_15(self, y_true, y_pred):
         return self.pinball_loss(y_true, y_pred, alpha=0.15)
     # lower 80% quantile
     def pinball_loss_q_0_85(self, y_true, y_pred):
         return self.pinball_loss(y_true, y_pred, alpha=0.85)
+
+    def get_pinball_loss_fns(self, coverage):
+        if coverage == 0.95:
+            return self.pinball_loss_q_0_025, self.pinball_loss_q_0_975
+        elif coverage == 0.90:
+            return self.pinball_loss_q_0_05, self.pinball_loss_q_0_95
+        elif coverage == 0.80:
+            return self.pinball_loss_q_0_10, self.pinball_loss_q_0_90
+        elif coverage == 0.70:
+            return self.pinball_loss_q_0_15, self.pinball_loss_q_0_85
+        else:
+            raise NotImplementedError
+        return
 
     # computes the distance y_i is inside/outside the lower(x_i) and upper(x_i) quantiles
     # there are three cases to consider:

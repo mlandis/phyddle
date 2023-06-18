@@ -1,50 +1,25 @@
-# general libraries
+# standard packages
 import argparse
 import importlib
 import re
 import os
 import copy
-#import sys
-#import itertools
-#import dill
-#import random
+from itertools import chain, combinations
 
-# Call before importing Tensorflow to suppress INFO messages
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # or any {'0', '1', '2'}
-
+# external packages
 import pandas as pd
 import numpy as np
 import dendropy as dp
-from itertools import chain, combinations
-# from keras import backend as K    # <- move this into Learning if possible
-
-#import scipy as sp
-#import matplotlib.pyplot as plt
-#import matplotlib.ticker as ticker
-#import tensorflow as tf
-#from sklearn.preprocessing import StandardScaler
-#from sklearn.decomposition import PCA
-#from sklearn import metrics
-#from collections import Counter
-#from ete3 import Tree
-#from scipy.interpolate import RegularGridInterpolator
-#from sklearn.neighbors import KDTree
 
 
+# Precision settings
 NUM_DIGITS = 10
 np.set_printoptions(floatmode='maxprec', precision=NUM_DIGITS)
 pd.set_option('display.precision', NUM_DIGITS)
 pd.set_option('display.float_format', lambda x: f'{x:,.3f}')
 
-#max_len = 501
-# TURN_ONE = 'turn_one'
-
-# the information on state is saved as 't_s' in the newick tree
-# T_S = 't_s'
-# STATE = 'state'
-# DIVERSIFICATION_SCORE = 'diversification_score'
-
-# sys.setrecursionlimit(100000)
+# Tensorflow info messages
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # or any {'0', '1', '2'}
 
 ##################
 # Helper Classes #
@@ -190,12 +165,12 @@ def load_config(config_fn, arg_overwrite=True):
     # parser.add_argument('--pred_prefix',        dest='pred_prefix', type=str, help='Predict results for this dataset')
     
     # argument parsing
-    parser = argparse.ArgumentParser(description='phyddle pipeline config',
-                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(description='phyddle pipeline config') #,
+                                     #formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     
     parser.add_argument('-c', '--cfg',          dest='config_fn', type=str, help='Config file name')
     #parser.add_argument('-f', '--force',        action='store_true', help='Arguments override config file settings')
-    parser.add_argument('--proj',               dest='proj', type=str, help='Project name used as directory across pipeline stages')
+    parser.add_argument('-p', '--proj',         dest='proj', type=str, help='Project name used as directory across pipeline stages')
     parser.add_argument('--use_parallel',       dest='use_parallel', type=bool, help='Use parallelization? (recommended)')
     parser.add_argument('--num_proc',           dest='num_proc', type=int, help='How many cores for multiprocessing? (e.g. 4 uses 4, -2 uses all but 2)')
     # directory settings
@@ -227,13 +202,20 @@ def load_config(config_fn, arg_overwrite=True):
     parser.add_argument('--prop_test',          dest='prop_test', type=float, help='Proportion of data used as test examples (demonstrate trained network performance)')
     parser.add_argument('--prop_validation',    dest='prop_validation', type=float, help='Proportion of data used as validation examples (diagnose network overtraining)')
     parser.add_argument('--prop_calibration',   dest='prop_calibration', type=float, help='Proportion of data used as calibration examples (calibrate conformal prediction intervals)')
-    parser.add_argument('--alpha_CQRI',         dest='alpha_CQRI', type=float, help='Expected coverage percent for prediction intervals')
+    parser.add_argument('--cpi_coverage',       dest='cpi_coverage', type=float, help='Expected coverage percent for calibrated prediction intervals')
     parser.add_argument('--loss',               dest='loss', type=str, help='Loss function used as optimization criterion')
     parser.add_argument('--optimizer',          dest='optimizer', type=str, help='Method used for optimizing neural network')
     # plotting settings
-    parser.add_argument('--network_prefix',     dest='network_prefix', type=str, help='Plot results related to this network prefix')
+    #parser.add_argument('--network_prefix',     dest='network_prefix', type=str, help='Plot results related to this network prefix')
     # prediction settings
     parser.add_argument('--pred_prefix',        dest='pred_prefix', type=str, help='Predict results for this dataset')
+    parser.add_argument('--plot_train_color',    dest='plot_train_color', type=str, help='Plotting color for training data elements')
+    parser.add_argument('--plot_label_color',    dest='plot_label_color', type=str, help='Plotting color for training label elements')
+    parser.add_argument('--plot_test_color',     dest='plot_test_color', type=str, help='Plotting color for test data elements')
+    parser.add_argument('--plot_validation_color', dest='plot_validation_color', type=str, help='Plotting color for validation data elements')
+    parser.add_argument('--plot_aux_data_color', dest='plot_aux_data_color', type=str, help='Plotting color for auxiliary input data elements')
+    parser.add_argument('--plot_pred_color',     dest='plot_pred_color', type=str, help='Plotting color for prediction data elements')
+
 
     # parse arguments
     args = parser.parse_args()
@@ -282,11 +264,18 @@ def load_config(config_fn, arg_overwrite=True):
     m = overwrite_defaults(m, args, 'prop_test')
     m = overwrite_defaults(m, args, 'prop_validation')
     m = overwrite_defaults(m, args, 'prop_calibration')
-    m = overwrite_defaults(m, args, 'alpha_CQRI')
+    m = overwrite_defaults(m, args, 'cpi_coverage')
     m = overwrite_defaults(m, args, 'loss')
     m = overwrite_defaults(m, args, 'optimizer')
-    m = overwrite_defaults(m, args, 'network_prefix')
+    #m = overwrite_defaults(m, args, 'network_prefix')
     m = overwrite_defaults(m, args, 'pred_prefix')
+
+    m = overwrite_defaults(m, args, 'plot_train_color')
+    m = overwrite_defaults(m, args, 'plot_test_color')
+    m = overwrite_defaults(m, args, 'plot_validation_color')
+    m = overwrite_defaults(m, args, 'plot_aux_data_color')
+    m = overwrite_defaults(m, args, 'plot_label_color')
+    m = overwrite_defaults(m, args, 'plot_pred_color')
 
     # return new args
     return m.args
@@ -347,8 +336,7 @@ def find_tree_width(num_taxa, max_taxa):
     raise Exception('error in find_tree_width()', num_taxa, max_taxa)
     return -2
 
-def clean_scientific_notation(s):
-    return re.sub( '\.0+E\+0+', '', s)
+
 
 #-----------------------------------------------------------------------------------------------------------------#
 
@@ -378,12 +366,7 @@ def read_tree(tre_fn):
                 phy = phy_tmp
     return phy
 
-def make_clean_phyloenc_str(x):
-    s = np.array2string(x, separator=',', max_line_width=1e200, threshold=1e200, edgeitems=1e200, precision=10, floatmode='maxprec')
-    s = re.sub(r'[\[\]]', '', string=s)
-    s = re.sub(r',\n ', '\n', string=s)
-    s = s + '\n'
-    return s
+
 
 
 #-----------------------------------------------------------------------------------------------------------------#
@@ -643,118 +626,22 @@ def make_param_VLU_mtx(A, param_names):
 
     return df
 
+def make_clean_phyloenc_str(x):
+    s = np.array2string(x, separator=',', max_line_width=1e200, threshold=1e200, edgeitems=1e200, precision=10, floatmode='maxprec')
+    s = re.sub(r'[\[\]]', '', string=s)
+    s = re.sub(r',\n ', '\n', string=s)
+    s = s + '\n'
+    return s
+
+def clean_scientific_notation(s):
+    return re.sub( '\.0+E\+0+', '', s)
+
 #-----------------------------------------------------------------------------------------------------------------#
 
 #########################
 # PHYLO TENSOR ENCODING #
 #########################
 
-# ==> move to Formatting? <==
-def encode_phy_tensor(phy, dat, tree_width, tree_type, rescale=True):
-    if tree_type == 'serial':
-        phy_tensor = encode_cblvs(phy, dat, tree_width, rescale)
-    elif tree_type == 'extant':
-        phy_tensor = encode_cdvs(phy, dat, tree_width, rescale)
-    else:
-        ValueError(f'Unrecognized {tree_type}')
-    return phy_tensor
-
-def encode_cdvs(phy, dat, tree_width, rescale=True):
-    
-    # num columns equals tree_size, 0-padding
-    # returns tensor with following rows
-    # 0: terminal brlen, 1: last-int-node brlen, 2: last-int-node root-dist
-    
-    # data dimensions
-    num_char  = dat.shape[0]
-
-    # initialize workspace
-    root_distances = phy.calc_node_root_distances(return_leaf_distances_only=False)
-    heights    = np.zeros( (3, tree_width) )
-    states     = np.zeros( (num_char, tree_width) )
-    state_idx  = 0
-    height_idx = 0
-
-    # postorder traversal to rotate nodes by clade-length
-    for nd in phy.postorder_node_iter():
-        if nd.is_leaf():
-            nd.treelen = 0.
-        else:
-            children           = nd.child_nodes()
-            ch_treelen         = [ (ch.edge.length + ch.treelen) for ch in children ]
-            nd.treelen         = sum(ch_treelen)
-            ch_treelen_rank    = np.argsort( ch_treelen )[::-1] 
-            children_reordered = [ children[i] for i in ch_treelen_rank ]
-            nd.set_children(children_reordered)
-
-    # inorder traversal to fill matrix
-    phy.seed_node.edge.length = 0
-    for nd in phy.inorder_node_iter():
-        
-        if nd.is_leaf():
-            heights[0,height_idx] = nd.edge.length
-            states[:,state_idx]   = dat[nd.taxon.label].to_list()
-            state_idx += 1
-        else:
-            heights[1,height_idx] = nd.edge.length
-            heights[2,height_idx] = nd.root_distance
-            height_idx += 1
-
-    # fill in phylo tensor
-    if rescale:
-        heights = heights / np.max(heights)
-    phylo_tensor = np.vstack( [heights, states] )
-
-    return phylo_tensor
-
-
-def encode_cblvs(phy, dat, tree_width, rescale=True):
-    # data dimensions
-    num_char   = dat.shape[0]
-
-    # initialize workspace
-    null       = phy.calc_node_root_distances(return_leaf_distances_only=False)
-    heights    = np.zeros( (4, tree_width) ) 
-    states     = np.zeros( (num_char, tree_width) )
-    state_idx  = 0
-    height_idx = 0
-
-    # postorder traversal to rotate nodes by max-root-distance
-    for nd in phy.postorder_node_iter():
-        if nd.is_leaf():
-            nd.max_root_distance = nd.root_distance
-        else:
-            children                  = nd.child_nodes()
-            ch_max_root_distance      = [ ch.max_root_distance for ch in children ]
-            ch_max_root_distance_rank = np.argsort( ch_max_root_distance )[::-1] # [0,1] or [1,0]
-            children_reordered        = [ children[i] for i in ch_max_root_distance_rank ]
-            nd.max_root_distance      = max(ch_max_root_distance)
-            nd.set_children(children_reordered)
-
-    # inorder traversal to fill matrix
-    last_int_node = phy.seed_node
-    last_int_node.edge.length = 0
-    for nd in phy.inorder_node_iter():
-        if nd.is_leaf():
-            heights[0,height_idx] = nd.edge.length
-            heights[2,height_idx] = nd.root_distance - last_int_node.root_distance
-            states[:,state_idx]   = dat[nd.taxon.label].to_list()
-            state_idx += 1
-        else:
-            #print(last_int_node.edge.length)
-            heights[1,height_idx+1] = nd.edge.length
-            heights[3,height_idx+1] = nd.root_distance
-            last_int_node = nd
-            height_idx += 1
-
-    # fill in phylo tensor
-    #heights.shape = (2, tree_size)
-    # 0: leaf brlen; 1: intnode brlen; 2:leaf-to-lastintnode len; 3:lastintnode-to-root len
-    if rescale:
-        heights = heights / np.max(heights)
-    phylo_tensor = np.vstack( [heights, states] )
-
-    return phylo_tensor
 
 
 #-----------------------------------------------------------------------------------------------------------------#

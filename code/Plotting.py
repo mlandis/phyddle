@@ -47,6 +47,13 @@ class Plotter:
         self.tensor_format     = args['tensor_format']
         self.pred_dir          = args['pred_dir'] if 'pred_dir' in args else ''
         self.pred_prefix       = args['pred_prefix'] if 'pred_prefix' in args else ''
+
+        self.train_color       = args['plot_train_color']       #'blue'
+        self.test_color        = args['plot_test_color']        #'purple'
+        self.validation_color  = args['plot_validation_color']  #'red'
+        self.aux_color         = args['plot_aux_data_color']     #'green'
+        self.label_color       = args['plot_label_color']       #'orange'
+        self.pred_color        = args['plot_pred_color']         #'black'
         return
 
     def prepare_files(self):
@@ -78,17 +85,10 @@ class Plotter:
         self.save_hist_aux_fn   = f'{self.plt_job_dir}/{self.network_prefix}.histogram_aux.pdf'
         self.save_hist_label_fn = f'{self.plt_job_dir}/{self.network_prefix}.histogram_label.pdf'
         self.save_pca_aux_fn    = f'{self.plt_job_dir}/{self.network_prefix}.pca_aux.pdf'
-        self.save_cqr_test_fn   = f'{self.plt_job_dir}/{self.network_prefix}.train_est_CI.pdf'
-        self.save_cqr_pred_fn   = f'{self.plt_job_dir}/{self.network_prefix}.pred_est_CI.pdf'
+        self.save_cpi_test_fn   = f'{self.plt_job_dir}/{self.network_prefix}.train_est_CPI.pdf'
+        self.save_cpi_pred_fn   = f'{self.plt_job_dir}/{self.network_prefix}.pred_est_CPI.pdf'
         self.save_network_fn    = f'{self.plt_job_dir}/{self.network_prefix}.network_architecture.pdf'
         self.save_summary_fn    = f'{self.plt_job_dir}/{self.network_prefix}.summary.pdf'
-        
-        self.train_color        = 'blue'
-        self.test_color         = 'purple'
-        self.validation_color   = 'red'
-        self.aux_color          = 'green'
-        self.label_color        = 'orange'
-        self.pred_color         = 'black'
 
         return
 
@@ -200,7 +200,7 @@ class Plotter:
         self.plot_pca(save_fn=self.save_pca_aux_fn, sim_stat=self.input_stats, pred_stat=self.pred_aux_data, color=self.aux_color)
         
         # save point est. and CI for test dataset (if it exists)
-        self.plot_pred_est_CI(save_fn=self.save_cqr_pred_fn, pred_label=self.pred_lbl_df, title=f'Prediction: {self.pred_dir}/{self.pred_prefix}', color=self.pred_color)
+        self.plot_pred_est_CI(save_fn=self.save_cpi_pred_fn, pred_label=self.pred_lbl_df, title=f'Prediction: {self.pred_dir}/{self.pred_prefix}', color=self.pred_color)
         
         # save network
         tf.keras.utils.plot_model(self.model, to_file=self.save_network_fn, show_shapes=True)
@@ -210,14 +210,14 @@ class Plotter:
         files.sort()
         files = [ f for f in files if '.pdf' in f and self.network_prefix in f and 'all_results' not in f ]
 
-        files_CI         = list(filter(lambda x: 'CI' in x, files))
+        files_CPI         = list(filter(lambda x: 'CPI' in x, files))
         files_pca        = list(filter(lambda x: 'pca' in x, files))
         files_histogram  = list(filter(lambda x: 'histogram' in x, files))
         files_train      = list(filter(lambda x: 'train' in x, files))
         files_test       = list(filter(lambda x: 'test' in x, files))
         files_arch       = list(filter(lambda x: 'architecture' in x, files))
         files_history    = list(filter(lambda x: 'history' in x, files))
-        files_ordered    = files_CI + files_pca + files_histogram + files_train + files_test + files_history + files_arch
+        files_ordered    = files_CPI + files_pca + files_histogram + files_train + files_test + files_history + files_arch
 
         # combine pdfs
         merger = PdfMerger()

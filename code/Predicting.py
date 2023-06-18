@@ -1,16 +1,13 @@
+# standard packages
+import os
 
-#import cnn_utilities as cn
+# external packages
 import pandas as pd
 import numpy as np
-#import dill
-#import os
-#import csv
-#import json
-
 import tensorflow as tf
 from keras import *
-#from keras import layers
 
+# phyddle packages
 import Utilities
 
 class Predictor:
@@ -45,7 +42,7 @@ class Predictor:
         self.model_trn_lbl_norm_fn  = f'{self.network_dir}/{self.model_prefix}.train_label_norm.csv'
         self.model_trn_ss_norm_fn   = f'{self.network_dir}/{self.model_prefix}.train_summ_stat_norm.csv'
         #self.model_cpi_func_fn      = f'{self.network_dir}/{self.model_prefix}.cpi_func.obj'
-        self.model_cqr_fn           = f'{self.network_dir}/{self.model_prefix}.cqr_interval_adjustments.csv'
+        self.model_cpi_fn           = f'{self.network_dir}/{self.model_prefix}.cpi_adjustments.csv'
 
         # save predictions to file
         self.model_pred_fn          = f'{self.predict_dir}/{self.pred_prefix}.{self.model_prefix}.pred_labels.csv'
@@ -66,6 +63,7 @@ class Predictor:
         return
 
     def run(self):
+        os.makedirs(self.predict_dir, exist_ok=True)
         self.load_input()
         self.make_results()
         
@@ -99,7 +97,7 @@ class Predictor:
 
 
         # read in CQR interval adjustments
-        self.cqr_interval_adjustments = pd.read_csv(self.model_cqr_fn, sep=',', index_col=False).to_numpy()
+        self.cpi_adjustments = pd.read_csv(self.model_cpi_fn, sep=',', index_col=False).to_numpy()
         # # CPI functions
         # with open(self.model_cpi_func_fn, 'rb') as f:
         #     self.cpi_func = dill.load(f)
@@ -115,8 +113,8 @@ class Predictor:
         # get predictions
         self.norm_preds                = self.mymodel.predict([self.pred_data_tensor, self.norm_pred_stats])
         self.norm_preds                = np.array( self.norm_preds )
-        self.norm_preds[1,:,:]         = self.norm_preds[1,:,:] - self.cqr_interval_adjustments[0,:]
-        self.norm_preds[2,:,:]         = self.norm_preds[2,:,:] + self.cqr_interval_adjustments[1,:]
+        self.norm_preds[1,:,:]         = self.norm_preds[1,:,:] - self.cpi_adjustments[0,:]
+        self.norm_preds[2,:,:]         = self.norm_preds[2,:,:] + self.cpi_adjustments[1,:]
         self.denormalized_pred_labels  = Utilities.denormalize(self.norm_preds, self.train_labels_means, self.train_labels_sd)
         self.pred_labels               = np.exp( self.denormalized_pred_labels )
        

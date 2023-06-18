@@ -1,7 +1,10 @@
+# standard packages
 import os
-import re
 import copy
+#import re
 #import csv
+
+# external packages
 import h5py
 import pandas as pd
 import numpy as np
@@ -9,7 +12,7 @@ import dendropy as dp
 from joblib import Parallel, delayed
 from tqdm import tqdm
 
-
+# phyddle packages
 import Utilities
 
 class Formatter:
@@ -96,8 +99,6 @@ class Formatter:
             self.phy_tensors[size] = {}
 
         # save all CBLVS/CDVS tensors into phy_tensors
-        #print(res)
-        #print(len(res))
         for i in range(len(res)):
             if res[i] is not None:
                 tensor_size = res[i].shape[1]
@@ -352,13 +353,13 @@ class Formatter:
 
         # encode CBLVS
         if self.tree_type == 'serial':
-            cblvs = Utilities.encode_phy_tensor(phy, dat, tree_width=tree_width, tree_type='serial')
+            cblvs = self.encode_phy_tensor(phy, dat, tree_width=tree_width, tree_type='serial')
             cpsv = cblvs
             cpsv_fn = cblvs_fn
 
         # encode CDVS
         elif self.tree_type == 'extant':
-            cdvs = Utilities.encode_phy_tensor(phy, dat, tree_width=tree_width, tree_type='extant')
+            cdvs = self.encode_phy_tensor(phy, dat, tree_width=tree_width, tree_type='extant')
             cpsv = cdvs
             cpsv_fn = cdvs_fn
 
@@ -459,3 +460,111 @@ class Formatter:
         keys_str = ','.join( list(ss.keys()) ) + '\n'
         vals_str = ','.join( [ str(x) for x in ss.values() ] ) + '\n'
         return keys_str + vals_str
+    
+
+    # ==> move to Formatting? <==
+    def encode_phy_tensor(self, phy, dat, tree_width, tree_type, rescale=True):
+        if tree_type == 'serial':
+            phy_tensor = self.encode_cblvs(phy, dat, tree_width, rescale)
+        elif tree_type == 'extant':
+            phy_tensor = self.encode_cdvs(phy, dat, tree_width, rescale)
+        else:
+            ValueError(f'Unrecognized {tree_type}')
+        return phy_tensor
+
+    def encode_cdvs(self, phy, dat, tree_width, rescale=True):
+        
+        # num columns equals tree_size, 0-padding
+        # returns tensor with following rows
+        # 0: terminal brlen, 1: last-int-node brlen, 2: last-int-node root-dist
+        
+        # data dimensions
+        num_char  = dat.shape[0]
+
+        # initialize workspace
+        root_distances = phy.calc_node_root_distances(return_leaf_distances_only=False)
+        heights    = np.zeros( (3, tree_width) )
+        states     = np.zeros( (num_char, tree_width) )
+        state_idx  = 0
+        height_idx = 0
+
+        # postorder traversal to rotate nodes by clade-length
+        for nd in phy.postorder_node_iter():
+            if nd.is_leaf():
+                nd.treelen = 0.
+            else:
+                children           = nd.child_nodes()
+                ch_treelen         = [ (ch.edge.length + ch.treelen) for ch in children ]
+                nd.treelen         = sum(ch_treelen)
+                ch_treelen_rank    = np.argsort( ch_treelen )[::-1] 
+                children_reordered = [ children[i] for i in ch_treelen_rank ]
+                nd.set_children(children_reordered)
+
+        # inorder traversal to fill matrix
+        phy.seed_node.edge.length = 0
+        for nd in phy.inorder_node_iter():
+            
+            if nd.is_leaf():
+                heights[0,height_idx] = nd.edge.length
+                states[:,state_idx]   = dat[nd.taxon.label].to_list()
+                state_idx += 1
+            else:
+                heights[1,height_idx] = nd.edge.length
+                heights[2,height_idx] = nd.root_distance
+                height_idx += 1
+
+        # fill in phylo tensor
+        if rescale:
+            heights = heights / np.max(heights)
+        phylo_tensor = np.vstack( [heights, states] )
+
+        return phylo_tensor
+
+
+    def encode_cblvs(self, phy, dat, tree_width, rescale=True):
+        # data dimensions
+        num_char   = dat.shape[0]
+
+        # initialize workspace
+        null       = phy.calc_node_root_distances(return_leaf_distances_only=False)
+        heights    = np.zeros( (4, tree_width) ) 
+        states     = np.zeros( (num_char, tree_width) )
+        state_idx  = 0
+        height_idx = 0
+
+        # postorder traversal to rotate nodes by max-root-distance
+        for nd in phy.postorder_node_iter():
+            if nd.is_leaf():
+                nd.max_root_distance = nd.root_distance
+            else:
+                children                  = nd.child_nodes()
+                ch_max_root_distance      = [ ch.max_root_distance for ch in children ]
+                ch_max_root_distance_rank = np.argsort( ch_max_root_distance )[::-1] # [0,1] or [1,0]
+                children_reordered        = [ children[i] for i in ch_max_root_distance_rank ]
+                nd.max_root_distance      = max(ch_max_root_distance)
+                nd.set_children(children_reordered)
+
+        # inorder traversal to fill matrix
+        last_int_node = phy.seed_node
+        last_int_node.edge.length = 0
+        for nd in phy.inorder_node_iter():
+            if nd.is_leaf():
+                heights[0,height_idx] = nd.edge.length
+                heights[2,height_idx] = nd.root_distance - last_int_node.root_distance
+                states[:,state_idx]   = dat[nd.taxon.label].to_list()
+                state_idx += 1
+            else:
+                #print(last_int_node.edge.length)
+                heights[1,height_idx+1] = nd.edge.length
+                heights[3,height_idx+1] = nd.root_distance
+                last_int_node = nd
+                height_idx += 1
+
+        # fill in phylo tensor
+        #heights.shape = (2, tree_size)
+        # 0: leaf brlen; 1: intnode brlen; 2:leaf-to-lastintnode len; 3:lastintnode-to-root len
+        if rescale:
+            heights = heights / np.max(heights)
+        phylo_tensor = np.vstack( [heights, states] )
+
+        return phylo_tensor
