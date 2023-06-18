@@ -339,7 +339,7 @@ options:
   --prop_calibration PROP_CALIBRATION
                         Proportion of data used as calibration examples (calibrate conformal prediction intervals)
   --cpi_coverage CPI_COVERAGE
-                        Expected coverage percent for prediction intervals
+                        Expected coverage percent for calibrated prediction intervals
   --loss LOSS           Loss function used as optimization criterion
   --optimizer OPTIMIZER
                         Method used for optimizing neural network
