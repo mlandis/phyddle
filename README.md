@@ -128,7 +128,7 @@ Java version 17.0.5
 ```
 
 ## Developer guide
-(to be done)
+(to be written)
 
 We will host documentation built with `sphinx` to help developers read, use, and modify the back-end Python source code for their purposes. For now, anyone who clones the repository can make local changes to the code, though with some risk of introducing errors to how the tested version of phyddle behaves.
 
@@ -266,6 +266,7 @@ args = {
     # Predicting Step settings      #
     #-------------------------------#
     # none currently implemented
+    # prediction already handled by previously defined setings
 }
 ```
 
@@ -361,27 +362,27 @@ options:
 
 ### Model configuration
 
-(to be done)
+(to be written)
 
 ### Simulating
 
-(to be done)
+(to be written)
 
 ### Formatting
 
-(to be done)
+(to be written)
 
 ### Learning
 
-(to be done)
+(to be written)
 
 ### Predicting
 
-(to be done)
+(to be written)
 
 ### Plotting
 
-(to be done)
+(to be written)
 
 
 
