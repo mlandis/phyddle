@@ -63,7 +63,7 @@ args = {
     # Formatting Step settings      #
     #-------------------------------#
     'tree_type'         : 'serial',         # use model with serial or extant tree
-    'tree_sizes'        : [ 200, 500 ],     # tree size classes for phylo-state tensors
+    'tree_width_cat'    : [ 200, 500 ],     # tree size classes for phylo-state tensors
     'param_pred'        : [                 # model parameters to predict (labels)
         'R0_0', 'sampling_0', 'migration_0_1'
     ],
@@ -76,7 +76,7 @@ args = {
     #-------------------------------#
     # Learning Step settings        #
     #-------------------------------#
-    'tree_size'         : 500,              # tree size class used to train network
+    'tree_width'        : 500,              # tree size class used to train network
     'num_epochs'        : 20,               # number of training intervals (epochs)
     'prop_test'         : 0.05,             # proportion of sims in test dataset
     'prop_validation'   : 0.05,             # proportion of sims in validation dataset
@@ -92,8 +92,8 @@ args = {
     #-------------------------------#
     'plot_train_color'      : 'blue',       # plot color for training data
     'plot_test_color'       : 'purple',     # plot color for test data
-    'plot_validation_color' : 'red',        # plot color for validation data
-    'plot_aux_data_color'   : 'green',      # plot color for input auxiliary data
+    'plot_val_color'        : 'red',        # plot color for validation data
+    'plot_aux_color'        : 'green',      # plot color for input auxiliary data
     'plot_label_color'      : 'orange',     # plot color for labels (params)
     'plot_pred_color'       : 'black'       # plot color for predictions
 

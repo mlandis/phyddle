@@ -36,7 +36,7 @@ class Formatter:
         # encoder arguments
         self.model_name        = args['model_type']
         self.model_variant     = args['model_variant']
-        self.tree_sizes        = args['tree_sizes'] #[ 200, 500 ]
+        self.tree_width_cats    = args['tree_width_cats']
         self.min_num_taxa      = args['min_num_taxa']
         self.max_num_taxa      = args['max_num_taxa']
         self.start_idx         = args['start_idx']
@@ -93,7 +93,7 @@ class Formatter:
 
         # prepare phy_tensors
         self.phy_tensors = {}
-        for size in self.tree_sizes:
+        for size in self.tree_width_cats:
             self.phy_tensors[size] = {}
 
         # save all CBLVS/CDVS tensors into phy_tensors
@@ -110,7 +110,7 @@ class Formatter:
     
     def get_summ_stat_names(self):
         # get first representative file
-        idx = list( self.phy_tensors[ self.tree_sizes[0] ].keys() )[0]
+        idx = list( self.phy_tensors[ self.tree_width_cats[0] ].keys() )[0]
         fn = f'{self.in_dir}/sim.{idx}.summ_stat.csv'
         df = pd.read_csv(fn,header=0)
         ret = df.columns.to_list()
@@ -118,7 +118,7 @@ class Formatter:
     
     def get_label_names(self):
         # get first representative file
-        idx = list( self.phy_tensors[ self.tree_sizes[0] ].keys() )[0]
+        idx = list( self.phy_tensors[ self.tree_width_cats[0] ].keys() )[0]
         fn = f'{self.in_dir}/sim.{idx}.param_row.csv'
         df = pd.read_csv(fn,header=0)
         ret = df.columns.to_list()
@@ -131,19 +131,19 @@ class Formatter:
         self.label_names_encode = [ s.encode('UTF-8') for s in self.label_names ]
 
         # build files
-        for tree_size in sorted(list(self.phy_tensors.keys())):
+        for tree_width in sorted(list(self.phy_tensors.keys())):
                  
             # dimensions
-            rep_idx = sorted(list(self.phy_tensors[tree_size]))
+            rep_idx = sorted(list(self.phy_tensors[tree_width]))
             num_samples = len(rep_idx)
-            num_taxa = tree_size
+            num_taxa = tree_width
             num_data_length = num_taxa * self.num_data_row
 
             # print info
-            print('Formatting {n} files for tree_type={tt} and tree_size={ts}'.format(n=num_samples, tt=self.tree_type, ts=tree_size))
+            print('Formatting {n} files for tree_type={tt} and tree_width={ts}'.format(n=num_samples, tt=self.tree_type, ts=tree_width))
 
             # HDF5 file
-            out_hdf5_fn = f'{self.out_dir}/sim.nt{tree_size}.hdf5'
+            out_hdf5_fn = f'{self.out_dir}/sim.nt{tree_width}.hdf5'
             hdf5_file = h5py.File(out_hdf5_fn, 'w')
 
             # name data
@@ -156,7 +156,7 @@ class Formatter:
             dat_labels = hdf5_file.create_dataset('labels', (num_samples, self.num_labels), dtype='f', compression='gzip')
       
             # store all numerical data into hdf5
-            for j,(idx,phy_tensor) in enumerate(self.phy_tensors[tree_size].items()):
+            for j,(idx,phy_tensor) in enumerate(self.phy_tensors[tree_width].items()):
                 
                 fname_base = f'{self.in_dir}/sim.{idx}'
                 fname_param = fname_base + '.param_row.csv'
@@ -204,32 +204,32 @@ class Formatter:
 
     def write_tensor_csv(self):
         # build files
-        for tree_size in sorted(list(self.phy_tensors.keys())):
+        for tree_width in sorted(list(self.phy_tensors.keys())):
             
             # dimensions
-            rep_idx = sorted(list(self.phy_tensors[tree_size]))
+            rep_idx = sorted(list(self.phy_tensors[tree_width]))
             num_samples = len(rep_idx)
-            num_taxa = tree_size
+            num_taxa = tree_width
             #num_data_length = num_taxa * self.num_data_row
             
-            print('Formatting {n} files for tree_type={tt} and tree_size={ts}'.format(n=num_samples, tt=self.tree_type, ts=tree_size))
+            print('Formatting {n} files for tree_type={tt} and tree_width={ts}'.format(n=num_samples, tt=self.tree_type, ts=tree_width))
             
             # CSV files
-            out_cblvs_fn  = f'{self.out_dir}/sim.nt{tree_size}.cblvs.data.csv'
-            out_cdvs_fn   = f'{self.out_dir}/sim.nt{tree_size}.cdvs.data.csv'
-            out_stat_fn   = f'{self.out_dir}/sim.nt{tree_size}.summ_stat.csv'
-            out_labels_fn = f'{self.out_dir}/sim.nt{tree_size}.labels.csv'
+            out_cblvs_fn  = f'{self.out_dir}/sim.nt{tree_width}.cblvs.data.csv'
+            out_cdvs_fn   = f'{self.out_dir}/sim.nt{tree_width}.cdvs.data.csv'
+            out_stat_fn   = f'{self.out_dir}/sim.nt{tree_width}.summ_stat.csv'
+            out_labels_fn = f'{self.out_dir}/sim.nt{tree_width}.labels.csv'
 
             # cblvs tensor
             if self.tree_type == 'serial':
                 with open(out_cblvs_fn, 'w') as outfile:
-                    for j,(idx,phy_tensor) in enumerate(self.phy_tensors[tree_size].items()):
+                    for j,(idx,phy_tensor) in enumerate(self.phy_tensors[tree_width].items()):
                         fname = f'{self.in_dir}/sim.{idx}.cblvs.csv'
                         #with open(fname, 'r') as infile:
                         s = ','.join(str(a) for a in phy_tensor) + '\n' #infile.read()
                         z = outfile.write(s)
                     
-                    # for j,i in enumerate(size_sort[tree_size]):
+                    # for j,i in enumerate(size_sort[tree_width]):
                     #     fname = self.in_dir + '/' + 'sim.' + str(i) + '.cblvs.csv'
                     #     with open(fname, 'r') as infile:
                     #         s = infile.read()
@@ -239,8 +239,8 @@ class Formatter:
             # cdv file tensor       
             elif self.tree_type == 'extant':
                 with open(out_cdvs_fn, 'w') as outfile:
-                    #for j,i in enumerate(size_sort[tree_size]):
-                    for j,(idx,phy_tensor) in enumerate(self.phy_tensors[tree_size].items()):
+                    #for j,i in enumerate(size_sort[tree_width]):
+                    for j,(idx,phy_tensor) in enumerate(self.phy_tensors[tree_width].items()):
                         fname = f'{self.in_dir}/sim.{idx}.cdvs.csv'
                         #with open(fname, 'r') as infile:
                         s = ','.join(str(a) for a in phy_tensor) + '\n' #infile.read()
@@ -248,8 +248,8 @@ class Formatter:
                     
             # summary stats tensor
             with open(out_stat_fn, 'w') as outfile:
-                for j,(idx,phy_tensor) in enumerate(self.phy_tensors[tree_size].items()):
-                #for j,i in enumerate(size_sort[tree_size]):
+                for j,(idx,phy_tensor) in enumerate(self.phy_tensors[tree_width].items()):
+                #for j,i in enumerate(size_sort[tree_width]):
                     fname = f'{self.in_dir}/sim.{idx}.summ_stat.csv'
                     #fname = self.in_dir + '/' + 'sim.' + str(i) + '.summ_stat.csv'
                     with open(fname, 'r') as infile:
@@ -263,8 +263,8 @@ class Formatter:
 
             # labels input tensor
             with open(out_labels_fn, 'w') as outfile:
-                for j,(idx,phy_tensor) in enumerate(self.phy_tensors[tree_size].items()):
-                #for j,i in enumerate(size_sort[tree_size]):
+                for j,(idx,phy_tensor) in enumerate(self.phy_tensors[tree_width].items()):
+                #for j,i in enumerate(size_sort[tree_width]):
                     #fname = self.in_dir + '/' + 'sim.' + str(i) + '.param_row.csv'
                     fname = f'{self.in_dir}/sim.{idx}.param_row.csv'
                     with open(fname, 'r') as infile:
@@ -328,13 +328,13 @@ class Formatter:
 
         # get tree size
         num_taxa = len(phy.leaf_nodes())
-        if num_taxa > np.max(self.tree_sizes):
+        if num_taxa > np.max(self.tree_width_cats):
             return  # abort, too many taxa
         elif num_taxa < self.min_num_taxa or num_taxa < 0:
             return # abort, too few taxa
 
         # get tree width from resulting vector
-        tree_width = Utilities.find_tree_width(num_taxa, self.tree_sizes)
+        tree_width = Utilities.find_tree_width(num_taxa, self.tree_width_cats)
 
         # create compact phylo-state tensor (CPST)
         cblvs = None
@@ -463,7 +463,7 @@ class Formatter:
 
     def encode_cdvs(self, phy, dat, tree_width, rescale=True):
         
-        # num columns equals tree_size, 0-padding
+        # num columns equals tree_width, 0-padding
         # returns tensor with following rows
         # 0: terminal brlen, 1: last-int-node brlen, 2: last-int-node root-dist
         
@@ -550,7 +550,7 @@ class Formatter:
                 height_idx += 1
 
         # fill in phylo tensor
-        #heights.shape = (2, tree_size)
+        #heights.shape = (2, tree_width)
         # 0: leaf brlen; 1: intnode brlen; 2:leaf-to-lastintnode len; 3:lastintnode-to-root len
         if rescale:
             heights = heights / np.max(heights)

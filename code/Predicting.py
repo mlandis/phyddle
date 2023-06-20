@@ -9,6 +9,7 @@ from keras import *
 
 # phyddle imports
 import Utilities
+#from Formatting import encode_phy_tensor
 
 class Predictor:
     def __init__(self, args):
@@ -25,7 +26,7 @@ class Predictor:
         self.num_char_row      = args['num_char']
         self.batch_size        = args['batch_size']
         self.num_epochs        = args['num_epochs']
-        self.tree_size         = args['tree_size']
+        self.tree_width        = args['tree_width']
         self.tree_type         = args['tree_type']
         
         return
@@ -37,7 +38,7 @@ class Predictor:
         self.predict_dir            = f'{self.pred_dir}/{self.project_name}'
 
         # main job filenames
-        self.model_prefix           = f'sim_batchsize{self.batch_size}_numepoch{self.num_epochs}_nt{self.tree_size}'
+        self.model_prefix           = f'sim_batchsize{self.batch_size}_numepoch{self.num_epochs}_nt{self.tree_width}'
         self.model_sav_fn           = f'{self.network_dir}/{self.model_prefix}.hdf5'
         self.model_trn_lbl_norm_fn  = f'{self.network_dir}/{self.model_prefix}.train_label_norm.csv'
         self.model_trn_ss_norm_fn   = f'{self.network_dir}/{self.model_prefix}.train_summ_stat_norm.csv'

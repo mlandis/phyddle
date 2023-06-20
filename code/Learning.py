@@ -26,7 +26,7 @@ class Learner:
         self.prop_test         = 0
         self.prop_test         = 0
         self.proj              = args['proj']
-        self.tree_size         = args['tree_size']
+        self.tree_width        = args['tree_width']
         self.tree_type         = args['tree_type']
         if self.tree_type == 'extant':
             self.num_tree_row = 3
@@ -69,7 +69,7 @@ class Learner:
         os.makedirs(self.network_dir, exist_ok=True)
 
         # main job filenames
-        self.model_prefix       = f'sim_batchsize{self.batch_size}_numepoch{self.num_epochs}_nt{self.tree_size}'
+        self.model_prefix       = f'sim_batchsize{self.batch_size}_numepoch{self.num_epochs}_nt{self.tree_width}'
         self.model_csv_fn       = f'{self.network_dir}/{self.model_prefix}.csv'
         self.model_sav_fn       = f'{self.network_dir}/{self.model_prefix}.hdf5'
         self.model_trn_lbl_norm_fn  = f'{self.network_dir}/{self.model_prefix}.train_label_norm.csv'
@@ -83,13 +83,13 @@ class Learner:
         self.test_pred_nocalib_fn     = f'{self.network_dir}/{self.model_prefix}.test_pred_nocalib.csv'
         self.train_labels_fn    = f'{self.network_dir}/{self.model_prefix}.train_labels.csv'
         self.test_labels_fn     = f'{self.network_dir}/{self.model_prefix}.test_labels.csv'
-        self.input_stats_fn     = f'{self.input_dir}/sim.nt{self.tree_size}.summ_stat.csv'
-        self.input_labels_fn    = f'{self.input_dir}/sim.nt{self.tree_size}.labels.csv'
+        self.input_stats_fn     = f'{self.input_dir}/sim.nt{self.tree_width}.summ_stat.csv'
+        self.input_labels_fn    = f'{self.input_dir}/sim.nt{self.tree_width}.labels.csv'
         if self.tree_type == 'extant':
-            self.input_data_fn  = f'{self.input_dir}/sim.nt{self.tree_size}.cdvs.data.csv'
+            self.input_data_fn  = f'{self.input_dir}/sim.nt{self.tree_width}.cdvs.data.csv'
         elif self.tree_type == 'serial':
-            self.input_data_fn  = f'{self.input_dir}/sim.nt{self.tree_size}.cblvs.data.csv' 
-        self.input_hdf5_fn      = f'{self.input_dir}/sim.nt{self.tree_size}.hdf5' 
+            self.input_data_fn  = f'{self.input_dir}/sim.nt{self.tree_width}.cblvs.data.csv' 
+        self.input_hdf5_fn      = f'{self.input_dir}/sim.nt{self.tree_width}.hdf5' 
         
         return
 

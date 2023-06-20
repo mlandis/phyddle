@@ -31,20 +31,20 @@ class Plotter:
         self.tensor_dir        = args['fmt_dir']
         self.batch_size        = args['batch_size']
         self.num_epochs        = args['num_epochs']
-        self.tree_size         = args['tree_size']
+        self.tree_width        = args['tree_width']
         self.tensor_format     = args['tensor_format']
         self.pred_dir          = args['pred_dir'] if 'pred_dir' in args else ''
         self.pred_prefix       = args['pred_prefix'] if 'pred_prefix' in args else ''
         self.train_color       = args['plot_train_color']
         self.test_color        = args['plot_test_color']
-        self.validation_color  = args['plot_validation_color']
-        self.aux_color         = args['plot_aux_data_color']
+        self.validation_color  = args['plot_val_color']
+        self.aux_color         = args['plot_aux_color']
         self.label_color       = args['plot_label_color']
         self.pred_color        = args['plot_pred_color']
         return
 
     def prepare_files(self):
-        self.network_prefix     = f'sim_batchsize{self.batch_size}_numepoch{self.num_epochs}_nt{self.tree_size}'
+        self.network_prefix     = f'sim_batchsize{self.batch_size}_numepoch{self.num_epochs}_nt{self.tree_width}'
 
         # directories
         self.net_job_dir        = f'{self.network_dir}/{self.proj}'
@@ -53,9 +53,9 @@ class Plotter:
         self.pred_job_dir       = f'{self.pred_dir}/{self.proj}'
 
         # tensors
-        self.input_stats_fn     = f'{self.fmt_job_dir}/sim.nt{self.tree_size}.summ_stat.csv'
-        self.input_labels_fn    = f'{self.fmt_job_dir}/sim.nt{self.tree_size}.labels.csv'
-        self.input_hdf5_fn      = f'{self.fmt_job_dir}/sim.nt{self.tree_size}.hdf5'
+        self.input_stats_fn     = f'{self.fmt_job_dir}/sim.nt{self.tree_width}.summ_stat.csv'
+        self.input_labels_fn    = f'{self.fmt_job_dir}/sim.nt{self.tree_width}.labels.csv'
+        self.input_hdf5_fn      = f'{self.fmt_job_dir}/sim.nt{self.tree_width}.hdf5'
 
         # network
         self.train_pred_fn      = f'{self.net_job_dir}/{self.network_prefix}.train_pred.csv'
