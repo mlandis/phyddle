@@ -230,7 +230,7 @@ args = {
     # Formatting Step settings      #
     #-------------------------------#
     'tree_type'         : 'extant',         # use model with serial or extant tree
-    'tree_sizes'        : [ 200, 500 ],     # tree size classes for phylo-state tensors
+    'tree_width_cats'   : [ 200, 500 ],     # tree size categories for binning phylo-state tensors
     'param_pred'        : [                 # model parameters to predict (labels)
         'w_0', 'e_0', 'd_0_1', 'b_0_1'
     ],
@@ -241,7 +241,7 @@ args = {
     #-------------------------------#
     # Learning Step settings        #
     #-------------------------------#
-    'tree_size'         : 500,              # tree size class used to train network
+    'tree_width'        : 500,              # tree size class used to train network
     'num_epochs'        : 20,               # number of training intervals (epochs)
     'prop_test'         : 0.05,             # proportion of sims in test dataset
     'prop_validation'   : 0.05,             # proportion of sims in validation dataset
@@ -277,10 +277,10 @@ Settings applied through the config file can be overwritten by setting options w
 ```
 $ ./run_pipeline.py --help
 
-usage: run_simulate.py [-h] [-c] [-p] [--use_parallel] [--num_proc] [--sim_dir] [--fmt_dir] [--net_dir] [--plt_dir] [--pred_dir] [--show_models] [--model_type] [--model_variant]
-                       [--num_char] [--sim_logging] [--start_idx] [--end_idx] [--stop_time] [--min_num_taxa] [--max_num_taxa] [--tensor_format] [--tree_type] [--save_phyenc_csv]
-                       [--tree_size] [--num_epochs] [--batch_size] [--prop_test] [--prop_validation] [--prop_calibration] [--cpi_coverage] [--loss] [--optimizer] [--pred_prefix]
-                       [--plot_train_color] [--plot_label_color] [--plot_test_color] [--plot_val_color] [--plot_aux_color] [--plot_pred_color]
+usage: run_simulate.py [-h] [-c] [-p] [--use_parallel] [--num_proc] [--sim_dir] [--fmt_dir] [--net_dir] [--plt_dir] [--pred_dir] [--pred_prefix] [--show_models] [--model_type]
+                       [--model_variant] [--num_char] [--sim_logging] [--start_idx] [--end_idx] [--stop_time] [--min_num_taxa] [--max_num_taxa] [--tree_type] [--tree_width_cats]
+                       [--tensor_format] [--save_phyenc_csv] [--tree_width] [--num_epochs] [--batch_size] [--prop_test] [--prop_validation] [--prop_calibration] [--cpi_coverage]
+                       [--loss] [--optimizer] [--plot_train_color] [--plot_label_color] [--plot_test_color] [--plot_val_color] [--plot_aux_color] [--plot_pred_color]
 
 phyddle pipeline config
 
@@ -295,6 +295,7 @@ options:
   --net_dir            Directory for trained networks and predictions
   --plt_dir            Directory for plotted results
   --pred_dir           Predict results for dataset located in this directory
+  --pred_prefix        Predict results for this dataset
   --show_models        Print all available model types and variants?
   --model_type         Model type
   --model_variant      Model variant
@@ -305,10 +306,11 @@ options:
   --stop_time          Maximum duration of evolution for each simulation
   --min_num_taxa       Minimum number of taxa for each simulation
   --max_num_taxa       Maximum number of taxa for each simulation
-  --tensor_format      Storage format for simulation tensors
   --tree_type          Type of tree
+  --tree_width_cats    The phylo-state tensor widths for formatting training datasets, space-delimited
+  --tensor_format      Storage format for simulation tensors
   --save_phyenc_csv    Save encoded phylogenetic tensor encoding to csv?
-  --tree_size          Number of taxa in phylogenetic tensor
+  --tree_width         The phylo-state tensor width dataset used for a neural network
   --num_epochs         Number of learning epochs
   --batch_size         Training batch sizes during learning
   --prop_test          Proportion of data used as test examples (demonstrate trained network performance)
@@ -317,7 +319,6 @@ options:
   --cpi_coverage       Expected coverage percent for calibrated prediction intervals
   --loss               Loss function used as optimization criterion
   --optimizer          Method used for optimizing neural network
-  --pred_prefix        Predict results for this dataset
   --plot_train_color   Plotting color for training data elements
   --plot_label_color   Plotting color for training label elements
   --plot_test_color    Plotting color for test data elements
