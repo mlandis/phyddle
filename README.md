@@ -154,7 +154,14 @@ The repository has five main directories:
 - [`predict`](predict) contains new test datasets their predictions
 - [`plot`](plot) contains figures of training and validation procedures
 
-If a user runs an analysis with the project name `my_project`, then pipeline files created by the analysis would be stored in `raw_data/my_project`, `tensor_data/my_project`, `network/my_project`, `predict/my_projects`, and `plot/my_project`.
+If a user runs an analysis with the project name `my_project`, then pipeline files created by the analysis would be stored in the following directories
+```
+raw_data/my_project       # output of Simulating
+tensor_data/my_project    # output of Formatting
+network/my_project        # output of Learning
+predict/my_project        # output of Predicting
+plot/my_project           # output of Plotting
+```
 
 ### Analysis configuration
 
@@ -328,33 +335,86 @@ options:
 
 ### Model configuration
 
-(to be written)
+(in progress)
+
+Models in phyddle are designed by setting five control variables: `model_type`, `model_variant`, `num_char`, `rv_fn`, `rv_arg`.
+
+Defining a model is only needed if you use phyddle to simulate training data through the Simulating step. The Simulating step describes the format phyddle expects for training datasets.
+
+At a high level, `model_type` defines a class of models that share similar statespaces and eventspaces. The `model_variant` defines how rates are assigned to distinct event patterns in the eventspace. The behavior of how characters evolve and how character states influence other evolutionary dynamics are internally determined by `model_type` and `model_variant`. The number of distinct character supported by the model is set by `num_char`. Lastly, the way base parameter values are drawn for each simulated example in the training dataset are controlled with a set of random variable functions (`rv_fn`) and random variable arguments (`rv_arg`). Both `rv_fn` and `rv_arg` are dictionaries with keys that correspond to event class labels. With `rv_fn` the values are data-generating functions that have arguments and behavior equivalent to `scipy.stats.distribution.rvs`. With `rv_arg` the values are the arguments passed in to the corresponding `rv_fn` functions.
+
+Descriptions of supported built-in models that you can specify with `model_type` and `model_variant` are listed using the `--show_models`. (More models to come. Developer guide will describe how to add new model types [harder] and variants [easier].)
+
+```shell
+$ ./run_simulate.py --show_models                             130 ↵
+Type                Variant             Description
+============================================================
+geosse              --                  Geographic State-dependent Speciation Extinction [GeoSSE]
+                    free_rates          rates differ among all events within type
+                    equal_rates         rates equal among all events within type
+                    density_effect      equal_rates + local density-dependent extinction
+
+sirm                --                  Susceptible-Infected-Recovered-Migration [SIRM]
+                    free_rates          rates differ among all events within type
+                    equal_rates         rates equal among all events within type
+```
+
+Let's create a geographic state-dependent speciation-extinction (GeoSSE) model as a concrete example. GeoSSE models describe how species move and evolve among discrete regions through four event classes: within-region speciation, between-region speciation, dispersal, and local extinction. We'll create a GeoSSE model for a biogeographic system with three regions where all events within a class have equal rates, where rates are exponentially distributed with expected values of 1.0. The settings in the configuration file for this would be
+
+```python
+`model_type`     : `geosse`,
+`model_variant`  : `equal_rates`,
+`num_char`       : 3,
+`rv_fn`          : {
+    	`w` : sp.stats.expon.rvs,
+    	`b` : sp.stats.expon.rvs,
+    	`d` : sp.stats.expon.rvs,
+    	`e` : sp.stats.expon.rvs
+	},
+`rv_arg`         : {
+    	`w` : { `scale` : 1.0 },
+    	`b` : { `scale` : 1.0 },
+    	`d` : { `scale` : 1.0 },
+    	`e` : { `scale` : 1.0 }
+	}
 
 ```
-show_models
-model_type
-model_variant
-num_char
-rv_fn
-rv_arg
-```
+
 
 ### Simulating
 
 (to be written)
 
+Once your model is configured, you can instruct phyddle to simulate your training dataset. Currently, phyddle relies on the MASTER plugin from BEAST to simulate. MASTER was designed primarily to simulate under Susceptible-Infected-Recovered compartment models from epidemiology. These models allow for lineage to evolve according to rates that depend on the state of the entire evolutionary system. For example, the rate of change for one species may depend on its state and the number of other species in that state or other states. See the Requirements section to see how phyddle expects MASTER and BEAST are configured for its use.
+
+Results from simulations are stored based on the `sim_dir` and `proj` settings. `sim_dir` is the directory in phyddle that contains the "raw" simulated output across all projects, and is typically set to `raw_data`. `proj` defines the simulations for a single project. Each individual simulation is assigned a replicate index. You can simulate replicates in different "chunks" with the start (`start_idx`) and end (`end_idx`) index variables, which is especially useful for building up a training dataset for a project over multiple jobs, e.g. on a cluster.
+
+Each replicate being simulated will run for some length of evolutionary time (`stop_time`) and may require some minimum (`min_num_taxa`) and/or maximum (`max_num_taxa`) number of lineages per simulation.
+
+Assuming that `sim_dir == raw_data` and `proj == example`, the standard simulation output will follow this format
 ```
-sim_dir
-sim_logging
-start_idx
-end_idx
-sample_population
-stop_time
-min_num_taxa
--max_num_taxa
+raw_data/example/sim.0.tre
+raw_data/example/sim.0.dat.nex
+raw_data/example/sim.0.param_col.csv
+raw_data/example/sim.0.param_row.csv
 ```
 
+
+The `.tre` file contains a Newick string. The `.dat.nex` contains a Nexus character matrix. These are reformatted as tensors to become the input training dataset. The `.param_col.csv` and `.param_row.csv` contain the simulating parameters in column and row format, with the row format files being converted to a tensor of training labels. 
+
+In addition, MASTER will retain only the certain simulated taxa (populations) from the system, set using `sample_population`. phyddle generates an `xml` file that specifies the MASTER simulation, a `beast.log` file that reports the text generated by BEAST during simulation, and a `json` file that reports metadata about the evolutionary history of the system. These files can be valuable for debugging and postprocessing, but they may become quite large, so the `sim_logging` setting will control whether they are retained, compressed, or deleted.
+
+
+Note, that downstream steps in the pipeline, such as Formatting, only require that the appropriate files with the appropriate content exist to proceed. They can either be generated with the Simuating step within phyddle or completely outside of phyddle.
+
 ### Formatting
+
+
+Raw simulated data must first boverted into a tensor format to interface with the neural network we'll later train and use for future predictions. For most computational purposes, it is safe to think of a tensor as an n-dimensional array. It is essential that all individual datasets share a standard shape (e.g. numbers of rows and columns) to ensure the training dataset that contains predictable data patterns. phyddle formatting encodes two input tensors and one output tensor.
+
+One input tensor is the phylogenetic-data tensor. The phylogenetic-state tensors used by phyddle are based on the compact bijective ladderized vector (CBLV) format of Voznica et al. (2022). CBLV encodes a phylogenetic tree with N taxa in to a vector of length 2N that contains branch length and topological information for a tree with taxa serially sampled over time (e.g. epidemiological data). Another important tensor type developed by Lambert et al. (2022) is the compact diversified vector (CDV). CDV is also of length 2N but with one row corresponding to node ages and the other recording state values for a single binary character.
+
+
 
 (to be written)
 
