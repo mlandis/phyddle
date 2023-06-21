@@ -482,3 +482,16 @@ Thanks for your interest in phyddle. The phyddle project emerged from a phylogen
 
 The phyddle project is developed by [Michael Landis](https://landislab.org) and [Ammon Thompson](https://scholar.google.com/citations?user=_EpmmTwAAAAJ&hl=en&oi=ao).
 
+
+## References
+
+EE Goldberg, LT Lancaster, RH Ree. 2011. Phylogenetic inference of reciprocal effects between geographic range evolution and diversification. Systematic Biology 60:451-465. doi: https://doi.org/10.1093/sysbio/syr046
+
+S Lambert, J Voznica, H Morlon. 2022. Deep learning from phylogenies for diversification analyses.
+bioRxiv. 2022.09.27.509667. doi: https://doi.org/10.1101/2022.09.27.509667 
+
+A Thompson, B Liebeskind, EJ Scully, MJ Landis. 2023. Deep learning approaches to viral phylogeography are fast and as robust as likelihood methods to model misspecification. bioRxiv 2023.02.08.527714; doi: https://doi.org/10.1101/2023.02.08.527714 
+
+TG Vaughan, AJ Drummond. 2013. A stochastic simulator of birth–death master equations with application to phylodynamics. Mol Biol Evol 30:1480–1493. doi: https://doi.org/10.1093/molbev/mst057
+
+J Voznica, A Zhukova, V Boskova, E Saulnier, F Lemoine, M Moslonka-Lefebvre, O Gascuel. 2022. Deep learning from phylogenies to uncover the epidemiological dynamics of outbreaks. Nat Commun 13:3896. doi: https://doi.org/10.1038/s41467-022-31511-0
