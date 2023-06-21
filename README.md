@@ -7,7 +7,6 @@ A pipeline-based toolkit for fiddling around with phylogenetic models and deep l
 * **This private beta version of phyddle is still under development.** Although it's tested and stable, much of the documentation and some key features are still missing. Most phyddle development occurs on a 64-core Ubuntu server and a 16-core Intel Macbook Pro laptop, so there are also unknown portability/scalability issues to correct. Any feedback is appreciated! michael.landis@wustl.edu*
 
 
-
 ## Overview
 
 <img align="right" src="https://github.com/landislab/landislab.github.io/blob/5bb4685a12ebf4c99dd773de6d87b44cc3c47090/assets/research/img/phyddle_pipeline.png?raw=true" width="35%">
@@ -384,7 +383,7 @@ Let's create a geographic state-dependent speciation-extinction (GeoSSE) model a
 
 ### Simulating
 
-(to be written)
+(in progress)
 
 Once your model is configured, you can instruct phyddle to simulate your training dataset. Currently, phyddle relies on the MASTER plugin from BEAST to simulate. MASTER was designed primarily to simulate under Susceptible-Infected-Recovered compartment models from epidemiology. These models allow for lineage to evolve according to rates that depend on the state of the entire evolutionary system. For example, the rate of change for one species may depend on its state and the number of other species in that state or other states. See the Requirements section to see how phyddle expects MASTER and BEAST are configured for its use.
 
@@ -410,25 +409,43 @@ Note, that downstream steps in the pipeline, such as Formatting, only require th
 
 ### Formatting
 
+(in progress)
 
 Raw simulated data must first boverted into a tensor format to interface with the neural network we'll later train and use for future predictions. For most computational purposes, it is safe to think of a tensor as an n-dimensional array. It is essential that all individual datasets share a standard shape (e.g. numbers of rows and columns) to ensure the training dataset that contains predictable data patterns. phyddle formatting encodes two input tensors and one output tensor.
 
-One input tensor is the phylogenetic-data tensor. The phylogenetic-state tensors used by phyddle are based on the compact bijective ladderized vector (CBLV) format of Voznica et al. (2022). CBLV encodes a phylogenetic tree with N taxa in to a vector of length 2N that contains branch length and topological information for a tree with taxa serially sampled over time (e.g. epidemiological data). Another important tensor type developed by Lambert et al. (2022) is the compact diversified vector (CDV). CDV is also of length 2N but with one row corresponding to node ages and the other recording state values for a single binary character.
+phyddle saves its formatted tensors to `fmt_dir` in a subdirectory called `proj`. For example, if `fmt_dir == tensor_data` and `proj == example` then the tensors are stored in `tensor_data/example`.
 
+One input tensor is the **phylogenetic-state tensor**. Loosely speaking, these tensors contain information about terminal taxa across columns and information about relevant branch lengths and states per taxon across rows. The phylogenetic-state tensors used by phyddle are based on the compact bijective ladderized vector (CBLV) format of Voznica et al. (2022).
 
+CBLV encodes a phylogenetic tree with $n \leq N$ taxa in to a matrix of with 2 rows that contains branch length sorted across $N$ columns that contain topological information for a tree with taxa serially sampled over time (e.g. epidemiological data). The matrix is then flattened into vector format. Ammon et al. (2022) introduced the CBLV+S format, which allows for multiple characters to be associated with each taxon in a CBLV, constructing a matrix with $2+M$ rows and $N$ columns for a dataset of $n \leq N$ taxa with $M$ characters. Another important tensor type developed by Lambert et al. (2022) is the compact diversified vector (CDV). CDV is a matrix with 2 rows and $N$ columns, with the first row corresponding to node ages and the other recording state values for a single binary character.
 
-(to be written)
+CBLV and CDV differ primarily in terms what criteria they use to they order (ladderize) the topology. CBLV ladderizes by minimum terminal-node age per clade and CDV ladderized by maximum subclade branch length. Both formats pack the phylogenetic information from a tree with $n$ taxa into a "wider" tree-width class that allows up to $N$ taxa. The tensor is packed from left-to-right based on an in-order tree traversal, then use zeroes to buffer the all remaining cells until the $N$th column. In phyddle, we use expanded CBLV+S and CDV+S formats that additionally encode terminal branch length formation for the terminal node and the parent node, resulting in $4+M$ rows for our CBLV+S and $3+M$ rows for our CDV+S format. (Will add diagram later.)
 
+The second input is the **auxiliary data tensor**. This tensor contains summary statistics for the phylogeny and character data matrix and "known" parameters for the data generating process. The summary statistics, for example, report things such as the number of taxa, the tree height, the mean and variance of branch lengths and node ages, the state-pattern counts, etc. The known parameters might report things such as the population sizes of a susceptible population or the recovery period in an SIR model.
+
+The output tensor reports **labels** that are generally unknown data generating parameters to be estimated using the neural network.  Depending on the estimation task, all or only some model parameters might be treated as labels for training and prediction. For example, when `model_variant == 'free_rates'` one might want to estimate every rate in the model, but estimate only one parameter per event-class when `model_variant == 'equal_rates'`.
+
+Formatting processes the tree, data matrix, and model parameters for each replicate. This is done in parallel, when the setting is enabled. Simulated data are processed using `CBLV+S` format if `tree_type == 'serial'`. If `tree_type = 'extant'` then all non-extant taxa are pruned, saved as `pruned.tre`, then encoded using CDV+S. The size of each tree ($n$) is then used to identify the largest value in `tree_width_cats` it can fit into. The phylogenetics-state tensors and auxiliary data tensors are then created. If `save_phyenc_csv` is set, then individual csv files are saved for each dataset, which is especially useful for formatting new empirical datasets into an accepted phyddle format. The `param_pred` setting identifies which parameters in the labels tensor you want to treat as downstream prediction targets. The `param_data` setting identifies which of those parameters you want to treat as "known" auxiliary data.
+
+Formatted tensors are then saved to disk either in simple comma-separated value format or in a compressed HDF5 format. For example, suppose we set `fmt_dir == 'tensor_data`, `proj == 'example'`, and `tree_type == 'serial'`. If we set, it produces `tensor_format == 'hdf5'`:
+
+```bash
+tensor_data/example/sim.nt200.hdf5
+tensor_data/example/sim.nt500.hdf5
 ```
-fmt_dir
-tree_type
-save_phyenc_csv
-tree_size
-param_pred
-param_data
-tensor_format
-tree_sizes
+
+or if `tensor_format == 'csv'`:
+
+```bash
+sim.nt200.cdvs.data.csv
+sim.nt200.labels.csv
+sim.nt200.summ_stat.csv
+sim.nt500.cdvs.data.csv
+sim.nt500.labels.csv
+sim.nt500.summ_stat.csv
 ```
+
+These files can then be processed by the Learning step.
 
 
 ### Learning
@@ -480,3 +497,4 @@ Please use [Issues](https://github.com/mlandis/phyddle/issues) to report bugs or
 Thanks for your interest in phyddle. The phyddle project emerged from a phylogenetic deep learning study led by Ammon Thompson ([paper](https://www.biorxiv.org/content/10.1101/2023.02.08.527714v2)). The goal of phyddle is to provide its users with a generalizable pipeline workflow for phylogenetic modeling and deep learning. This hopefully will make it easier for phylogenetic model enthusiasts and developers to explore and apply models that do not have tractable likelihood functions. It's also intended for use by methods developers who want to characterize how deep learning methods perform under different conditions for standard phylogenetic estimation tasks.
 
 The phyddle project is developed by [Michael Landis](https://landislab.org) and [Ammon Thompson](https://scholar.google.com/citations?user=_EpmmTwAAAAJ&hl=en&oi=ao).
+

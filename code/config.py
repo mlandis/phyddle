@@ -6,14 +6,14 @@
 import scipy as sp
 
 # helper variables
-num_char = 4
+num_char = 3
 
 args = {
     
     #-------------------------------#
     # Project organization          #
     #-------------------------------#
-    'proj'           : 'geosse_de_n4',      # directory name for pipeline project
+    'proj'           : 'my_project',        # directory name for pipeline project
     'sim_dir'        : '../raw_data',       # directory for simulated data
     'fmt_dir'        : '../tensor_data',    # directory for tensor-formatted data
     'net_dir'        : '../network',        # directory for trained network
@@ -31,56 +31,54 @@ args = {
     # Model Configuration           #
     #-------------------------------#
     'model_type'         : 'geosse',        # model type defines general states and events
-    'model_variant'      : 'density_effect',   # model variant defines rate assignments
+    'model_variant'      : 'equal_rates',   # model variant defines rate assignments
     'num_char'           : num_char,        # number of evolutionary characters
     'rv_fn'              : {                # distributions for model parameters
         'w': sp.stats.expon.rvs,
         'e': sp.stats.expon.rvs,
         'd': sp.stats.expon.rvs,
-        'b': sp.stats.expon.rvs,
-        'ed': sp.stats.expon.rvs
+        'b': sp.stats.expon.rvs
     },
     'rv_arg'             : {                # loc/scale/shape for model parameter dists
-        'w': { 'scale' : 1.0 },
-        'e': { 'scale' : 0.5 },
-        'd': { 'scale' : 0.4 },
-        'b': { 'scale' : 1.0 },
-        'ed': { 'scale' : 0.2 }
+        'w': { 'scale' : 0.2 },
+        'e': { 'scale' : 0.1 },
+        'd': { 'scale' : 0.1 },
+        'b': { 'scale' : 0.5 }
     },
 
     #-------------------------------#
     # Simulating Step settings      #
     #-------------------------------#
-    'sim_logging'       : 'compress',       # verbose, compressed, or clean
+    'sim_logging'       : 'verbose',        # verbose, compressed, or clean
     'start_idx'         : 0,                # first simulation replicate index
     'end_idx'           : 1000,             # last simulation replicate index
     'sample_population' : ['S'],            # name of population to sample
-    'stop_time'         : 100,              # time to stop simulation
-    'min_num_taxa'      : 50,               # min number of taxa for valid sim
-    'max_num_taxa'      : 400,              # max number of taxa for valid sim
+    'stop_time'         : 10,               # time to stop simulation
+    'min_num_taxa'      : 10,               # min number of taxa for valid sim
+    'max_num_taxa'      : 500,              # max number of taxa for valid sim
 
     #-------------------------------#
     # Formatting Step settings      #
     #-------------------------------#
     'tree_type'         : 'extant',         # use model with serial or extant tree
-    'tree_width_cats'   : [ 250 ],          # tree width categories for phylo-state tensors
+    'tree_width_cats'   : [ 200, 500 ],     # tree width categories for phylo-state tensors
     'param_pred'        : [                 # model parameters to predict (labels)
-        'w_0', 'e_0', 'd_0_1', 'b_0_1', 'ed_0'
+        'w_0', 'e_0', 'd_0_1', 'b_0_1'
     ],
     'param_data'        : [],               # model parameters that are known (aux. data)
-    'tensor_format'     : 'hdf5',           # save as compressed HDF5 or raw csv
+    'tensor_format'     : 'csv',           # save as compressed HDF5 or raw csv
     'save_phyenc_csv'   : False,            # save intermediate phylo-state vectors to file
 
     #-------------------------------#
     # Learning Step settings        #
     #-------------------------------#
     'tree_width'        : 500,              # tree width category used to train network
-    'num_epochs'        : 15,               # number of training intervals (epochs)
+    'num_epochs'        : 20,               # number of training intervals (epochs)
     'prop_test'         : 0.05,             # proportion of sims in test dataset
     'prop_validation'   : 0.05,             # proportion of sims in validation dataset
     'prop_calibration'  : 0.20,             # proportion of sims in CPI calibration dataset 
     'cpi_coverage'      : 0.95,             # coverage level for CPIs
-    'batch_size'        : 256,              # number of samples in each training batch
+    'batch_size'        : 128,              # number of samples in each training batch
     'loss'              : 'mse',            # loss function for learning
     'optimizer'         : 'adam',           # optimizer for network weight/bias parameters
     'metrics'           : ['mae', 'acc'],   # recorded training metrics
