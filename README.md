@@ -4,7 +4,7 @@ A pipeline-based toolkit for fiddling around with phylogenetic models and deep l
 
 *NOTE:*
 
-*<b>This private beta version of phyddle is still under development.</b> Although it's tested and stable, much of the documentation and some key features are still missing. Most phyddle development occurs on a 64-core Ubuntu server and a 16-core Intel Macbook Pro laptop, so there are also unknown portability/scalability issues to correct. Any feedback is appreciated!* michael.landis@wustl.edu
+*<b>This private beta version of phyddle is still under development.</b> It is generally tested and stable with respect to a few use standard cases. Much of the documentation and some key features are still missing. Most phyddle development occurs on a 16-core Intel Macbook Pro laptop and a 64-core Ubuntu server, so there are also unknown portability/scalability issues to correct. Any feedback is appreciated! michael.landis@wustl.edu*
 
 
 ## Overview
