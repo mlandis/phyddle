@@ -450,40 +450,37 @@ These files can then be processed by the Learning step.
 
 ### Learning
 
-(to be written)
-```
-lrn_dir
-num_epochs
-batch_size
-prop_test
-prop_validation
-prop_calibration
-cpi_coverage
-loss
-optimizer
-```
+(in progress)
+
+Learning builds a neural network that can be trained to make predictions based on the tensors made by the Formatting step. This step also shuffles the replicate indices and splits the entire dataset into separate training, test, validation, and calibration subsets. The phylogenetic-state tensor is processed by convolutional and pooling layers, while the auxiliary data is processed by dense layers. All input layers are concatenated then pushed into three branches terminating in output layers to produce point estimates and upper and lower prediction intervals. Lastly, the step runs the training procedure and stores its results, including the history and trained network, to file.
+
+When data are read in, they are shuffled, with some set aside for test data (`prop_test`), validation data (`prop_validation`), and calibration data (`prop_calibration`), with the remaining data being used for `training`. A network must be trained against a particular `tree_width` size (see above). The network also must target a particular prediction interval (e.g. `cpi_coverage == 0.95` means 95% of test predictions are expected contain the true simulating value) for two-sided conformalized quantile regression). Training runs for a number of intervals given by `num_epoch` using batch stochastic gradient descent, with batch sizes given by `batch_size`. Parameter point estimates use a loss function (e.g. `loss == 'mse'`; Tensorflow-supported string or function) while lower/upper prediction intervals must use a pinball loss function (hard-coded). Different optimizers can be used to update network weight and bias parameters (e.g. `optimizer == 'adam'; Tensorflow-supported string or function).
+
+Training is automatically parallelized using CPUs and GPUs, dependent on how Tensorflow was installed and system hardware. Output files are stored in the directory assigned to `lrn_dir` in the subdirectory `proj`.
+
 
 ### Predicting
 
-(to be written)
+(in progress)
 
-```
-pred_dir
-pred_prefix
-```
+Predicting loads a new dataset stored in `<pred_dir>/<proj>` with filenames `<pred_prefix.tre>` and `<pred_prefix>.dat.nex`. This step then loads a pretrained network and has it predict new point estimates and calibrated prediction intervals based on other project settings. New predictions are then stored into the original `<pred_dir>/<proj>`.
+
 
 ### Plotting
 
-(to be written)
-```
-plot_dir
-plot_train_color
-plot_label_color
-plot_test_color
-plot_val_color
-plot_aux_color
-plot_pred_color
-  ```
+(in progress)
+
+Plotting collects all results from the Formatting, Learning, and Predicting steps to compile a set of useful figures, listed below. When a prediction is available, the step will integrate it into other figures to contextualize where that input dataset and predicted labels fall with respect to the training dataset. Plots are stored within `<plot_dir>` in the `<proj>` subdirectory. Colors for plot elements can be modified with `plot_train_color`, `plot_label_color`, `plot_test_color`, `plot_val_color`, `plot_aux_color`, and `plot_pred_color` using common color names or hex codes supported by Matplotlib.
+
+- `summary.pdf` contains all figures in a single plot
+- `pred_est_CI.pdf` - simple plot of point estimates and calibrated prediction intervals for prediction
+- `histogram_aux.pdf` - histograms of all values in the auxiliary dataset; red line for predicted dataset
+- `pca_aux.pdf - pairwise PCA of all values in the auxiliary dataset; red dot for predicted dataset
+- `history_.pdf` - loss performance across epochs for test/validation datasets for entire network
+- `history_<stat_name>.pdf` - loss, accuracy, error performance across epochs for test/validation datasets for particular statistics (point est., lower CPI, upper CPI)
+- `train_<label_name>.pdf` - point estimates and calibrated prediction intervals for training dataset
+- `test_<label_name>.pdf` - point estimates and calibrated prediction intervals for test dataset
+- `network_architecture.pdf` - visualization of Tensorflow architecture
 
 
 
