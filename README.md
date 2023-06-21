@@ -384,7 +384,7 @@ Let's create a geographic state-dependent speciation-extinction (GeoSSE) model a
 
 ### Simulating
 
-(to be written)
+(in progress)
 
 Once your model is configured, you can instruct phyddle to simulate your training dataset. Currently, phyddle relies on the MASTER plugin from BEAST to simulate. MASTER was designed primarily to simulate under Susceptible-Infected-Recovered compartment models from epidemiology. These models allow for lineage to evolve according to rates that depend on the state of the entire evolutionary system. For example, the rate of change for one species may depend on its state and the number of other species in that state or other states. See the Requirements section to see how phyddle expects MASTER and BEAST are configured for its use.
 
@@ -410,11 +410,11 @@ Note, that downstream steps in the pipeline, such as Formatting, only require th
 
 ### Formatting
 
+(in progress)
 
 Raw simulated data must first boverted into a tensor format to interface with the neural network we'll later train and use for future predictions. For most computational purposes, it is safe to think of a tensor as an n-dimensional array. It is essential that all individual datasets share a standard shape (e.g. numbers of rows and columns) to ensure the training dataset that contains predictable data patterns. phyddle formatting encodes two input tensors and one output tensor.
 
-One input tensor is the phylogenetic-data tensor. The phylogenetic-state tensors used by phyddle are based on the compact bijective ladderized vector (CBLV) format of Voznica et al. (2022). CBLV encodes a phylogenetic tree with N taxa in to a vector of length 2N that contains branch length and topological information for a tree with taxa serially sampled over time (e.g. epidemiological data). Another important tensor type developed by Lambert et al. (2022) is the compact diversified vector (CDV). CDV is also of length 2N but with one row corresponding to node ages and the other recording state values for a single binary character.
-
+One input tensor is the phylogenetic-state tensor. Loosely speaking, these tensors contain information about terminal taxa across columns and information about relevant branch lengths and states per taxon across rows. The phylogenetic-state tensors used by phyddle are based on the compact bijective ladderized vector (CBLV) format of Voznica et al. (2022). CBLV encodes a phylogenetic tree with $n \leq N$ taxa in to a matrix of with 2 rows that contains branch length sorted across $N$ columns that contain topological information for a tree with taxa serially sampled over time (e.g. epidemiological data). The matrix is then flattened into vector format. Ammon et al. (2022) introduced the CBLV+S format, which allows for multiple characters to be associated with each taxon in a CBLV, constructing a matrix with $2+M$ rows and $N$ columns for a dataset of $n \leq N$ taxa with $M$ characters. Another important tensor type developed by Lambert et al. (2022) is the compact diversified vector (CDV). CDV is a matrix with 2 rows and $N$ columns, with the first row corresponding to node ages and the other recording state values for a single binary character. CBLV and CDV differ primarily in terms what criteria they use to they order (ladderize) the topology. CBLV ladderizes by minimum terminal-node age per clade and CDV ladderized by maximum subclade branch length. Both formats pack the phylogenetic information from a tree with $n$ taxa into a "wider" tree-width class that allows up to $N$ taxa. The tensor is packed from left-to-right based on an in-order tree traversal, then use zeroes to buffer the all remaining cells until the $N$th column. In phyddle, we use expanded CBLV+S and CDV+S formats that additionally encode terminal branch length formation for the terminal node and the parent node, resulting in $4+M$ rows for our CBLV+S and $3+M$ rows for our CDV+S format.
 
 
 (to be written)
