@@ -20,3 +20,9 @@ classifiers = [
 [project.urls]
 "Homepage" = "https://github.com/mlandis/phyddle"
 "Bug Tracker" = "https://github.com/mlandis/phyddle/issues"
+
+[tool.ruff]
+# maximum line length
+line-length = 400
+# skip unused variable rules (`F841`)
+extend-ignore = ["F841"]

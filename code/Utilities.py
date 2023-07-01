@@ -230,7 +230,7 @@ def load_config(config_fn, arg_overwrite=True):
          sys.exit()
 
     # overwrite config_fn is argument passed
-    if arg_overwrite and args.config_fn != None:
+    if arg_overwrite and args.config_fn is not None:
         config_fn = args.config_fn
     config_fn = config_fn.rstrip('.py')
 
@@ -401,7 +401,7 @@ def read_tree(tre_fn):
     for schema in [ 'newick', 'nexus' ]:
         try:
             phy_tmp = dp.Tree.get(path=tre_fn, schema=schema)
-        except:
+        except (FileNotFoundError, IOError):
             phy_tmp = None
         else:
              if phy_tmp is not None:
