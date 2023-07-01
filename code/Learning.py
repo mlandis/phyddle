@@ -157,12 +157,14 @@ class CnnLearner(Learner):
             # get parameters and labels
             self.param_names = full_labels[0,:]
             full_labels = full_labels[1:,:].astype('float64')   
+            #raise ValueError('csv tensors needs to be reshaped, oops!')
 
         elif self.tensor_format == 'hdf5':
             hdf5_file = h5py.File(self.input_hdf5_fn, 'r')
             self.stat_names = [ s.decode() for s in hdf5_file['summ_stat_names'][0,:] ]
             self.param_names = [ s.decode() for s in hdf5_file['label_names'][0,:] ]
             full_data = pd.DataFrame( hdf5_file['data'] ).to_numpy()
+            #full_data = pd.DataFrame( hdf5_file['data'] ).to_numpy()
             full_stats = pd.DataFrame( hdf5_file['summ_stat'] ).to_numpy()
             full_labels = pd.DataFrame( hdf5_file['labels'] ).to_numpy()
             hdf5_file.close()
@@ -182,6 +184,7 @@ class CnnLearner(Learner):
         # ... could move randomization into split_tensor_idx(), but it's slightly easier
         # ... to debug randomization issues before splitting
         randomized_idx = np.random.permutation(full_data.shape[0])
+        #print(full_data.shape)
         full_data      = full_data[randomized_idx,:]
         full_stats     = full_stats[randomized_idx,:]
         full_labels    = full_labels[randomized_idx,:]

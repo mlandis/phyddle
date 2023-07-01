@@ -243,7 +243,11 @@ class Formatter:
                     for j,(idx,phy_tensor) in enumerate(self.phy_tensors[tree_width].items()):
                         fname = f'{self.in_dir}/sim.{idx}.cdvs.csv'
                         #with open(fname, 'r') as infile:
-                        s = ','.join(str(a) for a in phy_tensor) + '\n' #infile.read()
+                        s = ','.join(map(str, phy_tensor.flatten())) + '\n'
+                        #s = ','.join(str(a) for a in phy_tensor) + '\n' #infile.read()
+                        #print(phy_tensor)
+                        #print(s)
+                        #xxxx
                         z = outfile.write(s)
                     
             # summary stats tensor

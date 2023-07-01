@@ -401,7 +401,7 @@ def read_tree(tre_fn):
     for schema in [ 'newick', 'nexus' ]:
         try:
             phy_tmp = dp.Tree.get(path=tre_fn, schema=schema)
-        except (FileNotFoundError, IOError):
+        except:
             phy_tmp = None
         else:
              if phy_tmp is not None:
