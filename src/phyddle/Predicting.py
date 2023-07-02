@@ -92,8 +92,12 @@ class Predictor:
         
         # read & normalize new aux data
         self.pred_summ_stats     = pd.read_csv(self.pred_summ_stat_fn, sep=',', index_col=False).to_numpy().flatten()
-        self.pred_known_params   = pd.read_csv(self.pred_known_param_fn, sep=',', index_col=False).to_numpy().flatten()
-        self.pred_auxdata_tensor = np.concatenate( [self.pred_summ_stats, self.pred_known_params] )
+        try:
+            self.pred_known_params   = pd.read_csv(self.pred_known_param_fn, sep=',', index_col=False).to_numpy().flatten()
+            self.pred_auxdata_tensor = np.concatenate( [self.pred_summ_stats, self.pred_known_params] )
+        except FileNotFoundError:
+            self.pred_auxdata_tensor = self.pred_summ_stats
+            
         self.pred_auxdata_tensor.shape = ( 1, -1 )
 
         #print(self.pred_auxdata_tensor)

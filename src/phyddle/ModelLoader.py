@@ -12,7 +12,8 @@ model_registry = pd.DataFrame( model_registry, columns = model_registry_names)
 # convert model_name into class_name through registry
 def get_model_class(model_type):
     model_class_name = model_registry.class_name[ model_registry.model_name == model_type ].iat[0]
-    MyModelModule = importlib.import_module(model_class_name)
+    MyModelModule = importlib.import_module('phyddle.'+model_class_name)
+    #cls = getattr(import_module('my_module'), 'my_class') 
     MyModelClass = getattr(MyModelModule, model_class_name)
     return MyModelClass
 
@@ -30,7 +31,7 @@ def make_model_registry_str():
         s += model_name.ljust(20, ' ') + '--'.ljust(20, ' ') + model_desc.ljust(40, ' ') + '\n'
         # variants per type
         model_class = model_i.class_name
-        MyModelModule = importlib.import_module(model_class)
+        MyModelModule = importlib.import_module('phyddle.'+model_class)
         #MyModelClass = getattr(MyModelModule, model_class)
         variant_registry = MyModelModule.variant_registry
         for j in range(len(variant_registry)):
@@ -43,7 +44,7 @@ def make_model_registry_str():
     return s
 
 def load_model(args):
-    model_type   = args['model_type']
+    model_type = args['model_type']
     MyModelClass = get_model_class(model_type)
     return MyModelClass(args)
 

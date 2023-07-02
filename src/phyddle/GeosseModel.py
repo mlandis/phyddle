@@ -5,8 +5,8 @@ import numpy as np
 import scipy as sp
 import pandas as pd
 
-from phyddle import Model,Utilities
-from Utilities import sort_binary_vectors,States,Event
+from phyddle import Model
+from phyddle.Utilities import sort_binary_vectors,States,Event
 
 variant_registry = []
 variant_registry_names = ['variant_name',      'description'] 

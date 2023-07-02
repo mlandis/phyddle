@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 
 from phyddle import Model,Utilities
-from Utilities import States,Event
+from phyddle.Utilities import States,Event
 
 model_type = 'SIRM'
 model_variants = {
