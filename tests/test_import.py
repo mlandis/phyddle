@@ -4,6 +4,7 @@
 #import Learning
 #import Predicting
 #import ../code/Plotting
+from phyddle import Utilities
 
 def inc(x):
     return x + 1
