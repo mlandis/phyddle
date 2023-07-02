@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Updates &mdash; phyddle 0.0.3 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="author" title="About these documents" href="about.html" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Installation" href="installation.html" />
+    <link rel="prev" title="Quick guide" href="quick_guide.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html">
+            
+              <img src="_static/phyddle_logo.png" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                0.0.3
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="quick_guide.html">Quick guide</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer_guide.html">Developer guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="about.html">About</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">phyddle</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Updates</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/updates.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="updates">
+<h1>Updates<a class="headerlink" href="#updates" title="Permalink to this heading"></a></h1>
+<p>The complete commit history for phyddle is located here: <a class="reference external" href="https://github.com/mlandis/phyddle/commits/main">https://github.com/mlandis/phyddle/commits/main</a></p>
+<p><strong>phyddle v0.0.3</strong> – 23.07.02</p>
+<ul class="simple">
+<li><p>Sphinx configuration for documentation</p></li>
+<li><p>TestPyPI configuration for package deployment</p></li>
+<li><p>GitHub Actions configuration for unit testing</p></li>
+</ul>
+<p><strong>phyddle v0.0.2</strong> – 23.06.25</p>
+<ul class="simple">
+<li><p>(first internal working version)</p></li>
+<li><p>trained network generates parameter estimates and coverage-calibrated prediction intervals (CPIs) for input datasets</p></li>
+<li><p>provides several state-dependent birth-death model types and variants (more to come)</p></li>
+<li><p>parallelized simulating, formatting, and learning</p></li>
+<li><p>encoding of phylogenetic-state tensor from serial and extant-only input with multiple states (CBLV+S and CDV+S extensions)</p></li>
+<li><p>encoding of auxiliary data tensor from automatically computed summary statistics and “known” parameter (e.g. sampling rate)</p></li>
+<li><p>HDF5 with gzip compression for tensor data</p></li>
+<li><p>shuffles and splits input tensors into training, test, validation, and calibration datasets for supervised learning</p></li>
+<li><p>builds network with convolution, pooling, and dense layers that match input tensors</p></li>
+<li><p>trains network and saves history</p></li>
+<li><p>automatic figure generation with Matplotlib</p></li>
+</ul>
+<p><strong>phyddle v0.0.1</strong> – 23.03.16</p>
+<ul class="simple">
+<li><p>(initial development version)</p></li>
+</ul>
+<p><strong>Planned features</strong></p>
+<ul class="simple">
+<li><p>better back-end documentation for developers/hackers/etc.</p></li>
+<li><p>expanded library of model types/variants for discrete and continuous state types</p></li>
+<li><p>expanded support for standard simulators and a generic script-based simulator interface</p></li>
+<li><p>better parallelization for hdf5-chunking of very large datasets</p></li>
+<li><p>better subsampling support</p></li>
+<li><p>expansion of standard prediction tasks</p></li>
+<li><p>expansion of unit/integration testing</p></li>
+</ul>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="quick_guide.html" class="btn btn-neutral float-left" title="Quick guide" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="installation.html" class="btn btn-neutral float-right" title="Installation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

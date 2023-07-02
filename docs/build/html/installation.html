@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Installation &mdash; phyddle 0.0.3 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="author" title="About these documents" href="about.html" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="User Guide" href="user_guide.html" />
+    <link rel="prev" title="Updates" href="updates.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html">
+            
+              <img src="_static/phyddle_logo.png" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                0.0.3
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="quick_guide.html">Quick guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="updates.html">Updates</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#download-phyddle">Download phyddle</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#build-phyddle-package">Build phyddle package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#python-requirements">Python requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#simulator-requirements">Simulator requirements</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer_guide.html">Developer guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="about.html">About</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">phyddle</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Installation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/installation.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="installation">
+<span id="id1"></span><h1>Installation<a class="headerlink" href="#installation" title="Permalink to this heading"></a></h1>
+<p>This page describes how to download and install phyddle and its dependencies.</p>
+<section id="download-phyddle">
+<h2>Download phyddle<a class="headerlink" href="#download-phyddle" title="Permalink to this heading"></a></h2>
+<p>To install phyddle on your computer, you can either clone the <a class="reference external" href="https://github.com/mlandis/phyddle">repository</a></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ git clone git@github.com:mlandis/phyddle.git       # SSH
+$ git clone https://github.com/mlandis/phyddle.git   # HTTPS
+$ gh repo clone mlandis/phyddle                      # GitHub CLI
+</pre></div>
+</div>
+<p>or you can <a class="reference external" href="https://github.com/mlandis/phyddle/archive/refs/heads/main.zip">download</a> and unzip the current version of the main branch</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ wget https://github.com/mlandis/phyddle/archive/refs/heads/main.zip
+$ unzip main.zip
+</pre></div>
+</div>
+</section>
+<section id="build-phyddle-package">
+<h2>Build phyddle package<a class="headerlink" href="#build-phyddle-package" title="Permalink to this heading"></a></h2>
+<p>Once cloned, you can build phyddle into a local Python package</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ cd ~/projects/phyddle   # enter local phyddle repo
+$ pip install .           # build local package
+</pre></div>
+</div>
+<p>Alternatively, the beta version of phyddle can be installed through <a class="reference external" href="https://test.pypi.org/project/phyddle/">TestPyPI</a></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ python3 -m pip install --index-url https://test.pypi.org/simple/ --no-deps phyddle
+</pre></div>
+</div>
+<p>When phyddle is public, it will be installed using</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ python3 -m pip install phyddle
+</pre></div>
+</div>
+</section>
+<section id="python-requirements">
+<h2>Python requirements<a class="headerlink" href="#python-requirements" title="Permalink to this heading"></a></h2>
+<p>phyddle was last tested using with Mac OS X 11.6.4 (Intel CPU) using Python 3.11.3 (installed with homebrew) with the following versions of the required third-party package dependencies (installed with pip):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">PIL</span> <span class="mf">9.5.0</span>
+<span class="n">PyPDF2</span> <span class="mf">3.0.1</span>
+<span class="n">argparse</span> <span class="mf">1.1</span>
+<span class="n">h5py</span> <span class="mf">3.8.0</span>
+<span class="n">joblib</span> <span class="mf">1.2.0</span>
+<span class="n">keras</span> <span class="mf">2.12.0</span>
+<span class="n">matplotlib</span> <span class="mf">3.7.1</span>
+<span class="n">numpy</span> <span class="mf">1.23.5</span>
+<span class="n">pandas</span> <span class="mf">2.0.0</span>
+<span class="n">pydot_ng</span> <span class="mf">2.0.0</span>
+<span class="n">scipy</span> <span class="mf">1.10.1</span>
+<span class="n">sklearn</span> <span class="mf">1.2.2</span>
+<span class="n">tensorflow</span> <span class="mf">2.12.0</span>
+<span class="n">tqdm</span> <span class="mf">4.65.0</span>
+</pre></div>
+</div>
+<p>phyddle is also used with a 64-core Ubuntu LTS 22.04 server using Python 3.xx.xx (aptitude) and similar package versions. phyddle has yet not been tested using conda, Windows, M1 Macs, various GPUs, etc.</p>
+</section>
+<section id="simulator-requirements">
+<h2>Simulator requirements<a class="headerlink" href="#simulator-requirements" title="Permalink to this heading"></a></h2>
+<p>phyddle currently relies on the BEAST plugin MASTER for simulation. The operating system must be able to call BEAST from anywhere in the filesystem through the <code class="docutils literal notranslate"><span class="pre">beast</span></code> command. This can be done by adding the BEAST executable to be covered by the <code class="docutils literal notranslate"><span class="pre">$PATH</span></code> shell variable. Creating a symbolic link (shortcut) to the BEAST binary <code class="docutils literal notranslate"><span class="pre">beast</span></code> with <code class="docutils literal notranslate"><span class="pre">ln</span> <span class="pre">-s</span></code> in <code class="docutils literal notranslate"><span class="pre">~/.local/bin</span></code> is one an easy way to make <code class="docutils literal notranslate"><span class="pre">beast</span></code> globally accessible on Mac OS X.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ ls -lart /Users/mlandis/.local/bin/beast
+lrwxr-xr-x  1 mlandis  staff  35 Feb 14 10:32 /Users/mlandis/.local/bin/beast -&gt; /Applications/BEAST 2.7.3/bin/beast
+$  which beast
+/Users/mlandis/.local/bin/beast
+$ beast -version
+BEAST v2.7.3
+---
+BEAST.base v2.7.3
+MASTER v7.0.0
+BEAST.app v2.7.3
+---
+Java version 17.0.5
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="updates.html" class="btn btn-neutral float-left" title="Updates" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="user_guide.html" class="btn btn-neutral float-right" title="User Guide" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
