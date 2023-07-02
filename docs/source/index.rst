@@ -5,10 +5,6 @@ phyddle documentation
 models and deep learning. phyddle can be installed as a Python package using
 pip and used for pipeline analyses using scripts provided through GitHub.
 
-phyddle on GitHub: `link <http://github.com/mlandis/phyddle>`_
-
-Check out the :doc:`user_guide` section for further information, including
-how to :ref:`installation` the project.
 
 .. note::
 
@@ -18,26 +14,30 @@ how to :ref:`installation` the project.
 Overview
 --------
 
-.. image:: phyddle_pipeline.png
-	:scale: 30%
-	:align: right
  
 
 A standard phyddle analysis performs the following tasks for you:
 
-- **Pipeline configuration** applies analysis settings provided through a config file and/or command line arguments.
-- **Model configuration** constructs a base simulating model to be *Simulated* (states, events, rates).
-- **Simulating** simulates a large training dataset under the model to be *Formatted* (parallelized, partly compressed).
-- **Formatting** encodes the raw simulated data into tensor format for *Learning* (parallelized, compressed).
-- **Learning** shuffles and splits training data, builds a network, then trains and saves the network with the data for *Prediction*.
-- **Predicting** estimates model parameters for a new dataset with the trained network.
-- **Plotting** generates figures that summarize the training data (*Formatting*), the network and its training (*Learning*), and any new predictions (*Predicting*).
+.. image:: phyddle_pipeline.png
+	:scale: 20%
+	:align: right
+
+* **Pipeline configuration** applies analysis settings provided through a config file and/or command line arguments.
+* **Model configuration** constructs a base simulating model to be *Simulated* (states, events, rates).
+* **Simulating** simulates a large training dataset under the model to be *Formatted* (parallelized, partly compressed).
+* **Formatting** encodes the raw simulated data into tensor format for *Learning* (parallelized, compressed).
+* **Learning** shuffles and splits training data, builds a network, then trains and saves the network with the data for *Prediction*.
+* **Predicting** estimates model parameters for a new dataset with the trained network.
+* **Plotting** generates figures that summarize the training data (*Formatting*), the network and its training (*Learning*), and any new predictions (*Predicting*).
+
 
 
 Features
 --------
-Current features:
-* trained network generates parameter estimates and coverage-calibrated prediction intervals (CPIs) for input datasets
+
+phyddle currently supports offers the following features:
+
+* trained network generates parameter estimates and calibrated prediction intervals (CPIs) for input datasets
 * provides several state-dependent birth-death model types and variants (more to come)
 * parallelized simulating, formatting, and learning
 * encoding of phylogenetic-state tensor from serial and extant-only input with multiple states (CBLV+S and CDV+S extensions)
