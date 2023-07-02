@@ -1,10 +1,10 @@
-Welcome to Lumache's documentation!
+phyddle documentation
 ===================================
 
-**Lumache** (/lu'make/) is a Python library for cooks and food lovers
-that creates recipes mixing random ingredients.
-It pulls data from the `Open Food Facts database <https://world.openfoodfacts.org/>`_
-and offers a *simple* and *intuitive* API.
+**phyddle** is a pipeline-based toolkit to fiddle around with phylogenetic
+models and deep learning. phyddle can be installed as a Python package using
+pip, and used for pipeline analyses using the scripts in the phyddle GitHub
+repo.
 
 Check out the :doc:`usage` section for further information, including
 how to :ref:`installation` the project.
@@ -19,4 +19,3 @@ Contents
 .. toctree::
 
    usage
-   api
