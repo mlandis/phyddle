@@ -1,9 +1,10 @@
 # Ignore phyddle dirs
 code/__pycache__/*
-raw_data/*/*
-tensor_data/*/*
-network/*/*
-plot/*/*
+workspace/raw_data/*/*
+workspace/tensor_data/*/*
+workspace/network/*/*
+workspace/predict/*/*
+workspace/plot/*/*
 sandbox/
 
 # Ignore OS files
@@ -17,10 +18,21 @@ sandbox/
 .ipynb_checkpoints/
 
 # Exceptions for `example` project
-!raw_data/example/*
-!tensor_data/example/*
-!network/example/*
-!predict/example/*
-!plot/example/*
+!workspace/raw_data/example/*
+!workspace/tensor_data/example/*
+!workspace/network/example/*
+!workspace/predict/example/*
+!workspace/plot/example/*
 raw_data/example.zip
 
+# Ignore tests
+tests/__pycache__/
+
+# Ignore accessory dirs
+paper/
+dist/
+_old/
+
+# Ignore accessory files
+notes.txt
+pkg_notes.txt
