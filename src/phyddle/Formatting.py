@@ -1,6 +1,7 @@
 # standard imports
 import copy
 import os
+import sys
 
 # external imports
 import dendropy as dp
@@ -12,6 +13,9 @@ from tqdm import tqdm
 
 # phyddle imports
 from phyddle import Utilities
+
+# settings
+sys.setrecursionlimit(10000)
 
 class Formatter:
 
