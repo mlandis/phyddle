@@ -36,3 +36,7 @@ _old/
 # Ignore accessory files
 notes.txt
 pkg_notes.txt
+
+# Sphinx
+docs/build/doctrees
+docs/build/doctrees/*
