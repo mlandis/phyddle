@@ -1,0 +1,11 @@
+#NEXUS
+Begin DATA;
+Dimensions NTAX=3 NCHAR=3
+Format MISSING=? GAP=- DATATYPE=STANDARD SYMBOLS="01";
+Matrix
+1  110
+2  011
+3  011
+
+;
+END;
