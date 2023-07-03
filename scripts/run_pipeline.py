@@ -4,13 +4,13 @@
 # PHYDDLE IMPORTS #
 ###################
 
-import ModelLoader
-import Simulating
-import Formatting
-import Learning
-import Predicting
-import Plotting
-import Utilities
+from phyddle import ModelLoader
+from phyddle import Simulating
+from phyddle import Formatting
+from phyddle import Learning
+from phyddle import Predicting
+from phyddle import Plotting
+from phyddle import Utilities
 
 ########################
 # LOAD PIPELINE CONFIG #
