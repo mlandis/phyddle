@@ -29,12 +29,13 @@ If a user runs an analysis with the project name ``my_project``, then pipeline f
 	workspace/predict/my_project        # output of Predicting
 	workspace/plot/my_project           # output of Plotting
 
-.. _example_dataset:
+.. _example_project:
 
-Example dataset
+Example project
 ^^^^^^^^^^^^^^^
 
 The ``example`` project bundled with phyddle was generated using the command ``./code/run_pipeline.sh --cfg config --proj example --end_idx 25000``. This corresponds to a 3-region equal-rates GeoSSE model. All directories are populated, except ``raw_data/example`` contains only 20 original examples.
+
 
 
 .. _analysis_config:

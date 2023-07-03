@@ -55,10 +55,11 @@ Contents
 
 .. toctree::
 
-    quick_guide
+    quick_start
     updates
     installation
     user_guide
+    file_formats
     developer_guide
     about
 
