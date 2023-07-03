@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>phyddle.Utilities &mdash; phyddle 0.0.3 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="author" title="About these documents" href="../../about.html" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html">
+            
+              <img src="../../_static/phyddle_logo.png" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                0.0.3
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../quick_guide.html">Quick guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../updates.html">Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../user_guide.html">User guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../developer_guide.html">Developer guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../about.html">About</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">phyddle</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">phyddle.Utilities</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for phyddle.Utilities</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Utilities defines miscellaneous helper functions phyddle uses for pipeline</span>
+<span class="sd">steps.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="n">__author__</span>       <span class="o">=</span> <span class="s2">&quot;Michael Landis&quot;</span>
+<span class="n">__copyright__</span>    <span class="o">=</span> <span class="s2">&quot;Copyright 2023, phyddle project&quot;</span>
+<span class="n">__credits__</span>      <span class="o">=</span> <span class="s2">&quot;Michael Landis, Ammon Thompson&quot;</span>
+<span class="n">__license__</span>      <span class="o">=</span> <span class="s2">&quot;MIT&quot;</span>
+<span class="n">__maintainer__</span>   <span class="o">=</span> <span class="s2">&quot;Michael Landis&quot;</span>
+<span class="n">__email__</span>        <span class="o">=</span> <span class="s2">&quot;michael.landis@wustl.edu&quot;</span>
+<span class="n">__status__</span>       <span class="o">=</span> <span class="s2">&quot;Development&quot;</span>
+
+
+<span class="c1"># standard packages</span>
+<span class="kn">import</span> <span class="nn">argparse</span>
+<span class="kn">import</span> <span class="nn">importlib</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">chain</span><span class="p">,</span> <span class="n">combinations</span>
+
+<span class="c1"># external packages</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">dendropy</span> <span class="k">as</span> <span class="nn">dp</span>
+
+
+<span class="c1"># Precision settings</span>
+<span class="n">NUM_DIGITS</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="n">np</span><span class="o">.</span><span class="n">set_printoptions</span><span class="p">(</span><span class="n">floatmode</span><span class="o">=</span><span class="s1">&#39;maxprec&#39;</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="n">NUM_DIGITS</span><span class="p">)</span>
+<span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s1">&#39;display.precision&#39;</span><span class="p">,</span> <span class="n">NUM_DIGITS</span><span class="p">)</span>
+<span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s1">&#39;display.float_format&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">x</span><span class="si">:</span><span class="s1">,.3f</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+<span class="c1"># Tensorflow info messages</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;TF_CPP_MIN_LOG_LEVEL&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;2&#39;</span>  <span class="c1"># or any {&#39;0&#39;, &#39;1&#39;, &#39;2&#39;}</span>
+
+<span class="c1">##################</span>
+<span class="c1"># Helper Classes #</span>
+<span class="c1">##################</span>
+
+<span class="c1"># model events</span>
+<span class="k">class</span> <span class="nc">Event</span><span class="p">:</span>
+    <span class="c1"># initialize</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">r</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">g</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ix</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">jx</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">i</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">j</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">idx</span> <span class="o">=</span> <span class="n">idx</span>
+        <span class="k">if</span> <span class="s1">&#39;i&#39;</span> <span class="ow">in</span> <span class="n">idx</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">i</span> <span class="o">=</span> <span class="n">idx</span><span class="p">[</span><span class="s1">&#39;i&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s1">&#39;j&#39;</span> <span class="ow">in</span> <span class="n">idx</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">j</span> <span class="o">=</span> <span class="n">idx</span><span class="p">[</span><span class="s1">&#39;j&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s1">&#39;k&#39;</span> <span class="ow">in</span> <span class="n">idx</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">=</span> <span class="n">idx</span><span class="p">[</span><span class="s1">&#39;k&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rate</span> <span class="o">=</span> <span class="n">r</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">n</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">group</span> <span class="o">=</span> <span class="n">g</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ix</span> <span class="o">=</span> <span class="n">ix</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">jx</span> <span class="o">=</span> <span class="n">jx</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reaction</span> <span class="o">=</span> <span class="s1">&#39; + &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ix</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; -&gt; &#39;</span> <span class="o">+</span> <span class="s1">&#39; + &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">jx</span><span class="p">)</span>
+        
+    <span class="c1"># make print string</span>
+    <span class="k">def</span> <span class="nf">make_str</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="s1">&#39;Event(</span><span class="si">{name}</span><span class="s1">,</span><span class="si">{group}</span><span class="s1">,</span><span class="si">{rate}</span><span class="s1">,</span><span class="si">{idx}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">group</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">group</span><span class="p">,</span> <span class="n">rate</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">rate</span><span class="p">,</span> <span class="n">idx</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">idx</span><span class="p">)</span>        
+        <span class="c1">#s += &#39;)&#39;</span>
+        <span class="k">return</span> <span class="n">s</span>
+    <span class="c1"># representation string</span>
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_str</span><span class="p">()</span>
+    <span class="c1"># print string</span>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_str</span><span class="p">()</span>
+
+
+<span class="c1"># state space</span>
+<span class="k">class</span> <span class="nc">States</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lbl2vec</span><span class="p">):</span>
+
+        <span class="c1"># state space dictionary (input)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lbl2vec</span>      <span class="o">=</span> <span class="n">lbl2vec</span>
+
+        <span class="c1"># basic info</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">int2lbl</span>        <span class="o">=</span> <span class="nb">list</span><span class="p">(</span> <span class="n">lbl2vec</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">int2vec</span>        <span class="o">=</span> <span class="nb">list</span><span class="p">(</span> <span class="n">lbl2vec</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">int2int</span>        <span class="o">=</span> <span class="nb">list</span><span class="p">(</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">int2vec</span><span class="p">))</span> <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">int2set</span>        <span class="o">=</span> <span class="nb">list</span><span class="p">(</span> <span class="p">[</span> <span class="nb">tuple</span><span class="p">([</span><span class="n">y</span> <span class="k">for</span> <span class="n">y</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">if</span> <span class="n">v</span> <span class="o">==</span> <span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">int2vec</span> <span class="p">]</span> <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lbl_one</span>        <span class="o">=</span> <span class="nb">list</span><span class="p">(</span> <span class="nb">set</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">int2lbl</span><span class="p">))</span> <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_char</span>       <span class="o">=</span> <span class="nb">len</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">int2vec</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_states</span>     <span class="o">=</span> <span class="nb">len</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">lbl_one</span> <span class="p">)</span>
+
+        <span class="c1"># relational info</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lbl2int</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span><span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">int2lbl</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">int2int</span><span class="p">))}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lbl2set</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span><span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">int2lbl</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">int2set</span><span class="p">))}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lbl2vec</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span><span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">int2lbl</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">int2vec</span><span class="p">))}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vec2int</span> <span class="o">=</span> <span class="p">{</span><span class="nb">tuple</span><span class="p">(</span><span class="n">k</span><span class="p">):</span><span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">int2vec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">int2int</span><span class="p">))}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vec2lbl</span> <span class="o">=</span> <span class="p">{</span><span class="nb">tuple</span><span class="p">(</span><span class="n">k</span><span class="p">):</span><span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">int2vec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">int2lbl</span><span class="p">))}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vec2set</span> <span class="o">=</span> <span class="p">{</span><span class="nb">tuple</span><span class="p">(</span><span class="n">k</span><span class="p">):</span><span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">int2vec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">int2set</span><span class="p">))}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set2vec</span> <span class="o">=</span> <span class="p">{</span><span class="nb">tuple</span><span class="p">(</span><span class="n">k</span><span class="p">):</span><span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">int2set</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">int2vec</span><span class="p">))}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set2int</span> <span class="o">=</span> <span class="p">{</span><span class="nb">tuple</span><span class="p">(</span><span class="n">k</span><span class="p">):</span><span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">int2set</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">int2int</span><span class="p">))}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set2lbl</span> <span class="o">=</span> <span class="p">{</span><span class="nb">tuple</span><span class="p">(</span><span class="n">k</span><span class="p">):</span><span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">int2set</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">int2lbl</span><span class="p">))}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">int2vecstr</span> <span class="o">=</span> <span class="p">[</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">x</span><span class="p">])</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">int2vec</span> <span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vecstr2int</span> <span class="o">=</span> <span class="p">{</span> <span class="n">v</span><span class="p">:</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">int2vecstr</span><span class="p">)</span> <span class="p">}</span>
+       
+    <span class="k">def</span> <span class="nf">make_str</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># state space: {&#39;A&#39;: [1, 0, 0], &#39;B&#39;: [0, 1, 0], &#39;C&#39;: [0, 0, 1], &#39;AB&#39;: [1, 1, 0], &#39;AC&#39;: [1, 0, 1], &#39;BC&#39;: [0, 1, 1], &#39;ABC&#39;: [1, 1, 1]}</span>
+        <span class="c1"># string: Statespace(A,0,100;B,1,010;C,2,001;AB,3,110;AC,4,101;BC,5,011;ABC,6,111)</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="s1">&#39;Statespace(&#39;</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">int2int</span><span class="p">:</span>
+            <span class="c1"># each state in the space is reported as STRING,INT,VECTOR;</span>
+            <span class="n">x</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">int2lbl</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;,&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">int2int</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">+</span> <span class="s1">&#39;,&#39;</span> <span class="o">+</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span> <span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">int2vec</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="p">)</span>
+        <span class="n">s</span> <span class="o">+=</span> <span class="s1">&#39;;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;)&#39;</span>
+        <span class="k">return</span> <span class="n">s</span>
+
+    <span class="c1"># representation string</span>
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_str</span><span class="p">()</span>
+    <span class="c1"># print string</span>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_str</span><span class="p">()</span>
+    
+    <span class="k">def</span> <span class="nf">make_df</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+
+
+
+<span class="c1">#-----------------------------------------------------------------------------------------------------------------#</span>
+
+<span class="c1">###################</span>
+<span class="c1"># CONFIG LOADER   #</span>
+<span class="c1">###################</span>
+
+<span class="k">def</span> <span class="nf">load_config</span><span class="p">(</span><span class="n">config_fn</span><span class="p">,</span> <span class="n">arg_overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    
+    <span class="c1"># KEEP THIS: Want to improve precedence so CLI-provided-arg &gt; CFG-arg &gt; CLI-default-arg</span>
+
+    <span class="c1"># # argument parsing</span>
+    <span class="c1"># parser = argparse.ArgumentParser(description=&#39;phyddle pipeline config&#39;, formatter_class=argparse.ArgumentDefaultsHelpFormatter)</span>
+    <span class="c1"># parser.add_argument(&#39;-c&#39;, &#39;--cfg&#39;,          dest=&#39;config_fn&#39;, type=str, default=&#39;config&#39;, help=&#39;Config file name&#39;)</span>
+    <span class="c1"># parser.add_argument(&#39;-f&#39;, &#39;--force&#39;,        action=&#39;store_true&#39;, help=&#39;Arguments override config file settings&#39;)</span>
+    <span class="c1"># parser.add_argument(&#39;--proj&#39;,               dest=&#39;proj&#39;, type=str, default=&#39;my_project&#39;, help=&#39;Project name used as directory across pipeline stages&#39;)</span>
+    <span class="c1"># parser.add_argument(&#39;--use_parallel&#39;,       dest=&#39;use_parallel&#39;, type=bool, default=True, help=&#39;Use parallelization? (recommended)&#39;)</span>
+    <span class="c1"># parser.add_argument(&#39;--num_proc&#39;,           dest=&#39;num_proc&#39;, type=int, default=-2, help=&#39;How many cores for multiprocessing? (e.g. 4 uses 4, -2 uses all but 2)&#39;)</span>
+    <span class="c1"># # directory settings</span>
+    <span class="c1"># parser.add_argument(&#39;--sim_dir&#39;,            dest=&#39;sim_dir&#39;, type=str, default=&#39;../raw_data&#39;, help=&#39;Directory for raw simulated data&#39;)</span>
+    <span class="c1"># parser.add_argument(&#39;--fmt_dir&#39;,            dest=&#39;fmt_dir&#39;, type=str, default=&#39;../tensor_data&#39;, help=&#39;Directory for tensor-formatted simulated data&#39;)</span>
+    <span class="c1"># parser.add_argument(&#39;--net_dir&#39;,            dest=&#39;net_dir&#39;, type=str, default=&#39;../network&#39;, help=&#39;Directory for trained networks and predictions&#39;)</span>
+    <span class="c1"># parser.add_argument(&#39;--plt_dir&#39;,            dest=&#39;plt_dir&#39;, type=str, default=&#39;../plot&#39;, help=&#39;Directory for plotted results&#39;)</span>
+    <span class="c1"># parser.add_argument(&#39;--pred_dir&#39;,           dest=&#39;pred_dir&#39;, type=str, help=&#39;Predict results for dataset located in this directory&#39;)</span>
+    <span class="c1"># # model settings</span>
+    <span class="c1"># #parser.add_argument(&#39;--show_models&#39;,        dest=&#39;show_models&#39;, type=bool, default=False, help=&#39;Print all available model types and variants?&#39;)</span>
+    <span class="c1"># parser.add_argument(&#39;--model_type&#39;,         dest=&#39;model_type&#39;, type=str, help=&#39;Model type&#39;)</span>
+    <span class="c1"># parser.add_argument(&#39;--model_variant&#39;,      dest=&#39;model_variant&#39;, type=str, help=&#39;Model variant&#39;)</span>
+    <span class="c1"># parser.add_argument(&#39;--num_char&#39;,           dest=&#39;num_char&#39;, type=int, help=&#39;Number of characters&#39;)</span>
+    <span class="c1"># # simulation settings</span>
+    <span class="c1"># parser.add_argument(&#39;--sim_logging&#39;,        dest=&#39;sim_logging&#39;, type=str, default=&#39;verbose&#39;, choices=[&#39;clean&#39;, &#39;verbose&#39;, &#39;compress&#39;], help=&#39;Simulation logging style&#39;)</span>
+    <span class="c1"># parser.add_argument(&#39;--start_idx&#39;,          dest=&#39;start_idx&#39;, type=int, default=0, help=&#39;Start index for simulation&#39;)</span>
+    <span class="c1"># parser.add_argument(&#39;--end_idx&#39;,            dest=&#39;end_idx&#39;, type=int, default=100, help=&#39;End index for simulation&#39;)</span>
+    <span class="c1"># parser.add_argument(&#39;--stop_time&#39;,          dest=&#39;stop_time&#39;, type=float, default=10.0, help=&#39;Maximum duration of evolution for each simulation&#39;)</span>
+    <span class="c1"># parser.add_argument(&#39;--stop_floor_sizes&#39;,   dest=&#39;stop_floor_sizes&#39;, type=int, default=0, help=&#39;Minimum number of taxa for each simulation&#39;)</span>
+    <span class="c1"># parser.add_argument(&#39;--stop_ceil_sizes&#39;,    dest=&#39;stop_ceil_sizes&#39;, type=int, default=500, help=&#39;Maximum number of taxa for each simulation&#39;)</span>
+    <span class="c1"># # formatting settings</span>
+    <span class="c1"># parser.add_argument(&#39;--tensor_format&#39;,      dest=&#39;tensor_format&#39;, type=str, default=&#39;hdf5&#39;, choices=[&#39;hdf5&#39;, &#39;csv&#39;], help=&#39;Storage format for simulation tensors&#39;)</span>
+    <span class="c1"># parser.add_argument(&#39;--tree_type&#39;,          dest=&#39;tree_type&#39;, type=str, choices=[&#39;extant&#39;, &#39;serial&#39;], help=&#39;Type of tree&#39;)</span>
+    <span class="c1"># # learning settings</span>
+    <span class="c1"># parser.add_argument(&#39;--tree_size&#39;,          dest=&#39;tree_size&#39;, type=int, help=&#39;Number of taxa in phylogenetic tensor&#39;)</span>
+    <span class="c1"># parser.add_argument(&#39;--num_epochs&#39;,         dest=&#39;num_epochs&#39;, type=int, default=21, help=&#39;Number of learning epochs&#39;)</span>
+    <span class="c1"># parser.add_argument(&#39;--batch_size&#39;,         dest=&#39;batch_size&#39;, type=int, default=128, help=&#39;Training batch sizes during learning&#39;)</span>
+    <span class="c1"># parser.add_argument(&#39;--prop_test&#39;,          dest=&#39;prop_test&#39;, type=float, default=0.05, help=&#39;Proportion of data used as test examples (demonstrate trained network performance)&#39;)</span>
+    <span class="c1"># parser.add_argument(&#39;--prop_validation&#39;,    dest=&#39;prop_validation&#39;, type=float, default=0.05, help=&#39;Proportion of data used as validation examples (diagnose network overtraining)&#39;)</span>
+    <span class="c1"># parser.add_argument(&#39;--prop_calibration&#39;,   dest=&#39;prop_calibration&#39;, type=float, default=0.20, help=&#39;Proportion of data used as calibration examples (calibrate conformal prediction intervals)&#39;)</span>
+    <span class="c1"># parser.add_argument(&#39;--alpha_CQRI&#39;,         dest=&#39;alpha_CQRI&#39;, type=float, default=0.95, help=&#39;Expected coverage percent for prediction intervals&#39;)</span>
+    <span class="c1"># parser.add_argument(&#39;--loss&#39;,               dest=&#39;loss&#39;, type=str, default=&#39;mse&#39;, help=&#39;Loss function used as optimization criterion&#39;)</span>
+    <span class="c1"># parser.add_argument(&#39;--optimizer&#39;,          dest=&#39;optimizer&#39;, type=str, default=&#39;adam&#39;, help=&#39;Method used for optimizing neural network&#39;)</span>
+    <span class="c1"># # plotting settings</span>
+    <span class="c1"># parser.add_argument(&#39;--network_prefix&#39;,     dest=&#39;network_prefix&#39;, type=str, help=&#39;Plot results related to this network prefix&#39;)</span>
+    <span class="c1"># # prediction settings</span>
+    <span class="c1"># parser.add_argument(&#39;--pred_prefix&#39;,        dest=&#39;pred_prefix&#39;, type=str, help=&#39;Predict results for this dataset&#39;)</span>
+    
+    <span class="c1"># argument parsing</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s1">&#39;phyddle pipeline config&#39;</span><span class="p">)</span> <span class="c1">#,</span>
+                                     <span class="c1">#formatter_class=argparse.ArgumentDefaultsHelpFormatter)</span>
+    
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-c&#39;</span><span class="p">,</span> <span class="s1">&#39;--cfg&#39;</span><span class="p">,</span>          <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;config_fn&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Config file name&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="c1">#parser.add_argument(&#39;-f&#39;, &#39;--force&#39;,        action=&#39;store_true&#39;, help=&#39;Arguments override config file settings&#39;)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-p&#39;</span><span class="p">,</span> <span class="s1">&#39;--proj&#39;</span><span class="p">,</span>         <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;proj&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Project name used as directory across pipeline stages&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--use_parallel&#39;</span><span class="p">,</span>       <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;use_parallel&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">bool</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Use parallelization? (recommended)&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--num_proc&#39;</span><span class="p">,</span>           <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;num_proc&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;How many cores for multiprocessing? (e.g. 4 uses 4, -2 uses all but 2)&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="c1"># directory settings</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--sim_dir&#39;</span><span class="p">,</span>            <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;sim_dir&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Directory for raw simulated data&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--fmt_dir&#39;</span><span class="p">,</span>            <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;fmt_dir&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Directory for tensor-formatted simulated data&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--net_dir&#39;</span><span class="p">,</span>            <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;net_dir&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Directory for trained networks and predictions&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--plt_dir&#39;</span><span class="p">,</span>            <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;plt_dir&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Directory for plotted results&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--pred_dir&#39;</span><span class="p">,</span>           <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;pred_dir&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Predict results for dataset located in this directory&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--pred_prefix&#39;</span><span class="p">,</span>        <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;pred_prefix&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Predict results for this dataset&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="c1"># model settings</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--show_models&#39;</span><span class="p">,</span>        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Print all available model types and variants?&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--model_type&#39;</span><span class="p">,</span>         <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;model_type&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Model type&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--model_variant&#39;</span><span class="p">,</span>      <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;model_variant&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Model variant&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--num_char&#39;</span><span class="p">,</span>           <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;num_char&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Number of characters&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="c1"># simulation settings</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--sim_logging&#39;</span><span class="p">,</span>        <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;sim_logging&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;clean&#39;</span><span class="p">,</span> <span class="s1">&#39;verbose&#39;</span><span class="p">,</span> <span class="s1">&#39;compress&#39;</span><span class="p">],</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Simulation logging style&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--start_idx&#39;</span><span class="p">,</span>          <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;start_idx&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Start index for simulation&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--end_idx&#39;</span><span class="p">,</span>            <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;end_idx&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;End index for simulation&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--stop_time&#39;</span><span class="p">,</span>          <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;stop_time&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Maximum duration of evolution for each simulation&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--min_num_taxa&#39;</span><span class="p">,</span>       <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;min_num_taxa&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Minimum number of taxa for each simulation&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--max_num_taxa&#39;</span><span class="p">,</span>       <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;max_num_taxa&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Maximum number of taxa for each simulation&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="c1"># formatting settings</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--tree_type&#39;</span><span class="p">,</span>          <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;tree_type&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;extant&#39;</span><span class="p">,</span> <span class="s1">&#39;serial&#39;</span><span class="p">],</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Type of tree&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--tree_width_cats&#39;</span><span class="p">,</span>    <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;tree_width_cats&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;The phylo-state tensor widths for formatting training datasets, space-delimited&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--tensor_format&#39;</span><span class="p">,</span>      <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;tensor_format&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;hdf5&#39;</span><span class="p">,</span> <span class="s1">&#39;csv&#39;</span><span class="p">],</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Storage format for simulation tensors&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--save_phyenc_csv&#39;</span><span class="p">,</span>    <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;save_phyenc_csv&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">bool</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Save encoded phylogenetic tensor encoding to csv?&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="c1"># learning settings</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--tree_width&#39;</span><span class="p">,</span>         <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;tree_width&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;The phylo-state tensor width dataset used for a neural network&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--num_epochs&#39;</span><span class="p">,</span>         <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;num_epochs&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Number of learning epochs&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--batch_size&#39;</span><span class="p">,</span>         <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;batch_size&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Training batch sizes during learning&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--prop_test&#39;</span><span class="p">,</span>          <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;prop_test&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Proportion of data used as test examples (demonstrate trained network performance)&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--prop_validation&#39;</span><span class="p">,</span>    <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;prop_validation&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Proportion of data used as validation examples (diagnose network overtraining)&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--prop_calibration&#39;</span><span class="p">,</span>   <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;prop_calibration&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Proportion of data used as calibration examples (calibrate conformal prediction intervals)&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--cpi_coverage&#39;</span><span class="p">,</span>       <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;cpi_coverage&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Expected coverage percent for calibrated prediction intervals&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--loss&#39;</span><span class="p">,</span>               <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;loss&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Loss function used as optimization criterion&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--optimizer&#39;</span><span class="p">,</span>          <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;optimizer&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Method used for optimizing neural network&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="c1"># prediction settings</span>
+    <span class="c1"># ... nothing for now??</span>
+    <span class="c1"># plotting settings</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--plot_train_color&#39;</span><span class="p">,</span>   <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;plot_train_color&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Plotting color for training data elements&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--plot_label_color&#39;</span><span class="p">,</span>   <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;plot_label_color&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Plotting color for training label elements&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--plot_test_color&#39;</span><span class="p">,</span>    <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;plot_test_color&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Plotting color for test data elements&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--plot_val_color&#39;</span><span class="p">,</span>     <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;plot_val_color&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Plotting color for validation data elements&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--plot_aux_color&#39;</span><span class="p">,</span>     <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;plot_aux_color&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Plotting color for auxiliary input data elements&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--plot_pred_color&#39;</span><span class="p">,</span>    <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;plot_pred_color&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Plotting color for prediction data elements&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+
+
+    <span class="c1"># parse arguments</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+    
+    <span class="c1"># print models &amp; exit</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">show_models</span><span class="p">:</span>
+         <span class="kn">import</span> <span class="nn">ModelLoader</span>
+         <span class="n">model_str</span> <span class="o">=</span> <span class="n">ModelLoader</span><span class="o">.</span><span class="n">make_model_registry_str</span><span class="p">()</span>
+         <span class="nb">print</span><span class="p">(</span><span class="n">model_str</span><span class="p">)</span>
+         <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+
+    <span class="c1"># overwrite config_fn is argument passed</span>
+    <span class="k">if</span> <span class="n">arg_overwrite</span> <span class="ow">and</span> <span class="n">args</span><span class="o">.</span><span class="n">config_fn</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">config_fn</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">config_fn</span>
+    <span class="n">config_fn</span> <span class="o">=</span> <span class="n">config_fn</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;.py&#39;</span><span class="p">)</span>
+
+    <span class="c1"># config from file</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="n">config_fn</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">overwrite_defaults</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">var</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">var</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># if args.force == True:</span>
+            <span class="c1">#     m.args[var] = x</span>
+            <span class="c1"># elif var not in m.args:</span>
+            <span class="c1">#     m.args[var] = x</span>
+            <span class="n">m</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="n">var</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span>
+        <span class="k">return</span> <span class="n">m</span>
+    
+    <span class="c1"># update arguments from defaults, when provided</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">overwrite_defaults</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="s1">&#39;proj&#39;</span><span class="p">)</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">overwrite_defaults</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="s1">&#39;use_parallel&#39;</span><span class="p">)</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">overwrite_defaults</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="s1">&#39;num_proc&#39;</span><span class="p">)</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">overwrite_defaults</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="s1">&#39;sim_dir&#39;</span><span class="p">)</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">overwrite_defaults</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="s1">&#39;fmt_dir&#39;</span><span class="p">)</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">overwrite_defaults</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="s1">&#39;net_dir&#39;</span><span class="p">)</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">overwrite_defaults</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="s1">&#39;plt_dir&#39;</span><span class="p">)</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">overwrite_defaults</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="s1">&#39;pred_dir&#39;</span><span class="p">)</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">overwrite_defaults</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="s1">&#39;model_type&#39;</span><span class="p">)</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">overwrite_defaults</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="s1">&#39;model_variant&#39;</span><span class="p">)</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">overwrite_defaults</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="s1">&#39;num_char&#39;</span><span class="p">)</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">overwrite_defaults</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="s1">&#39;sim_logging&#39;</span><span class="p">)</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">overwrite_defaults</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="s1">&#39;start_idx&#39;</span><span class="p">)</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">overwrite_defaults</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="s1">&#39;end_idx&#39;</span><span class="p">)</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">overwrite_defaults</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="s1">&#39;stop_time&#39;</span><span class="p">)</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">overwrite_defaults</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="s1">&#39;min_num_taxa&#39;</span><span class="p">)</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">overwrite_defaults</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="s1">&#39;max_num_taxa&#39;</span><span class="p">)</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">overwrite_defaults</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="s1">&#39;tree_width&#39;</span><span class="p">)</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">overwrite_defaults</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="s1">&#39;save_phyenc_csv&#39;</span><span class="p">)</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">overwrite_defaults</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="s1">&#39;tree_width_cats&#39;</span><span class="p">)</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">overwrite_defaults</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="s1">&#39;num_epochs&#39;</span><span class="p">)</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">overwrite_defaults</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="s1">&#39;batch_size&#39;</span><span class="p">)</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">overwrite_defaults</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="s1">&#39;prop_test&#39;</span><span class="p">)</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">overwrite_defaults</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="s1">&#39;prop_validation&#39;</span><span class="p">)</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">overwrite_defaults</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="s1">&#39;prop_calibration&#39;</span><span class="p">)</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">overwrite_defaults</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="s1">&#39;cpi_coverage&#39;</span><span class="p">)</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">overwrite_defaults</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="s1">&#39;loss&#39;</span><span class="p">)</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">overwrite_defaults</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="s1">&#39;optimizer&#39;</span><span class="p">)</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">overwrite_defaults</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="s1">&#39;pred_prefix&#39;</span><span class="p">)</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">overwrite_defaults</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="s1">&#39;plot_train_color&#39;</span><span class="p">)</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">overwrite_defaults</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="s1">&#39;plot_test_color&#39;</span><span class="p">)</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">overwrite_defaults</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="s1">&#39;plot_val_color&#39;</span><span class="p">)</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">overwrite_defaults</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="s1">&#39;plot_aux_color&#39;</span><span class="p">)</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">overwrite_defaults</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="s1">&#39;plot_label_color&#39;</span><span class="p">)</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">overwrite_defaults</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="s1">&#39;plot_pred_color&#39;</span><span class="p">)</span>         
+
+    <span class="c1"># return new args</span>
+    <span class="k">return</span> <span class="n">m</span><span class="o">.</span><span class="n">args</span>
+
+
+<span class="c1">#-----------------------------------------------------------------------------------------------------------------#</span>
+
+<span class="c1">#########################</span>
+<span class="c1"># Model registry        #</span>
+<span class="c1">#########################</span>
+
+<span class="c1"># def show_models(args):</span>
+
+<span class="c1">#     model_variants = {</span>
+<span class="c1">#         &#39;GeoSSE&#39; : {</span>
+<span class="c1">#             &#39;variants&#39;: {</span>
+<span class="c1">#                 &#39;equal-rates&#39;,</span>
+<span class="c1">#                 &#39;free-rates&#39;,</span>
+<span class="c1">#                 &#39;density-extinction&#39;</span>
+<span class="c1">#             },</span>
+                    
+<span class="c1">#         &#39;SIRM&#39;   : { &#39;equal-rates&#39;, &#39;free-rates&#39; }</span>
+<span class="c1">#     }</span>
+<span class="c1">#     model_</span>
+<span class="c1">#     cw = [20, 20, 40]</span>
+<span class="c1">#     s  = &#39;Model type&#39;.ljust(cw[0], &#39; &#39;)  + &#39;Model variant&#39;.ljust(cw[1], &#39; &#39;) + &#39;Parameters&#39;.ljust(cw[2], &#39; &#39;) + &#39;\n&#39;</span>
+<span class="c1">#     s += &#39;&#39;.ljust(sum(cw), &#39;-&#39;) + &#39;\n&#39;</span>
+<span class="c1">#     for i,model_type in enumerate(ModelLoader.model_type_list):</span>
+<span class="c1">#         s += model_type.ljust(cw[0], &#39; &#39;)</span>
+<span class="c1">#         model = ModelLoader.load_model(model_type)</span>
+<span class="c1">#         # for j,model_variant in enumerate(model.get_model_variants()):</span>
+<span class="c1">#         #     if j == 0:</span>
+<span class="c1">#         #         s += &#39;&#39; + model_variant.ljust(cw[1], &#39; &#39;)</span>
+<span class="c1">#         #     else:</span>
+<span class="c1">#         #         s += &#39;&#39;.ljust(cw[0], &#39; &#39;)  + model_variant.ljust(cw[1], &#39; &#39;)</span>
+<span class="c1">#     return s</span>
+
+
+
+<span class="c1">#-----------------------------------------------------------------------------------------------------------------#</span>
+
+<span class="c1">###################</span>
+<span class="c1"># GENERAL HELPERS #</span>
+<span class="c1">###################</span>
+
+<div class="viewcode-block" id="make_symm"><a class="viewcode-back" href="../../developer_guide.html#phyddle.Utilities.make_symm">[docs]</a><span class="k">def</span> <span class="nf">make_symm</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">triu</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">m</span> <span class="o">+</span> <span class="n">m</span><span class="o">.</span><span class="n">T</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">fill_diagonal</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">m</span></div>
+
+<span class="c1"># Chat-GPT function</span>
+<span class="k">def</span> <span class="nf">sort_binary_vectors</span><span class="p">(</span><span class="n">binary_vectors</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Sorts a list of binary vectors in order of number of &quot;on&quot; bits first, and then left to right in terms of which bits are &quot;on&quot;.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Define a helper function to count the number of &quot;on&quot; bits in a binary vector</span>
+    <span class="k">def</span> <span class="nf">count_ones</span><span class="p">(</span><span class="n">binary_vector</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">binary_vector</span><span class="p">)</span>
+    
+    <span class="c1"># Sort the binary vectors in the list first by number of &quot;on&quot; bits</span>
+    <span class="n">sorted_vectors</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">binary_vectors</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">count_ones</span><span class="p">)</span>
+    
+    <span class="c1"># Sort the binary vectors in the list by &quot;on&quot; bits from left to right</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sorted_vectors</span><span class="p">)):</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">sorted_vectors</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">count_ones</span><span class="p">(</span><span class="n">sorted_vectors</span><span class="p">[</span><span class="n">j</span><span class="p">])</span> <span class="o">==</span> <span class="n">count_ones</span><span class="p">(</span><span class="n">sorted_vectors</span><span class="p">[</span><span class="n">i</span><span class="p">]):</span>
+                <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sorted_vectors</span><span class="p">[</span><span class="n">i</span><span class="p">])):</span>
+                    <span class="k">if</span> <span class="n">sorted_vectors</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">k</span><span class="p">]</span> <span class="o">!=</span> <span class="n">sorted_vectors</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">k</span><span class="p">]:</span>
+                        <span class="k">if</span> <span class="n">sorted_vectors</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">k</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">sorted_vectors</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">k</span><span class="p">]:</span>
+                            <span class="n">sorted_vectors</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">sorted_vectors</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">sorted_vectors</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">sorted_vectors</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                        <span class="k">break</span>
+                
+    <span class="k">return</span> <span class="n">sorted_vectors</span>
+
+
+<span class="c1"># helper functions</span>
+<div class="viewcode-block" id="powerset"><a class="viewcode-back" href="../../developer_guide.html#phyddle.Utilities.powerset">[docs]</a><span class="k">def</span> <span class="nf">powerset</span><span class="p">(</span><span class="n">iterable</span><span class="p">):</span>
+    <span class="s2">&quot;powerset([1,2,3]) --&gt; () (1,) (2,) (3,) (1,2) (1,3) (2,3) (1,2,3)&quot;</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">iterable</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">chain</span><span class="o">.</span><span class="n">from_iterable</span><span class="p">(</span><span class="n">combinations</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">r</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="find_tree_width"><a class="viewcode-back" href="../../developer_guide.html#phyddle.Utilities.find_tree_width">[docs]</a><span class="k">def</span> <span class="nf">find_tree_width</span><span class="p">(</span><span class="n">num_taxa</span><span class="p">,</span> <span class="n">max_taxa</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Finds the CPSV width.</span>
+
+<span class="sd">    Returns the smallest suitable compact phylogenetic-state vector</span>
+<span class="sd">    representation such that num_taxa &lt;= val for val in max_taxa.</span>
+<span class="sd">    Returns 0 if num_taxa == 0.</span>
+<span class="sd">    Returns -1 if num_taxa &gt; max_taxa[-1].</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        num_taxa (int): the number of taxa in the raw dataset</span>
+<span class="sd">        max_taxa (int[]):  a list of tree widths for CPSV encoding</span>
+<span class="sd">    </span>
+<span class="sd">    Returns:</span>
+<span class="sd">        int: The smallest suitable tree width encoding</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">num_taxa</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">0</span>
+    <span class="k">elif</span> <span class="n">num_taxa</span> <span class="o">&gt;</span> <span class="n">max_taxa</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">max_taxa</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">num_taxa</span> <span class="o">&lt;=</span> <span class="n">i</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">i</span>
+    <span class="c1"># should never call this</span>
+    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;error in find_tree_width()&#39;</span><span class="p">,</span> <span class="n">num_taxa</span><span class="p">,</span> <span class="n">max_taxa</span><span class="p">)</span>
+    <span class="k">return</span> <span class="o">-</span><span class="mi">2</span></div>
+
+
+
+<span class="c1">#-----------------------------------------------------------------------------------------------------------------#</span>
+
+
+<span class="c1">################</span>
+<span class="c1"># FILE HELPERS #</span>
+<span class="c1">################</span>
+
+<span class="k">def</span> <span class="nf">write_to_file</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">fn</span><span class="p">):</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+<span class="k">def</span> <span class="nf">read_tree</span><span class="p">(</span><span class="n">tre_fn</span><span class="p">):</span>
+    <span class="c1"># check that file exists </span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">tre_fn</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Could not find tree file at </span><span class="si">{</span><span class="n">tre_fn</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    
+    <span class="n">phy</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">for</span> <span class="n">schema</span> <span class="ow">in</span> <span class="p">[</span> <span class="s1">&#39;newick&#39;</span><span class="p">,</span> <span class="s1">&#39;nexus&#39;</span> <span class="p">]:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">phy_tmp</span> <span class="o">=</span> <span class="n">dp</span><span class="o">.</span><span class="n">Tree</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">tre_fn</span><span class="p">,</span> <span class="n">schema</span><span class="o">=</span><span class="n">schema</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">phy_tmp</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+             <span class="k">if</span> <span class="n">phy_tmp</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">phy</span> <span class="o">=</span> <span class="n">phy_tmp</span>
+    <span class="k">return</span> <span class="n">phy</span>
+
+
+
+
+<span class="c1">#-----------------------------------------------------------------------------------------------------------------#</span>
+
+<span class="c1">#####################</span>
+<span class="c1"># FORMAT CONVERTERS #</span>
+<span class="c1">#####################</span>
+
+<span class="k">def</span> <span class="nf">convert_nexus_to_array</span><span class="p">(</span><span class="n">dat_fn</span><span class="p">):</span>
+    
+    <span class="c1"># read file</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">dat_fn</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="c1"># process file</span>
+    <span class="n">found_matrix</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">num_taxa</span>    <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">num_char</span>    <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">taxon_idx</span>   <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">taxon_names</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+        <span class="c1"># purge whitespace</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">())</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">tok</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
+        
+        <span class="c1"># skip lines with comments</span>
+        <span class="k">if</span> <span class="n">tok</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;[&#39;</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+        <span class="c1"># get data dimenions</span>
+        <span class="k">if</span> <span class="n">tok</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;DIMENSIONS&#39;</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">tok</span><span class="p">:</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="s1">&#39;NTAX&#39;</span> <span class="ow">in</span> <span class="n">x</span><span class="o">.</span><span class="n">upper</span><span class="p">():</span>
+                    <span class="n">num_taxa</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="k">elif</span> <span class="s1">&#39;NCHAR&#39;</span> <span class="ow">in</span> <span class="n">x</span><span class="o">.</span><span class="n">upper</span><span class="p">():</span>
+                    <span class="n">num_char</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">dat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">num_char</span><span class="p">,</span> <span class="n">num_taxa</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;int&#39;</span><span class="p">)</span>
+
+        <span class="c1"># entering data matrix</span>
+        <span class="k">if</span> <span class="n">tok</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;MATRIX&#39;</span><span class="p">:</span>
+            <span class="n">found_matrix</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">continue</span>
+
+        <span class="c1"># process data matrix</span>
+        <span class="k">if</span> <span class="n">found_matrix</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">tok</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;;&#39;</span><span class="p">:</span>
+                <span class="n">found_matrix</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="k">break</span>
+            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">tok</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="c1">#print(tok)</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="n">tok</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">state</span> <span class="o">=</span> <span class="n">tok</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">taxon_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+                <span class="n">dat</span><span class="p">[:,</span><span class="n">taxon_idx</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span> <span class="nb">int</span><span class="p">(</span><span class="n">z</span><span class="p">)</span> <span class="k">for</span> <span class="n">z</span> <span class="ow">in</span> <span class="n">state</span> <span class="p">]</span>
+                <span class="n">taxon_idx</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="c1"># construct data frame</span>
+    <span class="c1"># rows: char states</span>
+    <span class="c1"># cols: taxa</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">dat</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">taxon_names</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">df</span>
+
+
+<span class="k">def</span> <span class="nf">convert_table_to_array</span><span class="p">(</span><span class="n">dat_fn</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="p">):</span>
+    
+    <span class="c1"># read file</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">dat_fn</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="c1"># process file</span>
+    <span class="n">num_taxa</span>    <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+    <span class="n">num_char</span>    <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">taxon_idx</span>   <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">taxon_names</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">first_taxon</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+        <span class="c1"># purge whitespace</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">())</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">tok</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">sep</span><span class="p">)</span>
+        
+        <span class="c1"># get taxon + state</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">tok</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="n">tok</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="c1"># construct matrix based on num char</span>
+        <span class="k">if</span> <span class="n">first_taxon</span><span class="p">:</span>
+            <span class="n">first_taxon</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">num_char</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+            <span class="n">dat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">num_char</span><span class="p">,</span> <span class="n">num_taxa</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;int&#39;</span><span class="p">)</span>
+
+        <span class="c1"># save taxon name, populate array</span>
+        <span class="n">taxon_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">dat</span><span class="p">[:,</span><span class="n">taxon_idx</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span> <span class="nb">int</span><span class="p">(</span><span class="n">z</span><span class="p">)</span> <span class="k">for</span> <span class="n">z</span> <span class="ow">in</span> <span class="n">state</span> <span class="p">]</span>
+        <span class="n">taxon_idx</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="c1"># construct data frame</span>
+    <span class="c1"># rows: char states</span>
+    <span class="c1"># cols: taxa</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">dat</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">taxon_names</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">df</span>
+
+
+<span class="c1"># Converts MASTER output into nex</span>
+<span class="c1"># move to MasterSimulator?</span>
+<span class="k">def</span> <span class="nf">convert_phy2dat_nex</span><span class="p">(</span><span class="n">phy_nex_fn</span><span class="p">,</span> <span class="n">int2vec</span><span class="p">):</span>
+
+    <span class="c1"># get num regions from size of bit vector</span>
+    <span class="n">num_char</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">int2vec</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="c1"># get tip names and states from NHX tree</span>
+    <span class="n">nex_file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">phy_nex_fn</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+    <span class="n">nex_str</span>  <span class="o">=</span> <span class="n">nex_file</span><span class="o">.</span><span class="n">readlines</span><span class="p">()[</span><span class="mi">3</span><span class="p">]</span>
+    <span class="n">matches</span>  <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">pattern</span><span class="o">=</span><span class="s1">&#39;([0-9]+)\[\&amp;type=&quot;([A-Z]+)&quot;,location=&quot;([0-9]+)&quot;&#39;</span><span class="p">,</span> <span class="n">string</span><span class="o">=</span><span class="n">nex_str</span><span class="p">)</span>
+    <span class="n">num_taxa</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">matches</span><span class="p">)</span>
+    <span class="n">nex_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="c1"># generate taxon-state data</span>
+    <span class="c1">#d = {}</span>
+    <span class="n">s_state_str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">matches</span><span class="p">):</span>
+        <span class="n">taxon</span>        <span class="o">=</span> <span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">state</span>        <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+        <span class="n">vec_str</span>      <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span> <span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">int2vec</span><span class="p">[</span><span class="n">state</span><span class="p">]</span> <span class="p">])</span>
+        <span class="c1">#d[ taxon ]   = vec_str</span>
+        <span class="n">s_state_str</span> <span class="o">+=</span> <span class="n">taxon</span> <span class="o">+</span> <span class="s1">&#39;  &#39;</span> <span class="o">+</span> <span class="n">vec_str</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+    
+    <span class="c1"># build new nexus string</span>
+    <span class="n">s</span> <span class="o">=</span> \
+<span class="sd">&#39;&#39;&#39;#NEXUS</span>
+<span class="sd">Begin DATA;</span>
+<span class="sd">Dimensions NTAX={num_taxa} NCHAR={num_char}</span>
+<span class="sd">Format MISSING=? GAP=- DATATYPE=STANDARD SYMBOLS=&quot;01&quot;;</span>
+<span class="sd">Matrix</span>
+<span class="sd">{s_state_str}</span>
+<span class="sd">;</span>
+<span class="sd">END;</span>
+<span class="sd">&#39;&#39;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">num_taxa</span><span class="o">=</span><span class="n">num_taxa</span><span class="p">,</span> <span class="n">num_char</span><span class="o">=</span><span class="n">num_char</span><span class="p">,</span> <span class="n">s_state_str</span><span class="o">=</span><span class="n">s_state_str</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">s</span>
+
+<span class="c1">## set return None if bad, then flag the index as a bad sim.</span>
+<span class="c1">#def make_prune_phy(tre_fn, prune_fn):</span>
+<span class="k">def</span> <span class="nf">make_prune_phy</span><span class="p">(</span><span class="n">phy</span><span class="p">,</span> <span class="n">prune_fn</span><span class="p">):</span>
+    <span class="c1"># read tree</span>
+    <span class="c1"># phy_ = dp.Tree.get(path=tre_fn, schema=&#39;newick&#39;)</span>
+    <span class="c1"># copy input tree</span>
+    <span class="n">phy_</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">phy</span><span class="p">)</span>
+    <span class="c1"># compute all root-to-node distances</span>
+    <span class="n">root_distances</span> <span class="o">=</span> <span class="n">phy_</span><span class="o">.</span><span class="n">calc_node_root_distances</span><span class="p">()</span>
+    <span class="c1"># find tree height (max root-to-node distance)</span>
+    <span class="n">tree_height</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span> <span class="n">root_distances</span> <span class="p">)</span>
+    <span class="c1"># create empty dictionary</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="c1"># loop through all leaf nodes</span>
+    <span class="n">leaf_nodes</span> <span class="o">=</span> <span class="n">phy_</span><span class="o">.</span><span class="n">leaf_nodes</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">nd</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">leaf_nodes</span><span class="p">):</span>
+        <span class="c1"># convert root-distances to ages</span>
+        <span class="n">age</span> <span class="o">=</span> <span class="n">tree_height</span> <span class="o">-</span> <span class="n">nd</span><span class="o">.</span><span class="n">root_distance</span>
+        <span class="n">nd</span><span class="o">.</span><span class="n">annotations</span><span class="o">.</span><span class="n">add_new</span><span class="p">(</span><span class="s1">&#39;age&#39;</span><span class="p">,</span> <span class="n">age</span><span class="p">)</span>
+        <span class="c1"># ultrametricize ages for extant taxa</span>
+        <span class="k">if</span> <span class="n">age</span> <span class="o">&lt;</span> <span class="mf">1e-6</span><span class="p">:</span>
+            <span class="n">age</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="c1"># store taxon and age in dictionary</span>
+        <span class="n">taxon_name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">nd</span><span class="o">.</span><span class="n">taxon</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\&#39;</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">taxon_name</span> <span class="o">=</span> <span class="n">taxon_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span>
+        <span class="n">d</span><span class="p">[</span> <span class="n">taxon_name</span> <span class="p">]</span> <span class="o">=</span> <span class="n">age</span>
+    <span class="c1"># determine what to drop</span>
+    <span class="n">drop_taxon_labels</span> <span class="o">=</span> <span class="p">[</span> <span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">v</span> <span class="o">&gt;</span> <span class="mf">1e-12</span> <span class="p">]</span>
+    <span class="c1"># inform user if pruning yields valid tree</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">leaf_nodes</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">drop_taxon_labels</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># prune non-extant taxa</span>
+        <span class="n">phy_</span><span class="o">.</span><span class="n">prune_taxa_with_labels</span><span class="p">(</span> <span class="n">drop_taxon_labels</span> <span class="p">)</span>
+        <span class="c1"># write pruned tree</span>
+        <span class="n">phy_</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">prune_fn</span><span class="p">,</span> <span class="n">schema</span><span class="o">=</span><span class="s1">&#39;newick&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">phy_</span>
+
+
+
+<span class="c1"># Used in Encoding</span>
+<span class="k">def</span> <span class="nf">settings_to_str</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="n">taxon_category</span><span class="p">):</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="s1">&#39;setting,value</span><span class="se">\n</span><span class="s1">&#39;</span>
+    <span class="n">s</span> <span class="o">+=</span> <span class="s1">&#39;model_name,&#39;</span> <span class="o">+</span> <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;model_name&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+    <span class="n">s</span> <span class="o">+=</span> <span class="s1">&#39;model_type,&#39;</span> <span class="o">+</span> <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;model_type&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+    <span class="n">s</span> <span class="o">+=</span> <span class="s1">&#39;replicate_index,&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">settings</span><span class="p">[</span><span class="s1">&#39;replicate_index&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+    <span class="n">s</span> <span class="o">+=</span> <span class="s1">&#39;taxon_category,&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">taxon_category</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+    <span class="k">return</span> <span class="n">s</span>
+
+<span class="k">def</span> <span class="nf">param_dict_to_str</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
+    <span class="n">s1</span> <span class="o">=</span> <span class="s1">&#39;param,i,j,value</span><span class="se">\n</span><span class="s1">&#39;</span>
+    <span class="n">s2</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="n">s3</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">params</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">v</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">rate</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">NUM_DIGITS</span><span class="p">)</span>
+                <span class="n">s1</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="si">{k}</span><span class="s1">,</span><span class="si">{i}</span><span class="s1">,</span><span class="si">{i}</span><span class="s1">,</span><span class="si">{v}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">,</span><span class="n">i</span><span class="o">=</span><span class="n">i</span><span class="p">,</span><span class="n">v</span><span class="o">=</span><span class="n">rate</span><span class="p">)</span>
+                <span class="n">s2</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="si">{k}</span><span class="s1">_</span><span class="si">{i}</span><span class="s1">,&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">,</span><span class="n">i</span><span class="o">=</span><span class="n">i</span><span class="p">)</span>
+                <span class="n">s3</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="n">rate</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;,&#39;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">j</span><span class="p">,</span><span class="n">y</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+                    <span class="n">rate</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">NUM_DIGITS</span><span class="p">)</span>
+                    <span class="n">s1</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="si">{k}</span><span class="s1">,</span><span class="si">{i}</span><span class="s1">,</span><span class="si">{j}</span><span class="s1">,</span><span class="si">{v}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">,</span><span class="n">i</span><span class="o">=</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="o">=</span><span class="n">j</span><span class="p">,</span><span class="n">v</span><span class="o">=</span><span class="n">rate</span><span class="p">)</span>
+                    <span class="n">s2</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="si">{k}</span><span class="s1">_</span><span class="si">{i}</span><span class="s1">_</span><span class="si">{j}</span><span class="s1">,&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">,</span><span class="n">i</span><span class="o">=</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="o">=</span><span class="n">j</span><span class="p">)</span>
+                    <span class="n">s3</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="n">rate</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;,&#39;</span>
+
+    <span class="n">s4</span> <span class="o">=</span> <span class="n">s2</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">s3</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+    <span class="k">return</span> <span class="n">s1</span><span class="p">,</span><span class="n">s4</span>
+
+<span class="k">def</span> <span class="nf">events2df</span><span class="p">(</span><span class="n">events</span><span class="p">):</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
+        <span class="s1">&#39;name&#39;</span>     <span class="p">:</span> <span class="p">[</span> <span class="n">e</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">events</span> <span class="p">],</span>
+        <span class="s1">&#39;group&#39;</span>    <span class="p">:</span> <span class="p">[</span> <span class="n">e</span><span class="o">.</span><span class="n">group</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">events</span> <span class="p">],</span> 
+        <span class="s1">&#39;i&#39;</span>        <span class="p">:</span> <span class="p">[</span> <span class="n">e</span><span class="o">.</span><span class="n">i</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">events</span> <span class="p">],</span>
+        <span class="s1">&#39;j&#39;</span>        <span class="p">:</span> <span class="p">[</span> <span class="n">e</span><span class="o">.</span><span class="n">j</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">events</span> <span class="p">],</span>
+        <span class="s1">&#39;k&#39;</span>        <span class="p">:</span> <span class="p">[</span> <span class="n">e</span><span class="o">.</span><span class="n">k</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">events</span> <span class="p">],</span>
+        <span class="s1">&#39;reaction&#39;</span> <span class="p">:</span> <span class="p">[</span> <span class="n">e</span><span class="o">.</span><span class="n">reaction</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">events</span> <span class="p">],</span>
+        <span class="s1">&#39;rate&#39;</span>     <span class="p">:</span> <span class="p">[</span> <span class="n">e</span><span class="o">.</span><span class="n">rate</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">events</span> <span class="p">]</span>
+    <span class="p">})</span>
+    <span class="k">return</span> <span class="n">df</span>
+
+<span class="k">def</span> <span class="nf">states2df</span><span class="p">(</span><span class="n">states</span><span class="p">):</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
+        <span class="s1">&#39;lbl&#39;</span> <span class="p">:</span> <span class="n">states</span><span class="o">.</span><span class="n">int2lbl</span><span class="p">,</span>
+        <span class="s1">&#39;int&#39;</span> <span class="p">:</span> <span class="n">states</span><span class="o">.</span><span class="n">int2int</span><span class="p">,</span>
+        <span class="s1">&#39;set&#39;</span> <span class="p">:</span> <span class="n">states</span><span class="o">.</span><span class="n">int2set</span><span class="p">,</span>
+        <span class="s1">&#39;vec&#39;</span> <span class="p">:</span> <span class="n">states</span><span class="o">.</span><span class="n">int2vec</span>
+    <span class="p">})</span>
+    <span class="k">return</span> <span class="n">df</span>
+
+<span class="c1"># make matrix with parameter values, lower-bounds, upper-bounds: 3D-&gt;2D</span>
+<span class="k">def</span> <span class="nf">make_param_VLU_mtx</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">param_names</span><span class="p">):</span>
+    
+    <span class="c1"># axis labels</span>
+    <span class="n">stat_names</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">,</span> <span class="s1">&#39;lower&#39;</span><span class="p">,</span> <span class="s1">&#39;upper&#39;</span><span class="p">]</span>
+
+    <span class="c1"># multiindex</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="o">.</span><span class="n">from_product</span><span class="p">([</span><span class="nb">range</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">A</span><span class="o">.</span><span class="n">shape</span><span class="p">],</span> <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;stat&#39;</span><span class="p">,</span> <span class="s1">&#39;rep_idx&#39;</span><span class="p">,</span> <span class="s1">&#39;param&#39;</span><span class="p">])</span>
+    
+    <span class="c1"># flattened data frame</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&#39;A&#39;</span><span class="p">:</span> <span class="n">A</span><span class="o">.</span><span class="n">flatten</span><span class="p">()},</span> <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">)[</span><span class="s1">&#39;A&#39;</span><span class="p">]</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">reorder_levels</span><span class="p">([</span><span class="s1">&#39;param&#39;</span><span class="p">,</span><span class="s1">&#39;stat&#39;</span><span class="p">,</span><span class="s1">&#39;rep_idx&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">sort_index</span><span class="p">()</span>
+
+    <span class="c1"># unstack stat and param, so they become combined header indices</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">unstack</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;stat&#39;</span><span class="p">,</span><span class="s1">&#39;param&#39;</span><span class="p">])</span>
+    <span class="c1">#col_names = df.columns</span>
+
+    <span class="n">new_col_names</span> <span class="o">=</span> <span class="p">[</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">param_names</span><span class="p">[</span><span class="n">y</span><span class="p">]</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">stat_names</span><span class="p">[</span><span class="n">x</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span> <span class="p">]</span>
+    <span class="n">df</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="n">new_col_names</span>
+
+    <span class="k">return</span> <span class="n">df</span>
+
+<span class="k">def</span> <span class="nf">make_clean_phyloenc_str</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array2string</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">separator</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="n">max_line_width</span><span class="o">=</span><span class="mf">1e200</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">1e200</span><span class="p">,</span> <span class="n">edgeitems</span><span class="o">=</span><span class="mf">1e200</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">floatmode</span><span class="o">=</span><span class="s1">&#39;maxprec&#39;</span><span class="p">)</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[\[\]]&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">string</span><span class="o">=</span><span class="n">s</span><span class="p">)</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;,\n &#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">string</span><span class="o">=</span><span class="n">s</span><span class="p">)</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">s</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+    <span class="k">return</span> <span class="n">s</span>
+
+<span class="k">def</span> <span class="nf">clean_scientific_notation</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span> <span class="s1">&#39;\.0+E\+0+&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
+
+
+
+<span class="c1">#-----------------------------------------------------------------------------------------------------------------#</span>
+
+<span class="c1">#########################</span>
+<span class="c1"># Tensor de/normalizing #</span>
+<span class="c1">#########################</span>
+
+<span class="k">def</span> <span class="nf">normalize</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">m_sd</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="k">if</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">m_sd</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="kc">None</span><span class="p">)):</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">sd</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">axis</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">sd</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">sd</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">data</span> <span class="o">-</span> <span class="n">m</span><span class="p">)</span><span class="o">/</span><span class="n">sd</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">sd</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">m_sd</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">m_sd</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">data</span> <span class="o">-</span> <span class="n">m_sd</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">/</span><span class="n">m_sd</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        
+    
+<span class="k">def</span> <span class="nf">denormalize</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">train_mean</span><span class="p">,</span> <span class="n">train_sd</span><span class="p">,</span> <span class="n">log_labels</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">data</span> <span class="o">*</span> <span class="n">train_sd</span> <span class="o">+</span> <span class="n">train_mean</span>
+
+<span class="c1">#-----------------------------------------------------------------------------------------------------------------#</span>
+
+
+
+
+
+
+<span class="c1">#-----------------------------------------------------------------------------------------------------------------#</span>
+
+
+<span class="c1"># #######################</span>
+<span class="c1"># # CQR functions      ##</span>
+<span class="c1"># #######################</span>
+
+<span class="c1"># # ==&gt; Move to Learning? &lt;==</span>
+
+<span class="c1"># def pinball_loss(y_true, y_pred, alpha):</span>
+<span class="c1">#     err = y_true - y_pred</span>
+<span class="c1">#     return K.mean(K.maximum(alpha*err, (alpha-1)*err), axis=-1)</span>
+
+<span class="c1"># def pinball_loss_q_0_025(y_true, y_pred):</span>
+<span class="c1">#     return pinball_loss(y_true, y_pred, alpha=0.025)</span>
+
+<span class="c1"># def pinball_loss_q_0_975(y_true, y_pred):</span>
+<span class="c1">#     return pinball_loss(y_true, y_pred, alpha=0.975)</span>
+
+<span class="c1"># def pinball_loss_q_0_05(y_true, y_pred):</span>
+<span class="c1">#     return pinball_loss(y_true, y_pred, alpha=0.05)</span>
+
+<span class="c1"># def pinball_loss_q_0_95(y_true, y_pred):</span>
+<span class="c1">#     return pinball_loss(y_true, y_pred, alpha=0.95)</span>
+
+<span class="c1"># def pinball_loss_q_0_10(y_true, y_pred):</span>
+<span class="c1">#     return pinball_loss(y_true, y_pred, alpha=0.10)</span>
+
+<span class="c1"># def pinball_loss_q_0_90(y_true, y_pred):</span>
+<span class="c1">#     return pinball_loss(y_true, y_pred, alpha=0.90)</span>
+
+<span class="c1"># def pinball_loss_q_0_15(y_true, y_pred):</span>
+<span class="c1">#     return pinball_loss(y_true, y_pred, alpha=0.15)</span>
+
+<span class="c1"># def pinball_loss_q_0_85(y_true, y_pred):</span>
+<span class="c1">#     return pinball_loss(y_true, y_pred, alpha=0.85)</span>
+
+<span class="c1"># # computes the distance y_i is inside/outside the lower(x_i) and upper(x_i) quantiles</span>
+<span class="c1"># # there are three cases to consider:</span>
+<span class="c1"># #   1. y_i is under the lower bound: max-value will be q_lower(x_i) - y_i &amp; positive</span>
+<span class="c1"># #   2. y_i is over the upper bound:  max-value will be y_i - q_upper(x_i) &amp; positive</span>
+<span class="c1"># #   3. y_i is between the bounds:    max-value will be the difference between y_i and the closest bound &amp; negative</span>
+<span class="c1"># def compute_conformity_scores(x, y, q_lower, q_upper):</span>
+<span class="c1">#     return np.max( q_lower(x)-y, y-q_upper(x) )</span>
+
+<span class="c1"># def get_CQR_constant(preds, true, inner_quantile=0.95, symmetric = True):</span>
+<span class="c1">#     #preds axis 0 is the lower and upper quants, axis 1 is the replicates, and axis 2 is the params</span>
+<span class="c1">#     # compute non-comformity scores</span>
+<span class="c1">#     Q = np.empty((2, preds.shape[2]))</span>
+    
+<span class="c1">#     for i in range(preds.shape[2]):</span>
+<span class="c1">#         if symmetric:</span>
+<span class="c1">#             # Symmetric non-comformity score</span>
+<span class="c1">#             s = np.amax(np.array((preds[0][:,i] - true[:,i], true[:,i] - preds[1][:,i])), axis=0)</span>
+<span class="c1">#             # get adjustment constant: 1 - alpha/2&#39;s quintile of non-comformity scores</span>
+<span class="c1">#             #Q = np.append(Q, np.quantile(s, inner_quantile * (1 + 1/preds.shape[1])))</span>
+<span class="c1">#             lower_q = np.quantile(s, inner_quantile * (1 + 1/preds.shape[1]))</span>
+<span class="c1">#             upper_q = lower_q</span>
+<span class="c1">#             #Q[:,i] = np.array([lower_q, upper_q])</span>
+<span class="c1">#         else:</span>
+<span class="c1">#             # Asymmetric non-comformity score</span>
+<span class="c1">#             lower_s = np.array(true[:,i] - preds[0][:,i])</span>
+<span class="c1">#             upper_s = np.array(true[:,i] - preds[1][:,i])</span>
+<span class="c1">#             lower_q = np.quantile(lower_s, (1 - inner_quantile)/2 * (1 + 1/preds.shape[1]))</span>
+<span class="c1">#             upper_q = np.quantile(upper_s, (1 + inner_quantile)/2 * (1 + 1/preds.shape[1]))</span>
+<span class="c1">#             # get (lower_q adjustment, upper_q adjustment)</span>
+
+<span class="c1">#         Q[:,i] = np.array([lower_q, upper_q])</span>
+                               
+<span class="c1">#     return Q</span>
+
+<span class="c1"># def get_CQR_constant(x_pred_quantiles, y_true, inner_quantile=0.95):</span>
+<span class="c1">#     # preds axis 0 is the lower and upper quants, axis 1 is the replicates, and axis 2 is the param label</span>
+<span class="c1">#     # compute non-comformity scores</span>
+<span class="c1">#     Q = np.array([])</span>
+<span class="c1">#     # error tolerance on quantile for E</span>
+<span class="c1">#     error = 0.001</span>
+<span class="c1">#     # for each parameter</span>
+<span class="c1">#     #inner_quantile * (1 + 1/x_pred_quantiles.shape[1])</span>
+<span class="c1">#     for i in range(x_pred_quantiles.shape[2]):</span>
+<span class="c1">#         E = np.amax(np.array((x_pred_quantiles[0][:,i] - y_true[:,i], y_true[:,i] - x_pred_quantiles[1][:,i])), axis=0)</span>
+
+<span class="c1">#         # get 1 - alpha/2&#39;s quintile of non-comformity scores</span>
+<span class="c1">#         #print( inner_quantile * (1 + 1/x_pred_quantiles.shape[1]) )</span>
+<span class="c1">#         quant = inner_quantile * (1 + 1/x_pred_quantiles.shape[1])</span>
+<span class="c1">#         # if quant &lt; 0 and quant &gt; 0 - error:</span>
+<span class="c1">#         #     quant = 0.</span>
+<span class="c1">#         # elif quant &gt; 1. and quant &lt; 1. + error:</span>
+<span class="c1">#         #     quant = 1.</span>
+<span class="c1">#         Q = np.append(Q, np.quantile(E, quant))</span>
+
+<span class="c1">#     return Q</span>
+<span class="c1"># def get_CQR_constant_old(preds, true, inner_quantile=0.95, symmetric = True):</span>
+<span class="c1">#     #preds axis 0 is the lower and upper quants, axis 1 is the replicates, and axis 2 is the params</span>
+<span class="c1">#     # compute non-comformity scores</span>
+<span class="c1">#     Q = np.array([]) if symmetric else np.empty((2, preds.shape[2]))</span>
+<span class="c1">#     for i in range(preds.shape[2]):</span>
+<span class="c1">#         if symmetric:</span>
+<span class="c1">#             # Symmetric non-comformity score</span>
+<span class="c1">#             s = np.amax(np.array((preds[0][:,i] - true[:,i], true[:,i] - preds[1][:,i])), axis=0)</span>
+<span class="c1">#             # get adjustment constant: 1 - alpha/2&#39;s quintile of non-comformity scores</span>
+<span class="c1">#             Q = np.append(Q, np.quantile(s, inner_quantile * (1 + 1/preds.shape[1])))</span>
+<span class="c1">#         else:</span>
+<span class="c1">#             # Asymmetric non-comformity score</span>
+<span class="c1">#             lower_s = np.array(true[:,i] - preds[0][:,i])</span>
+<span class="c1">#             upper_s = np.array(true[:,i] - preds[1][:,i])</span>
+<span class="c1">#             # get (lower_q adjustment, upper_q adjustment)</span>
+<span class="c1">#             Q[:,i] = np.array((np.quantile(lower_s, (1 - inner_quantile)/2 * (1 + 1/preds.shape[1])),</span>
+<span class="c1">#                                np.quantile(upper_s, (1 + inner_quantile)/2 * (1 + 1/preds.shape[1]))))</span>
+<span class="c1">#     return Q</span>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
