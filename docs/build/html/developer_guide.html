@@ -21,7 +21,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="About" href="about.html" />
-    <link rel="prev" title="User Guide" href="user_guide.html" /> 
+    <link rel="prev" title="User guide" href="user_guide.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -51,8 +51,27 @@
 <li class="toctree-l1"><a class="reference internal" href="quick_guide.html">Quick guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="updates.html">Updates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="user_guide.html">User Guide</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Developer guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">User guide</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Developer guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#modelloader">ModelLoader</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#model">Model</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#geossemodel">GeosseModel</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#sirmmodel">SirmModel</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#simulating">Simulating</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#formatting">Formatting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#learning">Learning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#predicting">Predicting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#plotting">Plotting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#utilities">Utilities</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#phyddle.Utilities.make_symm"><code class="docutils literal notranslate"><span class="pre">make_symm()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#phyddle.Utilities.powerset"><code class="docutils literal notranslate"><span class="pre">powerset()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#phyddle.Utilities.find_tree_width"><code class="docutils literal notranslate"><span class="pre">find_tree_width()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="about.html">About</a></li>
 </ul>
 
@@ -84,15 +103,79 @@
 <h1>Developer guide<a class="headerlink" href="#developer-guide" title="Permalink to this heading"></a></h1>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>to be written</p>
+<p>Incomplete.</p>
 </div>
+<section id="modelloader">
+<span id="dev-modelloader"></span><h2>ModelLoader<a class="headerlink" href="#modelloader" title="Permalink to this heading"></a></h2>
+</section>
+<section id="model">
+<span id="dev-model"></span><h2>Model<a class="headerlink" href="#model" title="Permalink to this heading"></a></h2>
+<section id="geossemodel">
+<span id="dev-geossemodel"></span><h3>GeosseModel<a class="headerlink" href="#geossemodel" title="Permalink to this heading"></a></h3>
+</section>
+<section id="sirmmodel">
+<span id="dev-sirmmodel"></span><h3>SirmModel<a class="headerlink" href="#sirmmodel" title="Permalink to this heading"></a></h3>
+</section>
+</section>
+<section id="simulating">
+<span id="dev-simulating"></span><h2>Simulating<a class="headerlink" href="#simulating" title="Permalink to this heading"></a></h2>
+</section>
+<section id="formatting">
+<span id="dev-formatting"></span><h2>Formatting<a class="headerlink" href="#formatting" title="Permalink to this heading"></a></h2>
+</section>
+<section id="learning">
+<span id="dev-learning"></span><h2>Learning<a class="headerlink" href="#learning" title="Permalink to this heading"></a></h2>
+</section>
+<section id="predicting">
+<span id="dev-predicting"></span><h2>Predicting<a class="headerlink" href="#predicting" title="Permalink to this heading"></a></h2>
+</section>
+<section id="plotting">
+<span id="dev-plotting"></span><h2>Plotting<a class="headerlink" href="#plotting" title="Permalink to this heading"></a></h2>
+</section>
+<section id="utilities">
+<span id="dev-utilities"></span><h2>Utilities<a class="headerlink" href="#utilities" title="Permalink to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="phyddle.Utilities.make_symm">
+<span class="sig-prename descclassname"><span class="pre">phyddle.Utilities.</span></span><span class="sig-name descname"><span class="pre">make_symm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/phyddle/Utilities.html#make_symm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#phyddle.Utilities.make_symm" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="phyddle.Utilities.powerset">
+<span class="sig-prename descclassname"><span class="pre">phyddle.Utilities.</span></span><span class="sig-name descname"><span class="pre">powerset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">[1,2,3])</span> <span class="pre">--&gt;</span> <span class="pre">()</span> <span class="pre">(1,)</span> <span class="pre">(2,)</span> <span class="pre">(3,)</span> <span class="pre">(1,2)</span> <span class="pre">(1,3)</span> <span class="pre">(2,3)</span> <span class="pre">(1,2,3</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/phyddle/Utilities.html#powerset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#phyddle.Utilities.powerset" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="phyddle.Utilities.find_tree_width">
+<span class="sig-prename descclassname"><span class="pre">phyddle.Utilities.</span></span><span class="sig-name descname"><span class="pre">find_tree_width</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_taxa</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_taxa</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/phyddle/Utilities.html#find_tree_width"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#phyddle.Utilities.find_tree_width" title="Permalink to this definition"></a></dt>
+<dd><p>Finds the CPSV width.</p>
+<p>Returns the smallest suitable compact phylogenetic-state vector
+representation such that num_taxa &lt;= val for val in max_taxa.
+Returns 0 if num_taxa == 0.
+Returns -1 if num_taxa &gt; max_taxa[-1].</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_taxa</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><em>int</em></a>) – the number of taxa in the raw dataset</p></li>
+<li><p><strong>max_taxa</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><em>int</em></a><em>[</em><em>]</em>) – a list of tree widths for CPSV encoding</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The smallest suitable tree width encoding</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="user_guide.html" class="btn btn-neutral float-left" title="User Guide" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="user_guide.html" class="btn btn-neutral float-left" title="User guide" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="about.html" class="btn btn-neutral float-right" title="About" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

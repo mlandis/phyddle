@@ -1,3 +1,17 @@
+#!/usr/bin/env python
+"""
+Utilities defines miscellaneous helper functions phyddle uses for pipeline
+steps.
+"""
+__author__       = "Michael Landis"
+__copyright__    = "Copyright 2023, phyddle project"
+__credits__      = "Michael Landis, Ammon Thompson"
+__license__      = "MIT"
+__maintainer__   = "Michael Landis"
+__email__        = "michael.landis@wustl.edu"
+__status__       = "Development"
+
+
 # standard packages
 import argparse
 import importlib
@@ -367,6 +381,20 @@ def powerset(iterable):
     return chain.from_iterable(combinations(s, r) for r in range(len(s)+1))
 
 def find_tree_width(num_taxa, max_taxa):
+    """Finds the CPSV width.
+
+    Returns the smallest suitable compact phylogenetic-state vector
+    representation such that num_taxa <= val for val in max_taxa.
+    Returns 0 if num_taxa == 0.
+    Returns -1 if num_taxa > max_taxa[-1].
+
+    Args:
+        num_taxa (int): the number of taxa in the raw dataset
+        max_taxa (int[]):  a list of tree widths for CPSV encoding
+    
+    Returns:
+        int: The smallest suitable tree width encoding
+    """
     if num_taxa == 0:
         return 0
     elif num_taxa > max_taxa[-1]:

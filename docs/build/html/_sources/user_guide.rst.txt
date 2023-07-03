@@ -1,4 +1,4 @@
-User Guide
+User guide
 ==========
 
 This guide provides phyddle users with an overview for how the toolkit works, how to configure it, where it stores files, and how to interpret files and figures.
