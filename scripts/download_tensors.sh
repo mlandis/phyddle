@@ -1,10 +1,12 @@
 #!/bin/sh
 
 MODEL=$1
-DIR="../workspace/tensor_data/${MODEL}"
+REMOTE="${llserver}"
+REMOTE_DIR="${REMOTE}:/home/mlandis/projects/phyddle/workspace/tensor_data"
+LOCAL_DIR="../workspace/tensor_data/${MODEL}"
 ./clean_project.sh ${MODEL}
-mkdir -p ${DIR}
-scp "$llserver_wd/projects/phyddle/tensor_data/${MODEL}/*.hdf5" ${DIR}
-scp "$llserver_wd/projects/phyddle/tensor_data/${MODEL}/*.csv" ${DIR}
+mkdir -p ${LOCAL_DIR}
+scp "${REMOTE_DIR}/${MODEL}/*.hdf5" ${LOCAL_DIR}
+scp "${REMOTE_DIR}/${MODEL}/*.csv" ${LOCAL_DIR}
 
 
