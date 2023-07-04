@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>File formats &mdash; phyddle 0.0.3 documentation</title>
+  <title>File formats &amp; datatypes &mdash; phyddle 0.0.3 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -52,9 +52,12 @@
 <li class="toctree-l1"><a class="reference internal" href="updates.html">Updates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="user_guide.html">User guide</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">File formats</a><ul>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">File formats &amp; datatypes</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#input-files">Input files</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#tensor-files">Tensor files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#tensor-files">Tensor files</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#cblv-s">CBLV+S</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#output-files">Output files</a></li>
 </ul>
 </li>
@@ -76,7 +79,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">File formats</li>
+      <li class="breadcrumb-item active">File formats &amp; datatypes</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/file_formats.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -86,8 +89,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="file-formats">
-<h1>File formats<a class="headerlink" href="#file-formats" title="Permalink to this heading"></a></h1>
+  <section id="file-formats-datatypes">
+<h1>File formats &amp; datatypes<a class="headerlink" href="#file-formats-datatypes" title="Permalink to this heading"></a></h1>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Incomplete.</p>
@@ -126,18 +129,51 @@ END<span class="p">;</span>
 </section>
 <section id="tensor-files">
 <h2>Tensor files<a class="headerlink" href="#tensor-files" title="Permalink to this heading"></a></h2>
-<p>Phylogenetic data (e.g. from a Newick file) and character matrix data (e.g. from a Nexus file) are encoded into compact phylogenetic state tensors.</p>
-<p>Compact bijective ladderized vector + states</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="m">1</span>,1,2,3,1,3,3,0,0,0,0
-<span class="m">1</span>,2,3,2,3,2,0,0,0,0,0
-<span class="m">1</span>,1,1,1,1,1,1,1,1,1,1
+<p>Phylogenetic data (e.g. from a Newick file) and character matrix data (e.g. from a Nexus file) are encoded into compact phylogenetic state tensors. Internally, phyddle uses <cite>dendropy.Tree</cite> to represent phylogenies, <cite>pandas.DataFrame</cite> to represent character matrices (verify), and <cite>numpy.ndarray</cite> to store phylogenetic-state tensors.</p>
+<p>There are two types of phylogenetic-state tensors in phyddle: the compact bijective ladderized vector + states (CBLV+S) and the compact diversity vector + states (CDV+S). CBLV+S is used for trees that contain serially sampled (non-ultrametric) taxa whereas CDV+S is used for trees that contain only extant (ultrametric) taxa. The <cite>tree_width</cite> of the encoding defines the maximum number of taxa the phylogenetic-state tensor may contain.</p>
+<section id="cblv-s">
+<h3>CBLV+S<a class="headerlink" href="#cblv-s" title="Permalink to this heading"></a></h3>
+<p>This is an example for the CBLV+S encoding of 5 taxa with 2 characters. This is the Newick string:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="o">(((</span>A:2,B:1<span class="o">)</span>:1,<span class="o">(</span>C:3,D:2<span class="o">)</span>:3<span class="o">)</span>:1,E:2<span class="o">)</span><span class="p">;</span>
 </pre></div>
 </div>
-<p>Compact diversity vector + states</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="m">1</span>,1,2,3,1,3,3,0,0,0,0
-<span class="m">1</span>,1,1,1,1,1,1,1,1,1,1
+<p>This is the Nexus file:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1">#NEXUS</span>
+Begin<span class="w"> </span>DATA<span class="p">;</span>
+Dimensions<span class="w"> </span><span class="nv">NTAX</span><span class="o">=</span><span class="m">5</span><span class="w"> </span><span class="nv">NCHAR</span><span class="o">=</span><span class="m">2</span>
+Format<span class="w"> </span><span class="nv">MISSING</span><span class="o">=</span>?<span class="w"> </span><span class="nv">GAP</span><span class="o">=</span>-<span class="w"> </span><span class="nv">DATATYPE</span><span class="o">=</span>STANDARD<span class="w"> </span><span class="nv">SYMBOLS</span><span class="o">=</span><span class="s2">&quot;01&quot;</span><span class="p">;</span>
+Matrix
+<span class="w">    </span>A<span class="w">  </span><span class="m">01</span>
+<span class="w">    </span>B<span class="w">  </span><span class="m">11</span>
+<span class="w">    </span>C<span class="w">  </span><span class="m">10</span>
+<span class="w">    </span>D<span class="w">  </span><span class="m">10</span>
+<span class="w">    </span>E<span class="w">  </span><span class="m">01</span>
+<span class="p">;</span>
+END<span class="p">;</span>
 </pre></div>
 </div>
+<p>Ladderizing clades by maximum root-to-tip distance orders the taxa C, D, A, B, then E, which correspond to the first five columns of the CBLV+S tensor.
+The un-rescaled CBLV+S file would look like this:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># C,D,A,B,E,-,-,-,-,-</span>
+<span class="w">  </span><span class="m">3</span>,2,2,1,2,0,0,0,0,0<span class="w">  </span><span class="c1"># tip edge length</span>
+<span class="w">  </span><span class="m">0</span>,3,1,1,0,0,0,0,0,0<span class="w">  </span><span class="c1"># node edge length</span>
+<span class="w">  </span><span class="m">7</span>,2,3,1,2,0,0,0,0,0<span class="w">  </span><span class="c1"># tip-to-node distance</span>
+<span class="w">  </span><span class="m">0</span>,4,1,2,0,0,0,0,0,0<span class="w">  </span><span class="c1"># node-to-root distance</span>
+<span class="w">  </span><span class="m">1</span>,1,0,1,0,0,0,0,0,0<span class="w">  </span><span class="c1"># character 1</span>
+<span class="w">  </span><span class="m">0</span>,0,1,1,1,0,0,0,0,0<span class="w">  </span><span class="c1"># character 2</span>
+</pre></div>
+</div>
+<p>By default, all branch length entries are rescaled from 0 to 1 as proportion to tree height (formatted to ease reading):</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1">#    C,   D,   A,   B,   E,   -,   -,   -,   -,   -</span>
+<span class="w">  </span><span class="m">0</span>.43,0.29,0.29,0.14,0.29,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span><span class="w">  </span><span class="c1"># tip edge length</span>
+<span class="w">  </span><span class="m">0</span>.00,0.43,0.14,0.14,0.00,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span><span class="w">  </span><span class="c1"># node edge length</span>
+<span class="w">  </span><span class="m">1</span>.00,0.29,0.43,0.14,0.29,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span><span class="w">  </span><span class="c1"># tip-to-node distance</span>
+<span class="w">  </span><span class="m">0</span>.00,0.57,0.14,0.29,0.00,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span><span class="w">  </span><span class="c1"># node-to-root distance</span>
+<span class="w">     </span><span class="m">1</span>,<span class="w">   </span><span class="m">1</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">1</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span><span class="w">  </span><span class="c1"># character 1</span>
+<span class="w">     </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">1</span>,<span class="w">   </span><span class="m">1</span>,<span class="w">   </span><span class="m">1</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span><span class="w">  </span><span class="c1"># character 2</span>
+</pre></div>
+</div>
+</section>
 </section>
 <section id="output-files">
 <h2>Output files<a class="headerlink" href="#output-files" title="Permalink to this heading"></a></h2>

@@ -59,7 +59,7 @@ Contents
     updates
     installation
     user_guide
-    file_formats
+    files_types
     developer_guide
     about
 
