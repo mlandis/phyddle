@@ -4,10 +4,21 @@ import numpy as np
 
 class BaseModel:
     def __init__(self, args):
-        #print('BaseModel')
+        """
+        Initializes the BaseModel.
+
+        Args:
+            args (dict): A dictionary containing the arguments for initialization.
+        """
         return
     
     def set_args(self, args):
+        """
+        Sets the arguments for the model.
+
+        Args:
+            args (dict): A dictionary containing the arguments.
+        """
         self.model_type    = args['model_type']
         self.model_variant = args['model_variant']
         self.rv_fn         = args['rv_fn']
@@ -15,6 +26,12 @@ class BaseModel:
         return
     
     def set_model(self, seed=None):
+        """
+        Sets the model.
+
+        Args:
+            seed (int, optional): The random seed value. Defaults to None.
+        """
         # set RNG seed if provided
         
         #print("BaseModel.set_model", seed)
@@ -39,31 +56,68 @@ class BaseModel:
         return
     
     def clear_model(self):
+        """
+        Clears the model.
+        """
         self.is_model_set = False
         self.states = None
         self.params = None
         self.events = None
         self.df_events = None
         self.df_states = None
-    
-    # def get_model_variants(self):
-    #     raise NotImplementedError
+        return
     
     def make_settings(self):
+        """
+        Creates the settings for the model.
+
+        Raises:
+            NotImplementedError: This method should be implemented in derived classes.
+        """
         raise NotImplementedError
     
     def make_states(self):
+        """
+        Creates the state space for the model.
+
+        Raises:
+            NotImplementedError: This method should be implemented in derived classes.
+        """
         raise NotImplementedError
     
     def make_events(self):
+        """
+        Creates the event space for the model.
+
+        Raises:
+            NotImplementedError: This method should be implemented in derived classes.
+        """
         raise NotImplementedError
     
     def make_params(self):
+        """
+        Creates the parameter space for the model.
+
+        Raises:
+            NotImplementedError: This method should be implemented in derived classes.
+        """
         raise NotImplementedError
     
     def make_start_state(self):
+        """
+        Creates the starting state for the model.
+
+        Raises:
+            NotImplementedError: This method should be implemented in derived classes.
+        """
         raise NotImplementedError
     
     def make_start_sizes(self):
+        """
+        Creates the starting sizes for the model.
+
+        Raises:
+            NotImplementedError: This method should be implemented in derived classes.
+        """
         raise NotImplementedError
     

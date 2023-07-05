@@ -1,16 +1,13 @@
 #!/usr/bin/env python
 """
-Utilities defines miscellaneous helper functions phyddle uses for pipeline
-steps.
-"""
-__author__       = "Michael Landis"
-__copyright__    = "Copyright 2023, phyddle project"
-__credits__      = "Michael Landis, Ammon Thompson"
-__license__      = "MIT"
-__maintainer__   = "Michael Landis"
-__email__        = "michael.landis@wustl.edu"
-__status__       = "Development"
+Utilities
+===========
+Miscellaneous helper functions phyddle uses for pipeline steps.
 
+Author:    Michael Landis
+Copyright: (c) 2023, Michael Landis
+License:   MIT
+"""
 
 # standard packages
 import argparse
@@ -19,6 +16,7 @@ import re
 import os
 import sys
 import copy
+from typing import Optional, List
 from itertools import chain, combinations
 
 # external packages
@@ -42,8 +40,20 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # or any {'0', '1', '2'}
 
 # model events
 class Event:
+
     # initialize
-    def __init__(self, idx, r=0.0, n=None, g=None, ix=None, jx=None):
+    def __init__(self, idx, r=0.0, n=None, g=None, ix=None, jx=None) -> None:
+        """
+        Creates an event in the model.
+
+        Args:
+            idx (dict): A dictionary containing the indices of the event.
+            r (float): The rate of the event.
+            n (str): The name of the event.
+            g (str): The reaction group of the event.
+            ix (list): The reaction quantities (reactants) before the event.
+            jx (list): The reaction quantities (products) after the event.
+        """
         self.i = -1
         self.j = -1
         self.k = -1
@@ -60,23 +70,44 @@ class Event:
         self.ix = ix
         self.jx = jx
         self.reaction = ' + '.join(ix) + ' -> ' + ' + '.join(jx)
+        return
         
     # make print string
-    def make_str(self):
+    def make_str(self) -> str:
+        """
+        Creates a string representation of the event.
+
+        Returns:
+            str: The string representation of the event.
+        """
         s = 'Event({name},{group},{rate},{idx})'.format(name=self.name, group=self.group, rate=self.rate, idx=self.idx)        
         #s += ')'
         return s
+    
     # representation string
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """
+        Returns the representation of the event.
+
+        Returns:
+            str: The representation of the event.
+        """
         return self.make_str()
+    
     # print string
-    def __str__(self):
+    def __str__(self) -> str:
+        """
+        Returns the string representation of the event.
+
+        Returns:
+            str: The string representation of the event.
+        """
         return self.make_str()
 
 
 # state space
 class States:
-    def __init__(self, lbl2vec):
+    def __init__(self, lbl2vec) -> None:
 
         # state space dictionary (input)
         self.lbl2vec      = lbl2vec
@@ -103,7 +134,16 @@ class States:
         self.int2vecstr = [ ''.join([str(y) for y in x]) for x in self.int2vec ]
         self.vecstr2int = { v:i for i,v in enumerate(self.int2vecstr) }
        
-    def make_str(self):
+        # done
+        return
+
+    def make_str(self) -> str:
+        """
+        Creates a string representation of the state space.
+
+        Returns:
+            str: The string representation of the state space.
+        """
         # state space: {'A': [1, 0, 0], 'B': [0, 1, 0], 'C': [0, 0, 1], 'AB': [1, 1, 0], 'AC': [1, 0, 1], 'BC': [0, 1, 1], 'ABC': [1, 1, 1]}
         # string: Statespace(A,0,100;B,1,010;C,2,001;AB,3,110;AC,4,101;BC,5,011;ABC,6,111)
         s = 'Statespace('
@@ -115,14 +155,34 @@ class States:
         return s
 
     # representation string
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """
+        Returns the representation of the state space.
+
+        Returns:
+            str: The representation of the state space.
+        """
         return self.make_str()
     # print string
-    def __str__(self):
+    def __str__(self) -> str:
+        """
+        Returns the string representation of the state space.
+
+        Returns:
+            str: The string representation of the state space.
+        """
         return self.make_str()
     
-    def make_df(self):
-        df = pd.DataFrame()
+    # def make_df(self):
+    #     """
+    #     ## Probably can delete????
+    #     Creates a DataFrame representation of the state space.
+
+    #     Returns:
+    #         pandas.DataFrame: The DataFrame representation of the state space.
+    #     """
+    #     df = pd.DataFrame()
+    #     return df
 
 
 
@@ -132,52 +192,18 @@ class States:
 # CONFIG LOADER   #
 ###################
 
-def load_config(config_fn, arg_overwrite=True):
-    
-    # KEEP THIS: Want to improve precedence so CLI-provided-arg > CFG-arg > CLI-default-arg
+def load_config(config_fn: str,
+                arg_overwrite: Optional[bool]=True):
+    """
+    Loads the configuration.
 
-    # # argument parsing
-    # parser = argparse.ArgumentParser(description='phyddle pipeline config', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    # parser.add_argument('-c', '--cfg',          dest='config_fn', type=str, default='config', help='Config file name')
-    # parser.add_argument('-f', '--force',        action='store_true', help='Arguments override config file settings')
-    # parser.add_argument('--proj',               dest='proj', type=str, default='my_project', help='Project name used as directory across pipeline stages')
-    # parser.add_argument('--use_parallel',       dest='use_parallel', type=bool, default=True, help='Use parallelization? (recommended)')
-    # parser.add_argument('--num_proc',           dest='num_proc', type=int, default=-2, help='How many cores for multiprocessing? (e.g. 4 uses 4, -2 uses all but 2)')
-    # # directory settings
-    # parser.add_argument('--sim_dir',            dest='sim_dir', type=str, default='../raw_data', help='Directory for raw simulated data')
-    # parser.add_argument('--fmt_dir',            dest='fmt_dir', type=str, default='../tensor_data', help='Directory for tensor-formatted simulated data')
-    # parser.add_argument('--net_dir',            dest='net_dir', type=str, default='../network', help='Directory for trained networks and predictions')
-    # parser.add_argument('--plt_dir',            dest='plt_dir', type=str, default='../plot', help='Directory for plotted results')
-    # parser.add_argument('--pred_dir',           dest='pred_dir', type=str, help='Predict results for dataset located in this directory')
-    # # model settings
-    # #parser.add_argument('--show_models',        dest='show_models', type=bool, default=False, help='Print all available model types and variants?')
-    # parser.add_argument('--model_type',         dest='model_type', type=str, help='Model type')
-    # parser.add_argument('--model_variant',      dest='model_variant', type=str, help='Model variant')
-    # parser.add_argument('--num_char',           dest='num_char', type=int, help='Number of characters')
-    # # simulation settings
-    # parser.add_argument('--sim_logging',        dest='sim_logging', type=str, default='verbose', choices=['clean', 'verbose', 'compress'], help='Simulation logging style')
-    # parser.add_argument('--start_idx',          dest='start_idx', type=int, default=0, help='Start index for simulation')
-    # parser.add_argument('--end_idx',            dest='end_idx', type=int, default=100, help='End index for simulation')
-    # parser.add_argument('--stop_time',          dest='stop_time', type=float, default=10.0, help='Maximum duration of evolution for each simulation')
-    # parser.add_argument('--stop_floor_sizes',   dest='stop_floor_sizes', type=int, default=0, help='Minimum number of taxa for each simulation')
-    # parser.add_argument('--stop_ceil_sizes',    dest='stop_ceil_sizes', type=int, default=500, help='Maximum number of taxa for each simulation')
-    # # formatting settings
-    # parser.add_argument('--tensor_format',      dest='tensor_format', type=str, default='hdf5', choices=['hdf5', 'csv'], help='Storage format for simulation tensors')
-    # parser.add_argument('--tree_type',          dest='tree_type', type=str, choices=['extant', 'serial'], help='Type of tree')
-    # # learning settings
-    # parser.add_argument('--tree_size',          dest='tree_size', type=int, help='Number of taxa in phylogenetic tensor')
-    # parser.add_argument('--num_epochs',         dest='num_epochs', type=int, default=21, help='Number of learning epochs')
-    # parser.add_argument('--batch_size',         dest='batch_size', type=int, default=128, help='Training batch sizes during learning')
-    # parser.add_argument('--prop_test',          dest='prop_test', type=float, default=0.05, help='Proportion of data used as test examples (demonstrate trained network performance)')
-    # parser.add_argument('--prop_validation',    dest='prop_validation', type=float, default=0.05, help='Proportion of data used as validation examples (diagnose network overtraining)')
-    # parser.add_argument('--prop_calibration',   dest='prop_calibration', type=float, default=0.20, help='Proportion of data used as calibration examples (calibrate conformal prediction intervals)')
-    # parser.add_argument('--alpha_CQRI',         dest='alpha_CQRI', type=float, default=0.95, help='Expected coverage percent for prediction intervals')
-    # parser.add_argument('--loss',               dest='loss', type=str, default='mse', help='Loss function used as optimization criterion')
-    # parser.add_argument('--optimizer',          dest='optimizer', type=str, default='adam', help='Method used for optimizing neural network')
-    # # plotting settings
-    # parser.add_argument('--network_prefix',     dest='network_prefix', type=str, help='Plot results related to this network prefix')
-    # # prediction settings
-    # parser.add_argument('--pred_prefix',        dest='pred_prefix', type=str, help='Predict results for this dataset')
+    Args:
+        config_fn (str): The config file name.
+        arg_overwrite (bool, optional): Whether to overwrite config file settings with arguments. Defaults to True.
+
+    Returns:
+        dict: The loaded configuration.
+    """
     
     # argument parsing
     parser = argparse.ArgumentParser(description='phyddle pipeline config') #,
@@ -304,64 +330,52 @@ def load_config(config_fn, arg_overwrite=True):
 
 #-----------------------------------------------------------------------------------------------------------------#
 
-#########################
-# Model registry        #
-#########################
-
-# def show_models(args):
-
-#     model_variants = {
-#         'GeoSSE' : {
-#             'variants': {
-#                 'equal-rates',
-#                 'free-rates',
-#                 'density-extinction'
-#             },
-                    
-#         'SIRM'   : { 'equal-rates', 'free-rates' }
-#     }
-#     model_
-#     cw = [20, 20, 40]
-#     s  = 'Model type'.ljust(cw[0], ' ')  + 'Model variant'.ljust(cw[1], ' ') + 'Parameters'.ljust(cw[2], ' ') + '\n'
-#     s += ''.ljust(sum(cw), '-') + '\n'
-#     for i,model_type in enumerate(ModelLoader.model_type_list):
-#         s += model_type.ljust(cw[0], ' ')
-#         model = ModelLoader.load_model(model_type)
-#         # for j,model_variant in enumerate(model.get_model_variants()):
-#         #     if j == 0:
-#         #         s += '' + model_variant.ljust(cw[1], ' ')
-#         #     else:
-#         #         s += ''.ljust(cw[0], ' ')  + model_variant.ljust(cw[1], ' ')
-#     return s
-
-
-
-#-----------------------------------------------------------------------------------------------------------------#
-
 ###################
 # GENERAL HELPERS #
 ###################
 
 def make_symm(m):
-    d = np.diag(m)
-    m = np.triu(m)
-    m = m + m.T
-    np.fill_diagonal(m, d)
+    """
+    Makes a matrix symmetric by copying the upper triangle to the lower triangle.
+
+    Args:
+        m (numpy.ndarray): The input matrix.
+
+    Returns:
+        numpy.ndarray: The symmetric matrix.
+    """
+    d = np.diag(m)  # Extracts the diagonal elements of the matrix
+    m = np.triu(m)  # Extracts the upper triangle of the matrix
+    m = m + m.T  # Adds the transposed upper triangle to the original upper triangle
+    np.fill_diagonal(m, d)  # Restores the original diagonal elements
     return m
 
-# Chat-GPT function
 def sort_binary_vectors(binary_vectors):
     """
-    Sorts a list of binary vectors in order of number of "on" bits first, and then left to right in terms of which bits are "on".
+    Sorts a list of binary vectors.
+
+    The binary vectors are sorted first based on the number of "on" bits, and then from left to right in terms of which bits are "on".
+
+    Args:
+        binary_vectors (List[List[int]]): The list of binary vectors to be sorted.
+
+    Returns:
+        List[List[int]]: The sorted list of binary vectors.
     """
-    # Define a helper function to count the number of "on" bits in a binary vector
     def count_ones(binary_vector):
+        """
+        Counts the number of "on" bits in a binary vector.
+
+        Args:
+            binary_vector (List[int]): The binary vector.
+
+        Returns:
+            int: The count of "on" bits.
+        """
         return sum(binary_vector)
-    
-    # Sort the binary vectors in the list first by number of "on" bits
+
     sorted_vectors = sorted(binary_vectors, key=count_ones)
-    
-    # Sort the binary vectors in the list by "on" bits from left to right
+
     for i in range(len(sorted_vectors)):
         for j in range(i+1, len(sorted_vectors)):
             if count_ones(sorted_vectors[j]) == count_ones(sorted_vectors[i]):
@@ -370,17 +384,24 @@ def sort_binary_vectors(binary_vectors):
                         if sorted_vectors[j][k] > sorted_vectors[i][k]:
                             sorted_vectors[i], sorted_vectors[j] = sorted_vectors[j], sorted_vectors[i]
                         break
-                
+
     return sorted_vectors
 
-
-# helper functions
 def powerset(iterable):
-    "powerset([1,2,3]) --> () (1,) (2,) (3,) (1,2) (1,3) (2,3) (1,2,3)"
-    s = list(iterable)
-    return chain.from_iterable(combinations(s, r) for r in range(len(s)+1))
+    """
+    Generates all possible subsets (powerset) of the given iterable.
 
-def find_tree_width(num_taxa, max_taxa):
+    Args:
+        iterable: An iterable object.
+
+    Returns:
+        generator: A generator that yields each subset.
+    """
+    s = list(iterable)  # Convert the iterable to a list
+    return chain.from_iterable(combinations(s, r) for r in range(len(s) + 1))
+
+
+def find_tree_width(num_taxa:int, max_taxa:list[int]):
     """Finds the CPSV width.
 
     Returns the smallest suitable compact phylogenetic-state vector
@@ -390,7 +411,7 @@ def find_tree_width(num_taxa, max_taxa):
 
     Args:
         num_taxa (int): the number of taxa in the raw dataset
-        max_taxa (int[]):  a list of tree widths for CPSV encoding
+        max_taxa (list[int]):  a list of tree widths for CPSV encoding
     
     Returns:
         int: The smallest suitable tree width encoding
@@ -415,24 +436,45 @@ def find_tree_width(num_taxa, max_taxa):
 # FILE HELPERS #
 ################
 
-def write_to_file(s, fn):
+def write_to_file(s: str, fn: str) -> None:
+    """Writes a string to a file.
+
+    Args:
+        s (str): The string to write.
+        fn (str): The file name or path to write the string to.
+
+    Returns:
+        None
+    """
     f = open(fn, 'w')
     f.write(s)
     f.close()
+    return
+
 
 def read_tree(tre_fn):
-    # check that file exists 
+    """Reads a phylogenetic tree from a file.
+
+    Args:
+        tre_fn (str): The file name or path of the tree file.
+
+    Returns:
+        dp.Tree or None: The parsed phylogenetic tree object, or None if the tree cannot be read.
+
+    Raises:
+        FileNotFoundError: If the tree file at `tre_fn` does not exist.
+    """
     if not os.path.exists(tre_fn):
         raise FileNotFoundError(f'Could not find tree file at {tre_fn}')
-    
+
     phy = None
-    for schema in [ 'newick', 'nexus' ]:
+    for schema in ['newick', 'nexus']:
         try:
             phy_tmp = dp.Tree.get(path=tre_fn, schema=schema)
         except:
             phy_tmp = None
         else:
-             if phy_tmp is not None:
+            if phy_tmp is not None:
                 phy = phy_tmp
     return phy
 
@@ -730,119 +772,4 @@ def denormalize(data, train_mean, train_sd, log_labels = False):
 
 #-----------------------------------------------------------------------------------------------------------------#
 
-
-
-
-
-
-#-----------------------------------------------------------------------------------------------------------------#
-
-
-# #######################
-# # CQR functions      ##
-# #######################
-
-# # ==> Move to Learning? <==
-
-# def pinball_loss(y_true, y_pred, alpha):
-#     err = y_true - y_pred
-#     return K.mean(K.maximum(alpha*err, (alpha-1)*err), axis=-1)
-
-# def pinball_loss_q_0_025(y_true, y_pred):
-#     return pinball_loss(y_true, y_pred, alpha=0.025)
-
-# def pinball_loss_q_0_975(y_true, y_pred):
-#     return pinball_loss(y_true, y_pred, alpha=0.975)
-
-# def pinball_loss_q_0_05(y_true, y_pred):
-#     return pinball_loss(y_true, y_pred, alpha=0.05)
-
-# def pinball_loss_q_0_95(y_true, y_pred):
-#     return pinball_loss(y_true, y_pred, alpha=0.95)
-
-# def pinball_loss_q_0_10(y_true, y_pred):
-#     return pinball_loss(y_true, y_pred, alpha=0.10)
-
-# def pinball_loss_q_0_90(y_true, y_pred):
-#     return pinball_loss(y_true, y_pred, alpha=0.90)
-
-# def pinball_loss_q_0_15(y_true, y_pred):
-#     return pinball_loss(y_true, y_pred, alpha=0.15)
-
-# def pinball_loss_q_0_85(y_true, y_pred):
-#     return pinball_loss(y_true, y_pred, alpha=0.85)
-
-# # computes the distance y_i is inside/outside the lower(x_i) and upper(x_i) quantiles
-# # there are three cases to consider:
-# #   1. y_i is under the lower bound: max-value will be q_lower(x_i) - y_i & positive
-# #   2. y_i is over the upper bound:  max-value will be y_i - q_upper(x_i) & positive
-# #   3. y_i is between the bounds:    max-value will be the difference between y_i and the closest bound & negative
-# def compute_conformity_scores(x, y, q_lower, q_upper):
-#     return np.max( q_lower(x)-y, y-q_upper(x) )
-
-# def get_CQR_constant(preds, true, inner_quantile=0.95, symmetric = True):
-#     #preds axis 0 is the lower and upper quants, axis 1 is the replicates, and axis 2 is the params
-#     # compute non-comformity scores
-#     Q = np.empty((2, preds.shape[2]))
-    
-#     for i in range(preds.shape[2]):
-#         if symmetric:
-#             # Symmetric non-comformity score
-#             s = np.amax(np.array((preds[0][:,i] - true[:,i], true[:,i] - preds[1][:,i])), axis=0)
-#             # get adjustment constant: 1 - alpha/2's quintile of non-comformity scores
-#             #Q = np.append(Q, np.quantile(s, inner_quantile * (1 + 1/preds.shape[1])))
-#             lower_q = np.quantile(s, inner_quantile * (1 + 1/preds.shape[1]))
-#             upper_q = lower_q
-#             #Q[:,i] = np.array([lower_q, upper_q])
-#         else:
-#             # Asymmetric non-comformity score
-#             lower_s = np.array(true[:,i] - preds[0][:,i])
-#             upper_s = np.array(true[:,i] - preds[1][:,i])
-#             lower_q = np.quantile(lower_s, (1 - inner_quantile)/2 * (1 + 1/preds.shape[1]))
-#             upper_q = np.quantile(upper_s, (1 + inner_quantile)/2 * (1 + 1/preds.shape[1]))
-#             # get (lower_q adjustment, upper_q adjustment)
-
-#         Q[:,i] = np.array([lower_q, upper_q])
-                               
-#     return Q
-
-# def get_CQR_constant(x_pred_quantiles, y_true, inner_quantile=0.95):
-#     # preds axis 0 is the lower and upper quants, axis 1 is the replicates, and axis 2 is the param label
-#     # compute non-comformity scores
-#     Q = np.array([])
-#     # error tolerance on quantile for E
-#     error = 0.001
-#     # for each parameter
-#     #inner_quantile * (1 + 1/x_pred_quantiles.shape[1])
-#     for i in range(x_pred_quantiles.shape[2]):
-#         E = np.amax(np.array((x_pred_quantiles[0][:,i] - y_true[:,i], y_true[:,i] - x_pred_quantiles[1][:,i])), axis=0)
-
-#         # get 1 - alpha/2's quintile of non-comformity scores
-#         #print( inner_quantile * (1 + 1/x_pred_quantiles.shape[1]) )
-#         quant = inner_quantile * (1 + 1/x_pred_quantiles.shape[1])
-#         # if quant < 0 and quant > 0 - error:
-#         #     quant = 0.
-#         # elif quant > 1. and quant < 1. + error:
-#         #     quant = 1.
-#         Q = np.append(Q, np.quantile(E, quant))
-
-#     return Q
-# def get_CQR_constant_old(preds, true, inner_quantile=0.95, symmetric = True):
-#     #preds axis 0 is the lower and upper quants, axis 1 is the replicates, and axis 2 is the params
-#     # compute non-comformity scores
-#     Q = np.array([]) if symmetric else np.empty((2, preds.shape[2]))
-#     for i in range(preds.shape[2]):
-#         if symmetric:
-#             # Symmetric non-comformity score
-#             s = np.amax(np.array((preds[0][:,i] - true[:,i], true[:,i] - preds[1][:,i])), axis=0)
-#             # get adjustment constant: 1 - alpha/2's quintile of non-comformity scores
-#             Q = np.append(Q, np.quantile(s, inner_quantile * (1 + 1/preds.shape[1])))
-#         else:
-#             # Asymmetric non-comformity score
-#             lower_s = np.array(true[:,i] - preds[0][:,i])
-#             upper_s = np.array(true[:,i] - preds[1][:,i])
-#             # get (lower_q adjustment, upper_q adjustment)
-#             Q[:,i] = np.array((np.quantile(lower_s, (1 - inner_quantile)/2 * (1 + 1/preds.shape[1])),
-#                                np.quantile(upper_s, (1 + inner_quantile)/2 * (1 + 1/preds.shape[1]))))
-#     return Q
 

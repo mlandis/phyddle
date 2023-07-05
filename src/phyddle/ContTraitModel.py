@@ -1,6 +1,16 @@
-#!/usr/local/bin/python3
+#!/usr/bin/env python
+"""
+ContTraitModel
+===========
+Defines a class for a discretized Continuous Trait model.
+Dervies from phyddle.Model.BaseModel.
+
+Author:    Michael Landis
+Copyright: (c) 2023, Michael Landis
+License:   MIT
+"""
+
 import numpy as np
-#import scipy as sp
 import itertools
 
 from phyddle import Model,Utilities

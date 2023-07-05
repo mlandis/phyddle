@@ -1,3 +1,15 @@
+#!/usr/bin/env python
+"""
+Formatting
+==========
+Defines classes and methods for the Formatting step, which converts raw data
+into tensor data that can be used by the Learning step.
+
+Author:    Michael Landis
+Copyright: (c) 2023, Michael Landis
+License:   MIT
+"""
+
 # standard imports
 import copy
 import os

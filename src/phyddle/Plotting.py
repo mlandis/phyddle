@@ -1,3 +1,16 @@
+#!/usr/bin/env python
+"""
+Plotting
+========
+Defines classes and methods for the Plotting step, which loads files from the Simulating,
+Learning, and Predicting steps to generate a standard report for the performance of
+the entire phyddle pipeline.
+
+Author:    Michael Landis
+Copyright: (c) 2023, Michael Landis
+License:   MIT
+"""
+
 # standard imports
 import json
 import os

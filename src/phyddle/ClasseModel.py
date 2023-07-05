@@ -1,5 +1,16 @@
-#!/usr/local/bin/python3
-#import string
+#!/usr/bin/env python
+"""
+ClasseModel
+===========
+Defines a class for a Cladogenetic State-Dependent Speciation Extinction model.
+Dervies from phyddle.Model.BaseModel.
+
+Author:    Michael Landis
+Copyright: (c) 2023, Michael Landis
+License:   MIT
+"""
+
+
 import itertools
 import numpy as np
 import scipy as sp

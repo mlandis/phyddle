@@ -1,3 +1,16 @@
+#!/usr/bin/env python
+"""
+Simulating
+==========
+Defines classes and methods for the Simulating step, which generates large numbers
+of simulated datasets (in parallel, if desired) that are later formatted and used
+to train the neural network.
+
+Author:    Michael Landis
+Copyright: (c) 2023, Michael Landis
+License:   MIT
+"""
+
 # standard imports
 import gzip
 import os

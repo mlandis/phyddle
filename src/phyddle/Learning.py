@@ -1,3 +1,15 @@
+#!/usr/bin/env python
+"""
+Learning
+========
+Defines classes and methods for the Learning step, which builds and trains a
+network using the tensor data from the Formatting step.
+
+Author:    Michael Landis
+Copyright: (c) 2023, Michael Landis
+License:   MIT
+"""
+
 # standard imports
 import json
 import os

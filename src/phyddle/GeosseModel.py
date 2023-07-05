@@ -1,4 +1,15 @@
-#!/usr/local/bin/python3
+#!/usr/bin/env python
+"""
+GeosseModel
+===========
+Defines a class for a Geographic State-Dependent Speciation-Extinction (GeoSSE) model.
+Dervies from phyddle.Model.BaseModel.
+
+Author:    Michael Landis
+Copyright: (c) 2023, Michael Landis
+License:   MIT
+"""
+
 import string
 import itertools
 import numpy as np

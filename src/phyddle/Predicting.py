@@ -1,3 +1,16 @@
+#!/usr/bin/env python
+"""
+Predicting
+==========
+Defines classes and methods for the Predicting step, which loads a pre-trained model
+and uses it to make predictions (e.g. parameter estimates) for e.g. a new empirical
+dataset.
+
+Author:    Michael Landis
+Copyright: (c) 2023, Michael Landis
+License:   MIT
+"""
+
 # standard imports
 import os
 

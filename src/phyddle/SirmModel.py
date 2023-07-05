@@ -1,3 +1,15 @@
+#!/usr/bin/env python
+"""
+SirmModel
+===========
+Defines a class for a Susceptible-Infectious-Recovered + Migration (SIRM) model.
+Dervies from phyddle.Model.BaseModel.
+
+Author:    Michael Landis
+Copyright: (c) 2023, Michael Landis
+License:   MIT
+"""
+
 import itertools
 import scipy as sp
 import numpy as np

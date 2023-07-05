@@ -1,3 +1,15 @@
+#!/usr/bin/env python
+"""
+ModelLoader
+===========
+Defines a registry of recognized model types and variants. Also defines methods to quick-load
+requested models as needed for a phyddle analysis.
+
+Author:    Michael Landis
+Copyright: (c) 2023, Michael Landis
+License:   MIT
+"""
+
 # standard libraries
 import importlib
 import pandas as pd
