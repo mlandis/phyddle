@@ -425,7 +425,7 @@ def find_tree_width(num_taxa:int, max_taxa:list[int]):
             return i
     # should never call this
     raise Exception('error in find_tree_width()', num_taxa, max_taxa)
-    return -2
+    #return -2
 
 
 
@@ -487,8 +487,20 @@ def read_tree(tre_fn):
 # FORMAT CONVERTERS #
 #####################
 
-def convert_nexus_to_array(dat_fn):
-    
+def convert_nexus_to_array(dat_fn: str):
+    """Converts a NEXUS file to a pandas DataFrame.
+
+    Reads the NEXUS file specified by `dat_fn`, extracts the data matrix, and constructs a pandas DataFrame where rows represent character states and columns represent taxa.
+
+    Args:
+        dat_fn (str): The file name or path of the NEXUS file.
+
+    Returns:
+        pd.DataFrame: The pandas DataFrame representing the data matrix.
+
+    Raises:
+        FileNotFoundError: If the NEXUS file at `dat_fn` does not exist.
+    """
     # read file
     f = open(dat_fn, 'r')
     lines = f.readlines()
@@ -545,51 +557,23 @@ def convert_nexus_to_array(dat_fn):
     return df
 
 
-def convert_table_to_array(dat_fn, sep=","):
-    
-    # read file
-    f = open(dat_fn, 'r')
-    lines = f.readlines()
-    f.close()
 
-    # process file
-    num_taxa    = len(lines)
-    num_char    = 0
-    taxon_idx   = 0
-    taxon_names = []
-    first_taxon = True
+def convert_phy2dat_nex(phy_nex_fn: str, int2vec: List[int]):
+    """
+    Converts a phylogenetic tree in NHX format to a NEXUS file with taxon-state data.
 
-    for line in lines:
-        # purge whitespace
-        line = ' '.join(line.split()).rstrip('\n')
-        tok = line.split(sep)
-        
-        # get taxon + state
-        name = tok[0]
-        state = tok[1]
+    Reads the phylogenetic tree file in NHX format specified by `phy_nex_fn` and converts it to a NEXUS file containing taxon-state data. The binary state representations are based on the provided `int2vec` mapping.
 
-        # construct matrix based on num char
-        if first_taxon:
-            first_taxon = False
-            num_char = len(state)
-            dat = np.zeros((num_char, num_taxa), dtype='int')
+    Args:
+        phy_nex_fn (str): The file name or path of the phylogenetic tree file in NHX format.
+        int2vec (List[int]): The mapping of integer states to binary state vectors.
 
-        # save taxon name, populate array
-        taxon_names.append(name)
-        dat[:,taxon_idx] = [ int(z) for z in state ]
-        taxon_idx += 1
+    Returns:
+        str: The NEXUS file content as a string.
 
-    # construct data frame
-    # rows: char states
-    # cols: taxa
-    df = pd.DataFrame(dat, columns=taxon_names)
-    
-    return df
-
-
-# Converts MASTER output into nex
-# move to MasterSimulator?
-def convert_phy2dat_nex(phy_nex_fn, int2vec):
+    Raises:
+        FileNotFoundError: If the phylogenetic tree file at `phy_nex_fn` does not exist.
+    """
 
     # get num regions from size of bit vector
     num_char = len(int2vec[0])
@@ -625,11 +609,21 @@ END;
 
     return s
 
-## set return None if bad, then flag the index as a bad sim.
-#def make_prune_phy(tre_fn, prune_fn):
 def make_prune_phy(phy, prune_fn):
-    # read tree
-    # phy_ = dp.Tree.get(path=tre_fn, schema='newick')
+    """Prunes a phylogenetic tree by removing non-extant taxa and writes the pruned tree to a file.
+
+    The function takes a phylogenetic tree `phy` and a file name `prune_fn` as input. It prunes the tree by removing non-extant taxa and writes the pruned tree to the specified file.
+
+    Args:
+        phy (Tree): The input phylogenetic tree.
+        prune_fn (str): The file name or path to write the pruned tree.
+
+    Returns:
+        Tree or None: The pruned phylogenetic tree if pruning is successful, or None if the pruned tree would have fewer than two leaf nodes (invalid tree).
+
+    Raises:
+        None.
+    """
     # copy input tree
     phy_ = copy.deepcopy(phy)
     # compute all root-to-node distances
@@ -663,10 +657,19 @@ def make_prune_phy(phy, prune_fn):
         phy_.write(path=prune_fn, schema='newick')
         return phy_
 
-
-
-# Used in Encoding
 def settings_to_str(settings, taxon_category):
+    """
+    Convert settings dictionary and taxon category to a string representation.
+
+    This function takes a settings dictionary and a taxon category and converts them into a comma-separated string representation. The resulting string includes the keys and values of the settings dictionary, as well as the taxon category.
+
+    Args:
+        settings (dict): The settings dictionary.
+        taxon_category (str): The taxon category.
+
+    Returns:
+        str: The string representation of the settings and taxon category.
+    """
     s = 'setting,value\n'
     s += 'model_name,' + settings['model_name'] + '\n'
     s += 'model_type,' + settings['model_type'] + '\n'
@@ -675,6 +678,17 @@ def settings_to_str(settings, taxon_category):
     return s
 
 def param_dict_to_str(params):
+    """
+    Convert parameter dictionary to two string representations.
+
+    This function takes a parameter dictionary and converts it into two string representations. The resulting strings includes the parameter names, indices, and values. The first representation is column-based, the second representation is row-based.
+
+    Args:
+        params (dict): The parameter dictionary.
+
+    Returns:
+        tuple: A tuple of two strings. The first string represents the parameter values with indices, and the second string represents the parameter names.
+    """
     s1 = 'param,i,j,value\n'
     s2 = ''
     s3 = ''
@@ -696,6 +710,17 @@ def param_dict_to_str(params):
     return s1,s4
 
 def events2df(events):
+    """
+    Convert a list of Event objects to a pandas DataFrame.
+
+    This function takes a list of Event objects and converts it into a pandas DataFrame. Each Event object represents a row in the resulting DataFrame, with the Event attributes mapped to columns.
+
+    Args:
+        events (list): A list of Event objects.
+
+    Returns:
+        pandas.DataFrame: The resulting DataFrame with columns 'name', 'group', 'i', 'j', 'k', 'reaction', and 'rate'.
+    """
     df = pd.DataFrame({
         'name'     : [ e.name for e in events ],
         'group'    : [ e.group for e in events ], 
@@ -708,6 +733,17 @@ def events2df(events):
     return df
 
 def states2df(states):
+    """
+    Convert a States object to a pandas DataFrame.
+
+    This function takes a States object and converts it into a pandas DataFrame. The States object contains information about the state space, and the resulting DataFrame has columns 'lbl', 'int', 'set', and 'vec', representing the labels, integer representations, set representations, and vector representations of the states, respectively.
+
+    Args:
+        states (States): The States object to convert to a DataFrame.
+
+    Returns:
+        pandas.DataFrame: The resulting DataFrame with columns 'lbl', 'int', 'set', and 'vec'.
+    """
     df = pd.DataFrame({
         'lbl' : states.int2lbl,
         'int' : states.int2int,
@@ -718,6 +754,18 @@ def states2df(states):
 
 # make matrix with parameter values, lower-bounds, upper-bounds: 3D->2D
 def make_param_VLU_mtx(A, param_names):
+    """
+    Convert a parameter matrix to a pandas DataFrame with combined header indices.
+
+    This function takes a parameter matrix A and a list of parameter names and creates a pandas DataFrame with combined header indices. The resulting DataFrame has columns representing different statistics (value, lower, upper), replicated indices, and parameters. The parameter names and statistics are combined to form the column headers.
+
+    Args:
+        A (numpy.ndarray): The parameter matrix.
+        param_names (list): A list of parameter names.
+
+    Returns:
+        pandas.DataFrame: The resulting DataFrame with combined header indices.
+    """
     
     # axis labels
     stat_names = ['value', 'lower', 'upper']
@@ -739,6 +787,17 @@ def make_param_VLU_mtx(A, param_names):
     return df
 
 def make_clean_phyloenc_str(x):
+    """
+    Convert a numpy array to a clean string representation.
+
+    This function takes a numpy array `x` and converts it to a clean string representation. The resulting string is obtained by formatting the array with a comma separator, removing the square brackets, and replacing line breaks and unnecessary whitespace characters. The string representation is useful for displaying or saving the array in a clean and readable format.
+
+    Args:
+        x (numpy.ndarray): The numpy array to convert.
+
+    Returns:
+        str: The clean string representation of the numpy array.
+    """
     s = np.array2string(x, separator=',', max_line_width=1e200, threshold=1e200, edgeitems=1e200, precision=10, floatmode='maxprec')
     s = re.sub(r'[\[\]]', '', string=s)
     s = re.sub(r',\n ', '\n', string=s)
@@ -746,6 +805,17 @@ def make_clean_phyloenc_str(x):
     return s
 
 def clean_scientific_notation(s):
+    """
+    Clean up a string representation of a number in scientific notation.
+
+    This function takes a string `s` representing a number in scientific notation and removes unnecessary characters that indicate zero values. The resulting string represents the number without trailing zeros in the exponent.
+
+    Args:
+        s (str): The string representation of a number in scientific notation.
+
+    Returns:
+        str: The cleaned up string representation of the number.
+    """
     return re.sub( '\.0+E\+0+', '', s)
 
 
@@ -757,7 +827,19 @@ def clean_scientific_notation(s):
 #########################
 
 def normalize(data, m_sd = None):
-    if(type(m_sd) == type(None)):
+    """
+    Normalize the data using mean and standard deviation.
+
+    This function normalizes the input data using the mean and standard deviation. If the `m_sd` parameter is not provided, the function computes the mean and standard deviation of the data and performs normalization. If `m_sd` is provided, it assumes that the mean and standard deviation have already been computed and uses them for normalization.
+
+    Args:
+        data (numpy.ndarray): The input data to be normalized.
+        m_sd (tuple): A tuple containing the mean and standard deviation. If not provided, the mean and standard deviation will be computed from the data.
+
+    Returns:
+        numpy.ndarray: The normalized data.
+    """
+    if type(m_sd) == type(None):
         m = data.mean(axis = 0)
         sd = data.std(axis = 0)
         sd[np.where(sd == 0)] = 1
@@ -767,9 +849,64 @@ def normalize(data, m_sd = None):
         return (data - m_sd[0])/m_sd[1]
         
     
-def denormalize(data, train_mean, train_sd, log_labels = False):
+def denormalize(data, train_mean, train_sd):
+    """
+    Denormalize the data using the mean and standard deviation.
+
+    This function denormalizes the input data using the provided mean and standard deviation. It reverses the normalization process and brings the data back to its original scale.
+
+    Args:
+        data (numpy.ndarray): The normalized data to be denormalized.
+        train_mean (numpy.ndarray): The mean used for normalization.
+        train_sd (numpy.ndarray): The standard deviation used for normalization.
+
+    Returns:
+        numpy.ndarray: The denormalized data.
+    """
     return data * train_sd + train_mean
 
 #-----------------------------------------------------------------------------------------------------------------#
 
+
+
+# def convert_table_to_array(dat_fn, sep=","):
+    
+#     # read file
+#     f = open(dat_fn, 'r')
+#     lines = f.readlines()
+#     f.close()
+
+#     # process file
+#     num_taxa    = len(lines)
+#     num_char    = 0
+#     taxon_idx   = 0
+#     taxon_names = []
+#     first_taxon = True
+
+#     for line in lines:
+#         # purge whitespace
+#         line = ' '.join(line.split()).rstrip('\n')
+#         tok = line.split(sep)
+        
+#         # get taxon + state
+#         name = tok[0]
+#         state = tok[1]
+
+#         # construct matrix based on num char
+#         if first_taxon:
+#             first_taxon = False
+#             num_char = len(state)
+#             dat = np.zeros((num_char, num_taxa), dtype='int')
+
+#         # save taxon name, populate array
+#         taxon_names.append(name)
+#         dat[:,taxon_idx] = [ int(z) for z in state ]
+#         taxon_idx += 1
+
+#     # construct data frame
+#     # rows: char states
+#     # cols: taxa
+#     df = pd.DataFrame(dat, columns=taxon_names)
+    
+#     return df
 

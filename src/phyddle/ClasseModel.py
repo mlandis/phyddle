@@ -16,7 +16,7 @@ import numpy as np
 import scipy as sp
 import pandas as pd
 
-from phyddle import Model,Utilities
+from phyddle import Model
 #from Utilities import sort_binary_vectors
 from phyddle.Utilities import States,Event
 
@@ -324,8 +324,9 @@ class ClasseModel(Model.BaseModel):
         # normalize rates
         if normalize_rates:
             z = gm(all_rates)
-            for range_state,range_vector in enumerate(events):
-               events[range_state].rate = events[range_state].rate / z
+            #for range_state,range_vector in enumerate(events):
+            for k in len(events):
+               events[k].rate = events[k].rate / z
 
         return events
 
