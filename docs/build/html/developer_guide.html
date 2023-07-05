@@ -125,14 +125,6 @@
 <dt class="sig sig-object py" id="phyddle.Model.BaseModel.clear_model">
 <span class="sig-name descname"><span class="pre">clear_model</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/phyddle/Model.html#BaseModel.clear_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#phyddle.Model.BaseModel.clear_model" title="Permalink to this definition"></a></dt>
 <dd><p>Clears the model.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>None</strong> – </p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>None</p>
-</dd>
-</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -253,12 +245,36 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="phyddle.Utilities.make_symm">
 <span class="sig-prename descclassname"><span class="pre">phyddle.Utilities.</span></span><span class="sig-name descname"><span class="pre">make_symm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/phyddle/Utilities.html#make_symm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#phyddle.Utilities.make_symm" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Makes a matrix symmetric by copying the upper triangle to the lower triangle.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>m</strong> (<em>numpy.ndarray</em>) – The input matrix.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The symmetric matrix.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="phyddle.Utilities.powerset">
-<span class="sig-prename descclassname"><span class="pre">phyddle.Utilities.</span></span><span class="sig-name descname"><span class="pre">powerset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">[1,2,3])</span> <span class="pre">--&gt;</span> <span class="pre">()</span> <span class="pre">(1,)</span> <span class="pre">(2,)</span> <span class="pre">(3,)</span> <span class="pre">(1,2)</span> <span class="pre">(1,3)</span> <span class="pre">(2,3)</span> <span class="pre">(1,2,3</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/phyddle/Utilities.html#powerset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#phyddle.Utilities.powerset" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-prename descclassname"><span class="pre">phyddle.Utilities.</span></span><span class="sig-name descname"><span class="pre">powerset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iterable</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/phyddle/Utilities.html#powerset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#phyddle.Utilities.powerset" title="Permalink to this definition"></a></dt>
+<dd><p>Generates all possible subsets (powerset) of the given iterable.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>iterable</strong> – An iterable object.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A generator that yields each subset.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>generator</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="phyddle.Utilities.find_tree_width">
