@@ -18,6 +18,14 @@ Model
 -----
 
 
+BaseModel
+^^^^^^^^^
+
+.. autoclass:: phyddle.Model.BaseModel
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 .. _dev_geossemodel:
 
 GeosseModel
