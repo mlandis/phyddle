@@ -26,12 +26,43 @@ from tqdm import tqdm
 # phyddle imports
 from phyddle import Utilities
 
+
+#-----------------------------------------------------------------------------------------------------------------#
+
+def load_simulator(args, mdl):
+    """
+    Load the appropriate simulator.
+
+    This function returns an instance of a simulator class based on the
+    `sim_method` key in the provided `args` dictionary. The supported simulators are
+    `CommandSimulator` and `MasterSimulator`. If an unsupported value is provided,
+    the function returns `None`.
+
+    Args:
+        args (dict): A dictionary containing configuration parameters for the
+            simulators. Must include the key 'sim_method' which should have a value of
+            either 'command' or 'master'.
+        mdl (Model): The model instance that the simulator will operate on.
+
+    Returns:
+        Simulator: An instance of the `CommandSimulator` or `MasterSimulator` class,
+            or `None` if an unsupported `sim_method` is provided.
+
+    """
+    sim_method = args['sim_method']
+    if sim_method == 'command':
+        return CommandSimulator(args, mdl)
+    elif sim_method == 'master':
+        return MasterSimulator(args, mdl)
+    else:
+        return None
+
 #-----------------------------------------------------------------------------------------------------------------#
 
 class Simulator:
     def __init__(self, args, mdl):
         self.set_args(args)
-        self.command      = 'echo \"phyddle.Simulator.command undefined in derived class!\"' # do nothing
+        #self.sim_command  = 'echo \"phyddle.Simulator.sim_command undefined in derived class!\"' # do nothing
         self.model        = mdl
         return
 
@@ -50,16 +81,18 @@ class Simulator:
         self.max_num_taxa      = args['max_num_taxa']
         self.sim_logging       = args['sim_logging']
         self.rep_idx           = list(range(self.start_idx, self.end_idx))
+        self.save_params       = False
         return
 
     def make_settings_str(self, idx, mtx_size):
 
-        s = 'setting,value\n'
-        s += 'proj,' + self.proj + '\n'
-        s += 'model_name,' + self.model.model_type + '\n'
-        s += 'model_variant,' + self.model.model_variant + '\n'
-        s += 'replicate_index,' + str(idx) + '\n'
-        s += 'taxon_category,' + str(mtx_size) + '\n'
+        s =  'setting,value\n'
+        s += f'proj,{self.proj}\n'
+        s += f'model_name,{self.model.model_type}\n'
+        s += f'model_variant,{self.model.model_variant}\n'
+        s += f'replicate_index,{idx}\n'
+        s += f'taxon_category,{mtx_size}\n'
+        s += f'sim_method,{self.sim_method}\n'
         return s
 
     def run(self):
@@ -89,10 +122,11 @@ class Simulator:
         self.refresh_model(idx)
         
         # record labels (simulating parameters)
-        param_mtx_str,param_vec_str = Utilities.param_dict_to_str(self.model.params)
-        Utilities.write_to_file(param_mtx_str, param_mtx_fn)
-        Utilities.write_to_file(param_vec_str, param_vec_fn)
-        
+        if self.save_params:
+            param_mtx_str,param_vec_str = Utilities.param_dict_to_str(self.model.params)
+            Utilities.write_to_file(param_mtx_str, param_mtx_fn)
+            Utilities.write_to_file(param_vec_str, param_vec_fn)
+            
         # delegate simulation to derived Simulator
         self.sim_one_custom(idx)
 
@@ -119,15 +153,35 @@ class Simulator:
 # Generic CLI simulator interface #
 ###################################
 
-# must be command line tool
-# - accepts input model parameters
-# - outputs Newick tree file
-# - outputs Nexus data matrix
-# - phyddle handles rest
-
-class GenericSimulator(Simulator):
+class CommandSimulator(Simulator):
     def __init__(self, args, mdl):
         super().__init__(args, mdl)
+        return
+    
+    def set_args(self, args):
+        super().set_args(args)
+        self.sim_command = args['sim_command']
+        return
+
+    def sim_one_custom(self, idx):
+
+        # get filesystem info for generic job
+        out_path   = f'{self.sim_dir}/{self.proj}/sim'
+        tmp_fn     = f'{out_path}.{idx}'
+        dat_fn     = tmp_fn + '.dat.nex'
+        cmd_log_fn = tmp_fn + '.sim_command.log'
+
+        # run generic job
+        cmd_str = f'{self.sim_command} {tmp_fn}'
+        cmd_out = subprocess.check_output(cmd_str, shell=True, text=True, stderr=subprocess.STDOUT)
+        Utilities.write_to_file(cmd_out, cmd_log_fn)
+
+        ss = Utilities.convert_nexus_to_one_hot(dat_fn, num_states=3)
+        print(ss)
+
+        return
+    
+    def refresh_model_custom(self, idx):
         return
 
 
@@ -141,22 +195,13 @@ class MasterSimulator(Simulator):
     def __init__(self, args, mdl):
         # call base constructor
         super().__init__(args, mdl)
+        self.save_params = True
         return
-    
-    # def refresh_model(self, idx):
-    #     self.model.set_model(idx)
-    #     self.start_state   = self.model.start_state
-    #     self.start_sizes   = self.model.start_sizes
-    #     self.df_events     = self.model.df_events
-    #     self.reaction_vars = self.make_reaction_vars()
-    #     self.xml_str       = self.make_xml(idx)
-    #     self.cmd_str       = 'beast {sim_dir}/{proj}/sim.{idx}.xml'.format(sim_dir=self.sim_dir, proj=self.proj, idx=idx)
-    #     return
 
     def refresh_model_custom(self, idx):
         self.reaction_vars = self.make_reaction_vars()
         self.xml_str       = self.make_xml(idx)
-        self.cmd_str       = 'beast {sim_dir}/{proj}/sim.{idx}.xml'.format(sim_dir=self.sim_dir, proj=self.proj, idx=idx)
+        self.sim_command   = 'beast {sim_dir}/{proj}/sim.{idx}.xml'.format(sim_dir=self.sim_dir, proj=self.proj, idx=idx)
 
 
     def sim_one_custom(self, idx):

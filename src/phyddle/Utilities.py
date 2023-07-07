@@ -227,6 +227,8 @@ def load_config(config_fn: str,
     parser.add_argument('--model_variant',      dest='model_variant', type=str, help='Model variant', metavar='')
     parser.add_argument('--num_char',           dest='num_char', type=int, help='Number of characters', metavar='')
     # simulation settings
+    parser.add_argument('--sim_method',         dest='sim_method', type=str, choices=['command', 'master'], help='Simulation method', metavar='')
+    parser.add_argument('--sim_command',        dest='sim_command', type=str, help='Simulation command (when sim_method==\'command\')', metavar='')
     parser.add_argument('--sim_logging',        dest='sim_logging', type=str, choices=['clean', 'verbose', 'compress'], help='Simulation logging style', metavar='')
     parser.add_argument('--start_idx',          dest='start_idx', type=int, help='Start index for simulation', metavar='')
     parser.add_argument('--end_idx',            dest='end_idx', type=int, help='End index for simulation', metavar='')
@@ -299,6 +301,8 @@ def load_config(config_fn: str,
     m = overwrite_defaults(m, args, 'model_type')
     m = overwrite_defaults(m, args, 'model_variant')
     m = overwrite_defaults(m, args, 'num_char')
+    m = overwrite_defaults(m, args, 'sim_method')
+    m = overwrite_defaults(m, args, 'sim_command')
     m = overwrite_defaults(m, args, 'sim_logging')
     m = overwrite_defaults(m, args, 'start_idx')
     m = overwrite_defaults(m, args, 'end_idx')
@@ -556,7 +560,96 @@ def convert_nexus_to_array(dat_fn: str):
     
     return df
 
+def convert_nexus_to_one_hot(dat_fn: str, num_states: int):
+    """Converts a NEXUS file to a pandas DataFrame.
 
+    Reads the NEXUS file specified by `dat_fn`, extracts the data matrix, and constructs a pandas DataFrame where rows represent character states and columns represent taxa.
+
+    Args:
+        dat_fn (str): The file name or path of the NEXUS file.
+        num_states (int, optional): Number of states to one-hot encode. Learned from length of symbols when None. Defaults to None.
+
+    Returns:
+        pd.DataFrame: The pandas DataFrame representing the data matrix.
+
+    Raises:
+        FileNotFoundError: If the NEXUS file at `dat_fn` does not exist.
+
+
+    Character state-vector with one-hot encoding
+    Example:
+    Let num_char = 2 and num_state = 3 for states {0, 1, 2}
+                ---------------------
+        Char:   | 0  0  0 | 1  1  1 |
+        State:  | 0  1  2 | 0  1  2 |
+                |---------|---------|
+        Encode: | 0  1  2 | 3  4  5 |
+                ---------------------
+    Taxon with state-vector "20" -> "001100"
+    Taxon with state-vector "12" -> "010001"
+    etc.
+    """
+    # read file
+    f = open(dat_fn, 'r')
+    lines = f.readlines()
+    f.close()
+
+    # helper variables
+    found_matrix = False
+    num_taxa    = 0
+    num_char    = 0
+    num_one_hot = 0
+    taxon_idx   = 0
+    taxon_names = []
+    
+    # process file
+    for line in lines:
+        # purge whitespace
+        line = ' '.join(line.split()).rstrip('\n')
+        tok = line.split(' ')
+        
+        # skip lines with comments
+        if tok[0] == '[':
+            continue
+
+        # get data dimenions
+        if tok[0].upper() == 'DIMENSIONS':
+            for x in tok:
+                x = x.rstrip(';')
+                if 'NTAX' in x.upper():
+                    num_taxa = int(x.split('=')[1])
+                elif 'NCHAR' in x.upper():
+                    num_char = int(x.split('=')[1])
+                    num_one_hot = num_states * num_char
+                    print(num_one_hot)
+            dat = np.zeros((num_one_hot, num_taxa), dtype='int')
+
+        # entering data matrix
+        if tok[0].upper() == 'MATRIX':
+            found_matrix = True
+            continue
+
+        # process data matrix
+        if found_matrix:
+            if tok[0] == ';':
+                found_matrix = False
+                break
+            elif len(tok) == 2:
+                # Taxon name
+                name = tok[0]
+                taxon_names.append(name)
+                # One-hot encoding
+                state = tok[1]
+                v = [ int(z) for z in state ]
+                for i,j in enumerate(v):
+                    state_idx = i * num_states + j
+                    dat[state_idx,taxon_idx] = 1
+                taxon_idx += 1
+
+    # construct data frame
+    df = pd.DataFrame(dat, columns=taxon_names)
+    
+    return df
 
 def convert_phy2dat_nex(phy_nex_fn: str, int2vec: List[int]):
     """

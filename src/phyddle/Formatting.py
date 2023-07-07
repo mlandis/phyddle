@@ -154,6 +154,7 @@ class Formatter:
             num_samples = len(rep_idx)
             num_taxa = tree_width
             num_data_length = num_taxa * self.num_data_row
+            print(num_taxa, self.num_data_row)
 
             # print info
             print('Formatting {n} files for tree_type={tt} and tree_width={ts}'.format(n=num_samples, tt=self.tree_type, ts=tree_width))
@@ -369,6 +370,7 @@ class Formatter:
         # encode CDVS
         elif self.tree_type == 'extant':
             cdvs = self.encode_phy_tensor(phy, dat, tree_width=tree_width, tree_type='extant')
+            print(cdvs.shape)
             cpsv = cdvs
             cpsv_fn = cdvs_fn
 
@@ -454,14 +456,14 @@ class Formatter:
         for i in range(num_char):
             summ_stats['n_char_' + str(i)] = 0
             #summ_stats['f_char_' + str(i)] = 0.
-        for k in list(states_bits_str_inv.keys()):
-            #freq_taxon_states[ states_bits_str_inv[k] ] = taxon_states.count(k) / num_taxa
-            summ_stats['n_state_' + str(k)] = taxon_states.count(k)
-            #summ_stats['f_state_' + str(k)] = taxon_states.count(k) / num_taxa
-            for i,j in enumerate(k):
-                if j != '0':
-                    summ_stats['n_char_' + str(i)] += summ_stats['n_state_' + k]
-                    #summ_stats['f_char_' + str(i)] += summ_stats['f_state_' + k]
+        # for k in list(states_bits_str_inv.keys()):
+        #     #freq_taxon_states[ states_bits_str_inv[k] ] = taxon_states.count(k) / num_taxa
+        #     summ_stats['n_state_' + str(k)] = taxon_states.count(k)
+        #     #summ_stats['f_state_' + str(k)] = taxon_states.count(k) / num_taxa
+        #     for i,j in enumerate(k):
+        #         if j != '0':
+        #             summ_stats['n_char_' + str(i)] += summ_stats['n_state_' + k]
+        #             #summ_stats['f_char_' + str(i)] += summ_stats['f_state_' + k]
 
         return summ_stats
     
@@ -489,6 +491,7 @@ class Formatter:
         
         # data dimensions
         num_char  = dat.shape[0]
+        print(dat.shape)
 
         # initialize workspace
         root_distances = phy.calc_node_root_distances(return_leaf_distances_only=False)

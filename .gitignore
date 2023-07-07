@@ -25,8 +25,7 @@ pkg_notes.txt
 
 # Ignore __pycache__
 */__pycache__/
-tests/__pycache__/
-scripts/__pycache__/
+*/*/__pycache__/
 
 # Ignore Sphinx extras
 docs/build/doctrees

@@ -22,10 +22,11 @@ my_args = Utilities.load_config('config', arg_overwrite=True)
 # DEFINE PIPELINE STEPS #
 #########################
 
-# simulator samples from model
-MySimulator = Simulating.MasterSimulator
+# create model template
 my_mdl = ModelLoader.load_model(my_args)
-my_sim = MySimulator(my_args, my_mdl)
+
+# simulator samples from model
+my_sim = Simulating.load_simulator(my_args, my_mdl)
 
 # formatter prepares entire dataset into single tensor
 MyFormatter = Formatting.Formatter
