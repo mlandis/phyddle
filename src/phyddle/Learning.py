@@ -5,7 +5,7 @@ Learning
 Defines classes and methods for the Learning step, which builds and trains a
 network using the tensor data from the Formatting step.
 
-Author:    Michael Landis
+Authors:   Michael Landis, Ammon Thompson
 Copyright: (c) 2023, Michael Landis
 License:   MIT
 """

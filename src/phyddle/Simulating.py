@@ -6,7 +6,7 @@ Defines classes and methods for the Simulating step, which generates large numbe
 of simulated datasets (in parallel, if desired) that are later formatted and used
 to train the neural network.
 
-Author:    Michael Landis
+Authors:   Michael Landis, Ammon Thompson
 Copyright: (c) 2023, Michael Landis
 License:   MIT
 """
@@ -175,9 +175,6 @@ class CommandSimulator(Simulator):
         cmd_str = f'{self.sim_command} {tmp_fn}'
         cmd_out = subprocess.check_output(cmd_str, shell=True, text=True, stderr=subprocess.STDOUT)
         Utilities.write_to_file(cmd_out, cmd_log_fn)
-
-        ss = Utilities.convert_nexus_to_one_hot(dat_fn, num_states=3)
-        print(ss)
 
         return
     

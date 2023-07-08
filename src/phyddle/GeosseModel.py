@@ -5,7 +5,7 @@ GeosseModel
 Defines a class for a Geographic State-Dependent Speciation-Extinction (GeoSSE) model.
 Dervies from phyddle.Model.BaseModel.
 
-Author:    Michael Landis
+Authors:   Michael Landis, Ammon Thompson
 Copyright: (c) 2023, Michael Landis
 License:   MIT
 """

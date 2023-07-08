@@ -4,7 +4,7 @@ Utilities
 ===========
 Miscellaneous helper functions phyddle uses for pipeline steps.
 
-Author:    Michael Landis
+Authors:   Michael Landis, Ammon Thompson
 Copyright: (c) 2023, Michael Landis
 License:   MIT
 """
@@ -238,6 +238,8 @@ def load_config(config_fn: str,
     # formatting settings
     parser.add_argument('--tree_type',          dest='tree_type', type=str, choices=['extant', 'serial'], help='Type of tree', metavar='')
     parser.add_argument('--tree_width_cats',    dest='tree_width_cats', type=int, help='The phylo-state tensor widths for formatting training datasets, space-delimited', metavar='')
+    parser.add_argument('--tree_encode_type',   dest='tree_encode_type', type=str, choices=['height_only', 'height_brlen'], help='Method for encoding branch length info in tensor', metavar='')
+    parser.add_argument('--state_encode_type',  dest='state_encode_type', type=str, choices=['one_hot', 'integer'], help='Method for encoding states in tensor', metavar='')
     parser.add_argument('--tensor_format',      dest='tensor_format', type=str, choices=['hdf5', 'csv'], help='Storage format for simulation tensors', metavar='')
     parser.add_argument('--save_phyenc_csv',    dest='save_phyenc_csv', type=bool, help='Save encoded phylogenetic tensor encoding to csv?', metavar='')
     # learning settings
@@ -312,6 +314,8 @@ def load_config(config_fn: str,
     m = overwrite_defaults(m, args, 'tree_width')
     m = overwrite_defaults(m, args, 'save_phyenc_csv')
     m = overwrite_defaults(m, args, 'tree_width_cats')
+    m = overwrite_defaults(m, args, 'tree_encode_type')
+    m = overwrite_defaults(m, args, 'state_encode_type')
     m = overwrite_defaults(m, args, 'num_epochs')
     m = overwrite_defaults(m, args, 'batch_size')
     m = overwrite_defaults(m, args, 'prop_test')
@@ -491,8 +495,8 @@ def read_tree(tre_fn):
 # FORMAT CONVERTERS #
 #####################
 
-def convert_nexus_to_array(dat_fn: str):
-    """Converts a NEXUS file to a pandas DataFrame.
+def convert_nexus_to_integer_array(dat_fn: str):
+    """Converts a NEXUS file to an integer-encoded pandas DataFrame.
 
     Reads the NEXUS file specified by `dat_fn`, extracts the data matrix, and constructs a pandas DataFrame where rows represent character states and columns represent taxa.
 
@@ -554,14 +558,12 @@ def convert_nexus_to_array(dat_fn: str):
                 taxon_idx += 1
 
     # construct data frame
-    # rows: char states
-    # cols: taxa
     df = pd.DataFrame(dat, columns=taxon_names)
     
     return df
 
-def convert_nexus_to_one_hot(dat_fn: str, num_states: int):
-    """Converts a NEXUS file to a pandas DataFrame.
+def convert_nexus_to_onehot_array(dat_fn: str, num_states: int):
+    """Converts a NEXUS file to a one-hot encoded pandas DataFrame.
 
     Reads the NEXUS file specified by `dat_fn`, extracts the data matrix, and constructs a pandas DataFrame where rows represent character states and columns represent taxa.
 
@@ -602,6 +604,7 @@ def convert_nexus_to_one_hot(dat_fn: str, num_states: int):
     taxon_idx   = 0
     taxon_names = []
     
+    #print('\n'.join(lines))
     # process file
     for line in lines:
         # purge whitespace
@@ -621,7 +624,6 @@ def convert_nexus_to_one_hot(dat_fn: str, num_states: int):
                 elif 'NCHAR' in x.upper():
                     num_char = int(x.split('=')[1])
                     num_one_hot = num_states * num_char
-                    print(num_one_hot)
             dat = np.zeros((num_one_hot, num_taxa), dtype='int')
 
         # entering data matrix
@@ -641,8 +643,11 @@ def convert_nexus_to_one_hot(dat_fn: str, num_states: int):
                 # One-hot encoding
                 state = tok[1]
                 v = [ int(z) for z in state ]
+                #print(v)
                 for i,j in enumerate(v):
+                    #print('  ',i,j)
                     state_idx = i * num_states + j
+                    #print(state_idx)
                     dat[state_idx,taxon_idx] = 1
                 taxon_idx += 1
 

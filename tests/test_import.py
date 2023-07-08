@@ -12,11 +12,11 @@ def inc(x):
 def test_inc():
     assert inc(3) == 4
 
-#def one_hot_encoding(dat_fn, num_states):
-#    s = Utilities.convert_nexus_to_one_hot(dat_fn, num_states)
-#    return s
+def one_hot_encoding(dat_fn, num_states):
+    s = Utilities.convert_nexus_to_one_hot(dat_fn, num_states)
+    return s
 
-#s = one_hot_encoding('data/sim.1.dat.nex', 3)
-
+s = one_hot_encoding('data/sim.1.dat.nex', 3)
+print(s)
 
 

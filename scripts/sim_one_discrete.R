@@ -3,8 +3,10 @@ library(ape)
 # arguments
 args   = commandArgs(trailingOnly = TRUE)
 tmp_fn = args[1]
+#tmp_fn = "/Users/mlandis/projects/phyddle/workspace/raw_data/n2s3_discrete_R/sim.0"
 
 # setup
+num_char        = 2
 num_states      = 3
 num_state_pairs = num_states*(num_states-1)
 birth           = runif(1,0,1)
@@ -28,7 +30,7 @@ diag(state_Q_mtx) = 0
 diag(state_Q_mtx) = -rowSums(state_Q_mtx)
 state_freqs     = rep(1/num_states, num_states) # runif(num_states, 0, 1)
 state_freqs     = state_freqs / sum(state_freqs)
-state_labels    = paste0(1:num_states, collapse="")
+state_labels    = 0:(num_states-1) #, collapse="")
 root.value      = sample(x=num_states, size=1, prob=state_freqs)
 
 # filesystem
@@ -40,12 +42,18 @@ lbl_fn  = paste0(tmp_fn, ".param_row.csv")
 phy = rbdtree(birth=birth, death=death, Tmax=max_time)
 
 # simulate data
-dat = rTraitDisc(phy,
-                 model="SYM",
-                 k=num_states,
-                 rate=state_rates,
-                 freq=state_freqs,
-                 states=1:state_labels)
+dat = c()
+for (i in 1:num_char) {
+    dat_new = rTraitDisc(phy,
+                         model="SYM",
+                         k=num_states,
+                         rate=state_rates,
+                         freq=state_freqs,
+                         states=state_labels)
+    dat = cbind(dat, dat_new)
+}
+# convert to base-0 because ape::rTraitDisc ignores state_labels??
+dat = dat - 1
 
 # construct labels
 k = 1

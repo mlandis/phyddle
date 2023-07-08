@@ -5,7 +5,7 @@ Formatting
 Defines classes and methods for the Formatting step, which converts raw data
 into tensor data that can be used by the Learning step.
 
-Author:    Michael Landis
+Authors:   Michael Landis, Ammon Thompson
 Copyright: (c) 2023, Michael Landis
 License:   MIT
 """
@@ -45,6 +45,7 @@ class Formatter:
         self.sim_dir       = args['sim_dir']
         self.tree_type     = args['tree_type']
         self.num_char      = args['num_char']
+        self.num_states    = args['num_states']
         self.param_pred    = args['param_pred'] # parameters in label set (prediction)
         self.param_data    = args['param_data'] # parameters in data set (training, etc)
         self.tensor_format = args['tensor_format']
@@ -52,7 +53,9 @@ class Formatter:
         # encoder arguments
         self.model_name        = args['model_type']
         self.model_variant     = args['model_variant']
-        self.tree_width_cats    = args['tree_width_cats']
+        self.tree_width_cats   = args['tree_width_cats']
+        self.tree_encode_type  = args['tree_encode_type']
+        self.state_encode_type = args['state_encode_type']
         self.min_num_taxa      = args['min_num_taxa']
         self.max_num_taxa      = args['max_num_taxa']
         self.start_idx         = args['start_idx']
@@ -60,16 +63,27 @@ class Formatter:
         self.use_parallel      = args['use_parallel']
         self.num_proc          = args['num_proc']
         self.save_phyenc_csv   = args['save_phyenc_csv']
-
-        if self.tree_type == 'serial':
-            self.num_data_row = 4 + self.num_char
-        if self.tree_type == 'extant':
-            self.num_data_row = 3 + self.num_char
-            
+                    
         self.in_dir        = f'{self.sim_dir}/{self.proj}'
         self.out_dir       = f'{self.fmt_dir}/{self.proj}'
-
         self.rep_idx       = list(range(self.start_idx, self.end_idx))
+
+        if self.tree_type == 'serial':
+            self.num_tree_row = 2
+        elif self.tree_type == 'extant':
+            self.num_tree_row = 1
+
+        if self.tree_encode_type == 'height_only':
+            self.num_tree_row += 0
+        elif self.tree_encode_type == 'height_brlen':
+            self.num_tree_row += 2
+
+        if self.state_encode_type == 'integer':
+            self.num_char_row = self.num_char
+        elif self.state_encode_type == 'one_hot':
+            self.num_char_row = self.num_char * self.num_states
+
+        self.num_data_row = self.num_tree_row + self.num_char_row
 
         return
 
@@ -154,7 +168,7 @@ class Formatter:
             num_samples = len(rep_idx)
             num_taxa = tree_width
             num_data_length = num_taxa * self.num_data_row
-            print(num_taxa, self.num_data_row)
+            #print(num_taxa, self.num_data_row)
 
             # print info
             print('Formatting {n} files for tree_type={tt} and tree_width={ts}'.format(n=num_samples, tt=self.tree_type, ts=tree_width))
@@ -332,7 +346,10 @@ class Formatter:
         vecstr2int = self.model.states.vecstr2int #{ v:i for i,v in enumerate(int2vecstr) }
 
         # read in nexus data file
-        dat = Utilities.convert_nexus_to_array(dat_nex_fn)
+        if self.state_encode_type == 'integer':
+            dat = Utilities.convert_nexus_to_integer_array(dat_nex_fn)
+        elif self.state_encode_type == 'one_hot':
+            dat = Utilities.convert_nexus_to_onehot_array(dat_nex_fn, self.num_states)
 
         # get tree file
         phy = Utilities.read_tree(tre_fn)
@@ -370,7 +387,6 @@ class Formatter:
         # encode CDVS
         elif self.tree_type == 'extant':
             cdvs = self.encode_phy_tensor(phy, dat, tree_width=tree_width, tree_type='extant')
-            print(cdvs.shape)
             cpsv = cdvs
             cpsv_fn = cdvs_fn
 
@@ -442,20 +458,33 @@ class Formatter:
         # taxon_state_block = m[ m.index('Matrix')+1 : m.index('END;')-1 ]
         # taxon_states = [ x.split(' ')[-1] for x in taxon_state_block ]
 
-        num_char = dat.shape[0]
-        taxon_states = []
+        # num_char = dat.shape[0]
+        # taxon_states = []
         #print(dat)
-        for col in dat:
-            taxon_states.append( ''.join([ str(x) for x in dat[col].to_list() ]) )
+        # for col in dat:
+        #     taxon_states.append( ''.join([ str(x) for x in dat[col].to_list() ]) )
 
         # for col in range(dat.shape[1]):
         #     taxon_states.append( ''.join([ str(x) for x in dat.iloc[col].to_list() ]) )
 
         # freqs of entire char-set
         # freq_taxon_states = np.zeros(num_char, dtype='float')
-        for i in range(num_char):
-            summ_stats['n_char_' + str(i)] = 0
-            #summ_stats['f_char_' + str(i)] = 0.
+        #print(dat)
+        # get freqs of data-states, based on state encoding type
+        if self.state_encode_type == 'integer':
+            for i in range(self.num_states):
+                summ_stats['f_dat_' + str(i)] = 0
+            unique, counts = np.unique(dat, return_counts=True)
+            for i,j in zip(unique, counts):
+                summ_stats['f_dat_' + str(i)] = j / num_taxa
+        
+        elif self.state_encode_type == 'one_hot':
+            for i in range(dat.shape[0]):
+                #print(i)
+                #print(np.sum(dat.iloc[i]))
+                summ_stats['f_dat_' + str(i)] = np.sum(dat.iloc[i]) / num_taxa
+        
+        #summ_stats['f_char_' + str(i)] = 0.
         # for k in list(states_bits_str_inv.keys()):
         #     #freq_taxon_states[ states_bits_str_inv[k] ] = taxon_states.count(k) / num_taxa
         #     summ_stats['n_state_' + str(k)] = taxon_states.count(k)
@@ -491,7 +520,7 @@ class Formatter:
         
         # data dimensions
         num_char  = dat.shape[0]
-        print(dat.shape)
+        #print(dat.shape)
 
         # initialize workspace
         root_distances = phy.calc_node_root_distances(return_leaf_distances_only=False)

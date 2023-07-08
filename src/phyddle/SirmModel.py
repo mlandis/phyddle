@@ -5,7 +5,7 @@ SirmModel
 Defines a class for a Susceptible-Infectious-Recovered + Migration (SIRM) model.
 Dervies from phyddle.Model.BaseModel.
 
-Author:    Michael Landis
+Authors:   Michael Landis, Ammon Thompson
 Copyright: (c) 2023, Michael Landis
 License:   MIT
 """

@@ -6,7 +6,7 @@ Defines classes and methods for the Plotting step, which loads files from the Si
 Learning, and Predicting steps to generate a standard report for the performance of
 the entire phyddle pipeline.
 
-Author:    Michael Landis
+Authors:   Michael Landis, Ammon Thompson
 Copyright: (c) 2023, Michael Landis
 License:   MIT
 """
@@ -267,6 +267,7 @@ class Plotter:
                 mn = np.min(x)
                 mx = np.max(x)
                 xs = np.linspace(mn, mx, 300)
+                
                 kde = sp.stats.gaussian_kde(x)
                 ys = kde.pdf(xs)
                 ax.plot(xs, ys, label="PDF", color=color)

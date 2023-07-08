@@ -5,7 +5,7 @@ ClasseModel
 Defines a class for a Cladogenetic State-Dependent Speciation Extinction model.
 Dervies from phyddle.Model.BaseModel.
 
-Author:    Michael Landis
+Authors:   Michael Landis, Ammon Thompson
 Copyright: (c) 2023, Michael Landis
 License:   MIT
 """

@@ -5,7 +5,7 @@ ContTraitModel
 Defines a class for a discretized Continuous Trait model.
 Dervies from phyddle.Model.BaseModel.
 
-Author:    Michael Landis
+Authors:   Michael Landis, Ammon Thompson
 Copyright: (c) 2023, Michael Landis
 License:   MIT
 """

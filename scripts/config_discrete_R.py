@@ -6,14 +6,15 @@
 import scipy as sp
 
 # helper variables
-num_char = 3
+num_char = 2
+num_states = 3
 
 args = {
     
     #-------------------------------#
     # Project organization          #
     #-------------------------------#
-    'proj'           : 'R_project',        # directory name for pipeline project
+    'proj'           : 'n2s3_discrete_R',        # directory name for pipeline project
     'sim_dir'        : '../workspace/raw_data',       # directory for simulated data
     'fmt_dir'        : '../workspace/tensor_data',    # directory for tensor-formatted data
     'net_dir'        : '../workspace/network',        # directory for trained network
@@ -33,6 +34,7 @@ args = {
     'model_type'         : 'geosse',        # model type defines general states and events
     'model_variant'      : 'equal_rates',   # model variant defines rate assignments
     'num_char'           : num_char,        # number of evolutionary characters
+    'num_states'         : num_states,      # number of states per discrete character
     'rv_fn'              : {                # distributions for model parameters
         'w': sp.stats.expon.rvs,
         'e': sp.stats.expon.rvs,
@@ -49,8 +51,8 @@ args = {
     #-------------------------------#
     # Simulating Step settings      #
     #-------------------------------#
-    'sim_method'        : 'command',        # command, master
-    'sim_command'       : 'Rscript sim_one.R',   # exact command string, argument is output file prefix
+    'sim_method'        : 'command',        # command, master, [phylojunction], ...
+    'sim_command'       : 'Rscript sim_one_discrete.R',   # exact command string, argument is output file prefix
     'sim_logging'       : 'verbose',        # verbose, compressed, or clean
     'start_idx'         : 0,                # first simulation replicate index
     'end_idx'           : 1000,             # last simulation replicate index
@@ -64,6 +66,8 @@ args = {
     #-------------------------------#
     'tree_type'         : 'extant',         # use model with serial or extant tree
     'tree_width_cats'   : [ 200, 500 ],     # tree width categories for phylo-state tensors
+    'tree_encode_type'  : 'height_brlen',   # how to encode phylo brlen? height_only or height_brlen
+    'state_encode_type' : 'one_hot',        # how to encode discrete states? one_hot or integer 
     'param_pred'        : [                 # model parameters to predict (labels)
         'birth', 'death', 'q_2_1', 'q_3_1', 'q_3_2'
     ],
