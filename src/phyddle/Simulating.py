@@ -227,7 +227,7 @@ class MasterSimulator(Simulator):
         Utilities.write_to_file(xml_str, xml_fn)
 
         # run BEAST job
-        cmd_str = self.cmd_str
+        cmd_str = self.sim_command
         beast_out = subprocess.check_output(cmd_str, shell=True, text=True, stderr=subprocess.STDOUT)
         Utilities.write_to_file(beast_out, beast_fn)
 

@@ -212,6 +212,7 @@ def load_config(config_fn: str,
     parser.add_argument('-c', '--cfg',          dest='config_fn', type=str, help='Config file name', metavar='')
     #parser.add_argument('-f', '--force',        action='store_true', help='Arguments override config file settings')
     parser.add_argument('-p', '--proj',         dest='proj', type=str, help='Project name used as directory across pipeline stages', metavar='')
+    parser.add_argument('-s', '--steps',        dest='steps', type=str, choices=['all', 'sim', 'fmt', 'lrn', 'prd', 'plt'], help='Pipeline steps to apply', metavar='')
     parser.add_argument('--use_parallel',       dest='use_parallel', type=bool, help='Use parallelization? (recommended)', metavar='')
     parser.add_argument('--num_proc',           dest='num_proc', type=int, help='How many cores for multiprocessing? (e.g. 4 uses 4, -2 uses all but 2)', metavar='')
     # directory settings
@@ -294,6 +295,7 @@ def load_config(config_fn: str,
     
     # update arguments from defaults, when provided
     m = overwrite_defaults(m, args, 'proj')
+    m = overwrite_defaults(m, args, 'steps')
     m = overwrite_defaults(m, args, 'use_parallel')
     m = overwrite_defaults(m, args, 'num_proc')
     m = overwrite_defaults(m, args, 'sim_dir')
@@ -337,6 +339,11 @@ def load_config(config_fn: str,
     # check arguments are valid
     check_args(m.args)
 
+    # set steps
+    if m.args['steps'] == 'all':
+        m.args['steps'] = ['sim', 'fmt', 'lrn', 'prd', 'plt']
+    else:
+        m.args['steps'] = [ m.args['steps'] ]
     # return new args
     return m.args
 
@@ -350,7 +357,6 @@ def check_args(args):
     assert args['min_num_taxa'] <= args['max_num_taxa']
     assert args['num_states'] > 0
     assert args['num_char'] > 0
-    
     assert args['num_epochs'] > 0
     assert args['batch_size'] > 0
     assert args['cpi_coverage'] >= 0. and args['cpi_coverage'] <= 1.

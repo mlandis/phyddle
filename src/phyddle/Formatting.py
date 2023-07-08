@@ -233,8 +233,16 @@ class Formatter:
                 #t7 = time.time()
                 #print(f'times  {t2-t1}   {t3-t2}   {t4-t3}  {t5-t4}  {t6-t5}  {t7-t6}')
 
-            #print(dat_data[j,:])
+
+            # MJL: I think we'll want to use Parallel to process chunks of ~1k
+            # and then periodically write that chunk to HDF5. h5py may require
+            # mpi4py to support parallel writing, which might limit portability
             
+            # if self.use_parallel:
+            #     res = Parallel(n_jobs=self.num_proc)(delayed(self.process_one_param_hdf5)(idx=idx) for idx in tqdm(self.rep_idx))
+            # else:
+            #     res = [ self.encode_one(tmp_fn=f'{self.in_dir}/sim.{idx}', idx=idx) for idx in tqdm(self.rep_idx) ]
+
             # read in summ_stats and labels (_all_ params) dataframes
             label_names_str = [ s.decode('UTF-8') for s in dat_label_names[0,:] ]
             summ_stat_names_str = [ s.decode('UTF-8') for s in dat_stat_names[0,:] ]
@@ -269,6 +277,19 @@ class Formatter:
 
         return
 
+    def process_one_param_hdf5(self, idx):
+        fname_base  = f'{self.in_dir}/sim.{idx}'
+        fname_param = fname_base + '.param_row.csv'
+        return np.loadtxt(fname_param, delimiter=',', skiprows=1)
+        
+    def process_one_stat_hdf5(self, idx):
+        fname_base  = f'{self.in_dir}/sim.{idx}'
+        fname_stat  = fname_base + '.summ_stat.csv'
+        return np.loadtxt(fname_stat, delimiter=',', skiprows=1)
+
+    def process_one_label_hdf5(self, phy_tensor):
+        return phy_tensor.flatten() 
+        
     def write_tensor_csv(self):
         # build files
         for tree_width in sorted(list(self.phy_tensors.keys())):
