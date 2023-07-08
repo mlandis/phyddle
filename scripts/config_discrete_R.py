@@ -69,7 +69,7 @@ args = {
     'tree_encode_type'  : 'height_brlen',   # how to encode phylo brlen? height_only or height_brlen
     'char_encode_type'  : 'one_hot',        # how to encode discrete states? one_hot or integer 
     'param_pred'        : [                 # model parameters to predict (labels)
-        'birth', 'death', 'q_2_1', 'q_3_1', 'q_3_2'
+        'birth', 'death', 'state_rate'
     ],
     'param_data'        : [],               # model parameters that are known (aux. data)
     'tensor_format'     : 'hdf5',           # save as compressed HDF5 or raw csv
@@ -78,6 +78,7 @@ args = {
     #-------------------------------#
     # Learning Step settings        #
     #-------------------------------#
+    'learn_method'      : 'param_est',      # what is the learning task? param_est or model_test
     'tree_width'        : 200,              # tree width category used to train network
     'num_epochs'        : 20,               # number of training intervals (epochs)
     'prop_test'         : 0.05,             # proportion of sims in test dataset

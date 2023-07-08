@@ -243,6 +243,7 @@ def load_config(config_fn: str,
     parser.add_argument('--tensor_format',      dest='tensor_format', type=str, choices=['hdf5', 'csv'], help='Storage format for simulation tensors', metavar='')
     parser.add_argument('--save_phyenc_csv',    dest='save_phyenc_csv', type=bool, help='Save encoded phylogenetic tensor encoding to csv?', metavar='')
     # learning settings
+    parser.add_argument('--learn_method',       dest='learn_method', type=str, choices=['param_est', 'model_test'], help='Learning method', metavar='')
     parser.add_argument('--tree_width',         dest='tree_width', type=int, help='The phylo-state tensor width dataset used for a neural network', metavar='')
     parser.add_argument('--num_epochs',         dest='num_epochs', type=int, help='Number of learning epochs', metavar='')
     parser.add_argument('--batch_size',         dest='batch_size', type=int, help='Training batch sizes during learning', metavar='')
@@ -316,6 +317,7 @@ def load_config(config_fn: str,
     m = overwrite_defaults(m, args, 'tree_width_cats')
     m = overwrite_defaults(m, args, 'tree_encode_type')
     m = overwrite_defaults(m, args, 'char_encode_type')
+    m = overwrite_defaults(m, args, 'learn_method')
     m = overwrite_defaults(m, args, 'num_epochs')
     m = overwrite_defaults(m, args, 'batch_size')
     m = overwrite_defaults(m, args, 'prop_test')
@@ -332,8 +334,36 @@ def load_config(config_fn: str,
     m = overwrite_defaults(m, args, 'plot_label_color')
     m = overwrite_defaults(m, args, 'plot_pred_color')         
 
+    # check arguments are valid
+    check_args(m.args)
+
     # return new args
     return m.args
+
+def check_args(args):
+
+    assert args['start_idx'] >= 0
+    assert args['end_idx'] >= 0
+    assert args['start_idx'] <= args['end_idx']
+    assert args['min_num_taxa'] >= 0
+    assert args['max_num_taxa'] >= 0
+    assert args['min_num_taxa'] <= args['max_num_taxa']
+    assert args['num_states'] > 0
+    assert args['num_char'] > 0
+    
+    assert args['num_epochs'] > 0
+    assert args['batch_size'] > 0
+    assert args['cpi_coverage'] >= 0. and args['cpi_coverage'] <= 1.
+    assert args['prop_test'] >= 0. and args['prop_test'] <= 1.
+    assert args['prop_validation'] >= 0. and args['prop_validation'] <= 1.
+    assert args['prop_calibration'] >= 0. and args['prop_calibration'] <= 1.
+    
+    assert len(args['tree_width_cats']) > 0
+    for i in range(len(args['tree_width_cats'])):
+        assert args['tree_width_cats'][i] > 0
+    assert args['tree_width'] in args['tree_width_cats']
+
+    return
 
 
 #-----------------------------------------------------------------------------------------------------------------#
@@ -520,7 +550,7 @@ def read_tree(tre_fn):
 
 def convert_nexus_to_array(dat_fn: str, char_encode_type: str, num_states: int=None):
     if char_encode_type == 'integer':
-        dat = onvert_nexus_to_integer_array(dat_fn)
+        dat = convert_nexus_to_integer_array(dat_fn)
     elif char_encode_type == 'one_hot':
         dat = convert_nexus_to_onehot_array(dat_fn, num_states)
     else:

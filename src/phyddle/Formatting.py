@@ -19,9 +19,12 @@ import sys
 import dendropy as dp
 import h5py
 import numpy as np
+import scipy as sp
 import pandas as pd
 from joblib import Parallel, delayed
 from tqdm import tqdm
+
+import time
 
 # phyddle imports
 from phyddle import Utilities
@@ -202,17 +205,33 @@ class Formatter:
             dat_data = hdf5_file.create_dataset('data', (num_samples, num_data_length), dtype='f', compression='gzip')
             dat_stat = hdf5_file.create_dataset('summ_stat', (num_samples, self.num_summ_stat), dtype='f', compression='gzip')
             dat_labels = hdf5_file.create_dataset('labels', (num_samples, self.num_labels), dtype='f', compression='gzip')
-      
+
+            print("ok!")
             # store all numerical data into hdf5
             for j,(idx,phy_tensor) in enumerate(self.phy_tensors[tree_width].items()):
                 
-                fname_base = f'{self.in_dir}/sim.{idx}'
+                # can probably return phytensor and summstat in res (returned)
+                # can also possibly return phylotensor pre-flattened?
+                #if j % 1000 == 0:
+                #    print(j)
+                fname_base  = f'{self.in_dir}/sim.{idx}'
                 fname_param = fname_base + '.param_row.csv'
-                fname_stat = fname_base + '.summ_stat.csv'
+                fname_stat  = fname_base + '.summ_stat.csv'
 
-                dat_data[j,:] = phy_tensor.flatten()
-                dat_stat[j,:] = np.loadtxt(fname_stat, delimiter=',', skiprows=1)
-                dat_labels[j,:] = np.loadtxt(fname_param, delimiter=',', skiprows=1)
+                #t1 = time.time()
+                x1 = phy_tensor.flatten() 
+                #t2 = time.time()
+                dat_data[j,:] = x1 #phy_tensor.flatten()
+                #t3 = time.time()
+                x2 = np.loadtxt(fname_stat, delimiter=',', skiprows=1)
+                #t4 = time.time()
+                dat_stat[j,:] = x2 #np.loadtxt(fname_stat, delimiter=',', skiprows=1)
+                #t5 = time.time()
+                x3 = np.loadtxt(fname_param, delimiter=',', skiprows=1)
+                #t6 = time.time()
+                dat_labels[j,:] = x3 #np.loadtxt(fname_param, delimiter=',', skiprows=1)
+                #t7 = time.time()
+                #print(f'times  {t2-t1}   {t3-t2}   {t4-t3}  {t5-t4}  {t6-t5}  {t7-t6}')
 
             #print(dat_data[j,:])
             
@@ -438,21 +457,24 @@ class Formatter:
         # read tree + states
         #phy = dp.Tree.get(path=tre_fn, schema="newick")
         num_taxa                  = len(phy.leaf_nodes())
-        root_distances            = phy.calc_node_root_distances()
-        tree_height               = np.max( root_distances )
+        #root_distances            = phy.calc_node_root_distances()
+        #root_distances            = [ nd.root_distance for nd in phy.nodes() if nd.is_leaf]
+        node_ages                 = phy.internal_node_ages()
+        #tree_height               = np.max( root_distances )
+        root_age                  = phy.seed_node.age
         branch_lengths            = [ nd.edge.length for nd in phy.nodes() if nd != phy.seed_node ]
 
         # tree statistics
         summ_stats['n_taxa']      = num_taxa
         summ_stats['tree_length'] = phy.length()
-        summ_stats['tree_height'] = tree_height
+        summ_stats['root_age']    = root_age
         summ_stats['brlen_mean']  = np.mean(branch_lengths)
         summ_stats['brlen_var']   = np.var(branch_lengths)
-        #summ_stats['brlen_skew']  = sp.stats.skew(branch_lengths)
+        summ_stats['brlen_skew']  = sp.stats.skew(branch_lengths)
         #summ_stats['brlen_kurt']  = sp.stats.kurtosis(branch_lengths)
-        summ_stats['age_mean']    = np.mean(root_distances)
-        summ_stats['age_var']     = np.var(root_distances)
-        #summ_stats['age_skew']    = sp.stats.skew(root_distances)
+        summ_stats['age_mean']    = np.mean(node_ages)
+        summ_stats['age_var']     = np.var(node_ages)
+        summ_stats['age_skew']    = sp.stats.skew(node_ages)
         #summ_stats['age_kurt']    = sp.stats.kurtosis(root_distances)
         summ_stats['B1']          = dp.calculate.treemeasure.B1(phy)
         summ_stats['N_bar']       = dp.calculate.treemeasure.N_bar(phy)

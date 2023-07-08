@@ -29,10 +29,10 @@ from phyddle import Utilities
 #-----------------------------------------------------------------------------------------------------------------#
 
 def load(args):
-    sim_method = args['learn_method']
-    if sim_method == 'param_est':
+    learn_method = args['learn_method']
+    if learn_method == 'param_est':
         return CnnLearner(args)
-    elif sim_method == 'model_test':
+    elif learn_method == 'model_test':
         raise NotImplementedError
     else:
         return None

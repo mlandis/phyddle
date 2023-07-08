@@ -22,26 +22,24 @@ my_args = Utilities.load_config('config', arg_overwrite=True)
 # DEFINE PIPELINE STEPS #
 #########################
 
+# create model template
+my_mdl = ModelLoader.load(my_args)
+
 # simulator samples from model
-MySimulator = Simulating.MasterSimulator
-my_mdl = ModelLoader.load_model(my_args)
-my_sim = MySimulator(my_args, my_mdl)
+my_sim = Simulating.load(my_args, my_mdl)
 
 # formatter prepares entire dataset into single tensor
-MyFormatter = Formatting.Formatter
-my_fmt = MyFormatter(my_args, my_mdl)
+#MyFormatter = Formatting.Formatter
+my_fmt = Formatting.load(my_args) #, my_mdl)
 
 # learner fits neural network
-MyLearner = Learning.CnnLearner
-my_lrn = MyLearner(my_args)
+my_lrn = Learning.load(my_args)
 
 # predicter uses trained network for estimates on new dataset
-MyPredictor = Predicting.Predictor
-my_prd = MyPredictor(my_args)
+my_prd = Predicting.load(my_args)
 
 # plotter generates figures
-MyPlotter = Plotting.Plotter
-my_plt = MyPlotter(my_args)
+my_plt = Plotting.load(my_args)
 
 
 ################

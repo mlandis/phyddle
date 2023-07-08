@@ -173,8 +173,18 @@ class CommandSimulator(Simulator):
 
         # run generic job
         cmd_str = f'{self.sim_command} {tmp_fn}'
-        cmd_out = subprocess.check_output(cmd_str, shell=True, text=True, stderr=subprocess.STDOUT)
-        Utilities.write_to_file(cmd_out, cmd_log_fn)
+
+        num_attempt = 10
+        valid = False
+        while not valid and num_attempt > 0:
+            try:
+                cmd_out = subprocess.check_output(cmd_str, shell=True, text=True, stderr=subprocess.STDOUT)
+                Utilities.write_to_file(cmd_out, cmd_log_fn)
+                valid = True
+            except subprocess.CalledProcessError:
+                num_attempt -= 1
+                valid = False
+                #print(f'error for rep_idx={idx}')
 
         return
     

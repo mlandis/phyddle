@@ -11,23 +11,26 @@ num_states      = 3
 num_state_pairs = num_states*(num_states-1)
 birth           = runif(1,0,1)
 death           = birth * runif(1)
-max_time        = runif(1,0,10)
-state_rates     = runif(num_state_pairs/2, 0, 1)
-q_labels        = rep("", num_state_pairs/2)
-state_Q_mtx     = matrix(0, nrow=num_states, ncol=num_states)
-k = 1
-for (i in 1:num_states) {
-    for (j in 1:num_states) {
-        if (j > i) {
-            state_Q_mtx[i,j] = state_rates[k]
-            state_Q_mtx[j,i] = state_Q_mtx[i,j]
-            q_labels[k] = paste0("q_",j,"_",i)
-            k = k + 1
+max_time        = runif(1,0,12)
+state_rate      = runif(1,0,1)
+if (F) {
+    state_rates     = runif(num_state_pairs/2, 0, 1)
+    q_labels        = rep("", num_state_pairs/2)
+    state_Q_mtx     = matrix(0, nrow=num_states, ncol=num_states)
+    k = 1
+    for (i in 1:num_states) {
+        for (j in 1:num_states) {
+            if (j > i) {
+                state_Q_mtx[i,j] = state_rates[k]
+                state_Q_mtx[j,i] = state_Q_mtx[i,j]
+                q_labels[k] = paste0("q_",j,"_",i)
+                k = k + 1
+            }
         }
     }
+    diag(state_Q_mtx) = 0
+    diag(state_Q_mtx) = -rowSums(state_Q_mtx)
 }
-diag(state_Q_mtx) = 0
-diag(state_Q_mtx) = -rowSums(state_Q_mtx)
 state_freqs     = rep(1/num_states, num_states) # runif(num_states, 0, 1)
 state_freqs     = state_freqs / sum(state_freqs)
 state_labels    = 0:(num_states-1) #, collapse="")
@@ -45,9 +48,9 @@ phy = rbdtree(birth=birth, death=death, Tmax=max_time)
 dat = c()
 for (i in 1:num_char) {
     dat_new = rTraitDisc(phy,
-                         model="SYM",
+                         model="ER",
                          k=num_states,
-                         rate=state_rates,
+                         rate=state_rate,
                          freq=state_freqs,
                          states=state_labels)
     dat = cbind(dat, dat_new)
@@ -56,17 +59,17 @@ for (i in 1:num_char) {
 dat = dat - 1
 
 # construct labels
-k = 1
-for (i in 1:num_states) {
-    for (j in 1:num_states) {
-        if (j > i) {
-        }
-    }
-}
-pi_labels = paste0("pi_", 1:num_states)
+#k = 1
+#for (i in 1:num_states) {
+#    for (j in 1:num_states) {
+#        if (j > i) {
+#        }
+#    }
+#}
+#pi_labels = paste0("pi_", 1:num_states)
 
-labels = c(birth, death, state_rates)
-names(labels) = c("birth", "death", q_labels)
+labels = c(birth, death, state_rate)
+names(labels) = c("birth", "death", "state_rate")
 df <- data.frame(t(labels))
 
 
