@@ -20,9 +20,8 @@ my_args = Utilities.load_config('config', arg_overwrite=True)
 #########################
 
 # simulator samples from model
-MySimulator = Simulating.MasterSimulator
-my_mdl = ModelLoader.load_model(my_args)
-my_sim = MySimulator(my_args, my_mdl)
+my_mdl = ModelLoader.load(my_args)
+my_sim = Simulating.load(my_args, my_mdl) 
 
 
 ################

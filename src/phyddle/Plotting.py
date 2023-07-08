@@ -28,6 +28,18 @@ from sklearn.decomposition import PCA
 # phyddle imports
 # none
 
+#-----------------------------------------------------------------------------------------------------------------#
+
+def load(args):
+    #sim_method = args['learn_method']
+    plot_method = 'default'
+    if plot_method == 'default':
+        return Plotter(args)
+    else:
+        return None
+
+#-----------------------------------------------------------------------------------------------------------------#
+
 class Plotter:
 
     def __init__(self, args):

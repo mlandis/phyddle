@@ -29,11 +29,24 @@ from phyddle import Utilities
 # settings
 sys.setrecursionlimit(10000)
 
+#-----------------------------------------------------------------------------------------------------------------#
+
+# fairly sure that Formatter does not need mdl
+def load(args):
+    #sim_method = args['learn_method']
+    format_method = 'default'
+    if format_method == 'default':
+        return Formatter(args)
+    else:
+        return None
+
+#-----------------------------------------------------------------------------------------------------------------#
+
 class Formatter:
 
-    def __init__(self, args, mdl):
+    def __init__(self, args): #, mdl):
         self.set_args(args)
-        self.model = mdl
+        #self.model = mdl
         return        
 
     def set_args(self, args):
@@ -43,6 +56,8 @@ class Formatter:
         self.proj          = args['proj']
         self.fmt_dir       = args['fmt_dir']
         self.sim_dir       = args['sim_dir']
+        self.model_type    = args['model_type']
+        self.model_variant = args['model_variant']
         self.tree_type     = args['tree_type']
         self.num_char      = args['num_char']
         self.num_states    = args['num_states']
@@ -55,7 +70,7 @@ class Formatter:
         self.model_variant     = args['model_variant']
         self.tree_width_cats   = args['tree_width_cats']
         self.tree_encode_type  = args['tree_encode_type']
-        self.state_encode_type = args['state_encode_type']
+        self.char_encode_type  = args['char_encode_type']
         self.min_num_taxa      = args['min_num_taxa']
         self.max_num_taxa      = args['max_num_taxa']
         self.start_idx         = args['start_idx']
@@ -68,20 +83,22 @@ class Formatter:
         self.out_dir       = f'{self.fmt_dir}/{self.proj}'
         self.rep_idx       = list(range(self.start_idx, self.end_idx))
 
-        if self.tree_type == 'serial':
-            self.num_tree_row = 2
-        elif self.tree_type == 'extant':
-            self.num_tree_row = 1
+        self.num_tree_row = Utilities.get_num_tree_row(self.tree_type, self.tree_encode_type)
+        self.num_char_row = Utilities.get_num_char_row(self.char_encode_type, self.num_char, self.num_states)
+        # if self.tree_type == 'serial':
+        #     self.num_tree_row = 2
+        # elif self.tree_type == 'extant':
+        #     self.num_tree_row = 1
 
-        if self.tree_encode_type == 'height_only':
-            self.num_tree_row += 0
-        elif self.tree_encode_type == 'height_brlen':
-            self.num_tree_row += 2
+        # if self.tree_encode_type == 'height_only':
+        #     self.num_tree_row += 0
+        # elif self.tree_encode_type == 'height_brlen':
+        #     self.num_tree_row += 2
 
-        if self.state_encode_type == 'integer':
-            self.num_char_row = self.num_char
-        elif self.state_encode_type == 'one_hot':
-            self.num_char_row = self.num_char * self.num_states
+        # if self.state_encode_type == 'integer':
+        #     self.num_char_row = self.num_char
+        # elif self.state_encode_type == 'one_hot':
+        #     self.num_char_row = self.num_char * self.num_states
 
         self.num_data_row = self.num_tree_row + self.num_char_row
 
@@ -106,8 +123,8 @@ class Formatter:
 
         s = 'setting,value\n'
         s += 'proj,'            + self.proj + '\n'
-        s += 'model_type,'      + self.model.model_type + '\n'
-        s += 'model_variant,'   + self.model.model_variant + '\n'
+        s += 'model_type,'      + self.model_type + '\n'
+        s += 'model_variant,'   + self.model_variant + '\n'
         s += 'replicate_index,' + str(idx) + '\n'
         s += 'tree_width,'      + str(tree_width) + '\n'
         
@@ -343,13 +360,14 @@ class Formatter:
         info_fn    = tmp_fn + '.info.csv'
         
         # state space
-        vecstr2int = self.model.states.vecstr2int #{ v:i for i,v in enumerate(int2vecstr) }
+        #vecstr2int = self.model.states.vecstr2int #{ v:i for i,v in enumerate(int2vecstr) }
 
         # read in nexus data file
-        if self.state_encode_type == 'integer':
-            dat = Utilities.convert_nexus_to_integer_array(dat_nex_fn)
-        elif self.state_encode_type == 'one_hot':
-            dat = Utilities.convert_nexus_to_onehot_array(dat_nex_fn, self.num_states)
+        dat = Utilities.convert_nexus_to_array(dat_nex_fn, self.char_encode_type, self.num_states)
+        # if self.char_encode_type == 'integer':
+        #     dat = Utilities.convert_nexus_to_integer_array(dat_nex_fn)
+        # elif self.char_encode_type == 'one_hot':
+        #     dat = Utilities.convert_nexus_to_onehot_array(dat_nex_fn, self.num_states)
 
         # get tree file
         phy = Utilities.read_tree(tre_fn)
@@ -401,7 +419,7 @@ class Formatter:
         Utilities.write_to_file(info_str, info_fn)
 
         # record summ stat data
-        ss     = self.make_summ_stat(phy, dat, vecstr2int)
+        ss     = self.make_summ_stat(phy, dat) #, vecstr2int)
         ss_str = self.make_summ_stat_str(ss)
         Utilities.write_to_file(ss_str, ss_fn)
         
@@ -412,7 +430,7 @@ class Formatter:
     # ==> move to Formatting? <==
 
     #def make_summ_stat(self, tre_fn, geo_fn, states_bits_str_inv):
-    def make_summ_stat(self, phy, dat, states_bits_str_inv):
+    def make_summ_stat(self, phy, dat): #, states_bits_str_inv):
 
         # build summary stats
         summ_stats = {}
@@ -471,14 +489,14 @@ class Formatter:
         # freq_taxon_states = np.zeros(num_char, dtype='float')
         #print(dat)
         # get freqs of data-states, based on state encoding type
-        if self.state_encode_type == 'integer':
+        if self.char_encode_type == 'integer':
             for i in range(self.num_states):
                 summ_stats['f_dat_' + str(i)] = 0
             unique, counts = np.unique(dat, return_counts=True)
             for i,j in zip(unique, counts):
                 summ_stats['f_dat_' + str(i)] = j / num_taxa
         
-        elif self.state_encode_type == 'one_hot':
+        elif self.char_encode_type == 'one_hot':
             for i in range(dat.shape[0]):
                 #print(i)
                 #print(np.sum(dat.iloc[i]))

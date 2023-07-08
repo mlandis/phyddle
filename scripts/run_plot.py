@@ -19,8 +19,9 @@ my_args = Utilities.load_config('config', arg_overwrite=True)
 #########################
 
 # plotter generates figures
-MyPlotter = Plotting.Plotter
-my_plt = MyPlotter(my_args)
+#MyPlotter = Plotting.Plotter
+#my_plt = MyPlotter(my_args)
+my_plt = Plotting.load(my_args)
 
 
 ################

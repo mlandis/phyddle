@@ -10,6 +10,7 @@ Copyright: (c) 2023, Michael Landis
 License:   MIT
 """
 
+
 # standard imports
 import json
 import os
@@ -24,6 +25,19 @@ from keras import backend as K
 
 # phyddle imports
 from phyddle import Utilities
+
+#-----------------------------------------------------------------------------------------------------------------#
+
+def load(args):
+    sim_method = args['learn_method']
+    if sim_method == 'param_est':
+        return CnnLearner(args)
+    elif sim_method == 'model_test':
+        raise NotImplementedError
+    else:
+        return None
+
+#-----------------------------------------------------------------------------------------------------------------#
 
 class Learner:
     def __init__(self, args):
@@ -40,14 +54,11 @@ class Learner:
         self.proj              = args['proj']
         self.tree_width        = args['tree_width']
         self.tree_type         = args['tree_type']
-        if self.tree_type == 'extant':
-            self.num_tree_row = 3
-        elif self.tree_type == 'serial':
-            self.num_tree_row = 4
-        else:
-            raise NotImplementedError
+        self.tree_encode_type  = args['tree_encode_type']
+        self.char_encode_type  = args['char_encode_type']
         self.tensor_format     = args['tensor_format']
-        self.num_char_row      = args['num_char']
+        self.num_char          = args['num_char']
+        self.num_states        = args['num_states']
         #self.predict_idx       = args['predict_idx']
         self.fmt_dir           = args['fmt_dir']
         self.plt_dir           = args['plt_dir']
@@ -67,6 +78,11 @@ class Learner:
         self.optimizer         = args['optimizer']
         self.metrics           = args['metrics']
         self.kernel_init       = 'glorot_uniform'
+
+        self.num_tree_row = Utilities.get_num_tree_row(self.tree_type, self.tree_encode_type)
+        self.num_char_row = Utilities.get_num_char_row(self.char_encode_type, self.num_char, self.num_states)
+        self.num_data_row = self.num_tree_row + self.num_char_row
+
         return
     
     def prepare_files(self):
@@ -87,7 +103,6 @@ class Learner:
         self.model_trn_lbl_norm_fn  = f'{self.network_dir}/{self.model_prefix}.train_label_norm.csv'
         self.model_trn_ss_norm_fn   = f'{self.network_dir}/{self.model_prefix}.train_summ_stat_norm.csv'
         self.model_hist_fn      = f'{self.network_dir}/{self.model_prefix}.train_history.json'
-        #self.model_cpi_func_fn  = f'{self.network_dir}/{self.model_prefix}.cpi_func.obj'
         self.model_cpi_fn       = f'{self.network_dir}/{self.model_prefix}.cpi_adjustments.csv'
         self.train_pred_calib_fn      = f'{self.network_dir}/{self.model_prefix}.train_pred.csv'
         self.test_pred_calib_fn       = f'{self.network_dir}/{self.model_prefix}.test_pred.csv'
@@ -122,7 +137,9 @@ class Learner:
         raise NotImplementedError
     def save_results(self):
         raise NotImplementedError
-    
+
+#-----------------------------------------------------------------------------------------------------------------#
+  
 class CnnLearner(Learner):
     def __init__(self, args):
         super().__init__(args)
@@ -144,13 +161,14 @@ class CnnLearner(Learner):
         
         # all unclaimed datapoints are used for training
         num_train = num_sample - (num_val + num_test + num_calib)
-        if num_train < 0:
-            raise ValueError
+        assert(num_train > 0)
+        # if num_train < 0:
+        #     raise ValueError
 
         # create input subsets
         train_idx = np.arange(num_train, dtype='int')
-        val_idx   = np.arange(num_val, dtype='int') + num_train
-        test_idx  = np.arange(num_test, dtype='int') + num_train + num_val
+        val_idx   = np.arange(num_val,   dtype='int') + num_train
+        test_idx  = np.arange(num_test,  dtype='int') + num_train + num_val
         calib_idx = np.arange(num_calib, dtype='int') + num_train + num_val + num_test
 
         # maybe save these to file?
@@ -210,28 +228,28 @@ class CnnLearner(Learner):
         # normalize summary stats
         self.denormalized_train_stats = full_stats[train_idx,:]
         self.norm_train_stats, self.train_stats_means, self.train_stats_sd = Utilities.normalize( full_stats[train_idx,:] )
-        self.norm_val_stats  = Utilities.normalize(full_stats[val_idx,:], (self.train_stats_means, self.train_stats_sd))
-        self.norm_test_stats = Utilities.normalize(full_stats[test_idx,:], (self.train_stats_means, self.train_stats_sd))
+        self.norm_val_stats   = Utilities.normalize(full_stats[val_idx,:], (self.train_stats_means, self.train_stats_sd))
+        self.norm_test_stats  = Utilities.normalize(full_stats[test_idx,:], (self.train_stats_means, self.train_stats_sd))
         self.norm_calib_stats = Utilities.normalize(full_stats[calib_idx,:], (self.train_stats_means, self.train_stats_sd))
 
         # (option for diff schemes) try normalizing against 0 to 1
         self.denormalized_train_labels = full_labels[train_idx,:]
         self.norm_train_labels, self.train_label_means, self.train_label_sd = Utilities.normalize( full_labels[train_idx,:] )
-        self.norm_val_labels  = Utilities.normalize(full_labels[val_idx,:], (self.train_label_means, self.train_label_sd))
-        self.norm_test_labels = Utilities.normalize(full_labels[test_idx,:], (self.train_label_means, self.train_label_sd))
+        self.norm_val_labels   = Utilities.normalize(full_labels[val_idx,:], (self.train_label_means, self.train_label_sd))
+        self.norm_test_labels  = Utilities.normalize(full_labels[test_idx,:], (self.train_label_means, self.train_label_sd))
         self.norm_calib_labels = Utilities.normalize(full_labels[calib_idx,:], (self.train_label_means, self.train_label_sd))
 
         # create data tensors
         self.train_data_tensor = full_data[train_idx,:]
         self.val_data_tensor   = full_data[val_idx,:]
         self.test_data_tensor  = full_data[test_idx,:]
-        self.calib_data_tensor  = full_data[calib_idx,:]
+        self.calib_data_tensor = full_data[calib_idx,:]
 
         # summary stats
         self.train_stats_tensor = self.norm_train_stats
         self.val_stats_tensor   = self.norm_val_stats
         self.test_stats_tensor  = self.norm_test_stats
-        self.calib_stats_tensor  = self.norm_calib_stats
+        self.calib_stats_tensor = self.norm_calib_stats
 
         return
     

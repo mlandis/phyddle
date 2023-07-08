@@ -5,7 +5,7 @@ ModelLoader
 Defines a registry of recognized model types and variants. Also defines methods to quick-load
 requested models as needed for a phyddle analysis.
 
-Author:    Michael Landis
+Authors:   Michael Landis, Ammon Thompson
 Copyright: (c) 2023, Michael Landis
 License:   MIT
 """
@@ -55,7 +55,7 @@ def make_model_registry_str():
 
     return s
 
-def load_model(args):
+def load(args):
     model_type = args['model_type']
     MyModelClass = get_model_class(model_type)
     return MyModelClass(args)

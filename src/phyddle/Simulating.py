@@ -29,7 +29,7 @@ from phyddle import Utilities
 
 #-----------------------------------------------------------------------------------------------------------------#
 
-def load_simulator(args, mdl):
+def load(args, mdl=None):
     """
     Load the appropriate simulator.
 
@@ -63,7 +63,7 @@ class Simulator:
     def __init__(self, args, mdl):
         self.set_args(args)
         #self.sim_command  = 'echo \"phyddle.Simulator.sim_command undefined in derived class!\"' # do nothing
-        self.model        = mdl
+        self.model = mdl
         return
 
     def set_args(self, args):
@@ -88,8 +88,8 @@ class Simulator:
 
         s =  'setting,value\n'
         s += f'proj,{self.proj}\n'
-        s += f'model_name,{self.model.model_type}\n'
-        s += f'model_variant,{self.model.model_variant}\n'
+        s += f'model_name,{self.model_type}\n'
+        s += f'model_variant,{self.model_variant}\n'
         s += f'replicate_index,{idx}\n'
         s += f'taxon_category,{mtx_size}\n'
         s += f'sim_method,{self.sim_method}\n'

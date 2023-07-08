@@ -24,6 +24,18 @@ import tensorflow as tf
 from phyddle import Utilities
 #from Formatting import encode_phy_tensor
 
+#-----------------------------------------------------------------------------------------------------------------#
+
+def load(args):
+    #sim_method = args['learn_method']
+    predict_method = 'default'
+    if predict_method == 'default':
+        return Predictor(args)
+    else:
+        return None
+
+#-----------------------------------------------------------------------------------------------------------------#
+
 class Predictor:
     def __init__(self, args):
         self.set_args(args)
@@ -36,11 +48,15 @@ class Predictor:
         self.net_dir           = args['net_dir']
         self.pred_dir          = args['pred_dir']
         self.pred_prefix       = args['pred_prefix']
-        self.num_char_row      = args['num_char']
+        #self.num_char_row      = args['num_char']
         self.batch_size        = args['batch_size']
         self.num_epochs        = args['num_epochs']
         self.tree_width        = args['tree_width']
         self.tree_type         = args['tree_type']
+        self.char_encode_type  = args['char_encode_type']
+        self.tree_encode_type  = args['tree_encode_type']
+        self.num_char          = args['num_char']
+        self.num_states        = args['num_states']
         
         return
     
@@ -68,12 +84,16 @@ class Predictor:
         # test phy vector
         if self.tree_type == 'extant':
             self.pred_phyvec_fn     = f'{self.predict_dir}/{self.pred_prefix}.cdvs.csv'    
-            self.num_tree_row       = 3
+        #    self.num_tree_row       = 3
         elif self.tree_type == 'serial':
             self.pred_phyvec_fn     = f'{self.predict_dir}/{self.pred_prefix}.cblvs.csv'
-            self.num_tree_row       = 4   
+        #    self.num_tree_row       = 4   
         else:
             raise NotImplementedError
+
+        self.num_tree_row = Utilities.get_num_tree_row(self.tree_type, self.tree_encode_type)
+        self.num_char_row = Utilities.get_num_char_row(self.char_encode_type, self.num_char, self.num_states)
+        self.num_data_row = self.num_tree_row + self.num_char_row
         
         return
 

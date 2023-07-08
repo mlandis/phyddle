@@ -19,8 +19,9 @@ my_args = Utilities.load_config('config', arg_overwrite=True)
 #########################
 
 # trainer fits neural network
-MyLearner = Learning.CnnLearner
-my_lrn = MyLearner(my_args)
+#MyLearner = Learning.CnnLearner
+#my_lrn = MyLearner(my_args)
+my_lrn = Learning.load(my_args)
 
 
 ################

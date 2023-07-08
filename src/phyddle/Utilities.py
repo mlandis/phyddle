@@ -239,7 +239,7 @@ def load_config(config_fn: str,
     parser.add_argument('--tree_type',          dest='tree_type', type=str, choices=['extant', 'serial'], help='Type of tree', metavar='')
     parser.add_argument('--tree_width_cats',    dest='tree_width_cats', type=int, help='The phylo-state tensor widths for formatting training datasets, space-delimited', metavar='')
     parser.add_argument('--tree_encode_type',   dest='tree_encode_type', type=str, choices=['height_only', 'height_brlen'], help='Method for encoding branch length info in tensor', metavar='')
-    parser.add_argument('--state_encode_type',  dest='state_encode_type', type=str, choices=['one_hot', 'integer'], help='Method for encoding states in tensor', metavar='')
+    parser.add_argument('--char_encode_type',   dest='char_encode_type', type=str, choices=['one_hot', 'integer'], help='Method for encoding character states in tensor', metavar='')
     parser.add_argument('--tensor_format',      dest='tensor_format', type=str, choices=['hdf5', 'csv'], help='Storage format for simulation tensors', metavar='')
     parser.add_argument('--save_phyenc_csv',    dest='save_phyenc_csv', type=bool, help='Save encoded phylogenetic tensor encoding to csv?', metavar='')
     # learning settings
@@ -315,7 +315,7 @@ def load_config(config_fn: str,
     m = overwrite_defaults(m, args, 'save_phyenc_csv')
     m = overwrite_defaults(m, args, 'tree_width_cats')
     m = overwrite_defaults(m, args, 'tree_encode_type')
-    m = overwrite_defaults(m, args, 'state_encode_type')
+    m = overwrite_defaults(m, args, 'char_encode_type')
     m = overwrite_defaults(m, args, 'num_epochs')
     m = overwrite_defaults(m, args, 'batch_size')
     m = overwrite_defaults(m, args, 'prop_test')
@@ -436,6 +436,28 @@ def find_tree_width(num_taxa:int, max_taxa:list[int]):
     #return -2
 
 
+def get_num_tree_row(tree_type, tree_encode_type):
+    if tree_type == 'serial':
+        num_tree_row = 2
+    elif tree_type == 'extant':
+        num_tree_row = 1
+
+    if tree_encode_type == 'height_only':
+        num_tree_row += 0
+    elif tree_encode_type == 'height_brlen':
+        num_tree_row += 2
+
+    return num_tree_row
+
+def get_num_char_row(state_encode_type, num_char, num_states):
+        
+    if state_encode_type == 'integer':
+        num_char_row = num_char
+    elif state_encode_type == 'one_hot':
+        num_char_row = num_char * num_states
+
+    return num_char_row
+
 
 #-----------------------------------------------------------------------------------------------------------------#
 
@@ -494,6 +516,17 @@ def read_tree(tre_fn):
 #####################
 # FORMAT CONVERTERS #
 #####################
+
+
+def convert_nexus_to_array(dat_fn: str, char_encode_type: str, num_states: int=None):
+    if char_encode_type == 'integer':
+        dat = onvert_nexus_to_integer_array(dat_fn)
+    elif char_encode_type == 'one_hot':
+        dat = convert_nexus_to_onehot_array(dat_fn, num_states)
+    else:
+        return NotImplementedError
+
+    return dat
 
 def convert_nexus_to_integer_array(dat_fn: str):
     """Converts a NEXUS file to an integer-encoded pandas DataFrame.

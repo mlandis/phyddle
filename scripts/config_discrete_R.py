@@ -67,7 +67,7 @@ args = {
     'tree_type'         : 'extant',         # use model with serial or extant tree
     'tree_width_cats'   : [ 200, 500 ],     # tree width categories for phylo-state tensors
     'tree_encode_type'  : 'height_brlen',   # how to encode phylo brlen? height_only or height_brlen
-    'state_encode_type' : 'one_hot',        # how to encode discrete states? one_hot or integer 
+    'char_encode_type'  : 'one_hot',        # how to encode discrete states? one_hot or integer 
     'param_pred'        : [                 # model parameters to predict (labels)
         'birth', 'death', 'q_2_1', 'q_3_1', 'q_3_2'
     ],

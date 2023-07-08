@@ -20,9 +20,10 @@ my_args = Utilities.load_config('config', arg_overwrite=True)
 #########################
 
 # formatter prepares tensor format
-MyFormatter = Formatting.Formatter
-my_mdl = ModelLoader.load_model(my_args)
-my_fmt = MyFormatter(my_args, my_mdl)
+#MyFormatter = Formatting.Formatter
+#my_mdl = ModelLoader.load(my_args)
+#my_fmt = MyFormatter(my_args, my_mdl)
+my_fmt = Formatting.load(my_args) #, my_mdl)
 
 
 ################
