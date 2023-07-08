@@ -438,13 +438,13 @@ class Formatter:
 
         # encode CBLVS
         if self.tree_type == 'serial':
-            cblvs = self.encode_phy_tensor(phy, dat, tree_width=tree_width, tree_type='serial')
+            cblvs = self.encode_phy_tensor(phy, dat, tree_width=tree_width, tree_encode_type=self.tree_encode_type, tree_type='serial')
             cpsv = cblvs
             cpsv_fn = cblvs_fn
 
         # encode CDVS
         elif self.tree_type == 'extant':
-            cdvs = self.encode_phy_tensor(phy, dat, tree_width=tree_width, tree_type='extant')
+            cdvs = self.encode_phy_tensor(phy, dat, tree_width=tree_width, tree_encode_type=self.tree_encode_type, tree_type='extant')
             cpsv = cdvs
             cpsv_fn = cdvs_fn
 
@@ -564,29 +564,35 @@ class Formatter:
     
 
     # ==> move to Formatting? <==
-    def encode_phy_tensor(self, phy, dat, tree_width, tree_type, rescale=True):
+    def encode_phy_tensor(self, phy, dat, tree_width, tree_type, tree_encode_type, rescale=True):
         if tree_type == 'serial':
-            phy_tensor = self.encode_cblvs(phy, dat, tree_width, rescale)
+            phy_tensor = self.encode_cblvs(phy, dat, tree_width, tree_encode_type, rescale)
         elif tree_type == 'extant':
-            phy_tensor = self.encode_cdvs(phy, dat, tree_width, rescale)
+            phy_tensor = self.encode_cdvs(phy, dat, tree_width, tree_encode_type, rescale)
         else:
             ValueError(f'Unrecognized {tree_type}')
         return phy_tensor
 
-    def encode_cdvs(self, phy, dat, tree_width, rescale=True):
+    def encode_cdvs(self, phy, dat, tree_width, tree_encode_type, rescale=True):
         
         # num columns equals tree_width, 0-padding
         # returns tensor with following rows
-        # 0: terminal brlen, 1: last-int-node brlen, 2: last-int-node root-dist
+        # 0:  internal node root-distance
+        # 1:  leaf node branch length
+        # 2:  internal node branch ength
+        # 3+: state encoding
         
         # data dimensions
-        num_char  = dat.shape[0]
-        #print(dat.shape)
+        num_char_row = dat.shape[0]
+        if tree_encode_type == 'height_only':
+            num_tree_row = 1
+        elif tree_encode_type == 'height_brlen':
+            num_tree_row = 3
 
         # initialize workspace
         root_distances = phy.calc_node_root_distances(return_leaf_distances_only=False)
-        heights    = np.zeros( (3, tree_width) )
-        states     = np.zeros( (num_char, tree_width) )
+        heights    = np.zeros( (num_tree_row, tree_width) )
+        states     = np.zeros( (num_char_row, tree_width) )
         state_idx  = 0
         height_idx = 0
 
@@ -607,15 +613,16 @@ class Formatter:
         for nd in phy.inorder_node_iter():
             
             if nd.is_leaf():
-                heights[0,height_idx] = nd.edge.length
+                heights[1,height_idx] = nd.edge.length
                 states[:,state_idx]   = dat[nd.taxon.label].to_list()
                 state_idx += 1
             else:
-                heights[1,height_idx] = nd.edge.length
-                heights[2,height_idx] = nd.root_distance
+                heights[0,height_idx] = nd.root_distance
+                heights[2,height_idx] = nd.edge.length
                 height_idx += 1
 
         # fill in phylo tensor
+        # row 0: 
         if rescale:
             heights = heights / np.max(heights)
         phylo_tensor = np.vstack( [heights, states] )
@@ -623,14 +630,28 @@ class Formatter:
         return phylo_tensor
 
 
-    def encode_cblvs(self, phy, dat, tree_width, rescale=True):
+    def encode_cblvs(self, phy, dat, tree_width, tree_encode_type, rescale=True):
+        
+        # num columns equals tree_width, 0-padding
+        # returns tensor with following rows
+        # 0:  leaf node-to-last internal node distance
+        # 1:  internal node root-distance
+        # 2:  leaf node branch length
+        # 3:  internal node branch ength
+        # 4+: state encoding
+
         # data dimensions
-        num_char   = dat.shape[0]
+        num_char_row = dat.shape[0]
+        if tree_encode_type == 'height_only':
+            num_tree_row = 2
+        elif tree_encode_type == 'height_brlen':
+            num_tree_row = 4
+
 
         # initialize workspace
         null       = phy.calc_node_root_distances(return_leaf_distances_only=False)
-        heights    = np.zeros( (4, tree_width) ) 
-        states     = np.zeros( (num_char, tree_width) )
+        heights    = np.zeros( (num_tree_row, tree_width) ) 
+        states     = np.zeros( (num_char_row, tree_width) )
         state_idx  = 0
         height_idx = 0
 
@@ -651,19 +672,18 @@ class Formatter:
         last_int_node.edge.length = 0
         for nd in phy.inorder_node_iter():
             if nd.is_leaf():
-                heights[0,height_idx] = nd.edge.length
-                heights[2,height_idx] = nd.root_distance - last_int_node.root_distance
+                heights[0,height_idx] = nd.root_distance - last_int_node.root_distance
+                heights[2,height_idx] = nd.edge.length
                 states[:,state_idx]   = dat[nd.taxon.label].to_list()
                 state_idx += 1
             else:
                 #print(last_int_node.edge.length)
-                heights[1,height_idx+1] = nd.edge.length
-                heights[3,height_idx+1] = nd.root_distance
+                heights[1,height_idx+1] = nd.root_distance
+                heights[3,height_idx+1] = nd.edge.length
                 last_int_node = nd
                 height_idx += 1
 
         # fill in phylo tensor
-        #heights.shape = (2, tree_width)
         # 0: leaf brlen; 1: intnode brlen; 2:leaf-to-lastintnode len; 3:lastintnode-to-root len
         if rescale:
             heights = heights / np.max(heights)
