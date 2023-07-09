@@ -91,7 +91,7 @@ def run_pipeline():
 
 def test_run_pipeline():
     val = run_pipeline()
-    assert val == 166.25643737 or val == 172.25643737
+    assert val == 171.25643737
 
 
 #test_run_pipeline()

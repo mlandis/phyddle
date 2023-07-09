@@ -354,6 +354,17 @@ def load_config(config_fn: str,
 
 def check_args(args):
 
+    # string values
+    assert args['steps']             in ['all', 'sim', 'fmt', 'lrn', 'prd', 'plt']
+    assert args['sim_method']        in ['command', 'master']
+    assert args['sim_logging']       in ['clean', 'verbose', 'compress']
+    assert args['tree_type']         in ['serial', 'extant']
+    assert args['tree_encode_type']  in ['one_hot', 'integer']
+    assert args['char_encode_type']  in ['height_only', 'height_brlen']
+    assert args['tensor_format']     in ['csv', 'hdf5']
+    assert args['learn_method']      in ['param_est', 'model_test']
+    
+    # numerical values
     assert args['start_idx'] >= 0
     assert args['end_idx'] >= 0
     assert args['start_idx'] <= args['end_idx']
@@ -368,7 +379,6 @@ def check_args(args):
     assert args['prop_test'] >= 0. and args['prop_test'] <= 1.
     assert args['prop_validation'] >= 0. and args['prop_validation'] <= 1.
     assert args['prop_calibration'] >= 0. and args['prop_calibration'] <= 1.
-    
     assert len(args['tree_width_cats']) > 0
     for i in range(len(args['tree_width_cats'])):
         assert args['tree_width_cats'][i] > 0
