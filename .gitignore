@@ -12,6 +12,9 @@ workspace/plot/*/*
 !workspace/predict/example/*
 !workspace/plot/example/*
 
+# Ignore extras in tests
+tests/workspace/*
+
 # Ignore phyddle accessory dirs
 sandbox/
 paper/

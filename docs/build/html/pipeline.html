@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pipeline &mdash; phyddle 0.0.3 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="author" title="About these documents" href="about.html" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Settings" href="settings.html" />
+    <link rel="prev" title="Installation" href="installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html">
+            
+              <img src="_static/phyddle_logo.png" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                0.0.3
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="updates.html">Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Pipeline</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#project-layout">Project layout</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#example-project">Example project</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#model-configuration">Model Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#simulating">Simulating</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#command-line-simulations">Command Line Simulations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#master-simulations">MASTER Simulations</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#formatting-step">Formatting Step</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#learning">Learning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#predicting">Predicting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#plotting">Plotting</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="settings.html">Settings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="files_types.html">Files &amp; datatypes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer_guide.html">Developer guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="about.html">About</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">phyddle</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Pipeline</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/pipeline.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="pipeline">
+<span id="id1"></span><h1>Pipeline<a class="headerlink" href="#pipeline" title="Permalink to this heading"></a></h1>
+<p>This guide provides phyddle users with an overview for how the pipeline toolkit works, where it stores files, and how to interpret files and figures. Learn how to configure phyddle analyses by reading the <a class="reference internal" href="settings.html#settings"><span class="std std-ref">Settings</span></a> documentation.</p>
+<p>A phyddle pipeline analysis has five steps: <a class="reference internal" href="#simulating"><span class="std std-ref">Simulating</span></a>, <a class="reference internal" href="#formatting"><span class="std std-ref">Formatting Step</span></a>, <a class="reference internal" href="#learning"><span class="std std-ref">Learning</span></a>, <a class="reference internal" href="#predicting"><span class="std std-ref">Predicting</span></a>, and <a class="reference internal" href="#plotting"><span class="std std-ref">Plotting</span></a>. Standard analyses run all steps, in order for a single batch of settings. That said, steps can be run multiple times under different settings and orders, which is useful for exploratory and advanced analyses.</p>
+<p>In general, the pipeline assumes that the user supplies runs scripts in <code class="docutils literal notranslate"><span class="pre">scripts</span></code> using a <a class="reference internal" href="#project-layout"><span class="std std-ref">Project layout</span></a> with a consistent <em>project name</em> (e.g. <code class="docutils literal notranslate"><span class="pre">my_project</span></code>) to coordinate the analysis across the <code class="docutils literal notranslate"><span class="pre">raw_data</span></code>, <code class="docutils literal notranslate"><span class="pre">tensor_data</span></code>, <code class="docutils literal notranslate"><span class="pre">network</span></code>, and <code class="docutils literal notranslate"><span class="pre">plot</span></code> directories.</p>
+<section id="project-layout">
+<span id="id2"></span><h2>Project layout<a class="headerlink" href="#project-layout" title="Permalink to this heading"></a></h2>
+<p>By default, phyddle saves work from its pipeline steps to the <code class="docutils literal notranslate"><span class="pre">workspace</span></code> directory. The <code class="docutils literal notranslate"><span class="pre">workspace</span></code> directory itself contains five subdirectories that correspond to the different pipeline steps:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">raw_data</span></code> contains raw data generated by simulation</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tensor_data</span></code> contains data formatted into tensors for training networks</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">network</span></code> contains trained networks and diagnostics</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">predict</span></code> contains new test datasets their predictions</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">plot</span></code> contains figures of training and validation procedures</p></li>
+</ul>
+<p>If a user runs an analysis with the project name <code class="docutils literal notranslate"><span class="pre">my_project</span></code>, then pipeline files created by the analysis would be stored in the following directories</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>workspace/raw_data/my_project<span class="w">       </span><span class="c1"># output of Simulating</span>
+workspace/tensor_data/my_project<span class="w">    </span><span class="c1"># output of Formatting</span>
+workspace/network/my_project<span class="w">        </span><span class="c1"># output of Learning</span>
+workspace/predict/my_project<span class="w">        </span><span class="c1"># output of Predicting</span>
+workspace/plot/my_project<span class="w">           </span><span class="c1"># output of Plotting</span>
+</pre></div>
+</div>
+<section id="example-project">
+<span id="id3"></span><h3>Example project<a class="headerlink" href="#example-project" title="Permalink to this heading"></a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">example</span></code> project bundled with phyddle was generated using the command <code class="docutils literal notranslate"><span class="pre">./code/run_pipeline.sh</span> <span class="pre">--cfg</span> <span class="pre">config</span> <span class="pre">--proj</span> <span class="pre">example</span> <span class="pre">--end_idx</span> <span class="pre">25000</span></code>. This corresponds to a 3-region equal-rates GeoSSE model. All directories are populated, except <code class="docutils literal notranslate"><span class="pre">raw_data/example</span></code> contains only 20 original examples.</p>
+</section>
+</section>
+<section id="model-configuration">
+<span id="id4"></span><h2>Model Configuration<a class="headerlink" href="#model-configuration" title="Permalink to this heading"></a></h2>
+<p><a class="reference internal" href="#model-configuration"><span class="std std-ref">Model Configuration</span></a> is only needed if you use phyddle to simulate training data through the <a class="reference internal" href="#simulating"><span class="std std-ref">Simulating</span></a> step. The <a class="reference internal" href="#simulating"><span class="std std-ref">Simulating</span></a> step describes what formats phyddle expects for training datasets.</p>
+<p>Models in phyddle are designed by setting five control variables: <code class="docutils literal notranslate"><span class="pre">model_type</span></code>, <code class="docutils literal notranslate"><span class="pre">model_variant</span></code>, <code class="docutils literal notranslate"><span class="pre">num_char</span></code>, <code class="docutils literal notranslate"><span class="pre">rv_fn</span></code>, <code class="docutils literal notranslate"><span class="pre">rv_arg</span></code>.</p>
+<p>At a high level, <code class="docutils literal notranslate"><span class="pre">model_type</span></code> defines a class of models that share similar statespaces and eventspaces. The <code class="docutils literal notranslate"><span class="pre">model_variant</span></code> defines how rates are assigned to distinct event patterns in the eventspace. The behavior of how characters evolve and how character states influence other evolutionary dynamics are internally determined by <code class="docutils literal notranslate"><span class="pre">model_type</span></code> and <code class="docutils literal notranslate"><span class="pre">model_variant</span></code>. The number of distinct character supported by the model is set by <code class="docutils literal notranslate"><span class="pre">num_char</span></code>. Lastly, the way base parameter values are drawn for each simulated example in the training dataset are controlled with a set of random variable functions (<code class="docutils literal notranslate"><span class="pre">rv_fn</span></code>) and random variable arguments (<code class="docutils literal notranslate"><span class="pre">rv_arg</span></code>). Both <code class="docutils literal notranslate"><span class="pre">rv_fn</span></code> and <code class="docutils literal notranslate"><span class="pre">rv_arg</span></code> are dictionaries with keys that correspond to event class labels. With <code class="docutils literal notranslate"><span class="pre">rv_fn</span></code> the values are data-generating functions that have arguments and behavior equivalent to <code class="docutils literal notranslate"><span class="pre">scipy.stats.distribution.rvs</span></code>. With <code class="docutils literal notranslate"><span class="pre">rv_arg</span></code> the values are the arguments passed in to the corresponding <code class="docutils literal notranslate"><span class="pre">rv_fn</span></code> functions.</p>
+<p>Descriptions of supported built-in models that you can specify with <code class="docutils literal notranslate"><span class="pre">model_type</span></code> and <code class="docutils literal notranslate"><span class="pre">model_variant</span></code> are listed using the <code class="docutils literal notranslate"><span class="pre">--show_models</span></code>. (More models to come. Developer guide will describe how to add new back-end model variants [easier] and types [harder].)</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>./run_simulate.py<span class="w"> </span>--show_models
+Type<span class="w">                </span>Variant<span class="w">             </span><span class="nv">Description</span>
+<span class="o">============================================================</span>
+geosse<span class="w">              </span>--<span class="w">                  </span>Geographic<span class="w"> </span>State-dependent<span class="w"> </span>Speciation<span class="w"> </span>Extinction<span class="w"> </span><span class="o">[</span>GeoSSE<span class="o">]</span>
+<span class="w">                                        </span>free_rates<span class="w">          </span>rates<span class="w"> </span>differ<span class="w"> </span>among<span class="w"> </span>all<span class="w"> </span>events<span class="w"> </span>within<span class="w"> </span><span class="nb">type</span>
+<span class="w">                                        </span>equal_rates<span class="w">         </span>rates<span class="w"> </span>equal<span class="w"> </span>among<span class="w"> </span>all<span class="w"> </span>events<span class="w"> </span>within<span class="w"> </span><span class="nb">type</span>
+<span class="w">                                        </span>density_effect<span class="w">      </span>equal_rates<span class="w"> </span>+<span class="w"> </span><span class="nb">local</span><span class="w"> </span>density-dependent<span class="w"> </span>extinction
+
+sirm<span class="w">                </span>--<span class="w">                  </span>Susceptible-Infected-Recovered-Migration<span class="w"> </span><span class="o">[</span>SIRM<span class="o">]</span>
+<span class="w">                                        </span>free_rates<span class="w">          </span>rates<span class="w"> </span>differ<span class="w"> </span>among<span class="w"> </span>all<span class="w"> </span>events<span class="w"> </span>within<span class="w"> </span><span class="nb">type</span>
+<span class="w">                                        </span>equal_rates<span class="w">         </span>rates<span class="w"> </span>equal<span class="w"> </span>among<span class="w"> </span>all<span class="w"> </span>events<span class="w"> </span>within<span class="w"> </span><span class="nb">type</span>
+</pre></div>
+</div>
+<p>Let’s create a geographic state-dependent speciation-extinction (GeoSSE) model as a concrete example. GeoSSE models describe how species move and evolve among discrete regions through four event classes: within-region speciation, between-region speciation, dispersal, and local extinction. We’ll create a GeoSSE model for a biogeographic system with three regions where all events within a class have equal rates, where rates are exponentially distributed with expected values of 1.0. The settings in the configuration file for this would be</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="s1">&#39;model_type&#39;</span>     <span class="p">:</span> <span class="s1">&#39;geosse&#39;</span><span class="p">,</span>
+<span class="s1">&#39;model_variant&#39;</span>  <span class="p">:</span> <span class="s1">&#39;equal_rates&#39;</span><span class="p">,</span>
+<span class="s1">&#39;num_char&#39;</span>       <span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+<span class="s1">&#39;rv_fn&#39;</span>          <span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;w&#39;</span> <span class="p">:</span> <span class="n">sp</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">expon</span><span class="o">.</span><span class="n">rvs</span><span class="p">,</span>
+                <span class="s1">&#39;b&#39;</span> <span class="p">:</span> <span class="n">sp</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">expon</span><span class="o">.</span><span class="n">rvs</span><span class="p">,</span>
+                <span class="s1">&#39;d&#39;</span> <span class="p">:</span> <span class="n">sp</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">expon</span><span class="o">.</span><span class="n">rvs</span><span class="p">,</span>
+                <span class="s1">&#39;e&#39;</span> <span class="p">:</span> <span class="n">sp</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">expon</span><span class="o">.</span><span class="n">rvs</span>
+        <span class="p">},</span>
+<span class="s1">&#39;rv_arg&#39;</span>         <span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;w&#39;</span> <span class="p">:</span> <span class="p">{</span> <span class="s1">&#39;scale&#39;</span> <span class="p">:</span> <span class="mf">1.0</span> <span class="p">},</span>
+                <span class="s1">&#39;b&#39;</span> <span class="p">:</span> <span class="p">{</span> <span class="s1">&#39;scale&#39;</span> <span class="p">:</span> <span class="mf">1.0</span> <span class="p">},</span>
+                <span class="s1">&#39;d&#39;</span> <span class="p">:</span> <span class="p">{</span> <span class="s1">&#39;scale&#39;</span> <span class="p">:</span> <span class="mf">1.0</span> <span class="p">},</span>
+                <span class="s1">&#39;e&#39;</span> <span class="p">:</span> <span class="p">{</span> <span class="s1">&#39;scale&#39;</span> <span class="p">:</span> <span class="mf">1.0</span> <span class="p">}</span>
+        <span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="simulating">
+<span id="id5"></span><h2>Simulating<a class="headerlink" href="#simulating" title="Permalink to this heading"></a></h2>
+<p><a class="reference internal" href="#simulating"><span class="std std-ref">Simulating</span></a> instructs phyddle to simulate your training dataset. Currently, phyddle supports simulation by user-provided <a class="reference internal" href="#command-line-simulations"><span class="std std-ref">Command Line Simulations</span></a> command line scripts and through the <a class="reference internal" href="#master-simulations"><span class="std std-ref">MASTER Simulations</span></a> plugin from BEAST.</p>
+<section id="command-line-simulations">
+<span id="id6"></span><h3>Command Line Simulations<a class="headerlink" href="#command-line-simulations" title="Permalink to this heading"></a></h3>
+<p>(to be written)</p>
+</section>
+<section id="master-simulations">
+<span id="id7"></span><h3>MASTER Simulations<a class="headerlink" href="#master-simulations" title="Permalink to this heading"></a></h3>
+<p>MASTER was designed primarily to simulate under Susceptible-Infected-Recovered compartment models from epidemiology. These models allow for lineage to evolve according to rates that depend on the state of the entire evolutionary system. For example, the rate of change for one species may depend on its state and the number of other species in that state or other states. See the Requirements section to see how phyddle expects MASTER and BEAST are configured for its use.</p>
+<p>Results from simulations are stored based on the <code class="docutils literal notranslate"><span class="pre">sim_dir</span></code> and <code class="docutils literal notranslate"><span class="pre">proj</span></code> settings. <code class="docutils literal notranslate"><span class="pre">sim_dir</span></code> is the directory in phyddle that contains the “raw” simulated output across all projects, and is typically set to <code class="docutils literal notranslate"><span class="pre">raw_data</span></code>. <code class="docutils literal notranslate"><span class="pre">proj</span></code> defines the simulations for a single project. Each individual simulation is assigned a replicate index. You can simulate replicates in different “chunks” with the start (<code class="docutils literal notranslate"><span class="pre">start_idx</span></code>) and end (<code class="docutils literal notranslate"><span class="pre">end_idx</span></code>) index variables, which is especially useful for building up a training dataset for a project over multiple jobs, e.g. on a cluster.</p>
+<p>Each replicate being simulated will run for some length of evolutionary time (<code class="docutils literal notranslate"><span class="pre">stop_time</span></code>) and may require some minimum (<code class="docutils literal notranslate"><span class="pre">min_num_taxa</span></code>) and/or maximum (<code class="docutils literal notranslate"><span class="pre">max_num_taxa</span></code>) number of lineages per simulation.</p>
+<p>Assuming that <code class="docutils literal notranslate"><span class="pre">sim_dir</span> <span class="pre">==</span> <span class="pre">raw_data</span></code> and <code class="docutils literal notranslate"><span class="pre">proj</span> <span class="pre">==</span> <span class="pre">example</span></code>, the standard simulation output will follow this format</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>raw_data/example/sim.0.tre
+raw_data/example/sim.0.dat.nex
+raw_data/example/sim.0.param_col.csv
+raw_data/example/sim.0.param_row.csv
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">.tre</span></code> file contains a Newick string. The <code class="docutils literal notranslate"><span class="pre">.dat.nex</span></code> contains a Nexus character matrix. These are reformatted as tensors to become the input training dataset. The <code class="docutils literal notranslate"><span class="pre">.param_col.csv</span></code> and <code class="docutils literal notranslate"><span class="pre">.param_row.csv</span></code> contain the simulating parameters in column and row format, with the row format files being converted to a tensor of training labels.</p>
+<p>In addition, MASTER will retain only the certain simulated taxa (populations) from the system, set using <code class="docutils literal notranslate"><span class="pre">sample_population</span></code>. phyddle generates an <code class="docutils literal notranslate"><span class="pre">xml</span></code> file that specifies the MASTER simulation, a <code class="docutils literal notranslate"><span class="pre">beast.log</span></code> file that reports the text generated by BEAST during simulation, and a <code class="docutils literal notranslate"><span class="pre">json</span></code> file that reports metadata about the evolutionary history of the system. These files can be valuable for debugging and postprocessing, but they may become quite large, so the <code class="docutils literal notranslate"><span class="pre">sim_logging</span></code> setting will control whether they are retained, compressed, or deleted.</p>
+<p>Note, that downstream steps in the pipeline, such as <cite>Formatting</cite>, only require that the appropriate files with the appropriate content exist to proceed. They can either be generated with the <cite>Simulating</cite> step within phyddle or completely outside of phyddle.</p>
+</section>
+</section>
+<section id="formatting-step">
+<span id="formatting"></span><h2>Formatting Step<a class="headerlink" href="#formatting-step" title="Permalink to this heading"></a></h2>
+<p>Raw simulated data must first boverted into a tensor format to interface with the neural network we’ll later train and use for future predictions. For most computational purposes, it is safe to think of a tensor as an n-dimensional array. It is essential that all individual datasets share a standard shape (e.g. numbers of rows and columns) to ensure the training dataset that contains predictable data patterns. phyddle formatting encodes two input tensors and one output tensor.</p>
+<p>phyddle saves its formatted tensors to <code class="docutils literal notranslate"><span class="pre">fmt_dir</span></code> in a subdirectory called <code class="docutils literal notranslate"><span class="pre">proj</span></code>. For example, if <code class="docutils literal notranslate"><span class="pre">fmt_dir</span> <span class="pre">==</span> <span class="pre">tensor_data</span></code> and <code class="docutils literal notranslate"><span class="pre">proj</span> <span class="pre">==</span> <span class="pre">example</span></code> then the tensors are stored in <code class="docutils literal notranslate"><span class="pre">tensor_data/example</span></code>.</p>
+<p>One input tensor is the <strong>phylogenetic-state tensor</strong>. Loosely speaking, these tensors contain information about terminal taxa across columns and information about relevant branch lengths and states per taxon across rows. The phylogenetic-state tensors used by phyddle are based on the compact bijective ladderized vector (CBLV) format of Voznica et al. (2022).</p>
+<p>CBLV encodes a phylogenetic tree with $n leq N$ taxa in to a matrix of with 2 rows that contains branch length sorted across $N$ columns that contain topological information for a tree with taxa serially sampled over time (e.g. epidemiological data). The matrix is then flattened into vector format. Ammon et al. (2022) introduced the CBLV+S format, which allows for multiple characters to be associated with each taxon in a CBLV, constructing a matrix with $2+M$ rows and $N$ columns for a dataset of $n leq N$ taxa with $M$ characters. Another important tensor type developed by Lambert et al. (2022) is the compact diversified vector (CDV). CDV is a matrix with 2 rows and $N$ columns, with the first row corresponding to node ages and the other recording state values for a single binary character.</p>
+<p>CBLV and CDV differ primarily in terms what criteria they use to they order (ladderize) the topology. CBLV ladderizes by minimum terminal-node age per clade and CDV ladderized by maximum subclade branch length. Both formats pack the phylogenetic information from a tree with $n$ taxa into a “wider” tree-width class that allows up to $N$ taxa. The tensor is packed from left-to-right based on an in-order tree traversal, then use zeroes to buffer the all remaining cells until the $N$th column. In phyddle, we use expanded CBLV+S and CDV+S formats that additionally encode terminal branch length formation for the terminal node and the parent node, resulting in $4+M$ rows for our CBLV+S and $3+M$ rows for our CDV+S format. (Will add diagram later.)</p>
+<p>The second input is the <strong>auxiliary data tensor</strong>. This tensor contains summary statistics for the phylogeny and character data matrix and “known” parameters for the data generating process. The summary statistics, for example, report things such as the number of taxa, the tree height, the mean and variance of branch lengths and node ages, the state-pattern counts, etc. The known parameters might report things such as the population sizes of a susceptible population or the recovery period in an SIR model.</p>
+<p>The output tensor reports <strong>labels</strong> that are generally unknown data generating parameters to be estimated using the neural network.  Depending on the estimation task, all or only some model parameters might be treated as labels for training and prediction. For example, when <code class="docutils literal notranslate"><span class="pre">model_variant</span> <span class="pre">==</span> <span class="pre">'free_rates'</span></code> one might want to estimate every rate in the model, but estimate only one parameter per event-class when <code class="docutils literal notranslate"><span class="pre">model_variant</span> <span class="pre">==</span> <span class="pre">'equal_rates'</span></code>.</p>
+<p>Formatting processes the tree, data matrix, and model parameters for each replicate. This is done in parallel, when the setting is enabled. Simulated data are processed using <code class="docutils literal notranslate"><span class="pre">CBLV+S</span></code> format if <code class="docutils literal notranslate"><span class="pre">tree_type</span> <span class="pre">==</span> <span class="pre">'serial'</span></code>. If <code class="docutils literal notranslate"><span class="pre">tree_type</span> <span class="pre">=</span> <span class="pre">'extant'</span></code> then all non-extant taxa are pruned, saved as <code class="docutils literal notranslate"><span class="pre">pruned.tre</span></code>, then encoded using CDV+S. The size of each tree ($n$) is then used to identify the largest value in <code class="docutils literal notranslate"><span class="pre">tree_width_cats</span></code> it can fit into. The phylogenetics-state tensors and auxiliary data tensors are then created. If <code class="docutils literal notranslate"><span class="pre">save_phyenc_csv</span></code> is set, then individual csv files are saved for each dataset, which is especially useful for formatting new empirical datasets into an accepted phyddle format. The <code class="docutils literal notranslate"><span class="pre">param_pred</span></code> setting identifies which parameters in the labels tensor you want to treat as downstream prediction targets. The <code class="docutils literal notranslate"><span class="pre">param_data</span></code> setting identifies which of those parameters you want to treat as “known” auxiliary data.</p>
+<p>Formatted tensors are then saved to disk either in simple comma-separated value format or in a compressed HDF5 format. For example, suppose we set <code class="docutils literal notranslate"><span class="pre">fmt_dir</span> <span class="pre">==</span> <span class="pre">'tensor_data</span></code>, <code class="docutils literal notranslate"><span class="pre">proj</span> <span class="pre">==</span> <span class="pre">'example'</span></code>, and <code class="docutils literal notranslate"><span class="pre">tree_type</span> <span class="pre">==</span> <span class="pre">'serial'</span></code>. If we set, it produces <code class="docutils literal notranslate"><span class="pre">tensor_format</span> <span class="pre">==</span> <span class="pre">'hdf5'</span></code>:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>tensor_data/example/sim.nt200.hdf5
+tensor_data/example/sim.nt500.hdf5
+</pre></div>
+</div>
+<p>or if <code class="docutils literal notranslate"><span class="pre">tensor_format</span> <span class="pre">==</span> <span class="pre">'csv'</span></code>:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>sim.nt200.cdvs.data.csv
+sim.nt200.labels.csv
+sim.nt200.summ_stat.csv
+sim.nt500.cdvs.data.csv
+sim.nt500.labels.csv
+sim.nt500.summ_stat.csv
+</pre></div>
+</div>
+<p>These files can then be processed by the <cite>Learning</cite> step.</p>
+</section>
+<section id="learning">
+<span id="id8"></span><h2>Learning<a class="headerlink" href="#learning" title="Permalink to this heading"></a></h2>
+<p><cite>Learning</cite> builds a neural network that can be trained to make predictions based on the tensors made by the <cite>Formatting</cite> step. This step also shuffles the replicate indices and splits the entire dataset into separate training, test, validation, and calibration subsets. The phylogenetic-state tensor is processed by convolutional and pooling layers, while the auxiliary data is processed by dense layers. All input layers are concatenated then pushed into three branches terminating in output layers to produce point estimates and upper and lower prediction intervals. Lastly, the step runs the training procedure and stores its results, including the history and trained network, to file.</p>
+<p>When data are read in, they are shuffled, with some set aside for test data (<code class="docutils literal notranslate"><span class="pre">prop_test</span></code>), validation data (<code class="docutils literal notranslate"><span class="pre">prop_validation</span></code>), and calibration data (<code class="docutils literal notranslate"><span class="pre">prop_calibration</span></code>), with the remaining data being used for <code class="docutils literal notranslate"><span class="pre">training</span></code>. A network must be trained against a particular <code class="docutils literal notranslate"><span class="pre">tree_width</span></code> size (see above). The network also must target a particular prediction interval (e.g. <code class="docutils literal notranslate"><span class="pre">cpi_coverage</span> <span class="pre">==</span> <span class="pre">0.95</span></code> means 95% of test predictions are expected contain the true simulating value) for two-sided conformalized quantile regression). Training runs for a number of intervals given by <code class="docutils literal notranslate"><span class="pre">num_epoch</span></code> using batch stochastic gradient descent, with batch sizes given by <code class="docutils literal notranslate"><span class="pre">batch_size</span></code>. Parameter point estimates use a loss function (e.g. <code class="docutils literal notranslate"><span class="pre">loss</span> <span class="pre">==</span> <span class="pre">'mse'</span></code>; Tensorflow-supported string or function) while lower/upper prediction intervals must use a pinball loss function (hard-coded). Different optimizers can be used to update network weight and bias parameters (e.g. <code class="docutils literal notranslate"><span class="pre">optimizer</span> <span class="pre">==</span> <span class="pre">'adam'</span></code>; Tensorflow-supported string or function).</p>
+<p>Training is automatically parallelized using CPUs and GPUs, dependent on how Tensorflow was installed and system hardware. Output files are stored in the directory assigned to <code class="docutils literal notranslate"><span class="pre">&lt;lrn_dir&gt;</span></code> in the subdirectory <code class="docutils literal notranslate"><span class="pre">&lt;proj&gt;</span></code>.</p>
+</section>
+<section id="predicting">
+<span id="id9"></span><h2>Predicting<a class="headerlink" href="#predicting" title="Permalink to this heading"></a></h2>
+<p><cite>Predicting</cite> loads a new dataset stored in <code class="docutils literal notranslate"><span class="pre">&lt;pred_dir&gt;/&lt;proj&gt;</span></code> with filenames <code class="docutils literal notranslate"><span class="pre">&lt;pred_prefix.tre&gt;</span></code> and <code class="docutils literal notranslate"><span class="pre">&lt;pred_prefix&gt;.dat.nex</span></code>. This step then loads a pretrained network and has it predict new point estimates and calibrated prediction intervals based on other project settings. New predictions are then stored into the original <code class="docutils literal notranslate"><span class="pre">&lt;pred_dir&gt;/&lt;proj&gt;</span></code>.</p>
+</section>
+<section id="plotting">
+<span id="id10"></span><h2>Plotting<a class="headerlink" href="#plotting" title="Permalink to this heading"></a></h2>
+<p><cite>Plotting</cite> collects all results from the <cite>Formatting</cite>, <cite>Learning</cite>, and <cite>Predicting</cite> steps to compile a set of useful figures, listed below. When results from <cite>Predicting</cite> are available, the step will integrate it into other figures to contextualize where that input dataset and predicted labels fall with respect to the training dataset. Plots are stored within <code class="docutils literal notranslate"><span class="pre">&lt;plot_dir&gt;</span></code> in the <code class="docutils literal notranslate"><span class="pre">&lt;proj&gt;</span></code> subdirectory. Colors for plot elements can be modified with <code class="docutils literal notranslate"><span class="pre">plot_train_color</span></code>, <code class="docutils literal notranslate"><span class="pre">plot_label_color</span></code>, <code class="docutils literal notranslate"><span class="pre">plot_test_color</span></code>, <code class="docutils literal notranslate"><span class="pre">plot_val_color</span></code>, <code class="docutils literal notranslate"><span class="pre">plot_aux_color</span></code>, and <code class="docutils literal notranslate"><span class="pre">plot_pred_color</span></code> using common color names or hex codes supported by Matplotlib.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">summary.pdf</span></code> contains all figures in a single plot</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pred_est_CI.pdf</span></code> - simple plot of point estimates and calibrated prediction intervals for prediction</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">histogram_aux.pdf</span></code> - histograms of all values in the auxiliary dataset; red line for predicted dataset</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pca_aux.pdf</span></code> - pairwise PCA of all values in the auxiliary dataset; red dot for predicted dataset</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">history_.pdf</span></code> - loss performance across epochs for test/validation datasets for entire network</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">history_&lt;stat_name&gt;.pdf</span></code> - loss, accuracy, error performance across epochs for test/validation datasets for particular statistics (point est., lower CPI, upper CPI)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">train_&lt;label_name&gt;.pdf</span></code> - point estimates and calibrated prediction intervals for training dataset</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">test_&lt;label_name&gt;.pdf</span></code> - point estimates and calibrated prediction intervals for test dataset</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">network_architecture.pdf</span></code> - visualization of Tensorflow architecture</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="installation.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="settings.html" class="btn btn-neutral float-right" title="Settings" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
