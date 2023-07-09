@@ -10,8 +10,7 @@ from phyddle import Plotting
 import numpy as np
 import h5py
 import os
-
-#os.chdir('tests')
+import subprocess
 
 #print(os.getcwd())
 #print(os.listdir('.'))
@@ -32,6 +31,13 @@ def test_onehot_encoding():
     s = Utilities.convert_nexus_to_array('./data/sim.1.dat.nex', 'onehot', 333)
     print(s)
     assert s != ''
+
+#-----------------------------------------------------------------------------#
+
+def test_script():
+    cmd_str = 'Rscript ./tests/sim_one.R ./tests/workspace/raw_data/test/sim.0'
+    cmd_out = subprocess.check_output(cmd_str, shell=True, text=True, stderr=subprocess.STDOUT)
+    assert 1 == 1
 
 #-----------------------------------------------------------------------------#
 
@@ -62,7 +68,6 @@ def run_pipeline():
     my_fmt = Formatting.load(my_args)
     my_fmt.run()
 
-    print('hey!')
     # Step 3: train network with training data
     #my_lrn = Learning.load(my_args)
     #my_lrn.run()
@@ -85,7 +90,7 @@ def run_pipeline():
     return cdvs_sum
 
 def test_run_pipeline():
-    assert run_pipeline() == 42.64691488
+    assert run_pipeline() == 57.64691488
 
 
 #test_run_pipeline()

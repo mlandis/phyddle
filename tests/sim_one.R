@@ -5,7 +5,7 @@ args   = commandArgs(trailingOnly = TRUE)
 tmp_fn = args[1]
 
 # seed
-idx = as.numeric( substr(x, length(tmp_fn), length(tmp_fn)) )
+idx = as.numeric( substr(tmp_fn, nchar(tmp_fn), nchar(tmp_fn)) ) 
 set.seed(idx)
 
 # setup

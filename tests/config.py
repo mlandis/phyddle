@@ -53,7 +53,7 @@ args = {
     # Simulating Step settings      #
     #-------------------------------#
     'sim_method'        : 'command',        # command, master, [phylojunction], ...
-    'sim_command'       : 'Rscript sim_one.R',   # exact command string, argument is output file prefix
+    'sim_command'       : 'Rscript ./tests/sim_one.R',   # exact command string, argument is output file prefix
     'sim_logging'       : 'verbose',        # verbose, compressed, or clean
     'start_idx'         : 0,                # first simulation replicate index
     'end_idx'           : 1,                # last simulation replicate index
@@ -68,7 +68,7 @@ args = {
     'tree_type'         : 'extant',         # use model with serial or extant tree
     'tree_width_cats'   : [ 200, 500 ],     # tree width categories for phylo-state tensors
     'tree_encode_type'  : 'height_brlen',   # how to encode phylo brlen? height_only or height_brlen
-    'char_encode_type'  : 'one_hot',        # how to encode discrete states? one_hot or integer 
+    'char_encode_type'  : 'integer',        # how to encode discrete states? one_hot or integer 
     'param_pred'        : [                 # model parameters to predict (labels)
         'birth', 'death', 'state_rate'
     ],
