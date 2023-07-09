@@ -27,7 +27,7 @@ def test_inc():
 #-----------------------------------------------------------------------------#
 
 def test_onehot_encoding():
-    s = Utilities.convert_nexus_to_array('data/sim.1.dat.nex', 'onehot', 333)
+    s = Utilities.convert_nexus_to_array('tests/data/sim.1.dat.nex', 'onehot', 333)
     print(s)
     assert s != ''
 
