@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>phyddle documentation &mdash; phyddle 0.0.3 documentation</title>
+  <title>phyddle documentation &mdash; phyddle 0.0.4 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -36,7 +36,7 @@
               <img src="_static/phyddle_logo.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                0.0.3
+                0.0.4
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -109,8 +109,9 @@ pip and used for pipeline analyses using scripts provided through GitHub.</p>
 <p>phyddle currently supports offers the following features:</p>
 <ul class="simple">
 <li><p>trained network generates parameter estimates and calibrated prediction intervals (CPIs) for input datasets</p></li>
-<li><p>provides several state-dependent birth-death model types and variants (more to come)</p></li>
 <li><p>parallelized simulating, formatting, and learning</p></li>
+<li><p>simulation integrates with user-provided scripts (e.g. R) and third-party simulators (e.g. MASTER in BEAST)</p></li>
+<li><p>modeling interface for MASTER allows several state-dependent birth-death model types and variants (more to come)</p></li>
 <li><p>encoding of phylogenetic-state tensor from serial and extant-only input with multiple states (CBLV+S and CDV+S extensions)</p></li>
 <li><p>encoding of auxiliary data tensor from automatically computed summary statistics and “known” parameter (e.g. sampling rate)</p></li>
 <li><p>HDF5 with gzip compression for tensor data</p></li>
@@ -159,38 +160,17 @@ pip and used for pipeline analyses using scripts provided through GitHub.</p>
 <li class="toctree-l2"><a class="reference internal" href="files_types.html#input-files">Input files</a></li>
 <li class="toctree-l2"><a class="reference internal" href="files_types.html#tensor-files">Tensor files</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="files_types.html#cblv-s">CBLV+S</a></li>
+<li class="toctree-l3"><a class="reference internal" href="files_types.html#cdv-s">CDV+S</a></li>
+<li class="toctree-l3"><a class="reference internal" href="files_types.html#auxiliary-data">Auxiliary data</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="files_types.html#output-files">Output files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="files_types.html#output-files">Output files</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="files_types.html#prediction-results">Prediction results</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="developer_guide.html">Developer guide</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#modelloader">ModelLoader</a></li>
-<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#model">Model</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="developer_guide.html#basemodel">BaseModel</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="developer_guide.html#phyddle.Model.BaseModel"><code class="docutils literal notranslate"><span class="pre">BaseModel</span></code></a><ul>
-<li class="toctree-l5"><a class="reference internal" href="developer_guide.html#phyddle.Model.BaseModel.clear_model"><code class="docutils literal notranslate"><span class="pre">BaseModel.clear_model()</span></code></a></li>
-<li class="toctree-l5"><a class="reference internal" href="developer_guide.html#phyddle.Model.BaseModel.make_events"><code class="docutils literal notranslate"><span class="pre">BaseModel.make_events()</span></code></a></li>
-<li class="toctree-l5"><a class="reference internal" href="developer_guide.html#phyddle.Model.BaseModel.make_params"><code class="docutils literal notranslate"><span class="pre">BaseModel.make_params()</span></code></a></li>
-<li class="toctree-l5"><a class="reference internal" href="developer_guide.html#phyddle.Model.BaseModel.make_settings"><code class="docutils literal notranslate"><span class="pre">BaseModel.make_settings()</span></code></a></li>
-<li class="toctree-l5"><a class="reference internal" href="developer_guide.html#phyddle.Model.BaseModel.make_start_sizes"><code class="docutils literal notranslate"><span class="pre">BaseModel.make_start_sizes()</span></code></a></li>
-<li class="toctree-l5"><a class="reference internal" href="developer_guide.html#phyddle.Model.BaseModel.make_start_state"><code class="docutils literal notranslate"><span class="pre">BaseModel.make_start_state()</span></code></a></li>
-<li class="toctree-l5"><a class="reference internal" href="developer_guide.html#phyddle.Model.BaseModel.make_states"><code class="docutils literal notranslate"><span class="pre">BaseModel.make_states()</span></code></a></li>
-<li class="toctree-l5"><a class="reference internal" href="developer_guide.html#phyddle.Model.BaseModel.set_args"><code class="docutils literal notranslate"><span class="pre">BaseModel.set_args()</span></code></a></li>
-<li class="toctree-l5"><a class="reference internal" href="developer_guide.html#phyddle.Model.BaseModel.set_model"><code class="docutils literal notranslate"><span class="pre">BaseModel.set_model()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="developer_guide.html#geossemodel">GeosseModel</a></li>
-<li class="toctree-l3"><a class="reference internal" href="developer_guide.html#sirmmodel">SirmModel</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#simulating">Simulating</a></li>
-<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#formatting">Formatting</a></li>
-<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#learning">Learning</a></li>
-<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#predicting">Predicting</a></li>
-<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#plotting">Plotting</a></li>
 <li class="toctree-l2"><a class="reference internal" href="developer_guide.html#utilities">Utilities</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="developer_guide.html#phyddle.Utilities.make_symm"><code class="docutils literal notranslate"><span class="pre">make_symm()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="developer_guide.html#phyddle.Utilities.powerset"><code class="docutils literal notranslate"><span class="pre">powerset()</span></code></a></li>

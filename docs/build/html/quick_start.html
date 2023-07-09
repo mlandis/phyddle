@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Quick start &mdash; phyddle 0.0.3 documentation</title>
+  <title>Quick start &mdash; phyddle 0.0.4 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -37,7 +37,7 @@
               <img src="_static/phyddle_logo.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                0.0.3
+                0.0.4
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -88,34 +88,34 @@
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>~/projects/phyddle/scripts
 </pre></div>
 </div>
-<p>Then create and run a pipeline under the settings you’ve specified in <code class="docutils literal notranslate"><span class="pre">my_config.py</span></code>:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>./phyddle.py<span class="w"> </span>-c<span class="w"> </span>my_config
+<p>Then create and run a pipeline under the settings you’ve specified in <code class="docutils literal notranslate"><span class="pre">config.py</span></code>:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>./run_phyddle.py<span class="w"> </span>-c<span class="w"> </span>config
 </pre></div>
 </div>
 <p>This will run a phyddle analysis for a simple 3-region GeoSSE model with just 500 training examples. In practice, you’ll want to generate a larger training dataset with anywhere from 10k to 1M examples, depending on the model.</p>
 <p>To add new examples to your training set</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># simulate new training examples, stored in</span>
 <span class="c1"># workspace/raw_data/my_project</span>
-./phyddle.py<span class="w"> </span>-s<span class="w"> </span>sim<span class="w"> </span>-c<span class="w"> </span>my_config<span class="w"> </span>--start_idx<span class="w"> </span><span class="m">500</span><span class="w"> </span>--end_idx<span class="w"> </span><span class="m">15000</span>
+./run_phyddle.py<span class="w"> </span>-s<span class="w"> </span>sim<span class="w"> </span>-c<span class="w"> </span>config<span class="w"> </span>--start_idx<span class="w"> </span><span class="m">500</span><span class="w"> </span>--end_idx<span class="w"> </span><span class="m">15000</span>
 
 <span class="c1"># encode all raw_data examples as tensors,</span>
 <span class="c1"># stored in workspace/tensor_data/my_project</span>
-./phyddle.py<span class="w"> </span>-s<span class="w"> </span>fmt<span class="w"> </span>-c<span class="w"> </span>my_config<span class="w"> </span>--start_idx<span class="w"> </span><span class="m">0</span><span class="w"> </span>--end_idx<span class="w"> </span><span class="m">15000</span>
+./run_phyddle.py<span class="w"> </span>-s<span class="w"> </span>fmt<span class="w"> </span>-c<span class="w"> </span>config<span class="w"> </span>--start_idx<span class="w"> </span><span class="m">0</span><span class="w"> </span>--end_idx<span class="w"> </span><span class="m">15000</span>
 
 <span class="c1"># train network with tensor_data, but override batch size,</span>
 <span class="c1"># stored in workspace/network/my_project</span>
-./phyddle.py<span class="w"> </span>-s<span class="w"> </span>lrn<span class="w"> </span>-c<span class="w"> </span>my_config<span class="w"> </span>--batch_size<span class="w"> </span><span class="m">256</span>
+./run_phyddle.py<span class="w"> </span>-s<span class="w"> </span>lrn<span class="w"> </span>-c<span class="w"> </span>config<span class="w"> </span>--batch_size<span class="w"> </span><span class="m">256</span>
 
 <span class="c1"># make prediction with example dataset, results stored in</span>
 <span class="c1"># workspace/predict/my_project</span>
-./phyddle.py<span class="w"> </span>-s<span class="w"> </span>prd<span class="w"> </span>-c<span class="w"> </span>my_config
+./run_phyddle.py<span class="w"> </span>-s<span class="w"> </span>prd<span class="w"> </span>-c<span class="w"> </span>config
 
 <span class="c1"># generate figures, stored in workspace/plot/my_project</span>
-./phyddle.py<span class="w"> </span>-s<span class="w"> </span>plt<span class="w"> </span>-c<span class="w"> </span>my_config
+./run_phyddle.py<span class="w"> </span>-s<span class="w"> </span>plt<span class="w"> </span>-c<span class="w"> </span>config
 </pre></div>
 </div>
 <p>Pipeline options are applied to all pipeline stages. See the full list of currently supported options with</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>./phyddle.py<span class="w"> </span>--help
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>./run_phyddle.py<span class="w"> </span>--help
 </pre></div>
 </div>
 <p>The files and directories for a small, example project can are found within the <cite>workspace</cite> subdirectories, e.g. <cite>workspace/raw_data/example</cite> or <cite>workspace/plot/example</cite>.</p>

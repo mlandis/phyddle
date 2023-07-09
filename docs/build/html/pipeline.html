@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pipeline &mdash; phyddle 0.0.3 documentation</title>
+  <title>Pipeline &mdash; phyddle 0.0.4 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -37,7 +37,7 @@
               <img src="_static/phyddle_logo.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                0.0.3
+                0.0.4
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -123,7 +123,7 @@ workspace/plot/my_project<span class="w">           </span><span class="c1"># ou
 </div>
 <section id="example-project">
 <span id="id3"></span><h3>Example project<a class="headerlink" href="#example-project" title="Permalink to this heading"></a></h3>
-<p>The <code class="docutils literal notranslate"><span class="pre">example</span></code> project bundled with phyddle was generated using the command <code class="docutils literal notranslate"><span class="pre">./code/run_pipeline.sh</span> <span class="pre">--cfg</span> <span class="pre">config</span> <span class="pre">--proj</span> <span class="pre">example</span> <span class="pre">--end_idx</span> <span class="pre">25000</span></code>. This corresponds to a 3-region equal-rates GeoSSE model. All directories are populated, except <code class="docutils literal notranslate"><span class="pre">raw_data/example</span></code> contains only 20 original examples.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">example</span></code> project bundled with phyddle was generated using the command <code class="docutils literal notranslate"><span class="pre">./scripts/run_phyddle.sh</span> <span class="pre">--cfg</span> <span class="pre">config</span> <span class="pre">--proj</span> <span class="pre">example</span> <span class="pre">--end_idx</span> <span class="pre">25000</span></code>. This corresponds to a 3-region equal-rates GeoSSE model. All directories are populated, except <code class="docutils literal notranslate"><span class="pre">./workspace/raw_data/example</span></code> contains only 20 original examples.</p>
 </section>
 </section>
 <section id="model-configuration">
@@ -132,7 +132,7 @@ workspace/plot/my_project<span class="w">           </span><span class="c1"># ou
 <p>Models in phyddle are designed by setting five control variables: <code class="docutils literal notranslate"><span class="pre">model_type</span></code>, <code class="docutils literal notranslate"><span class="pre">model_variant</span></code>, <code class="docutils literal notranslate"><span class="pre">num_char</span></code>, <code class="docutils literal notranslate"><span class="pre">rv_fn</span></code>, <code class="docutils literal notranslate"><span class="pre">rv_arg</span></code>.</p>
 <p>At a high level, <code class="docutils literal notranslate"><span class="pre">model_type</span></code> defines a class of models that share similar statespaces and eventspaces. The <code class="docutils literal notranslate"><span class="pre">model_variant</span></code> defines how rates are assigned to distinct event patterns in the eventspace. The behavior of how characters evolve and how character states influence other evolutionary dynamics are internally determined by <code class="docutils literal notranslate"><span class="pre">model_type</span></code> and <code class="docutils literal notranslate"><span class="pre">model_variant</span></code>. The number of distinct character supported by the model is set by <code class="docutils literal notranslate"><span class="pre">num_char</span></code>. Lastly, the way base parameter values are drawn for each simulated example in the training dataset are controlled with a set of random variable functions (<code class="docutils literal notranslate"><span class="pre">rv_fn</span></code>) and random variable arguments (<code class="docutils literal notranslate"><span class="pre">rv_arg</span></code>). Both <code class="docutils literal notranslate"><span class="pre">rv_fn</span></code> and <code class="docutils literal notranslate"><span class="pre">rv_arg</span></code> are dictionaries with keys that correspond to event class labels. With <code class="docutils literal notranslate"><span class="pre">rv_fn</span></code> the values are data-generating functions that have arguments and behavior equivalent to <code class="docutils literal notranslate"><span class="pre">scipy.stats.distribution.rvs</span></code>. With <code class="docutils literal notranslate"><span class="pre">rv_arg</span></code> the values are the arguments passed in to the corresponding <code class="docutils literal notranslate"><span class="pre">rv_fn</span></code> functions.</p>
 <p>Descriptions of supported built-in models that you can specify with <code class="docutils literal notranslate"><span class="pre">model_type</span></code> and <code class="docutils literal notranslate"><span class="pre">model_variant</span></code> are listed using the <code class="docutils literal notranslate"><span class="pre">--show_models</span></code>. (More models to come. Developer guide will describe how to add new back-end model variants [easier] and types [harder].)</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>./run_simulate.py<span class="w"> </span>--show_models
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>./run_phyddle.py<span class="w"> </span>--show_models
 Type<span class="w">                </span>Variant<span class="w">             </span><span class="nv">Description</span>
 <span class="o">============================================================</span>
 geosse<span class="w">              </span>--<span class="w">                  </span>Geographic<span class="w"> </span>State-dependent<span class="w"> </span>Speciation<span class="w"> </span>Extinction<span class="w"> </span><span class="o">[</span>GeoSSE<span class="o">]</span>

@@ -11,8 +11,8 @@ project = 'phyddle'
 copyright = '2023'
 author = 'Michael Landis, Ammon Thompson'
 
-release = '0.0.3'
-version = '0.0.3'
+release = '0.0.4'
+version = '0.0.4'
 
 # -- General configuration
 

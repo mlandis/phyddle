@@ -38,8 +38,9 @@ Features
 phyddle currently supports offers the following features:
 
 * trained network generates parameter estimates and calibrated prediction intervals (CPIs) for input datasets
-* provides several state-dependent birth-death model types and variants (more to come)
 * parallelized simulating, formatting, and learning
+* simulation integrates with user-provided scripts (e.g. R) and third-party simulators (e.g. MASTER in BEAST)
+* modeling interface for MASTER allows several state-dependent birth-death model types and variants (more to come)
 * encoding of phylogenetic-state tensor from serial and extant-only input with multiple states (CBLV+S and CDV+S extensions)
 * encoding of auxiliary data tensor from automatically computed summary statistics and "known" parameter (e.g. sampling rate)
 * HDF5 with gzip compression for tensor data

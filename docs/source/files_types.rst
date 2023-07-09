@@ -111,12 +111,51 @@ By default, all branch length entries are rescaled from 0 to 1 as proportion to 
          0,   0,   1,   1,   1,   0,   0,   0,   0,   0  # character 2
 
 
+CDV+S
+^^^^^
+(to be done)
+
+
+Auxiliary data
+^^^^^^^^^^^^^^
+(to be done)
+
+The auxiliary data tensor contains a panel of summary statistics extracted from the inputted phylogeny and character data matrix for a given dataset. Currently, phyddle generates the following summary statistics:
+
+.. code-block:: shell
+
+    tree_length       # sum of branch lengths
+    num_taxa          # number of terminal taxa in tree/data
+    root_age          # longest root-to-tip distance
+    brlen_mean        # mean of branch lengths
+    brlen_var         # variance of branch lengths
+    brlen_skew        # skewness of branch lengths
+    age_mean          # mean of internal node ages
+    age_var           # variance of internal node ages
+    age_skew          # skewness of internal node ages
+    B1                # https://dendropy.org/library/treemeasure.html#dendropy.calculate.treemeasure.B1
+    N_bar             # https://dendropy.org/library/treemeasure.html#dendropy.calculate.treemeasure.N_bar
+    colless           # https://dendropy.org/library/treemeasure.html?highlight=colless#dendropy.calculate.treemeasure.colless_tree_imbalance
+    treeness          # https://dendropy.org/library/treemeasure.html#dendropy.calculate.treemeasure.treeness
+    f_dat_0           # frequency of taxa with character in state 0
+    f_dat_1           # frequency of taxa with character in state 1
+    ...
+
+
+
+The auxiliary data tensor also contains any parameter values that shape the data-generating process, but can be treated as "known" rather than needing to be estimated. For example, the epidemiologists may assume they know the rate of infection recovery (gamma) based on public health or clinical data. Parameters may be treated as data by providing the labels for those parameters in the ``param_data`` entry of the config file. For example, setting ``'param_data' : [ 'recovery_0', 'S0_0' ]`` could be used to inform phyddle that the recovery rate and susceptible population sizes for location 0 are known for a phylogenetic SIR analysis. 
+
+
 
 Output files
 ------------
 
 
 The results file contains the predictions made by phyddle's neural network for a new dataset:
+
+
+Prediction results
+^^^^^^^^^^^^^^^^^^
 
 .. code-block:: shell
 

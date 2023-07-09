@@ -3,6 +3,14 @@ Updates
 
 The complete commit history for phyddle is located here: https://github.com/mlandis/phyddle/commits/main
 
+**phyddle v0.0.4** -- 23.07.09
+
+* Simulating now supports command-line scripts
+* Better backend support for alternative phylostate tensor encodings
+* Simplified pipeline scripts and interface
+* Docs improved to reflect current code design
+* Tests now cover Simulating and Formatting
+
 **phyddle v0.0.3** -- 23.07.02
 
 * Sphinx configuration for documentation

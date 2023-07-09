@@ -6,68 +6,6 @@ Developer guide
     Incomplete.
 
 
-.. _dev_modelloader:
-
-ModelLoader
------------
-
-
-.. _dev_model:
-
-Model
------
-
-
-BaseModel
-^^^^^^^^^
-
-.. autoclass:: phyddle.Model.BaseModel
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-.. _dev_geossemodel:
-
-GeosseModel
-^^^^^^^^^^^
-
-
-.. _dev_sirmmodel:
-
-SirmModel
-^^^^^^^^^
-
-
-.. _dev_simulating:
-
-Simulating
-----------
-
-
-.. _dev_formatting:
-
-Formatting
-----------
-
-
-.. _dev_learning:
-
-Learning
---------
-
-
-.. _dev_predicting:
-
-Predicting
-----------
-
-
-.. _dev_plotting:
-
-Plotting
---------
-
-
 .. _dev_utilities:
 
 Utilities

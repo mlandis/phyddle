@@ -38,7 +38,7 @@ If a user runs an analysis with the project name ``my_project``, then pipeline f
 Example project
 ^^^^^^^^^^^^^^^
 
-The ``example`` project bundled with phyddle was generated using the command ``./code/run_pipeline.sh --cfg config --proj example --end_idx 25000``. This corresponds to a 3-region equal-rates GeoSSE model. All directories are populated, except ``raw_data/example`` contains only 20 original examples.
+The ``example`` project bundled with phyddle was generated using the command ``./scripts/run_phyddle.sh --cfg config --proj example --end_idx 25000``. This corresponds to a 3-region equal-rates GeoSSE model. All directories are populated, except ``./workspace/raw_data/example`` contains only 20 original examples.
 
 
 
@@ -57,7 +57,7 @@ Descriptions of supported built-in models that you can specify with ``model_type
 
 .. code-block:: shell
 
-	$ ./run_simulate.py --show_models
+	$ ./run_phyddle.py --show_models
 	Type                Variant             Description
 	============================================================
 	geosse              --                  Geographic State-dependent Speciation Extinction [GeoSSE]

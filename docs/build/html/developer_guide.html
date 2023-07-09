@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Developer guide &mdash; phyddle 0.0.3 documentation</title>
+  <title>Developer guide &mdash; phyddle 0.0.4 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -37,7 +37,7 @@
               <img src="_static/phyddle_logo.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                0.0.3
+                0.0.4
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -55,21 +55,6 @@
 <li class="toctree-l1"><a class="reference internal" href="settings.html">Settings</a></li>
 <li class="toctree-l1"><a class="reference internal" href="files_types.html">Files &amp; datatypes</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Developer guide</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#modelloader">ModelLoader</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#model">Model</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#basemodel">BaseModel</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#phyddle.Model.BaseModel"><code class="docutils literal notranslate"><span class="pre">BaseModel</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="#geossemodel">GeosseModel</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#sirmmodel">SirmModel</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#simulating">Simulating</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#formatting">Formatting</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#learning">Learning</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#predicting">Predicting</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#plotting">Plotting</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#utilities">Utilities</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#phyddle.Utilities.make_symm"><code class="docutils literal notranslate"><span class="pre">make_symm()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#phyddle.Utilities.powerset"><code class="docutils literal notranslate"><span class="pre">powerset()</span></code></a></li>
@@ -111,136 +96,6 @@
 <p class="admonition-title">Note</p>
 <p>Incomplete.</p>
 </div>
-<section id="modelloader">
-<span id="dev-modelloader"></span><h2>ModelLoader<a class="headerlink" href="#modelloader" title="Permalink to this heading"></a></h2>
-</section>
-<section id="model">
-<span id="dev-model"></span><h2>Model<a class="headerlink" href="#model" title="Permalink to this heading"></a></h2>
-<section id="basemodel">
-<h3>BaseModel<a class="headerlink" href="#basemodel" title="Permalink to this heading"></a></h3>
-<dl class="py class">
-<dt class="sig sig-object py" id="phyddle.Model.BaseModel">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">phyddle.Model.</span></span><span class="sig-name descname"><span class="pre">BaseModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/phyddle/Model.html#BaseModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#phyddle.Model.BaseModel" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<dl class="py method">
-<dt class="sig sig-object py" id="phyddle.Model.BaseModel.clear_model">
-<span class="sig-name descname"><span class="pre">clear_model</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/phyddle/Model.html#BaseModel.clear_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#phyddle.Model.BaseModel.clear_model" title="Permalink to this definition"></a></dt>
-<dd><p>Clears the model.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="phyddle.Model.BaseModel.make_events">
-<span class="sig-name descname"><span class="pre">make_events</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/phyddle/Model.html#BaseModel.make_events"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#phyddle.Model.BaseModel.make_events" title="Permalink to this definition"></a></dt>
-<dd><p>Creates the event space for the model.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#NotImplementedError" title="(in Python v3.11)"><strong>NotImplementedError</strong></a> – This method should be implemented in derived classes.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="phyddle.Model.BaseModel.make_params">
-<span class="sig-name descname"><span class="pre">make_params</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/phyddle/Model.html#BaseModel.make_params"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#phyddle.Model.BaseModel.make_params" title="Permalink to this definition"></a></dt>
-<dd><p>Creates the parameter space for the model.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#NotImplementedError" title="(in Python v3.11)"><strong>NotImplementedError</strong></a> – This method should be implemented in derived classes.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="phyddle.Model.BaseModel.make_settings">
-<span class="sig-name descname"><span class="pre">make_settings</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/phyddle/Model.html#BaseModel.make_settings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#phyddle.Model.BaseModel.make_settings" title="Permalink to this definition"></a></dt>
-<dd><p>Creates the settings for the model.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#NotImplementedError" title="(in Python v3.11)"><strong>NotImplementedError</strong></a> – This method should be implemented in derived classes.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="phyddle.Model.BaseModel.make_start_sizes">
-<span class="sig-name descname"><span class="pre">make_start_sizes</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/phyddle/Model.html#BaseModel.make_start_sizes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#phyddle.Model.BaseModel.make_start_sizes" title="Permalink to this definition"></a></dt>
-<dd><p>Creates the starting sizes for the model.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#NotImplementedError" title="(in Python v3.11)"><strong>NotImplementedError</strong></a> – This method should be implemented in derived classes.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="phyddle.Model.BaseModel.make_start_state">
-<span class="sig-name descname"><span class="pre">make_start_state</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/phyddle/Model.html#BaseModel.make_start_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#phyddle.Model.BaseModel.make_start_state" title="Permalink to this definition"></a></dt>
-<dd><p>Creates the starting state for the model.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#NotImplementedError" title="(in Python v3.11)"><strong>NotImplementedError</strong></a> – This method should be implemented in derived classes.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="phyddle.Model.BaseModel.make_states">
-<span class="sig-name descname"><span class="pre">make_states</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/phyddle/Model.html#BaseModel.make_states"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#phyddle.Model.BaseModel.make_states" title="Permalink to this definition"></a></dt>
-<dd><p>Creates the state space for the model.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#NotImplementedError" title="(in Python v3.11)"><strong>NotImplementedError</strong></a> – This method should be implemented in derived classes.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="phyddle.Model.BaseModel.set_args">
-<span class="sig-name descname"><span class="pre">set_args</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/phyddle/Model.html#BaseModel.set_args"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#phyddle.Model.BaseModel.set_args" title="Permalink to this definition"></a></dt>
-<dd><p>Sets the arguments for the model.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>args</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><em>dict</em></a>) – A dictionary containing the arguments.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="phyddle.Model.BaseModel.set_model">
-<span class="sig-name descname"><span class="pre">set_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/phyddle/Model.html#BaseModel.set_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#phyddle.Model.BaseModel.set_model" title="Permalink to this definition"></a></dt>
-<dd><p>Sets the model.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>seed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><em>int</em></a><em>, </em><em>optional</em>) – The random seed value. Defaults to None.</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-</section>
-<section id="geossemodel">
-<span id="dev-geossemodel"></span><h3>GeosseModel<a class="headerlink" href="#geossemodel" title="Permalink to this heading"></a></h3>
-</section>
-<section id="sirmmodel">
-<span id="dev-sirmmodel"></span><h3>SirmModel<a class="headerlink" href="#sirmmodel" title="Permalink to this heading"></a></h3>
-</section>
-</section>
-<section id="simulating">
-<span id="dev-simulating"></span><h2>Simulating<a class="headerlink" href="#simulating" title="Permalink to this heading"></a></h2>
-</section>
-<section id="formatting">
-<span id="dev-formatting"></span><h2>Formatting<a class="headerlink" href="#formatting" title="Permalink to this heading"></a></h2>
-</section>
-<section id="learning">
-<span id="dev-learning"></span><h2>Learning<a class="headerlink" href="#learning" title="Permalink to this heading"></a></h2>
-</section>
-<section id="predicting">
-<span id="dev-predicting"></span><h2>Predicting<a class="headerlink" href="#predicting" title="Permalink to this heading"></a></h2>
-</section>
-<section id="plotting">
-<span id="dev-plotting"></span><h2>Plotting<a class="headerlink" href="#plotting" title="Permalink to this heading"></a></h2>
-</section>
 <section id="utilities">
 <span id="dev-utilities"></span><h2>Utilities<a class="headerlink" href="#utilities" title="Permalink to this heading"></a></h2>
 <dl class="py function">
