@@ -12,7 +12,7 @@ Then create and run a pipeline under the settings you've specified in ``my_confi
 
 .. code-block:: shell
 
-	./run_pipeline.sh --cfg my_config
+	./phyddle.sh -c my_config
 
 This will run a phyddle analysis for a simple 3-region GeoSSE model with just 500 training examples. In practice, you'll want to generate a larger training dataset with anywhere from 10k to 1M examples, depending on the model.
 
@@ -22,22 +22,22 @@ To add new examples to your training set
 
     # simulate new training examples, stored in
     # workspace/raw_data/my_project
-    ./run_simulate.sh --cfg my_config --start_idx 500 --end_idx 15000
+    ./phyddle.sh -s sim -c my_config --start_idx 500 --end_idx 15000
 
     # encode all raw_data examples as tensors,
     # stored in workspace/tensor_data/my_project
-    ./run_format.sh --cfg my_config --start_idx 0 --end_idx 15000
+    ./phyddle.sh -s fmt -c my_config --start_idx 0 --end_idx 15000
 
     # train network with tensor_data, but override batch size,
     # stored in workspace/network/my_project
-    ./run_learn.sh --cfg my_config --batch_size 256
+    ./phyddle.sh -s lrn -c my_config --batch_size 256
 
     # make prediction with example dataset, results stored in
     # workspace/predict/my_project
-    ./run_predict.sh --cfg my_config
+    ./phyddle.sh -s prd -c my_config
 
     # generate figures, stored in workspace/plot/my_project
-    ./run_plot.sh --cfg my_config
+    ./phyddle.sh -s plt -c my_config
 
 Pipeline options are applied to all pipeline stages. See the full list of currently supported options with
 

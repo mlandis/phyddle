@@ -89,29 +89,29 @@
 </pre></div>
 </div>
 <p>Then create and run a pipeline under the settings you’ve specified in <code class="docutils literal notranslate"><span class="pre">my_config.py</span></code>:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>./run_pipeline.sh<span class="w"> </span>--cfg<span class="w"> </span>my_config
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>./phyddle.sh<span class="w"> </span>-c<span class="w"> </span>my_config
 </pre></div>
 </div>
 <p>This will run a phyddle analysis for a simple 3-region GeoSSE model with just 500 training examples. In practice, you’ll want to generate a larger training dataset with anywhere from 10k to 1M examples, depending on the model.</p>
 <p>To add new examples to your training set</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># simulate new training examples, stored in</span>
 <span class="c1"># workspace/raw_data/my_project</span>
-./run_simulate.sh<span class="w"> </span>--cfg<span class="w"> </span>my_config<span class="w"> </span>--start_idx<span class="w"> </span><span class="m">500</span><span class="w"> </span>--end_idx<span class="w"> </span><span class="m">15000</span>
+./phyddle.sh<span class="w"> </span>-s<span class="w"> </span>sim<span class="w"> </span>-c<span class="w"> </span>my_config<span class="w"> </span>--start_idx<span class="w"> </span><span class="m">500</span><span class="w"> </span>--end_idx<span class="w"> </span><span class="m">15000</span>
 
 <span class="c1"># encode all raw_data examples as tensors,</span>
 <span class="c1"># stored in workspace/tensor_data/my_project</span>
-./run_format.sh<span class="w"> </span>--cfg<span class="w"> </span>my_config<span class="w"> </span>--start_idx<span class="w"> </span><span class="m">0</span><span class="w"> </span>--end_idx<span class="w"> </span><span class="m">15000</span>
+./phyddle.sh<span class="w"> </span>-s<span class="w"> </span>fmt<span class="w"> </span>-c<span class="w"> </span>my_config<span class="w"> </span>--start_idx<span class="w"> </span><span class="m">0</span><span class="w"> </span>--end_idx<span class="w"> </span><span class="m">15000</span>
 
 <span class="c1"># train network with tensor_data, but override batch size,</span>
 <span class="c1"># stored in workspace/network/my_project</span>
-./run_learn.sh<span class="w"> </span>--cfg<span class="w"> </span>my_config<span class="w"> </span>--batch_size<span class="w"> </span><span class="m">256</span>
+./phyddle.sh<span class="w"> </span>-s<span class="w"> </span>lrn<span class="w"> </span>-c<span class="w"> </span>my_config<span class="w"> </span>--batch_size<span class="w"> </span><span class="m">256</span>
 
 <span class="c1"># make prediction with example dataset, results stored in</span>
 <span class="c1"># workspace/predict/my_project</span>
-./run_predict.sh<span class="w"> </span>--cfg<span class="w"> </span>my_config
+./phyddle.sh<span class="w"> </span>-s<span class="w"> </span>prd<span class="w"> </span>-c<span class="w"> </span>my_config
 
 <span class="c1"># generate figures, stored in workspace/plot/my_project</span>
-./run_plot.sh<span class="w"> </span>--cfg<span class="w"> </span>my_config
+./phyddle.sh<span class="w"> </span>-s<span class="w"> </span>plt<span class="w"> </span>-c<span class="w"> </span>my_config
 </pre></div>
 </div>
 <p>Pipeline options are applied to all pipeline stages. See the full list of currently supported options with</p>
