@@ -359,8 +359,8 @@ def check_args(args):
     assert args['sim_method']        in ['command', 'master']
     assert args['sim_logging']       in ['clean', 'verbose', 'compress']
     assert args['tree_type']         in ['serial', 'extant']
-    assert args['tree_encode_type']  in ['one_hot', 'integer']
-    assert args['char_encode_type']  in ['height_only', 'height_brlen']
+    assert args['tree_encode_type']  in ['height_only', 'height_brlen']
+    assert args['char_encode_type']  in ['one_hot', 'integer']
     assert args['tensor_format']     in ['csv', 'hdf5']
     assert args['learn_method']      in ['param_est', 'model_test']
     
