@@ -16,11 +16,11 @@ args = {
     #-------------------------------#
     'proj'           : 'test',             # directory name for pipeline project
     'steps'          : 'all',                         # steps to run? all, sim, fmt, lrn, prd, plt
-    'sim_dir'        : './workspace/raw_data',       # directory for simulated data
-    'fmt_dir'        : './workspace/tensor_data',    # directory for tensor-formatted data
-    'net_dir'        : './workspace/network',        # directory for trained network
-    'plt_dir'        : './workspace/plot',           # directory for plotted figures
-    'pred_dir'       : './workspace/predict',        # directory for predictions on new data
+    'sim_dir'        : './tests/workspace/raw_data',       # directory for simulated data
+    'fmt_dir'        : './tests/workspace/tensor_data',    # directory for tensor-formatted data
+    'net_dir'        : './tests/workspace/network',        # directory for trained network
+    'plt_dir'        : './tests/workspace/plot',           # directory for plotted figures
+    'pred_dir'       : './tests/workspace/predict',        # directory for predictions on new data
     'pred_prefix'    : 'new.1',             # prefix for new dataset to predict
     
     #-------------------------------#

@@ -11,9 +11,11 @@ import numpy as np
 import h5py
 import os
 
-print(os.getcwd())
-print(os.listdir('.'))
-print(os.listdir('./workspace'))
+#os.chdir('tests')
+
+#print(os.getcwd())
+#print(os.listdir('.'))
+#print(os.listdir('./workspace'))
 #print(os.listdir('./workspace/raw_data/test'))
 
 #-----------------------------------------------------------------------------#
@@ -27,7 +29,7 @@ def test_inc():
 #-----------------------------------------------------------------------------#
 
 def test_onehot_encoding():
-    s = Utilities.convert_nexus_to_array('tests/data/sim.1.dat.nex', 'onehot', 333)
+    s = Utilities.convert_nexus_to_array('./data/sim.1.dat.nex', 'onehot', 333)
     print(s)
     assert s != ''
 
@@ -50,7 +52,9 @@ def run_pipeline():
     my_sim = Simulating.load(my_args, my_mdl)
     my_sim.run()
 
-    print(os.listdir('./workspace/raw_data/test'))
+    print('here i am')
+    print(os.getcwd())
+    print(os.listdir('./tests/workspace/raw_data/test'))
     #print(os.listdir('./tests/workspace/raw_data'))
 
 
@@ -58,6 +62,7 @@ def run_pipeline():
     my_fmt = Formatting.load(my_args)
     my_fmt.run()
 
+    print('hey!')
     # Step 3: train network with training data
     #my_lrn = Learning.load(my_args)
     #my_lrn.run()
@@ -83,7 +88,7 @@ def test_run_pipeline():
     assert run_pipeline() == 42.64691488
 
 
-test_run_pipeline()
+#test_run_pipeline()
 #-----------------------------------------------------------------------------#
 
 # tests needed
