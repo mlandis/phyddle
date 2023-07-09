@@ -193,7 +193,8 @@ class States:
 ###################
 
 def load_config(config_fn: str,
-                arg_overwrite: Optional[bool]=True):
+                arg_overwrite: Optional[bool]=True,
+                args: List[str]=None):
     """
     Loads the configuration.
 
@@ -204,7 +205,11 @@ def load_config(config_fn: str,
     Returns:
         dict: The loaded configuration.
     """
-    
+
+    # use command line sys.argv if no args provided
+    if args is None:
+        args = sys.argv[1:]
+
     # argument parsing
     parser = argparse.ArgumentParser(description='phyddle pipeline config') #,
                                      #formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -266,7 +271,7 @@ def load_config(config_fn: str,
 
 
     # parse arguments
-    args = parser.parse_args()
+    args = parser.parse_args(args)
     
     # print models & exit
     if args.show_models:

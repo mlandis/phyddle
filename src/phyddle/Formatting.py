@@ -206,7 +206,6 @@ class Formatter:
             dat_stat = hdf5_file.create_dataset('summ_stat', (num_samples, self.num_summ_stat), dtype='f', compression='gzip')
             dat_labels = hdf5_file.create_dataset('labels', (num_samples, self.num_labels), dtype='f', compression='gzip')
 
-            print("ok!")
             # store all numerical data into hdf5
             for j,(idx,phy_tensor) in enumerate(self.phy_tensors[tree_width].items()):
                 
