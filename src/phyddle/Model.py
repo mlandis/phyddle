@@ -1,3 +1,13 @@
+#!/usr/bin/env python
+"""
+Model
+=====
+Defines BaseModel class used for internal simulations.
+
+Authors:   Michael Landis, Ammon Thompson
+Copyright: (c) 2023, Michael Landis
+License:   MIT
+"""
 
 from phyddle import Utilities
 import numpy as np

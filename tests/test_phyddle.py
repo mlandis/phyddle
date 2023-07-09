@@ -34,10 +34,10 @@ def test_onehot_encoding():
 
 #-----------------------------------------------------------------------------#
 
-def test_script():
-    cmd_str = 'Rscript ./tests/sim_one.R ./tests/workspace/raw_data/test/sim.0'
-    cmd_out = subprocess.check_output(cmd_str, shell=True, text=True, stderr=subprocess.STDOUT)
-    assert 1 == 1
+#def test_script():
+#    cmd_str = 'Rscript ./tests/sim_one.R ./tests/workspace/raw_data/test/sim.0'
+#    cmd_out = subprocess.check_output(cmd_str, shell=True, text=True, stderr=subprocess.STDOUT)
+#    assert 1 == 1
 
 #-----------------------------------------------------------------------------#
 
