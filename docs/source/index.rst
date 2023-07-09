@@ -58,7 +58,8 @@ Contents
     quick_start
     updates
     installation
-    user_guide
+    pipeline
+    settings
     files_types
     developer_guide
     about
