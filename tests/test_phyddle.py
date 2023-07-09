@@ -50,6 +50,9 @@ def run_pipeline():
     my_sim = Simulating.load(my_args, my_mdl)
     my_sim.run()
 
+    print(os.listdir('./workspace/raw_data'))
+    print(os.listdir('./tests/workspace/raw_data'))
+
 
     # Step 2: format training data into tensors
     my_fmt = Formatting.load(my_args)
