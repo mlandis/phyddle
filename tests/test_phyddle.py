@@ -50,8 +50,8 @@ def run_pipeline():
     my_sim = Simulating.load(my_args, my_mdl)
     my_sim.run()
 
-    print(os.listdir('./workspace/raw_data'))
-    print(os.listdir('./tests/workspace/raw_data'))
+    print(os.listdir('./workspace/raw_data/test'))
+    #print(os.listdir('./tests/workspace/raw_data'))
 
 
     # Step 2: format training data into tensors
@@ -75,7 +75,7 @@ def run_pipeline():
     cdvs_fn = f'{sim_dir}/{proj}/sim.0.cdvs.csv'
     cdvs = np.loadtxt(cdvs_fn, delimiter=',')
     cdvs_sum = round(np.sum(cdvs), ndigits=8)
-    # print(cdvs_sum)
+    print(cdvs_sum)
 
     return cdvs_sum
 
