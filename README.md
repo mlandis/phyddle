@@ -60,6 +60,8 @@ Pipeline options are applied to all pipeline stages. See the full list of curren
 ./run_phyddle.sh --help
 ```
 
+Project [documentation](docs/build/html/index.html) can be viewed from your local web browser, but will be hosted online once the repo is made public. The terminal command `open docs/build/html/index.html` will open the documentation on Mac OS X.
+
 ## Features
 
 Current features:
