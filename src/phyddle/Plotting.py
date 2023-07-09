@@ -22,7 +22,8 @@ import numpy as np
 import pandas as pd
 import scipy as sp
 import tensorflow as tf
-from PyPDF2 import PdfMerger
+#from PyPDF2 import PdfMerger
+from pypdf import PdfMerger
 from sklearn.decomposition import PCA
 
 # phyddle imports

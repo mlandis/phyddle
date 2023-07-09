@@ -1,10 +1,15 @@
-#import ../code/ModelLoader
-#import Simulating
-#import Formatting
-#import Learning
-#import Predicting
-#import ../code/Plotting
 from phyddle import Utilities
+from phyddle import ModelLoader
+from phyddle import Simulating
+from phyddle import Formatting
+from phyddle import Learning
+from phyddle import Predicting
+from phyddle import Plotting
+
+# set random seed
+import numpy as np
+
+#-----------------------------------------------------------------------------#
 
 def inc(x):
     return x + 1
@@ -12,11 +17,26 @@ def inc(x):
 def test_inc():
     assert inc(3) == 4
 
-def one_hot_encoding(dat_fn, num_states):
-    s = Utilities.convert_nexus_to_one_hot(dat_fn, num_states)
-    return s
+#-----------------------------------------------------------------------------#
 
-s = one_hot_encoding('data/sim.1.dat.nex', 3)
-print(s)
+def test_onehot_encoding():
+    s = Utilities.convert_nexus_to_array('data/sim.1.dat.nex', 'onehot', 333)
+    print(s)
+    assert s != ''
 
+#-----------------------------------------------------------------------------#
+
+def run_pipeline():
+    return 1
+
+def test_run_pipeline():
+    assert run_pipeline() == 1
+
+#-----------------------------------------------------------------------------#
+
+# tests needed
+# - all types of phylostate tensor encoding
+# - summ stat encoding
+# - model loading
+# - model setup, events, statespace, etc.
 
