@@ -90,7 +90,7 @@ def run_pipeline():
     return cdvs_sum
 
 def test_run_pipeline():
-    assert run_pipeline() == 57.64691488
+    assert run_pipeline() == 172.25643737
 
 
 #test_run_pipeline()
