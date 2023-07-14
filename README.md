@@ -30,7 +30,7 @@ cd ~/projects/phyddle/scripts
 
 Then create and run a pipeline under the settings you've specified in `my_config.py`:
 ```shell
-./run_phyddle.sh --cfg my_config
+./run_phyddle.py --cfg my_config
 ```
 
 This will run a phyddle analysis for a simple 3-region GeoSSE model with just 500 training examples. In practice, you'll want to generate a larger training dataset with anywhere from 10k to 1M examples, depending on the model.
@@ -38,19 +38,19 @@ This will run a phyddle analysis for a simple 3-region GeoSSE model with just 50
 To add new examples to your training set
 ```shell
 # simulate new training examples and store in raw_data/my_project
-./run_phyddle.sh -s sim -c my_config --start_idx 500 --end_idx 15000
+./run_phyddle.py -s sim -c my_config --start_idx 500 --end_idx 15000
 
 # encode all raw_data examples as tensors in tensor_data/my_project
-./run_phyddle.sh -s fmt -c my_config --start_idx 0 --end_idx 15000
+./run_phyddle.py -s fmt -c my_config --start_idx 0 --end_idx 15000
 
 # train network with tensor_data, but override batch size, then store in network/my_project
-./run_phyddle.sh -s lrn -c my_config --batch_size 256
+./run_phyddle.py -s lrn -c my_config --batch_size 256
 
 # make prediction with example dataset
-./run_phyddle.sh -s prd -c my_config
+./run_phyddle.py -s prd -c my_config
 
 # generate figures and store in plot
-./run_phyddle.sh -s plt -c my_config
+./run_phyddle.spy -s plt -c my_config
 ```
 
 Pipeline options are applied to all pipeline stages. See the full list of currently supported options with
