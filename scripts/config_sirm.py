@@ -14,11 +14,12 @@ args = {
     # Project organization          #
     #-------------------------------#
     'proj'           : 'sirm',              # directory name for pipeline project
-    'sim_dir'        : '../raw_data',       # directory for simulated data
-    'fmt_dir'        : '../tensor_data',    # directory for tensor-formatted data
-    'net_dir'        : '../network',        # directory for trained network
-    'plt_dir'        : '../plot',           # directory for plotted figures
-    'pred_dir'       : '../predict',        # directory for predictions on new data
+    'step'           : 'all',               # step(s) to run? all, sim, fmt, lrn, prd, plt
+    'sim_dir'        : '../workspace/raw_data',       # directory for simulated data
+    'fmt_dir'        : '../workspace/tensor_data',    # directory for tensor-formatted data
+    'net_dir'        : '../workspace/network',        # directory for trained network
+    'plt_dir'        : '../workspace/plot',           # directory for plotted figures
+    'pred_dir'       : '../workspace/predict',        # directory for predictions on new data
     'pred_prefix'    : 'new.1',             # prefix for new dataset to predict
     
     #-------------------------------#
@@ -51,6 +52,8 @@ args = {
     #-------------------------------#
     # Simulating Step settings      #
     #-------------------------------#
+    'sim_method'        : 'master',         # command, master, [phylojunction], ...
+    'sim_command'       : 'beast',          # exact command string, argument is output file prefix
     'sim_logging'       : 'clean',          # verbose, compressed, or clean
     'start_idx'         : 0,                # first simulation replicate index
     'end_idx'           : 1000,             # last simulation replicate index
@@ -64,6 +67,8 @@ args = {
     #-------------------------------#
     'tree_type'         : 'serial',         # use model with serial or extant tree
     'tree_width_cat'    : [ 200, 500 ],     # tree size classes for phylo-state tensors
+    'tree_encode_type'  : 'height_brlen',   # how to encode phylo brlen? height_only or height_brlen
+    'char_encode_type'  : 'one_hot',        # how to encode discrete states? one_hot or integer
     'param_pred'        : [                 # model parameters to predict (labels)
         'R0_0', 'sampling_0', 'migration_0_1'
     ],
@@ -76,6 +81,7 @@ args = {
     #-------------------------------#
     # Learning Step settings        #
     #-------------------------------#
+    'learn_method'      : 'param_est',      # what is the learning task? param_est or model_test
     'tree_width'        : 500,              # tree size class used to train network
     'num_epochs'        : 20,               # number of training intervals (epochs)
     'prop_test'         : 0.05,             # proportion of sims in test dataset

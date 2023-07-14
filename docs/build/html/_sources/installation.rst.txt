@@ -57,7 +57,6 @@ phyddle was last tested using with Mac OS X 11.6.4 (Intel CPU) using Python 3.11
 .. code-block::
 
 	PIL 9.5.0
-	PyPDF2 3.0.1
 	argparse 1.1
 	h5py 3.8.0
 	joblib 1.2.0
@@ -66,6 +65,7 @@ phyddle was last tested using with Mac OS X 11.6.4 (Intel CPU) using Python 3.11
 	numpy 1.23.5
 	pandas 2.0.0
 	pydot_ng 2.0.0
+	pypdf 3.12.0
 	scipy 1.10.1
 	sklearn 1.2.2
 	tensorflow 2.12.0
