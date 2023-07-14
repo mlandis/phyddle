@@ -3,6 +3,7 @@
 #==============================================================================#
 
 # external import
+import scipy.stats
 import scipy as sp
 
 # helper variables
