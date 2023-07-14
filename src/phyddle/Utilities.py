@@ -460,7 +460,7 @@ def powerset(iterable):
     return chain.from_iterable(combinations(s, r) for r in range(len(s) + 1))
 
 
-def find_tree_width(num_taxa:int, max_taxa:list[int]):
+def find_tree_width(num_taxa:int, max_taxa:List[int]):
     """Finds the CPSV width.
 
     Returns the smallest suitable compact phylogenetic-state vector
