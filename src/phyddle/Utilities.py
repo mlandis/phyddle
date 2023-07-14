@@ -355,7 +355,7 @@ def load_config(config_fn: str,
 def check_args(args):
 
     # string values
-    assert args['steps']             in ['all', 'sim', 'fmt', 'lrn', 'prd', 'plt']
+    assert args['step']              in ['all', 'sim', 'fmt', 'lrn', 'prd', 'plt']
     assert args['sim_method']        in ['command', 'master']
     assert args['sim_logging']       in ['clean', 'verbose', 'compress']
     assert args['tree_type']         in ['serial', 'extant']
