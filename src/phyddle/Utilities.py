@@ -1049,6 +1049,27 @@ def denormalize(data, train_mean, train_sd):
     """
     return data * train_sd + train_mean
 
+
+def make_pipeline_header(s):
+    #CSTART = '\x1b[1;37;44m'
+    CSTART = '\x1b[1;34;40m'
+    CEND   = '\x1b[0m'
+    if s == 'title':
+        ret  =          '#----------------#' + CEND + '\n'
+        ret += CSTART + '| phyddle v0.0.4 |' + CEND + '\n'
+        ret += CSTART + '#----------------#'
+    elif s == 'sim':
+        ret = '--> SIMULATING <--'
+    elif s == 'fmt':
+        ret = '--> FORMATTING <--'
+    elif s == 'lrn':
+        ret = '-->  LEARNING  <--'
+    elif s == 'prd':
+        ret = '--> PREDICTING <--'    
+    elif s == 'plt':
+        ret = '-->  PLOTTING  <--'
+    return CSTART + ret + CEND
+
 #-----------------------------------------------------------------------------------------------------------------#
 
 
