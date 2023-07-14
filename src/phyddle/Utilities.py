@@ -345,10 +345,10 @@ def load_config(config_fn: str,
     check_args(m.args)
 
     # set steps
-    if m.args['steps'] == 'all':
-        m.args['steps'] = ['sim', 'fmt', 'lrn', 'prd', 'plt']
+    if m.args['step'] == 'all':
+        m.args['step'] = ['sim', 'fmt', 'lrn', 'prd', 'plt']
     else:
-        m.args['steps'] = [ m.args['steps'] ]
+        m.args['step'] = [ m.args['step'] ]
     # return new args
     return m.args
 
