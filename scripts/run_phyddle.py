@@ -34,10 +34,13 @@ if 'lrn' in steps:
 
 # Step 4: predict for new dataset
 if 'prd' in steps:
-    from phyddle import Predicting
-    my_prd = Predicting.load(my_args)
+    from phyddle import Formatting
+    my_fmt = Formatting.load(my_args)
     pred_prefix = f"{my_args['pred_dir']}/{my_args['proj']}/{my_args['pred_prefix']}"
     my_fmt.encode_one(tmp_fn=pred_prefix, idx=-1, save_phyenc_csv=True)
+
+    from phyddle import Predicting
+    my_prd = Predicting.load(my_args)
     my_prd.run()
 
 # Step 5: plot results

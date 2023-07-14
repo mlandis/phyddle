@@ -595,7 +595,7 @@ def convert_nexus_to_integer_array(dat_fn: str):
     """
     # read file
     import os
-    print(os.getcwd())
+    #print(os.getcwd())
     f = open(dat_fn, 'r')
     lines = f.readlines()
     f.close()
