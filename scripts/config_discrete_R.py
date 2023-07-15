@@ -15,7 +15,7 @@ args = {
     # Project organization          #
     #-------------------------------#
     'proj'           : 'n2s3_discrete_R',             # directory name for pipeline project
-    'steps'          : 'all',                         # steps to run? all, sim, fmt, lrn, prd, plt
+    'step'           : 'all',                         # steps to run? all, sim, fmt, lrn, prd, plt
     'verbose'        : True,
     'sim_dir'        : '../workspace/raw_data',       # directory for simulated data
     'fmt_dir'        : '../workspace/tensor_data',    # directory for tensor-formatted data
