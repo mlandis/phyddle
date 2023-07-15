@@ -217,7 +217,7 @@ def load_config(config_fn: str,
     parser.add_argument('-c', '--cfg',          dest='config_fn', type=str, help='Config file name', metavar='')
     #parser.add_argument('-f', '--force',        action='store_true', help='Arguments override config file settings')
     parser.add_argument('-p', '--proj',         dest='proj', type=str, help='Project name used as directory across pipeline stages', metavar='')
-    parser.add_argument('-s', '--steps',        dest='steps', type=str, choices=['all', 'sim', 'fmt', 'lrn', 'prd', 'plt'], help='Pipeline steps to apply', metavar='')
+    parser.add_argument('-s', '--step',         dest='step', type=str, choices=['all', 'sim', 'fmt', 'lrn', 'prd', 'plt'], help='Pipeline step(s) to apply', metavar='')
     parser.add_argument('--use_parallel',       dest='use_parallel', type=bool, help='Use parallelization? (recommended)', metavar='')
     parser.add_argument('--num_proc',           dest='num_proc', type=int, help='How many cores for multiprocessing? (e.g. 4 uses 4, -2 uses all but 2)', metavar='')
     # directory settings
@@ -300,7 +300,7 @@ def load_config(config_fn: str,
     
     # update arguments from defaults, when provided
     m = overwrite_defaults(m, args, 'proj')
-    m = overwrite_defaults(m, args, 'steps')
+    m = overwrite_defaults(m, args, 'step')
     m = overwrite_defaults(m, args, 'use_parallel')
     m = overwrite_defaults(m, args, 'num_proc')
     m = overwrite_defaults(m, args, 'sim_dir')
@@ -345,17 +345,17 @@ def load_config(config_fn: str,
     check_args(m.args)
 
     # set steps
-    if m.args['steps'] == 'all':
-        m.args['steps'] = ['sim', 'fmt', 'lrn', 'prd', 'plt']
+    if m.args['step'] == 'all':
+        m.args['step'] = ['sim', 'fmt', 'lrn', 'prd', 'plt']
     else:
-        m.args['steps'] = [ m.args['steps'] ]
+        m.args['step'] = [ m.args['step'] ]
     # return new args
     return m.args
 
 def check_args(args):
 
     # string values
-    assert args['steps']             in ['all', 'sim', 'fmt', 'lrn', 'prd', 'plt']
+    assert args['step']              in ['all', 'sim', 'fmt', 'lrn', 'prd', 'plt']
     assert args['sim_method']        in ['command', 'master']
     assert args['sim_logging']       in ['clean', 'verbose', 'compress']
     assert args['tree_type']         in ['serial', 'extant']
@@ -460,7 +460,7 @@ def powerset(iterable):
     return chain.from_iterable(combinations(s, r) for r in range(len(s) + 1))
 
 
-def find_tree_width(num_taxa:int, max_taxa:list[int]):
+def find_tree_width(num_taxa:int, max_taxa:List[int]):
     """Finds the CPSV width.
 
     Returns the smallest suitable compact phylogenetic-state vector
@@ -595,7 +595,7 @@ def convert_nexus_to_integer_array(dat_fn: str):
     """
     # read file
     import os
-    print(os.getcwd())
+    #print(os.getcwd())
     f = open(dat_fn, 'r')
     lines = f.readlines()
     f.close()
@@ -1048,6 +1048,33 @@ def denormalize(data, train_mean, train_sd):
         numpy.ndarray: The denormalized data.
     """
     return data * train_sd + train_mean
+
+
+def print_pipeline_header(s):
+    #CSTART = '\x1b[1;37;44m'
+    CSTART = '\x1b[1;34;40m'
+    CEND   = '\x1b[0m'
+    if s == 'title':
+        x  = CSTART + '┏━━━━━━━━━━━━━━━━━━━┓' + CEND + '\n'
+        x += CSTART + '┃  phyddle  v0.0.4  ┃' + CEND + '\n'
+        x += CSTART + '┣━━━━━━━━━━━━━━━━━━━┫' + CEND
+    elif s == 'sim':
+        x  = CSTART + '┃                   ┃' + CEND + '\n'
+        x += CSTART + '┗━▶ simulating... ◀━┛' + CEND
+    elif s == 'fmt':
+        x  = CSTART + '┃                   ┃' + CEND + '\n'
+        x += CSTART + '┗━▶ formatting... ◀━┛' + CEND
+    elif s == 'lrn':
+        x  = CSTART + '┃                   ┃' + CEND + '\n'
+        x += CSTART + '┗━▶ learning...   ◀━┛' + CEND
+    elif s == 'prd':
+        x  = CSTART + '┃                   ┃' + CEND + '\n'
+        x += CSTART + '┗━▶ predicting... ◀━┛' + CEND    
+    elif s == 'plt':
+        x  = CSTART + '┃                   ┃' + CEND + '\n'
+        x += CSTART + '┗━▶ plotting...   ◀━┛' + CEND
+    print(x)
+    return
 
 #-----------------------------------------------------------------------------------------------------------------#
 

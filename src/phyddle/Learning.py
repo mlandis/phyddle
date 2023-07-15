@@ -353,6 +353,7 @@ class CnnLearner(Learner):
      
         # run learning
         self.history = self.mymodel.fit(\
+            verbose = 2,
             x = [self.train_data_tensor, self.train_stats_tensor], 
             y = self.norm_train_labels,
             epochs = self.num_epochs,
