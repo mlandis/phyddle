@@ -218,6 +218,7 @@ def load_config(config_fn: str,
     #parser.add_argument('-f', '--force',        action='store_true', help='Arguments override config file settings')
     parser.add_argument('-p', '--proj',         dest='proj', type=str, help='Project name used as directory across pipeline stages', metavar='')
     parser.add_argument('-s', '--step',         dest='step', type=str, choices=['all', 'sim', 'fmt', 'lrn', 'prd', 'plt'], help='Pipeline step(s) to apply', metavar='')
+    parser.add_argument('-v', '--verbose',      dest='verbose', type=bool, help='Verbose output to screen? (recommended)', metavar='')
     parser.add_argument('--use_parallel',       dest='use_parallel', type=bool, help='Use parallelization? (recommended)', metavar='')
     parser.add_argument('--num_proc',           dest='num_proc', type=int, help='How many cores for multiprocessing? (e.g. 4 uses 4, -2 uses all but 2)', metavar='')
     # directory settings
@@ -302,6 +303,7 @@ def load_config(config_fn: str,
     m = overwrite_defaults(m, args, 'proj')
     m = overwrite_defaults(m, args, 'step')
     m = overwrite_defaults(m, args, 'use_parallel')
+    m = overwrite_defaults(m, args, 'verbose')
     m = overwrite_defaults(m, args, 'num_proc')
     m = overwrite_defaults(m, args, 'sim_dir')
     m = overwrite_defaults(m, args, 'fmt_dir')
@@ -1050,31 +1052,56 @@ def denormalize(data, train_mean, train_sd):
     return data * train_sd + train_mean
 
 
-def print_pipeline_header(s):
-    #CSTART = '\x1b[1;37;44m'
-    CSTART = '\x1b[1;34;40m'
+def phyddle_str(s, bg=1, fg=34, style=40):
+    CSTART = f'\x1b[{bg};{fg};{style}m'
     CEND   = '\x1b[0m'
+    x      = CSTART + s + CEND
+    return x
+
+def phyddle_hdr(s, bg=1, fg=34, style=40):
+    version = 'v.0.0.5'.rjust(8, ' ')
+    steps = { 'sim' : 'Simulating',
+              'fmt' : 'Formatting',
+              'lrn' : 'Learning',
+              'prd' : 'Predicting',
+              'plt' : 'Plotting' }
+
     if s == 'title':
-        x  = CSTART + '┏━━━━━━━━━━━━━━━━━━━┓' + CEND + '\n'
-        x += CSTART + '┃  phyddle  v0.0.4  ┃' + CEND + '\n'
-        x += CSTART + '┣━━━━━━━━━━━━━━━━━━━┫' + CEND
-    elif s == 'sim':
-        x  = CSTART + '┃                   ┃' + CEND + '\n'
-        x += CSTART + '┗━▶ simulating... ◀━┛' + CEND
-    elif s == 'fmt':
-        x  = CSTART + '┃                   ┃' + CEND + '\n'
-        x += CSTART + '┗━▶ formatting... ◀━┛' + CEND
-    elif s == 'lrn':
-        x  = CSTART + '┃                   ┃' + CEND + '\n'
-        x += CSTART + '┗━▶ learning...   ◀━┛' + CEND
-    elif s == 'prd':
-        x  = CSTART + '┃                   ┃' + CEND + '\n'
-        x += CSTART + '┗━▶ predicting... ◀━┛' + CEND    
-    elif s == 'plt':
-        x  = CSTART + '┃                   ┃' + CEND + '\n'
-        x += CSTART + '┗━▶ plotting...   ◀━┛' + CEND
-    print(x)
-    return
+        x  = phyddle_str( '┏━━━━━━━━━━━━━━━━━━━━━━┓', bg, fg, style ) + '\n'
+        x += phyddle_str(f'┃   phyddle {version}   ┃', bg, fg, style ) + '\n'
+        x += phyddle_str( '┣━━━━━━━━━━━━━━━━━━━━━━┫', bg, fg, style )
+    
+    elif s in list(steps.keys()):
+        step_name = steps[s] + '...'
+        step_name = step_name.ljust(13, ' ')
+        x  = phyddle_str(  '┃                      ┃', bg, fg, style ) + '\n'
+        x += phyddle_str( f'┗━┳━▶ {step_name} ◀━━┛', bg, fg, style )
+
+    return x
+
+def phyddle_info(step, proj, in_dir, out_dir):
+    
+    # header
+    run_info  = phyddle_hdr( step ) + '\n'
+    
+    # in paths
+    if in_dir is not None:
+        run_info += phyddle_str('  ┃')  + '\n'
+        for i,_in_dir in enumerate(in_dir):
+            in_path = f'{_in_dir}/{proj}'
+            if i == 0:
+                run_info += phyddle_str(f'  ┣◀━━━ input:  {in_path}' ) + '\n'
+            else:
+                run_info += phyddle_str(f'  ┃             {in_path}' ) + '\n'
+    
+    # out path
+    if out_dir is not None:
+        run_info += phyddle_str('  ┃')  + '\n'
+        out_path = f'{out_dir}/{proj}'
+    run_info += phyddle_str(f'  ┗━━━▶ output: {out_path}' ) + '\n'
+    
+    # return
+    return run_info
 
 #-----------------------------------------------------------------------------------------------------------------#
 

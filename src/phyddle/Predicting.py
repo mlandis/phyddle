@@ -44,7 +44,8 @@ class Predictor:
     
     def set_args(self, args):
         self.args              = args
-        self.project_name      = args['proj']
+        self.proj              = args['proj']
+        self.verbose           = args['verbose']
         self.net_dir           = args['net_dir']
         self.pred_dir          = args['pred_dir']
         self.pred_prefix       = args['pred_prefix']
@@ -63,8 +64,8 @@ class Predictor:
     def prepare_files(self):
 
         # main directories
-        self.network_dir            = f'{self.net_dir}/{self.project_name}'
-        self.predict_dir            = f'{self.pred_dir}/{self.project_name}'
+        self.network_dir            = f'{self.net_dir}/{self.proj}'
+        self.predict_dir            = f'{self.pred_dir}/{self.proj}'
 
         # main job filenames
         self.model_prefix           = f'sim_batchsize{self.batch_size}_numepoch{self.num_epochs}_nt{self.tree_width}'
@@ -98,6 +99,8 @@ class Predictor:
         return
 
     def run(self):
+        if self.verbose:
+            print( Utilities.phyddle_info('prd', self.proj, [self.pred_dir, self.net_dir], self.pred_dir) )
         os.makedirs(self.predict_dir, exist_ok=True)
         self.load_input()
         self.make_results()

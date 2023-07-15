@@ -5,7 +5,8 @@
 ########################
 
 from phyddle import Utilities
-Utilities.print_pipeline_header('title')
+phyddle_header = Utilities.phyddle_hdr('title')
+print(phyddle_header)
 my_args = Utilities.load_config('config', arg_overwrite=True)
 step = my_args['step']
 
@@ -16,7 +17,6 @@ step = my_args['step']
 
 # Step 1: simulate training data
 if 'sim' in step:
-    Utilities.print_pipeline_header('sim')
     from phyddle import ModelLoader
     from phyddle import Simulating
     my_mdl = ModelLoader.load(my_args)
@@ -25,21 +25,18 @@ if 'sim' in step:
 
 # Step 2: format training data into tensors
 if 'fmt' in step:
-    Utilities.print_pipeline_header('fmt')
     from phyddle import Formatting
     my_fmt = Formatting.load(my_args)
     my_fmt.run()
 
 # Step 3: train network with training data
 if 'lrn' in step:
-    Utilities.print_pipeline_header('lrn')
     from phyddle import Learning
     my_lrn = Learning.load(my_args)
     my_lrn.run()
 
 # Step 4: predict for new dataset
 if 'prd' in step:
-    Utilities.print_pipeline_header('prd')
     pred_prefix = f"{my_args['pred_dir']}/{my_args['proj']}/{my_args['pred_prefix']}"
     from phyddle import Formatting
     my_fmt = Formatting.load(my_args)
@@ -50,7 +47,6 @@ if 'prd' in step:
 
 # Step 5: plot results
 if 'plt' in step:
-    Utilities.print_pipeline_header('plt')
     from phyddle import Plotting
     my_plt = Plotting.load(my_args)
     my_plt.run()

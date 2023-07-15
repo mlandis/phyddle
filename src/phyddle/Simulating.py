@@ -17,6 +17,7 @@ import os
 import re
 import shutil
 import subprocess
+import time
 
 # external imports
 import numpy as np
@@ -64,12 +65,14 @@ class Simulator:
         self.set_args(args)
         #self.sim_command  = 'echo \"phyddle.Simulator.sim_command undefined in derived class!\"' # do nothing
         self.model = mdl
+        
         return
 
     def set_args(self, args):
         # simulator arguments
         self.args              = args
         self.proj              = args['proj']
+        self.verbose           = args['verbose']
         self.sim_dir           = args['sim_dir']
         self.start_idx         = args['start_idx']
         self.end_idx           = args['end_idx']
@@ -96,6 +99,10 @@ class Simulator:
         return s
 
     def run(self):
+
+        if self.verbose:
+            print( Utilities.phyddle_info('sim', self.proj, None, self.sim_dir) )
+
         # prepare workspace
         os.makedirs( self.sim_dir + '/' + self.proj, exist_ok=True )
         # dispatch jobs
@@ -103,6 +110,7 @@ class Simulator:
             res = Parallel(n_jobs=self.num_proc)(delayed(self.sim_one)(idx) for idx in tqdm(self.rep_idx))
         else:
             res = [ self.sim_one(idx) for idx in tqdm(self.rep_idx) ]
+
         return res
 
     # main simulation function (looped)

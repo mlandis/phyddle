@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>phyddle.Utilities &mdash; phyddle 0.0.4 documentation</title>
+  <title>phyddle.Utilities &mdash; phyddle 0.0.5 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -34,7 +34,7 @@
               <img src="../../_static/phyddle_logo.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                0.0.4
+                0.0.5
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -300,6 +300,7 @@
     <span class="c1">#parser.add_argument(&#39;-f&#39;, &#39;--force&#39;,        action=&#39;store_true&#39;, help=&#39;Arguments override config file settings&#39;)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-p&#39;</span><span class="p">,</span> <span class="s1">&#39;--proj&#39;</span><span class="p">,</span>         <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;proj&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Project name used as directory across pipeline stages&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-s&#39;</span><span class="p">,</span> <span class="s1">&#39;--step&#39;</span><span class="p">,</span>         <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;step&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;all&#39;</span><span class="p">,</span> <span class="s1">&#39;sim&#39;</span><span class="p">,</span> <span class="s1">&#39;fmt&#39;</span><span class="p">,</span> <span class="s1">&#39;lrn&#39;</span><span class="p">,</span> <span class="s1">&#39;prd&#39;</span><span class="p">,</span> <span class="s1">&#39;plt&#39;</span><span class="p">],</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Pipeline step(s) to apply&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-v&#39;</span><span class="p">,</span> <span class="s1">&#39;--verbose&#39;</span><span class="p">,</span>      <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;verbose&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">bool</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Verbose output to screen? (recommended)&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--use_parallel&#39;</span><span class="p">,</span>       <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;use_parallel&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">bool</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Use parallelization? (recommended)&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--num_proc&#39;</span><span class="p">,</span>           <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;num_proc&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;How many cores for multiprocessing? (e.g. 4 uses 4, -2 uses all but 2)&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
     <span class="c1"># directory settings</span>
@@ -384,6 +385,7 @@
     <span class="n">m</span> <span class="o">=</span> <span class="n">overwrite_defaults</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="s1">&#39;proj&#39;</span><span class="p">)</span>
     <span class="n">m</span> <span class="o">=</span> <span class="n">overwrite_defaults</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="s1">&#39;step&#39;</span><span class="p">)</span>
     <span class="n">m</span> <span class="o">=</span> <span class="n">overwrite_defaults</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="s1">&#39;use_parallel&#39;</span><span class="p">)</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">overwrite_defaults</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="s1">&#39;verbose&#39;</span><span class="p">)</span>
     <span class="n">m</span> <span class="o">=</span> <span class="n">overwrite_defaults</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="s1">&#39;num_proc&#39;</span><span class="p">)</span>
     <span class="n">m</span> <span class="o">=</span> <span class="n">overwrite_defaults</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="s1">&#39;sim_dir&#39;</span><span class="p">)</span>
     <span class="n">m</span> <span class="o">=</span> <span class="n">overwrite_defaults</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="s1">&#39;fmt_dir&#39;</span><span class="p">)</span>
@@ -1132,26 +1134,56 @@
     <span class="k">return</span> <span class="n">data</span> <span class="o">*</span> <span class="n">train_sd</span> <span class="o">+</span> <span class="n">train_mean</span>
 
 
-<span class="k">def</span> <span class="nf">print_pipeline_header</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
-    <span class="c1">#CSTART = &#39;\x1b[1;37;44m&#39;</span>
-    <span class="n">CSTART</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\x1b</span><span class="s1">[1;34;40m&#39;</span>
+<span class="k">def</span> <span class="nf">phyddle_str</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">bg</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="mi">34</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="mi">40</span><span class="p">):</span>
+    <span class="n">CSTART</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="se">\x1b</span><span class="s1">[</span><span class="si">{</span><span class="n">bg</span><span class="si">}</span><span class="s1">;</span><span class="si">{</span><span class="n">fg</span><span class="si">}</span><span class="s1">;</span><span class="si">{</span><span class="n">style</span><span class="si">}</span><span class="s1">m&#39;</span>
     <span class="n">CEND</span>   <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\x1b</span><span class="s1">[0m&#39;</span>
+    <span class="n">x</span>      <span class="o">=</span> <span class="n">CSTART</span> <span class="o">+</span> <span class="n">s</span> <span class="o">+</span> <span class="n">CEND</span>
+    <span class="k">return</span> <span class="n">x</span>
+
+<span class="k">def</span> <span class="nf">phyddle_hdr</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">bg</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="mi">34</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="mi">40</span><span class="p">):</span>
+    <span class="n">version</span> <span class="o">=</span> <span class="s1">&#39;v.0.0.5&#39;</span><span class="o">.</span><span class="n">rjust</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">)</span>
+    <span class="n">steps</span> <span class="o">=</span> <span class="p">{</span> <span class="s1">&#39;sim&#39;</span> <span class="p">:</span> <span class="s1">&#39;Simulating&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;fmt&#39;</span> <span class="p">:</span> <span class="s1">&#39;Formatting&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;lrn&#39;</span> <span class="p">:</span> <span class="s1">&#39;Learning&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;prd&#39;</span> <span class="p">:</span> <span class="s1">&#39;Predicting&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;plt&#39;</span> <span class="p">:</span> <span class="s1">&#39;Plotting&#39;</span> <span class="p">}</span>
+
     <span class="k">if</span> <span class="n">s</span> <span class="o">==</span> <span class="s1">&#39;title&#39;</span><span class="p">:</span>
-        <span class="n">x</span>  <span class="o">=</span> <span class="n">CSTART</span> <span class="o">+</span> <span class="s1">&#39;┏━━━━━━━━━━━━━━━━━━━┓&#39;</span> <span class="o">+</span> <span class="n">CEND</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
-        <span class="n">x</span> <span class="o">+=</span> <span class="n">CSTART</span> <span class="o">+</span> <span class="s1">&#39;┃  phyddle  v0.0.4  ┃&#39;</span> <span class="o">+</span> <span class="n">CEND</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
-        <span class="n">x</span> <span class="o">+=</span> <span class="n">CSTART</span> <span class="o">+</span> <span class="s1">&#39;┗━━━━━━━━━━━━━━━━━━━┛&#39;</span> <span class="o">+</span> <span class="n">CEND</span>
-    <span class="k">elif</span> <span class="n">s</span> <span class="o">==</span> <span class="s1">&#39;sim&#39;</span><span class="p">:</span>
-        <span class="n">x</span> <span class="o">=</span>  <span class="n">CSTART</span> <span class="o">+</span> <span class="s1">&#39;┗━▶ simulating... ◀━┛&#39;</span> <span class="o">+</span> <span class="n">CEND</span>
-    <span class="k">elif</span> <span class="n">s</span> <span class="o">==</span> <span class="s1">&#39;fmt&#39;</span><span class="p">:</span>
-        <span class="n">x</span> <span class="o">=</span>  <span class="n">CSTART</span> <span class="o">+</span> <span class="s1">&#39;┗━▶ formatting... ◀━┛&#39;</span> <span class="o">+</span> <span class="n">CEND</span>
-    <span class="k">elif</span> <span class="n">s</span> <span class="o">==</span> <span class="s1">&#39;lrn&#39;</span><span class="p">:</span>
-        <span class="n">x</span> <span class="o">=</span>  <span class="n">CSTART</span> <span class="o">+</span> <span class="s1">&#39;┗━▶ learning...   ◀━┛&#39;</span> <span class="o">+</span> <span class="n">CEND</span>
-    <span class="k">elif</span> <span class="n">s</span> <span class="o">==</span> <span class="s1">&#39;prd&#39;</span><span class="p">:</span>
-        <span class="n">x</span> <span class="o">=</span>  <span class="n">CSTART</span> <span class="o">+</span> <span class="s1">&#39;┗━▶ predicting... ◀━┛&#39;</span> <span class="o">+</span> <span class="n">CEND</span>    
-    <span class="k">elif</span> <span class="n">s</span> <span class="o">==</span> <span class="s1">&#39;plt&#39;</span><span class="p">:</span>
-        <span class="n">x</span> <span class="o">=</span>  <span class="n">CSTART</span> <span class="o">+</span> <span class="s1">&#39;┗━▶ plotting...   ◀━┛&#39;</span> <span class="o">+</span> <span class="n">CEND</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-    <span class="k">return</span>
+        <span class="n">x</span>  <span class="o">=</span> <span class="n">phyddle_str</span><span class="p">(</span> <span class="s1">&#39;┏━━━━━━━━━━━━━━━━━━━━━━┓&#39;</span><span class="p">,</span> <span class="n">bg</span><span class="p">,</span> <span class="n">fg</span><span class="p">,</span> <span class="n">style</span> <span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="n">x</span> <span class="o">+=</span> <span class="n">phyddle_str</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;┃   phyddle </span><span class="si">{</span><span class="n">version</span><span class="si">}</span><span class="s1">   ┃&#39;</span><span class="p">,</span> <span class="n">bg</span><span class="p">,</span> <span class="n">fg</span><span class="p">,</span> <span class="n">style</span> <span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="n">x</span> <span class="o">+=</span> <span class="n">phyddle_str</span><span class="p">(</span> <span class="s1">&#39;┣━━━━━━━━━━━━━━━━━━━━━━┫&#39;</span><span class="p">,</span> <span class="n">bg</span><span class="p">,</span> <span class="n">fg</span><span class="p">,</span> <span class="n">style</span> <span class="p">)</span>
+    
+    <span class="k">elif</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">steps</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+        <span class="n">step_name</span> <span class="o">=</span> <span class="n">steps</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;...&#39;</span>
+        <span class="n">step_name</span> <span class="o">=</span> <span class="n">step_name</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">13</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">)</span>
+        <span class="n">x</span>  <span class="o">=</span> <span class="n">phyddle_str</span><span class="p">(</span>  <span class="s1">&#39;┃                      ┃&#39;</span><span class="p">,</span> <span class="n">bg</span><span class="p">,</span> <span class="n">fg</span><span class="p">,</span> <span class="n">style</span> <span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="n">x</span> <span class="o">+=</span> <span class="n">phyddle_str</span><span class="p">(</span> <span class="sa">f</span><span class="s1">&#39;┗━┳━▶ </span><span class="si">{</span><span class="n">step_name</span><span class="si">}</span><span class="s1"> ◀━━┛&#39;</span><span class="p">,</span> <span class="n">bg</span><span class="p">,</span> <span class="n">fg</span><span class="p">,</span> <span class="n">style</span> <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">x</span>
+
+<span class="k">def</span> <span class="nf">phyddle_info</span><span class="p">(</span><span class="n">step</span><span class="p">,</span> <span class="n">proj</span><span class="p">,</span> <span class="n">in_dir</span><span class="p">,</span> <span class="n">out_dir</span><span class="p">):</span>
+    
+    <span class="c1"># header</span>
+    <span class="n">run_info</span>  <span class="o">=</span> <span class="n">phyddle_hdr</span><span class="p">(</span> <span class="n">step</span> <span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+    
+    <span class="c1"># in paths</span>
+    <span class="k">if</span> <span class="n">in_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">run_info</span> <span class="o">+=</span> <span class="n">phyddle_str</span><span class="p">(</span><span class="s1">&#39;  ┃&#39;</span><span class="p">)</span>  <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">_in_dir</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">in_dir</span><span class="p">):</span>
+            <span class="n">in_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">_in_dir</span><span class="si">}</span><span class="s1">/</span><span class="si">{</span><span class="n">proj</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">run_info</span> <span class="o">+=</span> <span class="n">phyddle_str</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  ┣◀━━━ input:  </span><span class="si">{</span><span class="n">in_path</span><span class="si">}</span><span class="s1">&#39;</span> <span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">run_info</span> <span class="o">+=</span> <span class="n">phyddle_str</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  ┃             </span><span class="si">{</span><span class="n">in_path</span><span class="si">}</span><span class="s1">&#39;</span> <span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+    
+    <span class="c1"># out path</span>
+    <span class="k">if</span> <span class="n">out_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">run_info</span> <span class="o">+=</span> <span class="n">phyddle_str</span><span class="p">(</span><span class="s1">&#39;  ┃&#39;</span><span class="p">)</span>  <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="n">out_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">out_dir</span><span class="si">}</span><span class="s1">/</span><span class="si">{</span><span class="n">proj</span><span class="si">}</span><span class="s1">&#39;</span>
+    <span class="n">run_info</span> <span class="o">+=</span> <span class="n">phyddle_str</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  ┗━━━▶ output: </span><span class="si">{</span><span class="n">out_path</span><span class="si">}</span><span class="s1">&#39;</span> <span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+    
+    <span class="c1"># return</span>
+    <span class="k">return</span> <span class="n">run_info</span>
 
 <span class="c1">#-----------------------------------------------------------------------------------------------------------------#</span>
 

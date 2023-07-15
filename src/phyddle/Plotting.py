@@ -27,7 +27,7 @@ from pypdf import PdfMerger
 from sklearn.decomposition import PCA
 
 # phyddle imports
-# none
+from phyddle import Utilities
 
 #-----------------------------------------------------------------------------------------------------------------#
 
@@ -51,6 +51,7 @@ class Plotter:
     def set_args(self, args):
         self.args              = args
         self.proj              = args['proj']
+        self.verbose           = args['verbose']
         self.network_dir       = args['net_dir']
         self.plot_dir          = args['plt_dir']
         self.pred_dir          = args['pred_dir']
@@ -188,6 +189,8 @@ class Plotter:
 
     def run(self):
 
+        if self.verbose:
+            print( Utilities.phyddle_info('plt', self.proj, [self.tensor_dir, self.network_dir, self.pred_dir], self.plot_dir) )
         # load data
         self.load_data()
 
