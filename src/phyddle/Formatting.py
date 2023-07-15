@@ -398,6 +398,13 @@ class Formatter:
         ss_fn      = tmp_fn + '.summ_stat.csv'
         info_fn    = tmp_fn + '.info.csv'
         
+
+        if not os.path.exists(dat_nex_fn):
+            print(f'Formatter.encode_one(): {dat_nex_fn} does not exist')
+            return
+        if not os.path.exists(tre_fn):
+            print(f'Formatter.encode_one(): {tre_fn} does not exist')
+            return
         # state space
         #vecstr2int = self.model.states.vecstr2int #{ v:i for i,v in enumerate(int2vecstr) }
 

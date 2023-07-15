@@ -1057,17 +1057,22 @@ def print_pipeline_header(s):
     if s == 'title':
         x  = CSTART + '┏━━━━━━━━━━━━━━━━━━━┓' + CEND + '\n'
         x += CSTART + '┃  phyddle  v0.0.4  ┃' + CEND + '\n'
-        x += CSTART + '┗━━━━━━━━━━━━━━━━━━━┛' + CEND
+        x += CSTART + '┣━━━━━━━━━━━━━━━━━━━┫' + CEND
     elif s == 'sim':
-        x =  CSTART + '┗━▶ simulating... ◀━┛' + CEND
+        x  = CSTART + '┃                   ┃' + CEND + '\n'
+        x += CSTART + '┗━▶ simulating... ◀━┛' + CEND
     elif s == 'fmt':
-        x =  CSTART + '┗━▶ formatting... ◀━┛' + CEND
+        x  = CSTART + '┃                   ┃' + CEND + '\n'
+        x += CSTART + '┗━▶ formatting... ◀━┛' + CEND
     elif s == 'lrn':
-        x =  CSTART + '┗━▶ learning...   ◀━┛' + CEND
+        x  = CSTART + '┃                   ┃' + CEND + '\n'
+        x += CSTART + '┗━▶ learning...   ◀━┛' + CEND
     elif s == 'prd':
-        x =  CSTART + '┗━▶ predicting... ◀━┛' + CEND    
+        x  = CSTART + '┃                   ┃' + CEND + '\n'
+        x += CSTART + '┗━▶ predicting... ◀━┛' + CEND    
     elif s == 'plt':
-        x =  CSTART + '┗━▶ plotting...   ◀━┛' + CEND
+        x  = CSTART + '┃                   ┃' + CEND + '\n'
+        x += CSTART + '┗━▶ plotting...   ◀━┛' + CEND
     print(x)
     return
 

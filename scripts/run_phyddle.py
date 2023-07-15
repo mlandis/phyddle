@@ -40,11 +40,10 @@ if 'lrn' in step:
 # Step 4: predict for new dataset
 if 'prd' in step:
     Utilities.print_pipeline_header('prd')
+    pred_prefix = f"{my_args['pred_dir']}/{my_args['proj']}/{my_args['pred_prefix']}"
     from phyddle import Formatting
     my_fmt = Formatting.load(my_args)
-    pred_prefix = f"{my_args['pred_dir']}/{my_args['proj']}/{my_args['pred_prefix']}"
     my_fmt.encode_one(tmp_fn=pred_prefix, idx=-1, save_phyenc_csv=True)
-
     from phyddle import Predicting
     my_prd = Predicting.load(my_args)
     my_prd.run()
