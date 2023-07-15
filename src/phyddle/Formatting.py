@@ -56,6 +56,7 @@ class Formatter:
 
         # formatter arguments
         self.args          = args
+        self.verbose       = args['verbose']
         self.proj          = args['proj']
         self.fmt_dir       = args['fmt_dir']
         self.sim_dir       = args['sim_dir']
@@ -109,6 +110,9 @@ class Formatter:
 
     def run(self):
 
+        if self.verbose:
+            print( Utilities.phyddle_info('fmt', self.proj, [self.sim_dir], self.fmt_dir) )
+
         # new dir
         os.makedirs(self.out_dir, exist_ok=True)
 
@@ -120,8 +124,8 @@ class Formatter:
             self.write_tensor_csv()
         elif self.tensor_format == 'hdf5':
             self.write_tensor_hdf5()
-    
 
+    
     def make_settings_str(self, idx, tree_width):
 
         s = 'setting,value\n'

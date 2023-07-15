@@ -52,6 +52,7 @@ class Learner:
         self.prop_test         = 0
         self.prop_test         = 0
         self.proj              = args['proj']
+        self.verbose           = args['verbose']
         self.tree_width        = args['tree_width']
         self.tree_type         = args['tree_type']
         self.tree_encode_type  = args['tree_encode_type']
@@ -121,6 +122,9 @@ class Learner:
         return
 
     def run(self):
+        if self.verbose:
+            print( Utilities.phyddle_info('lrn', self.proj, [self.fmt_dir], self.net_dir) )
+
         self.load_input()
         self.build_network()
         self.train()

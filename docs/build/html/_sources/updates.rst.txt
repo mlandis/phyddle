@@ -3,6 +3,14 @@ Updates
 
 The complete commit history for phyddle is located here: https://github.com/mlandis/phyddle/commits/main
 
+
+**phyddle v0.0.5** -- (in progress)
+
+* Pipeline script now prints pipeline steps
+* Better handling of FileNotFoundError related to Predicting step
+* Tested against Apple M1. Not an easy install, because unsupported by Tensorflow. Thanks Albert and Sean!
+
+
 **phyddle v0.0.4** -- 23.07.09
 
 * Simulating now supports command-line scripts
@@ -10,6 +18,7 @@ The complete commit history for phyddle is located here: https://github.com/mlan
 * Simplified pipeline scripts and interface
 * Docs improved to reflect current code design
 * Tests now cover Simulating and Formatting
+
 
 **phyddle v0.0.3** -- 23.07.02
 
