@@ -1055,19 +1055,19 @@ def print_pipeline_header(s):
     CSTART = '\x1b[1;34;40m'
     CEND   = '\x1b[0m'
     if s == 'title':
-        x  = CSTART + '#----------------#' + CEND + '\n'
-        x += CSTART + '| phyddle v0.0.4 |' + CEND + '\n'
-        x += CSTART + '#----------------#' + CEND
+        x  = CSTART + '┏━━━━━━━━━━━━━━━━━━━┓' + CEND + '\n'
+        x += CSTART + '┃  phyddle  v0.0.4  ┃' + CEND + '\n'
+        x += CSTART + '┗━━━━━━━━━━━━━━━━━━━┛' + CEND
     elif s == 'sim':
-        x = CSTART + '--> SIMULATING <--' + CEND
+        x =  CSTART + '┗━▶ simulating... ◀━┛' + CEND
     elif s == 'fmt':
-        x = CSTART +'--> FORMATTING <--' + CEND
+        x =  CSTART + '┗━▶ formatting... ◀━┛' + CEND
     elif s == 'lrn':
-        x = CSTART +'-->  LEARNING  <--' + CEND
+        x =  CSTART + '┗━▶ learning...   ◀━┛' + CEND
     elif s == 'prd':
-        x = CSTART +'--> PREDICTING <--' + CEND    
+        x =  CSTART + '┗━▶ predicting... ◀━┛' + CEND    
     elif s == 'plt':
-        x = CSTART +'-->  PLOTTING  <--' + CEND
+        x =  CSTART + '┗━▶ plotting...   ◀━┛' + CEND
     print(x)
     return
 
