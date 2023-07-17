@@ -1051,14 +1051,19 @@ def denormalize(data, train_mean, train_sd):
     """
     return data * train_sd + train_mean
 
+#-----------------------------------------------------------------------------------------------------------------#
 
-def phyddle_str(s, bg=1, fg=34, style=40):
-    CSTART = f'\x1b[{bg};{fg};{style}m'
+######################
+# phyddle print info #
+######################
+
+def phyddle_str(s, style=1, fg=34, bg=40):
+    CSTART = f'\x1b[{style};{fg};{bg}m'
     CEND   = '\x1b[0m'
     x      = CSTART + s + CEND
     return x
 
-def phyddle_hdr(s, bg=1, fg=34, style=40):
+def phyddle_hdr(s, style=1, fg=34, bg=40):
     version = 'v.0.0.5'.rjust(8, ' ')
     steps = { 'sim' : 'Simulating',
               'fmt' : 'Formatting',
@@ -1067,19 +1072,19 @@ def phyddle_hdr(s, bg=1, fg=34, style=40):
               'plt' : 'Plotting' }
 
     if s == 'title':
-        x  = phyddle_str( '┏━━━━━━━━━━━━━━━━━━━━━━┓', bg, fg, style ) + '\n'
-        x += phyddle_str(f'┃   phyddle {version}   ┃', bg, fg, style ) + '\n'
-        x += phyddle_str( '┣━━━━━━━━━━━━━━━━━━━━━━┫', bg, fg, style )
+        x  = phyddle_str( '┏━━━━━━━━━━━━━━━━━━━━━━┓', style, fg, bg ) + '\n'
+        x += phyddle_str(f'┃   phyddle {version}   ┃', style, fg, bg ) + '\n'
+        x += phyddle_str( '┣━━━━━━━━━━━━━━━━━━━━━━┫', style, fg, bg )
     
     elif s in list(steps.keys()):
         step_name = steps[s] + '...'
         step_name = step_name.ljust(13, ' ')
-        x  = phyddle_str(  '┃                      ┃', bg, fg, style ) + '\n'
-        x += phyddle_str( f'┗━┳━▶ {step_name} ◀━━┛', bg, fg, style )
+        x  = phyddle_str(  '┃                      ┃', style, fg, bg ) + '\n'
+        x += phyddle_str( f'┗━┳━▪ {step_name} ▪━━┛', style, fg, bg )
 
     return x
 
-def phyddle_info(step, proj, in_dir, out_dir):
+def phyddle_info(step, proj, in_dir, out_dir, style=1, fg=34, bg=40):
     
     # header
     run_info  = phyddle_hdr( step ) + '\n'
@@ -1090,9 +1095,9 @@ def phyddle_info(step, proj, in_dir, out_dir):
         for i,_in_dir in enumerate(in_dir):
             in_path = f'{_in_dir}/{proj}'
             if i == 0:
-                run_info += phyddle_str(f'  ┣━━━▪ input:  {in_path}' ) + '\n'
+                run_info += phyddle_str(f'  ┣━━━▪ input:  {in_path}', style, fg, bg ) + '\n'
             else:
-                run_info += phyddle_str(f'  ┃             {in_path}' ) + '\n'
+                run_info += phyddle_str(f'  ┃             {in_path}', style, fg, bg ) + '\n'
     
     # out path
     if out_dir is not None:
@@ -1105,46 +1110,4 @@ def phyddle_info(step, proj, in_dir, out_dir):
 
 #-----------------------------------------------------------------------------------------------------------------#
 
-
-
-# def convert_table_to_array(dat_fn, sep=","):
-    
-#     # read file
-#     f = open(dat_fn, 'r')
-#     lines = f.readlines()
-#     f.close()
-
-#     # process file
-#     num_taxa    = len(lines)
-#     num_char    = 0
-#     taxon_idx   = 0
-#     taxon_names = []
-#     first_taxon = True
-
-#     for line in lines:
-#         # purge whitespace
-#         line = ' '.join(line.split()).rstrip('\n')
-#         tok = line.split(sep)
-        
-#         # get taxon + state
-#         name = tok[0]
-#         state = tok[1]
-
-#         # construct matrix based on num char
-#         if first_taxon:
-#             first_taxon = False
-#             num_char = len(state)
-#             dat = np.zeros((num_char, num_taxa), dtype='int')
-
-#         # save taxon name, populate array
-#         taxon_names.append(name)
-#         dat[:,taxon_idx] = [ int(z) for z in state ]
-#         taxon_idx += 1
-
-#     # construct data frame
-#     # rows: char states
-#     # cols: taxa
-#     df = pd.DataFrame(dat, columns=taxon_names)
-    
-#     return df
 
