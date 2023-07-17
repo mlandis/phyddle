@@ -1090,7 +1090,7 @@ def phyddle_info(step, proj, in_dir, out_dir):
         for i,_in_dir in enumerate(in_dir):
             in_path = f'{_in_dir}/{proj}'
             if i == 0:
-                run_info += phyddle_str(f'  ┣◀━━━ input:  {in_path}' ) + '\n'
+                run_info += phyddle_str(f'  ┣━━━▪ input:  {in_path}' ) + '\n'
             else:
                 run_info += phyddle_str(f'  ┃             {in_path}' ) + '\n'
     
@@ -1098,7 +1098,7 @@ def phyddle_info(step, proj, in_dir, out_dir):
     if out_dir is not None:
         run_info += phyddle_str('  ┃')  + '\n'
         out_path = f'{out_dir}/{proj}'
-    run_info += phyddle_str(f'  ┗━━━▶ output: {out_path}' ) + '\n'
+    run_info += phyddle_str(f'  ┗━━━▪ output: {out_path}' ) + '\n'
     
     # return
     return run_info
