@@ -351,6 +351,12 @@ def load_config(config_fn: str,
         m.args['step'] = ['sim', 'fmt', 'lrn', 'prd', 'plt']
     else:
         m.args['step'] = [ m.args['step'] ]
+
+
+    # print header?
+    if m.args['verbose']:
+        print( phyddle_hdr('title') )
+
     # return new args
     return m.args
 

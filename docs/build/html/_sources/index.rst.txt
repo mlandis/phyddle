@@ -61,8 +61,8 @@ Contents
     installation
     pipeline
     settings
-    files_types
-    developer_guide
+    data_formats
+    workspace_directories
+    tricks
     about
-
 

@@ -5,15 +5,12 @@
 ########################
 
 from phyddle import Utilities
-phyddle_header = Utilities.phyddle_hdr('title')
-print(phyddle_header)
 my_args = Utilities.load_config('config', arg_overwrite=True)
 step = my_args['step']
 
 ################
 # RUN PIPELINE #
 ################
-
 
 # Step 1: simulate training data
 if 'sim' in step:

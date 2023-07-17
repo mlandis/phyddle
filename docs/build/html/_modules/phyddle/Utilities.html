@@ -50,8 +50,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../pipeline.html">Pipeline</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../settings.html">Settings</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../files_types.html">Files &amp; datatypes</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../developer_guide.html">Developer guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../data_formats.html">Data formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../workspace_directories.html">Workspace directories</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tricks.html">Tricks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../about.html">About</a></li>
 </ul>
 
@@ -433,6 +434,12 @@
         <span class="n">m</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;sim&#39;</span><span class="p">,</span> <span class="s1">&#39;fmt&#39;</span><span class="p">,</span> <span class="s1">&#39;lrn&#39;</span><span class="p">,</span> <span class="s1">&#39;prd&#39;</span><span class="p">,</span> <span class="s1">&#39;plt&#39;</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">m</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span> <span class="n">m</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">]</span> <span class="p">]</span>
+
+
+    <span class="c1"># print header?</span>
+    <span class="k">if</span> <span class="n">m</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s1">&#39;verbose&#39;</span><span class="p">]:</span>
+        <span class="nb">print</span><span class="p">(</span> <span class="n">phyddle_hdr</span><span class="p">(</span><span class="s1">&#39;title&#39;</span><span class="p">)</span> <span class="p">)</span>
+
     <span class="c1"># return new args</span>
     <span class="k">return</span> <span class="n">m</span><span class="o">.</span><span class="n">args</span>
 
