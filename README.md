@@ -20,6 +20,31 @@ A standard phyddle analysis performs the following tasks for you:
 - **Plotting** generates figures that summarize the training data (*Formatting*), the network and its training (*Learning*), and any new predictions (*Predicting*). Saves output in the [`plot`](workspace/plot) directory.
 
 
+## Quick installation
+
+> Note: phyddle is currently on a private repository. Installing phyddle and viewing documentation will be easier once the repository is made public.
+
+Currently, phyddle must be manually installed on the local filesystem to be used.
+To install it, clone the repository, enter the new phyddle directory, then run the `build.sh` script.
+
+```shell
+git clone git@github.com:mlandis/phyddle.git
+cd phyddle
+git checkout development
+./build.sh
+```
+
+This also builds a local copy of the documentation, which can be viewed through the web browser.
+```shell
+open docs/build/html/index.html
+```
+
+To get the newest features added to phyddle, you will want to pull changes into the development branch, then rebuild the package
+```shell
+git pull
+./build.sh
+```
+
 
 ## Quick start
 
