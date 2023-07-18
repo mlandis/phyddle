@@ -538,15 +538,30 @@ class CnnLearner(Learner):
                 s = np.amax(np.array((preds[0][:,i] - true[:,i], true[:,i] - preds[1][:,i])), axis=0)
                 # get adjustment constant: 1 - alpha/2's quintile of non-comformity scores
                 #Q = np.append(Q, np.quantile(s, inner_quantile * (1 + 1/preds.shape[1])))
-                lower_q = np.quantile(s, inner_quantile * (1 + 1/preds.shape[1]))
+                symm_p = inner_quantile * (1 + 1/preds.shape[1])
+                if symm_p < 0.:
+                    self.logger.write_log('lrn', 'get_CQR_constant: symm_p >= 0.')
+                    symm_p = 0.
+                elif symm_p > 1.:
+                    self.logger.write_log('lrn', 'get_CQR_constant: symm_p <= 1.')
+                    symm_p = 1.                    
+                lower_q = np.quantile(s, symm_p)
                 upper_q = lower_q
                 #Q[:,i] = np.array([lower_q, upper_q])
             else:
                 # Asymmetric non-comformity score
                 lower_s = np.array(true[:,i] - preds[0][:,i])
                 upper_s = np.array(true[:,i] - preds[1][:,i])
-                lower_q = np.quantile(lower_s, (1 - inner_quantile)/2 * (1 + 1/preds.shape[1]))
-                upper_q = np.quantile(upper_s, (1 + inner_quantile)/2 * (1 + 1/preds.shape[1]))
+                lower_p = (1 - inner_quantile)/2 * (1 + 1/preds.shape[1])
+                upper_p = (1 + inner_quantile)/2 * (1 + 1/preds.shape[1])
+                if lower_p < 0.:
+                    self.logger.write_log('lrn', 'get_CQR_constant: lower_p >= 0.')
+                    lower_p = 0.
+                if upper_p > 1.:
+                    self.logger.write_log('lrn', 'get_CQR_constant: upper_p <= 1.')
+                    upper_p = 1.
+                lower_q = np.quantile(lower_s, lower_p)
+                upper_q = np.quantile(upper_s, upper_p)
                 # get (lower_q adjustment, upper_q adjustment)
 
             Q[:,i] = np.array([lower_q, upper_q])

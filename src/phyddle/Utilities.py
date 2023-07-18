@@ -1189,6 +1189,12 @@ class Logger:
             self.save_run_log()
         return
 
+    def write_log(self, step, msg):
+        fn = self.fn_dict[step]
+        with open('myfile.txt', 'a') as file:
+            file.write( f'{msg}\n' )
+        return
+    
     def save_run_log(self):
 
         fn    = self.fn_dict['run']

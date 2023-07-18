@@ -40,7 +40,7 @@ class Predictor:
     def __init__(self, args):
         self.set_args(args)
         self.prepare_files()
-        self.logger = Logging.Logger(args)
+        self.logger = Utilities.Logger(args)
         return
     
     def set_args(self, args):
