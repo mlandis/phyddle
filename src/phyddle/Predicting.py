@@ -22,7 +22,6 @@ import tensorflow as tf
 
 # phyddle imports
 from phyddle import Utilities
-from phyddle import Logging
 #from Formatting import encode_phy_tensor
 
 #-----------------------------------------------------------------------------------------------------------------#
