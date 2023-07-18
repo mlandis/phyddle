@@ -36,6 +36,7 @@ class Logger:
         # collect other info and set constants
         self.pkg_name    = 'phyddle'
         self.version     = pkg_resources.get_distribution(self.pkg_name).version
+        self.commit      = '(to be done)'
         self.command     = ' '.join(sys.argv)
         self.date_obj    = datetime.now()
         self.date_str    = self.date_obj.strftime("%y%m%d_%H%M%S")
@@ -59,9 +60,11 @@ class Logger:
         return
 
     def make_arg_str(self):
+        ignore_keys = ['job_id']
         s = ''
         for k,v in self.args.items():
-            s += f'{k} = {v}\n'
+            if k not in ignore_keys:
+                s += f'{k} = {v}\n'
         return s
 
     def save_log(self, step):
@@ -83,7 +86,9 @@ class Logger:
     
     def make_run_log(self):
         s = ''
+        s += f'job_id = {self.job_id}\n'
         s += f'version = {self.version}\n'
+        s +=  'commit = TBD\n'
         s += f'date = {self.date_str}\n'
         s += f'command = {self.command}\n'
         s += self.make_arg_str()
