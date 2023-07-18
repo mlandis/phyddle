@@ -224,10 +224,10 @@ def load_config(config_fn: str,
     # directory settings
     parser.add_argument('--sim_dir',            dest='sim_dir', type=str, help='Directory for raw simulated data', metavar='')
     parser.add_argument('--fmt_dir',            dest='fmt_dir', type=str, help='Directory for tensor-formatted simulated data', metavar='')
-    parser.add_argument('--net_dir',            dest='net_dir', type=str, help='Directory for trained networks and predictions', metavar='')
+    parser.add_argument('--lrn_dir',            dest='lrn_dir', type=str, help='Directory for trained networks and training predictions', metavar='')
+    parser.add_argument('--prd_dir',            dest='prd_dir', type=str, help='Directory for new datasets and predictions', metavar='')
     parser.add_argument('--plt_dir',            dest='plt_dir', type=str, help='Directory for plotted results', metavar='')
-    parser.add_argument('--pred_dir',           dest='pred_dir', type=str, help='Predict results for dataset located in this directory', metavar='')
-    parser.add_argument('--pred_prefix',        dest='pred_prefix', type=str, help='Predict results for this dataset', metavar='')
+    parser.add_argument('--log_dir',            dest='log_dir', type=str, help='Directory for logs of analysis metadata', metavar='')
     # model settings
     parser.add_argument('--show_models',        action='store_true', help='Print all available model types and variants?')
     parser.add_argument('--model_type',         dest='model_type', type=str, help='Model type', metavar='')
@@ -261,7 +261,7 @@ def load_config(config_fn: str,
     parser.add_argument('--loss',               dest='loss', type=str, help='Loss function used as optimization criterion', metavar='')
     parser.add_argument('--optimizer',          dest='optimizer', type=str, help='Method used for optimizing neural network', metavar='')
     # prediction settings
-    # ... nothing for now??
+    parser.add_argument('--pred_prefix',        dest='pred_prefix', type=str, help='Predict results for this dataset', metavar='')
     # plotting settings
     parser.add_argument('--plot_train_color',   dest='plot_train_color', type=str, help='Plotting color for training data elements', metavar='')
     parser.add_argument('--plot_label_color',   dest='plot_label_color', type=str, help='Plotting color for training label elements', metavar='')
@@ -307,9 +307,10 @@ def load_config(config_fn: str,
     m = overwrite_defaults(m, args, 'num_proc')
     m = overwrite_defaults(m, args, 'sim_dir')
     m = overwrite_defaults(m, args, 'fmt_dir')
-    m = overwrite_defaults(m, args, 'net_dir')
+    m = overwrite_defaults(m, args, 'lrn_dir')
+    m = overwrite_defaults(m, args, 'prd_dir')
     m = overwrite_defaults(m, args, 'plt_dir')
-    m = overwrite_defaults(m, args, 'pred_dir')
+    m = overwrite_defaults(m, args, 'log_dir')
     m = overwrite_defaults(m, args, 'model_type')
     m = overwrite_defaults(m, args, 'model_variant')
     m = overwrite_defaults(m, args, 'num_char')
@@ -352,13 +353,23 @@ def load_config(config_fn: str,
     else:
         m.args['step'] = [ m.args['step'] ]
 
-
+    # add unique ID
+    m.args['job_id'] = generate_random_hex_string(16)
+    
     # print header?
     if m.args['verbose']:
         print( phyddle_hdr('title') )
 
     # return new args
     return m.args
+
+
+def generate_random_hex_string(length):
+    hex_chars = '0123456789abcdef'
+    random_indices = np.random.randint(0, len(hex_chars), size=length)
+    hex_string = ''.join(hex_chars[i] for i in random_indices)
+    return hex_string
+
 
 def check_args(args):
 

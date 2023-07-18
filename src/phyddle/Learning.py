@@ -63,7 +63,7 @@ class Learner:
         #self.predict_idx       = args['predict_idx']
         self.fmt_dir           = args['fmt_dir']
         self.plt_dir           = args['plt_dir']
-        self.net_dir           = args['net_dir']
+        self.net_dir           = args['lrn_dir']
         self.batch_size        = args['batch_size']
         self.num_epochs        = args['num_epochs']    
         if 'num_test' in args and 'num_validation' in args:

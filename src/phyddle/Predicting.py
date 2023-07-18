@@ -46,9 +46,9 @@ class Predictor:
         self.args              = args
         self.proj              = args['proj']
         self.verbose           = args['verbose']
-        self.net_dir           = args['net_dir']
-        self.pred_dir          = args['pred_dir']
-        self.pred_prefix       = args['pred_prefix']
+        self.net_dir           = args['lrn_dir']
+        self.pred_dir          = args['prd_dir']
+        self.pred_prefix       = args['prd_prefix']
         #self.num_char_row      = args['num_char']
         self.batch_size        = args['batch_size']
         self.num_epochs        = args['num_epochs']
