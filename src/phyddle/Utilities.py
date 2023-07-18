@@ -11,19 +11,20 @@ License:   MIT
 
 # standard packages
 import argparse
-import importlib
-import re
-import os
-import sys
 import copy
-from typing import Optional, List
+import importlib
+import os
+import pkg_resources
+import re
+import sys
+from datetime import datetime
 from itertools import chain, combinations
+from typing import Optional, List
 
 # external packages
 import pandas as pd
 import numpy as np
 import dendropy as dp
-
 
 # Precision settings
 NUM_DIGITS = 10
@@ -1128,3 +1129,87 @@ def phyddle_info(step, proj, in_dir, out_dir, style=1, fg=34, bg=40):
 #-----------------------------------------------------------------------------------------------------------------#
 
 
+
+
+
+# cat .git/HEAD
+# ref: refs/heads/development
+# cat .git/refs/heads/development
+# ef56245e012ff547c803e8a0308e6bff2718762c
+
+class Logger:
+
+    def __init__(self, args):
+        
+        # collect info from args        
+        self.args        = args
+        self.arg_str     = self.make_arg_str()
+        self.job_id      = self.args['job_id']
+        self.log_dir     = self.args['log_dir']
+        self.proj        = self.args['proj']
+
+        # collect other info and set constants
+        self.pkg_name    = 'phyddle'
+        self.version     = pkg_resources.get_distribution(self.pkg_name).version
+        self.commit      = '(to be done)'
+        self.command     = ' '.join(sys.argv)
+        self.date_obj    = datetime.now()
+        self.date_str    = self.date_obj.strftime("%y%m%d_%H%M%S")
+        self.max_lines   = 1e5
+
+        # filesystem
+        self.base_fn     = f'{self.pkg_name}_{self.version}_{self.date_str}_{self.job_id}'
+        self.base_dir    = f'{self.log_dir}/{self.proj}'
+        self.base_fp     = f'{self.base_dir}/{self.base_fn}' 
+        self.fn_dict    = {
+            'run' : f'{self.base_fp}.run.log',
+            'sim' : f'{self.base_fp}.sim.log',
+            'fmt' : f'{self.base_fp}.fmt.log',
+            'lrn' : f'{self.base_fp}.lrn.log',
+            'prd' : f'{self.base_fp}.prd.log',
+            'plt' : f'{self.base_fp}.plt.log'
+        }
+
+        self.save_run_log()
+        
+        return
+
+    def make_arg_str(self):
+        ignore_keys = ['job_id']
+        s = ''
+        for k,v in self.args.items():
+            if k not in ignore_keys:
+                s += f'{k} = {v}\n'
+        return s
+
+    def save_log(self, step):
+
+        if step == 'run':
+            self.save_run_log()
+        return
+
+    def save_run_log(self):
+
+        os.makedirs(self.base_dir, exist_ok=True)
+        s = self.make_run_log()
+        fn = self.fn_dict['run']
+        f = open(fn, 'w')
+        f.write(s)
+        f.close()
+
+        return
+    
+    def make_run_log(self):
+        s = ''
+        s += f'job_id = {self.job_id}\n'
+        s += f'version = {self.version}\n'
+        s +=  'commit = TBD\n'
+        s += f'date = {self.date_str}\n'
+        s += f'command = {self.command}\n'
+        s += self.make_arg_str()
+        return s
+    
+    def write_log(self, step, msg):
+        fn = self.fn_dict[step]
+        with open(fn, 'a') as f:
+            print(msg, file=f)

@@ -17,7 +17,7 @@ import os
 import re
 import shutil
 import subprocess
-import time
+#import time
 
 # external imports
 import numpy as np
@@ -65,6 +65,7 @@ class Simulator:
         self.set_args(args)
         #self.sim_command  = 'echo \"phyddle.Simulator.sim_command undefined in derived class!\"' # do nothing
         self.model = mdl
+        self.logger = Utilities.Logger(args)
         
         return
 
@@ -190,6 +191,7 @@ class CommandSimulator(Simulator):
                 Utilities.write_to_file(cmd_out, cmd_log_fn)
                 valid = True
             except subprocess.CalledProcessError:
+                self.logger.write_log('sim', f'simulation {idx} failed to generate a valid dataset')
                 num_attempt -= 1
                 valid = False
                 #print(f'error for rep_idx={idx}')

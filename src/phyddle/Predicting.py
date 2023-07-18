@@ -22,6 +22,7 @@ import tensorflow as tf
 
 # phyddle imports
 from phyddle import Utilities
+from phyddle import Logging
 #from Formatting import encode_phy_tensor
 
 #-----------------------------------------------------------------------------------------------------------------#
@@ -40,6 +41,7 @@ class Predictor:
     def __init__(self, args):
         self.set_args(args)
         self.prepare_files()
+        self.logger = Logging.Logger(args)
         return
     
     def set_args(self, args):

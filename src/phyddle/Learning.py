@@ -43,6 +43,7 @@ class Learner:
     def __init__(self, args):
         self.set_args(args)
         self.prepare_files()
+        self.logger = Utilities.Logger(args)
         return
     
     def set_args(self, args):
@@ -79,6 +80,7 @@ class Learner:
         self.optimizer         = args['optimizer']
         self.metrics           = args['metrics']
         self.kernel_init       = 'glorot_uniform'
+        self.cpi_asymmetric    = True
 
         self.num_tree_row = Utilities.get_num_tree_row(self.tree_type, self.tree_encode_type)
         self.num_char_row = Utilities.get_num_char_row(self.char_encode_type, self.num_char, self.num_states)
@@ -399,7 +401,7 @@ class CnnLearner(Learner):
 
         # drop 0th column containing point estimate predictions for calibration dataset
         norm_calib_pred_quantiles         = self.normalized_calib_preds[1:,:,:]
-        self.cpi_adjustments              = self.get_CQR_constant(norm_calib_pred_quantiles, self.norm_calib_labels, inner_quantile=self.cpi_coverage)
+        self.cpi_adjustments              = self.get_CQR_constant(norm_calib_pred_quantiles, self.norm_calib_labels, inner_quantile=self.cpi_coverage, asymmetric=self.cpi_asymmetric)
         self.cpi_adjustments              = np.array( self.cpi_adjustments ).reshape((2,-1))
 
 
@@ -525,13 +527,13 @@ class CnnLearner(Learner):
     def compute_conformity_scores(self, x, y, q_lower, q_upper):
         return np.max( q_lower(x)-y, y-q_upper(x) )
 
-    def get_CQR_constant(self, preds, true, inner_quantile=0.95, symmetric = True):
+    def get_CQR_constant(self, preds, true, inner_quantile=0.95, asymmetric = True):
         #preds axis 0 is the lower and upper quants, axis 1 is the replicates, and axis 2 is the params
         # compute non-comformity scores
         Q = np.empty((2, preds.shape[2]))
         
         for i in range(preds.shape[2]):
-            if symmetric:
+            if not asymmetric:
                 # Symmetric non-comformity score
                 s = np.amax(np.array((preds[0][:,i] - true[:,i], true[:,i] - preds[1][:,i])), axis=0)
                 # get adjustment constant: 1 - alpha/2's quintile of non-comformity scores

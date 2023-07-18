@@ -5,12 +5,11 @@
 ########################
 
 from phyddle import Utilities
-from phyddle import Logging
 
 my_args = Utilities.load_config('config', arg_overwrite=True)
 step = my_args['step']
 
-logger = Logging.Logger(my_args)
+logger = Utilities.Logger(my_args)
 logger.save_log('run')
 
 ################

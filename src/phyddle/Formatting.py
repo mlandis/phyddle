@@ -49,6 +49,7 @@ class Formatter:
 
     def __init__(self, args): #, mdl):
         self.set_args(args)
+        self.logger = Utilities.Logger(args)
         #self.model = mdl
         return        
 
@@ -403,12 +404,18 @@ class Formatter:
         info_fn    = tmp_fn + '.info.csv'
         
 
+        err_msg = None
         if not os.path.exists(dat_nex_fn):
-            print(f'Formatter.encode_one(): {dat_nex_fn} does not exist')
-            return
+            err_msg = f'Formatter.encode_one(): {dat_nex_fn} does not exist'
+            print(err_msg)
+            self.logger.write_log('fmt', err_msg)
         if not os.path.exists(tre_fn):
-            print(f'Formatter.encode_one(): {tre_fn} does not exist')
+            err_msg = f'Formatter.encode_one(): {tre_fn} does not exist'
+            print(err_msg)
+            self.logger.write_log('fmt', err_msg)
+        if err_msg is not None:
             return
+        
         # state space
         #vecstr2int = self.model.states.vecstr2int #{ v:i for i,v in enumerate(int2vecstr) }
 
