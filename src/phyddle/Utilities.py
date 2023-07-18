@@ -15,6 +15,7 @@ import copy
 import importlib
 import os
 import pkg_resources
+import platform
 import re
 import sys
 from datetime import datetime
@@ -1179,7 +1180,7 @@ class Logger:
         s = ''
         for k,v in self.args.items():
             if k not in ignore_keys:
-                s += f'{k} = {v}\n'
+                s += f'{k} : {v}\n'
         return s
 
     def save_log(self, step):
@@ -1190,17 +1191,21 @@ class Logger:
 
     def save_run_log(self):
 
+        fn    = self.fn_dict['run']
+        s_sys = self.make_system_log()
+        s_run = self.make_phyddle_log()
+        
         os.makedirs(self.base_dir, exist_ok=True)
-        s = self.make_run_log()
-        fn = self.fn_dict['run']
+
         f = open(fn, 'w')
-        f.write(s)
+        f.write(s_run + '\n')
+        f.write(s_sys + '\n')
         f.close()
 
         return
     
-    def make_run_log(self):
-        s = ''
+    def make_phyddle_log(self):
+        s = '# PHYDDLE SETTINGS\n'
         s += f'job_id = {self.job_id}\n'
         s += f'version = {self.version}\n'
         s +=  'commit = TBD\n'
@@ -1209,7 +1214,28 @@ class Logger:
         s += self.make_arg_str()
         return s
     
-    def write_log(self, step, msg):
-        fn = self.fn_dict[step]
-        with open(fn, 'a') as f:
-            print(msg, file=f)
+    def make_system_log(self):
+
+        # make dict of installed, imported packages
+        d = {}
+        installed_packages = { d.key for d in pkg_resources.working_set }
+        for name, mod in sorted(sys.modules.items()):
+            if name in installed_packages:
+                if hasattr(mod, '__version__'):
+                    d[name] = mod.__version__
+                else:
+                    try:
+                        d[name] = pkg_resources.get_distribution(name).version
+                    except Exception:
+                        pass
+
+        # convert into string
+        s = '# SYSTEM SETTINGS\n'
+        s += f'operating system = {platform.platform()}\n'
+        s += f'machine architecture = {platform.machine()}\n'
+        s += f'Python version = {platform.python_version()}\n'
+        s +=  'Python packages:\n'
+        for k,v in d.items():
+            s += f'  {k} = {v}\n'
+        
+        return s
