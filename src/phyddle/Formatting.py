@@ -97,70 +97,23 @@ class Formatter:
 
     def run(self):
 
-        if self.verbose:
-            print( Utilities.phyddle_info('fmt', self.proj, [self.sim_dir], self.fmt_dir) )
+        if self.verbose: print(Utilities.phyddle_info('fmt', self.proj, [self.sim_dir], self.fmt_dir))
 
         # new dir
         os.makedirs(self.out_dir, exist_ok=True)
 
         # build individual CDVS/CBLVS encodings
-        print('... encoding tensors ...')
+        if self.verbose: print(Utilities.phyddle_str('▪ encoding raw data as tensors ...'))
         self.encode_all()
 
         # actually fill and write full tensors
-        print('... writing tensors ...')
+        if self.verbose: print(Utilities.phyddle_str('▪ writing tensors ...'))
         if self.tensor_format == 'csv':
             self.write_tensor_csv()
         elif self.tensor_format == 'hdf5':
             self.write_tensor_hdf5()
 
-    # def run2(self):
-        
-    #     if self.verbose:
-    #         print( Utilities.phyddle_info('fmt', self.proj, [self.sim_dir], self.fmt_dir) )
-        
-    #     # new dir
-    #     os.makedirs(self.out_dir, exist_ok=True)
-
-    #     self.encode_all2()
-
-    # def encode_all2(self):
-
-    #     rep_idx = self.rep_idx
-    #     batch_size = self.tensor_part_size
-    #     num_batches = int(np.ceil(len(rep_idx)/batch_size))
-
-    #     for i in range(num_batches):
-        
-    #         # get range of rep_idx in batch
-    #         batch_start_idx = i * batch_size
-    #         batch_end_idx = batch_start_idx + batch_size
-    #         batch_rep_idx = self.rep_idx[batch_start_idx:batch_end_idx]
-
-    #         # visit each replicate, encode it, and return result
-    #         if self.use_parallel:
-    #             res = Parallel(n_jobs=self.num_proc)(delayed(self.encode_one)(tmp_fn=f'{self.in_dir}/sim.{idx}', idx=idx) for idx in tqdm(batch_rep_idx))
-    #         else:
-    #             res = [ self.encode_one(tmp_fn=f'{self.in_dir}/sim.{idx}', idx=idx) for idx in tqdm(batch_rep_idx) ]
-
-    #         # prepare phy_tensors
-    #         self.phy_tensors = {}
-    #         for size in self.tree_width_cats:
-    #             self.phy_tensors[size] = {}
-
-    #         # save all CBLVS/CDVS tensors into phy_tensors
-    #         for i in range(len(res)):
-    #             if res[i] is not None:
-    #                 tensor_size = res[i].shape[1]
-    #                 self.phy_tensors[tensor_size][i] = res[i]
-
-    #         # encode each batch of replicates as tensor part file            
-
-    #     self.summ_stat_names = self.get_summ_stat_names()
-    #     self.label_names = self.get_label_names()
-    #     self.num_summ_stat = len(self.summ_stat_names)
-    #     self.num_labels = len(self.label_names)
-    #     return
+        if self.verbose: print(Utilities.phyddle_str('... done!'))
 
     
     def make_settings_str(self, idx, tree_width):

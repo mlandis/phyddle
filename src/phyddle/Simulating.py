@@ -101,17 +101,20 @@ class Simulator:
 
     def run(self):
 
-        if self.verbose:
-            print( Utilities.phyddle_info('sim', self.proj, None, self.sim_dir) )
+        if self.verbose: print( Utilities.phyddle_info('sim', self.proj, None, self.sim_dir) )
 
         # prepare workspace
         os.makedirs( self.sim_dir + '/' + self.proj, exist_ok=True )
         # dispatch jobs
+
+        if self.verbose: print(Utilities.phyddle_str('▪ simulating raw data ...'))
+        
         if self.use_parallel:
             res = Parallel(n_jobs=self.num_proc)(delayed(self.sim_one)(idx) for idx in tqdm(self.rep_idx))
         else:
             res = [ self.sim_one(idx) for idx in tqdm(self.rep_idx) ]
 
+        if self.verbose: print(Utilities.phyddle_str('... done!'))
         return res
 
     # main simulation function (looped)

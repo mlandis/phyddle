@@ -127,14 +127,25 @@ class Learner:
         return
 
     def run(self):
-        if self.verbose:
-            print( Utilities.phyddle_info('lrn', self.proj, [self.fmt_dir], self.net_dir) )
+        
+        if self.verbose: print(Utilities.phyddle_info('lrn', self.proj, [self.fmt_dir], self.net_dir))
 
+        if self.verbose: print(Utilities.phyddle_str('▪ loading input ...'))
         self.load_input()
+       
+        if self.verbose: print(Utilities.phyddle_str('▪ building network ...'))
         self.build_network()
+
+        if self.verbose: print(Utilities.phyddle_str('▪ training network ...'))
         self.train()
+
+        if self.verbose: print(Utilities.phyddle_str('▪ processing results ...'))
         self.make_results()
+
+        if self.verbose: print(Utilities.phyddle_str('▪ saving results ...'))
         self.save_results()
+
+        if self.verbose: print(Utilities.phyddle_str('▪ done!'))
     
     def load_input(self):
         raise NotImplementedError

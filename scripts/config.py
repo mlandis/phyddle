@@ -89,6 +89,7 @@ args = {
     'prop_validation'   : 0.05,             # proportion of sims in validation dataset
     'prop_calibration'  : 0.20,             # proportion of sims in CPI calibration dataset 
     'cpi_coverage'      : 0.95,             # coverage level for CPIs
+    'cpi_asymmetric'    : True,             # upper/lower (True) or symmetric (False) CPI adjustments
     'batch_size'        : 128,              # number of samples in each training batch
     'loss'              : 'mse',            # loss function for learning
     'optimizer'         : 'adam',           # optimizer for network weight/bias parameters

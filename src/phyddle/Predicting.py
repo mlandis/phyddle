@@ -100,11 +100,16 @@ class Predictor:
         return
 
     def run(self):
-        if self.verbose:
-            print( Utilities.phyddle_info('prd', self.proj, [self.pred_dir, self.net_dir], self.pred_dir) )
+        if self.verbose: print(Utilities.phyddle_info('prd', self.proj, [self.pred_dir, self.net_dir], self.pred_dir))
         os.makedirs(self.predict_dir, exist_ok=True)
+
+        if self.verbose: print(Utilities.phyddle_str('▪ loading input ...'))
         self.load_input()
+
+        if self.verbose: print(Utilities.phyddle_str('▪ making prediction ...'))
         self.make_results()
+
+        if self.verbose: print(Utilities.phyddle_str('... done!'))
         
     def load_input(self):
 
