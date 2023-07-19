@@ -9,6 +9,7 @@ The complete commit history for phyddle is located here: https://github.com/mlan
 * Pipeline script now prints pipeline steps
 * Better handling of FileNotFoundError related to Predicting step
 * Tested against Apple M1. Not an easy install, because unsupported by Tensorflow. Thanks Albert and Sean!
+* Pipeline steps now generate logs in ``workspace/log/<project_name>`` to track phyddle is used during a project analysis
 
 
 **phyddle v0.0.4** -- 23.07.09
