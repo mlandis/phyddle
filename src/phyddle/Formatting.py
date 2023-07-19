@@ -82,6 +82,7 @@ class Formatter:
         self.end_idx           = args['end_idx']
         self.use_parallel      = args['use_parallel']
         self.num_proc          = args['num_proc']
+        self.tensor_part_size  = 500 # args['num_records_per_tensor_part']
         self.save_phyenc_csv   = args['save_phyenc_csv']
                     
         self.in_dir        = f'{self.sim_dir}/{self.proj}'
@@ -90,21 +91,6 @@ class Formatter:
 
         self.num_tree_row = Utilities.get_num_tree_row(self.tree_type, self.tree_encode_type)
         self.num_char_row = Utilities.get_num_char_row(self.char_encode_type, self.num_char, self.num_states)
-        # if self.tree_type == 'serial':
-        #     self.num_tree_row = 2
-        # elif self.tree_type == 'extant':
-        #     self.num_tree_row = 1
-
-        # if self.tree_encode_type == 'height_only':
-        #     self.num_tree_row += 0
-        # elif self.tree_encode_type == 'height_brlen':
-        #     self.num_tree_row += 2
-
-        # if self.state_encode_type == 'integer':
-        #     self.num_char_row = self.num_char
-        # elif self.state_encode_type == 'one_hot':
-        #     self.num_char_row = self.num_char * self.num_states
-
         self.num_data_row = self.num_tree_row + self.num_char_row
 
         return
@@ -118,13 +104,63 @@ class Formatter:
         os.makedirs(self.out_dir, exist_ok=True)
 
         # build individual CDVS/CBLVS encodings
+        print('... encoding tensors ...')
         self.encode_all()
 
         # actually fill and write full tensors
+        print('... writing tensors ...')
         if self.tensor_format == 'csv':
             self.write_tensor_csv()
         elif self.tensor_format == 'hdf5':
             self.write_tensor_hdf5()
+
+    # def run2(self):
+        
+    #     if self.verbose:
+    #         print( Utilities.phyddle_info('fmt', self.proj, [self.sim_dir], self.fmt_dir) )
+        
+    #     # new dir
+    #     os.makedirs(self.out_dir, exist_ok=True)
+
+    #     self.encode_all2()
+
+    # def encode_all2(self):
+
+    #     rep_idx = self.rep_idx
+    #     batch_size = self.tensor_part_size
+    #     num_batches = int(np.ceil(len(rep_idx)/batch_size))
+
+    #     for i in range(num_batches):
+        
+    #         # get range of rep_idx in batch
+    #         batch_start_idx = i * batch_size
+    #         batch_end_idx = batch_start_idx + batch_size
+    #         batch_rep_idx = self.rep_idx[batch_start_idx:batch_end_idx]
+
+    #         # visit each replicate, encode it, and return result
+    #         if self.use_parallel:
+    #             res = Parallel(n_jobs=self.num_proc)(delayed(self.encode_one)(tmp_fn=f'{self.in_dir}/sim.{idx}', idx=idx) for idx in tqdm(batch_rep_idx))
+    #         else:
+    #             res = [ self.encode_one(tmp_fn=f'{self.in_dir}/sim.{idx}', idx=idx) for idx in tqdm(batch_rep_idx) ]
+
+    #         # prepare phy_tensors
+    #         self.phy_tensors = {}
+    #         for size in self.tree_width_cats:
+    #             self.phy_tensors[size] = {}
+
+    #         # save all CBLVS/CDVS tensors into phy_tensors
+    #         for i in range(len(res)):
+    #             if res[i] is not None:
+    #                 tensor_size = res[i].shape[1]
+    #                 self.phy_tensors[tensor_size][i] = res[i]
+
+    #         # encode each batch of replicates as tensor part file            
+
+    #     self.summ_stat_names = self.get_summ_stat_names()
+    #     self.label_names = self.get_label_names()
+    #     self.num_summ_stat = len(self.summ_stat_names)
+    #     self.num_labels = len(self.label_names)
+    #     return
 
     
     def make_settings_str(self, idx, tree_width):
@@ -179,6 +215,23 @@ class Formatter:
         ret = df.columns.to_list()
         return ret
 
+
+    def load_one_sim(self, idx, tree_width):
+        
+        #return None #(0,0,0)
+    
+        fname_base  = f'{self.in_dir}/sim.{idx}'
+        fname_param = fname_base + '.param_row.csv'
+        fname_stat  = fname_base + '.summ_stat.csv'
+        x1 = self.phy_tensors[tree_width][idx].flatten()
+        #dat_data[hdf5_idx,:] = x1 #phy_tensor.flatten()
+        x2 = np.loadtxt(fname_stat, delimiter=',', skiprows=1)
+        #dat_stat[hdf5_idx,:] = x2 #np.loadtxt(fname_stat, delimiter=',', skiprows=1)
+        x3 = np.loadtxt(fname_param, delimiter=',', skiprows=1)
+        #dat_labels[hdf5_idx,:] = x3 #np.loadtxt(fname_param, delimiter=',', skiprows=1)
+        #x1,x2,x3=0,0,0
+        return (x1,x2,x3)
+
     def write_tensor_hdf5(self):
         
         # get stat/label name info
@@ -211,41 +264,16 @@ class Formatter:
             dat_stat = hdf5_file.create_dataset('summ_stat', (num_samples, self.num_summ_stat), dtype='f', compression='gzip')
             dat_labels = hdf5_file.create_dataset('labels', (num_samples, self.num_labels), dtype='f', compression='gzip')
 
-            # store all numerical data into hdf5
-            for j,(idx,phy_tensor) in enumerate(self.phy_tensors[tree_width].items()):
-                
-                # can probably return phytensor and summstat in res (returned)
-                # can also possibly return phylotensor pre-flattened?
-                #if j % 1000 == 0:
-                #    print(j)
-                fname_base  = f'{self.in_dir}/sim.{idx}'
-                fname_param = fname_base + '.param_row.csv'
-                fname_stat  = fname_base + '.summ_stat.csv'
-
-                #t1 = time.time()
-                x1 = phy_tensor.flatten() 
-                #t2 = time.time()
-                dat_data[j,:] = x1 #phy_tensor.flatten()
-                #t3 = time.time()
-                x2 = np.loadtxt(fname_stat, delimiter=',', skiprows=1)
-                #t4 = time.time()
-                dat_stat[j,:] = x2 #np.loadtxt(fname_stat, delimiter=',', skiprows=1)
-                #t5 = time.time()
-                x3 = np.loadtxt(fname_param, delimiter=',', skiprows=1)
-                #t6 = time.time()
-                dat_labels[j,:] = x3 #np.loadtxt(fname_param, delimiter=',', skiprows=1)
-                #t7 = time.time()
-                #print(f'times  {t2-t1}   {t3-t2}   {t4-t3}  {t5-t4}  {t6-t5}  {t7-t6}')
-
-
-            # MJL: I think we'll want to use Parallel to process chunks of ~1k
-            # and then periodically write that chunk to HDF5. h5py may require
-            # mpi4py to support parallel writing, which might limit portability
+            # the replicates for this tree width
+            _rep_idx = list(self.phy_tensors[tree_width].keys())
             
-            # if self.use_parallel:
-            #     res = Parallel(n_jobs=self.num_proc)(delayed(self.process_one_param_hdf5)(idx=idx) for idx in tqdm(self.rep_idx))
-            # else:
-            #     res = [ self.encode_one(tmp_fn=f'{self.in_dir}/sim.{idx}', idx=idx) for idx in tqdm(self.rep_idx) ]
+            # load all the info
+            res = [ self.load_one_sim(idx=idx, tree_width=tree_width) for idx in tqdm(_rep_idx) ]
+            
+            # store all numerical data into hdf5
+            dat_data[:,:] = np.vstack( [ x[0] for x in res ] )
+            dat_stat[:,:] = np.vstack( [ x[1] for x in res ] )
+            dat_labels[:,:] = np.vstack( [ x[2] for x in res ] )
 
             # read in summ_stats and labels (_all_ params) dataframes
             label_names_str = [ s.decode('UTF-8') for s in dat_label_names[0,:] ]

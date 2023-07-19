@@ -259,7 +259,8 @@ def load_config(config_fn: str,
     parser.add_argument('--prop_test',          dest='prop_test', type=float, help='Proportion of data used as test examples (demonstrate trained network performance)', metavar='')
     parser.add_argument('--prop_validation',    dest='prop_validation', type=float, help='Proportion of data used as validation examples (diagnose network overtraining)', metavar='')
     parser.add_argument('--prop_calibration',   dest='prop_calibration', type=float, help='Proportion of data used as calibration examples (calibrate conformal prediction intervals)', metavar='')
-    parser.add_argument('--cpi_coverage',       dest='cpi_coverage', type=float, help='Expected coverage percent for calibrated prediction intervals', metavar='')
+    parser.add_argument('--cpi_coverage',       dest='cpi_coverage', type=float, help='Expected coverage percent for calibrated prediction intervals (CPIs)', metavar='')
+    parser.add_argument('--cpi_asymmetric',     dest='cpi_asymmetric', type=bool, help='Use asymmetric (True) or symmetric (False) adjustments for CPIs?', metavar='')
     parser.add_argument('--loss',               dest='loss', type=str, help='Loss function used as optimization criterion', metavar='')
     parser.add_argument('--optimizer',          dest='optimizer', type=str, help='Method used for optimizing neural network', metavar='')
     # prediction settings
@@ -336,6 +337,7 @@ def load_config(config_fn: str,
     m = overwrite_defaults(m, args, 'prop_validation')
     m = overwrite_defaults(m, args, 'prop_calibration')
     m = overwrite_defaults(m, args, 'cpi_coverage')
+    m = overwrite_defaults(m, args, 'cpi_asymmetric')
     m = overwrite_defaults(m, args, 'loss')
     m = overwrite_defaults(m, args, 'optimizer')
     m = overwrite_defaults(m, args, 'pred_prefix')

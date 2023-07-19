@@ -40,6 +40,7 @@ def load(args):
 #-----------------------------------------------------------------------------------------------------------------#
 
 class Learner:
+    
     def __init__(self, args):
         self.set_args(args)
         self.prepare_files()
@@ -61,10 +62,12 @@ class Learner:
         self.tensor_format     = args['tensor_format']
         self.num_char          = args['num_char']
         self.num_states        = args['num_states']
-        #self.predict_idx       = args['predict_idx']
         self.fmt_dir           = args['fmt_dir']
         self.plt_dir           = args['plt_dir']
         self.net_dir           = args['lrn_dir']
+        self.learn_method      = args['learn_method']
+        if self.learn_method == 'model_test':
+            self.test_models = args['test_models']
         self.batch_size        = args['batch_size']
         self.num_epochs        = args['num_epochs']    
         if 'num_test' in args and 'num_validation' in args:
@@ -76,11 +79,11 @@ class Learner:
             self.prop_validation   = args['prop_validation']
             self.prop_calibration  = args['prop_calibration']
         self.cpi_coverage          = args['cpi_coverage']
+        self.cpi_asymmetric          = args['cpi_asymmetric']
         self.loss              = args['loss']
         self.optimizer         = args['optimizer']
         self.metrics           = args['metrics']
         self.kernel_init       = 'glorot_uniform'
-        self.cpi_asymmetric    = False # True
 
         self.num_tree_row = Utilities.get_num_tree_row(self.tree_type, self.tree_encode_type)
         self.num_char_row = Utilities.get_num_char_row(self.char_encode_type, self.num_char, self.num_states)
@@ -119,8 +122,8 @@ class Learner:
             self.input_data_fn  = f'{self.input_dir}/sim.nt{self.tree_width}.cdvs.data.csv'
         elif self.tree_type == 'serial':
             self.input_data_fn  = f'{self.input_dir}/sim.nt{self.tree_width}.cblvs.data.csv' 
-        self.input_hdf5_fn      = f'{self.input_dir}/sim.nt{self.tree_width}.hdf5' 
-        
+        self.input_hdf5_fn      = f'{self.input_dir}/sim.nt{self.tree_width}.hdf5'
+
         return
 
     def run(self):
@@ -145,7 +148,7 @@ class Learner:
         raise NotImplementedError
 
 #-----------------------------------------------------------------------------------------------------------------#
-  
+
 class CnnLearner(Learner):
     def __init__(self, args):
         super().__init__(args)
@@ -345,6 +348,7 @@ class CnnLearner(Learner):
 
         return [ w_point_est, w_lower_quantile, w_upper_quantile ]
 
+
     def train(self):
 
         lower_quantile_loss,upper_quantile_loss = self.get_pinball_loss_fns(self.cpi_coverage)
@@ -438,12 +442,6 @@ class CnnLearner(Learner):
         df_labels.columns = ['name', 'mean', 'sd']
         df_labels.to_csv(self.model_trn_lbl_norm_fn, index=False, sep=',')
 
-        # make param point estimate & quantile column names
-        #param_pred_names = [ '_'.join(x) for x in list(itertools.product(self.param_names, ['value', 'lower', 'upper'])) ]
-        #param_label_names = self.param_names
-        #print(param_pred_names)
-        #print(self.denormalized_train_preds.shape)
-
         # save train prediction scatter data
         df_train_pred_nocalib   = Utilities.make_param_VLU_mtx(self.denormalized_train_preds[0:max_idx,:], self.param_names )
         df_test_pred_nocalib    = Utilities.make_param_VLU_mtx(self.denormalized_test_preds[0:max_idx,:], self.param_names )
@@ -452,8 +450,6 @@ class CnnLearner(Learner):
         #df_train_pred   = pd.DataFrame( self.denormalized_train_preds[0:max_idx,:], columns=param_pred_names )
         #df_test_pred    = pd.DataFrame( self.denormalized_test_preds[0:max_idx,:], columns=param_pred_names )
 
-        #print(self.cqr_interval_adjustments)
-        #print(self.cqr_interval_adjustments.shape)
         df_train_labels  = pd.DataFrame( self.denormalized_train_labels[0:max_idx,:], columns=self.param_names )
         df_test_labels   = pd.DataFrame( self.denormalized_test_labels[0:max_idx,:], columns=self.param_names )
         df_cpi_intervals = pd.DataFrame( self.cpi_adjustments, columns=self.param_names )
@@ -468,11 +464,6 @@ class CnnLearner(Learner):
         
         #, self.denormalized_train_labels[0:1000,:] ], )
         json.dump(self.history_dict, open(self.model_hist_fn, 'w'))
-
-        # pickle CPI
-        # cpi_file_obj = open(self.model_cpi_func_fn, 'wb')
-        # dill.dump(self.cpi_func, cpi_file_obj)
-        # cpi_file_obj.close()
 
         return
 
@@ -533,22 +524,7 @@ class CnnLearner(Learner):
         Q = np.empty((2, preds.shape[2]))
         
         for i in range(preds.shape[2]):
-            if not asymmetric:
-                # Symmetric non-comformity score
-                s = np.amax(np.array((preds[0][:,i] - true[:,i], true[:,i] - preds[1][:,i])), axis=0)
-                # get adjustment constant: 1 - alpha/2's quintile of non-comformity scores
-                #Q = np.append(Q, np.quantile(s, inner_quantile * (1 + 1/preds.shape[1])))
-                symm_p = inner_quantile * (1 + 1/preds.shape[1])
-                if symm_p < 0.:
-                    self.logger.write_log('lrn', 'get_CQR_constant: symm_p >= 0.')
-                    symm_p = 0.
-                elif symm_p > 1.:
-                    self.logger.write_log('lrn', 'get_CQR_constant: symm_p <= 1.')
-                    symm_p = 1.                    
-                lower_q = np.quantile(s, symm_p)
-                upper_q = lower_q
-                #Q[:,i] = np.array([lower_q, upper_q])
-            else:
+            if asymmetric:
                 # Asymmetric non-comformity score
                 lower_s = np.array(true[:,i] - preds[0][:,i])
                 upper_s = np.array(true[:,i] - preds[1][:,i])
@@ -563,13 +539,55 @@ class CnnLearner(Learner):
                 lower_q = np.quantile(lower_s, lower_p)
                 upper_q = np.quantile(upper_s, upper_p)
                 # get (lower_q adjustment, upper_q adjustment)
+            else:
+# Symmetric non-comformity score
+                s = np.amax(np.array((preds[0][:,i] - true[:,i], true[:,i] - preds[1][:,i])), axis=0)
+                # get adjustment constant: 1 - alpha/2's quintile of non-comformity scores
+                #Q = np.append(Q, np.quantile(s, inner_quantile * (1 + 1/preds.shape[1])))
+                symm_p = inner_quantile * (1 + 1/preds.shape[1])
+                if symm_p < 0.:
+                    self.logger.write_log('lrn', 'get_CQR_constant: symm_p >= 0.')
+                    symm_p = 0.
+                elif symm_p > 1.:
+                    self.logger.write_log('lrn', 'get_CQR_constant: symm_p <= 1.')
+                    symm_p = 1.                    
+                lower_q = np.quantile(s, symm_p)
+                upper_q = lower_q
+                #Q[:,i] = np.array([lower_q, upper_q])
 
             Q[:,i] = np.array([lower_q, upper_q])
                                 
         return Q
 
 
-    # def build_network2(self):
+#-----------------------------------------------------------------------------------------------------------------#
+  
+class ParamEstLearner(CnnLearner):
+    def __init__(self, args):
+        super().__init__(args)
+        return
+    
+
+
+#-----------------------------------------------------------------------------------------------------------------#
+  
+class ModelTestLearner(CnnLearner):
+    def __init__(self, args):
+        super().__init__(args)
+        return
+    
+
+#-----------------------------------------------------------------------------------------------------------------#
+  
+class AncStateLearner(CnnLearner):
+    def __init__(self, args):
+        super().__init__(args)
+        return
+
+
+#-----------------------------------------------------------------------------------------------------------------#
+
+ # def build_network2(self):
     #     # Build CNN
     #     input_data_tensor = Input(shape = self.train_data_tensor.shape[1:3])
 
