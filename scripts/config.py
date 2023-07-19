@@ -24,7 +24,7 @@ args = {
     'plt_dir'        : '../workspace/plot',           # directory for plotted figures
     'prd_dir'        : '../workspace/predict',        # directory for predictions on new data
     'log_dir'        : '../workspace/log',            # directory for logging metadata
-    'pred_prefix'    : 'new.1',             # prefix for new dataset to predict
+    'prd_prefix'     : 'new.1',             # prefix for new dataset to predict
     
     #-------------------------------#
     # Multiprocessing               #
