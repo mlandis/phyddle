@@ -80,7 +80,7 @@ class Learner:
         self.optimizer         = args['optimizer']
         self.metrics           = args['metrics']
         self.kernel_init       = 'glorot_uniform'
-        self.cpi_asymmetric    = True
+        self.cpi_asymmetric    = False # True
 
         self.num_tree_row = Utilities.get_num_tree_row(self.tree_type, self.tree_encode_type)
         self.num_char_row = Utilities.get_num_char_row(self.char_encode_type, self.num_char, self.num_states)
