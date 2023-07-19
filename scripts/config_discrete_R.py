@@ -19,7 +19,7 @@ args = {
     'verbose'        : True,
     'sim_dir'        : '../workspace/raw_data',       # directory for simulated data
     'fmt_dir'        : '../workspace/tensor_data',    # directory for tensor-formatted data
-    'net_dir'        : '../workspace/network',        # directory for trained network
+    'lrn_dir'        : '../workspace/network',        # directory for trained network
     'plt_dir'        : '../workspace/plot',           # directory for plotted figures
     'prd_dir'        : '../workspace/predict',        # directory for predictions on new data
     'log_dir'        : '../workspace/log',            # directory for logging metadata
@@ -88,6 +88,7 @@ args = {
     'prop_validation'   : 0.05,             # proportion of sims in validation dataset
     'prop_calibration'  : 0.20,             # proportion of sims in CPI calibration dataset 
     'cpi_coverage'      : 0.95,             # coverage level for CPIs
+    'cpi_asymmetric'    : True,             # two-sided (True) or one-sided (False) CPI adjustments
     'batch_size'        : 128,              # number of samples in each training batch
     'loss'              : 'mse',            # loss function for learning
     'optimizer'         : 'adam',           # optimizer for network weight/bias parameters
