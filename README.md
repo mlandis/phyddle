@@ -34,17 +34,15 @@ git checkout development
 ./build.sh
 ```
 
-This also builds a local copy of the documentation, which can be viewed through the web browser.
-```shell
-open docs/build/html/index.html
-```
-
 To get the newest features added to phyddle, you will want to pull changes into the development branch, then rebuild the package
 ```shell
 git pull
 ./build.sh
 ```
 
+Project [documentation](docs/build/html/index.html) can be viewed from your local web browser, but will be hosted online once the repo is made public. The `build.sh` script will build a local copy of the documentation on your filesystem. The terminal command `open docs/build/html/index.html` will open the documentation on Mac OS X in your web browser.
+
+phyddle uses third-party simulators to generate training datasets. The standard workflow assumes that BEAST v2.7.3 with MASTER v7.0.0 (plugin) is installed on your machine and be executed from terminal with the command `beast`. The documentation explains how to configure BEAST and MASTER for use with phyddle.
 
 ## Quick start
 
@@ -82,8 +80,6 @@ Pipeline options are applied to all pipeline stages. See the full list of curren
 ```shell
 ./run_phyddle.sh --help
 ```
-
-Project [documentation](docs/build/html/index.html) can be viewed from your local web browser, but will be hosted online once the repo is made public. The terminal command `open docs/build/html/index.html` will open the documentation on Mac OS X.
 
 ## Features
 
