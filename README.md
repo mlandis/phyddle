@@ -42,6 +42,14 @@ git pull
 
 Project [documentation](docs/build/html/index.html) can be viewed from your local web browser, but will be hosted online once the repo is made public. The `build.sh` script will build a local copy of the documentation on your filesystem. The terminal command `open docs/build/html/index.html` will open the documentation on Mac OS X in your web browser.
 
+The full documentation explains that running phyddle requires a recent version of Python (3.10+) and recent versions of several Python packages. The packages can be installed using pip with this command.
+
+```shell
+python3 -m ensurepip --upgrade
+python3 -m pip install --upgrade pip
+python3 -m pip install argparse h5py joblib keras matplotlib numpy pandas Pillow pydot_ng pypdf scipy scikit-learn tensorflow tqdm
+```
+
 phyddle uses third-party simulators to generate training datasets. The standard workflow assumes that BEAST v2.7.3 with MASTER v7.0.0 (plugin) is installed on your machine and be executed from terminal with the command `beast`. The documentation explains how to configure BEAST and MASTER for use with phyddle.
 
 ## Quick start

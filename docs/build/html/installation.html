@@ -146,18 +146,28 @@ $ pip install .           # build local package
 <section id="simulator-requirements">
 <h2>Simulator requirements<a class="headerlink" href="#simulator-requirements" title="Permalink to this heading"></a></h2>
 <p>phyddle currently relies on the BEAST plugin MASTER for simulation. The operating system must be able to call BEAST from anywhere in the filesystem through the <code class="docutils literal notranslate"><span class="pre">beast</span></code> command. This can be done by adding the BEAST executable to be covered by the <code class="docutils literal notranslate"><span class="pre">$PATH</span></code> shell variable. Creating a symbolic link (shortcut) to the BEAST binary <code class="docutils literal notranslate"><span class="pre">beast</span></code> with <code class="docutils literal notranslate"><span class="pre">ln</span> <span class="pre">-s</span></code> in <code class="docutils literal notranslate"><span class="pre">~/.local/bin</span></code> is one an easy way to make <code class="docutils literal notranslate"><span class="pre">beast</span></code> globally accessible on Mac OS X.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ ls -lart /Users/mlandis/.local/bin/beast
-lrwxr-xr-x  1 mlandis  staff  35 Feb 14 10:32 /Users/mlandis/.local/bin/beast -&gt; /Applications/BEAST 2.7.3/bin/beast
-$  which beast
-/Users/mlandis/.local/bin/beast
-$ beast -version
-BEAST v2.7.3
----
-BEAST.base v2.7.3
-MASTER v7.0.0
-BEAST.app v2.7.3
----
-Java version 17.0.5
+<p>These instructions for Mac OS X install BEAST v2.7.3+ and MASTER v7.0.0+, then make the program accessible as a command through the terminal.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ # install BEAST
+  [ ... installation text ... ]
+$ cd /Applications/BEAST\ 2.7.3/bin              # enter directory for BEAST programs (binaries)
+$ ./packagemanager -add MASTER                   # install MASTER plugin for BEAST
+$ mkdir -p ~/.local/bin                          # directory is in PATH variable by default on Mac OS X
+$ cd ~/.local/bin                                # enter new directory
+$ ln -s /Applications/BEAST\ 2.7.3/bin/beast .   # create shortcut (symbolic link) to `beast` command
+    $ ls -lart ~/.local/bin/beast                    # verify symbolic link points (-&gt;) to correct command
+    lrwxr-xr-x  1 mlandis  staff  35 Feb 14 10:32 /Users/mlandis/.local/bin/beast -&gt; /Applications/BEAST 2.7.3/bin/beast
+$ cd ~                                           # return to home directory
+$ source ~/.zshrc                                # refresh profile (and PATH variable); maybe ~/.zprofile??
+    $ which beast                                    # verify beast can be called anywhere (e.g. from HOME)
+    /Users/mlandis/.local/bin/beast
+    $ beast -version
+    BEAST v2.7.3
+    ---
+    BEAST.base v2.7.3
+    MASTER v7.0.0
+    BEAST.app v2.7.3
+    ---
+    Java version 17.0.5
 </pre></div>
 </div>
 </section>

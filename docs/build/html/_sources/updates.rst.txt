@@ -7,9 +7,11 @@ The complete commit history for phyddle is located here: https://github.com/mlan
 **phyddle v0.0.5** -- (in progress)
 
 * Pipeline script now prints pipeline steps
+* Support asymmetric CPI calibration
 * Better handling of FileNotFoundError related to Predicting step
-* Tested against Apple M1. Not an easy install, because unsupported by Tensorflow. Thanks Albert and Sean!
+* Much faster Formatting step (>100x speedup)
 * Pipeline steps now generate logs in ``workspace/log/<project_name>`` to track phyddle is used during a project analysis
+* Tested against Apple M1. Not an easy install, because unsupported by Tensorflow. Thanks Albert and Sean!
 
 
 **phyddle v0.0.4** -- 23.07.09
