@@ -74,6 +74,7 @@ phyddle was last tested using with Mac OS X 11.6.4 (Intel CPU) using Python 3.11
 To install these packages:
 
 .. code-block::
+
     python3 -m ensurepip --upgrade
     python3 -m pip install --upgrade pip
     python3 -m pip install argparse h5py joblib keras matplotlib numpy pandas Pillow pydot_ng pypdf scipy scikit-learn tensorflow tqdm
