@@ -1079,7 +1079,7 @@ def denormalize(data, train_mean, train_sd):
 ######################
 
 def phyddle_str(s, style=1, fg=34, bg=40):
-    CSTART = f'\x1b[{style};{fg};{bg}m'
+    CSTART = f'\x1b[{style};{fg};m'
     CEND   = '\x1b[0m'
     x      = CSTART + s + CEND
     return x
