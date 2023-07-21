@@ -5,8 +5,8 @@ Formatting
 Defines classes and methods for the Formatting step, which converts raw data
 into tensor data that can be used by the Learning step.
 
-Authors:   Michael Landis, Ammon Thompson
-Copyright: (c) 2023, Michael Landis
+Authors:   Michael Landis and Ammon Thompson
+Copyright: (c) 2022-2023, Michael Landis and Ammon Thompson
 License:   MIT
 """
 

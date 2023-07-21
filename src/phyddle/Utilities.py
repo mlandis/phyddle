@@ -4,8 +4,8 @@ Utilities
 ===========
 Miscellaneous helper functions phyddle uses for pipeline steps.
 
-Authors:   Michael Landis, Ammon Thompson
-Copyright: (c) 2023, Michael Landis
+Authors:   Michael Landis and Ammon Thompson
+Copyright: (c) 2022-2023, Michael Landis and Ammon Thompson
 License:   MIT
 """
 
@@ -617,8 +617,6 @@ def convert_nexus_to_integer_array(dat_fn: str):
         FileNotFoundError: If the NEXUS file at `dat_fn` does not exist.
     """
     # read file
-    import os
-    #print(os.getcwd())
     f = open(dat_fn, 'r')
     lines = f.readlines()
     f.close()

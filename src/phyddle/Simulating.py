@@ -6,8 +6,8 @@ Defines classes and methods for the Simulating step, which generates large numbe
 of simulated datasets (in parallel, if desired) that are later formatted and used
 to train the neural network.
 
-Authors:   Michael Landis, Ammon Thompson
-Copyright: (c) 2023, Michael Landis
+Authors:   Michael Landis and Ammon Thompson
+Copyright: (c) 2022-2023, Michael Landis and Ammon Thompson
 License:   MIT
 """
 
