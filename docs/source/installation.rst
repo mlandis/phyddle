@@ -98,18 +98,18 @@ These instructions for Mac OS X install BEAST v2.7.3+ and MASTER v7.0.0+, then m
     $ mkdir -p ~/.local/bin                          # directory is in PATH variable by default on Mac OS X
     $ cd ~/.local/bin                                # enter new directory
     $ ln -s /Applications/BEAST\ 2.7.3/bin/beast .   # create shortcut (symbolic link) to `beast` command
-	$ ls -lart ~/.local/bin/beast                    # verify symbolic link points (->) to correct command
-	lrwxr-xr-x  1 mlandis  staff  35 Feb 14 10:32 /Users/mlandis/.local/bin/beast -> /Applications/BEAST 2.7.3/bin/beast
+    $ ls -lart ~/.local/bin/beast                    # verify symbolic link points (->) to correct command
+    lrwxr-xr-x  1 mlandis  staff  35 Feb 14 10:32 /Users/mlandis/.local/bin/beast -> /Applications/BEAST 2.7.3/bin/beast
     $ cd ~                                           # return to home directory
     $ source ~/.zshrc                                # refresh profile (and PATH variable); maybe ~/.zprofile??
-	$ which beast                                    # verify beast can be called anywhere (e.g. from HOME)
-	/Users/mlandis/.local/bin/beast
-	$ beast -version
-	BEAST v2.7.3
-	---
-	BEAST.base v2.7.3
-	MASTER v7.0.0
-	BEAST.app v2.7.3
-	---
-	Java version 17.0.5
+    $ which beast                                    # verify beast can be called anywhere (e.g. from HOME)
+    /Users/mlandis/.local/bin/beast
+    $ beast -version
+    BEAST v2.7.3
+    ---
+    BEAST.base v2.7.3
+    MASTER v7.0.0
+    BEAST.app v2.7.3
+    ---
+    Java version 17.0.5
 
