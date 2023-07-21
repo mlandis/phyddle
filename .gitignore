@@ -4,6 +4,7 @@ workspace/tensor_data/*/*
 workspace/network/*/*
 workspace/predict/*/*
 workspace/plot/*/*
+workspace/log/*/*
 
 # ... except workspace `example` project
 !workspace/raw_data/example/*
@@ -11,6 +12,7 @@ workspace/plot/*/*
 !workspace/network/example/*
 !workspace/predict/example/*
 !workspace/plot/example/*
+!workspace/log/example/*
 
 # Ignore extras in tests
 tests/workspace/*
