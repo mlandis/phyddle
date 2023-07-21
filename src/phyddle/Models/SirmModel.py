@@ -5,8 +5,8 @@ SirmModel
 Defines a class for a Susceptible-Infectious-Recovered + Migration (SIRM) model.
 Dervies from phyddle.Model.BaseModel.
 
-Authors:   Michael Landis, Ammon Thompson
-Copyright: (c) 2023, Michael Landis
+Authors:   Michael Landis and Ammon Thompson
+Copyright: (c) 2022-2023, Michael Landis and Ammon Thompson
 License:   MIT
 """
 
@@ -15,8 +15,9 @@ import scipy as sp
 import numpy as np
 import pandas as pd
 
-from phyddle import Model
+from phyddle.Models import Model
 from phyddle.Utilities import States,Event
+
 
 model_type = 'SIRM'
 model_variants = {

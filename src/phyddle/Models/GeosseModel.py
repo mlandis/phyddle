@@ -5,8 +5,8 @@ GeosseModel
 Defines a class for a Geographic State-Dependent Speciation-Extinction (GeoSSE) model.
 Dervies from phyddle.Model.BaseModel.
 
-Authors:   Michael Landis, Ammon Thompson
-Copyright: (c) 2023, Michael Landis
+Authors:   Michael Landis and Ammon Thompson
+Copyright: (c) 2022-2023, Michael Landis and Ammon Thompson
 License:   MIT
 """
 
@@ -16,7 +16,7 @@ import numpy as np
 import scipy as sp
 import pandas as pd
 
-from phyddle import Model
+from phyddle.Models import Model
 from phyddle.Utilities import sort_binary_vectors,States,Event
 
 variant_registry = []
