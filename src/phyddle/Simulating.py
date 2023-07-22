@@ -61,7 +61,42 @@ def load(args, mdl=None):
 #-----------------------------------------------------------------------------------------------------------------#
 
 class Simulator:
+    """
+    A class representing a simulator.
+
+    Args:
+        args (dict): A dictionary containing the simulator arguments.
+        mdl (str): The model for simulation.
+
+    Attributes:
+        args (dict): The simulator arguments.
+        proj (str): The project name.
+        verbose (bool): A flag indicating the verbosity level.
+        sim_dir (str): The directory for simulation.
+        start_idx (int): The start index.
+        end_idx (int): The end index.
+        stop_time (int): The stop time.
+        num_proc (int): The number of processes.
+        use_parallel (bool): A flag indicating whether to use parallel processing.
+        sample_population (int): The sample population.
+        min_num_taxa (int): The minimum number of taxa.
+        max_num_taxa (int): The maximum number of taxa.
+        sim_logging (bool): A flag indicating whether to enable simulation logging.
+        rep_idx (list): A list of replicate indices.
+        save_params (bool): A flag indicating whether to save parameters.
+        model (str): The model for simulation.
+        logger (Utilities.Logger): An instance of the logger for logging.
+
+    """
     def __init__(self, args, mdl):
+        """
+        Initializes a new instance of the Simulator class.
+
+        Args:
+            args (dict): A dictionary containing the simulator arguments.
+            mdl (str): The model for simulation.
+
+        """
         self.set_args(args)
         #self.sim_command  = 'echo \"phyddle.Simulator.sim_command undefined in derived class!\"' # do nothing
         self.model = mdl
@@ -70,6 +105,13 @@ class Simulator:
         return
 
     def set_args(self, args):
+        """
+        Sets the simulator arguments.
+
+        Args:
+            args (dict): A dictionary containing the simulator arguments.
+
+        """
         # simulator arguments
         self.args              = args
         self.proj              = args['proj']
@@ -89,7 +131,17 @@ class Simulator:
         return
 
     def make_settings_str(self, idx, mtx_size):
+        """
+        Generates the settings string.
 
+        Args:
+            idx (int): The replicate index.
+            mtx_size (str): The taxon category.
+
+        Returns:
+            str: The generated settings string.
+
+        """
         s =  'setting,value\n'
         s += f'proj,{self.proj}\n'
         s += f'model_name,{self.model_type}\n'
@@ -100,7 +152,12 @@ class Simulator:
         return s
 
     def run(self):
+        """
+        This method runs the simulation process.
 
+        Returns:
+            list: The result of the simulation process.
+        """
         if self.verbose: print( Utilities.phyddle_info('sim', self.proj, None, self.sim_dir) )
 
         # prepare workspace
@@ -119,7 +176,15 @@ class Simulator:
 
     # main simulation function (looped)
     def sim_one(self, idx):
-        
+        """
+        This method runs a single simulation iteration.
+
+        Args:
+            idx (int): The index of the simulation iteration.
+
+        Returns:
+            None
+        """
         # improve numpy output style (move to Utilities??)
         NUM_DIGITS = 10
         np.set_printoptions(formatter={'float': lambda x: format(x, '8.6E')}, precision=NUM_DIGITS)
@@ -146,6 +211,15 @@ class Simulator:
         return
 
     def refresh_model(self, idx):
+        """
+        This method refreshes the simulation model for a given iteration.
+
+        Args:
+            idx (int): The index of the simulation iteration.
+
+        Returns:
+            None
+        """
         self.model.set_model(idx)
         self.start_state   = self.model.start_state
         self.start_sizes   = self.model.start_sizes
@@ -154,9 +228,35 @@ class Simulator:
         return
 
     def sim_one_custom(self, idx):
+        """
+        Simulates a custom operation for a specific index.
+
+        Parameters:
+        - idx: The index representing the specific operation to simulate.
+
+        Returns:
+        - The result of simulating the custom operation.
+
+        Raises:
+        - NotImplementedError: If the method is not implemented.
+
+        """
         return NotImplementedError
     
     def refresh_model_custom(self, idx):
+        """
+        Refreshes a custom model for a specific index.
+
+        Parameters:
+        - idx: The index representing the specific model to refresh.
+
+        Returns:
+        - The result of refreshing the custom model.
+
+        Raises:
+        - NotImplementedError: If the method is not implemented.
+
+        """
         return NotImplementedError    
 
 #-----------------------------------------------------------------------------------------------------------------#
@@ -166,16 +266,41 @@ class Simulator:
 ###################################
 
 class CommandSimulator(Simulator):
+    """
+    A class that represents a command simulator.
+
+    Args:
+        args (dict): A dictionary containing arguments.
+        mdl (Model): An instance of the Model class.
+
+    Attributes:
+        sim_command (str): The command to run for simulation.
+
+    """
     def __init__(self, args, mdl):
         super().__init__(args, mdl)
         return
     
     def set_args(self, args):
+        """
+        Sets the arguments for the simulator.
+
+        Args:
+            args (dict): A dictionary containing arguments.
+
+        """
         super().set_args(args)
         self.sim_command = args['sim_command']
         return
 
     def sim_one_custom(self, idx):
+        """
+        Runs a generic simulation job.
+
+        Args:
+            idx (int): The index of the simulation job.
+
+        """
 
         # get filesystem info for generic job
         out_path   = f'{self.sim_dir}/{self.proj}/sim'
@@ -202,6 +327,13 @@ class CommandSimulator(Simulator):
         return
     
     def refresh_model_custom(self, idx):
+        """
+        Refreshes the custom model with a specific index.
+
+        Args:
+            idx (int): The index of the custom model.
+
+        """
         return
 
 
@@ -213,18 +345,47 @@ class CommandSimulator(Simulator):
 
 class MasterSimulator(Simulator):
     def __init__(self, args, mdl):
+        """
+        Initializes a new instance of the MasterSimulator class.
+
+        Args:
+            args (list): A list of arguments for the simulator.
+            mdl: The model to be used in the simulation.
+
+        Returns:
+            None.
+        """
         # call base constructor
         super().__init__(args, mdl)
         self.save_params = True
         return
 
     def refresh_model_custom(self, idx):
+        """
+        Refreshes the custom model for the simulation.
+
+        Args:
+            idx (int): The index of the model to be refreshed.
+
+        Returns:
+            None.
+        """
         self.reaction_vars = self.make_reaction_vars()
         self.xml_str       = self.make_xml(idx)
         self.sim_command   = 'beast {sim_dir}/{proj}/sim.{idx}.xml'.format(sim_dir=self.sim_dir, proj=self.proj, idx=idx)
 
 
     def sim_one_custom(self, idx):
+        """
+        Simulates a custom scenario.
+        
+        Parameters:
+            self (object): The calling object.
+            idx (int): The index of the scenario.
+            
+        Returns:
+            None
+        """
         out_path   = self.sim_dir + '/' + self.proj + '/sim'
         tmp_fn     = out_path + '.' + str(idx)
 
@@ -271,6 +432,13 @@ class MasterSimulator(Simulator):
         return
     
     def make_reaction_vars(self):
+        """
+        Generate a dictionary of reaction variables and their corresponding counts.
+
+        Returns:
+            dict: A dictionary containing reaction variable names as keys and the number
+            of locations/substates associated with each variable as values.
+        """
         qty = {}
         # get list of all reaction variables
         for s in self.df_events.reaction:
@@ -298,7 +466,15 @@ class MasterSimulator(Simulator):
 
 
     def make_xml(self, idx):
+        """
+        Creates an XML specification string for a simulation.
 
+        Parameters:
+        - idx (int): The index of the simulation.
+
+        Returns:
+        - xml_spec_str (str): The XML specification string for the simulation.
+        """
         # file names
         newick_fn = '{sim_dir}/{proj}/sim.{idx}.tre'.format(sim_dir=self.sim_dir, proj=self.proj, idx=idx)
         nexus_fn  = '{sim_dir}/{proj}/sim.{idx}.phy.nex'.format(sim_dir=self.sim_dir, proj=self.proj, idx=idx)

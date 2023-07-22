@@ -1076,13 +1076,35 @@ def denormalize(data, train_mean, train_sd):
 # phyddle print info #
 ######################
 
-def phyddle_str(s, style=1, fg=34, bg=40):
+def phyddle_str(s, style=1, fg=34):
+    """
+    Apply styling to a string using ANSI escape sequences.
+    
+    Args:
+        s (str): The string to be styled.
+        style (int, optional): The style code for the text. Default is 1.
+        fg (int, optional): The color code for the foreground. Default is 34 (blue).
+    
+    Returns:
+        str: The styled string.
+    """
     CSTART = f'\x1b[{style};{fg};m'
     CEND   = '\x1b[0m'
     x      = CSTART + s + CEND
     return x
 
-def phyddle_hdr(s, style=1, fg=34, bg=40):
+def phyddle_hdr(s, style=1, fg=34):
+    """
+    Generate a header string for phyddle.
+    
+    Args:
+        s (str): The type of header to generate ('title' or a step symbol).
+        style (int, optional): The style code for the text. Default is 1.
+        fg (int, optional): The color code for the foreground. Default is 34 (blue).
+    
+    Returns:
+        str: The header string.
+    """
     version = 'v.0.0.5'.rjust(8, ' ')
     steps = { 'sim' : 'Simulating',
               'fmt' : 'Formatting',
@@ -1091,20 +1113,33 @@ def phyddle_hdr(s, style=1, fg=34, bg=40):
               'plt' : 'Plotting' }
 
     if s == 'title':
-        x  = phyddle_str( '┏━━━━━━━━━━━━━━━━━━━━━━┓', style, fg, bg ) + '\n'
-        x += phyddle_str(f'┃   phyddle {version}   ┃', style, fg, bg ) + '\n'
-        x += phyddle_str( '┣━━━━━━━━━━━━━━━━━━━━━━┫', style, fg, bg )
+        x  = phyddle_str( '┏━━━━━━━━━━━━━━━━━━━━━━┓', style, fg ) + '\n'
+        x += phyddle_str(f'┃   phyddle {version}   ┃', style, fg ) + '\n'
+        x += phyddle_str( '┣━━━━━━━━━━━━━━━━━━━━━━┫', style, fg )
     
     elif s in list(steps.keys()):
         step_name = steps[s] + '...'
         step_name = step_name.ljust(13, ' ')
-        x  = phyddle_str(  '┃                      ┃', style, fg, bg ) + '\n'
-        x += phyddle_str( f'┗━┳━▪ {step_name} ▪━━┛', style, fg, bg )
+        x  = phyddle_str(  '┃                      ┃', style, fg ) + '\n'
+        x += phyddle_str( f'┗━┳━▪ {step_name} ▪━━┛', style, fg )
 
     return x
 
 def phyddle_info(step, proj, in_dir, out_dir, style=1, fg=34, bg=40):
+    """
+    Generate the information string for phyddle.
     
+    Args:
+        step (str): The step symbol.
+        proj (str): The project name.
+        in_dir (list): A list of input directories.
+        out_dir (str): The output directory.
+        style (int, optional): The style code for the text. Default is 1.
+        fg (int, optional): The color code for the foreground. Default is 34 (blue).
+       
+    Returns:
+        str: The information string.
+    """
     # header
     run_info  = phyddle_hdr( step ) + '\n'
     
@@ -1141,7 +1176,11 @@ def phyddle_info(step, proj, in_dir, out_dir, style=1, fg=34, bg=40):
 class Logger:
 
     def __init__(self, args):
-        
+        """ 
+        :class:Logger is a class that manages logging functionality for a
+        project. It collects various information such as command arguments,
+        package versions, system settings, and saves them into log files.
+        """
         # collect info from args        
         self.args        = args
         self.arg_str     = self.make_arg_str()
@@ -1176,6 +1215,12 @@ class Logger:
         return
 
     def make_arg_str(self):
+        """
+        Creates a string representation of command arguments.
+
+        Returns:
+            str: String representation of command arguments.
+        """
         ignore_keys = ['job_id']
         s = ''
         for k,v in self.args.items():
@@ -1184,19 +1229,33 @@ class Logger:
         return s
 
     def save_log(self, step):
+        """
+        Saves log file for a specific step.
 
+        Args:
+            step (str): Step identifier.
+        """
         if step == 'run':
             self.save_run_log()
         return
 
     def write_log(self, step, msg):
+        """
+        Writes a log message to a file.
+
+        Args:
+            step (str): Step identifier.
+            msg (str): Log message.
+        """
         fn = self.fn_dict[step]
         with open('myfile.txt', 'a') as file:
             file.write( f'{msg}\n' )
         return
     
     def save_run_log(self):
-
+        """
+        Saves run log file.
+        """
         fn    = self.fn_dict['run']
         s_sys = self.make_system_log()
         s_run = self.make_phyddle_log()
@@ -1211,6 +1270,12 @@ class Logger:
         return
     
     def make_phyddle_log(self):
+        """
+        Creates a string representation of Phyddle settings.
+
+        Returns:
+            str: String representation of Phyddle settings.
+        """
         s = '# PHYDDLE SETTINGS\n'
         s += f'job_id = {self.job_id}\n'
         s += f'version = {self.version}\n'
@@ -1221,6 +1286,13 @@ class Logger:
         return s
     
     def make_system_log(self):
+        """
+        Creates a string representation of system settings.
+        Note: doesn't do perfect job of finding all custom packages
+
+        Returns:
+            str: String representation of system settings.
+        """
 
         # make dict of installed, imported packages
         d = {}

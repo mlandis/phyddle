@@ -29,6 +29,13 @@ from phyddle import Utilities
 #-----------------------------------------------------------------------------------------------------------------#
 
 def load(args):
+    """Load the learner based on the given arguments.
+
+    Args: args (dict): A dictionary containing the arguments.
+
+    Returns: CnnLearner: An instance of the CnnLearner class if the learn_method argument is set to 'param_est'. None: If the learn_method argument is set to any value other than 'param_est'. NotImplementedError: If the learn_method argument is set to 'model_test', as this method is not yet implemented.
+
+    """
     learn_method = args['learn_method']
     if learn_method == 'param_est':
         return CnnLearner(args)
@@ -40,14 +47,68 @@ def load(args):
 #-----------------------------------------------------------------------------------------------------------------#
 
 class Learner:
-    
+    """
+    This class represents a Learner object that is used for training and testing models.
+
+    Args:
+        args (dict): A dictionary containing various arguments and settings for the Learner.
+
+    Attributes:
+        args (dict): The provided arguments for the Learner.
+        num_test (int): The number of test samples.
+        num_validation (int): The number of validation samples.
+        prop_test (int): The proportion of test samples.
+        prop_test (int): The proportion of test samples.
+        proj (str): The project name.
+        verbose (bool): The verbosity setting.
+        tree_width (int): The width of the tree.
+        tree_type (str): The type of the tree.
+        tree_encode_type (str): The encoding type of the tree.
+        char_encode_type (str): The encoding type of the characters.
+        tensor_format (str): The format of the tensor.
+        num_char (int): The number of characters.
+        num_states (int): The number of states.
+        fmt_dir (str): The directory for the formatted input files.
+        plt_dir (str): The directory for the plots.
+        net_dir (str): The directory for the learned models.
+        learn_method (str): The learning method.
+        test_models (list): The list of test models.
+        batch_size (int): The batch size for training.
+        num_epochs (int): The number of training epochs.
+        num_calibration (int): The number of samples for calibration.
+        prop_test (int): The proportion of test samples.
+        prop_validation (int): The proportion of validation samples.
+        prop_calibration (int): The proportion of calibration samples.
+        cpi_coverage (float): The CPI coverage.
+        cpi_asymmetric (bool): The flag for asymmetric CPI.
+        loss (str): The loss function.
+        optimizer (str): The optimizer.
+        metrics (list): The list of metrics.
+        kernel_init (str): The kernel initializer.
+        num_tree_row (int): The number of rows for the tree.
+        num_char_row (int): The number of rows for the characters.
+        num_data_row (int): The total number of rows for the data.
+    """
+
     def __init__(self, args):
+        """
+        Initializes a new Learner object.
+
+        Args:
+            args (dict): A dictionary containing various arguments and settings for the Learner.
+        """
         self.set_args(args)
         self.prepare_files()
         self.logger = Utilities.Logger(args)
         return
     
     def set_args(self, args):
+        """
+        Sets the arguments for the Learner.
+
+        Args:
+            args (dict): A dictionary containing various arguments and settings for the Learner.
+        """
         self.args              = args
         self.num_test          = 0
         self.num_validation    = 0
@@ -93,6 +154,23 @@ class Learner:
     
     def prepare_files(self):
 
+        """Prepare files for the project.
+
+        This function prepares the necessary directories and filenames for the
+        project. It creates the main directories for input, plots, and network
+        files. It also creates new job directories within the plot and network
+        directories if they do not already exist.
+
+        The function then initializes various filenames based on the given
+        parameters. These filenames include the model prefix, model CSV file,
+        model save file, normalized training label and summary statistics files,
+        training history file, CPI adjustments file, and various prediction
+        and label files for training and testing data. It also initializes
+        filenames for input statistics, labels, and data files based on the
+        tree width and tree type.
+
+        Returns: None """
+
         # main directories
         self.input_dir   = self.fmt_dir + '/' + self.proj
         self.plot_dir    = self.plt_dir + '/' + self.proj
@@ -127,7 +205,18 @@ class Learner:
         return
 
     def run(self):
-        
+        """
+        Runs the entire phyddle process.
+
+        This function executes the following steps:
+        1. Prints information about the project and network directories if the verbose mode is enabled.
+        2. Loads the input data.
+        3. Builds the neural network.
+        4. Trains the network.
+        5. Processes the results.
+        6. Saves the results.
+        7. Prints "Done!" if the verbose mode is enabled.
+        """
         if self.verbose: print(Utilities.phyddle_info('lrn', self.proj, [self.fmt_dir], self.net_dir))
 
         if self.verbose: print(Utilities.phyddle_str('▪ loading input ...'))
@@ -148,26 +237,87 @@ class Learner:
         if self.verbose: print(Utilities.phyddle_str('▪ done!'))
     
     def load_input(self):
+        """
+        Loads the input data for the network.
+
+        Raises:
+            NotImplementedError: If the method is not implemented by the subclass.
+        """
         raise NotImplementedError
+
+
     def build_network(self):
+        """
+        Builds the network architecture.
+
+        Raises:
+            NotImplementedError: If the method is not implemented by the subclass.
+        """
         raise NotImplementedError
+
+
     def train(self):
+        """
+        Trains the network using the loaded input data.
+
+        Raises:
+            NotImplementedError: If the method is not implemented by the subclass.
+        """
         raise NotImplementedError
+
+
     def make_results(self):
+        """
+        Generates the results using the trained network.
+
+        Raises:
+            NotImplementedError: If the method is not implemented by the subclass.
+        """
         raise NotImplementedError
+
+
     def save_results(self):
+        """
+        Saves the generated results to a file or storage.
+
+        Raises:
+            NotImplementedError: If the method is not implemented by the subclass.
+        """
         raise NotImplementedError
 
 #-----------------------------------------------------------------------------------------------------------------#
 
 class CnnLearner(Learner):
+    """A class representing a CNN learner.
+
+    Args:
+        args (any): The arguments to initialize the CNN learner.
+
+    Attributes:
+        args (any): The arguments passed to the constructor.
+
+    Inherits:
+        Learner: Inherits from the Learner class.
+    """
     def __init__(self, args):
         super().__init__(args)
         return
     
     # splits input into training, test, validation, and calibration
     def split_tensor_idx(self, num_sample):
-        
+        """
+        Splits the input into training, test, validation, and calibration subsets.
+
+        Args:
+            num_sample (int): The total number of samples in the dataset.
+
+        Returns:
+            train_idx (numpy.ndarray): The indices for the training subset.
+            val_idx (numpy.ndarray): The indices for the validation subset.
+            test_idx (numpy.ndarray): The indices for the test subset.
+            calib_idx (numpy.ndarray): The indices for the calibration subset.
+        """
+
         # split dataset into training, test, and validation parts
         if self.num_test != 0 and self.num_validation != 0 and self.num_calibration != 0:
             num_val   = self.num_validation
@@ -196,6 +346,22 @@ class CnnLearner(Learner):
 
     def load_input(self):
 
+        """ Load input data for the model.
+
+        This function loads input data based on the specified tensor format
+        (csv or hdf5). It performs necessary preprocessing steps such as reading
+        data from files, reshaping tensors, normalizing summary stats and
+        labels, randomizing data, and splitting the dataset into training,
+        validation, test, and calibration parts.
+
+        Parameters:
+            self: The instance of the class calling this function.
+
+        Returns: None
+
+        Raises: ValueError: If the tensor format is 'csv', indicating that the csv
+            tensors need to be reshaped.
+        """
         if self.tensor_format == 'csv':
             # read data
             full_data   = pd.read_csv(self.input_data_fn, header=None, on_bad_lines='skip').to_numpy()
@@ -274,15 +440,26 @@ class CnnLearner(Learner):
         return
     
     def build_network(self):
+        """Builds the network architecture.
 
-        # Simplified network architecture:
-        # 
-        #                       ,--> Conv1D-normal + Pool --. 
-        #  Phylo. Data Tensor --+--> Conv1D-stride + Pool ---\                          ,--> Point estimate
-        #                       '--> Conv1D-dilate + Pool ----+--> Concat + Output(s)--+---> Lower quantile
-        #                                                    /                          '--> Upper quantile
-        #  Aux. Data Tensor   -------> Dense ---------------'
-        #
+        This function constructs the network architecture by assembling the input layers, phylo layers, aux layers, and output layers. It then instantiates the model using the assembled layers.
+
+        
+        Simplified network architecture:
+        
+                              ,--> Conv1D-normal + Pool --. 
+        Phylo. Data Tensor --+---> Conv1D-stride + Pool ---\                          ,--> Point estimate
+                              '--> Conv1D-dilate + Pool ----+--> Concat + Output(s)--+---> Lower quantile
+                                                           /                          '--> Upper quantile
+        Aux. Data Tensor   ------> Dense -----------------'
+        
+
+        Returns:
+            None
+
+        Raises:
+            None
+        """
 
         #input layers
         input_layers    = self.build_network_input_layers()
@@ -295,6 +472,12 @@ class CnnLearner(Learner):
                         outputs = output_layers)
         
     def build_network_input_layers(self):
+        """
+        Build the input layers for the network.
+
+        Returns:
+            dict: A dictionary containing the input layers for phylo and aux data.
+        """
         input_phylo_tensor = Input(shape = self.train_data_tensor.shape[1:3],  name='input_phylo')
         input_aux_tensor   = Input(shape = self.train_stats_tensor.shape[1:2], name='input_aux')
 
@@ -302,7 +485,15 @@ class CnnLearner(Learner):
 
     
     def build_network_aux_layers(self, input_aux_tensor):
-        
+        """
+        Build the auxiliary layers for the network.
+
+        Args:
+            input_aux_tensor: The input tensor for the auxiliary layers.
+
+        Returns:
+            list: A list of auxiliary layers.
+        """
         w_aux_ffnn = layers.Dense(128, activation = 'relu', kernel_initializer = self.kernel_init, name='ff_aux1')(input_aux_tensor)
         w_aux_ffnn = layers.Dense( 64, activation = 'relu', kernel_initializer = self.kernel_init, name='ff_aux2')(w_aux_ffnn)
         w_aux_ffnn = layers.Dense( 32, activation = 'relu', kernel_initializer = self.kernel_init, name='ff_aux3')(w_aux_ffnn)
@@ -310,7 +501,15 @@ class CnnLearner(Learner):
         return [ w_aux_ffnn ]
 
     def build_network_phylo_layers(self, input_data_tensor):
-        
+        """
+        Build the phylo layers for the network.
+
+        Args:
+            input_data_tensor: The input data tensor.
+
+        Returns:
+            list: A list of phylo layers.
+        """
         # convolutional layers
         # e.g. you expect to see 64 patterns, width of 3, stride (skip-size) of 1, padding zeroes so all windows are 'same'
         w_conv = layers.Conv1D(64, 3, activation = 'relu', padding = 'same', name='conv_std1')(input_data_tensor)
@@ -332,7 +531,16 @@ class CnnLearner(Learner):
     
 
     def build_network_output_layers(self, phylo_layers, aux_layers):
+        """
+        Build the output layers for the network.
 
+        Args:
+            phylo_layers: The phylo layers.
+            aux_layers: The auxiliary layers.
+
+        Returns:
+            list: A list of output layers.
+        """
         # combine phylo and aux layers lists
         all_layers = phylo_layers + aux_layers
 
@@ -361,7 +569,15 @@ class CnnLearner(Learner):
 
 
     def train(self):
+        """
+        Trains the model.
 
+        Perform training by compiling the model with appropriate loss functions and metrics,
+        and then fitting the model to the training data.
+
+        Returns:
+            None
+        """
         lower_quantile_loss,upper_quantile_loss = self.get_pinball_loss_fns(self.cpi_coverage)
         
         self.pinball_loss_q_0_025, self.pinball_loss_q_0_975
@@ -437,7 +653,14 @@ class CnnLearner(Learner):
         return
     
     def save_results(self):
+        """
+        Saves all results from training procedure. Saved results include the
+        trained network, the normalization parameters for training/calibration,
+        CPI adjustment terms, and the training history.
 
+        Returns:
+            None
+        """
         max_idx = 1000
         
         # save model to file
@@ -480,6 +703,25 @@ class CnnLearner(Learner):
 
 
     def pinball_loss(self, y_true, y_pred, alpha):
+        """
+        Calculate the Pinball Loss for quantile regression.
+
+        This function calculates the Pinball Loss, which measures the difference between
+        the true target values (`y_true`) and the predicted target values (`y_pred`) for
+        a quantile regression model.
+
+        The Pinball Loss is calculated using the following formula:
+            mean(maximum(alpha * err, (alpha - 1) * err))
+
+        Parameters:
+            y_true (numpy.ndarray): Array of true target values.
+            y_pred (numpy.ndarray): Array of predicted target values.
+            alpha (float): Quantile level.
+
+        Returns:
+            float: The calculated Pinball Loss.
+
+        """
         err = y_true - y_pred
         return K.mean(K.maximum(alpha*err, (alpha-1)*err), axis=-1)
 
@@ -509,6 +751,27 @@ class CnnLearner(Learner):
         return self.pinball_loss(y_true, y_pred, alpha=0.85)
 
     def get_pinball_loss_fns(self, coverage):
+        """Returns the pinball loss functions corresponding to a given coverage level.
+
+        Args:
+            coverage (float): The desired coverage level.
+
+        Returns:
+            tuple: A tuple of two pinball loss functions corresponding to the specified coverage level.
+
+        Raises:
+            NotImplementedError: If the specified coverage level is not supported.
+
+        Example:
+            pinball_loss_q_0_025, pinball_loss_q_0_975 = get_pinball_loss_fns(0.95)
+
+        Note:
+            Supported coverage levels and their corresponding pinball loss functions:
+            - 0.95: pinball_loss_q_0_025, pinball_loss_q_0_975
+            - 0.90: pinball_loss_q_0_05, pinball_loss_q_0_95
+            - 0.80: pinball_loss_q_0_10, pinball_loss_q_0_90
+            - 0.70: pinball_loss_q_0_15, pinball_loss_q_0_85
+        """
         if coverage == 0.95:
             return self.pinball_loss_q_0_025, self.pinball_loss_q_0_975
         elif coverage == 0.90:
@@ -527,9 +790,35 @@ class CnnLearner(Learner):
     #   2. y_i is over the upper bound:  max-value will be y_i - q_upper(x_i) & positive
     #   3. y_i is between the bounds:    max-value will be the difference between y_i and the closest bound & negative
     def compute_conformity_scores(self, x, y, q_lower, q_upper):
+        """
+        Computes the conformity scores based on the input parameters.
+
+        Args:
+            x (array-like): The input data.
+            y (array-like): The target data.
+            q_lower (function): The lower quantile function.
+            q_upper (function): The upper quantile function.
+
+        Returns:
+            array-like: The conformity scores.
+
+        """
         return np.max( q_lower(x)-y, y-q_upper(x) )
 
     def get_CQR_constant(self, preds, true, inner_quantile=0.95, asymmetric = True):
+        """
+        Computes the conformity scores based on the input parameters.
+
+        Args:
+            x (array-like): The input data.
+            y (array-like): The target data.
+            q_lower (function): The lower quantile function.
+            q_upper (function): The upper quantile function.
+
+        Returns:
+            array-like: The conformity scores.
+
+        """
         #preds axis 0 is the lower and upper quants, axis 1 is the replicates, and axis 2 is the params
         # compute non-comformity scores
         Q = np.empty((2, preds.shape[2]))
@@ -551,7 +840,7 @@ class CnnLearner(Learner):
                 upper_q = np.quantile(upper_s, upper_p)
                 # get (lower_q adjustment, upper_q adjustment)
             else:
-# Symmetric non-comformity score
+                # Symmetric non-comformity score
                 s = np.amax(np.array((preds[0][:,i] - true[:,i], true[:,i] - preds[1][:,i])), axis=0)
                 # get adjustment constant: 1 - alpha/2's quintile of non-comformity scores
                 #Q = np.append(Q, np.quantile(s, inner_quantile * (1 + 1/preds.shape[1])))
@@ -571,94 +860,26 @@ class CnnLearner(Learner):
         return Q
 
 
-#-----------------------------------------------------------------------------------------------------------------#
+# #-----------------------------------------------------------------------------------------------------------------#
   
-class ParamEstLearner(CnnLearner):
-    def __init__(self, args):
-        super().__init__(args)
-        return
+# class ParamEstLearner(CnnLearner):
+#     def __init__(self, args):
+#         super().__init__(args)
+#         return
     
 
-
-#-----------------------------------------------------------------------------------------------------------------#
+# #-----------------------------------------------------------------------------------------------------------------#
   
-class ModelTestLearner(CnnLearner):
-    def __init__(self, args):
-        super().__init__(args)
-        return
+# class ModelTestLearner(CnnLearner):
+#     def __init__(self, args):
+#         super().__init__(args)
+#         return
     
 
-#-----------------------------------------------------------------------------------------------------------------#
+# #-----------------------------------------------------------------------------------------------------------------#
   
-class AncStateLearner(CnnLearner):
-    def __init__(self, args):
-        super().__init__(args)
-        return
+# class AncStateLearner(CnnLearner):
+#     def __init__(self, args):
+#         super().__init__(args)
+#         return
 
-
-#-----------------------------------------------------------------------------------------------------------------#
-
- # def build_network2(self):
-    #     # Build CNN
-    #     input_data_tensor = Input(shape = self.train_data_tensor.shape[1:3])
-
-    #     # convolutional layers
-    #     # e.g. you expect to see 64 patterns, width of 3, stride (skip-size) of 1, padding zeroes so all windows are 'same'
-    #     w_conv = layers.Conv1D(64, 3, activation = 'relu', padding = 'same', name='in_conv_std')(input_data_tensor)
-    #     w_conv = layers.Conv1D(96, 5, activation = 'relu', padding = 'same')(w_conv)
-    #     w_conv = layers.Conv1D(128, 7, activation = 'relu', padding = 'same')(w_conv)
-    #     w_conv_global_avg = layers.GlobalAveragePooling1D(name = 'w_conv_global_avg')(w_conv)
-
-    #     # stride layers (skip sizes during slide
-    #     w_stride = layers.Conv1D(64, 7, strides = 3, activation = 'relu', padding = 'same', name='in_conv_stride')(input_data_tensor)
-    #     w_stride = layers.Conv1D(96, 9, strides = 6, activation = 'relu', padding = 'same')(w_stride)
-    #     w_stride_global_avg = layers.GlobalAveragePooling1D(name = 'w_stride_global_avg')(w_stride)
-
-    #     # dilation layers (spacing among grid elements)
-    #     w_dilated = layers.Conv1D(32, 3, dilation_rate = 2, activation = 'relu', padding = 'same', name='in_conv_dilation')(input_data_tensor)
-    #     w_dilated = layers.Conv1D(64, 5, dilation_rate = 4, activation = 'relu', padding = "same")(w_dilated)
-    #     w_dilated_global_avg = layers.GlobalAveragePooling1D(name = 'w_dilated_global_avg')(w_dilated)
-
-    #     # summary stats
-    #     input_stats_tensor = Input(shape = self.train_stats_tensor.shape[1:2])
-    #     w_stats_ffnn = layers.Dense(128, activation = 'relu', kernel_initializer = 'VarianceScaling', name='in_ffnn_stat')(input_stats_tensor)
-    #     w_stats_ffnn = layers.Dense(64, activation = 'relu', kernel_initializer = 'VarianceScaling')(w_stats_ffnn)
-    #     w_stats_ffnn = layers.Dense(32, activation = 'relu', kernel_initializer = 'VarianceScaling')(w_stats_ffnn)
-
-    #     # concatenate all above -> deep fully connected network
-    #     concatenated_wxyz = layers.Concatenate(axis = 1, name = 'all_concatenated')([w_conv_global_avg,
-    #                                                                                 w_stride_global_avg,
-    #                                                                                 w_dilated_global_avg,
-    #                                                                                 w_stats_ffnn])
-
-    #     # VarianceScaling for kernel initializer (look up?? )
-    #     wxyz = layers.Dense(128, activation = 'relu', kernel_initializer = 'VarianceScaling')(concatenated_wxyz)
-    #     #wxyz = layers.Dense(96, activation = 'relu', kernel_initializer = 'VarianceScaling')(wxyz)
-    #     wxyz = layers.Dense(64, activation = 'relu', kernel_initializer = 'VarianceScaling')(wxyz)
-    #     wxyz = layers.Dense(32, activation = 'relu', kernel_initializer = 'VarianceScaling')(wxyz)
-
-    #     output_params = layers.Dense(self.num_params, activation = 'linear', name = "params")(wxyz)
-
-    #     # instantiate MODEL
-    #     self.mymodel = Model(inputs = [input_data_tensor, input_stats_tensor], 
-    #                     outputs = output_params)
-
-    # def make_CQR(self):
-
-    #     alpha = self.alpha_CQRI
-
-    #     # 0. do we get new predictions from calibration points?
-
-    #     # 1. compute conformity scores in calibration dataset
-    #     # preds are columns are columns 1 & 2 (not 0)
-    #     for i in range(self.norm_calib_labels.shape[1]):
-    #         preds = self.norm
-    #         true = self.norm_calib_labels[:,i]
-    #         E = Utilities.get_CQR_constant(preds, true, inner_quantile=0.95)
-
-    #     # 2. compute quantiles for comformity scores ??
-    #     # Utilities.get_CQR_constant()
-
-    #     # 3. adjust initial predicted quantiles based on 
-
-    #     return
