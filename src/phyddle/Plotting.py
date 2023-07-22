@@ -6,8 +6,8 @@ Defines classes and methods for the Plotting step, which loads files from the Si
 Learning, and Predicting steps to generate a standard report for the performance of
 the entire phyddle pipeline.
 
-Authors:   Michael Landis, Ammon Thompson
-Copyright: (c) 2023, Michael Landis
+Authors:   Michael Landis and Ammon Thompson
+Copyright: (c) 2022-2023, Michael Landis and Ammon Thompson
 License:   MIT
 """
 

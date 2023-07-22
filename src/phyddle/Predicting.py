@@ -6,8 +6,8 @@ Defines classes and methods for the Predicting step, which loads a pre-trained m
 and uses it to make predictions (e.g. parameter estimates) for e.g. a new empirical
 dataset.
 
-Authors:   Michael Landis, Ammon Thompson
-Copyright: (c) 2023, Michael Landis
+Authors:   Michael Landis and Ammon Thompson
+Copyright: (c) 2022-2023, Michael Landis and Ammon Thompson
 License:   MIT
 """
 
