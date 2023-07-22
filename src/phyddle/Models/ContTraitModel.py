@@ -13,7 +13,7 @@ License:   MIT
 import numpy as np
 import itertools
 
-from phyddle import Model
+from phyddle.Models import Model
 from phyddle.Utilities import States,Event
 
 class ContTraitModel(Model.BaseModel):

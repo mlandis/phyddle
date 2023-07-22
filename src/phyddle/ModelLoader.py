@@ -5,8 +5,8 @@ ModelLoader
 Defines a registry of recognized model types and variants. Also defines methods to quick-load
 requested models as needed for a phyddle analysis.
 
-Authors:   Michael Landis, Ammon Thompson
-Copyright: (c) 2023, Michael Landis
+Authors:   Michael Landis and Ammon Thompson
+Copyright: (c) 2022-2023, Michael Landis and Ammon Thompson
 License:   MIT
 """
 
