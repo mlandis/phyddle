@@ -369,6 +369,15 @@ def load_config(config_fn: str,
 
 
 def generate_random_hex_string(length):
+    """
+    Generates a random hex string of a given length.
+
+    Parameters:
+    length (int): The length of the hex string.
+
+    Returns:
+    str: The generated random hex string.
+    """
     hex_chars = '0123456789abcdef'
     random_indices = np.random.randint(0, len(hex_chars), size=length)
     hex_string = ''.join(hex_chars[i] for i in random_indices)
@@ -376,7 +385,15 @@ def generate_random_hex_string(length):
 
 
 def check_args(args):
+    """
+    Checks if the given arguments meet certain conditions.
 
+    Parameters:
+    args (dict): A dictionary containing the arguments.
+
+    Raises:
+    AssertionError: If any of the conditions are not met.
+    """
     # string values
     assert args['step']              in ['all', 'sim', 'fmt', 'lrn', 'prd', 'plt']
     assert args['sim_method']        in ['command', 'master']
@@ -593,6 +610,17 @@ def read_tree(tre_fn):
 
 
 def convert_nexus_to_array(dat_fn: str, char_encode_type: str, num_states: int=None):
+    """
+    Convert Nexus file to array format.
+
+    Parameters:
+    dat_fn (str): The file name of the Nexus file.
+    char_encode_type (str): The type of character encoding to use. Valid options are "integer" or "one_hot".
+    num_states (int, optional): The number of states. Only applicable if char_encode_type is "one_hot".
+
+    Returns:
+    dat (array): The converted array.
+    """
     if char_encode_type == 'integer':
         dat = convert_nexus_to_integer_array(dat_fn)
     elif char_encode_type == 'one_hot':
