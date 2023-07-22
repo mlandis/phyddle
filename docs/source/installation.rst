@@ -82,6 +82,36 @@ To install these packages:
 phyddle is also used with a 64-core Ubuntu LTS 22.04 server using Python 3.xx.xx (aptitude) and similar package versions. phyddle has yet not been tested using conda, Windows, M1 Macs, various GPUs, etc.
 
 
+Conda install
+-------------
+
+phyddle can easily be installed and run using [conda](https://docs.conda.io). conda lets you create and configure virtual environments to run Python code, meaning you can choose which versions of Python and its packages you use inside each virual environment without interfering with the default versions of the operating system. Most clusters already have conda installed. It's also easy to [install conda](https://docs.conda.io/projects/conda/en/stable/user-guide/install/index.html) yourself.
+
+To install phyddle using conda, run these commands from the phyddle directory:
+
+.. code-block::
+
+	# create conda environment with phyddle dependencies
+	conda create --name phyddle -c bioconda 'python>=3.11' 'dendropy>=4.6' 'tensorflow>=2.12' numpy=1.23 pandas=2.0 scipy=1.11 joblib=1.2 tqdm=4.65 h5py=3.8 keras=2.12  matplotlib=3.7 pypdf=3.12 Pillow=10.0 scikit-learn=1.2 graphviz python-graphviz pydot
+
+	# enter new phyddle conda environment
+	conda activate phyddle
+
+	# build phyddle locally within environment
+	# note: temporary, until public release of phyddle
+	pip install .
+
+	# phyddle should now run
+	cd scripts
+	./run_phyddle.py
+
+	# ... phyddle output ...
+
+	# leave the conda session, when done
+	conda deactivate
+
+
+
 Simulator requirements
 ----------------------
 
