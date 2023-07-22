@@ -48,13 +48,30 @@ def load(args):
 class Formatter:
 
     def __init__(self, args): #, mdl):
+        """
+        Load the specified args and return the appropriate Formatter object.
+
+        Args:
+            args (dict): A dictionary containing the arguments.
+
+        Returns:
+            Formatter: The Formatter object based on the specified args.
+        """
         self.set_args(args)
         self.logger = Utilities.Logger(args)
         #self.model = mdl
         return        
 
     def set_args(self, args):
+        """
+        Set the arguments for the object.
 
+        Args:
+            args (dict): A dictionary of arguments.
+
+        Returns:
+            None
+        """
         # formatter arguments
         self.args          = args
         self.verbose       = args['verbose']
@@ -96,7 +113,12 @@ class Formatter:
         return
 
     def run(self):
+        """
+        Run the program.
 
+        Returns:
+            None
+        """
         if self.verbose: print(Utilities.phyddle_info('fmt', self.proj, [self.sim_dir], self.fmt_dir))
 
         # new dir
@@ -117,7 +139,16 @@ class Formatter:
 
     
     def make_settings_str(self, idx, tree_width):
+        """
+        Create a settings string.
 
+        Args:
+            idx (int): The index.
+            tree_width (int): The tree width.
+
+        Returns:
+            str: The settings string.
+        """
         s = 'setting,value\n'
         s += 'proj,'            + self.proj + '\n'
         s += 'model_type,'      + self.model_type + '\n'
@@ -128,7 +159,15 @@ class Formatter:
         return s
 
     def encode_all(self):
-
+        """
+        Encode all replicates and return the result.
+        
+        If self.use_parallel is True, the encoding is done in parallel using multiple
+        processes. Otherwise, the encoding is done sequentially.
+        
+        Returns:
+            res (list): List of encoded replicates.
+        """
         # visit each replicate, encode it, and return result
         if self.use_parallel:
             res = Parallel(n_jobs=self.num_proc)(delayed(self.encode_one)(tmp_fn=f'{self.in_dir}/sim.{idx}', idx=idx) for idx in tqdm(self.rep_idx))
@@ -153,6 +192,12 @@ class Formatter:
         return
     
     def get_summ_stat_names(self):
+        """
+        Get the names of the summary statistics from the first representative file.
+    
+        Returns:
+            ret (list): List of summary statistic names.
+        """
         # get first representative file
         idx = list( self.phy_tensors[ self.tree_width_cats[0] ].keys() )[0]
         fn = f'{self.in_dir}/sim.{idx}.summ_stat.csv'
@@ -161,6 +206,12 @@ class Formatter:
         return ret
     
     def get_label_names(self):
+        """
+        Get the names of the labels from the first representative file.
+    
+        Returns:
+            ret (list): List of label names.
+        """
         # get first representative file
         idx = list( self.phy_tensors[ self.tree_width_cats[0] ].keys() )[0]
         fn = f'{self.in_dir}/sim.{idx}.param_row.csv'
@@ -170,7 +221,15 @@ class Formatter:
 
 
     def load_one_sim(self, idx, tree_width):
+        """Load data for one simulation given its index and tree width.
+    
+        Args:
+            idx (int): Index of the simulation.
+            tree_width: Tree width for the simulation.
         
+        Returns:
+            Tuple of numpy arrays (x1, x2, x3).
+        """
         #return None #(0,0,0)
     
         fname_base  = f'{self.in_dir}/sim.{idx}'
@@ -186,7 +245,15 @@ class Formatter:
         return (x1,x2,x3)
 
     def write_tensor_hdf5(self):
+        """
+        Writes data to HDF5 file for each tree width.
         
+        Parameters:
+        - self: The instance of the class.
+        
+        Returns:
+        - None
+        """
         # get stat/label name info
         self.summ_stat_names_encode = [ s.encode('UTF-8') for s in self.summ_stat_names ]
         self.label_names_encode = [ s.encode('UTF-8') for s in self.label_names ]
@@ -263,19 +330,60 @@ class Formatter:
         return
 
     def process_one_param_hdf5(self, idx):
+        """
+        Process the parameters from an HDF5 file.
+        
+        Parameters:
+        - self: The instance of the class.
+        - idx: The index of the HDF5 file.
+        
+        Returns:
+        - numpy array: The parameters loaded from the HDF5 file.
+        """
         fname_base  = f'{self.in_dir}/sim.{idx}'
         fname_param = fname_base + '.param_row.csv'
         return np.loadtxt(fname_param, delimiter=',', skiprows=1)
         
     def process_one_stat_hdf5(self, idx):
+        """
+        Process the summary statistics from an HDF5 file.
+        
+        Parameters:
+        - self: The instance of the class.
+        - idx: The index of the HDF5 file.
+        
+        Returns:
+        - numpy array: The summary statistics loaded from the HDF5 file.
+        """
         fname_base  = f'{self.in_dir}/sim.{idx}'
         fname_stat  = fname_base + '.summ_stat.csv'
         return np.loadtxt(fname_stat, delimiter=',', skiprows=1)
 
     def process_one_label_hdf5(self, phy_tensor):
+        """
+        Process the labels from a phy_tensor.
+        
+        Parameters:
+        - self: The instance of the class.
+        - phy_tensor: The phy_tensor containing the labels.
+        
+        Returns:
+        - numpy array: The labels flattened from the phy_tensor.
+        """
         return phy_tensor.flatten() 
         
     def write_tensor_csv(self):
+        """
+        Writes CSV files for phylogenetic tensors.
+        
+        The method iterates through the phylogenetic tensors for each tree width and generates CSV files containing the tensor data and labels.
+        
+        Parameters:
+            None
+            
+        Returns:
+            None
+        """
         # build files
         for tree_width in sorted(list(self.phy_tensors.keys())):
             
@@ -372,6 +480,20 @@ class Formatter:
 
     def encode_one(self, tmp_fn, idx, save_phyenc_csv=False):
 
+        """
+        Generate a Google-style docstring for the given Python code.
+
+        Parameters:
+            None
+
+        Returns:
+            cpsv: numpy array
+                Compact phylo-state tensor (CPST)
+
+        Raises:
+            None
+
+        """
         NUM_DIGITS = 10
         np.set_printoptions(formatter={'float': lambda x: format(x, '8.6E')}, precision=NUM_DIGITS)
         
@@ -469,7 +591,17 @@ class Formatter:
 
     #def make_summ_stat(self, tre_fn, geo_fn, states_bits_str_inv):
     def make_summ_stat(self, phy, dat): #, states_bits_str_inv):
+        """
+        Generate summary statistics.
 
+        Parameters:
+        - phy: phylogenetic tree
+        - dat: character data
+
+        Returns:
+        - summ_stats: dictionary containing summary statistics
+
+        """
         # build summary stats
         summ_stats = {}
 
@@ -556,6 +688,17 @@ class Formatter:
         return summ_stats
     
     def make_summ_stat_str(self, ss):
+        """
+        Generate a string representation of the summary statistics.
+
+        Parameters:
+        - ss: dictionary containing summary statistics
+
+        Returns:
+        - keys_str: string containing the keys of the summary statistics
+        - vals_str: string containing the values of the summary statistics
+
+        """
         keys_str = ','.join( list(ss.keys()) ) + '\n'
         vals_str = ','.join( [ str(x) for x in ss.values() ] ) + '\n'
         return keys_str + vals_str
@@ -563,6 +706,24 @@ class Formatter:
 
     # ==> move to Formatting? <==
     def encode_phy_tensor(self, phy, dat, tree_width, tree_type, tree_encode_type, rescale=True):
+        """
+        Encode the phylogenetic tree and character data as a tensor.
+
+        Parameters:
+        - phy: phylogenetic tree
+        - dat: character data
+        - tree_width: width of the tree
+        - tree_type: type of the tree ('serial' or 'extant')
+        - tree_encode_type: type of tree encoding
+        - rescale: boolean flag indicating whether to rescale the tensor
+
+        Returns:
+        - phy_tensor: encoded tensor
+
+        Raises:
+        - ValueError if tree_type is unrecognized
+
+        """
         if tree_type == 'serial':
             phy_tensor = self.encode_cblvs(phy, dat, tree_width, tree_encode_type, rescale)
         elif tree_type == 'extant':
@@ -572,7 +733,21 @@ class Formatter:
         return phy_tensor
 
     def encode_cdvs(self, phy, dat, tree_width, tree_encode_type, rescale=True):
-        
+        """Encode CDVs (Character-Dependent Values) based on a given phylogenetic tree.
+
+        Args:
+            phy (Phylo.Tree): The phylogenetic tree.
+            dat (numpy.ndarray): The character data.
+            tree_width (int): The width of the tree.
+            tree_encode_type (str): The type of tree encoding.
+            rescale (bool, optional): Whether to rescale the heights. Defaults to True.
+
+        Returns:
+            numpy.ndarray: The encoded CDVs tensor.
+
+        Raises:
+            ValueError: If an invalid tree_encode_type is provided.
+        """
         # num columns equals tree_width, 0-padding
         # returns tensor with following rows
         # 0:  internal node root-distance
@@ -630,6 +805,21 @@ class Formatter:
 
     def encode_cblvs(self, phy, dat, tree_width, tree_encode_type, rescale=True):
         
+        """Encode CBLVs (Character-Based Length Values) based on a given phylogenetic tree.
+
+        Args:
+            phy (Phylo.Tree): The phylogenetic tree.
+            dat (numpy.ndarray): The character data.
+            tree_width (int): The width of the tree.
+            tree_encode_type (str): The type of tree encoding.
+            rescale (bool, optional): Whether to rescale the heights. Defaults to True.
+
+        Returns:
+            numpy.ndarray: The encoded CBLVs tensor.
+
+        Raises:
+            ValueError: If an invalid tree_encode_type is provided.
+        """
         # num columns equals tree_width, 0-padding
         # returns tensor with following rows
         # 0:  leaf node-to-last internal node distance

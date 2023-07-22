@@ -44,11 +44,29 @@ def load(args):
 class Plotter:
 
     def __init__(self, args):
+        """
+        Initializes a Plotter object with the given arguments.
+
+        Args:
+            args (dict): A dictionary containing the arguments.
+
+        Returns:
+            None
+        """
         self.set_args(args)
         self.prepare_files()
         return
 
     def set_args(self, args):
+        """
+        Sets the arguments for the Plotter object.
+
+        Args:
+            args (dict): A dictionary containing the arguments.
+
+        Returns:
+            None
+        """
         self.args              = args
         self.proj              = args['proj']
         self.verbose           = args['verbose']
@@ -71,6 +89,15 @@ class Plotter:
         return
 
     def prepare_files(self):
+        """
+        Prepares the file paths and names for the Plotter object.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
         self.network_prefix     = f'sim_batchsize{self.batch_size}_numepoch{self.num_epochs}_nt{self.tree_width}'
 
         # directories
@@ -109,7 +136,15 @@ class Plotter:
         return
 
     def load_data(self):
-        
+        """
+        Load data for the model.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
         self.model        = tf.keras.models.load_model(self.network_fn, compile=False)
 
         self.train_preds  = pd.read_csv(self.train_pred_fn)
@@ -188,7 +223,13 @@ class Plotter:
 
 
     def run(self):
+        """
+        This function runs the main execution of the program.
+        It loads data, generates plots, saves histograms and PCA plots, saves predictions and CI, and saves the network.
 
+        Returns:
+            None
+        """
         if self.verbose: print(Utilities.phyddle_info('plt', self.proj, [self.tensor_dir, self.network_dir, self.pred_dir], self.plot_dir))
 
         # load data
@@ -262,7 +303,18 @@ class Plotter:
 
 
     def plot_sim_histogram(self, save_fn, sim_values, pred_values=None, title='', ncol_plot=3, color='blue'):
-        
+        """
+        Plots histograms of simulated values with optional prediction values.
+
+        Args:
+        - self: The instance of the class.
+        - save_fn: The file name to save the plot as.
+        - sim_values: The simulated values to plot histograms for.
+        - pred_values: The optional prediction values to overlay on the histograms. Default is None.
+        - title: The title of the plot. Default is an empty string.
+        - ncol_plot: The number of columns to arrange the histograms in. Default is 3.
+        - color: The color of the histograms. Default is 'blue'.
+        """
         col_names = sorted( sim_values.columns )
         num_aux = len(col_names)
         nrow = int( np.ceil(num_aux/ncol_plot) )
@@ -343,7 +395,17 @@ class Plotter:
     
 
     def plot_pca(self, save_fn, sim_stat, pred_stat=None, num_comp=4, f_show=0.05, color='blue'):
-
+        """
+        Plots PCA on the given data and saves the figure as a PDF.
+        
+        Args:
+            save_fn (str): The filename to save the figure as a PDF.
+            sim_stat (pd.DataFrame): The simulated statistics data.
+            pred_stat (pd.DataFrame, optional): The predicted statistics data. Defaults to None.
+            num_comp (int, optional): The number of components for PCA. Defaults to 4.
+            f_show (float, optional): The fraction of data to show in the scatter plot. Defaults to 0.05.
+            color (str, optional): The color for scatter points. Defaults to 'blue'.
+        """
         #x = sim_stat #StandardScaler().fit_transform(df)
         x = sim_stat # pd.DataFrame(sim_stat, columns=sim_stat.columns)
         nrow_keep = int(x.shape[0] * f_show)
@@ -390,6 +452,17 @@ class Plotter:
 
 
     def plot_pred_est_CI(self, save_fn, pred_label, title='Prediction', color='black', plot_log=True):
+
+        """
+        Plot the prediction estimates with confidence intervals.
+
+        Parameters:
+        - save_fn (str): The filename to save the plot.
+        - pred_label (DataFrame): The predicted labels.
+        - title (str, optional): The title of the plot. Default is 'Prediction'.
+        - color (str, optional): The color of the confidence intervals. Default is 'black'.
+        - plot_log (bool, optional): Whether to plot the y-axis in logarithmic scale. Default is True.
+        """
         if pred_label is None:
             return
 
@@ -516,7 +589,21 @@ class Plotter:
     
 
     def make_history_plot(self, history, prefix, plot_dir, train_color='blue', val_color='red'):
+        """
+        Plot predicted and labeled values for different parameters.
 
+        Parameters:
+        - self: The reference to the instance of the class where the method is defined.
+        - preds: A dictionary containing predicted values for each parameter.
+        - labels: A dictionary containing labeled values for each parameter.
+        - param_names: A list of parameter names.
+        - plot_dir: The directory to save the plots.
+        - prefix: The prefix to be used in the filename of the saved plots.
+        - color: The color used for the plots (default is "blue").
+        - axis_labels: A list of two strings representing the labels for the x and y axes (default is ["prediction", "truth"]).
+        - title: The title for the plot (default is '').
+        - plot_log: A boolean indicating whether to use logarithmic scale in the plots (default is False).
+        """
         epochs      = range(1, len(history['loss']) + 1)
         #print(history.keys())
         train_keys  = [ x for x in history.keys() if 'val_' not in x ]

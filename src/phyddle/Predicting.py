@@ -27,6 +27,15 @@ from phyddle import Utilities
 #-----------------------------------------------------------------------------------------------------------------#
 
 def load(args):
+    """
+    Load function that takes in arguments dictionary and returns a Predictor object.
+
+    Parameters:
+    args (dict): A dictionary containing the arguments.
+
+    Returns:
+    Predictor: A Predictor object if predict_method is 'default', None otherwise.
+    """
     #sim_method = args['learn_method']
     predict_method = 'default'
     if predict_method == 'default':
@@ -37,13 +46,31 @@ def load(args):
 #-----------------------------------------------------------------------------------------------------------------#
 
 class Predictor:
+    """A class for performing predictions."""
+
     def __init__(self, args):
+        """Initialize the Predictor object.
+        
+        Args:
+            args (dict): A dictionary containing the arguments.
+
+        Returns:
+            None
+        """
         self.set_args(args)
         self.prepare_files()
         self.logger = Utilities.Logger(args)
         return
     
     def set_args(self, args):
+        """Set the arguments for the Predictor object.
+        
+        Args:
+            args (dict): A dictionary containing the arguments.
+
+        Returns:
+            None
+        """
         self.args              = args
         self.proj              = args['proj']
         self.verbose           = args['verbose']
@@ -63,7 +90,11 @@ class Predictor:
         return
     
     def prepare_files(self):
+        """Prepare the necessary files for predictions.
 
+        Returns:
+            None
+        """
         # main directories
         self.network_dir            = f'{self.net_dir}/{self.proj}'
         self.predict_dir            = f'{self.pred_dir}/{self.proj}'
@@ -100,6 +131,15 @@ class Predictor:
         return
 
     def run(self):
+        """
+        Runs the prediction process.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
         if self.verbose: print(Utilities.phyddle_info('prd', self.proj, [self.pred_dir, self.net_dir], self.pred_dir))
         os.makedirs(self.predict_dir, exist_ok=True)
 
@@ -112,7 +152,15 @@ class Predictor:
         if self.verbose: print(Utilities.phyddle_str('... done!'))
         
     def load_input(self):
+        """
+        Loads the input data for prediction and performs necessary preprocessing.
 
+        Args:
+            None
+
+        Returns:
+            None
+        """
         # denormalization factors for new summ stats
         train_stats_norm        = pd.read_csv(self.model_trn_ss_norm_fn, sep=',', index_col=False)
         self.train_stats_means  = train_stats_norm['mean'].T.to_numpy().flatten()
@@ -158,7 +206,13 @@ class Predictor:
 
 
     def make_results(self):
+        """
+        Load a trained model, generate predictions, denormalize the predictions,
+        apply adjustments, and output them to a CSV file.
 
+        Returns:
+            None
+        """
         # load model
         self.mymodel = tf.keras.models.load_model(self.model_sav_fn, compile=False)
 

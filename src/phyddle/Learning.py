@@ -53,41 +53,6 @@ class Learner:
     Args:
         args (dict): A dictionary containing various arguments and settings for the Learner.
 
-    Attributes:
-        args (dict): The provided arguments for the Learner.
-        num_test (int): The number of test samples.
-        num_validation (int): The number of validation samples.
-        prop_test (int): The proportion of test samples.
-        prop_test (int): The proportion of test samples.
-        proj (str): The project name.
-        verbose (bool): The verbosity setting.
-        tree_width (int): The width of the tree.
-        tree_type (str): The type of the tree.
-        tree_encode_type (str): The encoding type of the tree.
-        char_encode_type (str): The encoding type of the characters.
-        tensor_format (str): The format of the tensor.
-        num_char (int): The number of characters.
-        num_states (int): The number of states.
-        fmt_dir (str): The directory for the formatted input files.
-        plt_dir (str): The directory for the plots.
-        net_dir (str): The directory for the learned models.
-        learn_method (str): The learning method.
-        test_models (list): The list of test models.
-        batch_size (int): The batch size for training.
-        num_epochs (int): The number of training epochs.
-        num_calibration (int): The number of samples for calibration.
-        prop_test (int): The proportion of test samples.
-        prop_validation (int): The proportion of validation samples.
-        prop_calibration (int): The proportion of calibration samples.
-        cpi_coverage (float): The CPI coverage.
-        cpi_asymmetric (bool): The flag for asymmetric CPI.
-        loss (str): The loss function.
-        optimizer (str): The optimizer.
-        metrics (list): The list of metrics.
-        kernel_init (str): The kernel initializer.
-        num_tree_row (int): The number of rows for the tree.
-        num_char_row (int): The number of rows for the characters.
-        num_data_row (int): The total number of rows for the data.
     """
 
     def __init__(self, args):
