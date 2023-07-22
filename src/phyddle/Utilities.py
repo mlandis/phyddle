@@ -1153,7 +1153,7 @@ def phyddle_hdr(s, style=1, fg=34):
 
     return x
 
-def phyddle_info(step, proj, in_dir, out_dir, style=1, fg=34, bg=40):
+def phyddle_info(step, proj, in_dir, out_dir, style=1, fg=34):
     """
     Generate the information string for phyddle.
     
@@ -1177,9 +1177,9 @@ def phyddle_info(step, proj, in_dir, out_dir, style=1, fg=34, bg=40):
         for i,_in_dir in enumerate(in_dir):
             in_path = f'{_in_dir}/{proj}'
             if i == 0:
-                run_info += phyddle_str(f'  ┣━━━▪ input:  {in_path}', style, fg, bg ) + '\n'
+                run_info += phyddle_str(f'  ┣━━━▪ input:  {in_path}', style, fg ) + '\n'
             else:
-                run_info += phyddle_str(f'  ┃             {in_path}', style, fg, bg ) + '\n'
+                run_info += phyddle_str(f'  ┃             {in_path}', style, fg ) + '\n'
     
     # out path
     if out_dir is not None:
