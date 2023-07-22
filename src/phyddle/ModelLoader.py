@@ -21,8 +21,31 @@ model_registry.append( ['geosse',     'GeosseModel',   'Geographic State-depende
 model_registry.append( ['sirm',       'SirmModel',     'Susceptible-Infected-Recovered-Migration [SIRM]'] )
 model_registry = pd.DataFrame( model_registry, columns = model_registry_names)
 
+def load(args):
+    """
+    Generates a Google-style docstring for the load function.
+    
+    Parameters:
+        args (dict): A dictionary containing the arguments required for model loading.
+    
+    Returns:
+        obj: An instance of the loaded model.
+    """
+    model_type = args['model_type']
+    MyModelClass = get_model_class(model_type)
+    return MyModelClass(args)
+
 # convert model_name into class_name through registry
 def get_model_class(model_type):
+    """
+    Returns the corresponding model class based on the given model_type.
+
+    Parameters:
+    - model_type (str): The type of the model to be retrieved.
+
+    Returns:
+    - MyModelClass: The class object of the corresponding model.
+    """
     model_class_name = model_registry.class_name[ model_registry.model_name == model_type ].iat[0]
     MyModelModule = importlib.import_module('phyddle.Models.'+model_class_name)
     #cls = getattr(import_module('my_module'), 'my_class') 
@@ -31,6 +54,12 @@ def get_model_class(model_type):
 
 # print
 def make_model_registry_str():
+    """
+    Generates a Google-style docstring for the make_model_registry_str function.
+    
+    Returns:
+        str: The formatted model registry string.
+    """
     s = ''
     # header
     s += 'Type'.ljust(20, ' ') + 'Variant'.ljust(20, ' ') + 'Description'.ljust(40, ' ') + '\n'
@@ -54,9 +83,3 @@ def make_model_registry_str():
         s += '\n'
 
     return s
-
-def load(args):
-    model_type = args['model_type']
-    MyModelClass = get_model_class(model_type)
-    return MyModelClass(args)
-
