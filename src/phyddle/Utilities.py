@@ -863,6 +863,8 @@ def make_prune_phy(phy, prune_fn):
     root_distances = phy_.calc_node_root_distances()
     # find tree height (max root-to-node distance)
     tree_height = np.max( root_distances )
+    # tips are considered "at present" if age is within 0.0001 * tree_height
+    tol = tree_height * 1e-4
     # create empty dictionary
     d = {}
     # loop through all leaf nodes
@@ -872,7 +874,7 @@ def make_prune_phy(phy, prune_fn):
         age = tree_height - nd.root_distance
         nd.annotations.add_new('age', age)
         # ultrametricize ages for extant taxa
-        if age < 1e-6:
+        if age < tol:
             age = 0.0
         # store taxon and age in dictionary
         taxon_name = str(nd.taxon).strip('\'')
