@@ -14,7 +14,7 @@ args = {
     #-------------------------------#
     # Project organization          #
     #-------------------------------#
-    'proj'           : 'n2s3_discrete_R',             # directory name for pipeline project
+    'proj'           : 'R_example',             # directory name for pipeline project
     'step'           : 'all',                         # steps to run? all, sim, fmt, lrn, prd, plt
     'verbose'        : True,
     'sim_dir'        : '../workspace/raw_data',       # directory for simulated data
@@ -55,7 +55,7 @@ args = {
     # Simulating Step settings      #
     #-------------------------------#
     'sim_method'        : 'command',        # command, master, [phylojunction], ...
-    'sim_command'       : 'Rscript sim_one_discrete.R',   # exact command string, argument is output file prefix
+    'sim_command'       : 'Rscript sim_one.R',   # exact command string, argument is output file prefix
     'sim_logging'       : 'verbose',        # verbose, compressed, or clean
     'start_idx'         : 0,                # first simulation replicate index
     'end_idx'           : 1000,             # last simulation replicate index
