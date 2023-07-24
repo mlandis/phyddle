@@ -308,6 +308,35 @@ class CnnLearner(Learner):
 
         # maybe save these to file?
         return train_idx, val_idx, test_idx, calib_idx
+    
+    def validate_tensor_idx(self, train_idx, val_idx, test_idx, calib_idx):
+        """
+        Validates the sizes of the training, validation, test, and calibration datasets.
+
+        Args:
+            train_idx (list): The index of the training dataset.
+            val_idx (list): The index of the validation dataset.
+            test_idx (list): The index of the test dataset.
+            calib_idx (list): The index of the calibration dataset.
+
+        Returns:
+            ValueError if any of the datasets are empty. Otherwise, returns None.
+        """
+        msg = ''
+        if len(train_idx) == 0:
+            msg = 'Training dataset is empty: len(train_idx) == 0'
+        elif len(val_idx) == 0:
+            msg = 'Validation dataset is empty: len(val_idx) == 0'
+        elif len(test_idx) == 0:
+            msg = 'Test dataset is empty: len(test_idx) == 0'
+        elif len(calib_idx) == 0:
+            msg = 'Calibration dataset is empty: len(calib_idx) == 0'
+                
+        if msg != '':
+            self.logger.write_log('lrn', msg)
+            raise ValueError(msg)
+
+        return
 
     def load_input(self):
 
@@ -375,6 +404,7 @@ class CnnLearner(Learner):
 
         # split dataset into training, test, validation, and calibration parts
         train_idx, val_idx, test_idx, calib_idx = self.split_tensor_idx(num_sample)
+        self.validate_tensor_idx(train_idx, val_idx, test_idx, calib_idx)
 
         # normalize summary stats
         self.denormalized_train_stats = full_stats[train_idx,:]
@@ -571,6 +601,8 @@ class CnnLearner(Learner):
     def make_results(self):
 
         # evaluate ???
+        print(self.test_data_tensor.shape)
+        print(self.test_stats_tensor.shape)
         self.mymodel.evaluate([self.test_data_tensor, self.test_stats_tensor], self.norm_test_labels)
 
         # scatter of pred vs true for training data
