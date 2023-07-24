@@ -24,8 +24,6 @@ import pandas as pd
 from joblib import Parallel, delayed
 from tqdm import tqdm
 
-import time
-
 # phyddle imports
 from phyddle import Utilities
 
@@ -199,7 +197,13 @@ class Formatter:
             ret (list): List of summary statistic names.
         """
         # get first representative file
-        idx = list( self.phy_tensors[ self.tree_width_cats[0] ].keys() )[0]
+        idx = None
+        for i in self.tree_width_cats:
+            k_list = list( self.phy_tensors[i].keys() )
+            if len(k_list) > 0 and idx is None:
+                idx = k_list[0]
+                
+        #idx = list( self.phy_tensors[ self.tree_width_cats[0] ].keys() )[0]
         fn = f'{self.in_dir}/sim.{idx}.summ_stat.csv'
         df = pd.read_csv(fn,header=0)
         ret = df.columns.to_list()
@@ -213,7 +217,12 @@ class Formatter:
             ret (list): List of label names.
         """
         # get first representative file
-        idx = list( self.phy_tensors[ self.tree_width_cats[0] ].keys() )[0]
+        idx = None
+        for i in self.tree_width_cats:
+            k_list = list( self.phy_tensors[i].keys() )
+            if len(k_list) > 0 and idx is None:
+                idx = k_list[0]
+        #idx = list( self.phy_tensors[ self.tree_width_cats[0] ].keys() )[0]
         fn = f'{self.in_dir}/sim.{idx}.param_row.csv'
         df = pd.read_csv(fn,header=0)
         ret = df.columns.to_list()
