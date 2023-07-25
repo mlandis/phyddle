@@ -2,7 +2,7 @@
 workspace/raw_data/*/*
 workspace/tensor_data/*/*
 workspace/network/*/*
-workspace/predict/*/*
+workspace/estimate/*/*
 workspace/plot/*/*
 workspace/log/*/*
 
@@ -10,7 +10,7 @@ workspace/log/*/*
 !workspace/raw_data/example/*
 !workspace/tensor_data/example/*
 !workspace/network/example/*
-!workspace/predict/example/*
+!workspace/estimate/example/*
 !workspace/plot/example/*
 !workspace/log/example/*
 
