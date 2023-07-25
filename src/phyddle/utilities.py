@@ -188,7 +188,7 @@ class States:
 
 
 
-#-----------------------------------------------------------------------------------------------------------------#
+#------------------------------------------------------------------------------#
 
 ###################
 # CONFIG LOADER   #
@@ -366,7 +366,7 @@ def load_config(config_fn: str,
     
     # print header?
     if m.args['verbose']:
-        print( phyddle_hdr('title') )
+        print(phyddle_header('title'))
 
     # return new args
     return m.args
@@ -382,7 +382,7 @@ def check_args(args):
     AssertionError: If any of the conditions are not met.
     """
     # string values
-    assert all([s in 'SFTEP' for s in args['step']])
+    assert all([s in '*SFTEP' for s in args['step']])
     assert args['sim_method']        in ['command', 'master']
     assert args['sim_logging']       in ['clean', 'verbose', 'compress']
     assert args['tree_type']         in ['serial', 'extant']
@@ -429,7 +429,7 @@ def generate_random_hex_string(length):
     hex_string = ''.join(hex_chars[i] for i in random_indices)
     return hex_string
 
-#-----------------------------------------------------------------------------------------------------------------#
+#------------------------------------------------------------------------------#
 
 ###################
 # GENERAL HELPERS #
@@ -552,7 +552,7 @@ def get_num_char_row(state_encode_type, num_char, num_states):
     return num_char_row
 
 
-#-----------------------------------------------------------------------------------------------------------------#
+#------------------------------------------------------------------------------#
 
 
 ################
@@ -604,7 +604,7 @@ def read_tree(tre_fn):
 
 
 
-#-----------------------------------------------------------------------------------------------------------------#
+#------------------------------------------------------------------------------#
 
 #####################
 # FORMAT CONVERTERS #
@@ -1057,7 +1057,7 @@ def clean_scientific_notation(s):
 
 
 
-#-----------------------------------------------------------------------------------------------------------------#
+#------------------------------------------------------------------------------#
 
 #########################
 # Tensor de/normalizing #
@@ -1102,7 +1102,7 @@ def denormalize(data, train_mean, train_sd):
     """
     return data * train_sd + train_mean
 
-#-----------------------------------------------------------------------------------------------------------------#
+#------------------------------------------------------------------------------#
 
 ######################
 # phyddle print info #
@@ -1125,7 +1125,20 @@ def phyddle_str(s, style=1, fg=34):
     x      = CSTART + s + CEND
     return x
 
-def phyddle_hdr(s, style=1, fg=34):
+def print_str(s, style=1, fg=34, verbose=True):
+    """
+    Prints the formatted string to the standard output.
+
+    Parameters:
+    s (str): The string to be printed.
+    style (int, optional): The style of the string. Defaults to 1.
+    fg (int, optional): The foreground color of the string. Defaults to 34.
+    verbose (bool, optional): If True, prints the formatted string. Defaults to True.
+    """
+    if verbose:
+        print(phyddle_str(s, style, fg))
+
+def phyddle_header(s, style=1, fg=34):
     """
     Generate a header string for phyddle.
     
@@ -1140,8 +1153,8 @@ def phyddle_hdr(s, style=1, fg=34):
     version = 'v.0.0.5'.rjust(8, ' ')
     steps = { 'sim' : 'Simulating',
               'fmt' : 'Formatting',
-              'lrn' : 'Learning',
-              'prd' : 'Predicting',
+              'lrn' : 'Training',
+              'est' : 'Estimating',
               'plt' : 'Plotting' }
 
     if s == 'title':
@@ -1157,7 +1170,7 @@ def phyddle_hdr(s, style=1, fg=34):
 
     return x
 
-def phyddle_info(step, proj, in_dir, out_dir, style=1, fg=34):
+def print_step_header(step, proj, in_dir, out_dir, style=1, fg=34, verbose=True):
     """
     Generate the information string for phyddle.
     
@@ -1173,7 +1186,7 @@ def phyddle_info(step, proj, in_dir, out_dir, style=1, fg=34):
         str: The information string.
     """
     # header
-    run_info  = phyddle_hdr( step ) + '\n'
+    run_info  = phyddle_header( step ) + '\n'
     
     # in paths
     if in_dir is not None:
@@ -1191,10 +1204,15 @@ def phyddle_info(step, proj, in_dir, out_dir, style=1, fg=34):
         out_path = f'{out_dir}/{proj}'
     run_info += phyddle_str(f'  ┗━━━▪ output: {out_path}' ) + '\n'
     
-    # return
-    return run_info
+    # print if verbose is True
+    if verbose:
+        print(run_info)
 
-#-----------------------------------------------------------------------------------------------------------------#
+    return
+    # return
+    #return run_info
+
+#------------------------------------------------------------------------------#
 
 
 

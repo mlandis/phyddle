@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """
-Simulating
-==========
-Defines classes and methods for the Simulating step, which generates large numbers
+simulate
+========
+Defines classes and methods for the Simulate step, which generates large numbers
 of simulated datasets (in parallel, if desired) that are later formatted and used
 to train the neural network.
 
@@ -28,7 +28,7 @@ from tqdm import tqdm
 from phyddle import utilities
 
 
-#-----------------------------------------------------------------------------------------------------------------#
+#------------------------------------------------------------------------------#
 
 def load(args, mdl=None):
     """
@@ -58,7 +58,7 @@ def load(args, mdl=None):
     else:
         return None
 
-#-----------------------------------------------------------------------------------------------------------------#
+#------------------------------------------------------------------------------#
 
 class Simulator:
     """
@@ -158,13 +158,16 @@ class Simulator:
         Returns:
             list: The result of the simulation process.
         """
-        if self.verbose: print( utilities.phyddle_info('sim', self.proj, None, self.sim_dir) )
+        #if self.verbose:
+        #    print( utilities.phyddle_info('sim', self.proj, None, self.sim_dir) )
+        utilities.print_step_header('sim', self.proj, None, self.sim_dir, verbose=self.verbose)
 
         # prepare workspace
         os.makedirs( self.sim_dir + '/' + self.proj, exist_ok=True )
         # dispatch jobs
 
-        if self.verbose: print(utilities.phyddle_str('▪ simulating raw data ...'))
+        #if self.verbose: print(utilities.phyddle_str('▪ simulating raw data ...'))
+        utilities.print_str('▪ simulating raw data ...', verbose=self.verbose)
         
         if self.use_parallel:
             res = Parallel(n_jobs=self.num_proc)(delayed(self.sim_one)(idx) for idx in tqdm(self.rep_idx))
@@ -259,7 +262,7 @@ class Simulator:
         """
         return NotImplementedError    
 
-#-----------------------------------------------------------------------------------------------------------------#
+#------------------------------------------------------------------------------#
 
 ###################################
 # Generic CLI simulator interface #
@@ -340,7 +343,7 @@ class CommandSimulator(Simulator):
         return
 
 
-#-----------------------------------------------------------------------------------------------------------------#
+#------------------------------------------------------------------------------#
 
 ##############################
 # MASTER simulator interface #

@@ -24,7 +24,7 @@ import tensorflow as tf
 from phyddle import utilities
 #from Formatting import encode_phy_tensor
 
-#-----------------------------------------------------------------------------------------------------------------#
+#------------------------------------------------------------------------------#
 
 def load(args):
     """
@@ -43,7 +43,7 @@ def load(args):
     else:
         return None
 
-#-----------------------------------------------------------------------------------------------------------------#
+#------------------------------------------------------------------------------#
 
 class Predictor:
     """A class for performing predictions."""
@@ -140,16 +140,18 @@ class Predictor:
         Returns:
             None
         """
-        if self.verbose: print(utilities.phyddle_info('prd', self.proj, [self.pred_dir, self.net_dir], self.pred_dir))
+        
+        utilities.print_step_header('est', self.proj, [self.pred_dir, self.net_dir], self.pred_dir, verbose=self.verbose)        
+
         os.makedirs(self.predict_dir, exist_ok=True)
 
-        if self.verbose: print(utilities.phyddle_str('▪ loading input ...'))
+        utilities.print_str('▪ loading input ...', verbose=self.verbose)
         self.load_input()
 
-        if self.verbose: print(utilities.phyddle_str('▪ making prediction ...'))
+        utilities.print_str('▪ making prediction ...', verbose=self.verbose)
         self.make_results()
 
-        if self.verbose: print(utilities.phyddle_str('... done!'))
+        utilities.print_str('... done!', verbose=self.verbose)
         
     def load_input(self):
         """

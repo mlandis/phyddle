@@ -30,7 +30,7 @@ from sklearn.preprocessing import StandardScaler
 # phyddle imports
 from phyddle import utilities
 
-#-----------------------------------------------------------------------------------------------------------------#
+#------------------------------------------------------------------------------#
 
 def load(args):
     #sim_method = args['trn_objective']
@@ -40,7 +40,7 @@ def load(args):
     else:
         return None
 
-#-----------------------------------------------------------------------------------------------------------------#
+#------------------------------------------------------------------------------#
 
 class Plotter:
 
@@ -231,13 +231,14 @@ class Plotter:
         Returns:
             None
         """
-        if self.verbose: print(utilities.phyddle_info('plt', self.proj, [self.tensor_dir, self.network_dir, self.pred_dir], self.plot_dir))
+        
+        utilities.print_step_header('plt', self.proj, [self.tensor_dir, self.network_dir, self.pred_dir], self.plot_dir, verbose=self.verbose)
 
         # load data
-        if self.verbose: print(utilities.phyddle_str('▪ loading input ...'))
+        utilities.print_str('▪ loading input ...', verbose=self.verbose)
         self.load_data()
 
-        if self.verbose: print(utilities.phyddle_str('▪ generating plots ...'))
+        utilities.print_str('▪ generating plots ...', verbose=self.verbose)
         # training stats
         self.make_history_plot(self.history_dict, prefix=self.network_prefix+'_history', plot_dir=self.plt_job_dir, train_color=self.train_color, val_color=self.validation_color)
 
@@ -275,7 +276,7 @@ class Plotter:
         # save network
         tf.keras.utils.plot_model(self.model, to_file=self.save_network_fn, show_shapes=True)
 
-        if self.verbose: print(utilities.phyddle_str('... saving plots ...'))
+        utilities.print_str('▪ saving plots ...', verbose=self.verbose)
 
         # collect and sort file names
         files = os.listdir(self.plt_job_dir)
@@ -298,7 +299,7 @@ class Plotter:
 
         merger.write(self.save_summary_fn)
 
-        if self.verbose: print(utilities.phyddle_str('... done!'))
+        utilities.print_str('... done!', verbose=self.verbose)
 
         return
 

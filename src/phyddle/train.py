@@ -26,7 +26,7 @@ from keras import backend as K
 # phyddle imports
 from phyddle import utilities
 
-#-----------------------------------------------------------------------------------------------------------------#
+#------------------------------------------------------------------------------#
 
 def load(args):
     """Load the learner based on the given arguments.
@@ -44,7 +44,7 @@ def load(args):
     else:
         return None
 
-#-----------------------------------------------------------------------------------------------------------------#
+#------------------------------------------------------------------------------#
 
 class Learner:
     """
@@ -182,24 +182,24 @@ class Learner:
         6. Saves the results.
         7. Prints "Done!" if the verbose mode is enabled.
         """
-        if self.verbose: print(utilities.phyddle_info('lrn', self.proj, [self.fmt_dir], self.net_dir))
+        utilities.print_step_header('lrn', self.proj, [self.fmt_dir], self.net_dir, verbose=self.verbose)
 
-        if self.verbose: print(utilities.phyddle_str('▪ loading input ...'))
+        utilities.print_str('▪ loading input ...', verbose=self.verbose)
         self.load_input()
        
-        if self.verbose: print(utilities.phyddle_str('▪ building network ...'))
+        utilities.print_str('▪ building network ...', verbose=self.verbose)
         self.build_network()
 
-        if self.verbose: print(utilities.phyddle_str('▪ training network ...'))
+        utilities.print_str('▪ training network ...', verbose=self.verbose)
         self.train()
 
-        if self.verbose: print(utilities.phyddle_str('▪ processing results ...'))
+        utilities.print_str('▪ processing results ...', verbose=self.verbose)
         self.make_results()
 
-        if self.verbose: print(utilities.phyddle_str('▪ saving results ...'))
+        utilities.print_str('▪ saving results ...', verbose=self.verbose)
         self.save_results()
 
-        if self.verbose: print(utilities.phyddle_str('▪ done!'))
+        utilities.print_str('▪ ... done!', verbose=self.verbose)
     
     def load_input(self):
         """
@@ -250,7 +250,7 @@ class Learner:
         """
         raise NotImplementedError
 
-#-----------------------------------------------------------------------------------------------------------------#
+#------------------------------------------------------------------------------#
 
 class CnnLearner(Learner):
     """A class representing a CNN learner.
@@ -857,7 +857,7 @@ class CnnLearner(Learner):
         return Q
 
 
-# #-----------------------------------------------------------------------------------------------------------------#
+# #------------------------------------------------------------------------------#
   
 # class ParamEstLearner(CnnLearner):
 #     def __init__(self, args):
@@ -865,7 +865,7 @@ class CnnLearner(Learner):
 #         return
     
 
-# #-----------------------------------------------------------------------------------------------------------------#
+# #------------------------------------------------------------------------------#
   
 # class ModelTestLearner(CnnLearner):
 #     def __init__(self, args):
@@ -873,7 +873,7 @@ class CnnLearner(Learner):
 #         return
     
 
-# #-----------------------------------------------------------------------------------------------------------------#
+# #------------------------------------------------------------------------------#
   
 # class AncStateLearner(CnnLearner):
 #     def __init__(self, args):

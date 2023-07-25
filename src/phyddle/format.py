@@ -118,23 +118,25 @@ class Formatter:
         Returns:
             None
         """
-        if self.verbose: print(utilities.phyddle_info('format', self.proj, [self.sim_dir], self.fmt_dir))
+
+        # print header
+        utilities.print_step_header('fmt', self.proj, [self.sim_dir], self.fmt_dir, verbose=self.verbose)
 
         # new dir
         os.makedirs(self.out_dir, exist_ok=True)
 
         # build individual CDVS/CBLVS encodings
-        if self.verbose: print(utilities.phyddle_str('▪ encoding raw data as tensors ...'))
+        utilities.print_str('▪ encoding raw data as tensors ...', verbose=self.verbose)
         self.encode_all()
 
         # actually fill and write full tensors
-        if self.verbose: print(utilities.phyddle_str('▪ writing tensors ...'))
+        utilities.print_str('▪ writing tensors ...', verbose=self.verbose)
         if self.tensor_format == 'csv':
             self.write_tensor_csv()
         elif self.tensor_format == 'hdf5':
             self.write_tensor_hdf5()
 
-        if self.verbose: print(utilities.phyddle_str('... done!'))
+        utilities.print_str('... done!', verbose=self.verbose)
 
     
     def make_settings_str(self, idx, tree_width):
