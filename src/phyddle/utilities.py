@@ -252,11 +252,11 @@ def load_config(config_fn: str,
     parser.add_argument('--chardata_format',    dest='chardata_format', type=str, choices=['nexus', 'csv'], help='Input format for character matrix data', metavar='')
     parser.add_argument('--tensor_format',      dest='tensor_format', type=str, choices=['hdf5', 'csv'], help='Output format for storing tensors of training dataset', metavar='')
     parser.add_argument('--save_phyenc_csv',    dest='save_phyenc_csv', type=bool, help='Save encoded phylogenetic tensor encoding to csv?', metavar='')
-    # learning settings
+    # training settings
     parser.add_argument('--trn_objective',      dest='trn_objective', type=str, choices=['param_est', 'model_test'], help='Objective of training procedure', metavar='')
     parser.add_argument('--tree_width',         dest='tree_width', type=int, help='The phylo-state tensor width dataset used for a neural network', metavar='')
-    parser.add_argument('--num_epochs',         dest='num_epochs', type=int, help='Number of learning epochs', metavar='')
-    parser.add_argument('--batch_size',         dest='batch_size', type=int, help='Training batch sizes during learning', metavar='')
+    parser.add_argument('--num_epochs',         dest='num_epochs', type=int, help='Number of training epochs', metavar='')
+    parser.add_argument('--batch_size',         dest='batch_size', type=int, help='Training batch sizes', metavar='')
     parser.add_argument('--prop_test',          dest='prop_test', type=float, help='Proportion of data used as test examples (demonstrate trained network performance)', metavar='')
     parser.add_argument('--prop_validation',    dest='prop_validation', type=float, help='Proportion of data used as validation examples (diagnose network overtraining)', metavar='')
     parser.add_argument('--prop_calibration',   dest='prop_calibration', type=float, help='Proportion of data used as calibration examples (calibrate conformal prediction intervals)', metavar='')
@@ -272,7 +272,7 @@ def load_config(config_fn: str,
     parser.add_argument('--plot_test_color',    dest='plot_test_color', type=str, help='Plotting color for test data elements', metavar='')
     parser.add_argument('--plot_val_color',     dest='plot_val_color', type=str, help='Plotting color for validation data elements', metavar='')
     parser.add_argument('--plot_aux_color',     dest='plot_aux_color', type=str, help='Plotting color for auxiliary input data elements', metavar='')
-    parser.add_argument('--plot_pred_color',    dest='plot_pred_color', type=str, help='Plotting color for prediction data elements', metavar='')
+    parser.add_argument('--plot_est_color',     dest='plot_est_color', type=str, help='Plotting color for new estimation elements', metavar='')
 
 
     # parse arguments
@@ -349,7 +349,7 @@ def load_config(config_fn: str,
     m = overwrite_defaults(m, args, 'plot_val_color')
     m = overwrite_defaults(m, args, 'plot_aux_color')
     m = overwrite_defaults(m, args, 'plot_label_color')
-    m = overwrite_defaults(m, args, 'plot_pred_color')         
+    m = overwrite_defaults(m, args, 'plot_est_color')         
 
     # check arguments are valid
     check_args(m.args)

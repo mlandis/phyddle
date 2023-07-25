@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """
-Learning
-========
-Defines classes and methods for the Learning step, which builds and trains a
+train
+=====
+Defines classes and methods for the Training step, which builds and trains a
 network using the tensor data from the Formatting step.
 
 Authors:   Michael Landis and Ammon Thompson
@@ -29,16 +29,16 @@ from phyddle import utilities
 #------------------------------------------------------------------------------#
 
 def load(args):
-    """Load the learner based on the given arguments.
+    """Load the Trainer based on the given arguments.
 
     Args: args (dict): A dictionary containing the arguments.
 
-    Returns: CnnLearner: An instance of the CnnLearner class if the trn_objective argument is set to 'param_est'. None: If the trn_objective argument is set to any value other than 'param_est'. NotImplementedError: If the trn_objective argument is set to 'model_test', as this method is not yet implemented.
+    Returns: CnnTrainer: An instance of the CnnTrainer class if the trn_objective argument is set to 'param_est'. None: If the trn_objective argument is set to any value other than 'param_est'. NotImplementedError: If the trn_objective argument is set to 'model_test', as this method is not yet implemented.
 
     """
     trn_objective = args['trn_objective']
     if trn_objective == 'param_est':
-        return CnnLearner(args)
+        return CnnTrainer(args)
     elif trn_objective == 'model_test':
         raise NotImplementedError
     else:
@@ -46,21 +46,21 @@ def load(args):
 
 #------------------------------------------------------------------------------#
 
-class Learner:
+class Trainer:
     """
-    This class represents a Learner object that is used for training and testing models.
+    This class represents a Trainer object that is used for training and testing models.
 
     Args:
-        args (dict): A dictionary containing various arguments and settings for the Learner.
+        args (dict): A dictionary containing various arguments and settings for the Trainer.
 
     """
 
     def __init__(self, args):
         """
-        Initializes a new Learner object.
+        Initializes a new Trainer object.
 
         Args:
-            args (dict): A dictionary containing various arguments and settings for the Learner.
+            args (dict): A dictionary containing various arguments and settings for the Trainer.
         """
         self.set_args(args)
         self.prepare_files()
@@ -69,10 +69,10 @@ class Learner:
     
     def set_args(self, args):
         """
-        Sets the arguments for the Learner.
+        Sets the arguments for the Trainer.
 
         Args:
-            args (dict): A dictionary containing various arguments and settings for the Learner.
+            args (dict): A dictionary containing various arguments and settings for the Trainer.
         """
         self.args              = args
         self.num_test          = 0
@@ -252,17 +252,17 @@ class Learner:
 
 #------------------------------------------------------------------------------#
 
-class CnnLearner(Learner):
-    """A class representing a CNN learner.
+class CnnTrainer(Trainer):
+    """A class representing a CNN Trainer.
 
     Args:
-        args (any): The arguments to initialize the CNN learner.
+        args (any): The arguments to initialize the CNN Trainer.
 
     Attributes:
         args (any): The arguments passed to the constructor.
 
     Inherits:
-        Learner: Inherits from the Learner class.
+        Trainer: Inherits from the Trainer class.
     """
     def __init__(self, args):
         super().__init__(args)
@@ -583,7 +583,7 @@ class CnnLearner(Learner):
                         loss = my_loss,
                         metrics = self.metrics)
      
-        # run learning
+        # run Training
         self.history = self.mymodel.fit(\
             verbose = 2,
             x = [self.train_data_tensor, self.train_stats_tensor], 
@@ -592,7 +592,7 @@ class CnnLearner(Learner):
             batch_size = self.batch_size, 
             validation_data = ([self.val_data_tensor, self.val_stats_tensor], self.norm_val_labels))
         
-        # store learning history
+        # store Training history
         self.history_dict = self.history.history
 
         
@@ -600,9 +600,7 @@ class CnnLearner(Learner):
 
     def make_results(self):
 
-        # evaluate ???
-        print(self.test_data_tensor.shape)
-        print(self.test_stats_tensor.shape)
+        # evaluate (fitting)
         self.mymodel.evaluate([self.test_data_tensor, self.test_stats_tensor], self.norm_test_labels)
 
         # scatter of pred vs true for training data
@@ -859,7 +857,7 @@ class CnnLearner(Learner):
 
 # #------------------------------------------------------------------------------#
   
-# class ParamEstLearner(CnnLearner):
+# class ParamEstTrainer(CnnTrainer):
 #     def __init__(self, args):
 #         super().__init__(args)
 #         return
@@ -867,7 +865,7 @@ class CnnLearner(Learner):
 
 # #------------------------------------------------------------------------------#
   
-# class ModelTestLearner(CnnLearner):
+# class ModelTestTrainer(CnnTrainer):
 #     def __init__(self, args):
 #         super().__init__(args)
 #         return
@@ -875,7 +873,7 @@ class CnnLearner(Learner):
 
 # #------------------------------------------------------------------------------#
   
-# class AncStateLearner(CnnLearner):
+# class AncStateTrainer(CnnTrainer):
 #     def __init__(self, args):
 #         super().__init__(args)
 #         return

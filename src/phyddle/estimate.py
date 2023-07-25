@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 """
-Predicting
-==========
-Defines classes and methods for the Predicting step, which loads a pre-trained model
-and uses it to make predictions (e.g. parameter estimates) for e.g. a new empirical
-dataset.
+estimate
+========
+Defines classes and methods for the Estimate step, which loads a pre-trained
+model and uses it to make e.g. parameter estimates for e.g. a
+new empirical dataset.
 
 Authors:   Michael Landis and Ammon Thompson
 Copyright: (c) 2022-2023, Michael Landis and Ammon Thompson
@@ -28,28 +28,28 @@ from phyddle import utilities
 
 def load(args):
     """
-    Load function that takes in arguments dictionary and returns a Predictor object.
+    Load function that takes in arguments dictionary and returns a Estimator object.
 
     Parameters:
     args (dict): A dictionary containing the arguments.
 
     Returns:
-    Predictor: A Predictor object if predict_method is 'default', None otherwise.
+    Estimator: A Estimator object if est_method is 'default', None otherwise.
     """
     #sim_method = args['trn_objective']
-    predict_method = 'default'
-    if predict_method == 'default':
-        return Predictor(args)
+    est_method = 'default'
+    if est_method == 'default':
+        return Estimator(args)
     else:
         return None
 
 #------------------------------------------------------------------------------#
 
-class Predictor:
-    """A class for performing predictions."""
+class Estimator:
+    """A class for performing estimations."""
 
     def __init__(self, args):
-        """Initialize the Predictor object.
+        """Initialize the Estimator object.
         
         Args:
             args (dict): A dictionary containing the arguments.
@@ -63,7 +63,7 @@ class Predictor:
         return
     
     def set_args(self, args):
-        """Set the arguments for the Predictor object.
+        """Set the arguments for the Estimator object.
         
         Args:
             args (dict): A dictionary containing the arguments.
@@ -74,10 +74,9 @@ class Predictor:
         self.args              = args
         self.proj              = args['proj']
         self.verbose           = args['verbose']
-        self.net_dir           = args['trn_dir']
-        self.pred_dir          = args['est_dir']
+        self.trn_dir           = args['trn_dir']
+        self.est_dir           = args['est_dir']
         self.est_prefix        = args['est_prefix']
-        #self.num_char_row      = args['num_char']
         self.batch_size        = args['batch_size']
         self.num_epochs        = args['num_epochs']
         self.tree_width        = args['tree_width']
@@ -90,39 +89,36 @@ class Predictor:
         return
     
     def prepare_files(self):
-        """Prepare the necessary files for predictions.
+        """Prepare the necessary files for estimation.
 
         Returns:
             None
         """
         # main directories
-        self.network_dir            = f'{self.net_dir}/{self.proj}'
-        self.predict_dir            = f'{self.pred_dir}/{self.proj}'
+        self.trn_proj_dir           = f'{self.trn_dir}/{self.proj}'
+        self.est_proj_dir           = f'{self.est_dir}/{self.proj}'
 
         # main job filenames
         self.model_prefix           = f'sim_batchsize{self.batch_size}_numepoch{self.num_epochs}_nt{self.tree_width}'
-        self.model_sav_fn           = f'{self.network_dir}/{self.model_prefix}.hdf5'
-        self.model_trn_lbl_norm_fn  = f'{self.network_dir}/{self.model_prefix}.train_label_norm.csv'
-        self.model_trn_ss_norm_fn   = f'{self.network_dir}/{self.model_prefix}.train_summ_stat_norm.csv'
-        #self.model_cpi_func_fn      = f'{self.network_dir}/{self.model_prefix}.cpi_func.obj'
-        self.model_cpi_fn           = f'{self.network_dir}/{self.model_prefix}.cpi_adjustments.csv'
+        self.model_sav_fn           = f'{self.trn_proj_dir}/{self.model_prefix}.hdf5'
+        self.model_trn_lbl_norm_fn  = f'{self.trn_proj_dir}/{self.model_prefix}.train_label_norm.csv'
+        self.model_trn_ss_norm_fn   = f'{self.trn_proj_dir}/{self.model_prefix}.train_summ_stat_norm.csv'
+        self.model_cpi_fn           = f'{self.trn_proj_dir}/{self.model_prefix}.cpi_adjustments.csv'
 
-        # save predictions to file
-        self.model_pred_fn          = f'{self.predict_dir}/{self.est_prefix}.{self.model_prefix}.pred_labels.csv'
+        # save estimates to file
+        self.model_est_fn          = f'{self.est_proj_dir}/{self.est_prefix}.{self.model_prefix}.est_labels.csv'
 
         # test summ stats
-        self.pred_summ_stat_fn      = f'{self.predict_dir}/{self.est_prefix}.summ_stat.csv'
-        self.pred_known_param_fn    = f'{self.predict_dir}/{self.est_prefix}.known_param.csv'
+        self.est_summ_stat_fn       = f'{self.est_proj_dir}/{self.est_prefix}.summ_stat.csv'
+        self.est_known_param_fn     = f'{self.est_proj_dir}/{self.est_prefix}.known_param.csv'
 
         # test phy vector
         if self.tree_type == 'extant':
-            self.pred_phyvec_fn     = f'{self.predict_dir}/{self.est_prefix}.cdvs.csv'    
-        #    self.num_tree_row       = 3
+            self.est_phyvec_fn      = f'{self.est_proj_dir}/{self.est_prefix}.cdvs.csv'    
         elif self.tree_type == 'serial':
-            self.pred_phyvec_fn     = f'{self.predict_dir}/{self.est_prefix}.cblvs.csv'
-        #    self.num_tree_row       = 4   
+            self.est_phyvec_fn      = f'{self.est_proj_dir}/{self.est_prefix}.cblvs.csv'
         else:
-            raise NotImplementedError
+            raise NotImplementedError(f'{self.tree_type} not recognized tree type')
 
         self.num_tree_row = utilities.get_num_tree_row(self.tree_type, self.tree_encode_type)
         self.num_char_row = utilities.get_num_char_row(self.char_encode_type, self.num_char, self.num_states)
@@ -132,7 +128,7 @@ class Predictor:
 
     def run(self):
         """
-        Runs the prediction process.
+        Runs the estimation process.
 
         Args:
             None
@@ -141,21 +137,21 @@ class Predictor:
             None
         """
         
-        utilities.print_step_header('est', self.proj, [self.pred_dir, self.net_dir], self.pred_dir, verbose=self.verbose)        
+        utilities.print_step_header('est', self.proj, [self.est_dir, self.trn_dir], self.est_dir, verbose=self.verbose)        
 
-        os.makedirs(self.predict_dir, exist_ok=True)
+        os.makedirs(self.est_proj_dir, exist_ok=True)
 
         utilities.print_str('▪ loading input ...', verbose=self.verbose)
         self.load_input()
 
-        utilities.print_str('▪ making prediction ...', verbose=self.verbose)
+        utilities.print_str('▪ making estimation ...', verbose=self.verbose)
         self.make_results()
 
         utilities.print_str('... done!', verbose=self.verbose)
         
     def load_input(self):
         """
-        Loads the input data for prediction and performs necessary preprocessing.
+        Loads the input data for estimation and performs necessary preprocessing.
 
         Args:
             None
@@ -178,24 +174,24 @@ class Predictor:
         self.stat_names         = train_stats_norm['name'].to_list()
 
         # read & reshape new test data
-        self.pred_data_tensor   = pd.read_csv(self.pred_phyvec_fn, header=None, sep=',', index_col=False).to_numpy()
-        #self.pred_data_tensor.shape  = ( 1, -1, (self.num_tree_row+self.num_char_row) )
-        self.pred_data_tensor   = self.pred_data_tensor.reshape( (1, -1, (self.num_tree_row+self.num_char_row)) )
+        self.est_data_tensor    = pd.read_csv(self.est_phyvec_fn, header=None, sep=',', index_col=False).to_numpy()
+        #self.est_data_tensor.shape  = ( 1, -1, (self.num_tree_row+self.num_char_row) )
+        self.est_data_tensor    = self.est_data_tensor.reshape( (1, -1, (self.num_tree_row+self.num_char_row)) )
         
         # read & normalize new aux data
-        self.pred_summ_stats     = pd.read_csv(self.pred_summ_stat_fn, sep=',', index_col=False).to_numpy().flatten()
+        self.est_summ_stats     = pd.read_csv(self.est_summ_stat_fn, sep=',', index_col=False).to_numpy().flatten()
         try:
-            self.pred_known_params   = pd.read_csv(self.pred_known_param_fn, sep=',', index_col=False).to_numpy().flatten()
-            self.pred_auxdata_tensor = np.concatenate( [self.pred_summ_stats, self.pred_known_params] )
+            self.est_known_params   = pd.read_csv(self.est_known_param_fn, sep=',', index_col=False).to_numpy().flatten()
+            self.est_auxdata_tensor = np.concatenate( [self.est_summ_stats, self.est_known_params] )
         except FileNotFoundError:
-            self.pred_auxdata_tensor = self.pred_summ_stats
+            self.est_auxdata_tensor = self.est_summ_stats
             
-        self.pred_auxdata_tensor.shape = ( 1, -1 )
+        self.est_auxdata_tensor.shape = ( 1, -1 )
 
-        #print(self.pred_auxdata_tensor)
+        #print(self.est_auxdata_tensor)
 
-        self.norm_pred_stats          = utilities.normalize(self.pred_auxdata_tensor, (self.train_stats_means, self.train_stats_sd))
-        self.denormalized_pred_stats  = utilities.denormalize(self.norm_pred_stats, self.train_stats_means, self.train_stats_sd)
+        self.norm_est_stats          = utilities.normalize(self.est_auxdata_tensor, (self.train_stats_means, self.train_stats_sd))
+        self.denormalized_est_stats  = utilities.denormalize(self.norm_est_stats, self.train_stats_means, self.train_stats_sd)
 
 
         # read in CQR interval adjustments
@@ -209,7 +205,7 @@ class Predictor:
 
     def make_results(self):
         """
-        Load a trained model, generate predictions, denormalize the predictions,
+        Load a trained model, generate estimates, denormalize the estimates,
         apply adjustments, and output them to a CSV file.
 
         Returns:
@@ -218,20 +214,20 @@ class Predictor:
         # load model
         self.mymodel = tf.keras.models.load_model(self.model_sav_fn, compile=False)
 
-        # get predictions
-        self.norm_preds                = self.mymodel.predict([self.pred_data_tensor, self.norm_pred_stats])
-        self.norm_preds                = np.array( self.norm_preds )
-        self.norm_preds[1,:,:]         = self.norm_preds[1,:,:] - self.cpi_adjustments[0,:]
-        self.norm_preds[2,:,:]         = self.norm_preds[2,:,:] + self.cpi_adjustments[1,:]
-        self.denormalized_pred_labels  = utilities.denormalize(self.norm_preds, self.train_labels_means, self.train_labels_sd)
-        #print(self.denormalized_pred_labels)
-        self.denormalized_pred_labels[ self.denormalized_pred_labels > 300. ] = 300.
-        self.pred_labels               = np.exp( self.denormalized_pred_labels )
-        #print(np.exp( self.denormalized_pred_labels ))
+        # get estimates
+        self.norm_est                = self.mymodel.predict([self.est_data_tensor, self.norm_est_stats])
+        self.norm_est                = np.array( self.norm_est )
+        self.norm_est[1,:,:]         = self.norm_est[1,:,:] - self.cpi_adjustments[0,:]
+        self.norm_est[2,:,:]         = self.norm_est[2,:,:] + self.cpi_adjustments[1,:]
+        self.denormalized_est_labels  = utilities.denormalize(self.norm_est, self.train_labels_means, self.train_labels_sd)
+        #print(self.denormalized_est_labels)
+        self.denormalized_est_labels[ self.denormalized_est_labels > 300. ] = 300.
+        self.est_labels               = np.exp( self.denormalized_est_labels )
+        #print(np.exp( self.denormalized_est_labels ))
        
-        # output predictions
-        self.df_pred_all_labels = utilities.make_param_VLU_mtx(self.pred_labels, self.param_names)
-        self.df_pred_all_labels.to_csv(self.model_pred_fn, index=False, sep=',')
+        # output estimates
+        self.df_est_all_labels = utilities.make_param_VLU_mtx(self.est_labels, self.param_names)
+        self.df_est_all_labels.to_csv(self.model_est_fn, index=False, sep=',')
 
         return
     

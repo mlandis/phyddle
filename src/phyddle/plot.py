@@ -3,7 +3,7 @@
 Plotting
 ========
 Defines classes and methods for the Plotting step, which loads files from the Simulating,
-Learning, and Predicting steps to generate a standard report for the performance of
+Training, and Predicting steps to generate a standard report for the performance of
 the entire phyddle pipeline.
 
 Authors:   Michael Landis and Ammon Thompson
@@ -71,22 +71,22 @@ class Plotter:
         self.args              = args
         self.proj              = args['proj']
         self.verbose           = args['verbose']
-        self.network_dir       = args['trn_dir']
-        self.plot_dir          = args['plt_dir']
-        #self.pred_dir          = args['est_dir']
-        self.tensor_dir        = args['fmt_dir']
+        self.trn_dir           = args['trn_dir']
+        self.plt_dir           = args['plt_dir']
+        #self.est_dir          = args['est_dir']
+        self.fmt_dir           = args['fmt_dir']
         self.batch_size        = args['batch_size']
         self.num_epochs        = args['num_epochs']
         self.tree_width        = args['tree_width']
         self.tensor_format     = args['tensor_format']
-        self.pred_dir          = args['est_dir'] if 'est_dir' in args else ''
-        self.est_prefix       = args['prd_prefix'] if 'prd_prefix' in args else ''
+        self.est_dir          = args['est_dir'] if 'est_dir' in args else ''
+        self.est_prefix        = args['est_prefix'] if 'est_prefix' in args else ''
         self.train_color       = args['plot_train_color']
         self.test_color        = args['plot_test_color']
         self.validation_color  = args['plot_val_color']
         self.aux_color         = args['plot_aux_color']
         self.label_color       = args['plot_label_color']
-        self.pred_color        = args['plot_pred_color']
+        self.est_color         = args['plot_est_color']
         return
 
     def prepare_files(self):
@@ -102,37 +102,37 @@ class Plotter:
         self.network_prefix     = f'sim_batchsize{self.batch_size}_numepoch{self.num_epochs}_nt{self.tree_width}'
 
         # directories
-        self.net_job_dir        = f'{self.network_dir}/{self.proj}'
-        self.fmt_job_dir        = f'{self.tensor_dir}/{self.proj}'
-        self.plt_job_dir        = f'{self.plot_dir}/{self.proj}'
-        self.pred_job_dir       = f'{self.pred_dir}/{self.proj}'
+        self.trn_proj_dir        = f'{self.trn_dir}/{self.proj}'
+        self.fmt_proj_dir        = f'{self.fmt_dir}/{self.proj}'
+        self.plt_proj_dir        = f'{self.plt_dir}/{self.proj}'
+        self.est_proj_dir       = f'{self.est_dir}/{self.proj}'
 
         # tensors
-        self.input_stats_fn     = f'{self.fmt_job_dir}/sim.nt{self.tree_width}.summ_stat.csv'
-        self.input_labels_fn    = f'{self.fmt_job_dir}/sim.nt{self.tree_width}.labels.csv'
-        self.input_hdf5_fn      = f'{self.fmt_job_dir}/sim.nt{self.tree_width}.hdf5'
+        self.input_stats_fn     = f'{self.fmt_proj_dir}/sim.nt{self.tree_width}.summ_stat.csv'
+        self.input_labels_fn    = f'{self.fmt_proj_dir}/sim.nt{self.tree_width}.labels.csv'
+        self.input_hdf5_fn      = f'{self.fmt_proj_dir}/sim.nt{self.tree_width}.hdf5'
 
         # network
-        self.train_pred_fn      = f'{self.net_job_dir}/{self.network_prefix}.train_pred.csv'
-        self.train_labels_fn    = f'{self.net_job_dir}/{self.network_prefix}.train_labels.csv'
-        self.test_pred_fn       = f'{self.net_job_dir}/{self.network_prefix}.test_pred.csv'
-        self.test_labels_fn     = f'{self.net_job_dir}/{self.network_prefix}.test_labels.csv'
-        self.network_fn         = f'{self.net_job_dir}/{self.network_prefix}.hdf5'
-        self.history_json_fn    = f'{self.net_job_dir}/{self.network_prefix}.train_history.json'
+        self.train_pred_fn      = f'{self.trn_proj_dir}/{self.network_prefix}.train_pred.csv'
+        self.train_labels_fn    = f'{self.trn_proj_dir}/{self.network_prefix}.train_labels.csv'
+        self.test_pred_fn       = f'{self.trn_proj_dir}/{self.network_prefix}.test_pred.csv'
+        self.test_labels_fn     = f'{self.trn_proj_dir}/{self.network_prefix}.test_labels.csv'
+        self.network_fn         = f'{self.trn_proj_dir}/{self.network_prefix}.hdf5'
+        self.history_json_fn    = f'{self.trn_proj_dir}/{self.network_prefix}.train_history.json'
 
-        # predictions
-        self.pred_aux_fn        = f'{self.pred_job_dir}/{self.est_prefix}.summ_stat.csv'
-        self.pred_lbl_fn        = f'{self.pred_job_dir}/{self.est_prefix}.{self.network_prefix}.pred_labels.csv'
-        self.pred_known_param_fn = f'{self.pred_job_dir}/{self.est_prefix}.known_param.csv'
+        # estimates
+        self.est_aux_fn        = f'{self.est_proj_dir}/{self.est_prefix}.summ_stat.csv'
+        self.est_lbl_fn        = f'{self.est_proj_dir}/{self.est_prefix}.{self.network_prefix}.est_labels.csv'
+        self.est_known_param_fn = f'{self.est_proj_dir}/{self.est_prefix}.known_param.csv'
         
         # plotting output
-        self.save_hist_aux_fn   = f'{self.plt_job_dir}/{self.network_prefix}.histogram_aux.pdf'
-        self.save_hist_label_fn = f'{self.plt_job_dir}/{self.network_prefix}.histogram_label.pdf'
-        self.save_pca_aux_fn    = f'{self.plt_job_dir}/{self.network_prefix}.pca_aux.pdf'
-        self.save_cpi_test_fn   = f'{self.plt_job_dir}/{self.network_prefix}.train_est_CPI.pdf'
-        self.save_cpi_pred_fn   = f'{self.plt_job_dir}/{self.network_prefix}.pred_est_CPI.pdf'
-        self.save_network_fn    = f'{self.plt_job_dir}/{self.network_prefix}.network_architecture.pdf'
-        self.save_summary_fn    = f'{self.plt_job_dir}/{self.network_prefix}.summary.pdf'
+        self.save_hist_aux_fn   = f'{self.plt_proj_dir}/{self.network_prefix}.histogram_aux.pdf'
+        self.save_hist_label_fn = f'{self.plt_proj_dir}/{self.network_prefix}.histogram_label.pdf'
+        self.save_pca_aux_fn    = f'{self.plt_proj_dir}/{self.network_prefix}.pca_aux.pdf'
+        #self.save_cpi_test_fn   = f'{self.plt_proj_dir}/{self.network_prefix}.train_CPI.pdf'
+        self.save_cpi_est_fn    = f'{self.plt_proj_dir}/{self.network_prefix}.est_CPI.pdf'
+        self.save_network_fn    = f'{self.plt_proj_dir}/{self.network_prefix}.network_architecture.pdf'
+        self.save_summary_fn    = f'{self.plt_proj_dir}/{self.network_prefix}.summary.pdf'
 
         return
 
@@ -184,41 +184,39 @@ class Plotter:
         self.history_dict = json.load(open(self.history_json_fn, 'r'))
 
         # read in prediction aux dataset, if it exists
-        self.pred_aux_loaded         = os.path.isfile(self.pred_aux_fn) 
-        self.pred_known_param_loaded = os.path.isfile(self.pred_known_param_fn)
+        self.est_aux_loaded         = os.path.isfile(self.est_aux_fn) 
+        self.est_known_param_loaded = os.path.isfile(self.est_known_param_fn)
             
-        if self.pred_aux_loaded:
-            self.pred_aux_data       = pd.read_csv(self.pred_aux_fn)
-        if self.pred_known_param_loaded:
-            self.pred_known_params = pd.read_csv(self.pred_known_param_fn) #, sep=',', index_col=False).to_numpy().flatten()
-            #print(self.pred_aux_data.shape)
-            #print(self.pred_known_params.shape)
-            self.pred_aux_data = pd.concat( [self.pred_aux_data, self.pred_known_params], axis=1)
-            self.pred_aux_data = self.pred_aux_data[self.input_stats.columns]
-        if not self.pred_aux_loaded and not self.pred_known_param_loaded:
-            self.pred_aux_data = None
+        if self.est_aux_loaded:
+            self.est_aux_data       = pd.read_csv(self.est_aux_fn)
+        if self.est_known_param_loaded:
+            self.est_known_params = pd.read_csv(self.est_known_param_fn) #, sep=',', index_col=False).to_numpy().flatten()
+            self.est_aux_data = pd.concat( [self.est_aux_data, self.est_known_params], axis=1)
+            self.est_aux_data = self.est_aux_data[self.input_stats.columns]
+        if not self.est_aux_loaded and not self.est_known_param_loaded:
+            self.est_aux_data = None
         
         # read in predicted label dataset, if it exists
-        self.pred_lbl_loaded = os.path.isfile(self.pred_lbl_fn)
-        if self.pred_lbl_loaded:
-            self.pred_lbl_data = pd.read_csv(self.pred_lbl_fn)
-            self.pred_lbl_value = self.pred_lbl_data[ [col for col in self.pred_lbl_data.columns if 'value' in col] ]
-            self.pred_lbl_lower = self.pred_lbl_data[ [col for col in self.pred_lbl_data.columns if 'lower' in col] ]
-            self.pred_lbl_upper = self.pred_lbl_data[ [col for col in self.pred_lbl_data.columns if 'upper' in col] ]
-            self.pred_lbl_value.columns = [ col.rstrip('_value') for col in self.pred_lbl_value.columns ]
-            self.pred_lbl_lower.columns = [ col.rstrip('_lower') for col in self.pred_lbl_lower.columns ]
-            self.pred_lbl_upper.columns = [ col.rstrip('_upper') for col in self.pred_lbl_upper.columns ]
-            self.pred_lbl_df = pd.concat( [self.pred_lbl_value, self.pred_lbl_lower, self.pred_lbl_upper] )
-            #print(self.pred_lbl_value)
-            #self.pred_lbl_df = pd.DataFrame( [ self.pred_lbl_value, self.pred_lbl_value, self.pred_lbl_value ], columns=['value','lower','upper'] )
-            #print(self.pred_lbl_df)
+        self.est_lbl_loaded = os.path.isfile(self.est_lbl_fn)
+        if self.est_lbl_loaded:
+            self.est_lbl_data = pd.read_csv(self.est_lbl_fn)
+            self.est_lbl_value = self.est_lbl_data[ [col for col in self.est_lbl_data.columns if 'value' in col] ]
+            self.est_lbl_lower = self.est_lbl_data[ [col for col in self.est_lbl_data.columns if 'lower' in col] ]
+            self.est_lbl_upper = self.est_lbl_data[ [col for col in self.est_lbl_data.columns if 'upper' in col] ]
+            self.est_lbl_value.columns = [ col.rstrip('_value') for col in self.est_lbl_value.columns ]
+            self.est_lbl_lower.columns = [ col.rstrip('_lower') for col in self.est_lbl_lower.columns ]
+            self.est_lbl_upper.columns = [ col.rstrip('_upper') for col in self.est_lbl_upper.columns ]
+            self.est_lbl_df = pd.concat( [self.est_lbl_value, self.est_lbl_lower, self.est_lbl_upper] )
+            #print(self.est_lbl_value)
+            #self.est_lbl_df = pd.DataFrame( [ self.est_lbl_value, self.est_lbl_value, self.est_lbl_value ], columns=['value','lower','upper'] )
+            #print(self.est_lbl_df)
 
         else:
-            self.pred_lbl_data = None
-            self.pred_lbl_value = None
-            self.pred_lbl_lower = None
-            self.pred_lbl_upper = None
-            self.pred_lbl_df = None
+            self.est_lbl_data = None
+            self.est_lbl_value = None
+            self.est_lbl_lower = None
+            self.est_lbl_upper = None
+            self.est_lbl_df = None
 
         return
 
@@ -231,8 +229,8 @@ class Plotter:
         Returns:
             None
         """
-        
-        utilities.print_step_header('plt', self.proj, [self.tensor_dir, self.network_dir, self.pred_dir], self.plot_dir, verbose=self.verbose)
+
+        utilities.print_step_header('plt', self.proj, [self.fmt_dir, self.trn_dir, self.est_dir], self.plt_dir, verbose=self.verbose)
 
         # load data
         utilities.print_str('▪ loading input ...', verbose=self.verbose)
@@ -240,7 +238,7 @@ class Plotter:
 
         utilities.print_str('▪ generating plots ...', verbose=self.verbose)
         # training stats
-        self.make_history_plot(self.history_dict, prefix=self.network_prefix+'_history', plot_dir=self.plt_job_dir, train_color=self.train_color, val_color=self.validation_color)
+        self.make_history_plot(self.history_dict, prefix=self.network_prefix+'_history', plot_dir=self.plt_proj_dir, train_color=self.train_color, val_color=self.validation_color)
 
         # train prediction scatter plots
         self.plot_preds_labels(\
@@ -249,7 +247,7 @@ class Plotter:
             param_names=self.param_names,
             prefix=self.network_prefix+'_train',
             color=self.train_color,
-            plot_dir=self.plt_job_dir,
+            plot_dir=self.plt_proj_dir,
             title='Train')
 
         # test predicition scatter plots
@@ -259,19 +257,19 @@ class Plotter:
             param_names=self.param_names,
             prefix=self.network_prefix+'_test',
             color=self.test_color,
-            plot_dir=self.plt_job_dir,
+            plot_dir=self.plt_proj_dir,
             title='Test')
 
 
         # save histograms
-        self.plot_sim_histogram(save_fn=self.save_hist_aux_fn, sim_values=self.input_stats, pred_values=self.pred_aux_data, color=self.aux_color, title='Aux. data')
-        self.plot_sim_histogram(save_fn=self.save_hist_label_fn, sim_values=self.input_labels, pred_values=self.pred_lbl_value, color=self.label_color, title='Labels' )
+        self.plot_sim_histogram(save_fn=self.save_hist_aux_fn, sim_values=self.input_stats, pred_values=self.est_aux_data, color=self.aux_color, title='Aux. data')
+        self.plot_sim_histogram(save_fn=self.save_hist_label_fn, sim_values=self.input_labels, pred_values=self.est_lbl_value, color=self.label_color, title='Labels' )
         
         # save PCA
-        self.plot_pca(save_fn=self.save_pca_aux_fn, sim_stat=self.input_stats, pred_stat=self.pred_aux_data, color=self.aux_color)
+        self.plot_pca(save_fn=self.save_pca_aux_fn, sim_stat=self.input_stats, est_stat=self.est_aux_data, color=self.aux_color)
         
         # save point est. and CI for test dataset (if it exists)
-        self.plot_pred_est_CI(save_fn=self.save_cpi_pred_fn, pred_label=self.pred_lbl_df, title=f'Prediction: {self.pred_dir}/{self.est_prefix}', color=self.pred_color)
+        self.plot_est_CI(save_fn=self.save_cpi_est_fn, est_label=self.est_lbl_df, title=f'Estimate: {self.est_dir}/{self.est_prefix}', color=self.est_color)
         
         # save network
         tf.keras.utils.plot_model(self.model, to_file=self.save_network_fn, show_shapes=True)
@@ -279,7 +277,7 @@ class Plotter:
         utilities.print_str('▪ saving plots ...', verbose=self.verbose)
 
         # collect and sort file names
-        files = os.listdir(self.plt_job_dir)
+        files = os.listdir(self.plt_proj_dir)
         files.sort()
         files = [ f for f in files if '.pdf' in f and self.network_prefix in f and 'all_results' not in f ]
 
@@ -295,7 +293,7 @@ class Plotter:
         # combine pdfs
         merger = PdfMerger()
         for f in files_ordered:
-            merger.append(self.plt_job_dir + '/' + f)
+            merger.append(self.plt_proj_dir + '/' + f)
 
         merger.write(self.save_summary_fn)
 
@@ -396,14 +394,14 @@ class Plotter:
 
     
 
-    def plot_pca(self, save_fn, sim_stat, pred_stat=None, num_comp=4, f_show=0.05, color='blue'):
+    def plot_pca(self, save_fn, sim_stat, est_stat=None, num_comp=4, f_show=0.05, color='blue'):
         """
         Plots PCA on the given data and saves the figure as a PDF.
         
         Args:
             save_fn (str): The filename to save the figure as a PDF.
             sim_stat (pd.DataFrame): The simulated statistics data.
-            pred_stat (pd.DataFrame, optional): The predicted statistics data. Defaults to None.
+            est_stat (pd.DataFrame, optional): The estimated-data statistics data. Defaults to None.
             num_comp (int, optional): The number of components for PCA. Defaults to 4.
             f_show (float, optional): The fraction of data to show in the scatter plot. Defaults to 0.05.
             color (str, optional): The color for scatter points. Defaults to 'blue'.
@@ -418,9 +416,9 @@ class Plotter:
         pca_model = PCA(n_components=num_comp)
         pca = pca_model.fit_transform(x)
         
-        if self.pred_aux_loaded:
-            pred_stat = scaler.transform(pred_stat)
-            pca_pred = pca_model.transform(pred_stat)
+        if self.est_aux_loaded:
+            est_stat = scaler.transform(est_stat)
+            pca_est = pca_model.transform(est_stat)
         
         fig_width = 8
         fig_height = 8 
@@ -436,10 +434,10 @@ class Plotter:
                 axs[i,j].axis('off')
             for j in range(0, i+1):
                 axs[i,j].scatter( pca[0:nrow_keep,i+1], pca[0:nrow_keep,j], alpha=alpha, marker='x', color=color )
-                if self.pred_aux_loaded:    
-                    axs[i,j].scatter(pca_pred[0:nrow_keep,i+1], pca_pred[0:nrow_keep,j],
+                if self.est_aux_loaded:    
+                    axs[i,j].scatter(pca_est[0:nrow_keep,i+1], pca_est[0:nrow_keep,j],
                                      alpha=1.0, color='white', edgecolor='black', s=80)
-                    axs[i,j].scatter(pca_pred[0:nrow_keep,i+1], pca_pred[0:nrow_keep,j],
+                    axs[i,j].scatter(pca_est[0:nrow_keep,i+1], pca_est[0:nrow_keep,j],
                                      alpha=1.0, color='red', edgecolor='white', s=40)
                 if j == 0:
                     ylabel = 'PC{idx} ({var}%)'.format( idx=str(i+2), var=int(100*round(pca_var[i+1], ndigits=2)) )
@@ -456,30 +454,30 @@ class Plotter:
         return
 
 
-    def plot_pred_est_CI(self, save_fn, pred_label, title='Prediction', color='black', plot_log=True):
+    def plot_est_CI(self, save_fn, est_label, title='Prediction', color='black', plot_log=True):
 
         """
         Plot the prediction estimates with confidence intervals.
 
         Parameters:
         - save_fn (str): The filename to save the plot.
-        - pred_label (DataFrame): The predicted labels.
+        - est_label (DataFrame): The predicted labels.
         - title (str, optional): The title of the plot. Default is 'Prediction'.
         - color (str, optional): The color of the confidence intervals. Default is 'black'.
         - plot_log (bool, optional): Whether to plot the y-axis in logarithmic scale. Default is True.
         """
-        if pred_label is None:
+        if est_label is None:
             return
 
         plt.figure(figsize=(5,5))      
-        label_names = pred_label.columns
+        label_names = est_label.columns
         num_label = len(label_names)
         
         if plot_log:
             plt.yscale('log')
 
         for i,col in enumerate(label_names):
-            col_data = pred_label[col]
+            col_data = est_label[col]
             y_value = col_data[0].iloc[0]
             y_lower = col_data[0].iloc[1]
             y_upper = col_data[0].iloc[2]

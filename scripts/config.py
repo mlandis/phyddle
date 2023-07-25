@@ -111,7 +111,7 @@ args = {
     'plot_val_color'        : 'red',        # plot color for validation data
     'plot_aux_color'        : 'green',      # plot color for input auxiliary data
     'plot_label_color'      : 'orange',     # plot color for labels (params)
-    'plot_pred_color'       : 'black'       # plot color for predictions
+    'plot_est_color'        : 'black'       # plot color for estimated data/values
 
 }
 

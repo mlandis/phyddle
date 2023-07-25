@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 """
-Formatting
-==========
+format
+======
 Defines classes and methods for the Formatting step, which converts raw data
-into tensor data that can be used by the Learning step.
+into tensor data that can be used by the Training step.
 
 Authors:   Michael Landis and Ammon Thompson
 Copyright: (c) 2022-2023, Michael Landis and Ammon Thompson
