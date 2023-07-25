@@ -25,6 +25,7 @@ import tensorflow as tf
 #from PyPDF2 import PdfMerger
 from pypdf import PdfMerger
 from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
 
 # phyddle imports
 from phyddle import Utilities
@@ -406,8 +407,10 @@ class Plotter:
             f_show (float, optional): The fraction of data to show in the scatter plot. Defaults to 0.05.
             color (str, optional): The color for scatter points. Defaults to 'blue'.
         """
-        #x = sim_stat #StandardScaler().fit_transform(df)
-        x = sim_stat # pd.DataFrame(sim_stat, columns=sim_stat.columns)
+
+        scaler = StandardScaler()
+        x = scaler.fit_transform(sim_stat)
+        #x = sim_stat # pd.DataFrame(sim_stat, columns=sim_stat.columns)
         nrow_keep = int(x.shape[0] * f_show)
         alpha = np.min( [1, 100 / nrow_keep] )
         
@@ -415,6 +418,7 @@ class Plotter:
         pca = pca_model.fit_transform(x)
         
         if self.pred_aux_loaded:
+            pred_stat = scaler.transform(pred_stat)
             pca_pred = pca_model.transform(pred_stat)
         
         fig_width = 8
