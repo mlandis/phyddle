@@ -15,7 +15,7 @@ import scipy as sp
 import numpy as np
 import pandas as pd
 
-from phyddle.Models import Model
+from phyddle.models import model
 from phyddle.utilities import States,Event
 
 

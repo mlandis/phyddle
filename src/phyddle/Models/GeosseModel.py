@@ -16,7 +16,7 @@ import numpy as np
 import scipy as sp
 import pandas as pd
 
-from phyddle.Models import Model
+from phyddle.models.model import BaseModel
 from phyddle.utilities import sort_binary_vectors,States,Event
 
 variant_registry = []
@@ -26,7 +26,7 @@ variant_registry.append( ['equal_rates',       'rates equal among all events wit
 variant_registry.append( ['density_effect',    'equal_rates + local density-dependent extinction'] )
 variant_registry = pd.DataFrame( variant_registry, columns = variant_registry_names)
 
-class GeosseModel(Model.BaseModel):
+class GeosseModel(BaseModel):
     
     # initialize model
     def __init__(self, args):

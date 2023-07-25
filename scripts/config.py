@@ -16,7 +16,7 @@ args = {
     # Project organization          #
     #-------------------------------#
     'proj'           : 'my_project',        # directory name for pipeline project
-    'step'           : 'all',                         # step(s) to run? all, sim, fmt, lrn, prd, plt
+    'step'           : '*',                         # step(s) to run? all, sim, fmt, lrn, prd, plt
     'verbose'        : True,                          # print verbose phyddle output?
     'sim_dir'        : '../workspace/raw_data',       # directory for simulated data
     'fmt_dir'        : '../workspace/tensor_data',    # directory for tensor-formatted data

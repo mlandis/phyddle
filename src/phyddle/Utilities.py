@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Utilities
+utilities
 ===========
 Miscellaneous helper functions phyddle uses for pipeline steps.
 
@@ -280,8 +280,8 @@ def load_config(config_fn: str,
     
     # print models & exit
     if args.show_models:
-         import ModelLoader
-         model_str = ModelLoader.make_model_registry_str()
+         import model_loader
+         model_str = model_loader.make_model_registry_str()
          print(model_str)
          sys.exit()
 
