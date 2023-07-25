@@ -83,7 +83,8 @@ class Formatter:
         self.num_states    = args['num_states']
         self.param_pred    = args['param_pred'] # parameters in label set (prediction)
         self.param_data    = args['param_data'] # parameters in data set (training, etc)
-        self.tensor_format = args['tensor_format']
+        self.chardata_format = args['chardata_format']
+        self.tensor_format   = args['tensor_format']
 
         # encoder arguments
         self.model_name        = args['model_type']
@@ -531,13 +532,13 @@ class Formatter:
         # state space
         #vecstr2int = self.model.states.vecstr2int #{ v:i for i,v in enumerate(int2vecstr) }
 
-        # read in nexus data file
-        dat = Utilities.convert_nexus_to_array(dat_nex_fn, self.char_encode_type, self.num_states)
-        # if self.char_encode_type == 'integer':
-        #     dat = Utilities.convert_nexus_to_integer_array(dat_nex_fn)
-        # elif self.char_encode_type == 'one_hot':
-        #     dat = Utilities.convert_nexus_to_onehot_array(dat_nex_fn, self.num_states)
 
+        # read in nexus data file
+        if self.chardata_format == 'nexus':
+            dat = Utilities.convert_nexus_to_array(dat_nex_fn, self.char_encode_type, self.num_states)
+        elif self.chardata_format == 'csv':
+            dat = Utilities.convert_csv_to_array(dat_nex_fn, self.char_encode_type, self.num_states)
+        
         # get tree file
         phy = Utilities.read_tree(tre_fn)
         if phy is None:

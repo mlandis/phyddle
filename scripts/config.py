@@ -69,6 +69,7 @@ args = {
     # Formatting Step settings      #
     #-------------------------------#
     'tree_type'         : 'extant',         # use model with serial or extant tree
+    'chardata_format'   : 'nexus',
     'tree_width_cats'   : [ 200, 500 ],     # tree width categories for phylo-state tensors
     'tree_encode_type'  : 'height_brlen',   # how to encode phylo brlen? height_only or height_brlen
     'char_encode_type'  : 'integer',        # how to encode discrete states? one_hot or integer

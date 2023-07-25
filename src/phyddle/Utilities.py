@@ -249,7 +249,8 @@ def load_config(config_fn: str,
     parser.add_argument('--tree_width_cats',    dest='tree_width_cats', type=int, help='The phylo-state tensor widths for formatting training datasets, space-delimited', metavar='')
     parser.add_argument('--tree_encode_type',   dest='tree_encode_type', type=str, choices=['height_only', 'height_brlen'], help='Method for encoding branch length info in tensor', metavar='')
     parser.add_argument('--char_encode_type',   dest='char_encode_type', type=str, choices=['one_hot', 'integer'], help='Method for encoding character states in tensor', metavar='')
-    parser.add_argument('--tensor_format',      dest='tensor_format', type=str, choices=['hdf5', 'csv'], help='Storage format for simulation tensors', metavar='')
+    parser.add_argument('--chardata_format',    dest='chardata_format', type=str, choices=['nexus', 'csv'], help='Input format for character matrix data', metavar='')
+    parser.add_argument('--tensor_format',      dest='tensor_format', type=str, choices=['hdf5', 'csv'], help='Output format for storing tensors of training dataset', metavar='')
     parser.add_argument('--save_phyenc_csv',    dest='save_phyenc_csv', type=bool, help='Save encoded phylogenetic tensor encoding to csv?', metavar='')
     # learning settings
     parser.add_argument('--learn_method',       dest='learn_method', type=str, choices=['param_est', 'model_test'], help='Learning method', metavar='')
@@ -330,6 +331,8 @@ def load_config(config_fn: str,
     m = overwrite_defaults(m, args, 'tree_width_cats')
     m = overwrite_defaults(m, args, 'tree_encode_type')
     m = overwrite_defaults(m, args, 'char_encode_type')
+    m = overwrite_defaults(m, args, 'tensor_format')
+    m = overwrite_defaults(m, args, 'chardata_format')
     m = overwrite_defaults(m, args, 'learn_method')
     m = overwrite_defaults(m, args, 'num_epochs')
     m = overwrite_defaults(m, args, 'batch_size')
@@ -402,6 +405,7 @@ def check_args(args):
     assert args['tree_encode_type']  in ['height_only', 'height_brlen']
     assert args['char_encode_type']  in ['one_hot', 'integer']
     assert args['tensor_format']     in ['csv', 'hdf5']
+    assert args['chardata_format']   in ['csv', 'nexus']
     assert args['learn_method']      in ['param_est', 'model_test']
     
     # numerical values
@@ -874,7 +878,7 @@ def make_prune_phy(phy, prune_fn):
         age = tree_height - nd.root_distance
         nd.annotations.add_new('age', age)
         # ultrametricize ages for extant taxa
-        if age < tol:
+        if age < 1e-6: #tol:
             age = 0.0
         # store taxon and age in dictionary
         taxon_name = str(nd.taxon).strip('\'')
