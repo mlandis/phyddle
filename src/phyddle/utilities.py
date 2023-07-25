@@ -219,15 +219,15 @@ def load_config(config_fn: str,
     parser.add_argument('-c', '--cfg',          dest='config_fn', type=str, help='Config file name', metavar='')
     #parser.add_argument('-f', '--force',        action='store_true', help='Arguments override config file settings')
     parser.add_argument('-p', '--proj',         dest='proj', type=str, help='Project name used as directory across pipeline stages', metavar='')
-    parser.add_argument('-s', '--step',         dest='step', type=str, choices=['*', 'S', 'F', 'T', 'E', 'P'], help='Pipeline step(s) to apply', metavar='')
+    parser.add_argument('-s', '--step',         dest='step', type=str, help='Pipeline step(s) to apply (S)imulate, (F)ormat, (T)rain, (E)stimate, (P)lot', metavar='')
     parser.add_argument('-v', '--verbose',      dest='verbose', type=bool, help='Verbose output to screen? (recommended)', metavar='')
     parser.add_argument('--use_parallel',       dest='use_parallel', type=bool, help='Use parallelization? (recommended)', metavar='')
     parser.add_argument('--num_proc',           dest='num_proc', type=int, help='How many cores for multiprocessing? (e.g. 4 uses 4, -2 uses all but 2)', metavar='')
     # directory settings
     parser.add_argument('--sim_dir',            dest='sim_dir', type=str, help='Directory for raw simulated data', metavar='')
     parser.add_argument('--fmt_dir',            dest='fmt_dir', type=str, help='Directory for tensor-formatted simulated data', metavar='')
-    parser.add_argument('--lrn_dir',            dest='lrn_dir', type=str, help='Directory for trained networks and training predictions', metavar='')
-    parser.add_argument('--prd_dir',            dest='prd_dir', type=str, help='Directory for new datasets and predictions', metavar='')
+    parser.add_argument('--trn_dir',            dest='trn_dir', type=str, help='Directory for trained networks and training predictions', metavar='')
+    parser.add_argument('--est_dir',            dest='est_dir', type=str, help='Directory for new datasets and predictions', metavar='')
     parser.add_argument('--plt_dir',            dest='plt_dir', type=str, help='Directory for plotted results', metavar='')
     parser.add_argument('--log_dir',            dest='log_dir', type=str, help='Directory for logs of analysis metadata', metavar='')
     # model settings
@@ -253,7 +253,7 @@ def load_config(config_fn: str,
     parser.add_argument('--tensor_format',      dest='tensor_format', type=str, choices=['hdf5', 'csv'], help='Output format for storing tensors of training dataset', metavar='')
     parser.add_argument('--save_phyenc_csv',    dest='save_phyenc_csv', type=bool, help='Save encoded phylogenetic tensor encoding to csv?', metavar='')
     # learning settings
-    parser.add_argument('--learn_method',       dest='learn_method', type=str, choices=['param_est', 'model_test'], help='Learning method', metavar='')
+    parser.add_argument('--trn_objective',      dest='trn_objective', type=str, choices=['param_est', 'model_test'], help='Objective of training procedure', metavar='')
     parser.add_argument('--tree_width',         dest='tree_width', type=int, help='The phylo-state tensor width dataset used for a neural network', metavar='')
     parser.add_argument('--num_epochs',         dest='num_epochs', type=int, help='Number of learning epochs', metavar='')
     parser.add_argument('--batch_size',         dest='batch_size', type=int, help='Training batch sizes during learning', metavar='')
@@ -265,7 +265,7 @@ def load_config(config_fn: str,
     parser.add_argument('--loss',               dest='loss', type=str, help='Loss function used as optimization criterion', metavar='')
     parser.add_argument('--optimizer',          dest='optimizer', type=str, help='Method used for optimizing neural network', metavar='')
     # prediction settings
-    parser.add_argument('--pred_prefix',        dest='pred_prefix', type=str, help='Predict results for this dataset', metavar='')
+    parser.add_argument('--est_prefix',        dest='est_prefix', type=str, help='Predict results for this dataset', metavar='')
     # plotting settings
     parser.add_argument('--plot_train_color',   dest='plot_train_color', type=str, help='Plotting color for training data elements', metavar='')
     parser.add_argument('--plot_label_color',   dest='plot_label_color', type=str, help='Plotting color for training label elements', metavar='')
@@ -311,8 +311,8 @@ def load_config(config_fn: str,
     m = overwrite_defaults(m, args, 'num_proc')
     m = overwrite_defaults(m, args, 'sim_dir')
     m = overwrite_defaults(m, args, 'fmt_dir')
-    m = overwrite_defaults(m, args, 'lrn_dir')
-    m = overwrite_defaults(m, args, 'prd_dir')
+    m = overwrite_defaults(m, args, 'trn_dir')
+    m = overwrite_defaults(m, args, 'est_dir')
     m = overwrite_defaults(m, args, 'plt_dir')
     m = overwrite_defaults(m, args, 'log_dir')
     m = overwrite_defaults(m, args, 'model_type')
@@ -333,7 +333,7 @@ def load_config(config_fn: str,
     m = overwrite_defaults(m, args, 'char_encode_type')
     m = overwrite_defaults(m, args, 'tensor_format')
     m = overwrite_defaults(m, args, 'chardata_format')
-    m = overwrite_defaults(m, args, 'learn_method')
+    m = overwrite_defaults(m, args, 'trn_objective')
     m = overwrite_defaults(m, args, 'num_epochs')
     m = overwrite_defaults(m, args, 'batch_size')
     m = overwrite_defaults(m, args, 'prop_test')
@@ -343,7 +343,7 @@ def load_config(config_fn: str,
     m = overwrite_defaults(m, args, 'cpi_asymmetric')
     m = overwrite_defaults(m, args, 'loss')
     m = overwrite_defaults(m, args, 'optimizer')
-    m = overwrite_defaults(m, args, 'pred_prefix')
+    m = overwrite_defaults(m, args, 'est_prefix')
     m = overwrite_defaults(m, args, 'plot_train_color')
     m = overwrite_defaults(m, args, 'plot_test_color')
     m = overwrite_defaults(m, args, 'plot_val_color')
@@ -359,7 +359,7 @@ def load_config(config_fn: str,
     if m.args['step'] == '*':
         m.args['step'] = ['S', 'F', 'T', 'E', 'P']
     else:
-        m.args['step'] = [ m.args['step'] ]
+        m.args['step'] = [ i for i in m.args['step'] ]
 
     # add unique ID
     m.args['job_id'] = generate_random_hex_string(16)
@@ -382,7 +382,7 @@ def check_args(args):
     AssertionError: If any of the conditions are not met.
     """
     # string values
-    assert args['step']              in ['*', 'S', 'F', 'T', 'E', 'P']
+    assert all([s in 'SFTEP' for s in args['step']])
     assert args['sim_method']        in ['command', 'master']
     assert args['sim_logging']       in ['clean', 'verbose', 'compress']
     assert args['tree_type']         in ['serial', 'extant']
@@ -390,7 +390,7 @@ def check_args(args):
     assert args['char_encode_type']  in ['one_hot', 'integer']
     assert args['tensor_format']     in ['csv', 'hdf5']
     assert args['chardata_format']   in ['csv', 'nexus']
-    assert args['learn_method']      in ['param_est', 'model_test']
+    assert args['trn_objective']      in ['param_est', 'model_test']
     
     # numerical values
     assert args['start_idx'] >= 0

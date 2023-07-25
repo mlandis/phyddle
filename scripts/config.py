@@ -20,11 +20,11 @@ args = {
     'verbose'        : True,                          # print verbose phyddle output?
     'sim_dir'        : '../workspace/raw_data',       # directory for simulated data
     'fmt_dir'        : '../workspace/tensor_data',    # directory for tensor-formatted data
-    'lrn_dir'        : '../workspace/network',        # directory for trained network
+    'trn_dir'        : '../workspace/network',        # directory for trained network
     'plt_dir'        : '../workspace/plot',           # directory for plotted figures
-    'prd_dir'        : '../workspace/predict',        # directory for predictions on new data
+    'est_dir'        : '../workspace/estimate',        # directory for predictions on new data
     'log_dir'        : '../workspace/log',            # directory for logging metadata
-    'prd_prefix'     : 'new.1',             # prefix for new dataset to predict
+    'est_prefix'     : 'new.1',             # prefix for new dataset to predict
     
     #-------------------------------#
     # Multiprocessing               #
@@ -53,7 +53,7 @@ args = {
     },
 
     #-------------------------------#
-    # Simulating Step settings      #
+    # Simulate Step settings        #
     #-------------------------------#
     'sim_method'        : 'master',         # command, master, [phylojunction], ...
     'sim_command'       : 'beast',          # exact command string, argument is output file prefix
@@ -66,7 +66,7 @@ args = {
     'max_num_taxa'      : 500,              # max number of taxa for valid sim
 
     #-------------------------------#
-    # Formatting Step settings      #
+    # Format Step settings          #
     #-------------------------------#
     'tree_type'         : 'extant',         # use model with serial or extant tree
     'chardata_format'   : 'nexus',
@@ -81,9 +81,9 @@ args = {
     'save_phyenc_csv'   : False,            # save intermediate phylo-state vectors to file
 
     #-------------------------------#
-    # Learning Step settings        #
+    # Train Step settings           #
     #-------------------------------#
-    'learn_method'      : 'param_est',      # what is the learning task? param_est or model_test
+    'trn_objective'     : 'param_est',      # what is the learning task? param_est or model_test
     'tree_width'        : 500,              # tree width category used to train network
     'num_epochs'        : 20,               # number of training intervals (epochs)
     'prop_test'         : 0.05,             # proportion of sims in test dataset
@@ -97,7 +97,14 @@ args = {
     'metrics'           : ['mae', 'acc'],   # recorded training metrics
 
     #-------------------------------#
-    # Plotting Step settings        #
+    # Estimate Step settings        #
+    #-------------------------------#
+    # prediction already handled by previously defined settings
+    # no prediction-specific settings currently implemented
+
+
+    #-------------------------------#
+    # Plot Step settings            #
     #-------------------------------#
     'plot_train_color'      : 'blue',       # plot color for training data
     'plot_test_color'       : 'purple',     # plot color for test data
@@ -106,10 +113,5 @@ args = {
     'plot_label_color'      : 'orange',     # plot color for labels (params)
     'plot_pred_color'       : 'black'       # plot color for predictions
 
-    #-------------------------------#
-    # Predicting Step settings      #
-    #-------------------------------#
-    # prediction already handled by previously defined settings
-    # no prediction-specific settings currently implemented
 }
 

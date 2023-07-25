@@ -36,7 +36,7 @@ def load(args):
     Returns:
     Predictor: A Predictor object if predict_method is 'default', None otherwise.
     """
-    #sim_method = args['learn_method']
+    #sim_method = args['trn_objective']
     predict_method = 'default'
     if predict_method == 'default':
         return Predictor(args)
@@ -74,9 +74,9 @@ class Predictor:
         self.args              = args
         self.proj              = args['proj']
         self.verbose           = args['verbose']
-        self.net_dir           = args['lrn_dir']
-        self.pred_dir          = args['prd_dir']
-        self.pred_prefix       = args['prd_prefix']
+        self.net_dir           = args['trn_dir']
+        self.pred_dir          = args['est_dir']
+        self.est_prefix        = args['est_prefix']
         #self.num_char_row      = args['num_char']
         self.batch_size        = args['batch_size']
         self.num_epochs        = args['num_epochs']
@@ -108,18 +108,18 @@ class Predictor:
         self.model_cpi_fn           = f'{self.network_dir}/{self.model_prefix}.cpi_adjustments.csv'
 
         # save predictions to file
-        self.model_pred_fn          = f'{self.predict_dir}/{self.pred_prefix}.{self.model_prefix}.pred_labels.csv'
+        self.model_pred_fn          = f'{self.predict_dir}/{self.est_prefix}.{self.model_prefix}.pred_labels.csv'
 
         # test summ stats
-        self.pred_summ_stat_fn      = f'{self.predict_dir}/{self.pred_prefix}.summ_stat.csv'
-        self.pred_known_param_fn    = f'{self.predict_dir}/{self.pred_prefix}.known_param.csv'
+        self.pred_summ_stat_fn      = f'{self.predict_dir}/{self.est_prefix}.summ_stat.csv'
+        self.pred_known_param_fn    = f'{self.predict_dir}/{self.est_prefix}.known_param.csv'
 
         # test phy vector
         if self.tree_type == 'extant':
-            self.pred_phyvec_fn     = f'{self.predict_dir}/{self.pred_prefix}.cdvs.csv'    
+            self.pred_phyvec_fn     = f'{self.predict_dir}/{self.est_prefix}.cdvs.csv'    
         #    self.num_tree_row       = 3
         elif self.tree_type == 'serial':
-            self.pred_phyvec_fn     = f'{self.predict_dir}/{self.pred_prefix}.cblvs.csv'
+            self.pred_phyvec_fn     = f'{self.predict_dir}/{self.est_prefix}.cblvs.csv'
         #    self.num_tree_row       = 4   
         else:
             raise NotImplementedError

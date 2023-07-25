@@ -33,13 +33,13 @@ def load(args):
 
     Args: args (dict): A dictionary containing the arguments.
 
-    Returns: CnnLearner: An instance of the CnnLearner class if the learn_method argument is set to 'param_est'. None: If the learn_method argument is set to any value other than 'param_est'. NotImplementedError: If the learn_method argument is set to 'model_test', as this method is not yet implemented.
+    Returns: CnnLearner: An instance of the CnnLearner class if the trn_objective argument is set to 'param_est'. None: If the trn_objective argument is set to any value other than 'param_est'. NotImplementedError: If the trn_objective argument is set to 'model_test', as this method is not yet implemented.
 
     """
-    learn_method = args['learn_method']
-    if learn_method == 'param_est':
+    trn_objective = args['trn_objective']
+    if trn_objective == 'param_est':
         return CnnLearner(args)
-    elif learn_method == 'model_test':
+    elif trn_objective == 'model_test':
         raise NotImplementedError
     else:
         return None
@@ -90,9 +90,9 @@ class Learner:
         self.num_states        = args['num_states']
         self.fmt_dir           = args['fmt_dir']
         self.plt_dir           = args['plt_dir']
-        self.net_dir           = args['lrn_dir']
-        self.learn_method      = args['learn_method']
-        if self.learn_method == 'model_test':
+        self.net_dir           = args['trn_dir']
+        self.trn_objective      = args['trn_objective']
+        if self.trn_objective == 'model_test':
             self.test_models = args['test_models']
         self.batch_size        = args['batch_size']
         self.num_epochs        = args['num_epochs']    

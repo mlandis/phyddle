@@ -33,7 +33,7 @@ from phyddle import utilities
 #-----------------------------------------------------------------------------------------------------------------#
 
 def load(args):
-    #sim_method = args['learn_method']
+    #sim_method = args['trn_objective']
     plot_method = 'default'
     if plot_method == 'default':
         return Plotter(args)
@@ -71,16 +71,16 @@ class Plotter:
         self.args              = args
         self.proj              = args['proj']
         self.verbose           = args['verbose']
-        self.network_dir       = args['lrn_dir']
+        self.network_dir       = args['trn_dir']
         self.plot_dir          = args['plt_dir']
-        #self.pred_dir          = args['prd_dir']
+        #self.pred_dir          = args['est_dir']
         self.tensor_dir        = args['fmt_dir']
         self.batch_size        = args['batch_size']
         self.num_epochs        = args['num_epochs']
         self.tree_width        = args['tree_width']
         self.tensor_format     = args['tensor_format']
-        self.pred_dir          = args['prd_dir'] if 'prd_dir' in args else ''
-        self.pred_prefix       = args['prd_prefix'] if 'prd_prefix' in args else ''
+        self.pred_dir          = args['est_dir'] if 'est_dir' in args else ''
+        self.est_prefix       = args['prd_prefix'] if 'prd_prefix' in args else ''
         self.train_color       = args['plot_train_color']
         self.test_color        = args['plot_test_color']
         self.validation_color  = args['plot_val_color']
@@ -121,9 +121,9 @@ class Plotter:
         self.history_json_fn    = f'{self.net_job_dir}/{self.network_prefix}.train_history.json'
 
         # predictions
-        self.pred_aux_fn        = f'{self.pred_job_dir}/{self.pred_prefix}.summ_stat.csv'
-        self.pred_lbl_fn        = f'{self.pred_job_dir}/{self.pred_prefix}.{self.network_prefix}.pred_labels.csv'
-        self.pred_known_param_fn = f'{self.pred_job_dir}/{self.pred_prefix}.known_param.csv'
+        self.pred_aux_fn        = f'{self.pred_job_dir}/{self.est_prefix}.summ_stat.csv'
+        self.pred_lbl_fn        = f'{self.pred_job_dir}/{self.est_prefix}.{self.network_prefix}.pred_labels.csv'
+        self.pred_known_param_fn = f'{self.pred_job_dir}/{self.est_prefix}.known_param.csv'
         
         # plotting output
         self.save_hist_aux_fn   = f'{self.plt_job_dir}/{self.network_prefix}.histogram_aux.pdf'
@@ -270,7 +270,7 @@ class Plotter:
         self.plot_pca(save_fn=self.save_pca_aux_fn, sim_stat=self.input_stats, pred_stat=self.pred_aux_data, color=self.aux_color)
         
         # save point est. and CI for test dataset (if it exists)
-        self.plot_pred_est_CI(save_fn=self.save_cpi_pred_fn, pred_label=self.pred_lbl_df, title=f'Prediction: {self.pred_dir}/{self.pred_prefix}', color=self.pred_color)
+        self.plot_pred_est_CI(save_fn=self.save_cpi_pred_fn, pred_label=self.pred_lbl_df, title=f'Prediction: {self.pred_dir}/{self.est_prefix}', color=self.pred_color)
         
         # save network
         tf.keras.utils.plot_model(self.model, to_file=self.save_network_fn, show_shapes=True)

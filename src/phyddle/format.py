@@ -34,7 +34,7 @@ sys.setrecursionlimit(10000)
 
 # fairly sure that Formatter does not need mdl
 def load(args):
-    #sim_method = args['learn_method']
+    #sim_method = args['trn_objective']
     format_method = 'default'
     if format_method == 'default':
         return Formatter(args)
@@ -118,7 +118,7 @@ class Formatter:
         Returns:
             None
         """
-        if self.verbose: print(utilities.phyddle_info('fmt', self.proj, [self.sim_dir], self.fmt_dir))
+        if self.verbose: print(utilities.phyddle_info('format', self.proj, [self.sim_dir], self.fmt_dir))
 
         # new dir
         os.makedirs(self.out_dir, exist_ok=True)
@@ -521,11 +521,11 @@ class Formatter:
         if not os.path.exists(dat_nex_fn):
             err_msg = f'Formatter.encode_one(): {dat_nex_fn} does not exist'
             print(err_msg)
-            self.logger.write_log('fmt', err_msg)
+            self.logger.write_log('format', err_msg)
         if not os.path.exists(tre_fn):
             err_msg = f'Formatter.encode_one(): {tre_fn} does not exist'
             print(err_msg)
-            self.logger.write_log('fmt', err_msg)
+            self.logger.write_log('format', err_msg)
         if err_msg is not None:
             return
         
