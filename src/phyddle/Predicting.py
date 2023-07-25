@@ -21,7 +21,7 @@ import tensorflow as tf
 #from keras import *
 
 # phyddle imports
-from phyddle import Utilities
+from phyddle import utilities
 #from Formatting import encode_phy_tensor
 
 #-----------------------------------------------------------------------------------------------------------------#
@@ -59,7 +59,7 @@ class Predictor:
         """
         self.set_args(args)
         self.prepare_files()
-        self.logger = Utilities.Logger(args)
+        self.logger = utilities.Logger(args)
         return
     
     def set_args(self, args):
@@ -124,8 +124,8 @@ class Predictor:
         else:
             raise NotImplementedError
 
-        self.num_tree_row = Utilities.get_num_tree_row(self.tree_type, self.tree_encode_type)
-        self.num_char_row = Utilities.get_num_char_row(self.char_encode_type, self.num_char, self.num_states)
+        self.num_tree_row = utilities.get_num_tree_row(self.tree_type, self.tree_encode_type)
+        self.num_char_row = utilities.get_num_char_row(self.char_encode_type, self.num_char, self.num_states)
         self.num_data_row = self.num_tree_row + self.num_char_row
         
         return
@@ -140,16 +140,16 @@ class Predictor:
         Returns:
             None
         """
-        if self.verbose: print(Utilities.phyddle_info('prd', self.proj, [self.pred_dir, self.net_dir], self.pred_dir))
+        if self.verbose: print(utilities.phyddle_info('prd', self.proj, [self.pred_dir, self.net_dir], self.pred_dir))
         os.makedirs(self.predict_dir, exist_ok=True)
 
-        if self.verbose: print(Utilities.phyddle_str('▪ loading input ...'))
+        if self.verbose: print(utilities.phyddle_str('▪ loading input ...'))
         self.load_input()
 
-        if self.verbose: print(Utilities.phyddle_str('▪ making prediction ...'))
+        if self.verbose: print(utilities.phyddle_str('▪ making prediction ...'))
         self.make_results()
 
-        if self.verbose: print(Utilities.phyddle_str('... done!'))
+        if self.verbose: print(utilities.phyddle_str('... done!'))
         
     def load_input(self):
         """
@@ -192,8 +192,8 @@ class Predictor:
 
         #print(self.pred_auxdata_tensor)
 
-        self.norm_pred_stats          = Utilities.normalize(self.pred_auxdata_tensor, (self.train_stats_means, self.train_stats_sd))
-        self.denormalized_pred_stats  = Utilities.denormalize(self.norm_pred_stats, self.train_stats_means, self.train_stats_sd)
+        self.norm_pred_stats          = utilities.normalize(self.pred_auxdata_tensor, (self.train_stats_means, self.train_stats_sd))
+        self.denormalized_pred_stats  = utilities.denormalize(self.norm_pred_stats, self.train_stats_means, self.train_stats_sd)
 
 
         # read in CQR interval adjustments
@@ -221,14 +221,14 @@ class Predictor:
         self.norm_preds                = np.array( self.norm_preds )
         self.norm_preds[1,:,:]         = self.norm_preds[1,:,:] - self.cpi_adjustments[0,:]
         self.norm_preds[2,:,:]         = self.norm_preds[2,:,:] + self.cpi_adjustments[1,:]
-        self.denormalized_pred_labels  = Utilities.denormalize(self.norm_preds, self.train_labels_means, self.train_labels_sd)
+        self.denormalized_pred_labels  = utilities.denormalize(self.norm_preds, self.train_labels_means, self.train_labels_sd)
         #print(self.denormalized_pred_labels)
         self.denormalized_pred_labels[ self.denormalized_pred_labels > 300. ] = 300.
         self.pred_labels               = np.exp( self.denormalized_pred_labels )
         #print(np.exp( self.denormalized_pred_labels ))
        
         # output predictions
-        self.df_pred_all_labels = Utilities.make_param_VLU_mtx(self.pred_labels, self.param_names)
+        self.df_pred_all_labels = utilities.make_param_VLU_mtx(self.pred_labels, self.param_names)
         self.df_pred_all_labels.to_csv(self.model_pred_fn, index=False, sep=',')
 
         return

@@ -16,7 +16,7 @@ import numpy as np
 import pandas as pd
 
 from phyddle.Models import Model
-from phyddle.Utilities import States,Event
+from phyddle.utilities import States,Event
 
 
 model_type = 'SIRM'

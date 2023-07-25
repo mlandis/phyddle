@@ -76,6 +76,7 @@ args = {
     ],
     'param_data'        : [],               # model parameters that are known (aux. data)
     'tensor_format'     : 'hdf5',           # save as compressed HDF5 or raw csv
+    'chardata_format'   : 'nexus',          # expect character data is in nexus or csv format
     'save_phyenc_csv'   : False,            # save intermediate phylo-state vectors to file
 
     #-------------------------------#

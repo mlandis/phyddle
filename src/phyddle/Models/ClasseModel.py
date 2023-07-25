@@ -17,7 +17,7 @@ import scipy as sp
 import pandas as pd
 
 from phyddle.Models import Model
-from phyddle.Utilities import States,Event
+from phyddle.utilities import States,Event
 
 variant_registry = []
 variant_registry_names = ['variant_name',

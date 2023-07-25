@@ -28,7 +28,7 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 
 # phyddle imports
-from phyddle import Utilities
+from phyddle import utilities
 
 #-----------------------------------------------------------------------------------------------------------------#
 
@@ -170,8 +170,8 @@ class Plotter:
             self.input_labels = pd.DataFrame( hdf5_file['labels'][:,:], columns=self.input_label_names )
             hdf5_file.close()
 
-        #self.test_preds_df = Utilities.make_param_VLU_mtx( self.test_preds, self.param_names )
-        #self.train_preds_df = Utilities.make_param_VLU_mtx( self.train_preds, self.param_names )
+        #self.test_preds_df = utilities.make_param_VLU_mtx( self.test_preds, self.param_names )
+        #self.train_preds_df = utilities.make_param_VLU_mtx( self.train_preds, self.param_names )
 
         #print(self.test_preds_df.iloc[0])
         #print(self.test_preds_df.shape)
@@ -231,13 +231,13 @@ class Plotter:
         Returns:
             None
         """
-        if self.verbose: print(Utilities.phyddle_info('plt', self.proj, [self.tensor_dir, self.network_dir, self.pred_dir], self.plot_dir))
+        if self.verbose: print(utilities.phyddle_info('plt', self.proj, [self.tensor_dir, self.network_dir, self.pred_dir], self.plot_dir))
 
         # load data
-        if self.verbose: print(Utilities.phyddle_str('▪ loading input ...'))
+        if self.verbose: print(utilities.phyddle_str('▪ loading input ...'))
         self.load_data()
 
-        if self.verbose: print(Utilities.phyddle_str('▪ generating plots ...'))
+        if self.verbose: print(utilities.phyddle_str('▪ generating plots ...'))
         # training stats
         self.make_history_plot(self.history_dict, prefix=self.network_prefix+'_history', plot_dir=self.plt_job_dir, train_color=self.train_color, val_color=self.validation_color)
 
@@ -275,7 +275,7 @@ class Plotter:
         # save network
         tf.keras.utils.plot_model(self.model, to_file=self.save_network_fn, show_shapes=True)
 
-        if self.verbose: print(Utilities.phyddle_str('... saving plots ...'))
+        if self.verbose: print(utilities.phyddle_str('... saving plots ...'))
 
         # collect and sort file names
         files = os.listdir(self.plt_job_dir)
@@ -298,7 +298,7 @@ class Plotter:
 
         merger.write(self.save_summary_fn)
 
-        if self.verbose: print(Utilities.phyddle_str('... done!'))
+        if self.verbose: print(utilities.phyddle_str('... done!'))
 
         return
 

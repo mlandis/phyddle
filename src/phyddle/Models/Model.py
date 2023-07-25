@@ -9,7 +9,7 @@ Copyright: (c) 2022-2023, Michael Landis and Ammon Thompson
 License:   MIT
 """
 
-from phyddle import Utilities
+from phyddle import utilities
 import numpy as np
 
 class BaseModel:
@@ -60,9 +60,9 @@ class BaseModel:
         # event space
         self.events      = self.make_events( self.states, self.params )
         # event space dataframe
-        self.df_events   = Utilities.events2df( self.events )
+        self.df_events   = utilities.events2df( self.events )
         # state space dataframe
-        self.df_states   = Utilities.states2df( self.states )
+        self.df_states   = utilities.states2df( self.states )
         return
     
     def clear_model(self):

@@ -4,12 +4,12 @@
 # LOAD PIPELINE CONFIG #
 ########################
 
-from phyddle import Utilities
+from phyddle import utilities
 
-my_args = Utilities.load_config('config', arg_overwrite=True)
+my_args = utilities.load_config('config', arg_overwrite=True)
 step = my_args['step']
 
-logger = Utilities.Logger(my_args)
+logger = utilities.Logger(my_args)
 logger.save_log('run')
 
 ################
@@ -17,27 +17,27 @@ logger.save_log('run')
 ################
 
 # Step 1: simulate training data
-if 'sim' in step:
+if 'S' in step:
     from phyddle import ModelLoader
-    from phyddle import Simulating
+    from phyddle import simulate
     my_mdl = ModelLoader.load(my_args)
-    my_sim = Simulating.load(my_args, my_mdl)
+    my_sim = simulate.load(my_args, my_mdl)
     my_sim.run()
 
 # Step 2: format training data into tensors
-if 'fmt' in step:
+if 'F' in step:
     from phyddle import Formatting
     my_fmt = Formatting.load(my_args)
     my_fmt.run()
 
 # Step 3: train network with training data
-if 'lrn' in step:
+if 'T' in step:
     from phyddle import Learning
     my_lrn = Learning.load(my_args)
     my_lrn.run()
 
-# Step 4: predict for new dataset
-if 'prd' in step:
+# Step 4: estimates for new dataset
+if 'E' in step:
     prd_prefix = f"{my_args['prd_dir']}/{my_args['proj']}/{my_args['prd_prefix']}"
     from phyddle import Formatting
     from phyddle import Predicting
@@ -47,7 +47,7 @@ if 'prd' in step:
     my_prd.run()
 
 # Step 5: plot results
-if 'plt' in step:
+if 'P' in step:
     from phyddle import Plotting
     my_plt = Plotting.load(my_args)
     my_plt.run()

@@ -25,7 +25,7 @@ from joblib import Parallel, delayed
 from tqdm import tqdm
 
 # phyddle imports
-from phyddle import Utilities
+from phyddle import utilities
 
 # settings
 sys.setrecursionlimit(10000)
@@ -56,7 +56,7 @@ class Formatter:
             Formatter: The Formatter object based on the specified args.
         """
         self.set_args(args)
-        self.logger = Utilities.Logger(args)
+        self.logger = utilities.Logger(args)
         #self.model = mdl
         return        
 
@@ -105,8 +105,8 @@ class Formatter:
         self.out_dir       = f'{self.fmt_dir}/{self.proj}'
         self.rep_idx       = list(range(self.start_idx, self.end_idx))
 
-        self.num_tree_row = Utilities.get_num_tree_row(self.tree_type, self.tree_encode_type)
-        self.num_char_row = Utilities.get_num_char_row(self.char_encode_type, self.num_char, self.num_states)
+        self.num_tree_row = utilities.get_num_tree_row(self.tree_type, self.tree_encode_type)
+        self.num_char_row = utilities.get_num_char_row(self.char_encode_type, self.num_char, self.num_states)
         self.num_data_row = self.num_tree_row + self.num_char_row
 
         return
@@ -118,23 +118,23 @@ class Formatter:
         Returns:
             None
         """
-        if self.verbose: print(Utilities.phyddle_info('fmt', self.proj, [self.sim_dir], self.fmt_dir))
+        if self.verbose: print(utilities.phyddle_info('fmt', self.proj, [self.sim_dir], self.fmt_dir))
 
         # new dir
         os.makedirs(self.out_dir, exist_ok=True)
 
         # build individual CDVS/CBLVS encodings
-        if self.verbose: print(Utilities.phyddle_str('▪ encoding raw data as tensors ...'))
+        if self.verbose: print(utilities.phyddle_str('▪ encoding raw data as tensors ...'))
         self.encode_all()
 
         # actually fill and write full tensors
-        if self.verbose: print(Utilities.phyddle_str('▪ writing tensors ...'))
+        if self.verbose: print(utilities.phyddle_str('▪ writing tensors ...'))
         if self.tensor_format == 'csv':
             self.write_tensor_csv()
         elif self.tensor_format == 'hdf5':
             self.write_tensor_hdf5()
 
-        if self.verbose: print(Utilities.phyddle_str('... done!'))
+        if self.verbose: print(utilities.phyddle_str('... done!'))
 
     
     def make_settings_str(self, idx, tree_width):
@@ -535,18 +535,18 @@ class Formatter:
 
         # read in nexus data file
         if self.chardata_format == 'nexus':
-            dat = Utilities.convert_nexus_to_array(dat_nex_fn, self.char_encode_type, self.num_states)
+            dat = utilities.convert_nexus_to_array(dat_nex_fn, self.char_encode_type, self.num_states)
         elif self.chardata_format == 'csv':
-            dat = Utilities.convert_csv_to_array(dat_nex_fn, self.char_encode_type, self.num_states)
+            dat = utilities.convert_csv_to_array(dat_nex_fn, self.char_encode_type, self.num_states)
         
         # get tree file
-        phy = Utilities.read_tree(tre_fn)
+        phy = utilities.read_tree(tre_fn)
         if phy is None:
             return
 
         # prune tree, if needed
         if self.tree_type == 'extant':
-            phy_prune = Utilities.make_prune_phy(phy, prune_fn)
+            phy_prune = utilities.make_prune_phy(phy, prune_fn)
             if phy_prune is None:
                 return # abort, no valid pruned tree
             else:
@@ -560,7 +560,7 @@ class Formatter:
             return # abort, too few taxa
 
         # get tree width from resulting vector
-        tree_width = Utilities.find_tree_width(num_taxa, self.tree_width_cats)
+        tree_width = utilities.find_tree_width(num_taxa, self.tree_width_cats)
 
         # create compact phylo-state tensor (CPST)
         cblvs = None
@@ -581,17 +581,17 @@ class Formatter:
         # save CPSV
         save_phyenc_csv_ = self.save_phyenc_csv or save_phyenc_csv
         if save_phyenc_csv_ and cpsv is not None:
-            cpsv_str = Utilities.make_clean_phyloenc_str(cpsv.flatten())
-            Utilities.write_to_file(cpsv_str, cpsv_fn)
+            cpsv_str = utilities.make_clean_phyloenc_str(cpsv.flatten())
+            utilities.write_to_file(cpsv_str, cpsv_fn)
 
         # record info
         info_str = self.make_settings_str(idx, tree_width)
-        Utilities.write_to_file(info_str, info_fn)
+        utilities.write_to_file(info_str, info_fn)
 
         # record summ stat data
         ss     = self.make_summ_stat(phy, dat) #, vecstr2int)
         ss_str = self.make_summ_stat_str(ss)
-        Utilities.write_to_file(ss_str, ss_fn)
+        utilities.write_to_file(ss_str, ss_fn)
         
         # done!
         return cpsv
@@ -620,7 +620,8 @@ class Formatter:
         num_taxa                  = len(phy.leaf_nodes())
         #root_distances            = phy.calc_node_root_distances()
         #root_distances            = [ nd.root_distance for nd in phy.nodes() if nd.is_leaf]
-        node_ages                 = phy.internal_node_ages()
+        #phy.calc_node_ages(ultrametricity_precision=False)
+        node_ages                 = phy.internal_node_ages(ultrametricity_precision=False)
         #tree_height               = np.max( root_distances )
         root_age                  = phy.seed_node.age
         branch_lengths            = [ nd.edge.length for nd in phy.nodes() if nd != phy.seed_node ]

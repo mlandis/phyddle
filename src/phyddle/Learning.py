@@ -24,7 +24,7 @@ from keras import layers
 from keras import backend as K
 
 # phyddle imports
-from phyddle import Utilities
+from phyddle import utilities
 
 #-----------------------------------------------------------------------------------------------------------------#
 
@@ -64,7 +64,7 @@ class Learner:
         """
         self.set_args(args)
         self.prepare_files()
-        self.logger = Utilities.Logger(args)
+        self.logger = utilities.Logger(args)
         return
     
     def set_args(self, args):
@@ -111,8 +111,8 @@ class Learner:
         self.metrics           = args['metrics']
         self.kernel_init       = 'glorot_uniform'
 
-        self.num_tree_row = Utilities.get_num_tree_row(self.tree_type, self.tree_encode_type)
-        self.num_char_row = Utilities.get_num_char_row(self.char_encode_type, self.num_char, self.num_states)
+        self.num_tree_row = utilities.get_num_tree_row(self.tree_type, self.tree_encode_type)
+        self.num_char_row = utilities.get_num_char_row(self.char_encode_type, self.num_char, self.num_states)
         self.num_data_row = self.num_tree_row + self.num_char_row
 
         return
@@ -182,24 +182,24 @@ class Learner:
         6. Saves the results.
         7. Prints "Done!" if the verbose mode is enabled.
         """
-        if self.verbose: print(Utilities.phyddle_info('lrn', self.proj, [self.fmt_dir], self.net_dir))
+        if self.verbose: print(utilities.phyddle_info('lrn', self.proj, [self.fmt_dir], self.net_dir))
 
-        if self.verbose: print(Utilities.phyddle_str('▪ loading input ...'))
+        if self.verbose: print(utilities.phyddle_str('▪ loading input ...'))
         self.load_input()
        
-        if self.verbose: print(Utilities.phyddle_str('▪ building network ...'))
+        if self.verbose: print(utilities.phyddle_str('▪ building network ...'))
         self.build_network()
 
-        if self.verbose: print(Utilities.phyddle_str('▪ training network ...'))
+        if self.verbose: print(utilities.phyddle_str('▪ training network ...'))
         self.train()
 
-        if self.verbose: print(Utilities.phyddle_str('▪ processing results ...'))
+        if self.verbose: print(utilities.phyddle_str('▪ processing results ...'))
         self.make_results()
 
-        if self.verbose: print(Utilities.phyddle_str('▪ saving results ...'))
+        if self.verbose: print(utilities.phyddle_str('▪ saving results ...'))
         self.save_results()
 
-        if self.verbose: print(Utilities.phyddle_str('▪ done!'))
+        if self.verbose: print(utilities.phyddle_str('▪ done!'))
     
     def load_input(self):
         """
@@ -408,17 +408,17 @@ class CnnLearner(Learner):
 
         # normalize summary stats
         self.denormalized_train_stats = full_stats[train_idx,:]
-        self.norm_train_stats, self.train_stats_means, self.train_stats_sd = Utilities.normalize( full_stats[train_idx,:] )
-        self.norm_val_stats   = Utilities.normalize(full_stats[val_idx,:], (self.train_stats_means, self.train_stats_sd))
-        self.norm_test_stats  = Utilities.normalize(full_stats[test_idx,:], (self.train_stats_means, self.train_stats_sd))
-        self.norm_calib_stats = Utilities.normalize(full_stats[calib_idx,:], (self.train_stats_means, self.train_stats_sd))
+        self.norm_train_stats, self.train_stats_means, self.train_stats_sd = utilities.normalize( full_stats[train_idx,:] )
+        self.norm_val_stats   = utilities.normalize(full_stats[val_idx,:], (self.train_stats_means, self.train_stats_sd))
+        self.norm_test_stats  = utilities.normalize(full_stats[test_idx,:], (self.train_stats_means, self.train_stats_sd))
+        self.norm_calib_stats = utilities.normalize(full_stats[calib_idx,:], (self.train_stats_means, self.train_stats_sd))
 
         # (option for diff schemes) try normalizing against 0 to 1
         self.denormalized_train_labels = full_labels[train_idx,:]
-        self.norm_train_labels, self.train_label_means, self.train_label_sd = Utilities.normalize( full_labels[train_idx,:] )
-        self.norm_val_labels   = Utilities.normalize(full_labels[val_idx,:], (self.train_label_means, self.train_label_sd))
-        self.norm_test_labels  = Utilities.normalize(full_labels[test_idx,:], (self.train_label_means, self.train_label_sd))
-        self.norm_calib_labels = Utilities.normalize(full_labels[calib_idx,:], (self.train_label_means, self.train_label_sd))
+        self.norm_train_labels, self.train_label_means, self.train_label_sd = utilities.normalize( full_labels[train_idx,:] )
+        self.norm_val_labels   = utilities.normalize(full_labels[val_idx,:], (self.train_label_means, self.train_label_sd))
+        self.norm_test_labels  = utilities.normalize(full_labels[test_idx,:], (self.train_label_means, self.train_label_sd))
+        self.norm_calib_labels = utilities.normalize(full_labels[calib_idx,:], (self.train_label_means, self.train_label_sd))
 
         # create data tensors
         self.train_data_tensor = full_data[train_idx,:]
@@ -609,18 +609,18 @@ class CnnLearner(Learner):
         self.normalized_train_preds       = self.mymodel.predict([self.train_data_tensor, self.train_stats_tensor])
 
         self.normalized_train_preds       = np.array(self.normalized_train_preds)
-        self.denormalized_train_preds     = Utilities.denormalize(self.normalized_train_preds, self.train_label_means, self.train_label_sd)
+        self.denormalized_train_preds     = utilities.denormalize(self.normalized_train_preds, self.train_label_means, self.train_label_sd)
         self.denormalized_train_preds     = np.exp(self.denormalized_train_preds)
-        self.denormalized_train_labels    = Utilities.denormalize(self.norm_train_labels, self.train_label_means, self.train_label_sd)
+        self.denormalized_train_labels    = utilities.denormalize(self.norm_train_labels, self.train_label_means, self.train_label_sd)
         self.denormalized_train_labels    = np.exp(self.denormalized_train_labels)
 
         # scatter of pred vs true for test data
         self.normalized_test_preds        = self.mymodel.predict([self.test_data_tensor, self.test_stats_tensor])
 
         self.normalized_test_preds        = np.array(self.normalized_test_preds)
-        self.denormalized_test_preds      = Utilities.denormalize(self.normalized_test_preds, self.train_label_means, self.train_label_sd)
+        self.denormalized_test_preds      = utilities.denormalize(self.normalized_test_preds, self.train_label_means, self.train_label_sd)
         self.denormalized_test_preds      = np.exp(self.denormalized_test_preds)
-        self.denormalized_test_labels     = Utilities.denormalize(self.norm_test_labels, self.train_label_means, self.train_label_sd)
+        self.denormalized_test_labels     = utilities.denormalize(self.norm_test_labels, self.train_label_means, self.train_label_sd)
         self.denormalized_test_labels     = np.exp(self.denormalized_test_labels)
         
          # scatter of pred vs true for test data
@@ -637,14 +637,14 @@ class CnnLearner(Learner):
         self.denorm_train_preds_calib        = self.normalized_train_preds
         self.denorm_train_preds_calib[1,:,:] = self.denorm_train_preds_calib[1,:,:] - self.cpi_adjustments[0,:]
         self.denorm_train_preds_calib[2,:,:] = self.denorm_train_preds_calib[2,:,:] + self.cpi_adjustments[1,:]
-        self.denorm_train_preds_calib        = Utilities.denormalize(self.denorm_train_preds_calib, self.train_label_means, self.train_label_sd)
+        self.denorm_train_preds_calib        = utilities.denormalize(self.denorm_train_preds_calib, self.train_label_means, self.train_label_sd)
         self.denorm_train_preds_calib        = np.exp(self.denorm_train_preds_calib)
 
         # test predictions with calibrated CQR CIs
         self.denorm_test_preds_calib        = self.normalized_test_preds
         self.denorm_test_preds_calib[1,:,:] = self.denorm_test_preds_calib[1,:,:] - self.cpi_adjustments[0,:]
         self.denorm_test_preds_calib[2,:,:] = self.denorm_test_preds_calib[2,:,:] + self.cpi_adjustments[1,:]
-        self.denorm_test_preds_calib        = Utilities.denormalize(self.denorm_test_preds_calib, self.train_label_means, self.train_label_sd)
+        self.denorm_test_preds_calib        = utilities.denormalize(self.denorm_test_preds_calib, self.train_label_means, self.train_label_sd)
         self.denorm_test_preds_calib        = np.exp(self.denorm_test_preds_calib)
 
         return
@@ -674,10 +674,10 @@ class CnnLearner(Learner):
         df_labels.to_csv(self.model_trn_lbl_norm_fn, index=False, sep=',')
 
         # save train prediction scatter data
-        df_train_pred_nocalib   = Utilities.make_param_VLU_mtx(self.denormalized_train_preds[0:max_idx,:], self.param_names )
-        df_test_pred_nocalib    = Utilities.make_param_VLU_mtx(self.denormalized_test_preds[0:max_idx,:], self.param_names )
-        df_train_pred_calib     = Utilities.make_param_VLU_mtx(self.denorm_train_preds_calib[0:max_idx,:], self.param_names )
-        df_test_pred_calib      = Utilities.make_param_VLU_mtx(self.denorm_test_preds_calib[0:max_idx,:], self.param_names )
+        df_train_pred_nocalib   = utilities.make_param_VLU_mtx(self.denormalized_train_preds[0:max_idx,:], self.param_names )
+        df_test_pred_nocalib    = utilities.make_param_VLU_mtx(self.denormalized_test_preds[0:max_idx,:], self.param_names )
+        df_train_pred_calib     = utilities.make_param_VLU_mtx(self.denorm_train_preds_calib[0:max_idx,:], self.param_names )
+        df_test_pred_calib      = utilities.make_param_VLU_mtx(self.denorm_test_preds_calib[0:max_idx,:], self.param_names )
         #df_train_pred   = pd.DataFrame( self.denormalized_train_preds[0:max_idx,:], columns=param_pred_names )
         #df_test_pred    = pd.DataFrame( self.denormalized_test_preds[0:max_idx,:], columns=param_pred_names )
 

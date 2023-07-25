@@ -75,6 +75,7 @@ args = {
         'birth', 'death', 'state_rate'
     ],
     'param_data'        : [],               # model parameters that are known (aux. data)
+    'chardata_format'   : 'nexus',
     'tensor_format'     : 'hdf5',           # save as compressed HDF5 or raw csv
     'save_phyenc_csv'   : False,            # save intermediate phylo-state vectors to file
 

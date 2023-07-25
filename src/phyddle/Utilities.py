@@ -219,7 +219,7 @@ def load_config(config_fn: str,
     parser.add_argument('-c', '--cfg',          dest='config_fn', type=str, help='Config file name', metavar='')
     #parser.add_argument('-f', '--force',        action='store_true', help='Arguments override config file settings')
     parser.add_argument('-p', '--proj',         dest='proj', type=str, help='Project name used as directory across pipeline stages', metavar='')
-    parser.add_argument('-s', '--step',         dest='step', type=str, choices=['all', 'sim', 'fmt', 'lrn', 'prd', 'plt'], help='Pipeline step(s) to apply', metavar='')
+    parser.add_argument('-s', '--step',         dest='step', type=str, choices=['*', 'S', 'F', 'T', 'E', 'P'], help='Pipeline step(s) to apply', metavar='')
     parser.add_argument('-v', '--verbose',      dest='verbose', type=bool, help='Verbose output to screen? (recommended)', metavar='')
     parser.add_argument('--use_parallel',       dest='use_parallel', type=bool, help='Use parallelization? (recommended)', metavar='')
     parser.add_argument('--num_proc',           dest='num_proc', type=int, help='How many cores for multiprocessing? (e.g. 4 uses 4, -2 uses all but 2)', metavar='')
@@ -355,8 +355,9 @@ def load_config(config_fn: str,
     check_args(m.args)
 
     # set steps
-    if m.args['step'] == 'all':
-        m.args['step'] = ['sim', 'fmt', 'lrn', 'prd', 'plt']
+    # TODO: make it so you can pass in multiple steps, e.g. 'SF', 'TEP', 'SFTEP'
+    if m.args['step'] == '*':
+        m.args['step'] = ['S', 'F', 'T', 'E', 'P']
     else:
         m.args['step'] = [ m.args['step'] ]
 
@@ -370,23 +371,6 @@ def load_config(config_fn: str,
     # return new args
     return m.args
 
-
-def generate_random_hex_string(length):
-    """
-    Generates a random hex string of a given length.
-
-    Parameters:
-    length (int): The length of the hex string.
-
-    Returns:
-    str: The generated random hex string.
-    """
-    hex_chars = '0123456789abcdef'
-    random_indices = np.random.randint(0, len(hex_chars), size=length)
-    hex_string = ''.join(hex_chars[i] for i in random_indices)
-    return hex_string
-
-
 def check_args(args):
     """
     Checks if the given arguments meet certain conditions.
@@ -398,7 +382,7 @@ def check_args(args):
     AssertionError: If any of the conditions are not met.
     """
     # string values
-    assert args['step']              in ['all', 'sim', 'fmt', 'lrn', 'prd', 'plt']
+    assert args['step']              in ['*', 'S', 'F', 'T', 'E', 'P']
     assert args['sim_method']        in ['command', 'master']
     assert args['sim_logging']       in ['clean', 'verbose', 'compress']
     assert args['tree_type']         in ['serial', 'extant']
@@ -430,6 +414,20 @@ def check_args(args):
 
     return
 
+def generate_random_hex_string(length):
+    """
+    Generates a random hex string of a given length.
+
+    Parameters:
+    length (int): The length of the hex string.
+
+    Returns:
+    str: The generated random hex string.
+    """
+    hex_chars = '0123456789abcdef'
+    random_indices = np.random.randint(0, len(hex_chars), size=length)
+    hex_string = ''.join(hex_chars[i] for i in random_indices)
+    return hex_string
 
 #-----------------------------------------------------------------------------------------------------------------#
 
@@ -868,7 +866,7 @@ def make_prune_phy(phy, prune_fn):
     # find tree height (max root-to-node distance)
     tree_height = np.max( root_distances )
     # tips are considered "at present" if age is within 0.0001 * tree_height
-    tol = tree_height * 1e-4
+    tol = tree_height * 1e-5
     # create empty dictionary
     d = {}
     # loop through all leaf nodes
@@ -878,7 +876,7 @@ def make_prune_phy(phy, prune_fn):
         age = tree_height - nd.root_distance
         nd.annotations.add_new('age', age)
         # ultrametricize ages for extant taxa
-        if age < 1e-6: #tol:
+        if age < tol:
             age = 0.0
         # store taxon and age in dictionary
         taxon_name = str(nd.taxon).strip('\'')
@@ -1237,11 +1235,11 @@ class Logger:
         self.base_fp     = f'{self.base_dir}/{self.base_fn}' 
         self.fn_dict    = {
             'run' : f'{self.base_fp}.run.log',
-            'sim' : f'{self.base_fp}.sim.log',
-            'fmt' : f'{self.base_fp}.fmt.log',
-            'lrn' : f'{self.base_fp}.lrn.log',
-            'prd' : f'{self.base_fp}.prd.log',
-            'plt' : f'{self.base_fp}.plt.log'
+            'simulate' : f'{self.base_fp}.simulate.log',
+            'format' : f'{self.base_fp}.format.log',
+            'train' : f'{self.base_fp}.train.log',
+            'estimate' : f'{self.base_fp}.estimate.log',
+            'plot' : f'{self.base_fp}.plot.log'
         }
 
         self.save_run_log()

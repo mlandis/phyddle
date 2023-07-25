@@ -14,7 +14,7 @@ import numpy as np
 import itertools
 
 from phyddle.Models import Model
-from phyddle.Utilities import States,Event
+from phyddle.utilities import States,Event
 
 class ContTraitModel(Model.BaseModel):
     
