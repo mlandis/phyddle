@@ -1,5 +1,5 @@
-Data formats
-============
+Formats
+=======
 
 .. note::
 
@@ -50,11 +50,19 @@ Some models can make use of auxiliary data. For example, the recovery period of 
    recovery_0,recovery_1,recovery_2
    0.113,0.120,0.115
 
+.. _Tensor_Formats:
 
 Tensor formats
 --------------
 
 Phylogenetic data (e.g. from a Newick file) and character matrix data (e.g. from a Nexus file) are encoded into compact phylogenetic state tensors. Internally, phyddle uses `dendropy.Tree` to represent phylogenies, `pandas.DataFrame` to represent character matrices (verify), and `numpy.ndarray` to store phylogenetic-state tensors.
+
+..
+    CBLV encodes a phylogenetic tree with $n \leq N$ taxa in to a matrix of with 2 rows that contains branch length sorted across $N$ columns that contain topological information for a tree with taxa serially sampled over time (e.g. epidemiological data). The matrix is then flattened into vector format. Ammon et al. (2022) introduced the CBLV+S format, which allows for multiple characters to be associated with each taxon in a CBLV, constructing a matrix with $2+M$ rows and $N$ columns for a dataset of $n \leq N$ taxa with $M$ characters. Another important tensor type developed by Lambert et al. (2022) is the compact diversified vector (CDV). CDV is a matrix with 2 rows and $N$ columns, with the first row corresponding to node ages and the other recording state values for a single binary character.
+
+    CBLV and CDV differ primarily in terms what criteria they use to they order (ladderize) the topology. CBLV ladderizes by minimum terminal-node age per clade and CDV ladderized by maximum subclade branch length. Both formats pack the phylogenetic information from a tree with $n$ taxa into a "wider" tree-width class that allows up to $N$ taxa. The tensor is packed from left-to-right based on an in-order tree traversal, then use zeroes to buffer the all remaining cells until the $N$th column. In phyddle, we use expanded CBLV+S and CDV+S formats that additionally encode terminal branch length formation for the terminal node and the parent node, resulting in $4+M$ rows for our CBLV+S and $3+M$ rows for our CDV+S format. (Will add diagram later.)
+
+    The second input is the **auxiliary data tensor**. This tensor contains summary statistics for the phylogeny and character data matrix and "known" parameters for the data generating process. The summary statistics, for example, report things such as the number of taxa, the tree height, the mean and variance of branch lengths and node ages, the state-pattern counts, etc. The known parameters might report things such as the population sizes of a susceptible population or the recovery period in an SIR model.
 
 There are two types of phylogenetic-state tensors in phyddle: the compact bijective ladderized vector + states (CBLV+S) and the compact diversity vector + states (CDV+S). CBLV+S is used for trees that contain serially sampled (non-ultrametric) taxa whereas CDV+S is used for trees that contain only extant (ultrametric) taxa. The `tree_width` of the encoding defines the maximum number of taxa the phylogenetic-state tensor may contain. The ``tree_type`` setting determines if the tree is a ``'serial'`` tree encoded with CBLV+S or an ``'extant'`` tree encoded with CDV+S. Setting ``tree_encode_type`` and ``char_encode_type`` alter how information is stored into the phylogenetic-state tensor.
 
@@ -177,78 +185,4 @@ The auxiliary data tensor contains a panel of summary statistics extracted from 
 
 The auxiliary data tensor also contains any parameter values that shape the data-generating process, but can be treated as "known" rather than needing to be estimated. For example, the epidemiologists may assume they know the rate of infection recovery (gamma) based on public health or clinical data. Parameters may be treated as data by providing the labels for those parameters in the ``param_data`` entry of the config file. For example, setting ``'param_data' : [ 'recovery_0', 'S0_0' ]`` could be used to inform phyddle that the recovery rate and susceptible population sizes for location 0 are known for a phylogenetic SIR analysis. 
 
-
-
-Pipeline directories
---------------------
-
-This section provides an overview of the main workspace directories used to store work across projects and pipeline steps. A standard configuration for a project named ``example`` would store pipeline work into these directories:
-
-
-.. code-block:: shell
-
-   workspace/raw_data/example       # from Simulating
-   workspace/tensor_data/example    # from Formatting
-   workspace/network/example        # from Learning
-   workspace/predict/example        # from/for Predicting
-   workspace/plot/example           # from Plotting
-
-
-``raw_data`` from Simulating
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.. code-block:: shell
-
-    workspace/raw_data/example/sim.0.beast.log
-    workspace/raw_data/example/sim.0.dat.nex
-    workspace/raw_data/example/sim.0.json
-    workspace/raw_data/example/sim.0.param_col.csv
-    workspace/raw_data/example/sim.0.param_row.csv
-    workspace/raw_data/example/sim.0.phy.nex
-    workspace/raw_data/example/sim.0.tre
-    workspace/raw_data/example/sim.0.xml
-
-Formatting and ``tensor_data``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-(incomplete)
-
-Learning and ``network``
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-Training a network creates the following files in the ``workspace/network/my_project`` directory:
-
-.. code-block:: shell
-
-    network_prefix.cpi_adjustments.csv
-    network_prefix.hdf5
-    network_prefix.test_labels.csv
-    network_prefix.test_pred.csv
-    network_prefix.test_pred_nocalib.csv
-    network_prefix.train_history.json
-    network_prefix.train_label_norm.csv
-    network_prefix.train_labels.csv
-    network_prefix.train_pred.csv
-    network_prefix.train_pred_nocalib.csv
-    network_prefix.train_summ_stat_norm.csv
-
-where ``network_prefix`` describes the training settings for the network. For example, the network prefix ``sim_batchsize128_numepoch20_nt500`` indicated a network trained with a batch size of 128 samples for 20 epochs on the tree width size-category of max. 500 taxa.
-
-Descriptions of the files are as follows
-* ``cpi_adjustments.csv``: calibrated prediction interval adjustments, where columns correspond to parameters, the first row contains lower bound adjustments, and the second row contains upper bound adjustments
-
-
-Predicting and ``predict``
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. code-block:: shell
-
-   $ cat new.1.sim_batchsize128_numepoch20_nt500.pred_labels.csv
-   w_0_value,w_0_lower,w_0_upper,e_0_value,e_0_lower,e_0_upper,d_0_1_value,d_0_1_lower,d_0_1_upper,b_0_1_value,b_0_1_lower,b_0_1_upper
-   0.2867125345651129,0.1937433853918723,0.45733220552078013,0.02445545359384659,0.002880695707341881,0.10404499205878459,0.4502031713887769,0.1966340488593367,0.5147956690178682,0.06199703190510973,0.0015074254823161301,0.27544015163806645
-
-Columns are grouped first by label (e.g. parameter) and then statistic (e.g. value, lower-bound, upper-bound).
-
-
-Plotting and ``plot``
-^^^^^^^^^^^^^^^^^^^^^
-(incomplete)
 
