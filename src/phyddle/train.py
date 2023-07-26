@@ -79,7 +79,8 @@ class Trainer:
         self.num_validation    = 0
         self.prop_test         = 0
         self.prop_test         = 0
-        self.proj              = args['proj']
+        self.fmt_proj          = args['fmt_proj']
+        self.trn_proj          = args['trn_proj']
         self.verbose           = args['verbose']
         self.tree_width        = args['tree_width']
         self.tree_type         = args['tree_type']
@@ -137,12 +138,10 @@ class Trainer:
         Returns: None """
 
         # main directories
-        self.input_dir   = self.fmt_dir + '/' + self.proj
-        self.plot_dir    = self.plt_dir + '/' + self.proj
-        self.network_dir = self.net_dir + '/' + self.proj
+        self.input_dir   = self.fmt_dir + '/' + self.fmt_proj
+        self.network_dir = self.net_dir + '/' + self.trn_proj
 
         # create new job directories
-        os.makedirs(self.plot_dir, exist_ok=True)
         os.makedirs(self.network_dir, exist_ok=True)
 
         # main job filenames
@@ -182,7 +181,7 @@ class Trainer:
         6. Saves the results.
         7. Prints "Done!" if the verbose mode is enabled.
         """
-        utilities.print_step_header('lrn', self.proj, [self.fmt_dir], self.net_dir, verbose=self.verbose)
+        utilities.print_step_header('lrn', [self.input_dir], self.network_dir, verbose=self.verbose)
 
         utilities.print_str('▪ loading input ...', verbose=self.verbose)
         self.load_input()

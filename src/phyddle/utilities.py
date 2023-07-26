@@ -215,12 +215,13 @@ def load_config(config_fn: str,
     # argument parsing
     parser = argparse.ArgumentParser(description='phyddle pipeline config') #,
                                      #formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    
+    # basic settings
     parser.add_argument('-c', '--cfg',          dest='config_fn', type=str, help='Config file name', metavar='')
     #parser.add_argument('-f', '--force',        action='store_true', help='Arguments override config file settings')
     parser.add_argument('-p', '--proj',         dest='proj', type=str, help='Project name used as directory across pipeline stages', metavar='')
     parser.add_argument('-s', '--step',         dest='step', type=str, help='Pipeline step(s) defined with (S)imulate, (F)ormat, (T)rain, (E)stimate, (P)lot, or (*) for all', metavar='')
     parser.add_argument('-v', '--verbose',      dest='verbose', type=bool, help='Verbose output to screen? (recommended)', metavar='')
+    # processor settings
     parser.add_argument('--use_parallel',       dest='use_parallel', type=bool, help='Use parallelization? (recommended)', metavar='')
     parser.add_argument('--num_proc',           dest='num_proc', type=int, help='How many cores for multiprocessing? (e.g. 4 uses 4, -2 uses all but 2)', metavar='')
     # directory settings
@@ -354,8 +355,9 @@ def load_config(config_fn: str,
     # check arguments are valid
     check_args(m.args)
 
-    # set steps
-    # TODO: make it so you can pass in multiple steps, e.g. 'SF', 'TEP', 'SFTEP'
+    # set steps & projects
+    m.args = add_step_proj(m.args) #['step'], m.args['proj'])
+    
     if m.args['step'] == '*':
         m.args['step'] = ['S', 'F', 'T', 'E', 'P']
     else:
@@ -370,6 +372,55 @@ def load_config(config_fn: str,
 
     # return new args
     return m.args
+
+def add_step_proj(args): #steps, proj):
+    
+    # get relevant args
+    steps = args['step']
+    proj = args['proj']
+    
+    d_map = { 'S': ('sim', 'simulate'),
+              'F': ('fmt', 'format'),
+              'T': ('trn', 'train'),
+              'E': ('est', 'estimate'),
+              'P': ('plt', 'plot'),
+              'L': ('log', 'log') }
+    
+    # treat proj as the global project name
+    # if it contains no split tokens
+    if ':' not in proj and ',' not in proj:
+        proj = f'*:{proj}'
+    
+    # parse input string
+    d_toks = {}
+    proj_toks = proj.split(',')
+    for p in proj_toks:
+        k,v = p.split(':')
+        d_toks[k] = v
+
+    # handle all-step (*) first
+    d_arg = {}
+    if '*' in d_toks.keys():
+        for i in ['S', 'F', 'T', 'E', 'P', 'L']:
+            k = d_map[i][0]
+            d_arg[k] = d_toks['*']
+        
+    # overwrite with named steps
+    k_change = [ k for k in d_toks.keys() if k in 'SFTEPL' ]
+    for k in k_change:
+        d_arg[ d_map[k][0] ] = d_toks[k]
+    
+    # verify all steps are covered
+    for s in steps:
+        if d_map[s][0] not in d_arg.keys():
+            raise ValueError(f"Step {s} ({d_map[s][1]}) has no assigned project name")
+
+    for k in d_arg.keys():
+        k_str = k + '_proj'
+        args[k_str] = d_arg[k]
+
+    return args
+
 
 def check_args(args):
     """
@@ -1170,13 +1221,12 @@ def phyddle_header(s, style=1, fg=34):
 
     return x
 
-def print_step_header(step, proj, in_dir, out_dir, style=1, fg=34, verbose=True):
+def print_step_header(step, in_dir, out_dir, style=1, fg=34, verbose=True):
     """
     Generate the information string for phyddle.
     
     Args:
         step (str): The step symbol.
-        proj (str): The project name.
         in_dir (list): A list of input directories.
         out_dir (str): The output directory.
         style (int, optional): The style code for the text. Default is 1.
@@ -1192,7 +1242,7 @@ def print_step_header(step, proj, in_dir, out_dir, style=1, fg=34, verbose=True)
     if in_dir is not None:
         run_info += phyddle_str('  ┃')  + '\n'
         for i,_in_dir in enumerate(in_dir):
-            in_path = f'{_in_dir}/{proj}'
+            in_path = f'{_in_dir}'
             if i == 0:
                 run_info += phyddle_str(f'  ┣━━━▪ input:  {in_path}', style, fg ) + '\n'
             else:
@@ -1201,7 +1251,7 @@ def print_step_header(step, proj, in_dir, out_dir, style=1, fg=34, verbose=True)
     # out path
     if out_dir is not None:
         run_info += phyddle_str('  ┃')  + '\n'
-        out_path = f'{out_dir}/{proj}'
+        out_path = f'{out_dir}'
     run_info += phyddle_str(f'  ┗━━━▪ output: {out_path}' ) + '\n'
     
     # print if verbose is True

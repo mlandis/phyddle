@@ -1,15 +1,15 @@
 # Ignore phyddle workspace dirs
-workspace/raw_data/*/*
-workspace/tensor_data/*/*
-workspace/network/*/*
+workspace/simulate/*/*
+workspace/format/*/*
+workspace/train/*/*
 workspace/estimate/*/*
 workspace/plot/*/*
 workspace/log/*/*
 
 # ... except workspace `example` project
-!workspace/raw_data/example/*
-!workspace/tensor_data/example/*
-!workspace/network/example/*
+!workspace/simulate/example/*
+!workspace/format/example/*
+!workspace/train/example/*
 !workspace/estimate/example/*
 !workspace/plot/example/*
 !workspace/log/example/*

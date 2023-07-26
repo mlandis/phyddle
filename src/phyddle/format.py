@@ -73,9 +73,10 @@ class Formatter:
         # formatter arguments
         self.args          = args
         self.verbose       = args['verbose']
-        self.proj          = args['proj']
-        self.fmt_dir       = args['fmt_dir']
         self.sim_dir       = args['sim_dir']
+        self.fmt_dir       = args['fmt_dir']
+        self.sim_proj      = args['sim_proj']
+        self.fmt_proj      = args['fmt_proj']
         self.model_type    = args['model_type']
         self.model_variant = args['model_variant']
         self.tree_type     = args['tree_type']
@@ -98,11 +99,12 @@ class Formatter:
         self.end_idx           = args['end_idx']
         self.use_parallel      = args['use_parallel']
         self.num_proc          = args['num_proc']
+        # MJL: I think this was for breaking up large tensors into chunks
         self.tensor_part_size  = 500 # args['num_records_per_tensor_part']
         self.save_phyenc_csv   = args['save_phyenc_csv']
                     
-        self.in_dir        = f'{self.sim_dir}/{self.proj}'
-        self.out_dir       = f'{self.fmt_dir}/{self.proj}'
+        self.in_dir        = f'{self.sim_dir}/{self.sim_proj}'
+        self.out_dir       = f'{self.fmt_dir}/{self.fmt_proj}'
         self.rep_idx       = list(range(self.start_idx, self.end_idx))
 
         self.num_tree_row = utilities.get_num_tree_row(self.tree_type, self.tree_encode_type)
@@ -120,7 +122,7 @@ class Formatter:
         """
 
         # print header
-        utilities.print_step_header('fmt', self.proj, [self.sim_dir], self.fmt_dir, verbose=self.verbose)
+        utilities.print_step_header('fmt', [self.in_dir], self.out_dir, verbose=self.verbose)
 
         # new dir
         os.makedirs(self.out_dir, exist_ok=True)
@@ -151,7 +153,8 @@ class Formatter:
             str: The settings string.
         """
         s = 'setting,value\n'
-        s += 'proj,'            + self.proj + '\n'
+        s += 'sim_proj,'        + self.sim_proj + '\n'
+        s += 'fmt_proj,'        + self.fmt_proj + '\n'
         s += 'model_type,'      + self.model_type + '\n'
         s += 'model_variant,'   + self.model_variant + '\n'
         s += 'replicate_index,' + str(idx) + '\n'

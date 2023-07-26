@@ -69,18 +69,21 @@ class Plotter:
             None
         """
         self.args              = args
-        self.proj              = args['proj']
         self.verbose           = args['verbose']
+        self.fmt_dir           = args['fmt_dir']
         self.trn_dir           = args['trn_dir']
         self.plt_dir           = args['plt_dir']
+        self.est_dir           = args['est_dir'] if 'est_dir' in args else ''
+        self.est_prefix        = args['est_prefix'] if 'est_prefix' in args else ''
         #self.est_dir          = args['est_dir']
-        self.fmt_dir           = args['fmt_dir']
+        self.fmt_proj          = args['fmt_proj']
+        self.trn_proj          = args['trn_proj']
+        self.plt_proj          = args['plt_proj']
+        self.est_proj          = args['est_proj']
         self.batch_size        = args['batch_size']
         self.num_epochs        = args['num_epochs']
         self.tree_width        = args['tree_width']
         self.tensor_format     = args['tensor_format']
-        self.est_dir          = args['est_dir'] if 'est_dir' in args else ''
-        self.est_prefix        = args['est_prefix'] if 'est_prefix' in args else ''
         self.train_color       = args['plot_train_color']
         self.test_color        = args['plot_test_color']
         self.validation_color  = args['plot_val_color']
@@ -102,10 +105,10 @@ class Plotter:
         self.network_prefix     = f'sim_batchsize{self.batch_size}_numepoch{self.num_epochs}_nt{self.tree_width}'
 
         # directories
-        self.trn_proj_dir        = f'{self.trn_dir}/{self.proj}'
-        self.fmt_proj_dir        = f'{self.fmt_dir}/{self.proj}'
-        self.plt_proj_dir        = f'{self.plt_dir}/{self.proj}'
-        self.est_proj_dir       = f'{self.est_dir}/{self.proj}'
+        self.trn_proj_dir        = f'{self.trn_dir}/{self.trn_proj}'
+        self.fmt_proj_dir        = f'{self.fmt_dir}/{self.fmt_proj}'
+        self.plt_proj_dir        = f'{self.plt_dir}/{self.plt_proj}'
+        self.est_proj_dir        = f'{self.est_dir}/{self.est_proj}'
 
         # tensors
         self.input_stats_fn     = f'{self.fmt_proj_dir}/sim.nt{self.tree_width}.summ_stat.csv'
@@ -121,8 +124,8 @@ class Plotter:
         self.history_json_fn    = f'{self.trn_proj_dir}/{self.network_prefix}.train_history.json'
 
         # estimates
-        self.est_aux_fn        = f'{self.est_proj_dir}/{self.est_prefix}.summ_stat.csv'
-        self.est_lbl_fn        = f'{self.est_proj_dir}/{self.est_prefix}.{self.network_prefix}.est_labels.csv'
+        self.est_aux_fn         = f'{self.est_proj_dir}/{self.est_prefix}.summ_stat.csv'
+        self.est_lbl_fn         = f'{self.est_proj_dir}/{self.est_prefix}.{self.network_prefix}.est_labels.csv'
         self.est_known_param_fn = f'{self.est_proj_dir}/{self.est_prefix}.known_param.csv'
         
         # plotting output
@@ -230,7 +233,7 @@ class Plotter:
             None
         """
 
-        utilities.print_step_header('plt', self.proj, [self.fmt_dir, self.trn_dir, self.est_dir], self.plt_dir, verbose=self.verbose)
+        utilities.print_step_header('plt', [self.fmt_proj_dir, self.trn_proj_dir, self.est_proj_dir], self.plt_proj_dir, verbose=self.verbose)
 
         # load data
         utilities.print_str('▪ loading input ...', verbose=self.verbose)

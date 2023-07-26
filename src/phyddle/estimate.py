@@ -72,10 +72,11 @@ class Estimator:
             None
         """
         self.args              = args
-        self.proj              = args['proj']
         self.verbose           = args['verbose']
         self.trn_dir           = args['trn_dir']
         self.est_dir           = args['est_dir']
+        self.trn_proj          = args['trn_proj']
+        self.est_proj          = args['est_proj']
         self.est_prefix        = args['est_prefix']
         self.batch_size        = args['batch_size']
         self.num_epochs        = args['num_epochs']
@@ -95,8 +96,8 @@ class Estimator:
             None
         """
         # main directories
-        self.trn_proj_dir           = f'{self.trn_dir}/{self.proj}'
-        self.est_proj_dir           = f'{self.est_dir}/{self.proj}'
+        self.trn_proj_dir           = f'{self.trn_dir}/{self.trn_proj}'
+        self.est_proj_dir           = f'{self.est_dir}/{self.est_proj}'
 
         # main job filenames
         self.model_prefix           = f'sim_batchsize{self.batch_size}_numepoch{self.num_epochs}_nt{self.tree_width}'
@@ -137,7 +138,7 @@ class Estimator:
             None
         """
         
-        utilities.print_step_header('est', self.proj, [self.est_dir, self.trn_dir], self.est_dir, verbose=self.verbose)        
+        utilities.print_step_header('est', [self.est_proj_dir, self.trn_proj_dir], self.est_proj_dir, verbose=self.verbose)        
 
         os.makedirs(self.est_proj_dir, exist_ok=True)
 

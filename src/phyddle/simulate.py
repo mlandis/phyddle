@@ -114,9 +114,9 @@ class Simulator:
         """
         # simulator arguments
         self.args              = args
-        self.proj              = args['proj']
         self.verbose           = args['verbose']
         self.sim_dir           = args['sim_dir']
+        self.sim_proj          = args['sim_proj']
         self.start_idx         = args['start_idx']
         self.end_idx           = args['end_idx']
         self.stop_time         = args['stop_time']
@@ -128,6 +128,8 @@ class Simulator:
         self.sim_logging       = args['sim_logging']
         self.rep_idx           = list(range(self.start_idx, self.end_idx))
         self.save_params       = False
+
+        self.sim_proj_dir      = f'{self.sim_dir}/{self.sim_proj}'
         return
 
     def make_settings_str(self, idx, mtx_size):
@@ -143,7 +145,7 @@ class Simulator:
 
         """
         s =  'setting,value\n'
-        s += f'proj,{self.proj}\n'
+        s += f'sim_proj,{self.sim_proj}\n'
         s += f'model_name,{self.model_type}\n'
         s += f'model_variant,{self.model_variant}\n'
         s += f'replicate_index,{idx}\n'
@@ -159,11 +161,11 @@ class Simulator:
             list: The result of the simulation process.
         """
         #if self.verbose:
-        #    print( utilities.phyddle_info('sim', self.proj, None, self.sim_dir) )
-        utilities.print_step_header('sim', self.proj, None, self.sim_dir, verbose=self.verbose)
+        #    print( utilities.phyddle_info('sim', self.sim_proj, None, self.sim_dir) )
+        utilities.print_step_header('sim', None, self.sim_proj_dir, verbose=self.verbose)
 
         # prepare workspace
-        os.makedirs( self.sim_dir + '/' + self.proj, exist_ok=True )
+        os.makedirs( self.sim_dir + '/' + self.sim_proj, exist_ok=True )
         # dispatch jobs
 
         #if self.verbose: print(utilities.phyddle_str('▪ simulating raw data ...'))
@@ -193,7 +195,7 @@ class Simulator:
         np.set_printoptions(formatter={'float': lambda x: format(x, '8.6E')}, precision=NUM_DIGITS)
         
         # make filenames
-        out_path  = self.sim_dir + '/' + self.proj + '/sim'
+        out_path  = self.sim_dir + '/' + self.sim_proj + '/sim'
         tmp_fn    = out_path + '.' + str(idx)
         param_mtx_fn = tmp_fn + '.param_col.csv'
         param_vec_fn = tmp_fn + '.param_row.csv'
@@ -306,7 +308,7 @@ class CommandSimulator(Simulator):
         """
 
         # get filesystem info for generic job
-        out_path   = f'{self.sim_dir}/{self.proj}/sim'
+        out_path   = f'{self.sim_dir}/{self.sim_proj}/sim'
         tmp_fn     = f'{out_path}.{idx}'
         dat_fn     = tmp_fn + '.dat.nex'
         cmd_log_fn = tmp_fn + '.sim_command.log'
@@ -378,7 +380,7 @@ class MasterSimulator(Simulator):
         """
         self.reaction_vars = self.make_reaction_vars()
         self.xml_str       = self.make_xml(idx)
-        self.sim_command   = 'beast {sim_dir}/{proj}/sim.{idx}.xml'.format(sim_dir=self.sim_dir, proj=self.proj, idx=idx)
+        self.sim_command   = 'beast {sim_dir}/{proj}/sim.{idx}.xml'.format(sim_dir=self.sim_dir, proj=self.sim_proj, idx=idx)
 
 
     def sim_one_custom(self, idx):
@@ -392,7 +394,7 @@ class MasterSimulator(Simulator):
         Returns:
             None
         """
-        out_path   = self.sim_dir + '/' + self.proj + '/sim'
+        out_path   = self.sim_dir + '/' + self.sim_proj + '/sim'
         tmp_fn     = out_path + '.' + str(idx)
 
         beast_fn   = tmp_fn + '.beast.log'
@@ -482,9 +484,9 @@ class MasterSimulator(Simulator):
         - xml_spec_str (str): The XML specification string for the simulation.
         """
         # file names
-        newick_fn = '{sim_dir}/{proj}/sim.{idx}.tre'.format(sim_dir=self.sim_dir, proj=self.proj, idx=idx)
-        nexus_fn  = '{sim_dir}/{proj}/sim.{idx}.phy.nex'.format(sim_dir=self.sim_dir, proj=self.proj, idx=idx)
-        json_fn   = '{sim_dir}/{proj}/sim.{idx}.json'.format(sim_dir=self.sim_dir, proj=self.proj, idx=idx)
+        newick_fn = '{sim_dir}/{proj}/sim.{idx}.tre'.format(sim_dir=self.sim_dir, proj=self.sim_proj, idx=idx)
+        nexus_fn  = '{sim_dir}/{proj}/sim.{idx}.phy.nex'.format(sim_dir=self.sim_dir, proj=self.sim_proj, idx=idx)
+        json_fn   = '{sim_dir}/{proj}/sim.{idx}.json'.format(sim_dir=self.sim_dir, proj=self.sim_proj, idx=idx)
 
         # state space
         xml_statespace = ''
