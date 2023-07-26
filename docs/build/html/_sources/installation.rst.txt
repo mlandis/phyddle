@@ -5,6 +5,22 @@ Installation
 
 This page describes how to download and install phyddle and its dependencies.
 
+Quick install
+-------------
+
+.. note:: 
+
+    Just kidding. Support for conda is not yet configured.
+
+We recommend installing phyddle using `conda <https://docs.conda.io/en/latest/>`_:
+
+.. code-block::
+
+    conda update conda
+    conda create phyddle_env
+    conda activate phyddle_env
+    conda install phyddle
+
 
 Download phyddle
 ----------------
@@ -13,16 +29,16 @@ To install phyddle on your computer, you can either clone the `repository <https
 
 .. code-block::
 
-	$ git clone git@github.com:mlandis/phyddle.git       # SSH
-	$ git clone https://github.com/mlandis/phyddle.git   # HTTPS
-	$ gh repo clone mlandis/phyddle                      # GitHub CLI
+	git clone git@github.com:mlandis/phyddle.git       # using SSH
+	git clone https://github.com/mlandis/phyddle.git   # using HTTPS
+	gh repo clone mlandis/phyddle                      # using GitHub CLI
 
 or you can `download <https://github.com/mlandis/phyddle/archive/refs/heads/main.zip>`_ and unzip the current version of the main branch
 
 .. code-block::
 
-	$ wget https://github.com/mlandis/phyddle/archive/refs/heads/main.zip
-	$ unzip main.zip
+	wget https://github.com/mlandis/phyddle/archive/refs/heads/main.zip
+	unzip main.zip
 
 
 Build phyddle package
@@ -32,21 +48,21 @@ Once cloned, you can build phyddle into a local Python package
 
 .. code-block::
 
-	$ cd ~/projects/phyddle   # enter local phyddle repo
-	$ pip install .           # build local package
+	cd ~/projects/phyddle   # enter local phyddle repo
+	pip install .           # build local package
 
 
 Alternatively, the beta version of phyddle can be installed through `TestPyPI <https://test.pypi.org/project/phyddle/>`_
 
 .. code-block::
 
-	$ python3 -m pip install --index-url https://test.pypi.org/simple/ --no-deps phyddle
+	python3 -m pip install --index-url https://test.pypi.org/simple/ --no-deps phyddle
 
 When phyddle is public, it will be installed using
 
 .. code-block::
 
-	$ python3 -m pip install phyddle
+	python3 -m pip install phyddle
 
 
 Python requirements

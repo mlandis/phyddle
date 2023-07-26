@@ -71,7 +71,76 @@ Simulate
 
 Command Line Simulations
 ^^^^^^^^^^^^^^^^^^^^^^^^
-(to be written)
+
+Simulators that can be called from command-line can be used to generate training datasets for phyddle.
+This allows researchers to use their favorite simulator with phyddle for phylogenetic modeling tasks.
+
+To use a command-line simulator, set the ``sim_method`` equal to ``command``.
+Next, set ``sim_command`` equal to a command string of the form ``MY_COMMAND [MY_ARGUMENT_LIST]``.
+When simulating, phyddle will append the prefix of a simulation replicate to the command string,
+then execute a command with the form ``MY_COMMAND [MY_ARGUMENT_LIST] SIM_PREFIX``.
+
+As a worked example, suppose we have an R script called ``sim_one.R`` containing the following code
+
+.. code-block:: r
+
+    # load library
+    library(ape)
+    
+    # gather arguments
+    args = commandArgs(trailingOnly = TRUE)
+    
+    # simulated file names
+    tmp_fn = args[1]
+    phy_fn  = paste0(tmp_fn, ".tre")
+    dat_fn  = paste0(tmp_fn, ".dat.nex")
+    lbl_fn  = paste0(tmp_fn, ".param_row.csv")
+    
+    # simulation parameters
+    birth = rexp(1)
+    death = birth * runif(1)
+    rate = rexp(1)
+    max_time = runif(1,0,10)
+    
+    # simulate training data
+    phy = rbdtree(birth=birth, death=death, Tmax=max_time)
+    dat = rTraitDisc(phy, model="ER", k=2, rate=rate, state_labels=c(0,1))
+    dat = dat - 1  # re-index states from 1/2 to 0/1
+    
+    # collect training labels
+    lbl_vec = c(birth=birth, death=death, rate=rate)
+    lbl = data.frame(t(lbl_vec))
+    
+    # save training example
+    write.tree(phy, file=phy_fn)
+    write.nexus.data(dat, file=dat_fn, format="standard", datablock=T)
+    write.csv(lbl, file=lbl_fn, row.names=F, quote=F)
+
+    # done!
+    quit()
+
+This script has a few important features.
+First, the simulator is entirely reponsible for simulating the dataset.
+Second, the script assumes it will be provided a runtime argument (``args[1]``) to generate filenames for the training example.
+Third, output for the Newick string is stored into a ``.tre`` file, for the character matrix data into a ``.dat.nex`` Nexus file, and for the training labels into a comma-separated ``.csv`` file.
+
+The correct ``sim_command`` is:
+
+.. code-block:: python
+
+    'sim_command' : 'Rscript sim_one.R'
+
+Assuming ``sim_dir = ../workspace/simulate`` and ``proj = my_project``, phyddle will execute the commands during simulation
+
+.. code-block:: shell
+
+    Rscript sim_one.R ../workspace/simulate/my_project/sim.0
+    Rscript sim_one.R ../workspace/simulate/my_project/sim.1
+    Rscript sim_one.R ../workspace/simulate/my_project/sim.2
+    ...
+
+for every replication index between ``start_idx`` and ``end_idx``.
+In fact, executing ``Rscript sim_one.R ../workspace/simulate/my_project/sim.0`` from terminal is the perfect way to validate that your custom simulator is compatible with the phyddle requirements.
 
 .. _Master_Simulations:
 

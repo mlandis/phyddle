@@ -291,13 +291,12 @@ options:
 <h3>The <code class="docutils literal notranslate"><span class="pre">step</span></code> setting<a class="headerlink" href="#the-step-setting" title="Permalink to this heading"></a></h3>
 <p>The <code class="docutils literal notranslate"><span class="pre">step</span></code> setting controls which steps should be applied.
 Each pipeline step is represented by a capital letter:
-<cite>S</cite> for <a class="reference internal" href="pipeline.html#simulate"><span class="std std-ref">Simulate</span></a>,`F` for <a class="reference internal" href="pipeline.html#format"><span class="std std-ref">Format</span></a>, <cite>T</cite> for <a class="reference internal" href="pipeline.html#train"><span class="std std-ref">Train</span></a>, <cite>E</cite> for <a class="reference internal" href="pipeline.html#estimate"><span class="std std-ref">Estimate</span></a>, <cite>P</cite> for <a class="reference internal" href="pipeline.html#plot"><span class="std std-ref">Plot</span></a>, and <cite>A</cite> for all steps.</p>
-<p>For example, the following two commands are equivalent
-.. code-block:: shell</p>
-<blockquote>
-<div><p>./run_phyddle.py –step A
-./run_phyddle.py –step SFTEP</p>
-</div></blockquote>
+<code class="docutils literal notranslate"><span class="pre">S</span></code> for <a class="reference internal" href="pipeline.html#simulate"><span class="std std-ref">Simulate</span></a>, <code class="docutils literal notranslate"><span class="pre">F</span></code> for <a class="reference internal" href="pipeline.html#format"><span class="std std-ref">Format</span></a>, <code class="docutils literal notranslate"><span class="pre">T</span></code> for <a class="reference internal" href="pipeline.html#train"><span class="std std-ref">Train</span></a>, <code class="docutils literal notranslate"><span class="pre">E</span></code> for <a class="reference internal" href="pipeline.html#estimate"><span class="std std-ref">Estimate</span></a>, <code class="docutils literal notranslate"><span class="pre">P</span></code> for <a class="reference internal" href="pipeline.html#plot"><span class="std std-ref">Plot</span></a>, and <code class="docutils literal notranslate"><span class="pre">A</span></code> for all steps.</p>
+<p>For example, the following two commands are equivalent</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>./run_phyddle.py<span class="w"> </span>--step<span class="w"> </span>A
+./run_phyddle.py<span class="w"> </span>--step<span class="w"> </span>SFTEP
+</pre></div>
+</div>
 <p>whereas calling</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>./run_phyddle.py<span class="w"> </span>--step<span class="w"> </span>SF
 </pre></div>
@@ -317,7 +316,7 @@ The <code class="docutils literal notranslate"><span class="pre">proj</span></co
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>./run_phyddle.py<span class="w"> </span>--proj<span class="w"> </span>my_project,E:new_estimate,P:new_plot
 </pre></div>
 </div>
-<p>would use the project name <code class="docutils literal notranslate"><span class="pre">new_estimate</span></code> for the Estimate step (<code class="docutils literal notranslate"><span class="pre">E</span></code>), <code class="docutils literal notranslate"><span class="pre">new_plot</span></code> for the Plot step (<code class="docutils literal notranslate"><span class="pre">P</span></code>), and <code class="docutils literal notranslate"><span class="pre">my_project</span></code> for all other steps.</p>
+<p>would use <code class="docutils literal notranslate"><span class="pre">new_estimate</span></code> as the project name for the <code class="docutils literal notranslate"><span class="pre">E</span></code> step (Estimate), <code class="docutils literal notranslate"><span class="pre">new_plot</span></code> for the <code class="docutils literal notranslate"><span class="pre">P</span></code> step (Plot), and <code class="docutils literal notranslate"><span class="pre">my_project</span></code> for all other steps.</p>
 </section>
 </section>
 </section>

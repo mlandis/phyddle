@@ -3,16 +3,7 @@
 Quick start
 ===========
 
-We recommend using conda to install phydle:
-
-.. code-block:: shell
-
-    # WARNING: this does not yet work
-    conda create phyddle
-    conda activate phyddle
-    conda install phyddle
-
-...but visit the :ref:`Installation` page to learn more about installing phyddle. 
+Visit the :ref:`Installation` page to install phyddle. 
 
 To run a phyddle analysis enter the ``scripts`` directory:
 

@@ -216,9 +216,10 @@ The ``step`` setting
 
 The ``step`` setting controls which steps should be applied.
 Each pipeline step is represented by a capital letter:
-`S` for :ref:`Simulate`,`F` for :ref:`Format`, `T` for :ref:`Train`, `E` for :ref:`Estimate`, `P` for :ref:`Plot`, and `A` for all steps.
+``S`` for :ref:`Simulate`, ``F`` for :ref:`Format`, ``T`` for :ref:`Train`, ``E`` for :ref:`Estimate`, ``P`` for :ref:`Plot`, and ``A`` for all steps.
 
 For example, the following two commands are equivalent
+
 .. code-block:: shell
 
     ./run_phyddle.py --step A
@@ -251,5 +252,5 @@ The ``proj`` setting can also be used to specify different project names for ind
 
     ./run_phyddle.py --proj my_project,E:new_estimate,P:new_plot
 
-would use the project name ``new_estimate`` for the Estimate step (``E``), ``new_plot`` for the Plot step (``P``), and ``my_project`` for all other steps.
+would use ``new_estimate`` as the project name for the ``E`` step (Estimate), ``new_plot`` for the ``P`` step (Plot), and ``my_project`` for all other steps.
 

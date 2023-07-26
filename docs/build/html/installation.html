@@ -50,6 +50,7 @@
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick start</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#quick-install">Quick install</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#download-phyddle">Download phyddle</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#build-phyddle-package">Build phyddle package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#python-requirements">Python requirements</a></li>
@@ -93,33 +94,47 @@
   <section id="installation">
 <span id="id1"></span><h1>Installation<a class="headerlink" href="#installation" title="Permalink to this heading"></a></h1>
 <p>This page describes how to download and install phyddle and its dependencies.</p>
+<section id="quick-install">
+<h2>Quick install<a class="headerlink" href="#quick-install" title="Permalink to this heading"></a></h2>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Just kidding. Support for conda is not yet configured.</p>
+</div>
+<p>We recommend installing phyddle using <a class="reference external" href="https://docs.conda.io/en/latest/">conda</a>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">update</span> <span class="n">conda</span>
+<span class="n">conda</span> <span class="n">create</span> <span class="n">phyddle_env</span>
+<span class="n">conda</span> <span class="n">activate</span> <span class="n">phyddle_env</span>
+<span class="n">conda</span> <span class="n">install</span> <span class="n">phyddle</span>
+</pre></div>
+</div>
+</section>
 <section id="download-phyddle">
 <h2>Download phyddle<a class="headerlink" href="#download-phyddle" title="Permalink to this heading"></a></h2>
 <p>To install phyddle on your computer, you can either clone the <a class="reference external" href="https://github.com/mlandis/phyddle">repository</a></p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ git clone git@github.com:mlandis/phyddle.git       # SSH
-$ git clone https://github.com/mlandis/phyddle.git   # HTTPS
-$ gh repo clone mlandis/phyddle                      # GitHub CLI
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">git</span><span class="nd">@github</span><span class="o">.</span><span class="n">com</span><span class="p">:</span><span class="n">mlandis</span><span class="o">/</span><span class="n">phyddle</span><span class="o">.</span><span class="n">git</span>       <span class="c1"># using SSH</span>
+<span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">mlandis</span><span class="o">/</span><span class="n">phyddle</span><span class="o">.</span><span class="n">git</span>   <span class="c1"># using HTTPS</span>
+<span class="n">gh</span> <span class="n">repo</span> <span class="n">clone</span> <span class="n">mlandis</span><span class="o">/</span><span class="n">phyddle</span>                      <span class="c1"># using GitHub CLI</span>
 </pre></div>
 </div>
 <p>or you can <a class="reference external" href="https://github.com/mlandis/phyddle/archive/refs/heads/main.zip">download</a> and unzip the current version of the main branch</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ wget https://github.com/mlandis/phyddle/archive/refs/heads/main.zip
-$ unzip main.zip
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">wget</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">mlandis</span><span class="o">/</span><span class="n">phyddle</span><span class="o">/</span><span class="n">archive</span><span class="o">/</span><span class="n">refs</span><span class="o">/</span><span class="n">heads</span><span class="o">/</span><span class="n">main</span><span class="o">.</span><span class="n">zip</span>
+<span class="n">unzip</span> <span class="n">main</span><span class="o">.</span><span class="n">zip</span>
 </pre></div>
 </div>
 </section>
 <section id="build-phyddle-package">
 <h2>Build phyddle package<a class="headerlink" href="#build-phyddle-package" title="Permalink to this heading"></a></h2>
 <p>Once cloned, you can build phyddle into a local Python package</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ cd ~/projects/phyddle   # enter local phyddle repo
-$ pip install .           # build local package
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="o">~/</span><span class="n">projects</span><span class="o">/</span><span class="n">phyddle</span>   <span class="c1"># enter local phyddle repo</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="o">.</span>           <span class="c1"># build local package</span>
 </pre></div>
 </div>
 <p>Alternatively, the beta version of phyddle can be installed through <a class="reference external" href="https://test.pypi.org/project/phyddle/">TestPyPI</a></p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ python3 -m pip install --index-url https://test.pypi.org/simple/ --no-deps phyddle
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python3</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="o">--</span><span class="n">index</span><span class="o">-</span><span class="n">url</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">test</span><span class="o">.</span><span class="n">pypi</span><span class="o">.</span><span class="n">org</span><span class="o">/</span><span class="n">simple</span><span class="o">/</span> <span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">deps</span> <span class="n">phyddle</span>
 </pre></div>
 </div>
 <p>When phyddle is public, it will be installed using</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ python3 -m pip install phyddle
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python3</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">phyddle</span>
 </pre></div>
 </div>
 </section>

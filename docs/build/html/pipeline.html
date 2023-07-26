@@ -142,7 +142,66 @@ sirm<span class="w">                </span>--<span class="w">                  <
 <p><a class="reference internal" href="#simulate"><span class="std std-ref">Simulate</span></a> instructs phyddle to simulate your training dataset. Currently, phyddle supports simulation by user-provided <a class="reference internal" href="#command-line-simulations"><span class="std std-ref">Command Line Simulations</span></a> command line scripts and through the <a class="reference internal" href="#master-simulations"><span class="std std-ref">MASTER Simulations</span></a> plugin from BEAST.</p>
 <section id="command-line-simulations">
 <span id="id4"></span><h3>Command Line Simulations<a class="headerlink" href="#command-line-simulations" title="Permalink to this heading"></a></h3>
-<p>(to be written)</p>
+<p>Simulators that can be called from command-line can be used to generate training datasets for phyddle.
+This allows researchers to use their favorite simulator with phyddle for phylogenetic modeling tasks.</p>
+<p>To use a command-line simulator, set the <code class="docutils literal notranslate"><span class="pre">sim_method</span></code> equal to <code class="docutils literal notranslate"><span class="pre">command</span></code>.
+Next, set <code class="docutils literal notranslate"><span class="pre">sim_command</span></code> equal to a command string of the form <code class="docutils literal notranslate"><span class="pre">MY_COMMAND</span> <span class="pre">[MY_ARGUMENT_LIST]</span></code>.
+When simulating, phyddle will append the prefix of a simulation replicate to the command string,
+then execute a command with the form <code class="docutils literal notranslate"><span class="pre">MY_COMMAND</span> <span class="pre">[MY_ARGUMENT_LIST]</span> <span class="pre">SIM_PREFIX</span></code>.</p>
+<p>As a worked example, suppose we have an R script called <code class="docutils literal notranslate"><span class="pre">sim_one.R</span></code> containing the following code</p>
+<div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="c1"># load library</span>
+<span class="nf">library</span><span class="p">(</span><span class="n">ape</span><span class="p">)</span>
+
+<span class="c1"># gather arguments</span>
+<span class="n">args</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">commandArgs</span><span class="p">(</span><span class="n">trailingOnly</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">TRUE</span><span class="p">)</span>
+
+<span class="c1"># simulated file names</span>
+<span class="n">tmp_fn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">args</span><span class="p">[</span><span class="m">1</span><span class="p">]</span>
+<span class="n">phy_fn</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="nf">paste0</span><span class="p">(</span><span class="n">tmp_fn</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;.tre&quot;</span><span class="p">)</span>
+<span class="n">dat_fn</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="nf">paste0</span><span class="p">(</span><span class="n">tmp_fn</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;.dat.nex&quot;</span><span class="p">)</span>
+<span class="n">lbl_fn</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="nf">paste0</span><span class="p">(</span><span class="n">tmp_fn</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;.param_row.csv&quot;</span><span class="p">)</span>
+
+<span class="c1"># simulation parameters</span>
+<span class="n">birth</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">rexp</span><span class="p">(</span><span class="m">1</span><span class="p">)</span>
+<span class="n">death</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">birth</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nf">runif</span><span class="p">(</span><span class="m">1</span><span class="p">)</span>
+<span class="n">rate</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">rexp</span><span class="p">(</span><span class="m">1</span><span class="p">)</span>
+<span class="n">max_time</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">runif</span><span class="p">(</span><span class="m">1</span><span class="p">,</span><span class="m">0</span><span class="p">,</span><span class="m">10</span><span class="p">)</span>
+
+<span class="c1"># simulate training data</span>
+<span class="n">phy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">rbdtree</span><span class="p">(</span><span class="n">birth</span><span class="o">=</span><span class="n">birth</span><span class="p">,</span><span class="w"> </span><span class="n">death</span><span class="o">=</span><span class="n">death</span><span class="p">,</span><span class="w"> </span><span class="n">Tmax</span><span class="o">=</span><span class="n">max_time</span><span class="p">)</span>
+<span class="n">dat</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">rTraitDisc</span><span class="p">(</span><span class="n">phy</span><span class="p">,</span><span class="w"> </span><span class="n">model</span><span class="o">=</span><span class="s">&quot;ER&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">k</span><span class="o">=</span><span class="m">2</span><span class="p">,</span><span class="w"> </span><span class="n">rate</span><span class="o">=</span><span class="n">rate</span><span class="p">,</span><span class="w"> </span><span class="n">state_labels</span><span class="o">=</span><span class="nf">c</span><span class="p">(</span><span class="m">0</span><span class="p">,</span><span class="m">1</span><span class="p">))</span>
+<span class="n">dat</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dat</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="m">1</span><span class="w">  </span><span class="c1"># re-index states from 1/2 to 0/1</span>
+
+<span class="c1"># collect training labels</span>
+<span class="n">lbl_vec</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="n">birth</span><span class="o">=</span><span class="n">birth</span><span class="p">,</span><span class="w"> </span><span class="n">death</span><span class="o">=</span><span class="n">death</span><span class="p">,</span><span class="w"> </span><span class="n">rate</span><span class="o">=</span><span class="n">rate</span><span class="p">)</span>
+<span class="n">lbl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">data.frame</span><span class="p">(</span><span class="nf">t</span><span class="p">(</span><span class="n">lbl_vec</span><span class="p">))</span>
+
+<span class="c1"># save training example</span>
+<span class="nf">write.tree</span><span class="p">(</span><span class="n">phy</span><span class="p">,</span><span class="w"> </span><span class="n">file</span><span class="o">=</span><span class="n">phy_fn</span><span class="p">)</span>
+<span class="nf">write.nexus.data</span><span class="p">(</span><span class="n">dat</span><span class="p">,</span><span class="w"> </span><span class="n">file</span><span class="o">=</span><span class="n">dat_fn</span><span class="p">,</span><span class="w"> </span><span class="n">format</span><span class="o">=</span><span class="s">&quot;standard&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">datablock</span><span class="o">=</span><span class="bp">T</span><span class="p">)</span>
+<span class="nf">write.csv</span><span class="p">(</span><span class="n">lbl</span><span class="p">,</span><span class="w"> </span><span class="n">file</span><span class="o">=</span><span class="n">lbl_fn</span><span class="p">,</span><span class="w"> </span><span class="n">row.names</span><span class="o">=</span><span class="bp">F</span><span class="p">,</span><span class="w"> </span><span class="n">quote</span><span class="o">=</span><span class="bp">F</span><span class="p">)</span>
+
+<span class="c1"># done!</span>
+<span class="nf">quit</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>This script has a few important features.
+First, the simulator is entirely reponsible for simulating the dataset.
+Second, the script assumes it will be provided a runtime argument (<code class="docutils literal notranslate"><span class="pre">args[1]</span></code>) to generate filenames for the training example.
+Third, output for the Newick string is stored into a <code class="docutils literal notranslate"><span class="pre">.tre</span></code> file, for the character matrix data into a <code class="docutils literal notranslate"><span class="pre">.dat.nex</span></code> Nexus file, and for the training labels into a comma-separated <code class="docutils literal notranslate"><span class="pre">.csv</span></code> file.</p>
+<p>The correct <code class="docutils literal notranslate"><span class="pre">sim_command</span></code> is:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="s1">&#39;sim_command&#39;</span> <span class="p">:</span> <span class="s1">&#39;Rscript sim_one.R&#39;</span>
+</pre></div>
+</div>
+<p>Assuming <code class="docutils literal notranslate"><span class="pre">sim_dir</span> <span class="pre">=</span> <span class="pre">../workspace/simulate</span></code> and <code class="docutils literal notranslate"><span class="pre">proj</span> <span class="pre">=</span> <span class="pre">my_project</span></code>, phyddle will execute the commands during simulation</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>Rscript<span class="w"> </span>sim_one.R<span class="w"> </span>../workspace/simulate/my_project/sim.0
+Rscript<span class="w"> </span>sim_one.R<span class="w"> </span>../workspace/simulate/my_project/sim.1
+Rscript<span class="w"> </span>sim_one.R<span class="w"> </span>../workspace/simulate/my_project/sim.2
+...
+</pre></div>
+</div>
+<p>for every replication index between <code class="docutils literal notranslate"><span class="pre">start_idx</span></code> and <code class="docutils literal notranslate"><span class="pre">end_idx</span></code>.
+In fact, executing <code class="docutils literal notranslate"><span class="pre">Rscript</span> <span class="pre">sim_one.R</span> <span class="pre">../workspace/simulate/my_project/sim.0</span></code> from terminal is the perfect way to validate that your custom simulator is compatible with the phyddle requirements.</p>
 </section>
 <section id="master-simulations">
 <span id="id5"></span><h3>MASTER Simulations<a class="headerlink" href="#master-simulations" title="Permalink to this heading"></a></h3>
