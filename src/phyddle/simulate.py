@@ -176,7 +176,7 @@ class Simulator:
         else:
             res = [ self.sim_one(idx) for idx in tqdm(self.rep_idx) ]
 
-        if self.verbose: print(utilities.phyddle_str('... done!'))
+        utilities.print_str('... done!', verbose=self.verbose)
         return res
 
     # main simulation function (looped)

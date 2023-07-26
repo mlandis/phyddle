@@ -378,8 +378,6 @@ def add_step_proj(args): #steps, proj):
     # get relevant args
     steps = args['step']
     proj = args['proj']
-    print(steps)
-    print(proj)
     
     d_map = { 'S': ('sim', 'simulate'),
               'F': ('fmt', 'format'),
@@ -388,17 +386,20 @@ def add_step_proj(args): #steps, proj):
               'P': ('plt', 'plot'),
               'L': ('log', 'log') }
     
-    # treat proj as the global project name
-    # if it contains no split tokens
-    if ':' not in proj and ',' not in proj:
-        proj = f'A:{proj}'
+    # # treat proj as the global project name
+    # # if it contains no split tokens
+    # if ':' not in proj and ',' not in proj:
+    #     proj = f'A:{proj}'
     
     # parse input string
     d_toks = {}
     proj_toks = proj.split(',')
     for p in proj_toks:
-        k,v = p.split(':')
-        d_toks[k] = v
+        if ':' not in p:
+            d_toks['A'] = p
+        else:
+            k,v = p.split(':')
+            d_toks[k] = v
 
     # handle all-step (*) first
     d_arg = {}
