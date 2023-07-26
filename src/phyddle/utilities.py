@@ -219,7 +219,7 @@ def load_config(config_fn: str,
     parser.add_argument('-c', '--cfg',          dest='config_fn', type=str, help='Config file name', metavar='')
     #parser.add_argument('-f', '--force',        action='store_true', help='Arguments override config file settings')
     parser.add_argument('-p', '--proj',         dest='proj', type=str, help='Project name used as directory across pipeline stages', metavar='')
-    parser.add_argument('-s', '--step',         dest='step', type=str, help='Pipeline step(s) defined with (S)imulate, (F)ormat, (T)rain, (E)stimate, (P)lot, or (*) for all', metavar='')
+    parser.add_argument('-s', '--step',         dest='step', type=str, help='Pipeline step(s) defined with (S)imulate, (F)ormat, (T)rain, (E)stimate, (P)lot, or (A)ll', metavar='')
     parser.add_argument('-v', '--verbose',      dest='verbose', type=bool, help='Verbose output to screen? (recommended)', metavar='')
     # processor settings
     parser.add_argument('--use_parallel',       dest='use_parallel', type=bool, help='Use parallelization? (recommended)', metavar='')
@@ -358,7 +358,7 @@ def load_config(config_fn: str,
     # set steps & projects
     m.args = add_step_proj(m.args) #['step'], m.args['proj'])
     
-    if m.args['step'] == '*':
+    if m.args['step'] == 'A':
         m.args['step'] = ['S', 'F', 'T', 'E', 'P']
     else:
         m.args['step'] = [ i for i in m.args['step'] ]
@@ -391,7 +391,7 @@ def add_step_proj(args): #steps, proj):
     # treat proj as the global project name
     # if it contains no split tokens
     if ':' not in proj and ',' not in proj:
-        proj = f'*:{proj}'
+        proj = f'A:{proj}'
     
     # parse input string
     d_toks = {}
@@ -402,11 +402,11 @@ def add_step_proj(args): #steps, proj):
 
     # handle all-step (*) first
     d_arg = {}
-    if '*' in d_toks.keys():
+    if 'A' in d_toks.keys():
         steps = 'SFTEPL'
         for i in ['S', 'F', 'T', 'E', 'P', 'L']:
             k = d_map[i][0]
-            d_arg[k] = d_toks['*']
+            d_arg[k] = d_toks['A']
         
     # overwrite with named steps
     k_change = [ k for k in d_toks.keys() if k in 'SFTEPL' ]
@@ -436,7 +436,7 @@ def check_args(args):
     AssertionError: If any of the conditions are not met.
     """
     # string values
-    assert all([s in '*SFTEP' for s in args['step']])
+    assert all([s in 'ASFTEP' for s in args['step']])
     assert args['sim_method']        in ['command', 'master']
     assert args['sim_logging']       in ['clean', 'verbose', 'compress']
     assert args['tree_type']         in ['serial', 'extant']

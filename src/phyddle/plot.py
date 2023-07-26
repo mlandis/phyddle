@@ -107,8 +107,8 @@ class Plotter:
         # directories
         self.trn_proj_dir        = f'{self.trn_dir}/{self.trn_proj}'
         self.fmt_proj_dir        = f'{self.fmt_dir}/{self.fmt_proj}'
-        self.plt_proj_dir        = f'{self.plt_dir}/{self.plt_proj}'
         self.est_proj_dir        = f'{self.est_dir}/{self.est_proj}'
+        self.plt_proj_dir        = f'{self.plt_dir}/{self.plt_proj}'
 
         # tensors
         self.input_stats_fn     = f'{self.fmt_proj_dir}/sim.nt{self.tree_width}.summ_stat.csv'
@@ -220,6 +220,8 @@ class Plotter:
             self.est_lbl_lower = None
             self.est_lbl_upper = None
             self.est_lbl_df = None
+
+        os.makedirs(self.plt_proj_dir, exist_ok=True)
 
         return
 
