@@ -55,11 +55,11 @@
 <li class="toctree-l1"><a class="reference internal" href="settings.html">Settings</a></li>
 <li class="toctree-l1"><a class="reference internal" href="data_formats.html">Data formats</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Workspace directories</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#raw-data-from-simulating"><code class="docutils literal notranslate"><span class="pre">raw_data</span></code> from Simulating</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#formatting-and-tensor-data">Formatting and <code class="docutils literal notranslate"><span class="pre">tensor_data</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#learning-and-network">Learning and <code class="docutils literal notranslate"><span class="pre">network</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#predicting-and-predict">Predicting and <code class="docutils literal notranslate"><span class="pre">predict</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#plotting-and-plot">Plotting and <code class="docutils literal notranslate"><span class="pre">plot</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#simulate"><code class="docutils literal notranslate"><span class="pre">simulate</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#format"><code class="docutils literal notranslate"><span class="pre">format</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#train"><code class="docutils literal notranslate"><span class="pre">train</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#estimate"><code class="docutils literal notranslate"><span class="pre">estimate</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#plot"><code class="docutils literal notranslate"><span class="pre">plot</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="tricks.html">Tricks</a></li>
@@ -97,53 +97,54 @@
 <p>(incomplete) Important: This section assume the project name is ‘example’ while actual projects will likely use different names.</p>
 </div>
 <p>This section provides an overview of the main workspace directories used to store work across projects and pipeline steps. A standard configuration for a project named <code class="docutils literal notranslate"><span class="pre">example</span></code> would store pipeline work into these directories:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>workspace/raw_data/example<span class="w">       </span><span class="c1"># from Simulating</span>
-workspace/tensor_data/example<span class="w">    </span><span class="c1"># from Formatting</span>
-workspace/network/example<span class="w">        </span><span class="c1"># from Learning</span>
-workspace/predict/example<span class="w">        </span><span class="c1"># from/for Predicting</span>
-workspace/plot/example<span class="w">           </span><span class="c1"># from Plotting</span>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>workspace/simulate/example<span class="w">       </span><span class="c1"># Simulate output</span>
+workspace/format/example<span class="w">         </span><span class="c1"># Format output</span>
+workspace/train/example<span class="w">          </span><span class="c1"># Train output</span>
+workspace/estimate/example<span class="w">       </span><span class="c1"># Estimate output</span>
+workspace/plot/example<span class="w">           </span><span class="c1"># Plot output</span>
+workspace/log/example<span class="w">            </span><span class="c1"># from all steps</span>
 </pre></div>
 </div>
 <p>Next, we give an overview of the standard files and formats corresponding to each pipeline directory.</p>
-<section id="raw-data-from-simulating">
-<h2><code class="docutils literal notranslate"><span class="pre">raw_data</span></code> from Simulating<a class="headerlink" href="#raw-data-from-simulating" title="Permalink to this heading"></a></h2>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>workspace/raw_data/example/sim.0.beast.log
-workspace/raw_data/example/sim.0.dat.nex
-workspace/raw_data/example/sim.0.json
-workspace/raw_data/example/sim.0.param_col.csv
-workspace/raw_data/example/sim.0.param_row.csv
-workspace/raw_data/example/sim.0.phy.nex
-workspace/raw_data/example/sim.0.tre
-workspace/raw_data/example/sim.0.xml
+<section id="simulate">
+<h2><code class="docutils literal notranslate"><span class="pre">simulate</span></code><a class="headerlink" href="#simulate" title="Permalink to this heading"></a></h2>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>workspace/simulate/example/sim.0.beast.log
+workspace/simulate/example/sim.0.dat.nex
+workspace/simulate/example/sim.0.json
+workspace/simulate/example/sim.0.param_col.csv
+workspace/simulate/example/sim.0.param_row.csv
+workspace/simulate/example/sim.0.phy.nex
+workspace/simulate/example/sim.0.tre
+workspace/simulate/example/sim.0.xml
 </pre></div>
 </div>
 </section>
-<section id="formatting-and-tensor-data">
-<h2>Formatting and <code class="docutils literal notranslate"><span class="pre">tensor_data</span></code><a class="headerlink" href="#formatting-and-tensor-data" title="Permalink to this heading"></a></h2>
+<section id="format">
+<h2><code class="docutils literal notranslate"><span class="pre">format</span></code><a class="headerlink" href="#format" title="Permalink to this heading"></a></h2>
 <p>(incomplete)</p>
 </section>
-<section id="learning-and-network">
-<h2>Learning and <code class="docutils literal notranslate"><span class="pre">network</span></code><a class="headerlink" href="#learning-and-network" title="Permalink to this heading"></a></h2>
-<p>Training a network creates the following files in the <code class="docutils literal notranslate"><span class="pre">workspace/network/my_project</span></code> directory:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>network_prefix.cpi_adjustments.csv
-network_prefix.hdf5
-network_prefix.test_labels.csv
-network_prefix.test_pred.csv
-network_prefix.test_pred_nocalib.csv
-network_prefix.train_history.json
-network_prefix.train_label_norm.csv
-network_prefix.train_labels.csv
-network_prefix.train_pred.csv
-network_prefix.train_pred_nocalib.csv
-network_prefix.train_summ_stat_norm.csv
+<section id="train">
+<h2><code class="docutils literal notranslate"><span class="pre">train</span></code><a class="headerlink" href="#train" title="Permalink to this heading"></a></h2>
+<p>Training a network creates the following files in the <code class="docutils literal notranslate"><span class="pre">workspace/train/my_project</span></code> directory:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>train_prefix.cpi_adjustments.csv
+train_prefix.hdf5
+train_prefix.test_labels.csv
+train_prefix.test_pred.csv
+train_prefix.test_pred_nocalib.csv
+train_prefix.train_history.json
+train_prefix.train_label_norm.csv
+train_prefix.train_labels.csv
+train_prefix.train_pred.csv
+train_prefix.train_pred_nocalib.csv
+train_prefix.train_summ_stat_norm.csv
 </pre></div>
 </div>
-<p>where <code class="docutils literal notranslate"><span class="pre">network_prefix</span></code> describes the training settings for the network. For example, the network prefix <code class="docutils literal notranslate"><span class="pre">sim_batchsize128_numepoch20_nt500</span></code> indicated a network trained with a batch size of 128 samples for 20 epochs on the tree width size-category of max. 500 taxa.</p>
+<p>where <code class="docutils literal notranslate"><span class="pre">train_prefix</span></code> describes the training settings for the network. For example, the network prefix <code class="docutils literal notranslate"><span class="pre">sim_batchsize128_numepoch20_nt500</span></code> indicated a network trained with a batch size of 128 samples for 20 epochs on the tree width size-category of max. 500 taxa.</p>
 <p>Descriptions of the files are as follows
 * <code class="docutils literal notranslate"><span class="pre">cpi_adjustments.csv</span></code>: calibrated prediction interval adjustments, where columns correspond to parameters, the first row contains lower bound adjustments, and the second row contains upper bound adjustments</p>
 </section>
-<section id="predicting-and-predict">
-<h2>Predicting and <code class="docutils literal notranslate"><span class="pre">predict</span></code><a class="headerlink" href="#predicting-and-predict" title="Permalink to this heading"></a></h2>
+<section id="estimate">
+<h2><code class="docutils literal notranslate"><span class="pre">estimate</span></code><a class="headerlink" href="#estimate" title="Permalink to this heading"></a></h2>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>cat<span class="w"> </span>new.1.sim_batchsize128_numepoch20_nt500.pred_labels.csv
 w_0_value,w_0_lower,w_0_upper,e_0_value,e_0_lower,e_0_upper,d_0_1_value,d_0_1_lower,d_0_1_upper,b_0_1_value,b_0_1_lower,b_0_1_upper
 <span class="m">0</span>.2867125345651129,0.1937433853918723,0.45733220552078013,0.02445545359384659,0.002880695707341881,0.10404499205878459,0.4502031713887769,0.1966340488593367,0.5147956690178682,0.06199703190510973,0.0015074254823161301,0.27544015163806645
@@ -151,8 +152,8 @@ w_0_value,w_0_lower,w_0_upper,e_0_value,e_0_lower,e_0_upper,d_0_1_value,d_0_1_lo
 </div>
 <p>Columns are grouped first by label (e.g. parameter) and then statistic (e.g. value, lower-bound, upper-bound).</p>
 </section>
-<section id="plotting-and-plot">
-<h2>Plotting and <code class="docutils literal notranslate"><span class="pre">plot</span></code><a class="headerlink" href="#plotting-and-plot" title="Permalink to this heading"></a></h2>
+<section id="plot">
+<h2><code class="docutils literal notranslate"><span class="pre">plot</span></code><a class="headerlink" href="#plot" title="Permalink to this heading"></a></h2>
 <p>(incomplete)</p>
 </section>
 </section>

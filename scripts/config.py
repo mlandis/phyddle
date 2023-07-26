@@ -15,16 +15,15 @@ args = {
     #-------------------------------#
     # Project organization          #
     #-------------------------------#
-    'proj'           : 'my_project',                # directory name for pipeline project
-    'step'           : 'A',                           # step(s) to run? all, sim, fmt, lrn, prd, plt
-    'verbose'        : True,                          # print verbose phyddle output?
-    'sim_dir'        : '../workspace/simulate',       # directory for simulated data
-    'fmt_dir'        : '../workspace/format',         # directory for tensor-formatted data
-    'trn_dir'        : '../workspace/train',          # directory for trained network
-    'plt_dir'        : '../workspace/plot',           # directory for plotted figures
-    'est_dir'        : '../workspace/estimate',       # directory for predictions on new data
-    'log_dir'        : '../workspace/log',            # directory for logging metadata
-    'est_prefix'     : 'new.1',                       # prefix for new dataset to predict
+    'proj'    : 'my_project',               # project name(s)
+    'step'    : 'A',                        # step(s) to run
+    'verbose' : True,                       # print verbose phyddle output?
+    'sim_dir' : '../workspace/simulate',    # directory for simulated data
+    'fmt_dir' : '../workspace/format',      # directory for tensor-formatted data
+    'trn_dir' : '../workspace/train',       # directory for trained network
+    'plt_dir' : '../workspace/plot',        # directory for plotted figures
+    'est_dir' : '../workspace/estimate',    # directory for predictions on new data
+    'log_dir' : '../workspace/log',         # directory for analysis logs
     
     #-------------------------------#
     # Multiprocessing               #
@@ -99,9 +98,7 @@ args = {
     #-------------------------------#
     # Estimate Step settings        #
     #-------------------------------#
-    # prediction already handled by previously defined settings
-    # no prediction-specific settings currently implemented
-
+    'est_prefix'     : 'new.1',             # prefix for new dataset to predict
 
     #-------------------------------#
     # Plot Step settings            #

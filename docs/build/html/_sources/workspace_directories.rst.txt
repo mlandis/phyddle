@@ -11,59 +11,60 @@ This section provides an overview of the main workspace directories used to stor
 
 .. code-block:: shell
 
-   workspace/raw_data/example       # from Simulating
-   workspace/tensor_data/example    # from Formatting
-   workspace/network/example        # from Learning
-   workspace/predict/example        # from/for Predicting
-   workspace/plot/example           # from Plotting
+   workspace/simulate/example       # Simulate output
+   workspace/format/example         # Format output
+   workspace/train/example          # Train output
+   workspace/estimate/example       # Estimate output
+   workspace/plot/example           # Plot output
+   workspace/log/example            # from all steps
 
 Next, we give an overview of the standard files and formats corresponding to each pipeline directory.
 
 
-``raw_data`` from Simulating
-----------------------------
+``simulate``
+------------
 .. code-block:: shell
 
-    workspace/raw_data/example/sim.0.beast.log
-    workspace/raw_data/example/sim.0.dat.nex
-    workspace/raw_data/example/sim.0.json
-    workspace/raw_data/example/sim.0.param_col.csv
-    workspace/raw_data/example/sim.0.param_row.csv
-    workspace/raw_data/example/sim.0.phy.nex
-    workspace/raw_data/example/sim.0.tre
-    workspace/raw_data/example/sim.0.xml
+    workspace/simulate/example/sim.0.beast.log
+    workspace/simulate/example/sim.0.dat.nex
+    workspace/simulate/example/sim.0.json
+    workspace/simulate/example/sim.0.param_col.csv
+    workspace/simulate/example/sim.0.param_row.csv
+    workspace/simulate/example/sim.0.phy.nex
+    workspace/simulate/example/sim.0.tre
+    workspace/simulate/example/sim.0.xml
 
-Formatting and ``tensor_data``
-------------------------------
+``format``
+----------
 (incomplete)
 
-Learning and ``network``
-------------------------
+``train``
+---------
 
-Training a network creates the following files in the ``workspace/network/my_project`` directory:
+Training a network creates the following files in the ``workspace/train/my_project`` directory:
 
 .. code-block:: shell
 
-    network_prefix.cpi_adjustments.csv
-    network_prefix.hdf5
-    network_prefix.test_labels.csv
-    network_prefix.test_pred.csv
-    network_prefix.test_pred_nocalib.csv
-    network_prefix.train_history.json
-    network_prefix.train_label_norm.csv
-    network_prefix.train_labels.csv
-    network_prefix.train_pred.csv
-    network_prefix.train_pred_nocalib.csv
-    network_prefix.train_summ_stat_norm.csv
+    train_prefix.cpi_adjustments.csv
+    train_prefix.hdf5
+    train_prefix.test_labels.csv
+    train_prefix.test_pred.csv
+    train_prefix.test_pred_nocalib.csv
+    train_prefix.train_history.json
+    train_prefix.train_label_norm.csv
+    train_prefix.train_labels.csv
+    train_prefix.train_pred.csv
+    train_prefix.train_pred_nocalib.csv
+    train_prefix.train_summ_stat_norm.csv
 
-where ``network_prefix`` describes the training settings for the network. For example, the network prefix ``sim_batchsize128_numepoch20_nt500`` indicated a network trained with a batch size of 128 samples for 20 epochs on the tree width size-category of max. 500 taxa.
+where ``train_prefix`` describes the training settings for the network. For example, the network prefix ``sim_batchsize128_numepoch20_nt500`` indicated a network trained with a batch size of 128 samples for 20 epochs on the tree width size-category of max. 500 taxa.
 
 Descriptions of the files are as follows
 * ``cpi_adjustments.csv``: calibrated prediction interval adjustments, where columns correspond to parameters, the first row contains lower bound adjustments, and the second row contains upper bound adjustments
 
 
-Predicting and ``predict``
---------------------------
+``estimate``
+------------
 
 .. code-block:: shell
 
@@ -74,7 +75,7 @@ Predicting and ``predict``
 Columns are grouped first by label (e.g. parameter) and then statistic (e.g. value, lower-bound, upper-bound).
 
 
-Plotting and ``plot``
----------------------
+``plot``
+--------
 (incomplete)
 

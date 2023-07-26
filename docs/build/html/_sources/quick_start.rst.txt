@@ -1,6 +1,18 @@
+.. _Quick_Start:
+
 Quick start
 ===========
 
+We recommend using conda to install phydle:
+
+.. code-block:: shell
+
+    # WARNING: this does not yet work
+    conda create phyddle
+    conda activate phyddle
+    conda install phyddle
+
+...but visit the :ref:`Installation` page to learn more about installing phyddle. 
 
 To run a phyddle analysis enter the ``scripts`` directory:
 
@@ -16,33 +28,31 @@ Then create and run a pipeline under the settings you've specified in ``config.p
 
 This will run a phyddle analysis for a simple 3-region GeoSSE model with just 500 training examples. In practice, you'll want to generate a larger training dataset with anywhere from 10k to 1M examples, depending on the model.
 
-To add new examples to your training set
+Provide phyddle with command-line options to customize how each pipeline step is executed. Visit :ref:`Pipeline` and :ref:`Workspace` to learn more about managing phyddle analyses. To add new examples to your training set, for example:
 
 .. code-block:: shell
 
-    # simulate new training examples, stored in
-    # workspace/raw_data/my_project
-    ./run_phyddle.py -s sim -c config --start_idx 500 --end_idx 15000
+    # [S]imulate new training examples, stored in
+    # workspace/simulate/my_project
+    ./run_phyddle.py -s S -c config --start_idx 500 --end_idx 15000
 
-    # encode all raw_data examples as tensors,
-    # stored in workspace/tensor_data/my_project
-    ./run_phyddle.py -s fmt -c config --start_idx 0 --end_idx 15000
+    # [F]ormat all raw_data examples as tensors,
+    # stored in workspace/format/my_project
+    ./run_phyddle.py -s F -c config --start_idx 0 --end_idx 15000
 
-    # train network with tensor_data, but override batch size,
-    # stored in workspace/network/my_project
-    ./run_phyddle.py -s lrn -c config --batch_size 256
+    # [T]rain network with tensor_data, but override batch size,
+    # stored in workspace/train/my_project
+    ./run_phyddle.py -s T -c config --batch_size 256
 
-    # make prediction with example dataset, results stored in
-    # workspace/predict/my_project
-    ./run_phyddle.py -s prd -c config
+    # [E]stimate parameters for biological dataset, with results
+    # stored in workspace/estimate/my_project; and then [P]lot
+    # figures, storing them in workspace/plot/my_project
+    ./run_phyddle.py -s EP -c config
 
-    # generate figures, stored in workspace/plot/my_project
-    ./run_phyddle.py -s plt -c config
 
-Pipeline options are applied to all pipeline stages. See the full list of currently supported options with
+Visit :ref:`Settings` to learn more about currently supported phyddle options. View supported command-line options with:
 
 .. code-block:: shell
 
 	./run_phyddle.py --help
 
-The files and directories for a small, example project can are found within the `workspace` subdirectories, e.g. `workspace/raw_data/example` or `workspace/plot/example`.

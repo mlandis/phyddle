@@ -20,8 +20,8 @@
     <link rel="author" title="About these documents" href="about.html" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Updates" href="updates.html" />
-    <link rel="prev" title="phyddle documentation" href="index.html" /> 
+    <link rel="next" title="Installation" href="installation.html" />
+    <link rel="prev" title="phyddle docs" href="index.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -49,13 +49,13 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Quick start</a></li>
-<li class="toctree-l1"><a class="reference internal" href="updates.html">Updates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pipeline.html">Pipeline</a></li>
 <li class="toctree-l1"><a class="reference internal" href="settings.html">Settings</a></li>
-<li class="toctree-l1"><a class="reference internal" href="data_formats.html">Data formats</a></li>
-<li class="toctree-l1"><a class="reference internal" href="workspace_directories.html">Workspace directories</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workspace.html">Workspace</a></li>
+<li class="toctree-l1"><a class="reference internal" href="formats.html">Formats</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tricks.html">Tricks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="updates.html">Updates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="about.html">About</a></li>
 </ul>
 
@@ -84,7 +84,15 @@
            <div itemprop="articleBody">
              
   <section id="quick-start">
-<h1>Quick start<a class="headerlink" href="#quick-start" title="Permalink to this heading"></a></h1>
+<span id="id1"></span><h1>Quick start<a class="headerlink" href="#quick-start" title="Permalink to this heading"></a></h1>
+<p>We recommend using conda to install phydle:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># WARNING: this does not yet work</span>
+conda<span class="w"> </span>create<span class="w"> </span>phyddle
+conda<span class="w"> </span>activate<span class="w"> </span>phyddle
+conda<span class="w"> </span>install<span class="w"> </span>phyddle
+</pre></div>
+</div>
+<p>…but visit the <a class="reference internal" href="installation.html#installation"><span class="std std-ref">Installation</span></a> page to learn more about installing phyddle.</p>
 <p>To run a phyddle analysis enter the <code class="docutils literal notranslate"><span class="pre">scripts</span></code> directory:</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>~/projects/phyddle/scripts
 </pre></div>
@@ -94,40 +102,37 @@
 </pre></div>
 </div>
 <p>This will run a phyddle analysis for a simple 3-region GeoSSE model with just 500 training examples. In practice, you’ll want to generate a larger training dataset with anywhere from 10k to 1M examples, depending on the model.</p>
-<p>To add new examples to your training set</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># simulate new training examples, stored in</span>
-<span class="c1"># workspace/raw_data/my_project</span>
-./run_phyddle.py<span class="w"> </span>-s<span class="w"> </span>sim<span class="w"> </span>-c<span class="w"> </span>config<span class="w"> </span>--start_idx<span class="w"> </span><span class="m">500</span><span class="w"> </span>--end_idx<span class="w"> </span><span class="m">15000</span>
+<p>Provide phyddle with command-line options to customize how each pipeline step is executed. Visit <a class="reference internal" href="pipeline.html#pipeline"><span class="std std-ref">Pipeline</span></a> and <a class="reference internal" href="workspace.html#workspace"><span class="std std-ref">Workspace</span></a> to learn more about managing phyddle analyses. To add new examples to your training set, for example:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># [S]imulate new training examples, stored in</span>
+<span class="c1"># workspace/simulate/my_project</span>
+./run_phyddle.py<span class="w"> </span>-s<span class="w"> </span>S<span class="w"> </span>-c<span class="w"> </span>config<span class="w"> </span>--start_idx<span class="w"> </span><span class="m">500</span><span class="w"> </span>--end_idx<span class="w"> </span><span class="m">15000</span>
 
-<span class="c1"># encode all raw_data examples as tensors,</span>
-<span class="c1"># stored in workspace/tensor_data/my_project</span>
-./run_phyddle.py<span class="w"> </span>-s<span class="w"> </span>fmt<span class="w"> </span>-c<span class="w"> </span>config<span class="w"> </span>--start_idx<span class="w"> </span><span class="m">0</span><span class="w"> </span>--end_idx<span class="w"> </span><span class="m">15000</span>
+<span class="c1"># [F]ormat all raw_data examples as tensors,</span>
+<span class="c1"># stored in workspace/format/my_project</span>
+./run_phyddle.py<span class="w"> </span>-s<span class="w"> </span>F<span class="w"> </span>-c<span class="w"> </span>config<span class="w"> </span>--start_idx<span class="w"> </span><span class="m">0</span><span class="w"> </span>--end_idx<span class="w"> </span><span class="m">15000</span>
 
-<span class="c1"># train network with tensor_data, but override batch size,</span>
-<span class="c1"># stored in workspace/network/my_project</span>
-./run_phyddle.py<span class="w"> </span>-s<span class="w"> </span>lrn<span class="w"> </span>-c<span class="w"> </span>config<span class="w"> </span>--batch_size<span class="w"> </span><span class="m">256</span>
+<span class="c1"># [T]rain network with tensor_data, but override batch size,</span>
+<span class="c1"># stored in workspace/train/my_project</span>
+./run_phyddle.py<span class="w"> </span>-s<span class="w"> </span>T<span class="w"> </span>-c<span class="w"> </span>config<span class="w"> </span>--batch_size<span class="w"> </span><span class="m">256</span>
 
-<span class="c1"># make prediction with example dataset, results stored in</span>
-<span class="c1"># workspace/predict/my_project</span>
-./run_phyddle.py<span class="w"> </span>-s<span class="w"> </span>prd<span class="w"> </span>-c<span class="w"> </span>config
-
-<span class="c1"># generate figures, stored in workspace/plot/my_project</span>
-./run_phyddle.py<span class="w"> </span>-s<span class="w"> </span>plt<span class="w"> </span>-c<span class="w"> </span>config
+<span class="c1"># [E]stimate parameters for biological dataset, with results</span>
+<span class="c1"># stored in workspace/estimate/my_project; and then [P]lot</span>
+<span class="c1"># figures, storing them in workspace/plot/my_project</span>
+./run_phyddle.py<span class="w"> </span>-s<span class="w"> </span>EP<span class="w"> </span>-c<span class="w"> </span>config
 </pre></div>
 </div>
-<p>Pipeline options are applied to all pipeline stages. See the full list of currently supported options with</p>
+<p>Visit <a class="reference internal" href="settings.html#settings"><span class="std std-ref">Settings</span></a> to learn more about currently supported phyddle options. View supported command-line options with:</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>./run_phyddle.py<span class="w"> </span>--help
 </pre></div>
 </div>
-<p>The files and directories for a small, example project can are found within the <cite>workspace</cite> subdirectories, e.g. <cite>workspace/raw_data/example</cite> or <cite>workspace/plot/example</cite>.</p>
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="index.html" class="btn btn-neutral float-left" title="phyddle documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="updates.html" class="btn btn-neutral float-right" title="Updates" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="index.html" class="btn btn-neutral float-left" title="phyddle docs" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="installation.html" class="btn btn-neutral float-right" title="Installation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

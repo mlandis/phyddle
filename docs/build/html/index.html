@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>phyddle documentation &mdash; phyddle 0.0.5 documentation</title>
+  <title>phyddle docs &mdash; phyddle 0.0.5 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -48,13 +48,13 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick start</a></li>
-<li class="toctree-l1"><a class="reference internal" href="updates.html">Updates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pipeline.html">Pipeline</a></li>
 <li class="toctree-l1"><a class="reference internal" href="settings.html">Settings</a></li>
-<li class="toctree-l1"><a class="reference internal" href="data_formats.html">Data formats</a></li>
-<li class="toctree-l1"><a class="reference internal" href="workspace_directories.html">Workspace directories</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workspace.html">Workspace</a></li>
+<li class="toctree-l1"><a class="reference internal" href="formats.html">Formats</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tricks.html">Tricks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="updates.html">Updates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="about.html">About</a></li>
 </ul>
 
@@ -72,7 +72,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">phyddle documentation</li>
+      <li class="breadcrumb-item active">phyddle docs</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -82,109 +82,27 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="phyddle-documentation">
-<h1>phyddle documentation<a class="headerlink" href="#phyddle-documentation" title="Permalink to this heading"></a></h1>
-<p><strong>phyddle</strong> is a pipeline-based toolkit for fiddling around with phylogenetic
-models and deep learning. phyddle can be installed as a Python package using
-pip and used for pipeline analyses using scripts provided through GitHub.</p>
+  <section id="phyddle-docs">
+<h1>phyddle docs<a class="headerlink" href="#phyddle-docs" title="Permalink to this heading"></a></h1>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p><strong>This private beta version of phyddle is still under development.</strong> It is generally tested and stable with respect to a few use standard cases. Much of the documentation and some key features are still missing. Most phyddle development occurs on a 16-core Intel Macbook Pro laptop and a 64-core Ubuntu server, so there are also unknown portability/scalability issues to correct. Any feedback is appreciated! <a class="reference external" href="mailto:michael&#46;landis&#37;&#52;&#48;wustl&#46;edu">michael<span>&#46;</span>landis<span>&#64;</span>wustl<span>&#46;</span>edu</a></p>
 </div>
-<section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this heading"></a></h2>
+<p><strong>phyddle</strong> is a pipeline-based toolkit for fiddling around with phylogenetic models and deep learning. phyddle can be installed as a Python package using pip and used for pipeline analyses using scripts provided through GitHub.</p>
 <p>A standard phyddle analysis performs the following tasks for you:</p>
-<a class="reference internal image-reference" href="_images/phyddle_pipeline.png"><img alt="_images/phyddle_pipeline.png" class="align-right" src="_images/phyddle_pipeline.png" style="width: 283.6px; height: 307.6px;" /></a>
+<a class="reference internal image-reference" href="_images/phyddle_pipeline.png"><img alt="_images/phyddle_pipeline.png" class="align-right" src="_images/phyddle_pipeline.png" style="width: 259.22px; height: 277.16px;" /></a>
 <ul class="simple">
 <li><p><strong>Pipeline configuration</strong> applies analysis settings provided through a config file and/or command line arguments.</p></li>
 <li><p><strong>Model configuration</strong> constructs a base simulating model to be <em>Simulated</em> (states, events, rates).</p></li>
-<li><p><strong>Simulating</strong> simulates a large training dataset under the model to be <em>Formatted</em> (parallelized, partly compressed).</p></li>
-<li><p><strong>Formatting</strong> encodes the raw simulated data into tensor format for <em>Learning</em> (parallelized, compressed).</p></li>
-<li><p><strong>Learning</strong> shuffles and splits training data, builds a network, then trains and saves the network with the data for <em>Prediction</em>.</p></li>
-<li><p><strong>Predicting</strong> estimates model parameters for a new dataset with the trained network.</p></li>
-<li><p><strong>Plotting</strong> generates figures that summarize the training data (<em>Formatting</em>), the network and its training (<em>Learning</em>), and any new predictions (<em>Predicting</em>).</p></li>
+<li><p><strong>Simulate</strong> simulates a large training dataset under the model to be <em>Formatted</em> (parallelized, partly compressed).</p></li>
+<li><p><strong>Format</strong> encodes the raw simulated data into tensor format for <em>Training</em>.</p></li>
+<li><p><strong>Train</strong> shuffles and splits training data, builds a network, then trains and saves the network with the data for <em>Estimation</em>.</p></li>
+<li><p><strong>Estimate</strong> produces model estimates for a new dataset with the trained network.</p></li>
+<li><p><strong>Plot</strong> generates figures that summarize the training data (<em>Format</em>), the network and its training (<em>Train</em>), and any estimates for new datasets (<em>Estimate</em>).</p></li>
 </ul>
-</section>
-<section id="features">
-<h2>Features<a class="headerlink" href="#features" title="Permalink to this heading"></a></h2>
-<p>phyddle currently supports offers the following features:</p>
-<ul class="simple">
-<li><p>trained network generates parameter estimates and calibrated prediction intervals (CPIs) for input datasets</p></li>
-<li><p>parallelized simulating, formatting, and learning</p></li>
-<li><p>simulation integrates with user-provided scripts (e.g. R) and third-party simulators (e.g. MASTER in BEAST)</p></li>
-<li><p>modeling interface for MASTER allows several state-dependent birth-death model types and variants (more to come)</p></li>
-<li><p>encoding of phylogenetic-state tensor from serial and extant-only input with multiple states (CBLV+S and CDV+S extensions)</p></li>
-<li><p>encoding of auxiliary data tensor from automatically computed summary statistics and “known” parameter (e.g. sampling rate)</p></li>
-<li><p>HDF5 with gzip compression for tensor data</p></li>
-<li><p>shuffles and splits input tensors into training, test, validation, and calibration datasets for supervised learning</p></li>
-<li><p>builds network with convolution, pooling, and dense layers that match input tensors</p></li>
-<li><p>trains network and saves history</p></li>
-<li><p>automatic figure generation with Matplotlib</p></li>
-</ul>
-</section>
-<section id="contents">
-<h2>Contents<a class="headerlink" href="#contents" title="Permalink to this heading"></a></h2>
 <div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick start</a></li>
-<li class="toctree-l1"><a class="reference internal" href="updates.html">Updates</a></li>
-<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="installation.html#download-phyddle">Download phyddle</a></li>
-<li class="toctree-l2"><a class="reference internal" href="installation.html#build-phyddle-package">Build phyddle package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="installation.html#python-requirements">Python requirements</a></li>
-<li class="toctree-l2"><a class="reference internal" href="installation.html#conda-install">Conda install</a></li>
-<li class="toctree-l2"><a class="reference internal" href="installation.html#simulator-requirements">Simulator requirements</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="pipeline.html">Pipeline</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="pipeline.html#project-layout">Project layout</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="pipeline.html#example-project">Example project</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="pipeline.html#model-configuration">Model Configuration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pipeline.html#simulating">Simulating</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="pipeline.html#command-line-simulations">Command Line Simulations</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pipeline.html#master-simulations">MASTER Simulations</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="pipeline.html#formatting-step">Formatting Step</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pipeline.html#learning">Learning</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pipeline.html#predicting">Predicting</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pipeline.html#plotting">Plotting</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="settings.html">Settings</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="settings.html#configuration-by-file">Configuration by file</a></li>
-<li class="toctree-l2"><a class="reference internal" href="settings.html#configuration-by-cli">Configuration by CLI</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="data_formats.html">Data formats</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="data_formats.html#input-datasets">Input datasets</a></li>
-<li class="toctree-l2"><a class="reference internal" href="data_formats.html#tensor-formats">Tensor formats</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="data_formats.html#cblv-s">CBLV+S</a></li>
-<li class="toctree-l3"><a class="reference internal" href="data_formats.html#cdv-s">CDV+S</a></li>
-<li class="toctree-l3"><a class="reference internal" href="data_formats.html#auxiliary-data">Auxiliary data</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="workspace_directories.html">Workspace directories</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="workspace_directories.html#raw-data-from-simulating"><code class="docutils literal notranslate"><span class="pre">raw_data</span></code> from Simulating</a></li>
-<li class="toctree-l2"><a class="reference internal" href="workspace_directories.html#formatting-and-tensor-data">Formatting and <code class="docutils literal notranslate"><span class="pre">tensor_data</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="workspace_directories.html#learning-and-network">Learning and <code class="docutils literal notranslate"><span class="pre">network</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="workspace_directories.html#predicting-and-predict">Predicting and <code class="docutils literal notranslate"><span class="pre">predict</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="workspace_directories.html#plotting-and-plot">Plotting and <code class="docutils literal notranslate"><span class="pre">plot</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="tricks.html">Tricks</a></li>
-<li class="toctree-l1"><a class="reference internal" href="about.html">About</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="about.html#issues-feedback">Issues &amp; Feedback</a></li>
-<li class="toctree-l2"><a class="reference internal" href="about.html#references">References</a></li>
-</ul>
-</li>
-</ul>
 </div>
-</section>
+<p>Visit the <a class="reference internal" href="quick_start.html#quick-start"><span class="std std-ref">Quick start</span></a> and <a class="reference internal" href="installation.html#installation"><span class="std std-ref">Installation</span></a> pages to get started.</p>
 </section>
 
 
