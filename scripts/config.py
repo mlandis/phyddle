@@ -15,7 +15,7 @@ args = {
     #-------------------------------#
     # Project organization          #
     #-------------------------------#
-    'proj'           : 'my_project',                  # directory name for pipeline project
+    'proj'           : 'my_project',                # directory name for pipeline project
     'step'           : '*',                           # step(s) to run? all, sim, fmt, lrn, prd, plt
     'verbose'        : True,                          # print verbose phyddle output?
     'sim_dir'        : '../workspace/simulate',       # directory for simulated data

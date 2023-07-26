@@ -378,6 +378,8 @@ def add_step_proj(args): #steps, proj):
     # get relevant args
     steps = args['step']
     proj = args['proj']
+    print(steps)
+    print(proj)
     
     d_map = { 'S': ('sim', 'simulate'),
               'F': ('fmt', 'format'),
@@ -401,6 +403,7 @@ def add_step_proj(args): #steps, proj):
     # handle all-step (*) first
     d_arg = {}
     if '*' in d_toks.keys():
+        steps = 'SFTEPL'
         for i in ['S', 'F', 'T', 'E', 'P', 'L']:
             k = d_map[i][0]
             d_arg[k] = d_toks['*']
@@ -1348,7 +1351,7 @@ class Logger:
             msg (str): Log message.
         """
         fn = self.fn_dict[step]
-        with open('myfile.txt', 'a') as file:
+        with open(fn, 'a') as file:
             file.write( f'{msg}\n' )
         return
     
