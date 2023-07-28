@@ -20,7 +20,6 @@ import re
 import sys
 from datetime import datetime
 from itertools import chain, combinations
-from typing import Optional, List
 
 # external packages
 import pandas as pd
@@ -44,7 +43,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # or any {'0', '1', '2'}
 class Event:
 
     # initialize
-    def __init__(self, idx, r=0.0, n=None, g=None, ix=None, jx=None) -> None:
+    def __init__(self, idx, r=0.0, n=None, g=None, ix=None, jx=None):
         """
         Creates an event in the model.
 
@@ -75,7 +74,7 @@ class Event:
         return
         
     # make print string
-    def make_str(self) -> str:
+    def make_str(self):
         """
         Creates a string representation of the event.
 
@@ -87,7 +86,7 @@ class Event:
         return s
     
     # representation string
-    def __repr__(self) -> str:
+    def __repr__(self):
         """
         Returns the representation of the event.
 
@@ -97,7 +96,7 @@ class Event:
         return self.make_str()
     
     # print string
-    def __str__(self) -> str:
+    def __str__(self):
         """
         Returns the string representation of the event.
 
@@ -109,7 +108,7 @@ class Event:
 
 # state space
 class States:
-    def __init__(self, lbl2vec) -> None:
+    def __init__(self, lbl2vec):
 
         # state space dictionary (input)
         self.lbl2vec      = lbl2vec
@@ -139,7 +138,7 @@ class States:
         # done
         return
 
-    def make_str(self) -> str:
+    def make_str(self):
         """
         Creates a string representation of the state space.
 
@@ -157,7 +156,7 @@ class States:
         return s
 
     # representation string
-    def __repr__(self) -> str:
+    def __repr__(self):
         """
         Returns the representation of the state space.
 
@@ -166,7 +165,7 @@ class States:
         """
         return self.make_str()
     # print string
-    def __str__(self) -> str:
+    def __str__(self):
         """
         Returns the string representation of the state space.
 
@@ -194,9 +193,9 @@ class States:
 # CONFIG LOADER   #
 ###################
 
-def load_config(config_fn: str,
-                arg_overwrite: Optional[bool]=True,
-                args: List[str]=None):
+def load_config(config_fn,
+                arg_overwrite=True,
+                args=None):
     """
     Loads the configuration.
 
@@ -221,6 +220,7 @@ def load_config(config_fn: str,
     parser.add_argument('-p', '--proj',         dest='proj', type=str, help='Project name used as directory across pipeline stages', metavar='')
     parser.add_argument('-s', '--step',         dest='step', type=str, help='Pipeline step(s) defined with (S)imulate, (F)ormat, (T)rain, (E)stimate, (P)lot, or (A)ll', metavar='')
     parser.add_argument('-v', '--verbose',      dest='verbose', type=bool, help='Verbose output to screen? (recommended)', metavar='')
+    parser.add_argument('--make_cfg',           action='make_config', help='Write default config file to \'config_default.py\'?')
     # processor settings
     parser.add_argument('--use_parallel',       dest='use_parallel', type=bool, help='Use parallelization? (recommended)', metavar='')
     parser.add_argument('--num_proc',           dest='num_proc', type=int, help='How many cores for multiprocessing? (e.g. 4 uses 4, -2 uses all but 2)', metavar='')
@@ -249,7 +249,7 @@ def load_config(config_fn: str,
     parser.add_argument('--tree_type',          dest='tree_type', type=str, choices=['extant', 'serial'], help='Type of tree', metavar='')
     parser.add_argument('--tree_width_cats',    dest='tree_width_cats', type=int, help='The phylo-state tensor widths for formatting training datasets, space-delimited', metavar='')
     parser.add_argument('--tree_encode_type',   dest='tree_encode_type', type=str, choices=['height_only', 'height_brlen'], help='Method for encoding branch length info in tensor', metavar='')
-    parser.add_argument('--char_encode_type',   dest='char_encode_type', type=str, choices=['one_hot', 'integer'], help='Method for encoding character states in tensor', metavar='')
+    parser.add_argument('--char_encode_type',   dest='char_encode_type', type=str, choices=['one_hot', 'integer', 'numeric'], help='Method for encoding character states in tensor', metavar='')
     parser.add_argument('--chardata_format',    dest='chardata_format', type=str, choices=['nexus', 'csv'], help='Input format for character matrix data', metavar='')
     parser.add_argument('--tensor_format',      dest='tensor_format', type=str, choices=['hdf5', 'csv'], help='Output format for storing tensors of training dataset', metavar='')
     parser.add_argument('--save_phyenc_csv',    dest='save_phyenc_csv', type=bool, help='Save encoded phylogenetic tensor encoding to csv?', metavar='')
@@ -266,7 +266,7 @@ def load_config(config_fn: str,
     parser.add_argument('--loss',               dest='loss', type=str, help='Loss function used as optimization criterion', metavar='')
     parser.add_argument('--optimizer',          dest='optimizer', type=str, help='Method used for optimizing neural network', metavar='')
     # prediction settings
-    parser.add_argument('--est_prefix',        dest='est_prefix', type=str, help='Predict results for this dataset', metavar='')
+    parser.add_argument('--est_prefix',         dest='est_prefix', type=str, help='Predict results for this dataset', metavar='')
     # plotting settings
     parser.add_argument('--plot_train_color',   dest='plot_train_color', type=str, help='Plotting color for training data elements', metavar='')
     parser.add_argument('--plot_label_color',   dest='plot_label_color', type=str, help='Plotting color for training label elements', metavar='')
@@ -286,14 +286,21 @@ def load_config(config_fn: str,
          print(model_str)
          sys.exit()
 
+    # make default config
+    if args.make_config:
+        make_default_config()
+        print('Created default config as \'config_default.py\' ...')
+        sys.exit()
+
     # overwrite config_fn is argument passed
     if arg_overwrite and args.config_fn is not None:
         config_fn = args.config_fn
     config_fn = config_fn.rstrip('.py')
 
-    # config from file
+    # get config from file
     m = importlib.import_module(config_fn)
-
+    
+    # update arguments from defaults, when provided
     def overwrite_defaults(m, args, var):
         x = getattr(args, var)
         if x is not None:
@@ -304,7 +311,6 @@ def load_config(config_fn: str,
             m.args[var] = x
         return m
     
-    # update arguments from defaults, when provided
     m = overwrite_defaults(m, args, 'proj')
     m = overwrite_defaults(m, args, 'step')
     m = overwrite_defaults(m, args, 'use_parallel')
@@ -367,11 +373,55 @@ def load_config(config_fn: str,
     m.args['job_id'] = generate_random_hex_string(16)
     
     # print header?
-    if m.args['verbose']:
+    verbose = m.args['verbose']
+    if verbose:
         print(phyddle_header('title'))
 
     # return new args
     return m.args
+
+def check_args(args):
+    """
+    Checks if the given arguments meet certain conditions.
+
+    Parameters:
+    args (dict): A dictionary containing the arguments.
+
+    Raises:
+    AssertionError: If any of the conditions are not met.
+    """
+    # string values
+    assert all([s in 'ASFTEP' for s in args['step']])
+    assert args['sim_method']        in ['command', 'master']
+    assert args['sim_logging']       in ['clean', 'verbose', 'compress']
+    assert args['tree_type']         in ['serial', 'extant']
+    assert args['tree_encode_type']  in ['height_only', 'height_brlen']
+    assert args['char_encode_type']  in ['one_hot', 'integer', 'numeric']
+    assert args['tensor_format']     in ['csv', 'hdf5']
+    assert args['chardata_format']   in ['csv', 'nexus']
+    assert args['trn_objective']     in ['param_est', 'model_test']
+    
+    # numerical values
+    assert args['start_idx'] >= 0
+    assert args['end_idx'] >= 0
+    assert args['start_idx'] <= args['end_idx']
+    assert args['min_num_taxa'] >= 0
+    assert args['max_num_taxa'] >= 0
+    assert args['min_num_taxa'] <= args['max_num_taxa']
+    assert args['num_states'] > 0
+    assert args['num_char'] > 0
+    assert args['num_epochs'] > 0
+    assert args['batch_size'] > 0
+    assert args['cpi_coverage'] >= 0. and args['cpi_coverage'] <= 1.
+    assert args['prop_test'] >= 0. and args['prop_test'] <= 1.
+    assert args['prop_validation'] >= 0. and args['prop_validation'] <= 1.
+    assert args['prop_calibration'] >= 0. and args['prop_calibration'] <= 1.
+    assert len(args['tree_width_cats']) > 0
+    for i in range(len(args['tree_width_cats'])):
+        assert args['tree_width_cats'][i] > 0
+    assert args['tree_width'] in args['tree_width_cats']
+
+    return
 
 def add_step_proj(args): #steps, proj):
     
@@ -425,48 +475,126 @@ def add_step_proj(args): #steps, proj):
 
     return args
 
+def make_default_config():
+    # can we have run_phyddle use this if no cfg file is provided??
+    s = """
+#==============================================================================#
+# Default phyddle config file                                                  #
+#==============================================================================#
 
-def check_args(args):
-    """
-    Checks if the given arguments meet certain conditions.
+# external import
+import scipy.stats
+import scipy as sp
 
-    Parameters:
-    args (dict): A dictionary containing the arguments.
+# helper variables
+num_char = 3
+num_states = 2
 
-    Raises:
-    AssertionError: If any of the conditions are not met.
-    """
-    # string values
-    assert all([s in 'ASFTEP' for s in args['step']])
-    assert args['sim_method']        in ['command', 'master']
-    assert args['sim_logging']       in ['clean', 'verbose', 'compress']
-    assert args['tree_type']         in ['serial', 'extant']
-    assert args['tree_encode_type']  in ['height_only', 'height_brlen']
-    assert args['char_encode_type']  in ['one_hot', 'integer']
-    assert args['tensor_format']     in ['csv', 'hdf5']
-    assert args['chardata_format']   in ['csv', 'nexus']
-    assert args['trn_objective']      in ['param_est', 'model_test']
-    
-    # numerical values
-    assert args['start_idx'] >= 0
-    assert args['end_idx'] >= 0
-    assert args['start_idx'] <= args['end_idx']
-    assert args['min_num_taxa'] >= 0
-    assert args['max_num_taxa'] >= 0
-    assert args['min_num_taxa'] <= args['max_num_taxa']
-    assert args['num_states'] > 0
-    assert args['num_char'] > 0
-    assert args['num_epochs'] > 0
-    assert args['batch_size'] > 0
-    assert args['cpi_coverage'] >= 0. and args['cpi_coverage'] <= 1.
-    assert args['prop_test'] >= 0. and args['prop_test'] <= 1.
-    assert args['prop_validation'] >= 0. and args['prop_validation'] <= 1.
-    assert args['prop_calibration'] >= 0. and args['prop_calibration'] <= 1.
-    assert len(args['tree_width_cats']) > 0
-    for i in range(len(args['tree_width_cats'])):
-        assert args['tree_width_cats'][i] > 0
-    assert args['tree_width'] in args['tree_width_cats']
+args = {
 
+    #-------------------------------#
+    # Project organization          #
+    #-------------------------------#
+    'proj'    : 'my_project',               # project name(s)
+    'step'    : 'A',                        # step(s) to run
+    'verbose' : True,                       # print verbose phyddle output?
+    'sim_dir' : '../workspace/simulate',    # directory for simulated data
+    'fmt_dir' : '../workspace/format',      # directory for tensor-formatted data
+    'trn_dir' : '../workspace/train',       # directory for trained network
+    'plt_dir' : '../workspace/plot',        # directory for plotted figures
+    'est_dir' : '../workspace/estimate',    # directory for predictions on new data
+    'log_dir' : '../workspace/log',         # directory for analysis logs
+
+    #-------------------------------#
+    # Multiprocessing               #
+    #-------------------------------#
+    'use_parallel'   : True,                # use multiprocessing to speed up jobs?
+    'num_proc'       : -2,                  # how many CPUs to use (-2 means all but 2)
+
+    #-------------------------------#
+    # Model Configuration           #
+    #-------------------------------#
+    'model_type'         : 'geosse',        # model type defines general states and events
+    'model_variant'      : 'equal_rates',   # model variant defines rate assignments
+    'num_char'           : num_char,        # number of evolutionary characters
+    'num_states'         : num_states,      # number of states per character
+    'rv_fn'              : {                # distributions for model parameters
+        'w': sp.stats.expon.rvs,
+        'e': sp.stats.expon.rvs,
+        'd': sp.stats.expon.rvs,
+        'b': sp.stats.expon.rvs
+    },
+    'rv_arg'             : {                # loc/scale/shape for model parameter dists
+        'w': { 'scale' : 0.2 },
+        'e': { 'scale' : 0.1 },
+        'd': { 'scale' : 0.1 },
+        'b': { 'scale' : 0.5 }
+    },
+
+    #-------------------------------#
+    # Simulate Step settings        #
+    #-------------------------------#
+    'sim_method'        : 'master',         # command, master, [phylojunction], ...
+    'sim_command'       : 'beast',          # exact command string, argument is output file prefix
+    'sim_logging'       : 'verbose',        # verbose, compressed, or clean
+    'start_idx'         : 0,                # first simulation replicate index
+    'end_idx'           : 1000,             # last simulation replicate index
+    'sample_population' : ['S'],            # name of population to sample
+    'stop_time'         : 10,               # time to stop simulation
+    'min_num_taxa'      : 10,               # min number of taxa for valid sim
+    'max_num_taxa'      : 500,              # max number of taxa for valid sim
+
+    #-------------------------------#
+    # Format Step settings          #
+    #-------------------------------#
+    'tree_type'         : 'extant',         # use model with serial or extant tree
+    'chardata_format'   : 'nexus',
+    'tree_width_cats'   : [ 200, 500 ],     # tree width categories for phylo-state tensors
+    'tree_encode_type'  : 'height_brlen',   # how to encode phylo brlen? height_only or height_brlen
+    'char_encode_type'  : 'integer',        # how to encode discrete states? one_hot or integer
+    'param_pred'        : [                 # model parameters to predict (labels)
+        'w_0', 'e_0', 'd_0_1', 'b_0_1'
+    ],
+    'param_data'        : [],               # model parameters that are known (aux. data)
+    'tensor_format'     : 'hdf5',           # save as compressed HDF5 or raw csv
+    'save_phyenc_csv'   : False,            # save intermediate phylo-state vectors to file
+
+    #-------------------------------#
+    # Train Step settings           #
+    #-------------------------------#
+    'trn_objective'     : 'param_est',      # what is the learning task? param_est or model_test
+    'tree_width'        : 500,              # tree width category used to train network
+    'num_epochs'        : 20,               # number of training intervals (epochs)
+    'prop_test'         : 0.05,             # proportion of sims in test dataset
+    'prop_validation'   : 0.05,             # proportion of sims in validation dataset
+    'prop_calibration'  : 0.20,             # proportion of sims in CPI calibration dataset
+    'cpi_coverage'      : 0.95,             # coverage level for CPIs
+    'cpi_asymmetric'    : True,             # upper/lower (True) or symmetric (False) CPI adjustments
+    'batch_size'        : 128,              # number of samples in each training batch
+    'loss'              : 'mse',            # loss function for learning
+    'optimizer'         : 'adam',           # optimizer for network weight/bias parameters
+    'metrics'           : ['mae', 'acc'],   # recorded training metrics
+
+    #-------------------------------#
+    # Estimate Step settings        #
+    #-------------------------------#
+    'est_prefix'     : 'new.1',             # prefix for new dataset to predict
+
+    #-------------------------------#
+    # Plot Step settings            #
+    #-------------------------------#
+    'plot_train_color'      : 'blue',       # plot color for training data
+    'plot_test_color'       : 'purple',     # plot color for test data
+    'plot_val_color'        : 'red',        # plot color for validation data
+    'plot_aux_color'        : 'green',      # plot color for input auxiliary data
+    'plot_label_color'      : 'orange',     # plot color for labels (params)
+    'plot_est_color'        : 'black'       # plot color for estimated data/values
+
+}
+"""
+    f = open('config_default.py', 'w')
+    f.write(s)
+    f.close()
     return
 
 def generate_random_hex_string(length):
@@ -557,7 +685,7 @@ def powerset(iterable):
     return chain.from_iterable(combinations(s, r) for r in range(len(s) + 1))
 
 
-def find_tree_width(num_taxa:int, max_taxa:List[int]):
+def find_tree_width(num_taxa, max_taxa):
     """Finds the CPSV width.
 
     Returns the smallest suitable compact phylogenetic-state vector
@@ -614,7 +742,7 @@ def get_num_char_row(state_encode_type, num_char, num_states):
 # FILE HELPERS #
 ################
 
-def write_to_file(s: str, fn: str) -> None:
+def write_to_file(s, fn):
     """Writes a string to a file.
 
     Args:
@@ -666,7 +794,61 @@ def read_tree(tre_fn):
 #####################
 
 
-def convert_nexus_to_array(dat_fn: str, char_encode_type: str, num_states: int=None):
+def convert_csv_to_array(dat_fn, char_encode_type, num_states=None):
+    if char_encode_type == 'numeric':
+        dat = convert_csv_to_numeric_array(dat_fn, num_states)
+    elif char_encode_type == 'one_hot':
+        dat = convert_csv_to_onehot_array(dat_fn, num_states)
+    else:
+        return NotImplementedError
+    return dat
+
+
+
+def convert_csv_to_numeric_array(dat_fn, pca_compress=None):
+    """Converts a csv file to an integer-encoded pandas DataFrame.
+
+    """
+    # read as pandas
+    dat = pd.read_csv(dat_fn, delimiter=',', index_col=0, header=None).T 
+
+    # return
+    return dat
+
+def convert_csv_to_onehot_array(dat_fn, num_states):
+    """Converts a csv file to an integer-encoded pandas DataFrame.
+
+    """
+    # read data
+    dat_raw = pd.read_csv(dat_fn, delimiter=',', index_col=0, header=None).T
+
+    # get num taxa (columns)
+    num_taxa = dat_raw.shape[1]
+
+    # check/unify number of state per row
+    if type(num_states) == 'int':
+        num_states = [ num_states ] * dat_raw.shape[0]
+    assert(dat_raw.shape[0] == len(num_states))
+    assert(all([type(i)=='int' for i in num_states]))
+
+    # make csv
+    num_rows = sum(num_states)
+    zero_data = np.zeros(shape=(num_rows,num_taxa))
+    dat = pd.DataFrame(zero_data, columns=dat_raw.columns)
+
+    # do one-hot encoding
+    num_states_offset = 0
+    for j in range(num_rows):
+        for i in range(num_taxa):
+            k = dat_raw.iloc[j,i] + num_states_offset
+            dat.iloc[k,i] = 1
+        num_states_offset += num_states[j]
+
+    # done!
+    return dat
+
+
+def convert_nexus_to_array(dat_fn, char_encode_type, num_states=None):
     """
     Convert Nexus file to array format.
 
@@ -687,7 +869,7 @@ def convert_nexus_to_array(dat_fn: str, char_encode_type: str, num_states: int=N
 
     return dat
 
-def convert_nexus_to_integer_array(dat_fn: str):
+def convert_nexus_to_integer_array(dat_fn):
     """Converts a NEXUS file to an integer-encoded pandas DataFrame.
 
     Reads the NEXUS file specified by `dat_fn`, extracts the data matrix, and constructs a pandas DataFrame where rows represent character states and columns represent taxa.
@@ -754,7 +936,7 @@ def convert_nexus_to_integer_array(dat_fn: str):
     
     return df
 
-def convert_nexus_to_onehot_array(dat_fn: str, num_states: int):
+def convert_nexus_to_onehot_array(dat_fn, num_states):
     """Converts a NEXUS file to a one-hot encoded pandas DataFrame.
 
     Reads the NEXUS file specified by `dat_fn`, extracts the data matrix, and constructs a pandas DataFrame where rows represent character states and columns represent taxa.
@@ -848,7 +1030,7 @@ def convert_nexus_to_onehot_array(dat_fn: str, num_states: int):
     
     return df
 
-def convert_phy2dat_nex(phy_nex_fn: str, int2vec: List[int]):
+def convert_phy2dat_nex(phy_nex_fn, int2vec):
     """
     Converts a phylogenetic tree in NHX format to a NEXUS file with taxon-state data.
 
