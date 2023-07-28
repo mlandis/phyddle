@@ -11,6 +11,21 @@ Copyright: (c) 2022-2023, Michael Landis and Ammon Thompson
 License:   MIT
 """
 
+# standard imports
+import gzip
+import os
+import re
+import shutil
+import subprocess
+#import time
+
+# external imports
+import numpy as np
+from joblib import Parallel, delayed
+from tqdm import tqdm
+
+# phyddle imports
+from phyddle import utilities
 
 #------------------------------------------------------------------------------#
 
@@ -34,21 +49,6 @@ def load(args, mdl=None):
             or `None` if an unsupported `sim_method` is provided.
 
     """
-    # standard imports
-    import gzip
-    import os
-    import re
-    import shutil
-    import subprocess
-    #import time
-
-    # external imports
-    import numpy as np
-    from joblib import Parallel, delayed
-    from tqdm import tqdm
-
-    # phyddle imports
-    from phyddle import utilities
 
     # load object
     sim_method = args['sim_method']

@@ -9,32 +9,30 @@ Authors:   Michael Landis and Ammon Thompson
 Copyright: (c) 2022-2023, Michael Landis and Ammon Thompson
 License:   MIT
 """
+# standard imports
+import copy
+import os
+import sys
 
+# external imports
+import dendropy as dp
+import h5py
+import numpy as np
+import scipy as sp
+import pandas as pd
+from joblib import Parallel, delayed
+from tqdm import tqdm
 
+# phyddle imports
+from phyddle import utilities
 
 #-----------------------------------------------------------------------------------------------------------------#
 
 def load(args):
-    # standard imports
-    import copy
-    import os
-    import sys
-
-    # external imports
-    import dendropy as dp
-    import h5py
-    import numpy as np
-    import scipy as sp
-    import pandas as pd
-    from joblib import Parallel, delayed
-    from tqdm import tqdm
-
-    # phyddle imports
-    from phyddle import utilities
 
     # settings
     sys.setrecursionlimit(10000)
-    
+
     # load object
     format_method = 'default'
     if format_method == 'default':

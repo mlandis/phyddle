@@ -11,28 +11,27 @@ Copyright: (c) 2022-2023, Michael Landis and Ammon Thompson
 License:   MIT
 """
 
+# standard imports
+import json
+import os
 
+# external imports
+import h5py
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import scipy as sp
+import tensorflow as tf
+from pypdf import PdfMerger
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
+
+# phyddle imports
+from phyddle import utilities
 
 #------------------------------------------------------------------------------#
 
 def load(args):
-    # standard imports
-    import json
-    import os
-
-    # external imports
-    import h5py
-    import matplotlib.pyplot as plt
-    import numpy as np
-    import pandas as pd
-    import scipy as sp
-    from pypdf import PdfMerger
-    from sklearn.decomposition import PCA
-    from sklearn.preprocessing import StandardScaler
-
-    # phyddle imports
-    from phyddle import utilities
-
     # load object
     plot_method = 'default'
     if plot_method == 'default':

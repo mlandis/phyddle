@@ -6,12 +6,6 @@
 
 import phyddle
 import phyddle.utilities as util
-import phyddle.model_loader as mdl_ldr
-import phyddle.simulate as sim
-import phyddle.format as fmt
-import phyddle.train as trn
-#import phyddle.estimate as est
-#import phyddle.plot as plt
 
 my_args = util.load_config('config', arg_overwrite=True)
 step = my_args['step']
@@ -22,6 +16,13 @@ logger.save_log('run')
 ################
 # RUN PIPELINE #
 ################
+
+import phyddle.model_loader as mdl_ldr
+import phyddle.simulate as sim
+import phyddle.format as fmt
+import phyddle.train as trn
+import phyddle.estimate as est
+import phyddle.plot as plt
 
 # Step 1: simulate training data
 if 'S' in step:
