@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 """
-Plotting
-========
-Defines classes and methods for the Plotting step, which loads files from the Simulating,
-Training, and Predicting steps to generate a standard report for the performance of
-the entire phyddle pipeline.
+plot
+====
+Defines classes and methods for the Plot step. Requires loading output files
+from the Simulate, Train, and Estimate steps. Generates figures for previous
+pipeline steps, then compiles them into a standard pdf report.
 
 Authors:   Michael Landis and Ammon Thompson
 Copyright: (c) 2022-2023, Michael Landis and Ammon Thompson

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Model
+model
 =====
 Defines BaseModel class used for internal simulations.
 

@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 """
-ModelLoader
-===========
-Defines a registry of recognized model types and variants. Also defines methods to quick-load
-requested models as needed for a phyddle analysis.
+model_loader
+============
+Defines a registry of recognized model types and variants. Also defines methods
+to quick-load requested models as needed for a phyddle analysis.
 
 Authors:   Michael Landis and Ammon Thompson
 Copyright: (c) 2022-2023, Michael Landis and Ammon Thompson

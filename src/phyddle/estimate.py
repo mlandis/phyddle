@@ -3,8 +3,8 @@
 estimate
 ========
 Defines classes and methods for the Estimate step, which loads a pre-trained
-model and uses it to make e.g. parameter estimates for e.g. a
-new empirical dataset.
+network and uses it to generate new estimates, e.g. estimate model parmaeters
+for a new empirical dataset.
 
 Authors:   Michael Landis and Ammon Thompson
 Copyright: (c) 2022-2023, Michael Landis and Ammon Thompson

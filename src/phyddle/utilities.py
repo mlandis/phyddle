@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 """
 utilities
-===========
-Miscellaneous helper functions phyddle uses for pipeline steps.
+=========
+Defines miscellaneous helper functions phyddle uses for pipeline steps.
+Functions include argument parsing and checking, file conversion, managing
+log files, and printing to screen.
 
 Authors:   Michael Landis and Ammon Thompson
 Copyright: (c) 2022-2023, Michael Landis and Ammon Thompson
@@ -41,11 +43,17 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # or any {'0', '1', '2'}
 
 # model events
 class Event:
-
+    """
+    Event objects define an event for a Poisson process with discrete-valued
+    states, such as continuous-time Markov processes. Note, that
+    phylogenetic birth-death models and SIR models fall into this class.
+    The Event class was originally designed for use with chemical
+    reaction simulations using the MASTER plugin in BEAST.
+    """
     # initialize
     def __init__(self, idx, r=0.0, n=None, g=None, ix=None, jx=None):
         """
-        Creates an event in the model.
+        Create an Event object.
 
         Args:
             idx (dict): A dictionary containing the indices of the event.
@@ -108,8 +116,20 @@ class Event:
 
 # state space
 class States:
+    """
+    States objects define the state space that a model operates upon. Event
+    objects define transition rates and patterns with respect to States. The
+    central purpose of States is to manage different representations of
+    individual states in the state space, e.g. as integers, strings, vectors.
+    """
     def __init__(self, lbl2vec):
+        """
+        Create a States object.
 
+        Args:
+            lbl2vec (dict): A dictionary with labels (str) as keys and vectors
+                            of states (int[]) as values.
+        """
         # state space dictionary (input)
         self.lbl2vec      = lbl2vec
 
@@ -311,6 +331,10 @@ def load_config(config_fn,
             m.args[var] = x
         return m
     
+    # MJL: I can't remember why I didn't do this as a loop but, originally I
+    #      think it was to allow argparse have default values, which would then
+    #      improve control over how argparse, the cfg file, and the CLI cfg
+    #      interact to assign args. Need to revisit this.
     m = overwrite_defaults(m, args, 'proj')
     m = overwrite_defaults(m, args, 'step')
     m = overwrite_defaults(m, args, 'use_parallel')
@@ -424,22 +448,20 @@ def check_args(args):
     return
 
 def add_step_proj(args): #steps, proj):
-    
+    """
+    Manages which steps use which project directories.
+    """
     # get relevant args
     steps = args['step']
     proj = args['proj']
     
+    # different ways of naming steps
     d_map = { 'S': ('sim', 'simulate'),
               'F': ('fmt', 'format'),
               'T': ('trn', 'train'),
               'E': ('est', 'estimate'),
               'P': ('plt', 'plot'),
               'L': ('log', 'log') }
-    
-    # # treat proj as the global project name
-    # # if it contains no split tokens
-    # if ':' not in proj and ',' not in proj:
-    #     proj = f'A:{proj}'
     
     # parse input string
     d_toks = {}
@@ -476,7 +498,8 @@ def add_step_proj(args): #steps, proj):
     return args
 
 def make_default_config():
-    # can we have run_phyddle use this if no cfg file is provided??
+    # 1. could run this script without writing to file if config.py DNE
+    # 2. check if config.py exists and avoid overwrite (y/n prompt, .bak, etc.)
     s = """
 #==============================================================================#
 # Default phyddle config file                                                  #
@@ -599,7 +622,7 @@ args = {
 
 def generate_random_hex_string(length):
     """
-    Generates a random hex string of a given length.
+    Generates a random hex string of a given length. Used for phyddle run ID.
 
     Parameters:
     length (int): The length of the hex string.
