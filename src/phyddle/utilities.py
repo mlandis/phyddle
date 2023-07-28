@@ -220,7 +220,7 @@ def load_config(config_fn,
     parser.add_argument('-p', '--proj',         dest='proj', type=str, help='Project name used as directory across pipeline stages', metavar='')
     parser.add_argument('-s', '--step',         dest='step', type=str, help='Pipeline step(s) defined with (S)imulate, (F)ormat, (T)rain, (E)stimate, (P)lot, or (A)ll', metavar='')
     parser.add_argument('-v', '--verbose',      dest='verbose', type=bool, help='Verbose output to screen? (recommended)', metavar='')
-    parser.add_argument('--make_cfg',           action='make_config', help='Write default config file to \'config_default.py\'?')
+    parser.add_argument('--make_cfg',           action='store_true', help='Write default config file to \'config_default.py\'?')
     # processor settings
     parser.add_argument('--use_parallel',       dest='use_parallel', type=bool, help='Use parallelization? (recommended)', metavar='')
     parser.add_argument('--num_proc',           dest='num_proc', type=int, help='How many cores for multiprocessing? (e.g. 4 uses 4, -2 uses all but 2)', metavar='')
@@ -287,7 +287,7 @@ def load_config(config_fn,
          sys.exit()
 
     # make default config
-    if args.make_config:
+    if args.make_cfg:
         make_default_config()
         print('Created default config as \'config_default.py\' ...')
         sys.exit()
@@ -496,7 +496,7 @@ args = {
     # Project organization          #
     #-------------------------------#
     'proj'    : 'my_project',               # project name(s)
-    'step'    : 'A',                        # step(s) to run
+    'step'    : 'SFTEP',                    # step(s) to run
     'verbose' : True,                       # print verbose phyddle output?
     'sim_dir' : '../workspace/simulate',    # directory for simulated data
     'fmt_dir' : '../workspace/format',      # directory for tensor-formatted data

@@ -11,19 +11,6 @@ Copyright: (c) 2022-2023, Michael Landis and Ammon Thompson
 License:   MIT
 """
 
-# standard imports
-import os
-
-# external imports
-import numpy as np
-import pandas as pd
-import tensorflow as tf
-#from keras import *
-
-# phyddle imports
-from phyddle import utilities
-#from Formatting import encode_phy_tensor
-
 #------------------------------------------------------------------------------#
 
 def load(args):
@@ -36,7 +23,19 @@ def load(args):
     Returns:
     Estimator: A Estimator object if est_method is 'default', None otherwise.
     """
-    #sim_method = args['trn_objective']
+    # standard imports
+    import os
+
+    # external imports
+    import numpy as np
+    import pandas as pd
+    #from keras import *
+
+    # phyddle imports
+    from phyddle import utilities
+    #from Formatting import encode_phy_tensor
+    
+    # load object
     est_method = 'default'
     if est_method == 'default':
         return Estimator(args)
@@ -46,6 +45,7 @@ def load(args):
 #------------------------------------------------------------------------------#
 
 class Estimator:
+    import tensorflow as tf
     """A class for performing estimations."""
 
     def __init__(self, args):

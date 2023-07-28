@@ -11,29 +11,29 @@ Copyright: (c) 2022-2023, Michael Landis and Ammon Thompson
 License:   MIT
 """
 
-# standard imports
-import json
-import os
 
-# external imports
-import h5py
-import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
-import scipy as sp
-import tensorflow as tf
-#from PyPDF2 import PdfMerger
-from pypdf import PdfMerger
-from sklearn.decomposition import PCA
-from sklearn.preprocessing import StandardScaler
-
-# phyddle imports
-from phyddle import utilities
 
 #------------------------------------------------------------------------------#
 
 def load(args):
-    #sim_method = args['trn_objective']
+    # standard imports
+    import json
+    import os
+
+    # external imports
+    import h5py
+    import matplotlib.pyplot as plt
+    import numpy as np
+    import pandas as pd
+    import scipy as sp
+    from pypdf import PdfMerger
+    from sklearn.decomposition import PCA
+    from sklearn.preprocessing import StandardScaler
+
+    # phyddle imports
+    from phyddle import utilities
+
+    # load object
     plot_method = 'default'
     if plot_method == 'default':
         return Plotter(args)
@@ -43,7 +43,7 @@ def load(args):
 #------------------------------------------------------------------------------#
 
 class Plotter:
-
+    import tensorflow as tf
     def __init__(self, args):
         """
         Initializes a Plotter object with the given arguments.

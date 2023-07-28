@@ -10,22 +10,6 @@ Copyright: (c) 2022-2023, Michael Landis and Ammon Thompson
 License:   MIT
 """
 
-
-# standard imports
-import json
-import os
-
-# external imports
-import h5py
-import numpy as np
-import pandas as pd
-from keras import Input,Model
-from keras import layers
-from keras import backend as K
-
-# phyddle imports
-from phyddle import utilities
-
 #------------------------------------------------------------------------------#
 
 def load(args):
@@ -36,6 +20,20 @@ def load(args):
     Returns: CnnTrainer: An instance of the CnnTrainer class if the trn_objective argument is set to 'param_est'. None: If the trn_objective argument is set to any value other than 'param_est'. NotImplementedError: If the trn_objective argument is set to 'model_test', as this method is not yet implemented.
 
     """
+    # external imports
+    import h5py
+    import numpy as np
+    import pandas as pd
+    from keras import Input,Model
+    from keras import layers
+    from keras import backend as K
+    # standard imports
+    import json
+    import os
+    # phyddle imports
+    from phyddle import utilities
+
+    # load object
     trn_objective = args['trn_objective']
     if trn_objective == 'param_est':
         return CnnTrainer(args)
