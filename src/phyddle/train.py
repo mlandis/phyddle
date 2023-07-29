@@ -183,7 +183,7 @@ class Trainer:
         6. Saves the results.
         7. Prints "Done!" if the verbose mode is enabled.
         """
-        utilities.print_step_header('lrn', [self.input_dir], self.network_dir, verbose=self.verbose)
+        utilities.print_step_header('trn', [self.input_dir], self.network_dir, verbose=self.verbose)
 
         utilities.print_str('▪ loading input ...', verbose=self.verbose)
         self.load_input()
@@ -334,7 +334,7 @@ class CnnTrainer(Trainer):
             msg = 'Calibration dataset is empty: len(calib_idx) == 0'
                 
         if msg != '':
-            self.logger.write_log('lrn', msg)
+            self.logger.write_log('trn', msg)
             raise ValueError(msg)
 
         return

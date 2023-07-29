@@ -1449,7 +1449,7 @@ def phyddle_header(s, style=1, fg=34):
     version = 'v.0.0.5'.rjust(8, ' ')
     steps = { 'sim' : 'Simulating',
               'fmt' : 'Formatting',
-              'lrn' : 'Training',
+              'trn' : 'Training',
               'est' : 'Estimating',
               'plt' : 'Plotting' }
 
