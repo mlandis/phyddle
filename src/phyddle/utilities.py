@@ -840,8 +840,8 @@ def convert_csv_to_numeric_array(dat_fn, pca_compress=None):
 
 def convert_csv_to_onehot_array(dat_fn, num_states):
     """Converts a csv file to an integer-encoded pandas DataFrame.
-
     """
+    
     # read data
     dat_raw = pd.read_csv(dat_fn, delimiter=',', index_col=0, header=None).T
 
@@ -849,27 +849,63 @@ def convert_csv_to_onehot_array(dat_fn, num_states):
     num_taxa = dat_raw.shape[1]
 
     # check/unify number of state per row
-    if type(num_states) == 'int':
+    print(type(num_states))
+    if type(num_states) is int:
         num_states = [ num_states ] * dat_raw.shape[0]
+
     assert(dat_raw.shape[0] == len(num_states))
-    assert(all([type(i)=='int' for i in num_states]))
+    assert(all([type(i) is int for i in num_states]))
 
     # make csv
     num_rows = sum(num_states)
-    zero_data = np.zeros(shape=(num_rows,num_taxa))
+    zero_data = np.zeros(shape=(num_rows,num_taxa), dtype='int')
     dat = pd.DataFrame(zero_data, columns=dat_raw.columns)
 
     # do one-hot encoding
-    num_states_offset = 0
-    for j in range(num_rows):
-        for i in range(num_taxa):
-            k = dat_raw.iloc[j,i] + num_states_offset
-            dat.iloc[k,i] = 1
-        num_states_offset += num_states[j]
-
+    j = 0
+    for i,ns in enumerate(num_states):
+        k = j + num_states[i]
+        dat.iloc[j:k,:] = to_categorical(dat_raw.iloc[i,:], num_classes=ns, dtype='int').T
+        j = k
+    
     # done!
     return dat
 
+def to_categorical(y, num_classes=None, dtype="float32"):
+    """Converts a class vector (integers) to binary class matrix.
+
+    Importing from keras is very slow (multiple seconds), so this function
+    is a direct copy & paste keras/utils/np_utils.py
+    
+    E.g. for use with `categorical_crossentropy`.
+
+    Args:
+        y: Array-like with class values to be converted into a matrix
+            (integers from 0 to `num_classes - 1`).
+        num_classes: Total number of classes. If `None`, this would be inferred
+          as `max(y) + 1`.
+        dtype: The data type expected by the input. Default: `'float32'`.
+
+    Returns:
+        A binary matrix representation of the input as a NumPy array. The class
+        axis is placed last.
+    """
+    y = np.array(y, dtype="int")
+    input_shape = y.shape
+
+    # Shrink the last dimension if the shape is (..., 1).
+    if input_shape and input_shape[-1] == 1 and len(input_shape) > 1:
+        input_shape = tuple(input_shape[:-1])
+
+    y = y.reshape(-1)
+    if not num_classes:
+        num_classes = np.max(y) + 1
+    n = y.shape[0]
+    categorical = np.zeros((n, num_classes), dtype=dtype)
+    categorical[np.arange(n), y] = 1
+    output_shape = input_shape + (num_classes,)
+    categorical = np.reshape(categorical, output_shape)
+    return categorical
 
 def convert_nexus_to_array(dat_fn, char_encode_type, num_states=None):
     """
