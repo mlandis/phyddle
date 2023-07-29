@@ -525,11 +525,11 @@ class Formatter:
         if not os.path.exists(dat_nex_fn):
             err_msg = f'Formatter.encode_one(): {dat_nex_fn} does not exist'
             print(err_msg)
-            self.logger.write_log('format', err_msg)
+            self.logger.write_log('fmt', err_msg)
         if not os.path.exists(tre_fn):
             err_msg = f'Formatter.encode_one(): {tre_fn} does not exist'
             print(err_msg)
-            self.logger.write_log('format', err_msg)
+            self.logger.write_log('fmt', err_msg)
         if err_msg is not None:
             return
         

@@ -14,16 +14,15 @@ args = {
     #-------------------------------#
     # Project organization          #
     #-------------------------------#
-    'proj'           : 'Rev_example',                 # directory name for pipeline project
-    'step'           : 'all',                         # steps to run? all, sim, fmt, lrn, prd, plt
+    'proj'           : 'Rev_example',            # directory name for pipeline project
+    'step'           : 'SFTEP',                  # steps to run? all, sim, fmt, trn, est, plt
     'verbose'        : True,
-    'sim_dir'        : '../workspace/raw_data',       # directory for simulated data
-    'fmt_dir'        : '../workspace/tensor_data',    # directory for tensor-formatted data
-    'lrn_dir'        : '../workspace/network',        # directory for trained network
-    'plt_dir'        : '../workspace/plot',           # directory for plotted figures
-    'prd_dir'        : '../workspace/predict',        # directory for predictions on new data
-    'log_dir'        : '../workspace/log',            # directory for logging metadata
-    'prd_prefix'     : 'new.1',             # prefix for new dataset to predict
+    'sim_dir'        : '../workspace/simulate',  # directory for simulated data
+    'fmt_dir'        : '../workspace/format',    # directory for tensor-formatted data
+    'trn_dir'        : '../workspace/train',     # directory for trained network
+    'plt_dir'        : '../workspace/plot',      # directory for plotted figures
+    'est_dir'        : '../workspace/estimate',  # directory for predictions on new data
+    'log_dir'        : '../workspace/log',       # directory for logging metadata
     
     #-------------------------------#
     # Multiprocessing               #
@@ -55,7 +54,7 @@ args = {
     # Simulating Step settings      #
     #-------------------------------#
     'sim_method'        : 'command',        # command, master, [phylojunction], ...
-    'sim_command'       : 'rb sim_one.Rev --args',   # exact command string, argument is output file prefix
+    'sim_command'       : 'rb simulate/sim_one.Rev --args',   # exact command string, argument is output file prefix
     'sim_logging'       : 'verbose',        # verbose, compressed, or clean
     'start_idx'         : 0,                # first simulation replicate index
     'end_idx'           : 1000,             # last simulation replicate index
@@ -82,7 +81,7 @@ args = {
     #-------------------------------#
     # Learning Step settings        #
     #-------------------------------#
-    'learn_method'      : 'param_est',      # what is the learning task? param_est or model_test
+    'trn_objective'     : 'param_est',      # what is the learning task? param_est or model_test
     'tree_width'        : 500,              # tree width category used to train network
     'num_epochs'        : 20,               # number of training intervals (epochs)
     'prop_test'         : 0.05,             # proportion of sims in test dataset
@@ -103,12 +102,11 @@ args = {
     'plot_val_color'        : 'red',        # plot color for validation data
     'plot_aux_color'        : 'green',      # plot color for input auxiliary data
     'plot_label_color'      : 'orange',     # plot color for labels (params)
-    'plot_pred_color'       : 'black'       # plot color for predictions
+    'plot_est_color'        : 'black',       # plot color for predictions
 
     #-------------------------------#
-    # Predicting Step settings      #
+    # Estimate Step settings        #
     #-------------------------------#
-    # prediction already handled by previously defined settings
-    # no prediction-specific settings currently implemented
+    'est_prefix'     : 'new.1'             # prefix for new dataset to predict
 }
 

@@ -8,8 +8,8 @@ import scipy.stats
 import scipy as sp
 
 # helper variables
-num_char = 3
-num_states = 2
+num_char = 2
+num_states = 3
 
 args = {
 

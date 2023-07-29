@@ -382,17 +382,16 @@ def load_config(config_fn,
     m = overwrite_defaults(m, args, 'plot_label_color')
     m = overwrite_defaults(m, args, 'plot_est_color')         
 
+    # update steps
+    if m.args['step'] == 'A':
+        m.args['step'] = 'SFTEP' #['S', 'F', 'T', 'E', 'P']
+    
     # check arguments are valid
     check_args(m.args)
 
     # set steps & projects
     m.args = add_step_proj(m.args) #['step'], m.args['proj'])
     
-    if m.args['step'] == 'A':
-        m.args['step'] = ['S', 'F', 'T', 'E', 'P']
-    else:
-        m.args['step'] = [ i for i in m.args['step'] ]
-
     # add unique ID
     m.args['job_id'] = generate_random_hex_string(16)
     
@@ -1548,11 +1547,11 @@ class Logger:
         self.base_fp     = f'{self.base_dir}/{self.base_fn}' 
         self.fn_dict    = {
             'run' : f'{self.base_fp}.run.log',
-            'simulate' : f'{self.base_fp}.simulate.log',
-            'format' : f'{self.base_fp}.format.log',
-            'train' : f'{self.base_fp}.train.log',
-            'estimate' : f'{self.base_fp}.estimate.log',
-            'plot' : f'{self.base_fp}.plot.log'
+            'sim' : f'{self.base_fp}.simulate.log',
+            'fmt' : f'{self.base_fp}.format.log',
+            'trn' : f'{self.base_fp}.train.log',
+            'est' : f'{self.base_fp}.estimate.log',
+            'plt' : f'{self.base_fp}.plot.log'
         }
 
         self.save_run_log()
