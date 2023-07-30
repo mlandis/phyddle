@@ -20,12 +20,17 @@ import h5py
 import numpy as np
 import scipy as sp
 import pandas as pd
-from joblib import Parallel, delayed
+#from joblib import Parallel, delayed
+from multiprocessing import Pool, set_start_method
 from tqdm import tqdm
 
 # phyddle imports
 from phyddle import utilities
 
+try:
+    set_start_method('fork')
+except RuntimeError:
+    pass
 #-----------------------------------------------------------------------------------------------------------------#
 
 def load(args):
@@ -173,7 +178,22 @@ class Formatter:
         """
         # visit each replicate, encode it, and return result
         if self.use_parallel:
-            res = Parallel(n_jobs=self.num_proc)(delayed(self.encode_one)(tmp_fn=f'{self.in_dir}/sim.{idx}', idx=idx) for idx in tqdm(self.rep_idx))
+            #res = Parallel(n_jobs=self.num_proc)(delayed(self.encode_one)(tmp_fn=f'{self.in_dir}/sim.{idx}', idx=idx) for idx in tqdm(self.rep_idx))
+            args = [ (f'{self.in_dir}/sim.{idx}', idx) for idx in self.rep_idx ]
+            for i in args:
+                print(i)
+
+            with Pool(processes=self.num_proc) as pool:
+                # res = pool.starmap(self.encode_one, tqdm(args,
+                #            total=len(self.rep_idx),
+                #            desc='Formatting'))
+                
+                res = list(tqdm(pool.imap(self.encode_one_star, args, chunksize=5),
+                                total=len(args),
+                                desc='Formatting'))
+                # see https://stackoverflow.com/questions/57354700/starmap-combined-with-tqdm
+
+                res = [ x for x in res ]
         else:
             res = [ self.encode_one(tmp_fn=f'{self.in_dir}/sim.{idx}', idx=idx) for idx in tqdm(self.rep_idx) ]
 
@@ -187,6 +207,9 @@ class Formatter:
             if res[i] is not None:
                 tensor_size = res[i].shape[1]
                 self.phy_tensors[tensor_size][i] = res[i]
+
+        for size in self.tree_width_cats:
+            print(list(self.phy_tensors[size].keys()))
 
         self.summ_stat_names = self.get_summ_stat_names()
         self.label_names = self.get_label_names()
@@ -491,6 +514,9 @@ class Formatter:
             df_labels_keep.to_csv(out_labels_fn, index=False)
 
         return
+
+    def encode_one_star(self, args):
+        return self.encode_one(*args)
 
     def encode_one(self, tmp_fn, idx, save_phyenc_csv=False):
 

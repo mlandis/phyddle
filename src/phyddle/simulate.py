@@ -29,7 +29,10 @@ from tqdm import tqdm
 # phyddle imports
 from phyddle import utilities
 
-set_start_method('fork')
+try:
+    set_start_method('fork')
+except RuntimeError:
+    pass
 
 #------------------------------------------------------------------------------#
 
@@ -180,9 +183,16 @@ class Simulator:
             #res = Parallel(n_jobs=self.num_proc)(delayed(self.sim_one)(idx) for idx in tqdm(self.rep_idx))
             args = [ (idx,) for idx in self.rep_idx ]
             with Pool(processes=self.num_proc) as pool:
-                res = pool.starmap(self.sim_one, tqdm(args,
-                           total=len(self.rep_idx),
-                           desc='Simulating'))
+                # res = pool.starmap(self.sim_one, tqdm(args,
+                #            total=len(self.rep_idx),
+                #            desc='Simulating'))
+                res = list(tqdm(pool.imap(self.sim_one, self.rep_idx, chunksize=1),
+                                total=len(self.rep_idx),
+                                desc='Simulating'))
+                # res = pool.starmap(self.sim_one, tqdm(args,
+                #            total=len(self.rep_idx),
+                #            desc='Simulating'))
+                # see https://stackoverflow.com/questions/57354700/starmap-combined-with-tqdm
 
                 res = [ x for x in res ]
 

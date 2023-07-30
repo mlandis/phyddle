@@ -60,7 +60,7 @@ args = {
     'sim_command'       : 'python3 sim/MASTER/sim_one.py', # exact command string, argument is output file prefix
     'sim_logging'       : 'verbose',        # verbose, compressed, or clean
     'start_idx'         : 0,                # first simulation replicate index
-    'end_idx'           : 50,             # last simulation replicate index
+    'end_idx'           : 1000,             # last simulation replicate index
     'sample_population' : ['S'],            # name of population to sample
     'stop_time'         : 10,               # time to stop simulation
     'min_num_taxa'      : 10,               # min number of taxa for valid sim
