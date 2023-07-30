@@ -180,9 +180,6 @@ class Formatter:
         if self.use_parallel:
             #res = Parallel(n_jobs=self.num_proc)(delayed(self.encode_one)(tmp_fn=f'{self.in_dir}/sim.{idx}', idx=idx) for idx in tqdm(self.rep_idx))
             args = [ (f'{self.in_dir}/sim.{idx}', idx) for idx in self.rep_idx ]
-            for i in args:
-                print(i)
-
             with Pool(processes=self.num_proc) as pool:
                 # res = pool.starmap(self.encode_one, tqdm(args,
                 #            total=len(self.rep_idx),
@@ -207,9 +204,6 @@ class Formatter:
             if res[i] is not None:
                 tensor_size = res[i].shape[1]
                 self.phy_tensors[tensor_size][i] = res[i]
-
-        for size in self.tree_width_cats:
-            print(list(self.phy_tensors[size].keys()))
 
         self.summ_stat_names = self.get_summ_stat_names()
         self.label_names = self.get_label_names()

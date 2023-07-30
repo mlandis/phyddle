@@ -21,7 +21,7 @@ import subprocess
 
 # external imports
 import numpy as np
-from joblib import Parallel, delayed
+#from joblib import Parallel, delayed
 #import multiprocessing as mp
 from multiprocessing import Pool, set_start_method
 from tqdm import tqdm
