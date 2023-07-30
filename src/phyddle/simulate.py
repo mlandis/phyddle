@@ -22,10 +22,14 @@ import subprocess
 # external imports
 import numpy as np
 from joblib import Parallel, delayed
+#import multiprocessing as mp
+from multiprocessing import Pool, set_start_method
 from tqdm import tqdm
 
 # phyddle imports
 from phyddle import utilities
+
+set_start_method('fork')
 
 #------------------------------------------------------------------------------#
 
@@ -173,7 +177,15 @@ class Simulator:
         utilities.print_str('▪ simulating raw data ...', verbose=self.verbose)
         
         if self.use_parallel:
-            res = Parallel(n_jobs=self.num_proc)(delayed(self.sim_one)(idx) for idx in tqdm(self.rep_idx))
+            #res = Parallel(n_jobs=self.num_proc)(delayed(self.sim_one)(idx) for idx in tqdm(self.rep_idx))
+            args = [ (idx,) for idx in self.rep_idx ]
+            with Pool(processes=self.num_proc) as pool:
+                res = pool.starmap(self.sim_one, tqdm(args,
+                           total=len(self.rep_idx),
+                           desc='Simulating'))
+
+                res = [ x for x in res ]
+
         else:
             res = [ self.sim_one(idx) for idx in tqdm(self.rep_idx) ]
 
@@ -324,8 +336,9 @@ class CommandSimulator(Simulator):
         valid = False
         while not valid and num_attempt > 0:
             try:
-                cmd_out = subprocess.check_output(cmd_str, shell=True, text=True, stderr=subprocess.STDOUT)
-                utilities.write_to_file(cmd_out, cmd_log_fn)
+                cmd_str_tok = cmd_str.split(' ')
+                cmd_out = subprocess.run(cmd_str_tok, capture_output=True)
+                #utilities.write_to_file(cmd_out, cmd_log_fn)
                 valid = True
             except subprocess.CalledProcessError:
                 self.logger.write_log('sim', f'simulation {idx} failed to generate a valid dataset')

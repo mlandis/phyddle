@@ -1,18 +1,16 @@
-#!/usr/bin/env python
-#print('A')
+#!/usr/bin/env python3
 import master_util
-#print('B')
 import scipy as sp
-#print('C')
 import sys
-#print('D')
 import os
-#print('E')
+import subprocess
+
 # get index for replicate
-tmp_fn = '/Users/mlandis/projects/phyddle/workspace/simulate/MASTER_example/sim.0'
-#tmp_fn = sys.argv[1]
-#print('F')
-idx = int(tmp_fn.split('.')[-1])
+#tmp_fn = '/Users/mlandis/projects/phyddle/workspace/simulate/MASTER_example/sim.0'
+print(sys.argv)
+tmp_fn = sys.argv[1]
+idx_str = tmp_fn.split('.')[-1]
+idx = int(idx_str)
 
 # model setup
 num_char = 3
@@ -50,6 +48,8 @@ tmp_fn       = f'{sim_proj_dir}/sim.{idx}'
 xml_fn       = tmp_fn + '.xml'
 param_mtx_fn = tmp_fn + '.param_col.csv'
 param_vec_fn = tmp_fn + '.param_row.csv'
+phy_nex_fn   = tmp_fn + '.phy.nex'
+dat_nex_fn   = tmp_fn + '.dat.nex'
 
 # make sim dir for output
 os.makedirs(sim_proj_dir, exist_ok=True)
@@ -70,6 +70,15 @@ param_mtx_str,param_vec_str = master_util.param_dict_to_str(my_model.params)
 master_util.write_to_file(xml_str, xml_fn)
 master_util.write_to_file(param_mtx_str, param_mtx_fn)
 master_util.write_to_file(param_vec_str, param_vec_fn)
+
+# call BEAST
+x = subprocess.run(['beast', xml_fn], capture_output=True)
+
+# convert phy.nex to dat.nex
+int2vec = my_model.states.int2vec
+print(phy_nex_fn)
+nexus_str = master_util.convert_phy2dat_nex(phy_nex_fn, int2vec)
+master_util.write_to_file(nexus_str, dat_nex_fn)
 
 # done!
 quit()

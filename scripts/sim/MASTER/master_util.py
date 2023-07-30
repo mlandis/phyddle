@@ -13,7 +13,10 @@ License:   MIT
 # standard libraries
 import importlib
 import pandas as pd
+import numpy as np
+import re
 from itertools import combinations,chain
+NUM_DIGITS = 10
 
 # model string names and class names
 model_registry = []
@@ -333,3 +336,101 @@ def powerset(iterable):
     """
     s = list(iterable)  # Convert the iterable to a list
     return chain.from_iterable(combinations(s, r) for r in range(len(s) + 1))
+
+def param_dict_to_str(params):
+    """
+    Convert parameter dictionary to two string representations.
+
+    This function takes a parameter dictionary and converts it into two string representations. The resulting strings includes the parameter names, indices, and values. The first representation is column-based, the second representation is row-based.
+
+    Args:
+        params (dict): The parameter dictionary.
+
+    Returns:
+        tuple: A tuple of two strings. The first string represents the parameter values with indices, and the second string represents the parameter names.
+    """
+    s1 = 'param,i,j,value\n'
+    s2 = ''
+    s3 = ''
+    for k,v in params.items():
+        for i,x in enumerate(v):
+            if len(v.shape) == 1:
+                rate = np.round(x, NUM_DIGITS)
+                s1 += '{k},{i},{i},{v}\n'.format(k=k,i=i,v=rate)
+                s2 += '{k}_{i},'.format(k=k,i=i)
+                s3 += str(rate) + ','
+            else:
+                for j,y in enumerate(x):
+                    rate = np.round(y, NUM_DIGITS)
+                    s1 += '{k},{i},{j},{v}\n'.format(k=k,i=i,j=j,v=rate)
+                    s2 += '{k}_{i}_{j},'.format(k=k,i=i,j=j)
+                    s3 += str(rate) + ','
+
+    s4 = s2.rstrip(',') + '\n' + s3.rstrip(',') + '\n'
+    return s1,s4
+
+def write_to_file(s, fn):
+    """Writes a string to a file.
+
+    Args:
+        s (str): The string to write.
+        fn (str): The file name or path to write the string to.
+
+    Returns:
+        None
+    """
+    f = open(fn, 'w')
+    f.write(s)
+    f.close()
+    return
+
+def convert_phy2dat_nex(phy_nex_fn, int2vec):
+    """
+    Converts a phylogenetic tree in NHX format to a NEXUS file with taxon-state data.
+
+    Reads the phylogenetic tree file in NHX format specified by `phy_nex_fn` and converts it to a NEXUS file containing taxon-state data. The binary state representations are based on the provided `int2vec` mapping.
+
+    Args:
+        phy_nex_fn (str): The file name or path of the phylogenetic tree file in NHX format.
+        int2vec (List[int]): The mapping of integer states to binary state vectors.
+
+    Returns:
+        str: The NEXUS file content as a string.
+
+    Raises:
+        FileNotFoundError: If the phylogenetic tree file at `phy_nex_fn` does not exist.
+    """
+
+    # get num regions from size of bit vector
+    num_char = len(int2vec[0])
+
+    # get tip names and states from NHX tree
+    nex_file = open(phy_nex_fn, 'r')
+    nex_str  = nex_file.readlines()[3]
+    matches  = re.findall(pattern='([0-9]+)\[\&type="([A-Z]+)",location="([0-9]+)"', string=nex_str)
+    num_taxa = len(matches)
+    nex_file.close()
+
+    # generate taxon-state data
+    #d = {}
+    s_state_str = ''
+    for i,v in enumerate(matches):
+        taxon        = v[0]
+        state        = int(v[2])
+        vec_str      = ''.join([ str(x) for x in int2vec[state] ])
+        #d[ taxon ]   = vec_str
+        s_state_str += taxon + '  ' + vec_str + '\n'
+    
+    # build new nexus string
+    s = \
+'''#NEXUS
+Begin DATA;
+Dimensions NTAX={num_taxa} NCHAR={num_char}
+Format MISSING=? GAP=- DATATYPE=STANDARD SYMBOLS="01";
+Matrix
+{s_state_str}
+;
+END;
+'''.format(num_taxa=num_taxa, num_char=num_char, s_state_str=s_state_str)
+
+    return s
