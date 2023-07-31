@@ -428,9 +428,9 @@ def check_args(args):
     assert args['start_idx'] >= 0
     assert args['end_idx'] >= 0
     assert args['start_idx'] <= args['end_idx']
-    assert args['min_num_taxa'] >= 0
-    assert args['max_num_taxa'] >= 0
-    assert args['min_num_taxa'] <= args['max_num_taxa']
+    #assert args['min_num_taxa'] >= 0
+    #assert args['max_num_taxa'] >= 0
+    #assert args['min_num_taxa'] <= args['max_num_taxa']
     assert args['num_states'] > 0
     assert args['num_char'] > 0
     assert args['num_epochs'] > 0

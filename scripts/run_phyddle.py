@@ -17,7 +17,7 @@ logger.save_log('run')
 # RUN PIPELINE #
 ################
 
-import phyddle.model_loader as mdl_ldr
+#import phyddle.model_loader as mdl_ldr
 import phyddle.simulate as sim
 import phyddle.format as fmt
 import phyddle.train as trn
@@ -26,8 +26,8 @@ import phyddle.plot as plt
 
 # Step 1: simulate training data
 if 'S' in step:
-    my_mdl = mdl_ldr.load(my_args)
-    my_sim = sim.load(my_args, my_mdl)
+    #my_mdl = mdl_ldr.load(my_args)
+    my_sim = sim.load(my_args) #, my_mdl)
     my_sim.run()
 
 # Step 2: format training data into tensors

@@ -36,7 +36,7 @@ except RuntimeError:
 
 #------------------------------------------------------------------------------#
 
-def load(args, mdl=None):
+def load(args): #, mdl=None):
     """
     Load the appropriate simulator.
 
@@ -60,9 +60,9 @@ def load(args, mdl=None):
     # load object
     sim_method = args['sim_method']
     if sim_method == 'command':
-        return CommandSimulator(args, mdl)
+        return CommandSimulator(args) #, mdl)
     elif sim_method == 'master':
-        return MasterSimulator(args, mdl)
+        return MasterSimulator(args) #, mdl)
     else:
         return None
 
@@ -96,7 +96,7 @@ class Simulator:
         logger (utilities.Logger): An instance of the logger for logging.
 
     """
-    def __init__(self, args, mdl):
+    def __init__(self, args): #, mdl):
         """
         Initializes a new instance of the Simulator class.
 
@@ -107,7 +107,7 @@ class Simulator:
         """
         self.set_args(args)
         #self.sim_command  = 'echo \"phyddle.Simulator.sim_command undefined in derived class!\"' # do nothing
-        self.model = mdl
+        #self.model = mdl
         self.logger = utilities.Logger(args)
         
         return
@@ -127,12 +127,12 @@ class Simulator:
         self.sim_proj          = args['sim_proj']
         self.start_idx         = args['start_idx']
         self.end_idx           = args['end_idx']
-        self.stop_time         = args['stop_time']
+        #self.stop_time         = args['stop_time']
         self.num_proc          = args['num_proc']
         self.use_parallel      = args['use_parallel']
-        self.sample_population = args['sample_population']
-        self.min_num_taxa      = args['min_num_taxa']
-        self.max_num_taxa      = args['max_num_taxa']
+        #self.sample_population = args['sample_population']
+        #self.min_num_taxa      = args['min_num_taxa']
+        #self.max_num_taxa      = args['max_num_taxa']
         self.sim_logging       = args['sim_logging']
         self.rep_idx           = list(range(self.start_idx, self.end_idx))
         self.save_params       = False
@@ -154,8 +154,8 @@ class Simulator:
         """
         s =  'setting,value\n'
         s += f'sim_proj,{self.sim_proj}\n'
-        s += f'model_name,{self.model_type}\n'
-        s += f'model_variant,{self.model_variant}\n'
+        #s += f'model_name,{self.model_type}\n'
+        #s += f'model_variant,{self.model_variant}\n'
         s += f'replicate_index,{idx}\n'
         s += f'taxon_category,{mtx_size}\n'
         s += f'sim_method,{self.sim_method}\n'
@@ -181,7 +181,7 @@ class Simulator:
         
         if self.use_parallel:
             #res = Parallel(n_jobs=self.num_proc)(delayed(self.sim_one)(idx) for idx in tqdm(self.rep_idx))
-            args = [ (idx,) for idx in self.rep_idx ]
+            #args = [ (idx,) for idx in self.rep_idx ]
             with Pool(processes=self.num_proc) as pool:
                 # res = pool.starmap(self.sim_one, tqdm(args,
                 #            total=len(self.rep_idx),
@@ -248,10 +248,10 @@ class Simulator:
         Returns:
             None
         """
-        self.model.set_model(idx)
-        self.start_state   = self.model.start_state
-        self.start_sizes   = self.model.start_sizes
-        self.df_events     = self.model.df_events
+        #self.model.set_model(idx)
+        #self.start_state   = self.model.start_state
+        #self.start_sizes   = self.model.start_sizes
+        #self.df_events     = self.model.df_events
         self.refresh_model_custom(idx)
         return
 
@@ -305,8 +305,8 @@ class CommandSimulator(Simulator):
         sim_command (str): The command to run for simulation.
 
     """
-    def __init__(self, args, mdl):
-        super().__init__(args, mdl)
+    def __init__(self, args): #, mdl):
+        super().__init__(args) #, mdl)
         return
     
     def set_args(self, args):

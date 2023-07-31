@@ -4,8 +4,8 @@
 #==============================================================================#
 
 # external import
-import scipy.stats
-import scipy as sp
+#import scipy.stats
+#import scipy as sp
 
 # helper variables
 num_char = 2
@@ -35,22 +35,22 @@ args = {
     #-------------------------------#
     # Model Configuration           #
     #-------------------------------#
-    'model_type'         : 'geosse',        # model type defines general states and events
-    'model_variant'      : 'equal_rates',   # model variant defines rate assignments
+#    'model_type'         : 'geosse',        # model type defines general states and events
+#    'model_variant'      : 'equal_rates',   # model variant defines rate assignments
     'num_char'           : num_char,        # number of evolutionary characters
     'num_states'         : num_states,      # number of states per character
-    'rv_fn'              : {                # distributions for model parameters
-        'w': sp.stats.expon.rvs,
-        'e': sp.stats.expon.rvs,
-        'd': sp.stats.expon.rvs,
-        'b': sp.stats.expon.rvs
-    },
-    'rv_arg'             : {                # loc/scale/shape for model parameter dists
-        'w': { 'scale' : 0.2 },
-        'e': { 'scale' : 0.1 },
-        'd': { 'scale' : 0.1 },
-        'b': { 'scale' : 0.5 }
-    },
+#    'rv_fn'              : {                # distributions for model parameters
+#        'w': sp.stats.expon.rvs,
+#        'e': sp.stats.expon.rvs,
+#        'd': sp.stats.expon.rvs,
+#        'b': sp.stats.expon.rvs
+#    },
+#    'rv_arg'             : {                # loc/scale/shape for model parameter dists
+#        'w': { 'scale' : 0.2 },
+#        'e': { 'scale' : 0.1 },
+#        'd': { 'scale' : 0.1 },
+#        'b': { 'scale' : 0.5 }
+#    },
 
     #-------------------------------#
     # Simulate Step settings        #
@@ -60,10 +60,10 @@ args = {
     'sim_logging'       : 'verbose',        # verbose, compressed, or clean
     'start_idx'         : 0,                # first simulation replicate index
     'end_idx'           : 1000,             # last simulation replicate index
-    'sample_population' : ['S'],            # name of population to sample
-    'stop_time'         : 10,               # time to stop simulation
-    'min_num_taxa'      : 10,               # min number of taxa for valid sim
-    'max_num_taxa'      : 500,              # max number of taxa for valid sim
+#    'sample_population' : ['S'],            # name of population to sample
+#    'stop_time'         : 10,               # time to stop simulation
+#    'min_num_taxa'      : 10,               # min number of taxa for valid sim
+#    'max_num_taxa'      : 500,              # max number of taxa for valid sim
 
     #-------------------------------#
     # Format Step settings          #

@@ -81,8 +81,8 @@ class Formatter:
         self.fmt_dir       = args['fmt_dir']
         self.sim_proj      = args['sim_proj']
         self.fmt_proj      = args['fmt_proj']
-        self.model_type    = args['model_type']
-        self.model_variant = args['model_variant']
+        #self.model_type    = args['model_type']
+        #self.model_variant = args['model_variant']
         self.tree_type     = args['tree_type']
         self.num_char      = args['num_char']
         self.num_states    = args['num_states']
@@ -92,8 +92,8 @@ class Formatter:
         self.tensor_format   = args['tensor_format']
 
         # encoder arguments
-        self.model_name        = args['model_type']
-        self.model_variant     = args['model_variant']
+        #self.model_name        = args['model_type']
+        #self.model_variant     = args['model_variant']
         self.tree_width_cats   = args['tree_width_cats']
         self.tree_encode_type  = args['tree_encode_type']
         self.char_encode_type  = args['char_encode_type']
@@ -159,8 +159,8 @@ class Formatter:
         s = 'setting,value\n'
         s += 'sim_proj,'        + self.sim_proj + '\n'
         s += 'fmt_proj,'        + self.fmt_proj + '\n'
-        s += 'model_type,'      + self.model_type + '\n'
-        s += 'model_variant,'   + self.model_variant + '\n'
+        #s += 'model_type,'      + self.model_type + '\n'
+        #s += 'model_variant,'   + self.model_variant + '\n'
         s += 'replicate_index,' + str(idx) + '\n'
         s += 'tree_width,'      + str(tree_width) + '\n'
         
@@ -179,17 +179,16 @@ class Formatter:
         # visit each replicate, encode it, and return result
         if self.use_parallel:
             #res = Parallel(n_jobs=self.num_proc)(delayed(self.encode_one)(tmp_fn=f'{self.in_dir}/sim.{idx}', idx=idx) for idx in tqdm(self.rep_idx))
+            # construct list of arguments to parallelize over
             args = [ (f'{self.in_dir}/sim.{idx}', idx) for idx in self.rep_idx ]
             with Pool(processes=self.num_proc) as pool:
-                # res = pool.starmap(self.encode_one, tqdm(args,
-                #            total=len(self.rep_idx),
-                #            desc='Formatting'))
                 
+                # run parallelized job (pool.imap) wrapped in taskbar (tqdm)
                 res = list(tqdm(pool.imap(self.encode_one_star, args, chunksize=5),
                                 total=len(args),
                                 desc='Formatting'))
-                # see https://stackoverflow.com/questions/57354700/starmap-combined-with-tqdm
-
+                
+                # get results out of iterable (not sure if required, tbh)
                 res = [ x for x in res ]
         else:
             res = [ self.encode_one(tmp_fn=f'{self.in_dir}/sim.{idx}', idx=idx) for idx in tqdm(self.rep_idx) ]
