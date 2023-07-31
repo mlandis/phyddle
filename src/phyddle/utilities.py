@@ -257,7 +257,7 @@ def load_config(config_fn,
     parser.add_argument('--model_variant',      dest='model_variant', type=str, help='Model variant', metavar='')
     parser.add_argument('--num_char',           dest='num_char', type=int, help='Number of characters', metavar='')
     # simulation settings
-    parser.add_argument('--sim_method',         dest='sim_method', type=str, choices=['command', 'master'], help='Simulation method', metavar='')
+    #parser.add_argument('--sim_method',         dest='sim_method', type=str, choices=['command', 'master'], help='Simulation method', metavar='')
     parser.add_argument('--sim_command',        dest='sim_command', type=str, help='Simulation command (when sim_method==\'command\')', metavar='')
     parser.add_argument('--sim_logging',        dest='sim_logging', type=str, choices=['clean', 'verbose', 'compress'], help='Simulation logging style', metavar='')
     parser.add_argument('--start_idx',          dest='start_idx', type=int, help='Start index for simulation', metavar='')
@@ -349,7 +349,7 @@ def load_config(config_fn,
     m = overwrite_defaults(m, args, 'model_type')
     m = overwrite_defaults(m, args, 'model_variant')
     m = overwrite_defaults(m, args, 'num_char')
-    m = overwrite_defaults(m, args, 'sim_method')
+    # m = overwrite_defaults(m, args, 'sim_method')
     m = overwrite_defaults(m, args, 'sim_command')
     m = overwrite_defaults(m, args, 'sim_logging')
     m = overwrite_defaults(m, args, 'start_idx')
@@ -415,7 +415,7 @@ def check_args(args):
     """
     # string values
     assert all([s in 'ASFTEP' for s in args['step']])
-    assert args['sim_method']        in ['command', 'master']
+    # assert args['sim_method']        in ['command', 'master']
     assert args['sim_logging']       in ['clean', 'verbose', 'compress']
     assert args['tree_type']         in ['serial', 'extant']
     assert args['tree_encode_type']  in ['height_only', 'height_brlen']
@@ -536,35 +536,16 @@ args = {
     #-------------------------------#
     # Model Configuration           #
     #-------------------------------#
-    'model_type'         : 'geosse',        # model type defines general states and events
-    'model_variant'      : 'equal_rates',   # model variant defines rate assignments
     'num_char'           : num_char,        # number of evolutionary characters
     'num_states'         : num_states,      # number of states per character
-    'rv_fn'              : {                # distributions for model parameters
-        'w': sp.stats.expon.rvs,
-        'e': sp.stats.expon.rvs,
-        'd': sp.stats.expon.rvs,
-        'b': sp.stats.expon.rvs
-    },
-    'rv_arg'             : {                # loc/scale/shape for model parameter dists
-        'w': { 'scale' : 0.2 },
-        'e': { 'scale' : 0.1 },
-        'd': { 'scale' : 0.1 },
-        'b': { 'scale' : 0.5 }
-    },
 
     #-------------------------------#
     # Simulate Step settings        #
     #-------------------------------#
-    'sim_method'        : 'master',         # command, master, [phylojunction], ...
-    'sim_command'       : 'beast',          # exact command string, argument is output file prefix
+    'sim_command'       : 'python3 sim/MASTER/sim_one.py', # exact command, arg will be output file prefix
     'sim_logging'       : 'verbose',        # verbose, compressed, or clean
     'start_idx'         : 0,                # first simulation replicate index
     'end_idx'           : 1000,             # last simulation replicate index
-    'sample_population' : ['S'],            # name of population to sample
-    'stop_time'         : 10,               # time to stop simulation
-    'min_num_taxa'      : 10,               # min number of taxa for valid sim
-    'max_num_taxa'      : 500,              # max number of taxa for valid sim
 
     #-------------------------------#
     # Format Step settings          #

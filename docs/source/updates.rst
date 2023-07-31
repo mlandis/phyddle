@@ -4,9 +4,12 @@ Updates
 The complete commit history for phyddle is located here: https://github.com/mlandis/phyddle/commits/main
 
 
-**phyddle v0.0.5** -- (in progress)
+**phyddle v0.0.5** -- 23.07.30
 
 * Pipeline steps renamed to: Simulate, Format, Train, Estimate, Plot
+* Simulators now in scripts/sim/MASTER, scripts/sim/R, scripts/sim/Rev
+* Model configuration code moved outside phyddle
+* MASTER simulator now outside phyddle, in scripts/sim/MASTER
 * Source code reorg/rename
 * Pipeline script now prints pipeline steps
 * Support for granular management of flow of projects across pipeline steps
