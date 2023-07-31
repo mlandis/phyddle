@@ -854,28 +854,3 @@ class CnnTrainer(Trainer):
             Q[:,i] = np.array([lower_q, upper_q])
                                 
         return Q
-
-
-# #------------------------------------------------------------------------------#
-  
-# class ParamEstTrainer(CnnTrainer):
-#     def __init__(self, args):
-#         super().__init__(args)
-#         return
-    
-
-# #------------------------------------------------------------------------------#
-  
-# class ModelTestTrainer(CnnTrainer):
-#     def __init__(self, args):
-#         super().__init__(args)
-#         return
-    
-
-# #------------------------------------------------------------------------------#
-  
-# class AncStateTrainer(CnnTrainer):
-#     def __init__(self, args):
-#         super().__init__(args)
-#         return
-

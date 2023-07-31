@@ -18,11 +18,9 @@ import os
 import numpy as np
 import pandas as pd
 import tensorflow as tf
-#from keras import *
 
 # phyddle imports
 from phyddle import utilities
-#from Formatting import encode_phy_tensor
 
 #------------------------------------------------------------------------------#
 
@@ -186,22 +184,16 @@ class Estimator:
             self.est_known_params   = pd.read_csv(self.est_known_param_fn, sep=',', index_col=False).to_numpy().flatten()
             self.est_auxdata_tensor = np.concatenate( [self.est_summ_stats, self.est_known_params] )
         except FileNotFoundError:
-            self.est_auxdata_tensor = self.est_summ_stats
-            
+            self.est_auxdata_tensor = self.est_summ_stats  
+
+        # reshape and rescale new aux data
         self.est_auxdata_tensor.shape = ( 1, -1 )
-
-        #print(self.est_auxdata_tensor)
-
         self.norm_est_stats          = utilities.normalize(self.est_auxdata_tensor, (self.train_stats_means, self.train_stats_sd))
         self.denormalized_est_stats  = utilities.denormalize(self.norm_est_stats, self.train_stats_means, self.train_stats_sd)
 
-
         # read in CQR interval adjustments
         self.cpi_adjustments = pd.read_csv(self.model_cpi_fn, sep=',', index_col=False).to_numpy()
-        # # CPI functions
-        # with open(self.model_cpi_func_fn, 'rb') as f:
-        #     self.cpi_func = dill.load(f)
-
+        
         return
 
 
@@ -217,15 +209,13 @@ class Estimator:
         self.mymodel = tf.keras.models.load_model(self.model_sav_fn, compile=False)
 
         # get estimates
-        self.norm_est                = self.mymodel.predict([self.est_data_tensor, self.norm_est_stats])
-        self.norm_est                = np.array( self.norm_est )
-        self.norm_est[1,:,:]         = self.norm_est[1,:,:] - self.cpi_adjustments[0,:]
-        self.norm_est[2,:,:]         = self.norm_est[2,:,:] + self.cpi_adjustments[1,:]
+        self.norm_est                 = self.mymodel.predict([self.est_data_tensor, self.norm_est_stats])
+        self.norm_est                 = np.array( self.norm_est )
+        self.norm_est[1,:,:]          = self.norm_est[1,:,:] - self.cpi_adjustments[0,:]
+        self.norm_est[2,:,:]          = self.norm_est[2,:,:] + self.cpi_adjustments[1,:]
         self.denormalized_est_labels  = utilities.denormalize(self.norm_est, self.train_labels_means, self.train_labels_sd)
-        #print(self.denormalized_est_labels)
         self.denormalized_est_labels[ self.denormalized_est_labels > 300. ] = 300.
         self.est_labels               = np.exp( self.denormalized_est_labels )
-        #print(np.exp( self.denormalized_est_labels ))
        
         # output estimates
         self.df_est_all_labels = utilities.make_param_VLU_mtx(self.est_labels, self.param_names)

@@ -81,8 +81,8 @@ class Formatter:
         self.fmt_dir       = args['fmt_dir']
         self.sim_proj      = args['sim_proj']
         self.fmt_proj      = args['fmt_proj']
-        #self.model_type    = args['model_type']
-        #self.model_variant = args['model_variant']
+        self.model_type    = args['model_type']
+        self.model_variant = args['model_variant']
         self.tree_type     = args['tree_type']
         self.num_char      = args['num_char']
         self.num_states    = args['num_states']
@@ -92,8 +92,6 @@ class Formatter:
         self.tensor_format   = args['tensor_format']
 
         # encoder arguments
-        #self.model_name        = args['model_type']
-        #self.model_variant     = args['model_variant']
         self.tree_width_cats   = args['tree_width_cats']
         self.tree_encode_type  = args['tree_encode_type']
         self.char_encode_type  = args['char_encode_type']
@@ -124,7 +122,6 @@ class Formatter:
         Returns:
             None
         """
-
         # print header
         utilities.print_step_header('fmt', [self.in_dir], self.out_dir, verbose=self.verbose)
 
@@ -159,8 +156,8 @@ class Formatter:
         s = 'setting,value\n'
         s += 'sim_proj,'        + self.sim_proj + '\n'
         s += 'fmt_proj,'        + self.fmt_proj + '\n'
-        #s += 'model_type,'      + self.model_type + '\n'
-        #s += 'model_variant,'   + self.model_variant + '\n'
+        s += 'model_type,'      + self.model_type + '\n'
+        s += 'model_variant,'   + self.model_variant + '\n'
         s += 'replicate_index,' + str(idx) + '\n'
         s += 'tree_width,'      + str(tree_width) + '\n'
         
@@ -262,18 +259,12 @@ class Formatter:
         Returns:
             Tuple of numpy arrays (x1, x2, x3).
         """
-        #return None #(0,0,0)
-    
         fname_base  = f'{self.in_dir}/sim.{idx}'
         fname_param = fname_base + '.param_row.csv'
         fname_stat  = fname_base + '.summ_stat.csv'
         x1 = self.phy_tensors[tree_width][idx].flatten()
-        #dat_data[hdf5_idx,:] = x1 #phy_tensor.flatten()
         x2 = np.loadtxt(fname_stat, delimiter=',', skiprows=1)
-        #dat_stat[hdf5_idx,:] = x2 #np.loadtxt(fname_stat, delimiter=',', skiprows=1)
         x3 = np.loadtxt(fname_param, delimiter=',', skiprows=1)
-        #dat_labels[hdf5_idx,:] = x3 #np.loadtxt(fname_param, delimiter=',', skiprows=1)
-        #x1,x2,x3=0,0,0
         return (x1,x2,x3)
 
     def write_tensor_hdf5(self):
@@ -556,10 +547,6 @@ class Formatter:
         if err_msg is not None:
             return
         
-        # state space
-        #vecstr2int = self.model.states.vecstr2int #{ v:i for i,v in enumerate(int2vecstr) }
-
-
         # read in nexus data file
         if self.chardata_format == 'nexus':
             dat = utilities.convert_nexus_to_array(dat_nex_fn, self.char_encode_type, self.num_states)
@@ -672,33 +659,6 @@ class Formatter:
         #summ_stats['gamma']       = dp.calculate.treemeasure.pybus_harvey_gamma(phy)
         #summ_stats['sackin']      = dp.calculate.treemeasure.sackin_index(phy)
 
-        # read characters + states
-        # f = open(geo_fn, 'r')
-        # m = f.read().splitlines()
-        # f.close()
-        # y = re.search(string=m[2], pattern='NCHAR=([0-9]+)')
-        # z = re.search(string=m[3], pattern='SYMBOLS="([0-9A-Za-z]+)"')
-        # num_char = int(y.group(1))
-        # states = z.group(1)
-        # #num_states = len(states)
-        # #num_combo = num_char * num_states
-
-        # # get taxon data
-        # taxon_state_block = m[ m.index('Matrix')+1 : m.index('END;')-1 ]
-        # taxon_states = [ x.split(' ')[-1] for x in taxon_state_block ]
-
-        # num_char = dat.shape[0]
-        # taxon_states = []
-        #print(dat)
-        # for col in dat:
-        #     taxon_states.append( ''.join([ str(x) for x in dat[col].to_list() ]) )
-
-        # for col in range(dat.shape[1]):
-        #     taxon_states.append( ''.join([ str(x) for x in dat.iloc[col].to_list() ]) )
-
-        # freqs of entire char-set
-        # freq_taxon_states = np.zeros(num_char, dtype='float')
-        #print(dat)
         # get freqs of data-states, based on state encoding type
         if self.char_encode_type == 'integer':
             for i in range(self.num_states):
@@ -713,16 +673,6 @@ class Formatter:
                 #print(np.sum(dat.iloc[i]))
                 summ_stats['f_dat_' + str(i)] = np.sum(dat.iloc[i]) / num_taxa
         
-        #summ_stats['f_char_' + str(i)] = 0.
-        # for k in list(states_bits_str_inv.keys()):
-        #     #freq_taxon_states[ states_bits_str_inv[k] ] = taxon_states.count(k) / num_taxa
-        #     summ_stats['n_state_' + str(k)] = taxon_states.count(k)
-        #     #summ_stats['f_state_' + str(k)] = taxon_states.count(k) / num_taxa
-        #     for i,j in enumerate(k):
-        #         if j != '0':
-        #             summ_stats['n_char_' + str(i)] += summ_stats['n_state_' + k]
-        #             #summ_stats['f_char_' + str(i)] += summ_stats['f_state_' + k]
-
         return summ_stats
     
     def make_summ_stat_str(self, ss):
@@ -741,8 +691,7 @@ class Formatter:
         vals_str = ','.join( [ str(x) for x in ss.values() ] ) + '\n'
         return keys_str + vals_str
     
-
-    # ==> move to Formatting? <==
+    
     def encode_phy_tensor(self, phy, dat, tree_width, tree_type, tree_encode_type, rescale=True):
         """
         Encode the phylogenetic tree and character data as a tensor.

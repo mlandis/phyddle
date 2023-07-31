@@ -31,7 +31,7 @@ except RuntimeError:
 
 #------------------------------------------------------------------------------#
 
-def load(args): #, mdl=None):
+def load(args):
     """
     Load the appropriate simulator.
 
@@ -52,14 +52,11 @@ def load(args): #, mdl=None):
 
     """
 
-    # load object
-    # sim_method = args['sim_method']
-    # if sim_method == 'command':
-    return Simulator(args) #, mdl)
-    # elif sim_method == 'master':
-    #     return MasterSimulator(args) #, mdl)
-    # else:
-    #     return None
+    simulate_method = 'default'
+    if simulate_method == 'default':
+        return Simulator(args)
+    else:
+        return None
 
 #------------------------------------------------------------------------------#
 

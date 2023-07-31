@@ -74,7 +74,6 @@ class Plotter:
         self.plt_dir           = args['plt_dir']
         self.est_dir           = args['est_dir'] if 'est_dir' in args else ''
         self.est_prefix        = args['est_prefix'] if 'est_prefix' in args else ''
-        #self.est_dir          = args['est_dir']
         self.fmt_proj          = args['fmt_proj']
         self.trn_proj          = args['trn_proj']
         self.plt_proj          = args['plt_proj']
@@ -172,11 +171,6 @@ class Plotter:
             self.input_labels = pd.DataFrame( hdf5_file['labels'][:,:], columns=self.input_label_names )
             hdf5_file.close()
 
-        #self.test_preds_df = utilities.make_param_VLU_mtx( self.test_preds, self.param_names )
-        #self.train_preds_df = utilities.make_param_VLU_mtx( self.train_preds, self.param_names )
-
-        #print(self.test_preds_df.iloc[0])
-        #print(self.test_preds_df.shape)
         self.max_pred_display     = 250
         self.train_preds_max_idx  = min( self.max_pred_display, self.train_preds.shape[0] )
         self.train_labels_max_idx = min( self.max_pred_display, self.train_labels.shape[0] )
@@ -209,9 +203,6 @@ class Plotter:
             self.est_lbl_lower.columns = [ col.rstrip('_lower') for col in self.est_lbl_lower.columns ]
             self.est_lbl_upper.columns = [ col.rstrip('_upper') for col in self.est_lbl_upper.columns ]
             self.est_lbl_df = pd.concat( [self.est_lbl_value, self.est_lbl_lower, self.est_lbl_upper] )
-            #print(self.est_lbl_value)
-            #self.est_lbl_df = pd.DataFrame( [ self.est_lbl_value, self.est_lbl_value, self.est_lbl_value ], columns=['value','lower','upper'] )
-            #print(self.est_lbl_df)
 
         else:
             self.est_lbl_data = None
@@ -554,15 +545,6 @@ class Plotter:
             # 1:1 line
             plt.axline((0,0), slope=1, color=color, alpha=1.0, zorder=0)
             plt.gca().set_aspect('equal')
-            #minlim = np.min( np.concatenate([x_value, y_lower]) )
-            #maxlim = np.max( np.concatenate([x_value, y_upper]) )
-            #adjlim = 0.20 #* (maxlim - minlim)
-            #if minlim < 0:
-            #    minlim -= 0.1 * (maxlim - minlim)
-            #    maxlim += 0.1 * (maxlim - minlim)
-            #else:
-            #    minlim /= (1.1)
-            #   maxlim *= (1.1)
 
             xlim = plt.xlim()
             ylim = plt.ylim()
@@ -570,8 +552,6 @@ class Plotter:
             maxlim = max(xlim[1], ylim[1])
             plt.xlim([minlim, maxlim])
             plt.ylim([minlim, maxlim])
-            #plt.xlim( 0, maxlim )
-            #plt.ylim( 0, maxlim )
             
             dx = 0.03
             plt.annotate(f'MAE: {s_mae}',        xy=(0.01,0.99-0*dx), xycoords='axes fraction', fontsize=10, horizontalalignment='left', verticalalignment='top', color='black')
@@ -611,22 +591,17 @@ class Plotter:
         - title: The title for the plot (default is '').
         - plot_log: A boolean indicating whether to use logarithmic scale in the plots (default is False).
         """
-        epochs      = range(1, len(history['loss']) + 1)
-        #print(history.keys())
-        train_keys  = [ x for x in history.keys() if 'val_' not in x ]
-        val_keys    = [ 'val_'+x for x in train_keys ]
-
-        #print(train_keys)
-        #print(val_keys)
-        label_names = [ '_'.join( x.split('_')[0:-1] ) for x in train_keys ]
-        #label_names = [ x for x in label_names if x != '' ]
-        label_names = sorted( np.unique(label_names) )
-        num_labels = len(label_names)
+        epochs       = range(1, len(history['loss']) + 1)
+        train_keys   = [ x for x in history.keys() if 'val_' not in x ]
+        val_keys     = [ 'val_'+x for x in train_keys ]
+        label_names  = [ '_'.join( x.split('_')[0:-1] ) for x in train_keys ]
+        label_names  = sorted( np.unique(label_names) )
+        num_labels   = len(label_names)
 
         metric_names = [ x.split('_')[-1] for x in train_keys ]
         metric_names = np.unique(metric_names)
         metric_names = [ 'loss' ] + [ x for x in metric_names if x != 'loss' ]
-        num_metrics = len(metric_names)
+        num_metrics  = len(metric_names)
 
         fig_width = 6
         fig_height = int(np.ceil(2*num_metrics))
@@ -634,7 +609,6 @@ class Plotter:
         for i,v1 in enumerate(label_names):
 
             fig, axs = plt.subplots(nrows=num_metrics, ncols=1, sharex=True, figsize=(fig_width, fig_height))
-            #used_idx = [ True ] * num_metrics
             idx = 0
 
             for j,v2 in enumerate(metric_names):
@@ -665,7 +639,6 @@ class Plotter:
                         axs[idx].legend( handles=legend_handles, labels=legend_labels, loc='upper right' )
                     idx += 1
 
-            #print(v1, used_idx)
             # turn off unused rows            
             for j in range(num_metrics):
                 if j >= idx:
