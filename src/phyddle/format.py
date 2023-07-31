@@ -186,12 +186,14 @@ class Formatter:
                 # run parallelized job (pool.imap) wrapped in taskbar (tqdm)
                 res = list(tqdm(pool.imap(self.encode_one_star, args, chunksize=5),
                                 total=len(args),
-                                desc='Formatting'))
+                                desc='Encoding'))
                 
                 # get results out of iterable (not sure if required, tbh)
                 res = [ x for x in res ]
         else:
-            res = [ self.encode_one(tmp_fn=f'{self.in_dir}/sim.{idx}', idx=idx) for idx in tqdm(self.rep_idx) ]
+            res = [ self.encode_one(tmp_fn=f'{self.in_dir}/sim.{idx}', idx=idx) for idx in tqdm(self.rep_idx,
+                                total=len(self.rep_idx),
+                                desc='Encoding') ]
 
         # prepare phy_tensors
         self.phy_tensors = {}
@@ -318,7 +320,9 @@ class Formatter:
             _rep_idx = list(self.phy_tensors[tree_width].keys())
             
             # load all the info
-            res = [ self.load_one_sim(idx=idx, tree_width=tree_width) for idx in tqdm(_rep_idx) ]
+            res = [ self.load_one_sim(idx=idx, tree_width=tree_width) for idx in tqdm(_rep_idx,
+                                total=len(_rep_idx),
+                                desc='Formatting') ]
             
             # store all numerical data into hdf5
             dat_data[:,:] = np.vstack( [ x[0] for x in res ] )
