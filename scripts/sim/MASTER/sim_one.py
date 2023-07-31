@@ -7,17 +7,20 @@ import subprocess
 
 # get index for replicate
 #tmp_fn = '/Users/mlandis/projects/phyddle/workspace/simulate/MASTER_example/sim.0'
-print(sys.argv)
-tmp_fn = sys.argv[1]
-idx_str = tmp_fn.split('.')[-1]
-idx = int(idx_str)
+#print(sys.argv)
+tmp_fn       = sys.argv[1]
+idx          = int(tmp_fn.split('.')[-1])
+sim_tok      = tmp_fn.split('/')
+sim_dir      = '/'.join(sim_tok[:-2])
+proj         = sim_tok[-2]
+sim_proj_dir = f'{sim_dir}/{proj}'
 
 # model setup
 num_char = 3
 num_states = 2
 args = {
-    'sim_dir' : '/Users/mlandis/projects/phyddle/workspace/simulate', # main sim dir
-	'proj'           : 'MASTER_example',             # project name(s)
+    'sim_dir'            : sim_dir,         # dir for simulations
+    'proj'               : proj,            # project name(s)
 	'model_type'         : 'geosse',        # model type defines states & events
     'model_variant'      : 'equal_rates',   # model variant defines rates
     'num_char'           : num_char,        # number of evolutionary characters
@@ -40,11 +43,7 @@ args = {
     }
 }
 
-args['sim_proj_dir'] = f'{args["sim_dir"]}/{args["proj"]}'
-
 # filesystem paths
-sim_proj_dir = args['sim_proj_dir']
-tmp_fn       = f'{sim_proj_dir}/sim.{idx}'
 xml_fn       = tmp_fn + '.xml'
 param_mtx_fn = tmp_fn + '.param_col.csv'
 param_vec_fn = tmp_fn + '.param_row.csv'
@@ -76,7 +75,6 @@ x = subprocess.run(['beast', xml_fn], capture_output=True)
 
 # convert phy.nex to dat.nex
 int2vec = my_model.states.int2vec
-print(phy_nex_fn)
 nexus_str = master_util.convert_phy2dat_nex(phy_nex_fn, int2vec)
 master_util.write_to_file(nexus_str, dat_nex_fn)
 
