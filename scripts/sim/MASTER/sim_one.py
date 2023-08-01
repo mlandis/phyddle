@@ -75,10 +75,10 @@ master_util.write_to_file(param_vec_str, param_vec_fn)
 x = subprocess.run(['beast', xml_fn], capture_output=True)
 
 # capture stdout/stderr since we're nesting subprocess calls
-x_stdout = x.stdout.decode('UTF-8')
-x_stderr = x.stderr.decode('UTF-8')
-sys.stdout.write(x_stdout)
-sys.stderr.write(x_stderr)
+#x_stdout = x.stdout.decode('UTF-8')
+#x_stderr = x.stderr.decode('UTF-8')
+#sys.stdout.write(x_stdout)
+#sys.stderr.write(x_stderr)
 
 # convert phy.nex to dat.nex
 int2vec = my_model.states.int2vec

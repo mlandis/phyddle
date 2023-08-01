@@ -17,11 +17,19 @@ import subprocess
 
 # external imports
 from multiprocessing import Pool, set_start_method
+
 from tqdm import tqdm
 
 # phyddle imports
 from phyddle import utilities
 
+# Uncomment to debug multiprocessing
+# import multiprocessing.util as mp_util
+# mp_util.log_to_stderr(mp_util.SUBDEBUG)
+
+# Allows multiprocessing fork (not spawn) new processes on Unix-based OS.
+# However, set_start_method() throws RuntimeError when called the 2nd+ time
+# within a Python session, handled here with try-except.
 try:
     set_start_method('fork')
 except RuntimeError:
@@ -118,22 +126,31 @@ class Simulator:
         # dispatch jobs
         utilities.print_str('▪ simulating raw data ...', verbose=self.verbose)
         if self.use_parallel:
-            # parallel job
+            # parallel jobs
+            # NB: it's critical to call this as list(tqdm(pool.imap(...)))
+            #       - pool.imap runs the parallelization
+            #       - tqdm generates progress bar
+            #       - list acts as a finalizer for the pool.imap work
             with Pool(processes=self.num_proc) as pool:
-                tqdm(pool.imap(self.sim_one, self.rep_idx, chunksize=1),
-                     total=len(self.rep_idx),
-                     desc='Simulating')
+                 res = list(tqdm(pool.imap(self.sim_one, self.rep_idx),
+                            total=len(self.rep_idx),
+                            desc='Simulating'))
             
         else:
-            # serial job
-            [ self.sim_one(idx) for idx in tqdm(self.rep_idx,
-                                                total=len(self.rep_idx),
-                                                desc='Simulating') ]
-        
+            # serial jobs
+            res = [ self.sim_one(idx) for idx in tqdm(self.rep_idx,
+                                                      total=len(self.rep_idx),
+                                                      desc='Simulating') ]
+
         # done
         utilities.print_str('... done!', verbose=self.verbose)
         return
 
+
+    def sim_two(self, idx):
+        print(f'sim_two: {idx}')
+        return
+    
     # main simulation function (looped)
     def sim_one(self, idx):
         """
