@@ -300,13 +300,6 @@ def load_config(config_fn,
     # parse arguments
     args = parser.parse_args(args)
     
-    # print models & exit
-    if args.show_models:
-         import model_loader
-         model_str = model_loader.make_model_registry_str()
-         print(model_str)
-         sys.exit()
-
     # make default config
     if args.make_cfg:
         make_default_config()
@@ -386,13 +379,13 @@ def load_config(config_fn,
 
     # update steps
     if m.args['step'] == 'A':
-        m.args['step'] = 'SFTEP' #['S', 'F', 'T', 'E', 'P']
+        m.args['step'] = 'SFTEP'
     
     # check arguments are valid
     check_args(m.args)
 
     # set steps & projects
-    m.args = add_step_proj(m.args) #['step'], m.args['proj'])
+    m.args = add_step_proj(m.args)
     
     # add unique ID
     m.args['job_id'] = generate_random_hex_string(16)
@@ -474,7 +467,7 @@ def add_step_proj(args): #steps, proj):
             k,v = p.split(':')
             d_toks[k] = v
 
-    # handle all-step (*) first
+    # handle all-step ('A') first
     d_arg = {}
     if 'A' in d_toks.keys():
         steps = 'SFTEPL'

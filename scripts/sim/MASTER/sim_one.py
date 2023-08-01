@@ -3,6 +3,7 @@ import master_util
 import scipy as sp
 import sys
 import os
+import re
 import subprocess
 
 # get index for replicate
@@ -73,10 +74,19 @@ master_util.write_to_file(param_vec_str, param_vec_fn)
 # call BEAST
 x = subprocess.run(['beast', xml_fn], capture_output=True)
 
+# capture stdout/stderr since we're nesting subprocess calls
+x_stdout = x.stdout.decode('UTF-8')
+x_stderr = x.stderr.decode('UTF-8')
+sys.stdout.write(x_stdout)
+sys.stderr.write(x_stderr)
+
 # convert phy.nex to dat.nex
 int2vec = my_model.states.int2vec
 nexus_str = master_util.convert_phy2dat_nex(phy_nex_fn, int2vec)
 master_util.write_to_file(nexus_str, dat_nex_fn)
+
+# log clean-up
+#master_util.cleanup(prefix=tmp_fn, clean_type)
 
 # done!
 quit()

@@ -28,7 +28,7 @@ args = {
     #-------------------------------#
     # Multiprocessing               #
     #-------------------------------#
-    'use_parallel'   : True,                # use multiprocessing to speed up jobs?
+    'use_parallel'   : False,                # use multiprocessing to speed up jobs?
     'num_proc'       : 10,                  # how many CPUs to use (-2 means all but 2)
     
     #-------------------------------#

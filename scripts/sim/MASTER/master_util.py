@@ -15,6 +15,8 @@ import importlib
 import pandas as pd
 import numpy as np
 import re
+import gzip
+import shutil
 from itertools import combinations,chain
 NUM_DIGITS = 10
 
@@ -434,3 +436,24 @@ END;
 '''.format(num_taxa=num_taxa, num_char=num_char, s_state_str=s_state_str)
 
     return s
+
+def cleanup(prefix, clean_type):
+	xml_fn   = f'{prefix}.xml'
+	#beast_fn = f'{prefix}.beast.log'
+	json_fn  = f'{prefix}.json'
+	# logging clean-up
+	if clean_type == 'clean':
+		for x in [ xml_fn, beast_fn, json_fn ]:
+			if os.path.exists(x):
+				os.remove(x)
+	elif self.sim_logging == 'compress':
+		for x in [ xml_fn, beast_fn, json_fn ]:
+			if os.path.exists(x):
+				with open(x, 'rb') as f_in:
+					with gzip.open(x+'.gz', 'wb') as f_out:
+						shutil.copyfileobj(f_in, f_out)        
+				os.remove(x)
+	elif self.sim_logging == 'verbose':
+		pass
+		# do nothing
+	return
