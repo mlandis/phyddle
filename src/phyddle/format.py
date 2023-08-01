@@ -20,21 +20,37 @@ import h5py
 import numpy as np
 import scipy as sp
 import pandas as pd
-#from joblib import Parallel, delayed
 from multiprocessing import Pool, set_start_method
 from tqdm import tqdm
 
 # phyddle imports
 from phyddle import utilities
 
+# Uncomment to debug multiprocessing
+# import multiprocessing.util as mp_util
+# mp_util.log_to_stderr(mp_util.SUBDEBUG)
+
+# Allows multiprocessing fork (not spawn) new processes on Unix-based OS.
+# However, import phyddle.simulate also calls set_start_method('fork'), and the
+# function throws RuntimeError when called the 2nd+ time within a single Python.
+# We handle this with a try-except block.
 try:
     set_start_method('fork')
 except RuntimeError:
     pass
+
 #-----------------------------------------------------------------------------------------------------------------#
 
 def load(args):
+    """Load a Formatter object.
 
+    This function creates an instance of the Formatter class, initialized using
+    phyddle settings stored in args (dict).
+
+    Args:
+        args (dict): Contains phyddle settings.
+
+    """
     # settings
     sys.setrecursionlimit(10000)
 
@@ -48,190 +64,209 @@ def load(args):
 #-----------------------------------------------------------------------------------------------------------------#
 
 class Formatter:
-
+    """
+    Class for formatting phylogenetic datasets and converting them into tensors
+    to be used by the Train step.
+    """
     def __init__(self, args): #, mdl):
         """
-        Load the specified args and return the appropriate Formatter object.
+        Initializes a new Formatter object.
 
         Args:
-            args (dict): A dictionary containing the arguments.
+            args (dict): Contains phyddle settings.
 
-        Returns:
-            Formatter: The Formatter object based on the specified args.
         """
+        # initialize with phyddle settings
         self.set_args(args)
+        # directory for simulations (input)
+        self.sim_proj_dir = f'{self.sim_dir}/{self.sim_proj}'
+        # directory for formatted tensors (output)
+        self.fmt_proj_dir = f'{self.fmt_dir}/{self.fmt_proj}'
+        # run() attempts to generate one simulation per value in rep_idx,
+        # where rep_idx is list of unique ints to identify simulated datasets
+        self.rep_idx      = list(range(self.start_idx, self.end_idx))
+        # number of rows we need to tree data
+        self.num_tree_row = utilities.get_num_tree_row(self.tree_type,
+                                                       self.tree_encode_type)
+        # number of rows for character matrix data
+        self.num_char_row = utilities.get_num_char_row(self.char_encode_type,
+                                                       self.num_char,
+                                                       self.num_states)
+        # number of rows for phylo state tensor
+        self.num_data_row = self.num_tree_row + self.num_char_row
+        # create logger to track runtime info
         self.logger = utilities.Logger(args)
-        #self.model = mdl
+        # done
         return        
 
     def set_args(self, args):
         """
-        Set the arguments for the object.
+        Assigns phyddle settings as Formatter attributes.
 
         Args:
-            args (dict): A dictionary of arguments.
+            args (dict): Contains phyddle settings.
 
-        Returns:
-            None
         """
         # formatter arguments
-        self.args          = args
-        self.verbose       = args['verbose']
-        self.sim_dir       = args['sim_dir']
-        self.fmt_dir       = args['fmt_dir']
-        self.sim_proj      = args['sim_proj']
-        self.fmt_proj      = args['fmt_proj']
-        self.model_type    = args['model_type']
-        self.model_variant = args['model_variant']
-        self.tree_type     = args['tree_type']
-        self.num_char      = args['num_char']
-        self.num_states    = args['num_states']
-        self.param_pred    = args['param_pred'] # parameters in label set (prediction)
-        self.param_data    = args['param_data'] # parameters in data set (training, etc)
-        self.chardata_format = args['chardata_format']
-        self.tensor_format   = args['tensor_format']
-
-        # encoder arguments
+        self.args              = args
+        self.verbose           = args['verbose']
+        self.start_idx         = args['start_idx']
+        self.end_idx           = args['end_idx']
+        self.sim_dir           = args['sim_dir']
+        self.fmt_dir           = args['fmt_dir']
+        self.sim_proj          = args['sim_proj']
+        self.fmt_proj          = args['fmt_proj']
+        self.use_parallel      = args['use_parallel']
+        self.num_proc          = args['num_proc']
+        self.num_char          = args['num_char']
+        self.num_states        = args['num_states']
+        self.param_est         = args['param_est'] # params that are labels
+        self.param_data        = args['param_data'] # params thata are "data"
+        self.tree_type         = args['tree_type']
+        self.chardata_format   = args['chardata_format']
+        self.tensor_format     = args['tensor_format']
         self.tree_width_cats   = args['tree_width_cats']
         self.tree_encode_type  = args['tree_encode_type']
         self.char_encode_type  = args['char_encode_type']
         self.min_num_taxa      = args['min_num_taxa']
         self.max_num_taxa      = args['max_num_taxa']
-        self.start_idx         = args['start_idx']
-        self.end_idx           = args['end_idx']
-        self.use_parallel      = args['use_parallel']
-        self.num_proc          = args['num_proc']
-        # MJL: I think this was for breaking up large tensors into chunks
-        self.tensor_part_size  = 500 # args['num_records_per_tensor_part']
         self.save_phyenc_csv   = args['save_phyenc_csv']
-                    
-        self.in_dir        = f'{self.sim_dir}/{self.sim_proj}'
-        self.out_dir       = f'{self.fmt_dir}/{self.fmt_proj}'
-        self.rep_idx       = list(range(self.start_idx, self.end_idx))
-
-        self.num_tree_row = utilities.get_num_tree_row(self.tree_type, self.tree_encode_type)
-        self.num_char_row = utilities.get_num_char_row(self.char_encode_type, self.num_char, self.num_states)
-        self.num_data_row = self.num_tree_row + self.num_char_row
-
         return
 
     def run(self):
         """
-        Run the program.
+        Formats all raw datasets into tensors.
 
-        Returns:
-            None
+        This method prints status updates, creates the target directory for new
+        tensors, then formats each simulated raw dataset into an individual
+        tensor-formatted dataset, then combines all individual tensors into
+        a single tensor that contains all training examples.
         """
         # print header
-        utilities.print_step_header('fmt', [self.in_dir], self.out_dir, verbose=self.verbose)
+        utilities.print_step_header(step='fmt',
+                                    in_dir=[self.sim_proj_dir],
+                                    out_dir=self.fmt_proj_dir,
+                                    verbose=self.verbose)
+        
+        # prepare workspace
+        os.makedirs(self.fmt_proj_dir, exist_ok=True)
 
-        # new dir
-        os.makedirs(self.out_dir, exist_ok=True)
-
-        # build individual CDVS/CBLVS encodings
-        utilities.print_str('▪ encoding raw data as tensors ...', verbose=self.verbose)
+        # encode each dataset into individual tensors
+        utilities.print_str('▪ Encoding raw data as tensors ...',
+                            verbose=self.verbose)
         self.encode_all()
 
-        # actually fill and write full tensors
-        utilities.print_str('▪ writing tensors ...', verbose=self.verbose)
-        if self.tensor_format == 'csv':
-            self.write_tensor_csv()
-        elif self.tensor_format == 'hdf5':
-            self.write_tensor_hdf5()
+        # write tensors across all examples to file
+        utilities.print_str('▪ Combining and writing tensors ...',
+                            verbose=self.verbose)
+        self.write_tensor()
 
-        utilities.print_str('... done!', verbose=self.verbose)
+        # done
+        utilities.print_str('... done!',
+                            verbose=self.verbose)
 
     
     def make_settings_str(self, idx, tree_width):
         """
-        Create a settings string.
+        Construct a string of settings for a single replicate.
 
         Args:
-            idx (int): The index.
+            idx (int): The replicate index.
             tree_width (int): The tree width.
 
         Returns:
             str: The settings string.
         """
-        s = 'setting,value\n'
-        s += 'sim_proj,'        + self.sim_proj + '\n'
-        s += 'fmt_proj,'        + self.fmt_proj + '\n'
-        s += 'model_type,'      + self.model_type + '\n'
-        s += 'model_variant,'   + self.model_variant + '\n'
-        s += 'replicate_index,' + str(idx) + '\n'
-        s += 'tree_width,'      + str(tree_width) + '\n'
-        
+        s =  'setting,value\n'
+        s += f'sim_proj_dir,{self.sim_proj_dir}\n'
+        s += f'fmt_proj_dir,{self.fmt_proj_dir}\n'
+        s += f'replicate_index,{idx}\n'
+        s += f'tree_width,{tree_width}\n'
         return s
-
+    
     def encode_all(self):
         """
-        Encode all replicates and return the result.
+        Encode each simulated replicate into its own matrix format.
         
-        If self.use_parallel is True, the encoding is done in parallel using multiple
-        processes. Otherwise, the encoding is done sequentially.
-        
-        Returns:
-            res (list): List of encoded replicates.
+        Encode each simulated dataset identified by the replicate-index list
+        (self.rep_idx). Each dataset is encoded by calling self.encode_one(idx)
+        where idx is a unique value in self.rep_idx.
+
+        Encoded simulations are then sorted by tree-width category and stored
+        into the phy_tensors dictionary for later processing. Names and lengths
+        of label and summary statistic lists are also saved.
+
+        When self.use_parallel is True then all jobs are run in parallel via
+        multiprocessing.Pool. When self.use_parallel is false, jobs are run
+        serially with one CPU.
+
         """
+
+        # construct list of encoding arguments
+        args = []
+        for idx in self.rep_idx:
+            args.append((f'{self.sim_proj_dir}/sim.{idx}', idx))
+
         # visit each replicate, encode it, and return result
         if self.use_parallel:
-            #res = Parallel(n_jobs=self.num_proc)(delayed(self.encode_one)(tmp_fn=f'{self.in_dir}/sim.{idx}', idx=idx) for idx in tqdm(self.rep_idx))
-            # construct list of arguments to parallelize over
-            args = [ (f'{self.in_dir}/sim.{idx}', idx) for idx in self.rep_idx ]
+            # parallel jobs
             with Pool(processes=self.num_proc) as pool:
-                
-                # run parallelized job (pool.imap) wrapped in taskbar (tqdm)
-                res = list(tqdm(pool.imap(self.encode_one_star, args, chunksize=5),
+                # Note, it's critical to call this as list(tqdm(pool.imap(...)))
+                # - pool.imap runs the parallelization
+                # - tqdm generates progress bar
+                # - list acts as a finalizer for the pool.imap work
+                # Have not benchmarked imap/imap_unordered, chunksize, etc.
+                res = list(tqdm(pool.imap(self.encode_one_star,
+                                          args, chunksize=5),
                                 total=len(args),
                                 desc='Encoding'))
                 
-                # get results out of iterable (not sure if required, tbh)
-                res = [ x for x in res ]
         else:
-            res = [ self.encode_one(tmp_fn=f'{self.in_dir}/sim.{idx}', idx=idx) for idx in tqdm(self.rep_idx,
-                                total=len(self.rep_idx),
-                                desc='Encoding') ]
+            # serial jobs
+            res = [ self.encode_one_star(a) for a in tqdm(args,
+                                                          total=len(args),
+                                                          desc='Encoding') ]
 
-        # prepare phy_tensors
+        # save all phylogenetic-state tensors into the phy_tensors dictionary,
+        # while sorting tensors into different tree-width categories
         self.phy_tensors = {}
         for size in self.tree_width_cats:
             self.phy_tensors[size] = {}
-
-        # save all CBLVS/CDVS tensors into phy_tensors
         for i in range(len(res)):
             if res[i] is not None:
                 tensor_size = res[i].shape[1]
                 self.phy_tensors[tensor_size][i] = res[i]
 
+        # save names/lengths of summary statistic and label lists
         self.summ_stat_names = self.get_summ_stat_names()
-        self.label_names = self.get_label_names()
-        self.num_summ_stat = len(self.summ_stat_names)
-        self.num_labels = len(self.label_names)
+        self.label_names     = self.get_label_names()
+        self.num_summ_stat   = len(self.summ_stat_names)
+        self.num_labels      = len(self.label_names)
+
         return
     
     def get_summ_stat_names(self):
         """
-        Get the names of the summary statistics from the first representative file.
+        Get names of summary statistics from first representative file.
     
         Returns:
-            ret (list): List of summary statistic names.
+            ret (list): List of summary statistics names.
         """
         # get first representative file
         idx = None
         for i in self.tree_width_cats:
-            k_list = list( self.phy_tensors[i].keys() )
+            k_list = list(self.phy_tensors[i].keys())
             if len(k_list) > 0 and idx is None:
                 idx = k_list[0]
                 
-        #idx = list( self.phy_tensors[ self.tree_width_cats[0] ].keys() )[0]
-        fn = f'{self.in_dir}/sim.{idx}.summ_stat.csv'
+        fn = f'{self.sim_proj_dir}/sim.{idx}.summ_stat.csv'
         df = pd.read_csv(fn,header=0)
         ret = df.columns.to_list()
         return ret
     
     def get_label_names(self):
         """
-        Get the names of the labels from the first representative file.
+        Get names of training labels from first representative file.
     
         Returns:
             ret (list): List of label names.
@@ -239,11 +274,11 @@ class Formatter:
         # get first representative file
         idx = None
         for i in self.tree_width_cats:
-            k_list = list( self.phy_tensors[i].keys() )
+            k_list = list(self.phy_tensors[i].keys())
             if len(k_list) > 0 and idx is None:
                 idx = k_list[0]
-        #idx = list( self.phy_tensors[ self.tree_width_cats[0] ].keys() )[0]
-        fn = f'{self.in_dir}/sim.{idx}.param_row.csv'
+
+        fn = f'{self.sim_proj_dir}/sim.{idx}.param_row.csv'
         df = pd.read_csv(fn,header=0)
         ret = df.columns.to_list()
         return ret
@@ -259,7 +294,7 @@ class Formatter:
         Returns:
             Tuple of numpy arrays (x1, x2, x3).
         """
-        fname_base  = f'{self.in_dir}/sim.{idx}'
+        fname_base  = f'{self.sim_proj_dir}/sim.{idx}'
         fname_param = fname_base + '.param_row.csv'
         fname_stat  = fname_base + '.summ_stat.csv'
         x1 = self.phy_tensors[tree_width][idx].flatten()
@@ -267,45 +302,49 @@ class Formatter:
         x3 = np.loadtxt(fname_param, delimiter=',', skiprows=1)
         return (x1,x2,x3)
 
+    def write_tensor(self):
+        """
+        Write the tensor in csv or hdf5 format.
+        """
+        if self.tensor_format == 'csv':
+            self.write_tensor_csv()
+        elif self.tensor_format == 'hdf5':
+            self.write_tensor_hdf5()
+        return
+
     def write_tensor_hdf5(self):
         """
         Writes data to HDF5 file for each tree width.
-        
-        Parameters:
-        - self: The instance of the class.
-        
-        Returns:
-        - None
-        """
-        # get stat/label name info
-        self.summ_stat_names_encode = [ s.encode('UTF-8') for s in self.summ_stat_names ]
-        self.label_names_encode = [ s.encode('UTF-8') for s in self.label_names ]
 
+        This class creates HDF5 files
+
+        """
+        
         # build files
         for tree_width in sorted(list(self.phy_tensors.keys())):
                  
             # dimensions
             rep_idx = sorted(list(self.phy_tensors[tree_width]))
             num_samples = len(rep_idx)
-            num_taxa = tree_width
-            num_data_length = num_taxa * self.num_data_row
-            #print(num_taxa, self.num_data_row)
+            num_data_length = tree_width * self.num_data_row
 
             # print info
-            print('Formatting {n} files for tree_type={tt} and tree_width={ts}'.format(n=num_samples, tt=self.tree_type, ts=tree_width))
+            print('Combining {n} files for tree_type={tt} and tree_width={ts}'.format(n=num_samples, tt=self.tree_type, ts=tree_width))
 
             # HDF5 file
-            out_hdf5_fn = f'{self.out_dir}/sim.nt{tree_width}.hdf5'
+            out_hdf5_fn = f'{self.fmt_proj_dir}/sim.nt{tree_width}.hdf5'
             hdf5_file = h5py.File(out_hdf5_fn, 'w')
 
-            # name data
-            dat_stat_names = hdf5_file.create_dataset('summ_stat_names', (1, self.num_summ_stat), 'S64', self.summ_stat_names_encode)
-            dat_label_names = hdf5_file.create_dataset('label_names', (1, self.num_labels), 'S64', self.label_names_encode)
-
-            # numerical data
-            dat_data = hdf5_file.create_dataset('data', (num_samples, num_data_length), dtype='f', compression='gzip')
-            dat_stat = hdf5_file.create_dataset('summ_stat', (num_samples, self.num_summ_stat), dtype='f', compression='gzip')
-            dat_labels = hdf5_file.create_dataset('labels', (num_samples, self.num_labels), dtype='f', compression='gzip')
+            # create datasets for numerical data
+            dat_data = hdf5_file.create_dataset('phy_data',
+                                                (num_samples, num_data_length),
+                                                dtype='f', compression='gzip')
+            dat_stat = hdf5_file.create_dataset('summ_stat',
+                                                (num_samples, self.num_summ_stat),
+                                                dtype='f', compression='gzip')
+            dat_labels = hdf5_file.create_dataset('labels',
+                                                  (num_samples, self.num_labels),
+                                                  dtype='f', compression='gzip')
 
             # the replicates for this tree width
             _rep_idx = list(self.phy_tensors[tree_width].keys())
@@ -313,185 +352,106 @@ class Formatter:
             # load all the info
             res = [ self.load_one_sim(idx=idx, tree_width=tree_width) for idx in tqdm(_rep_idx,
                                 total=len(_rep_idx),
-                                desc='Formatting') ]
+                                desc='Combining') ]
             
-            # store all numerical data into hdf5
-            dat_data[:,:] = np.vstack( [ x[0] for x in res ] )
-            dat_stat[:,:] = np.vstack( [ x[1] for x in res ] )
-            dat_labels[:,:] = np.vstack( [ x[2] for x in res ] )
+            # store all numerical data into hdf5)
+            if len(res) > 0:
+                dat_data[:,:] = np.vstack( [ x[0] for x in res ] )
+                dat_stat[:,:] = np.vstack( [ x[1] for x in res ] )
+                dat_labels[:,:] = np.vstack( [ x[2] for x in res ] )
 
             # read in summ_stats and labels (_all_ params) dataframes
-            label_names_str = [ s.decode('UTF-8') for s in dat_label_names[0,:] ]
-            summ_stat_names_str = [ s.decode('UTF-8') for s in dat_stat_names[0,:] ]
-            df_summ_stats = pd.DataFrame( dat_stat, columns=summ_stat_names_str )
-            df_labels = pd.DataFrame( dat_labels, columns=label_names_str )
+            df_summ_stats = pd.DataFrame(dat_stat, columns=self.summ_stat_names)
+            df_labels = pd.DataFrame(dat_labels, columns=self.label_names)
             
-            # separate data parameters (things we know) from label parameters (things we predict)
-            df_labels_new = df_labels[self.param_pred]
+            # separate data parameters (things we know) from label parameters (things we estimate)
+            df_labels_new = df_labels[self.param_est]
             df_labels_move = df_labels[self.param_data]
 
             # concatenate new data parameters as column to existing summ_stats dataframe
-            df_summ_stats_new = df_summ_stats.join( df_labels_move )
+            df_aux_data = df_summ_stats.join( df_labels_move )
 
             # get new label/stat names
-            new_label_names = self.param_pred
-            new_summ_stat_names = self.summ_stat_names + self.param_data
+            new_label_names = self.param_est
+            new_aux_data_names = self.summ_stat_names + self.param_data
 
             # delete original datasets 
             del hdf5_file['summ_stat']
             del hdf5_file['labels']
-            del hdf5_file['label_names']
-            del hdf5_file['summ_stat_names']
             
             # create new datasets
-            hdf5_file.create_dataset('summ_stat', df_summ_stats_new.shape, 'f', df_summ_stats_new)
-            hdf5_file.create_dataset('labels', df_labels_new.shape, 'f', df_labels_new)
-            hdf5_file.create_dataset('label_names', (1, len(new_label_names)), 'S64', new_label_names)
-            hdf5_file.create_dataset('summ_stat_names', (1, len(new_summ_stat_names)), 'S64', new_summ_stat_names)
+            hdf5_file.create_dataset('labels', df_labels_new.shape, 'f', df_labels_new, compression='gzip')
+            hdf5_file.create_dataset('label_names', (1, len(new_label_names)), 'S64', new_label_names, compression='gzip')
+            hdf5_file.create_dataset('aux_data', df_aux_data.shape, 'f', df_aux_data, compression='gzip')
+            hdf5_file.create_dataset('aux_data_names', (1, len(new_aux_data_names)), 'S64', new_aux_data_names, compression='gzip')
 
             # close HDF5 files
             hdf5_file.close()
 
         return
 
-    def process_one_param_hdf5(self, idx):
-        """
-        Process the parameters from an HDF5 file.
-        
-        Parameters:
-        - self: The instance of the class.
-        - idx: The index of the HDF5 file.
-        
-        Returns:
-        - numpy array: The parameters loaded from the HDF5 file.
-        """
-        fname_base  = f'{self.in_dir}/sim.{idx}'
-        fname_param = fname_base + '.param_row.csv'
-        return np.loadtxt(fname_param, delimiter=',', skiprows=1)
-        
-    def process_one_stat_hdf5(self, idx):
-        """
-        Process the summary statistics from an HDF5 file.
-        
-        Parameters:
-        - self: The instance of the class.
-        - idx: The index of the HDF5 file.
-        
-        Returns:
-        - numpy array: The summary statistics loaded from the HDF5 file.
-        """
-        fname_base  = f'{self.in_dir}/sim.{idx}'
-        fname_stat  = fname_base + '.summ_stat.csv'
-        return np.loadtxt(fname_stat, delimiter=',', skiprows=1)
-
-    def process_one_label_hdf5(self, phy_tensor):
-        """
-        Process the labels from a phy_tensor.
-        
-        Parameters:
-        - self: The instance of the class.
-        - phy_tensor: The phy_tensor containing the labels.
-        
-        Returns:
-        - numpy array: The labels flattened from the phy_tensor.
-        """
-        return phy_tensor.flatten() 
         
     def write_tensor_csv(self):
         """
         Writes CSV files for phylogenetic tensors.
         
-        The method iterates through the phylogenetic tensors for each tree width and generates CSV files containing the tensor data and labels.
-        
-        Parameters:
-            None
-            
-        Returns:
-            None
+        The method iterates through the phylogenetic tensors for each tree width
+        and generates CSV files containing the tensor data and labels.
         """
         # build files
         for tree_width in sorted(list(self.phy_tensors.keys())):
             
-            # dimensions
-            rep_idx = sorted(list(self.phy_tensors[tree_width]))
-            num_samples = len(rep_idx)
-            num_taxa = tree_width
-            #num_data_length = num_taxa * self.num_data_row
+            # helper variables
+            phy_tensors = self.phy_tensors[tree_width]
+            num_samples = len(phy_tensors)
             
             print('Formatting {n} files for tree_type={tt} and tree_width={ts}'.format(n=num_samples, tt=self.tree_type, ts=tree_width))
             
-            # CSV files
-            out_cblvs_fn  = f'{self.out_dir}/sim.nt{tree_width}.cblvs.data.csv'
-            out_cdvs_fn   = f'{self.out_dir}/sim.nt{tree_width}.cdvs.data.csv'
-            out_stat_fn   = f'{self.out_dir}/sim.nt{tree_width}.summ_stat.csv'
-            out_labels_fn = f'{self.out_dir}/sim.nt{tree_width}.labels.csv'
+            # output csv filepaths
+            out_prefix    = f'{self.fmt_proj_dir}/sim.nt{tree_width}'
+            in_prefix     = f'{self.sim_proj_dir}/sim'
+            out_phys_fn   = f'{out_prefix}.phy_data.csv'
+            out_stat_fn   = f'{out_prefix}.aux_data.csv'
+            out_labels_fn = f'{out_prefix}.labels.csv'
 
-            # cblvs tensor
-            if self.tree_type == 'serial':
-                with open(out_cblvs_fn, 'w') as outfile:
-                    for j,(idx,phy_tensor) in enumerate(self.phy_tensors[tree_width].items()):
-                        fname = f'{self.in_dir}/sim.{idx}.cblvs.csv'
-                        #with open(fname, 'r') as infile:
-                        s = ','.join(str(a) for a in phy_tensor) + '\n' #infile.read()
-                        z = outfile.write(s)
-                    
-                    # for j,i in enumerate(size_sort[tree_width]):
-                    #     fname = self.in_dir + '/' + 'sim.' + str(i) + '.cblvs.csv'
-                    #     with open(fname, 'r') as infile:
-                    #         s = infile.read()
-                    #         z = outfile.write(s)
-                        
+            # phylogenetic state tensor
+            with open(out_phys_fn, 'w') as outfile:
+                for j,(idx,pt) in enumerate(phy_tensors.items()):
+                    s = ','.join(map(str, pt.flatten())) + '\n'
+                    outfile.write(s)
 
-            # cdv file tensor       
-            elif self.tree_type == 'extant':
-                with open(out_cdvs_fn, 'w') as outfile:
-                    #for j,i in enumerate(size_sort[tree_width]):
-                    for j,(idx,phy_tensor) in enumerate(self.phy_tensors[tree_width].items()):
-                        fname = f'{self.in_dir}/sim.{idx}.cdvs.csv'
-                        #with open(fname, 'r') as infile:
-                        s = ','.join(map(str, phy_tensor.flatten())) + '\n'
-                        #s = ','.join(str(a) for a in phy_tensor) + '\n' #infile.read()
-                        #print(phy_tensor)
-                        #print(s)
-                        #xxxx
-                        z = outfile.write(s)
-                    
             # summary stats tensor
             with open(out_stat_fn, 'w') as outfile:
-                for j,(idx,phy_tensor) in enumerate(self.phy_tensors[tree_width].items()):
-                #for j,i in enumerate(size_sort[tree_width]):
-                    fname = f'{self.in_dir}/sim.{idx}.summ_stat.csv'
-                    #fname = self.in_dir + '/' + 'sim.' + str(i) + '.summ_stat.csv'
+                for j,idx in enumerate(phy_tensors.keys()):
+                    fname = f'{in_prefix}.{idx}.summ_stat.csv'
                     with open(fname, 'r') as infile:
                         if j == 0:
                             s = infile.read()
-                            z = outfile.write(s)
                         else:
                             s = ''.join(infile.readlines()[1:])
-                            z = outfile.write(s)
+                        outfile.write(s)
                         
-
             # labels input tensor
             with open(out_labels_fn, 'w') as outfile:
-                for j,(idx,phy_tensor) in enumerate(self.phy_tensors[tree_width].items()):
-                #for j,i in enumerate(size_sort[tree_width]):
-                    #fname = self.in_dir + '/' + 'sim.' + str(i) + '.param_row.csv'
-                    fname = f'{self.in_dir}/sim.{idx}.param_row.csv'
+                for j,idx in enumerate(phy_tensors.keys()):
+                    fname = f'{in_prefix}.{idx}.param_row.csv'
                     with open(fname, 'r') as infile:
                         if j == 0:
                             s = infile.read()
-                            z = outfile.write(s)
                         else:
                             s = ''.join(infile.readlines()[1:])
-                            z = outfile.write(s)
+                        outfile.write(s)
 
-            
-            # read in summ_stats and labels (_all_ params) dataframes
-            df_summ_stats = pd.read_csv(out_stat_fn)  # original, contains _no_ parameters
-            df_labels = pd.read_csv(out_labels_fn)    # original, contains _all_ parameters
+            # rearrange labels and summary statistics
+            # - labels contains param_est
+            # - aux_data contains summ_stat and param_data
+
+            # read in summ_stats and labels
+            df_summ_stats = pd.read_csv(out_stat_fn)
+            df_labels = pd.read_csv(out_labels_fn)
 
             # separate data parameters (things we know) from label parameters (things we predict)
-            df_labels_keep = df_labels[self.param_pred]
+            df_labels_keep = df_labels[self.param_est]
             df_labels_move = df_labels[self.param_data]
 
             # concatenate new data parameters as column to existing summ_stats dataframe
@@ -504,33 +464,27 @@ class Formatter:
         return
 
     def encode_one_star(self, args):
+        """Wrapper for encode_one w/ unpacked args"""
         return self.encode_one(*args)
 
     def encode_one(self, tmp_fn, idx, save_phyenc_csv=False):
-
         """
-        Generate a Google-style docstring for the given Python code.
-
-        Parameters:
-            None
+        Encode a single simulated raw data replicate into individual tensor
+        or matrix formats.
 
         Returns:
             cpsv: numpy array
-                Compact phylo-state tensor (CPST)
-
-        Raises:
-            None
-
+                Compact phylo-state vector (CPSV)
         """
         NUM_DIGITS = 10
-        np.set_printoptions(formatter={'float': lambda x: format(x, '8.6E')}, precision=NUM_DIGITS)
+        np.set_printoptions(formatter={'float': lambda x: format(x, '8.6E')},
+                            precision=NUM_DIGITS)
         
         # make filenames
         dat_nex_fn = tmp_fn + '.dat.nex'
         tre_fn     = tmp_fn + '.tre'
         prune_fn   = tmp_fn + '.extant.tre'
-        cblvs_fn   = tmp_fn + '.cblvs.csv'
-        cdvs_fn    = tmp_fn + '.cdvs.csv'
+        cpsv_fn    = tmp_fn + '.phy_data.csv'
         ss_fn      = tmp_fn + '.summ_stat.csv'
         info_fn    = tmp_fn + '.info.csv'
         
@@ -549,9 +503,13 @@ class Formatter:
         
         # read in nexus data file
         if self.chardata_format == 'nexus':
-            dat = utilities.convert_nexus_to_array(dat_nex_fn, self.char_encode_type, self.num_states)
+            dat = utilities.convert_nexus_to_array(dat_nex_fn,
+                                                   self.char_encode_type,
+                                                   self.num_states)
         elif self.chardata_format == 'csv':
-            dat = utilities.convert_csv_to_array(dat_nex_fn, self.char_encode_type, self.num_states)
+            dat = utilities.convert_csv_to_array(dat_nex_fn,
+                                                 self.char_encode_type,
+                                                 self.num_states)
         
         # get tree file
         phy = utilities.read_tree(tre_fn)
@@ -576,26 +534,18 @@ class Formatter:
         # get tree width from resulting vector
         tree_width = utilities.find_tree_width(num_taxa, self.tree_width_cats)
 
-        # create compact phylo-state tensor (CPST)
-        cblvs = None
-        cdvs = None
+        # create compact phylo-state vector, CPV+S = {CBLV+S, CDV+S}
+        cpvs_data = None
 
-        # encode CBLVS
-        if self.tree_type == 'serial':
-            cblvs = self.encode_phy_tensor(phy, dat, tree_width=tree_width, tree_encode_type=self.tree_encode_type, tree_type='serial')
-            cpsv = cblvs
-            cpsv_fn = cblvs_fn
+        # encode CBLV+S
+        cpvs_data = self.encode_phy_tensor(phy, dat, tree_width=tree_width,
+                                            tree_encode_type=self.tree_encode_type,
+                                            tree_type=self.tree_type)
 
-        # encode CDVS
-        elif self.tree_type == 'extant':
-            cdvs = self.encode_phy_tensor(phy, dat, tree_width=tree_width, tree_encode_type=self.tree_encode_type, tree_type='extant')
-            cpsv = cdvs
-            cpsv_fn = cdvs_fn
-
-        # save CPSV
+        # save CPVS
         save_phyenc_csv_ = self.save_phyenc_csv or save_phyenc_csv
-        if save_phyenc_csv_ and cpsv is not None:
-            cpsv_str = utilities.make_clean_phyloenc_str(cpsv.flatten())
+        if save_phyenc_csv_ and cpvs_data is not None:
+            cpsv_str = utilities.make_clean_phyloenc_str(cpvs_data.flatten())
             utilities.write_to_file(cpsv_str, cpsv_fn)
 
         # record info
@@ -603,18 +553,14 @@ class Formatter:
         utilities.write_to_file(info_str, info_fn)
 
         # record summ stat data
-        ss     = self.make_summ_stat(phy, dat) #, vecstr2int)
+        ss     = self.make_summ_stat(phy, dat)
         ss_str = self.make_summ_stat_str(ss)
         utilities.write_to_file(ss_str, ss_fn)
         
         # done!
-        return cpsv
+        return cpvs_data
     
-
-    # ==> move to Formatting? <==
-
-    #def make_summ_stat(self, tre_fn, geo_fn, states_bits_str_inv):
-    def make_summ_stat(self, phy, dat): #, states_bits_str_inv):
+    def make_summ_stat(self, phy, dat):
         """
         Generate summary statistics.
 
@@ -630,15 +576,15 @@ class Formatter:
         summ_stats = {}
 
         # read tree + states
-        #phy = dp.Tree.get(path=tre_fn, schema="newick")
         num_taxa                  = len(phy.leaf_nodes())
+        node_ages                 = phy.internal_node_ages(ultrametricity_precision=False)
+        root_age                  = phy.seed_node.age
+        branch_lengths            = [ nd.edge.length for nd in phy.nodes() if nd != phy.seed_node ]
         #root_distances            = phy.calc_node_root_distances()
         #root_distances            = [ nd.root_distance for nd in phy.nodes() if nd.is_leaf]
         #phy.calc_node_ages(ultrametricity_precision=False)
-        node_ages                 = phy.internal_node_ages(ultrametricity_precision=False)
         #tree_height               = np.max( root_distances )
-        root_age                  = phy.seed_node.age
-        branch_lengths            = [ nd.edge.length for nd in phy.nodes() if nd != phy.seed_node ]
+        
 
         # tree statistics
         summ_stats['n_taxa']      = num_taxa
@@ -647,16 +593,17 @@ class Formatter:
         summ_stats['brlen_mean']  = np.mean(branch_lengths)
         summ_stats['brlen_var']   = np.var(branch_lengths)
         summ_stats['brlen_skew']  = sp.stats.skew(branch_lengths)
-        #summ_stats['brlen_kurt']  = sp.stats.kurtosis(branch_lengths)
         summ_stats['age_mean']    = np.mean(node_ages)
         summ_stats['age_var']     = np.var(node_ages)
         summ_stats['age_skew']    = sp.stats.skew(node_ages)
-        #summ_stats['age_kurt']    = sp.stats.kurtosis(root_distances)
         summ_stats['B1']          = dp.calculate.treemeasure.B1(phy)
         summ_stats['N_bar']       = dp.calculate.treemeasure.N_bar(phy)
         summ_stats['colless']     = dp.calculate.treemeasure.colless_tree_imbalance(phy)
         summ_stats['treeness']    = dp.calculate.treemeasure.treeness(phy)
+
         #summ_stats['gamma']       = dp.calculate.treemeasure.pybus_harvey_gamma(phy)
+        #summ_stats['brlen_kurt']  = sp.stats.kurtosis(branch_lengths)
+        #summ_stats['age_kurt']    = sp.stats.kurtosis(root_distances)
         #summ_stats['sackin']      = dp.calculate.treemeasure.sackin_index(phy)
 
         # get freqs of data-states, based on state encoding type
@@ -669,8 +616,6 @@ class Formatter:
         
         elif self.char_encode_type == 'one_hot':
             for i in range(dat.shape[0]):
-                #print(i)
-                #print(np.sum(dat.iloc[i]))
                 summ_stats['f_dat_' + str(i)] = np.sum(dat.iloc[i]) / num_taxa
         
         return summ_stats
@@ -720,7 +665,8 @@ class Formatter:
         return phy_tensor
 
     def encode_cdvs(self, phy, dat, tree_width, tree_encode_type, rescale=True):
-        """Encode CDVs (Character-Dependent Values) based on a given phylogenetic tree.
+        """
+        Encode Compact Diversity-reordered Vector + States
 
         Args:
             phy (Phylo.Tree): The phylogenetic tree.
@@ -792,7 +738,8 @@ class Formatter:
 
     def encode_cblvs(self, phy, dat, tree_width, tree_encode_type, rescale=True):
         
-        """Encode CBLVs (Character-Based Length Values) based on a given phylogenetic tree.
+        """
+        Encode Compact Bijective Ladderized Vector + States.
 
         Args:
             phy (Phylo.Tree): The phylogenetic tree.
@@ -865,3 +812,5 @@ class Formatter:
         phylo_tensor = np.vstack( [heights, states] )
 
         return phylo_tensor
+
+#------------------------------------------------------------------------------#

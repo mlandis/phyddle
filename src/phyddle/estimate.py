@@ -114,9 +114,9 @@ class Estimator:
 
         # test phy vector
         if self.tree_type == 'extant':
-            self.est_phyvec_fn      = f'{self.est_proj_dir}/{self.est_prefix}.cdvs.csv'    
+            self.est_phyvec_fn      = f'{self.est_proj_dir}/{self.est_prefix}.phy_data.csv'    
         elif self.tree_type == 'serial':
-            self.est_phyvec_fn      = f'{self.est_proj_dir}/{self.est_prefix}.cblvs.csv'
+            self.est_phyvec_fn      = f'{self.est_proj_dir}/{self.est_prefix}.phy_data.csv'
         else:
             raise NotImplementedError(f'{self.tree_type} not recognized tree type')
 

@@ -253,8 +253,8 @@ def load_config(config_fn,
     parser.add_argument('--log_dir',            dest='log_dir', type=str, help='Directory for logs of analysis metadata', metavar='')
     # model settings
     # parser.add_argument('--show_models',        action='store_true', help='Print all available model types and variants?')
-    parser.add_argument('--model_type',         dest='model_type', type=str, help='Model type', metavar='')
-    parser.add_argument('--model_variant',      dest='model_variant', type=str, help='Model variant', metavar='')
+    # parser.add_argument('--model_name',         dest='model_type', type=str, help='Model type', metavar='')
+    # parser.add_argument('--model_variant',      dest='model_variant', type=str, help='Model variant', metavar='')
     parser.add_argument('--num_char',           dest='num_char', type=int, help='Number of characters', metavar='')
     parser.add_argument('--num_states',         dest='num_states', type=int, help='Number of states per character', metavar='')
     # simulation settings
@@ -340,8 +340,8 @@ def load_config(config_fn,
     m = overwrite_defaults(m, args, 'est_dir')
     m = overwrite_defaults(m, args, 'plt_dir')
     m = overwrite_defaults(m, args, 'log_dir')
-    m = overwrite_defaults(m, args, 'model_type')
-    m = overwrite_defaults(m, args, 'model_variant')
+    # m = overwrite_defaults(m, args, 'model_type')
+    # m = overwrite_defaults(m, args, 'model_variant')
     m = overwrite_defaults(m, args, 'num_char')
     m = overwrite_defaults(m, args, 'num_states')
     # m = overwrite_defaults(m, args, 'sim_method')
@@ -550,7 +550,7 @@ args = {
     'tree_width_cats'   : [ 200, 500 ],     # tree width categories for phylo-state tensors
     'tree_encode_type'  : 'height_brlen',   # how to encode phylo brlen? height_only or height_brlen
     'char_encode_type'  : 'integer',        # how to encode discrete states? one_hot or integer
-    'param_pred'        : [                 # model parameters to predict (labels)
+    'param_est'        : [                  # model parameters to estimate (labels)
         'w_0', 'e_0', 'd_0_1', 'b_0_1'
     ],
     'param_data'        : [],               # model parameters that are known (aux. data)

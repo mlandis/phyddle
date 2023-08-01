@@ -165,9 +165,9 @@ class Plotter:
             self.input_labels = pd.read_csv( self.input_labels_fn )
         elif self.tensor_format == 'hdf5':
             hdf5_file = h5py.File(self.input_hdf5_fn, 'r')
-            self.input_stat_names = [ s.decode() for s in hdf5_file['summ_stat_names'][0,:] ]
+            self.input_stat_names = [ s.decode() for s in hdf5_file['aux_data_names'][0,:] ]
             self.input_label_names = [ s.decode() for s in hdf5_file['label_names'][0,:] ]
-            self.input_stats = pd.DataFrame( hdf5_file['summ_stat'][:,:], columns=self.input_stat_names )
+            self.input_stats = pd.DataFrame( hdf5_file['aux_data'][:,:], columns=self.input_stat_names )
             self.input_labels = pd.DataFrame( hdf5_file['labels'][:,:], columns=self.input_label_names )
             hdf5_file.close()
 

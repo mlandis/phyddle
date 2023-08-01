@@ -28,8 +28,9 @@ from phyddle import utilities
 # mp_util.log_to_stderr(mp_util.SUBDEBUG)
 
 # Allows multiprocessing fork (not spawn) new processes on Unix-based OS.
-# However, set_start_method() throws RuntimeError when called the 2nd+ time
-# within a Python session, handled here with try-except.
+# However, import phyddle.format also calls set_start_method('fork'), and the
+# function throws RuntimeError when called the 2nd+ time within a single Python.
+# We handle this with a try-except block.
 try:
     set_start_method('fork')
 except RuntimeError:
@@ -58,7 +59,8 @@ def load(args):
 
 class Simulator:
     """
-    A class representing a simulator.
+    Class for simulating phylogenetic datasets that can be converted into
+    tensors with the Format step.
     """
     def __init__(self, args):
         """
@@ -111,32 +113,34 @@ class Simulator:
         Simulation jobs are numbered by the replicate-index list (self.rep_idx). 
         Each job is executed by calling self.sim_one(idx) where idx is a unique
         value in self.rep_idx.
-
+ 
         When self.use_parallel is True then all jobs are run in parallel via
         multiprocessing.Pool. When self.use_parallel is false, jobs are run
         serially with one CPU.
         """
-        # start run
-        utilities.print_step_header('sim', None, self.sim_proj_dir,
+        # print header
+        utilities.print_step_header(step='sim',
+                                    in_dir=None,
+                                    out_dir=self.sim_proj_dir,
                                     verbose=self.verbose)
 
         # prepare workspace
         os.makedirs( self.sim_dir + '/' + self.sim_proj, exist_ok=True )
     
         # dispatch jobs
-        utilities.print_str('▪ simulating raw data ...', verbose=self.verbose)
+        utilities.print_str('▪ Simulating raw data ...', verbose=self.verbose)
         if self.use_parallel:
             # parallel jobs
             # Note, it's critical to call this as list(tqdm(pool.imap(...)))
-            #       - pool.imap runs the parallelization
-            #       - tqdm generates progress bar
-            #       - list acts as a finalizer for the pool.imap work
+            # - pool.imap runs the parallelization
+            # - tqdm generates progress bar
+            # - list acts as a finalizer for the pool.imap work
             # Also, no major performance difference between
-            #       - imap vs imap_unordered
-            #       - chunksize=1 vs chunksize=5
-            #       - worth testing more, though
+            # - imap vs imap_unordered
+            # - chunksize=1 vs chunksize=5
+            # - worth testing more, though
             with Pool(processes=self.num_proc) as pool:
-                 res = list(tqdm(pool.imap(self.sim_one, self.rep_idx, chunksize=5),
+                 res = list(tqdm(pool.imap(self.sim_one, self.rep_idx, chunksize=1),
                             total=len(self.rep_idx),
                             desc='Simulating'))
             
@@ -148,11 +152,6 @@ class Simulator:
 
         # done
         utilities.print_str('... done!', verbose=self.verbose)
-        return
-
-
-    def sim_two(self, idx):
-        print(f'sim_two: {idx}')
         return
     
     # main simulation function (looped)
@@ -216,3 +215,5 @@ class Simulator:
                 valid = False
 
         return
+    
+#------------------------------------------------------------------------------#

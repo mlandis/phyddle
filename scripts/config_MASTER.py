@@ -34,29 +34,12 @@ args = {
     #-------------------------------#
     # Model Configuration           #
     #-------------------------------#
-#    'model_type'         : 'geosse',        # model type defines general states and events
-#    'model_variant'      : 'equal_rates',   # model variant defines rate assignments
     'num_char'           : num_char,        # number of evolutionary characters
     'num_states'         : num_states,      # number of states per character
-#    'rv_fn'              : {                # distributions for model parameters
-#        'w': sp.stats.expon.rvs,
-#        'e': sp.stats.expon.rvs,
-#        'd': sp.stats.expon.rvs,
-#        'b': sp.stats.expon.rvs
-#    },
-#    'rv_arg'             : {                # loc/scale/shape for model parameter dists
-#        'w': { 'scale' : 0.2 },
-#        'e': { 'scale' : 0.1 },
-#        'd': { 'scale' : 0.1 },
-#        'b': { 'scale' : 0.5 }
-#    },
 
     #-------------------------------#
     # Simulate Step settings        #
     #-------------------------------#
-    'sim_method'        : 'command',        # command, master, [phylojunction], ...
-    #'sim_command'       : 'python3 sim/MASTER/sim_one.py', # exact command string, argument is output file prefix
-    #'sim_command'       : 'sh sim/MASTER/error.sh', # exact command string, argument is output file prefix
     'sim_command'       : 'python3 sim/MASTER/sim_one.py', # exact command string, argument is output file prefix
     'sim_logging'       : 'verbose',        # verbose, compressed, or clean
     'start_idx'         : 0,                # first simulation replicate index
@@ -74,7 +57,7 @@ args = {
     'tree_width_cats'   : [ 200, 500 ],     # tree width categories for phylo-state tensors
     'tree_encode_type'  : 'height_brlen',   # how to encode phylo brlen? height_only or height_brlen
     'char_encode_type'  : 'integer',        # how to encode discrete states? one_hot or integer
-    'param_pred'        : [                 # model parameters to predict (labels)
+    'param_est'         : [                 # model parameters to estimate (labels)
         'w_0', 'e_0', 'd_0_1', 'b_0_1'
     ],
     'param_data'        : [],               # model parameters that are known (aux. data)
