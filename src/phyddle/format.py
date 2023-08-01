@@ -39,7 +39,7 @@ try:
 except RuntimeError:
     pass
 
-#-----------------------------------------------------------------------------------------------------------------#
+#------------------------------------------------------------------------------#
 
 def load(args):
     """Load a Formatter object.
@@ -61,7 +61,7 @@ def load(args):
     else:
         return None
 
-#-----------------------------------------------------------------------------------------------------------------#
+#------------------------------------------------------------------------------#
 
 class Formatter:
     """
@@ -120,8 +120,8 @@ class Formatter:
         self.num_proc          = args['num_proc']
         self.num_char          = args['num_char']
         self.num_states        = args['num_states']
-        self.param_est         = args['param_est'] # params that are labels
-        self.param_data        = args['param_data'] # params thata are "data"
+        self.param_est         = args['param_est']
+        self.param_data        = args['param_data']
         self.tree_type         = args['tree_type']
         self.chardata_format   = args['chardata_format']
         self.tensor_format     = args['tensor_format']
@@ -283,25 +283,6 @@ class Formatter:
         ret = df.columns.to_list()
         return ret
 
-
-    def load_one_sim(self, idx, tree_width):
-        """Load data for one simulation given its index and tree width.
-    
-        Args:
-            idx (int): Index of the simulation.
-            tree_width: Tree width for the simulation.
-        
-        Returns:
-            Tuple of numpy arrays (x1, x2, x3).
-        """
-        fname_base  = f'{self.sim_proj_dir}/sim.{idx}'
-        fname_param = fname_base + '.param_row.csv'
-        fname_stat  = fname_base + '.summ_stat.csv'
-        x1 = self.phy_tensors[tree_width][idx].flatten()
-        x2 = np.loadtxt(fname_stat, delimiter=',', skiprows=1)
-        x3 = np.loadtxt(fname_param, delimiter=',', skiprows=1)
-        return (x1,x2,x3)
-
     def write_tensor(self):
         """
         Write the tensor in csv or hdf5 format.
@@ -389,7 +370,24 @@ class Formatter:
             hdf5_file.close()
 
         return
-
+    
+    def load_one_sim(self, idx, tree_width):
+        """Load data for one simulation given its index and tree width.
+    
+        Args:
+            idx (int): Index of the simulation.
+            tree_width (int): Tree width for the simulation.
+        
+        Returns:
+            Tuple of numpy arrays (x1, x2, x3).
+        """
+        fname_base  = f'{self.sim_proj_dir}/sim.{idx}'
+        fname_param = fname_base + '.param_row.csv'
+        fname_stat  = fname_base + '.summ_stat.csv'
+        x1 = self.phy_tensors[tree_width][idx].flatten()
+        x2 = np.loadtxt(fname_stat, delimiter=',', skiprows=1)
+        x3 = np.loadtxt(fname_param, delimiter=',', skiprows=1)
+        return (x1,x2,x3)
         
     def write_tensor_csv(self):
         """
@@ -469,12 +467,24 @@ class Formatter:
 
     def encode_one(self, tmp_fn, idx, save_phyenc_csv=False):
         """
-        Encode a single simulated raw data replicate into individual tensor
-        or matrix formats.
+        Encode a single simulated raw dataset into tensor format.
+         
+        This function transforms raw input into tensor outputs. The inputs are
+        read from a tree file and data matrix file. The tree is filtered to
+        target ranges of taxon counts and pruned of non-extant taxa.
+        
+        Trees are then binned into tree-width categories (number of columns for
+        compact vector representation). Next, trees and character data are
+        encoded into extended CBLV or CDV formats that contain additional state
+        and branch length information.
+
+        Arguments:
+            tmp_fn (str):            prefix for individual dataset
+            idx (int):               replicate index for simulation
+            save_phyenc_csv (bool):  save phylogenetic state tensor as csv?
 
         Returns:
-            cpsv: numpy array
-                Compact phylo-state vector (CPSV)
+            cpvs (numpy.array): compact phylo vector + states (CPVS)
         """
         NUM_DIGITS = 10
         np.set_printoptions(formatter={'float': lambda x: format(x, '8.6E')},
@@ -488,7 +498,7 @@ class Formatter:
         ss_fn      = tmp_fn + '.summ_stat.csv'
         info_fn    = tmp_fn + '.info.csv'
         
-
+        # check if key files exist
         err_msg = None
         if not os.path.exists(dat_nex_fn):
             err_msg = f'Formatter.encode_one(): {dat_nex_fn} does not exist'
@@ -501,7 +511,7 @@ class Formatter:
         if err_msg is not None:
             return
         
-        # read in nexus data file
+        # read in nexus data file as numpy array
         if self.chardata_format == 'nexus':
             dat = utilities.convert_nexus_to_array(dat_nex_fn,
                                                    self.char_encode_type,
@@ -520,16 +530,20 @@ class Formatter:
         if self.tree_type == 'extant':
             phy_prune = utilities.make_prune_phy(phy, prune_fn)
             if phy_prune is None:
-                return # abort, no valid pruned tree
+                # abort, no valid pruned tree
+                return
             else:
-                phy = copy.deepcopy(phy_prune)  # valid pruned tree
+                # valid pruned tree
+                phy = copy.deepcopy(phy_prune)
 
         # get tree size
         num_taxa = len(phy.leaf_nodes())
         if num_taxa > np.max(self.tree_width_cats):
-            return  # abort, too many taxa
+            # abort, too many taxa
+            return
         elif num_taxa < self.min_num_taxa or num_taxa < 0:
-            return # abort, too few taxa
+            # abort, too few taxa
+            return
 
         # get tree width from resulting vector
         tree_width = utilities.find_tree_width(num_taxa, self.tree_width_cats)
@@ -538,9 +552,9 @@ class Formatter:
         cpvs_data = None
 
         # encode CBLV+S
-        cpvs_data = self.encode_phy_tensor(phy, dat, tree_width=tree_width,
-                                            tree_encode_type=self.tree_encode_type,
-                                            tree_type=self.tree_type)
+        cpvs_data = self.encode_cpvs(phy, dat, tree_width=tree_width,
+                                     tree_encode_type=self.tree_encode_type,
+                                     tree_type=self.tree_type)
 
         # save CPVS
         save_phyenc_csv_ = self.save_phyenc_csv or save_phyenc_csv
@@ -564,18 +578,22 @@ class Formatter:
         """
         Generate summary statistics.
 
-        Parameters:
-        - phy: phylogenetic tree
-        - dat: character data
+        This function populates a dictionary of summary statistics. Keys
+        are the names of statistics that later appear as column names in the
+        summ_stat and aux_data files and containers. Values are for the
+        inputted phy and dat variables.
+
+        Arguments:
+            phy (dendropy.Tree): phylogenetic tree
+            dat (numpy.array): character data
 
         Returns:
-        - summ_stats: dictionary containing summary statistics
-
+            summ_stats (dict): summary statistics
         """
-        # build summary stats
+        # new dictionary to return
         summ_stats = {}
 
-        # read tree + states
+        # read basic info from phylogenetic tree
         num_taxa                  = len(phy.leaf_nodes())
         node_ages                 = phy.internal_node_ages(ultrametricity_precision=False)
         root_age                  = phy.seed_node.age
@@ -584,7 +602,6 @@ class Formatter:
         #root_distances            = [ nd.root_distance for nd in phy.nodes() if nd.is_leaf]
         #phy.calc_node_ages(ultrametricity_precision=False)
         #tree_height               = np.max( root_distances )
-        
 
         # tree statistics
         summ_stats['n_taxa']      = num_taxa
@@ -601,13 +618,15 @@ class Formatter:
         summ_stats['colless']     = dp.calculate.treemeasure.colless_tree_imbalance(phy)
         summ_stats['treeness']    = dp.calculate.treemeasure.treeness(phy)
 
+        # possible tree statistics, but not computable for arbitrary trees
         #summ_stats['gamma']       = dp.calculate.treemeasure.pybus_harvey_gamma(phy)
         #summ_stats['brlen_kurt']  = sp.stats.kurtosis(branch_lengths)
         #summ_stats['age_kurt']    = sp.stats.kurtosis(root_distances)
         #summ_stats['sackin']      = dp.calculate.treemeasure.sackin_index(phy)
 
-        # get freqs of data-states, based on state encoding type
+        # frequencies of character states
         if self.char_encode_type == 'integer':
+            # integer-encoded states
             for i in range(self.num_states):
                 summ_stats['f_dat_' + str(i)] = 0
             unique, counts = np.unique(dat, return_counts=True)
@@ -615,78 +634,78 @@ class Formatter:
                 summ_stats['f_dat_' + str(i)] = j / num_taxa
         
         elif self.char_encode_type == 'one_hot':
+            # one-hot-encoded states
             for i in range(dat.shape[0]):
                 summ_stats['f_dat_' + str(i)] = np.sum(dat.iloc[i]) / num_taxa
         
+        # done
         return summ_stats
     
+    # ==> Can probably move to utilities? seems generic and useful
     def make_summ_stat_str(self, ss):
         """
         Generate a string representation of the summary statistics.
 
-        Parameters:
-        - ss: dictionary containing summary statistics
+        Arguments:
+            ss (dict): dictionary of summary statistics
 
         Returns:
-        - keys_str: string containing the keys of the summary statistics
-        - vals_str: string containing the values of the summary statistics
+            keys_str: string containing the keys of the summary statistics
+            vals_str: string containing the values of the summary statistics
 
         """
         keys_str = ','.join( list(ss.keys()) ) + '\n'
         vals_str = ','.join( [ str(x) for x in ss.values() ] ) + '\n'
         return keys_str + vals_str
     
-    
-    def encode_phy_tensor(self, phy, dat, tree_width, tree_type, tree_encode_type, rescale=True):
+    def encode_cpvs(self, phy, dat, tree_width, tree_type, tree_encode_type, rescale=True):
         """
-        Encode the phylogenetic tree and character data as a tensor.
+        Encode Compact Phylogenetic Vector + States (CPV+S) array
+        
+        This function encodes the dataset into Compact Bijective Ladderized
+        Vector + States (CBLV+S) when tree_type is 'serial' or Compact
+        Diversity-Reordered Vector + States (CDV+S) when tree_type is 'extant'.
 
-        Parameters:
-        - phy: phylogenetic tree
-        - dat: character data
-        - tree_width: width of the tree
-        - tree_type: type of the tree ('serial' or 'extant')
-        - tree_encode_type: type of tree encoding
-        - rescale: boolean flag indicating whether to rescale the tensor
+        Arguments:
+            phy (dendropy.Tree):     phylogenetic tree
+            dat (numpy.array):       character data
+            tree_width (int):        number of columns (max. num. taxa) in CPVS array
+            tree_type (str):         type of the tree ('serial' or 'extant')
+            tree_encode_type (str):  type of tree encoding ('height_only' or 'height_brlen')
+            rescale:                 set tree height to 1 before encoding when True
 
         Returns:
-        - phy_tensor: encoded tensor
-
-        Raises:
-        - ValueError if tree_type is unrecognized
-
+            cpvs (numpy.array):      CPV+S encoded tensor
         """
         if tree_type == 'serial':
-            phy_tensor = self.encode_cblvs(phy, dat, tree_width, tree_encode_type, rescale)
+            cpvs = self.encode_cblvs(phy, dat, tree_width, tree_encode_type, rescale)
         elif tree_type == 'extant':
-            phy_tensor = self.encode_cdvs(phy, dat, tree_width, tree_encode_type, rescale)
+            cpvs = self.encode_cdvs(phy, dat, tree_width, tree_encode_type, rescale)
         else:
             ValueError(f'Unrecognized {tree_type}')
-        return phy_tensor
+        return cpvs
 
     def encode_cdvs(self, phy, dat, tree_width, tree_encode_type, rescale=True):
         """
-        Encode Compact Diversity-reordered Vector + States
+        Encode Compact Diversity-reordered Vector + States (CDV+S) array
 
-        Args:
-            phy (Phylo.Tree): The phylogenetic tree.
-            dat (numpy.ndarray): The character data.
-            tree_width (int): The width of the tree.
-            tree_encode_type (str): The type of tree encoding.
-            rescale (bool, optional): Whether to rescale the heights. Defaults to True.
-
-        Returns:
-            numpy.ndarray: The encoded CDVs tensor.
-
-        Raises:
-            ValueError: If an invalid tree_encode_type is provided.
-        """
         # num columns equals tree_width, 0-padding
         # returns tensor with following rows
         # 0:  internal node root-distance
         # 1:  leaf node branch length
         # 2:  internal node branch ength
         # 3+: state encoding
+        
+        Arguments:
+            phy (dendropy.Tree):     phylogenetic tree
+            dat (numpy.array):       character data
+            tree_width (int):        number of columns (max. num. taxa) in CPVS array
+            tree_encode_type (str):  type of tree encoding ('height_only' or 'height_brlen')
+            rescale:                 set tree height to 1 before encoding when True
+
+        Returns:
+            numpy.ndarray: The encoded CDVs tensor.
+        """
         
         # data dimensions
         num_char_row = dat.shape[0]
@@ -727,8 +746,7 @@ class Formatter:
                 heights[2,height_idx] = nd.edge.length
                 height_idx += 1
 
-        # fill in phylo tensor
-        # row 0: 
+        # stack the phylo and states tensors
         if rescale:
             heights = heights / np.max(heights)
         phylo_tensor = np.vstack( [heights, states] )
@@ -737,23 +755,9 @@ class Formatter:
 
 
     def encode_cblvs(self, phy, dat, tree_width, tree_encode_type, rescale=True):
-        
         """
-        Encode Compact Bijective Ladderized Vector + States.
+        Encode Compact Bijective Ladderized Vector + States (CBLV+S) array
 
-        Args:
-            phy (Phylo.Tree): The phylogenetic tree.
-            dat (numpy.ndarray): The character data.
-            tree_width (int): The width of the tree.
-            tree_encode_type (str): The type of tree encoding.
-            rescale (bool, optional): Whether to rescale the heights. Defaults to True.
-
-        Returns:
-            numpy.ndarray: The encoded CBLVs tensor.
-
-        Raises:
-            ValueError: If an invalid tree_encode_type is provided.
-        """
         # num columns equals tree_width, 0-padding
         # returns tensor with following rows
         # 0:  leaf node-to-last internal node distance
@@ -761,6 +765,17 @@ class Formatter:
         # 2:  leaf node branch length
         # 3:  internal node branch ength
         # 4+: state encoding
+
+        Arguments:
+            phy (dendropy.Tree):     phylogenetic tree
+            dat (numpy.array):       character data
+            tree_width (int):        number of columns (max. num. taxa) in CPVS array
+            tree_encode_type (str):  type of tree encoding ('height_only' or 'height_brlen')
+            rescale:                 set tree height to 1 before encoding when True
+
+        Returns:
+            numpy.ndarray: The encoded CDVs tensor.
+        """
 
         # data dimensions
         num_char_row = dat.shape[0]
@@ -805,8 +820,7 @@ class Formatter:
                 last_int_node = nd
                 height_idx += 1
 
-        # fill in phylo tensor
-        # 0: leaf brlen; 1: intnode brlen; 2:leaf-to-lastintnode len; 3:lastintnode-to-root len
+        # stack the phylo and states tensors
         if rescale:
             heights = heights / np.max(heights)
         phylo_tensor = np.vstack( [heights, states] )
