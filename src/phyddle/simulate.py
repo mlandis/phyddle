@@ -127,12 +127,16 @@ class Simulator:
         utilities.print_str('▪ simulating raw data ...', verbose=self.verbose)
         if self.use_parallel:
             # parallel jobs
-            # NB: it's critical to call this as list(tqdm(pool.imap(...)))
+            # Note, it's critical to call this as list(tqdm(pool.imap(...)))
             #       - pool.imap runs the parallelization
             #       - tqdm generates progress bar
             #       - list acts as a finalizer for the pool.imap work
+            # Also, no major performance difference between
+            #       - imap vs imap_unordered
+            #       - chunksize=1 vs chunksize=5
+            #       - worth testing more, though
             with Pool(processes=self.num_proc) as pool:
-                 res = list(tqdm(pool.imap(self.sim_one, self.rep_idx),
+                 res = list(tqdm(pool.imap(self.sim_one, self.rep_idx, chunksize=5),
                             total=len(self.rep_idx),
                             desc='Simulating'))
             
