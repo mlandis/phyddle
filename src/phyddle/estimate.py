@@ -70,22 +70,21 @@ class Estimator:
         Returns:
             None
         """
-        self.args              = args
-        self.verbose           = args['verbose']
-        self.trn_dir           = args['trn_dir']
-        self.est_dir           = args['est_dir']
-        self.trn_proj          = args['trn_proj']
-        self.est_proj          = args['est_proj']
-        self.est_prefix        = args['est_prefix']
-        self.batch_size        = args['batch_size']
-        self.num_epochs        = args['num_epochs']
-        self.tree_width        = args['tree_width']
-        self.tree_type         = args['tree_type']
-        self.char_encode_type  = args['char_encode_type']
-        self.tree_encode_type  = args['tree_encode_type']
-        self.num_char          = args['num_char']
-        self.num_states        = args['num_states']
-        
+        self.args          = args
+        self.verbose       = args['verbose']
+        self.trn_dir       = args['trn_dir']
+        self.est_dir       = args['est_dir']
+        self.trn_proj      = args['trn_proj']
+        self.est_proj      = args['est_proj']
+        self.est_prefix    = args['est_prefix']
+        self.batch_size    = args['batch_size']
+        self.num_char      = args['num_char']
+        self.num_states    = args['num_states']
+        self.num_epochs    = args['num_epochs']
+        self.tree_width    = args['tree_width']
+        self.tree_encode   = args['tree_encode']
+        self.char_encode   = args['char_encode']
+        self.brlen_encode  = args['brlen_encode']
         return
     
     def prepare_files(self):
@@ -100,28 +99,36 @@ class Estimator:
 
         # main job filenames
         self.model_prefix           = f'sim_batchsize{self.batch_size}_numepoch{self.num_epochs}_nt{self.tree_width}'
-        self.model_sav_fn           = f'{self.trn_proj_dir}/{self.model_prefix}.hdf5'
-        self.model_trn_lbl_norm_fn  = f'{self.trn_proj_dir}/{self.model_prefix}.train_label_norm.csv'
-        self.model_trn_ss_norm_fn   = f'{self.trn_proj_dir}/{self.model_prefix}.train_summ_stat_norm.csv'
-        self.model_cpi_fn           = f'{self.trn_proj_dir}/{self.model_prefix}.cpi_adjustments.csv'
+        self.trn_prefix_dir         = f'{self.trn_proj_dir}/{self.model_prefix}'
+        self.est_prefix_dir         = f'{self.est_proj_dir}/{self.est_prefix}'
+
+        # model files
+        self.model_sav_fn           = f'{self.trn_prefix_dir}.hdf5'
+        self.model_trn_lbl_norm_fn  = f'{self.trn_prefix_dir}.train_label_norm.csv'
+        self.model_trn_ss_norm_fn   = f'{self.trn_prefix_dir}.train_summ_stat_norm.csv'
+        self.model_cpi_fn           = f'{self.trn_prefix_dir}.cpi_adjustments.csv'
 
         # save estimates to file
-        self.model_est_fn          = f'{self.est_proj_dir}/{self.est_prefix}.{self.model_prefix}.est_labels.csv'
+        self.model_est_fn          = f'{self.est_prefix_dir}.{self.model_prefix}.est_labels.csv'
 
         # test summ stats
-        self.est_summ_stat_fn       = f'{self.est_proj_dir}/{self.est_prefix}.summ_stat.csv'
-        self.est_known_param_fn     = f'{self.est_proj_dir}/{self.est_prefix}.known_param.csv'
+        self.est_summ_stat_fn       = f'{self.est_prefix_dir}.summ_stat.csv'
+        self.est_known_param_fn     = f'{self.est_prefix_dir}.known_param.csv'
 
         # test phy vector
-        if self.tree_type == 'extant':
-            self.est_phyvec_fn      = f'{self.est_proj_dir}/{self.est_prefix}.phy_data.csv'    
-        elif self.tree_type == 'serial':
-            self.est_phyvec_fn      = f'{self.est_proj_dir}/{self.est_prefix}.phy_data.csv'
+        if self.tree_encode == 'extant':
+            self.est_phyvec_fn      = f'{self.est_prefix_dir}.phy_data.csv'    
+        elif self.tree_encode == 'serial':
+            self.est_phyvec_fn      = f'{self.est_prefix_dir}.phy_data.csv'
         else:
-            raise NotImplementedError(f'{self.tree_type} not recognized tree type')
+            error_msg = f'{self.tree_encode} not recognized tree type'
+            raise NotImplementedError(error_msg)
 
-        self.num_tree_row = utilities.get_num_tree_row(self.tree_type, self.tree_encode_type)
-        self.num_char_row = utilities.get_num_char_row(self.char_encode_type, self.num_char, self.num_states)
+        self.num_tree_row = utilities.get_num_tree_row(self.tree_encode,
+                                                       self.brlen_encode)
+        self.num_char_row = utilities.get_num_char_row(self.char_encode,
+                                                       self.num_char,
+                                                       self.num_states)
         self.num_data_row = self.num_tree_row + self.num_char_row
         
         return

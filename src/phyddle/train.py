@@ -69,9 +69,9 @@ class Trainer:
         # construct filepaths
         self.prepare_filepaths()
         # get size of CPV+S tensors
-        self.num_tree_row = utilities.get_num_tree_row(self.tree_type,
-                                                       self.tree_encode_type)
-        self.num_char_row = utilities.get_num_char_row(self.char_encode_type,
+        self.num_tree_row = utilities.get_num_tree_row(self.tree_encode,
+                                                       self.brlen_encode)
+        self.num_char_row = utilities.get_num_char_row(self.char_encode,
                                                        self.num_char,
                                                        self.num_states)
         self.num_data_row = self.num_tree_row + self.num_char_row
@@ -96,16 +96,16 @@ class Trainer:
         self.num_char          = args['num_char']
         self.num_states        = args['num_states']
         self.tree_width        = args['tree_width']
-        self.tree_type         = args['tree_type']
-        self.tree_encode_type  = args['tree_encode_type']
-        self.char_encode_type  = args['char_encode_type']
+        self.tree_encode       = args['tree_encode']
+        self.brlen_encode      = args['brlen_encode']
+        self.char_encode       = args['char_encode']
         self.tensor_format     = args['tensor_format']
         self.batch_size        = args['batch_size']
         self.num_epochs        = args['num_epochs']    
         self.prop_test         = args['prop_test']
-        self.prop_validation   = args['prop_validation']
-        self.prop_calibration  = args['prop_calibration']
-        self.combine_test_val  = False
+        self.prop_val          = args['prop_val']
+        self.prop_cal          = args['prop_cal']
+        self.combine_test_val  = args['combine_test_val']
         self.cpi_coverage      = args['cpi_coverage']
         self.cpi_asymmetric    = args['cpi_asymmetric']
         self.loss              = args['loss']
@@ -248,8 +248,8 @@ class CnnTrainer(Trainer):
         """
 
         # get number of training, test, validation, and calibration datapoints
-        num_calib = int(np.floor(num_sample * self.prop_calibration)) 
-        num_val   = int(np.floor(num_sample * self.prop_validation))
+        num_calib = int(np.floor(num_sample * self.prop_cal)) 
+        num_val   = int(np.floor(num_sample * self.prop_val))
         num_test  = int(np.floor(num_sample * self.prop_test))
         num_train = num_sample - (num_val + num_test + num_calib)
         assert(num_train > 0)

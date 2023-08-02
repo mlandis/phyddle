@@ -86,10 +86,10 @@ class Formatter:
         # where rep_idx is list of unique ints to identify simulated datasets
         self.rep_idx      = list(range(self.start_idx, self.end_idx))
         # number of rows we need to tree data
-        self.num_tree_row = utilities.get_num_tree_row(self.tree_type,
-                                                       self.tree_encode_type)
+        self.num_tree_row = utilities.get_num_tree_row(self.tree_encode,
+                                                       self.brlen_encode)
         # number of rows for character matrix data
-        self.num_char_row = utilities.get_num_char_row(self.char_encode_type,
+        self.num_char_row = utilities.get_num_char_row(self.char_encode,
                                                        self.num_char,
                                                        self.num_states)
         # number of rows for phylo state tensor
@@ -120,16 +120,16 @@ class Formatter:
         self.num_proc          = args['num_proc']
         self.num_char          = args['num_char']
         self.num_states        = args['num_states']
-        self.param_est         = args['param_est']
-        self.param_data        = args['param_data']
-        self.tree_type         = args['tree_type']
-        self.chardata_format   = args['chardata_format']
-        self.tensor_format     = args['tensor_format']
-        self.tree_width_cats   = args['tree_width_cats']
-        self.tree_encode_type  = args['tree_encode_type']
-        self.char_encode_type  = args['char_encode_type']
         self.min_num_taxa      = args['min_num_taxa']
         self.max_num_taxa      = args['max_num_taxa']
+        self.tree_encode       = args['tree_encode']
+        self.brlen_encode      = args['brlen_encode']
+        self.char_encode       = args['char_encode']
+        self.char_format       = args['char_format']
+        self.tensor_format     = args['tensor_format']
+        self.tree_width_cats   = args['tree_width_cats']
+        self.param_est         = args['param_est']
+        self.param_data        = args['param_data']
         self.save_phyenc_csv   = args['save_phyenc_csv']
         return
 
@@ -310,7 +310,7 @@ class Formatter:
             num_data_length = tree_width * self.num_data_row
 
             # print info
-            print('Combining {n} files for tree_type={tt} and tree_width={ts}'.format(n=num_samples, tt=self.tree_type, ts=tree_width))
+            print('Combining {n} files for tree_type={tt} and tree_width={ts}'.format(n=num_samples, tt=self.tree_encode, ts=tree_width))
 
             # HDF5 file
             out_hdf5_fn = f'{self.fmt_proj_dir}/sim.nt{tree_width}.hdf5'
@@ -403,7 +403,7 @@ class Formatter:
             phy_tensors = self.phy_tensors[tree_width]
             num_samples = len(phy_tensors)
             
-            print('Formatting {n} files for tree_type={tt} and tree_width={ts}'.format(n=num_samples, tt=self.tree_type, ts=tree_width))
+            print('Formatting {n} files for tree_type={tt} and tree_width={ts}'.format(n=num_samples, tt=self.tree_encode, ts=tree_width))
             
             # output csv filepaths
             out_prefix    = f'{self.fmt_proj_dir}/sim.nt{tree_width}'
@@ -512,13 +512,13 @@ class Formatter:
             return
         
         # read in nexus data file as numpy array
-        if self.chardata_format == 'nexus':
+        if self.char_format == 'nexus':
             dat = utilities.convert_nexus_to_array(dat_nex_fn,
-                                                   self.char_encode_type,
+                                                   self.char_encode,
                                                    self.num_states)
-        elif self.chardata_format == 'csv':
+        elif self.char_format == 'csv':
             dat = utilities.convert_csv_to_array(dat_nex_fn,
-                                                 self.char_encode_type,
+                                                 self.char_encode,
                                                  self.num_states)
         
         # get tree file
@@ -527,7 +527,7 @@ class Formatter:
             return
 
         # prune tree, if needed
-        if self.tree_type == 'extant':
+        if self.tree_encode == 'extant':
             phy_prune = utilities.make_prune_phy(phy, prune_fn)
             if phy_prune is None:
                 # abort, no valid pruned tree
@@ -553,8 +553,8 @@ class Formatter:
 
         # encode CBLV+S
         cpvs_data = self.encode_cpvs(phy, dat, tree_width=tree_width,
-                                     tree_encode_type=self.tree_encode_type,
-                                     tree_type=self.tree_type)
+                                     tree_encode_type=self.brlen_encode,
+                                     tree_type=self.tree_encode)
 
         # save CPVS
         save_phyenc_csv_ = self.save_phyenc_csv or save_phyenc_csv
@@ -625,7 +625,7 @@ class Formatter:
         #summ_stats['sackin']      = dp.calculate.treemeasure.sackin_index(phy)
 
         # frequencies of character states
-        if self.char_encode_type == 'integer':
+        if self.char_encode == 'integer':
             # integer-encoded states
             for i in range(self.num_states):
                 summ_stats['f_dat_' + str(i)] = 0
@@ -633,7 +633,7 @@ class Formatter:
             for i,j in zip(unique, counts):
                 summ_stats['f_dat_' + str(i)] = j / num_taxa
         
-        elif self.char_encode_type == 'one_hot':
+        elif self.char_encode == 'one_hot':
             # one-hot-encoded states
             for i in range(dat.shape[0]):
                 summ_stats['f_dat_' + str(i)] = np.sum(dat.iloc[i]) / num_taxa

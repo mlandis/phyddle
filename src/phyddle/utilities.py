@@ -213,6 +213,76 @@ class States:
 # CONFIG LOADER   #
 ###################
 
+
+def settings_registry():
+    settings = {
+        # basic phyddle options
+        'cfg'              : { 'type':str,   'help':'Config file name', 'opt':'c' },
+        'proj'             : { 'type':str,   'help':'Project name(s) for pipeline step(s)', 'opt':'p' },
+        'step'             : { 'type':str,   'help':'Pipeline step(s) defined with (S)imulate, (F)ormat, (T)rain, (E)stimate, (P)lot, or (A)ll', 'opt':'s' },
+        'verbose'          : { 'type':bool,  'help':'Verbose output to screen?', 'opt':'v' },
+        'force'            : { 'type':None,  'help':'Arguments override config file settings', 'opt':'f' },
+        'make_cfg'         : { 'type':None,  'help':"Write default config file to 'config_default.py'?'" },
+
+        # multiprocessing options 
+        'use_parallel'     : { 'type':bool,  'help':'Use parallelization? (recommended)' },
+        'num_proc'         : { 'type':int,   'help':'Number of cores for multiprocessing (when --use_parallel=True)' },
+        
+        # directories
+        'sim_dir'          : { 'type':str,   'help':'Directory for raw simulated data' },
+        'fmt_dir'          : { 'type':str,   'help':'Directory for tensor-formatted simulated data' },
+        'trn_dir'          : { 'type':str,   'help':'Directory for trained networks and training output' },
+        'est_dir'          : { 'type':str,   'help':'Directory for new datasets and estimates' },
+        'plt_dir'          : { 'type':str,   'help':'Directory for plotted results' },
+        'log_dir'          : { 'type':str,   'help':'Directory for logs of analysis metadata' },
+
+        # simulation options
+        'sim_command'      : { 'type':str,   'help':'Simulation command to run single job (see documentation)' },
+        'sim_logging'      : { 'type':str,   'help':'Simulation logging style', 'choices':['clean', 'verbose', 'compress'] },
+        'start_idx'        : { 'type':int,   'help':'Start replicate index for simulated training dataset' },
+        'end_idx'          : { 'type':int,   'help':'End replicate index for simulated training dataset' },
+
+        # formatting options
+        'num_char'         : { 'type':int,   'help':'Number of characters' },
+        'num_states'       : { 'type':int,   'help':'Number of states per character' },
+        'min_num_taxa'     : { 'type':int,   'help':'Minimum number of taxa allowed when formatting' },
+        'max_num_taxa'     : { 'type':int,   'help':'Maximum number of taxa allowed when formatting' },
+        'tree_width_cats'  : { 'type':str,   'help':'The phylo-state tensor widths for formatting training datasets (space-delimited)' },
+        'tree_encode'      : { 'type':str,   'help':'Encoding strategy for tree',                   'choices':['extant', 'serial'] },
+        'brlen_encode'     : { 'type':str,   'help':'Encoding strategy for branch lengths',         'choices':['height_only', 'height_brlen'] },
+        'char_encode'      : { 'type':str,   'help':'Encoding strategy for character data',         'choices':['one_hot', 'integer', 'numeric'] },
+        'char_format'      : { 'type':str,   'help':'File format for character data',               'choices':['csv', 'nexus'] },
+        'tensor_format'    : { 'type':str,   'help':'File format for training example tensors',     'choices':['csv', 'hdf5'] },
+        'save_phyenc_csv'  : { 'type':bool,  'help':'Save encoded phylogenetic tensor encoding to csv?' },
+        
+        # training options
+        'trn_objective'    : { 'type':str,   'help':'Objective of training procedure', 'choices':['param_est', 'model_test'] },
+        'tree_width'       : { 'type':int,   'help':'The phylo-state tensor width used to train the neural network' },
+        'num_epochs'       : { 'type':int,   'help':'Number of training epochs' },
+        'batch_size'       : { 'type':int,   'help':'Training batch sizes' },
+        'prop_test'        : { 'type':float, 'help':'Proportion of data used as test examples (assess trained network performance)' },
+        'prop_val'         : { 'type':float, 'help':'Proportion of data used as validation examples (diagnose network overtraining)' },
+        'prop_cal'         : { 'type':float, 'help':'Proportion of data used as calibration examples (calibrate CPIs)' },
+        'combine_test_val' : { 'type':bool,  'help':'Combine test and validation datasets when assessing network fit?' },
+        'cpi_coverage'     : { 'type':float, 'help':'Expected coverage percent for calibrated prediction intervals (CPIs)' },
+        'cpi_asymmetric'   : { 'type':bool,  'help':'Use asymmetric (True) or symmetric (False) adjustments for CPIs?' },
+        'loss'             : { 'type':str,   'help':'Loss function for optimization', 'choices':['mse', 'mae']},
+        'optimizer'        : { 'type':str,   'help':'Method used for optimizing neural network', 'choices':['adam'] },
+        
+        # estimating options
+        'est_prefix'       : { 'type':str,  'help':'Predict results for this dataset' },
+
+        # plotting options
+        'plot_train_color' : { 'type':str,  'help':'Plotting color for training data elements' },
+        'plot_label_color' : { 'type':str,  'help':'Plotting color for training label elements' },
+        'plot_test_color'  : { 'type':str,  'help':'Plotting color for test data elements' },
+        'plot_val_color'   : { 'type':str,  'help':'Plotting color for validation data elements' },
+        'plot_aux_color'   : { 'type':str,  'help':'Plotting color for auxiliary data elements' },
+        'plot_est_color'   : { 'type':str,  'help':'Plotting color for new estimation elements' }
+    }
+    return settings
+
+
 def load_config(config_fn,
                 arg_overwrite=True,
                 args=None):
@@ -234,69 +304,29 @@ def load_config(config_fn,
     # argument parsing
     parser = argparse.ArgumentParser(description='phyddle pipeline config') #,
                                      #formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    # basic settings
-    parser.add_argument('-c', '--cfg',          dest='config_fn', type=str, help='Config file name', metavar='')
-    #parser.add_argument('-f', '--force',        action='store_true', help='Arguments override config file settings')
-    parser.add_argument('-p', '--proj',         dest='proj', type=str, help='Project name used as directory across pipeline stages', metavar='')
-    parser.add_argument('-s', '--step',         dest='step', type=str, help='Pipeline step(s) defined with (S)imulate, (F)ormat, (T)rain, (E)stimate, (P)lot, or (A)ll', metavar='')
-    parser.add_argument('-v', '--verbose',      dest='verbose', type=bool, help='Verbose output to screen? (recommended)', metavar='')
-    parser.add_argument('--make_cfg',           action='store_true', help='Write default config file to \'config_default.py\'?')
-    # processor settings
-    parser.add_argument('--use_parallel',       dest='use_parallel', type=bool, help='Use parallelization? (recommended)', metavar='')
-    parser.add_argument('--num_proc',           dest='num_proc', type=int, help='How many cores for multiprocessing? (e.g. 4 uses 4, -2 uses all but 2)', metavar='')
-    # directory settings
-    parser.add_argument('--sim_dir',            dest='sim_dir', type=str, help='Directory for raw simulated data', metavar='')
-    parser.add_argument('--fmt_dir',            dest='fmt_dir', type=str, help='Directory for tensor-formatted simulated data', metavar='')
-    parser.add_argument('--trn_dir',            dest='trn_dir', type=str, help='Directory for trained networks and training predictions', metavar='')
-    parser.add_argument('--est_dir',            dest='est_dir', type=str, help='Directory for new datasets and predictions', metavar='')
-    parser.add_argument('--plt_dir',            dest='plt_dir', type=str, help='Directory for plotted results', metavar='')
-    parser.add_argument('--log_dir',            dest='log_dir', type=str, help='Directory for logs of analysis metadata', metavar='')
-    # model settings
-    # parser.add_argument('--show_models',        action='store_true', help='Print all available model types and variants?')
-    # parser.add_argument('--model_name',         dest='model_type', type=str, help='Model type', metavar='')
-    # parser.add_argument('--model_variant',      dest='model_variant', type=str, help='Model variant', metavar='')
-    parser.add_argument('--num_char',           dest='num_char', type=int, help='Number of characters', metavar='')
-    parser.add_argument('--num_states',         dest='num_states', type=int, help='Number of states per character', metavar='')
-    # simulation settings
-    #parser.add_argument('--sim_method',         dest='sim_method', type=str, choices=['command', 'master'], help='Simulation method', metavar='')
-    parser.add_argument('--sim_command',        dest='sim_command', type=str, help='Simulation command (when sim_method==\'command\')', metavar='')
-    parser.add_argument('--sim_logging',        dest='sim_logging', type=str, choices=['clean', 'verbose', 'compress'], help='Simulation logging style', metavar='')
-    parser.add_argument('--start_idx',          dest='start_idx', type=int, help='Start index for simulation', metavar='')
-    parser.add_argument('--end_idx',            dest='end_idx', type=int, help='End index for simulation', metavar='')
-    # parser.add_argument('--stop_time',          dest='stop_time', type=float, help='Maximum duration of evolution for each simulation', metavar='')
-    parser.add_argument('--min_num_taxa',       dest='min_num_taxa', type=int, help='Minimum number of taxa for each simulation', metavar='')
-    parser.add_argument('--max_num_taxa',       dest='max_num_taxa', type=int, help='Maximum number of taxa for each simulation', metavar='')
-    # formatting settings
-    parser.add_argument('--tree_type',          dest='tree_type', type=str, choices=['extant', 'serial'], help='Type of tree', metavar='')
-    parser.add_argument('--tree_width_cats',    dest='tree_width_cats', type=int, help='The phylo-state tensor widths for formatting training datasets, space-delimited', metavar='')
-    parser.add_argument('--tree_encode_type',   dest='tree_encode_type', type=str, choices=['height_only', 'height_brlen'], help='Method for encoding branch length info in tensor', metavar='')
-    parser.add_argument('--char_encode_type',   dest='char_encode_type', type=str, choices=['one_hot', 'integer', 'numeric'], help='Method for encoding character states in tensor', metavar='')
-    parser.add_argument('--chardata_format',    dest='chardata_format', type=str, choices=['nexus', 'csv'], help='Input format for character matrix data', metavar='')
-    parser.add_argument('--tensor_format',      dest='tensor_format', type=str, choices=['hdf5', 'csv'], help='Output format for storing tensors of training dataset', metavar='')
-    parser.add_argument('--save_phyenc_csv',    dest='save_phyenc_csv', type=bool, help='Save encoded phylogenetic tensor encoding to csv?', metavar='')
-    # training settings
-    parser.add_argument('--trn_objective',      dest='trn_objective', type=str, choices=['param_est', 'model_test'], help='Objective of training procedure', metavar='')
-    parser.add_argument('--tree_width',         dest='tree_width', type=int, help='The phylo-state tensor width dataset used for a neural network', metavar='')
-    parser.add_argument('--num_epochs',         dest='num_epochs', type=int, help='Number of training epochs', metavar='')
-    parser.add_argument('--batch_size',         dest='batch_size', type=int, help='Training batch sizes', metavar='')
-    parser.add_argument('--prop_test',          dest='prop_test', type=float, help='Proportion of data used as test examples (demonstrate trained network performance)', metavar='')
-    parser.add_argument('--prop_validation',    dest='prop_validation', type=float, help='Proportion of data used as validation examples (diagnose network overtraining)', metavar='')
-    parser.add_argument('--prop_calibration',   dest='prop_calibration', type=float, help='Proportion of data used as calibration examples (calibrate conformal prediction intervals)', metavar='')
-    parser.add_argument('--cpi_coverage',       dest='cpi_coverage', type=float, help='Expected coverage percent for calibrated prediction intervals (CPIs)', metavar='')
-    parser.add_argument('--cpi_asymmetric',     dest='cpi_asymmetric', type=bool, help='Use asymmetric (True) or symmetric (False) adjustments for CPIs?', metavar='')
-    parser.add_argument('--loss',               dest='loss', type=str, help='Loss function used as optimization criterion', metavar='')
-    parser.add_argument('--optimizer',          dest='optimizer', type=str, help='Method used for optimizing neural network', metavar='')
-    # prediction settings
-    parser.add_argument('--est_prefix',         dest='est_prefix', type=str, help='Predict results for this dataset', metavar='')
-    # plotting settings
-    parser.add_argument('--plot_train_color',   dest='plot_train_color', type=str, help='Plotting color for training data elements', metavar='')
-    parser.add_argument('--plot_label_color',   dest='plot_label_color', type=str, help='Plotting color for training label elements', metavar='')
-    parser.add_argument('--plot_test_color',    dest='plot_test_color', type=str, help='Plotting color for test data elements', metavar='')
-    parser.add_argument('--plot_val_color',     dest='plot_val_color', type=str, help='Plotting color for validation data elements', metavar='')
-    parser.add_argument('--plot_aux_color',     dest='plot_aux_color', type=str, help='Plotting color for auxiliary input data elements', metavar='')
-    parser.add_argument('--plot_est_color',     dest='plot_est_color', type=str, help='Plotting color for new estimation elements', metavar='')
 
-
+    # read settings registry and populate argument parser
+    settings = settings_registry()
+    for k,v in settings.items():
+        arg_opt = []
+        if 'opt' in v:
+            arg_opt.append(f'-{v["opt"]}')
+        arg_opt.append(f'--{k}')
+        arg_help = v['help']
+        arg_type = v['type']
+        
+        if arg_type is not None:
+            if 'choices' in v:
+                arg_choices = v['choices']
+                parser.add_argument(*arg_opt, dest=k, type=arg_type,
+                                    choices=arg_choices, help=arg_help,
+                                    metavar='')
+            else:
+                parser.add_argument(*arg_opt, dest=k, type=arg_type,
+                                    help=arg_help, metavar='')
+        else:
+             parser.add_argument(*arg_opt, action='store_true', help=arg_help)
+   
     # parse arguments
     args = parser.parse_args(args)
     
@@ -307,18 +337,20 @@ def load_config(config_fn,
         sys.exit()
 
     # overwrite config_fn is argument passed
-    if arg_overwrite and args.config_fn is not None:
-        config_fn = args.config_fn
+    print(config_fn)
+    if arg_overwrite and args.cfg is not None:
+        config_fn = args.cfg
     config_fn = config_fn.rstrip('.py')
 
     # get config from file
     m = importlib.import_module(config_fn)
+    print(m.args)
     
     # update arguments from defaults, when provided
     def overwrite_defaults(m, args, var):
         x = getattr(args, var)
         if x is not None:
-            # if args.force == True:
+            # if args.force:
             #     m.args[var] = x
             # elif var not in m.args:
             #     m.args[var] = x
@@ -329,53 +361,8 @@ def load_config(config_fn,
     #      think it was to allow argparse have default values, which would then
     #      improve control over how argparse, the cfg file, and the CLI cfg
     #      interact to assign args. Need to revisit this.
-    m = overwrite_defaults(m, args, 'proj')
-    m = overwrite_defaults(m, args, 'step')
-    m = overwrite_defaults(m, args, 'use_parallel')
-    m = overwrite_defaults(m, args, 'verbose')
-    m = overwrite_defaults(m, args, 'num_proc')
-    m = overwrite_defaults(m, args, 'sim_dir')
-    m = overwrite_defaults(m, args, 'fmt_dir')
-    m = overwrite_defaults(m, args, 'trn_dir')
-    m = overwrite_defaults(m, args, 'est_dir')
-    m = overwrite_defaults(m, args, 'plt_dir')
-    m = overwrite_defaults(m, args, 'log_dir')
-    # m = overwrite_defaults(m, args, 'model_type')
-    # m = overwrite_defaults(m, args, 'model_variant')
-    m = overwrite_defaults(m, args, 'num_char')
-    m = overwrite_defaults(m, args, 'num_states')
-    # m = overwrite_defaults(m, args, 'sim_method')
-    m = overwrite_defaults(m, args, 'sim_command')
-    m = overwrite_defaults(m, args, 'sim_logging')
-    m = overwrite_defaults(m, args, 'start_idx')
-    m = overwrite_defaults(m, args, 'end_idx')
-    # m = overwrite_defaults(m, args, 'stop_time')
-    m = overwrite_defaults(m, args, 'min_num_taxa')
-    m = overwrite_defaults(m, args, 'max_num_taxa')
-    m = overwrite_defaults(m, args, 'tree_width')
-    m = overwrite_defaults(m, args, 'save_phyenc_csv')
-    m = overwrite_defaults(m, args, 'tree_width_cats')
-    m = overwrite_defaults(m, args, 'tree_encode_type')
-    m = overwrite_defaults(m, args, 'char_encode_type')
-    m = overwrite_defaults(m, args, 'tensor_format')
-    m = overwrite_defaults(m, args, 'chardata_format')
-    m = overwrite_defaults(m, args, 'trn_objective')
-    m = overwrite_defaults(m, args, 'num_epochs')
-    m = overwrite_defaults(m, args, 'batch_size')
-    m = overwrite_defaults(m, args, 'prop_test')
-    m = overwrite_defaults(m, args, 'prop_validation')
-    m = overwrite_defaults(m, args, 'prop_calibration')
-    m = overwrite_defaults(m, args, 'cpi_coverage')
-    m = overwrite_defaults(m, args, 'cpi_asymmetric')
-    m = overwrite_defaults(m, args, 'loss')
-    m = overwrite_defaults(m, args, 'optimizer')
-    m = overwrite_defaults(m, args, 'est_prefix')
-    m = overwrite_defaults(m, args, 'plot_train_color')
-    m = overwrite_defaults(m, args, 'plot_test_color')
-    m = overwrite_defaults(m, args, 'plot_val_color')
-    m = overwrite_defaults(m, args, 'plot_aux_color')
-    m = overwrite_defaults(m, args, 'plot_label_color')
-    m = overwrite_defaults(m, args, 'plot_est_color')         
+    for k in settings.keys():
+        m = overwrite_defaults(m, args, k)
 
     # update steps
     if m.args['step'] == 'A':
@@ -410,30 +397,29 @@ def check_args(args):
     """
     # string values
     assert all([s in 'ASFTEP' for s in args['step']])
-    # assert args['sim_method']        in ['command', 'master']
     assert args['sim_logging']       in ['clean', 'verbose', 'compress']
-    assert args['tree_type']         in ['serial', 'extant']
-    assert args['tree_encode_type']  in ['height_only', 'height_brlen']
-    assert args['char_encode_type']  in ['one_hot', 'integer', 'numeric']
+    assert args['tree_encode']       in ['serial', 'extant']
+    assert args['brlen_encode']      in ['height_only', 'height_brlen']
+    assert args['char_encode']       in ['one_hot', 'integer', 'numeric']
     assert args['tensor_format']     in ['csv', 'hdf5']
-    assert args['chardata_format']   in ['csv', 'nexus']
+    assert args['char_format']       in ['csv', 'nexus']
     assert args['trn_objective']     in ['param_est', 'model_test']
     
     # numerical values
     assert args['start_idx'] >= 0
     assert args['end_idx'] >= 0
     assert args['start_idx'] <= args['end_idx']
-    #assert args['min_num_taxa'] >= 0
-    #assert args['max_num_taxa'] >= 0
-    #assert args['min_num_taxa'] <= args['max_num_taxa']
+    assert args['min_num_taxa'] >= 0
+    assert args['max_num_taxa'] >= 0
+    assert args['min_num_taxa'] <= args['max_num_taxa']
     assert args['num_states'] > 0
     assert args['num_char'] > 0
     assert args['num_epochs'] > 0
     assert args['batch_size'] > 0
     assert args['cpi_coverage'] >= 0. and args['cpi_coverage'] <= 1.
     assert args['prop_test'] >= 0. and args['prop_test'] <= 1.
-    assert args['prop_validation'] >= 0. and args['prop_validation'] <= 1.
-    assert args['prop_calibration'] >= 0. and args['prop_calibration'] <= 1.
+    assert args['prop_val'] >= 0. and args['prop_val'] <= 1.
+    assert args['prop_cal'] >= 0. and args['prop_cal'] <= 1.
     assert len(args['tree_width_cats']) > 0
     for i in range(len(args['tree_width_cats'])):
         assert args['tree_width_cats'][i] > 0
