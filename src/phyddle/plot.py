@@ -27,7 +27,7 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 
 # phyddle imports
-from phyddle import utilities
+from phyddle import utilities as util
 
 #------------------------------------------------------------------------------#
 
@@ -53,33 +53,29 @@ def load(args):
 
 class Plotter:
     """
-    Class for simulating phylogenetic datasets that can be converted into
-    tensors with the Format step.
+    Class for generating figures from output produced by the Format, Train, and
+    Estimate steps. Those outputs are processed and visualized in different ways
+    e.g. scatterplot, PCA, KDE, etc. then saved as individual pdfs and one
+    combined pdf.
     """
     def __init__(self, args):
         """
-        Initializes a Plotter object with the given arguments.
+        Initializes a new Plotter object.
 
         Args:
-            args (dict): A dictionary containing the arguments.
-
-        Returns:
-            None
+            args (dict): Contains phyddle settings.
         """
         # initialize with phyddle settings
         self.set_args(args)
-        self.prepare_files()
+        self.prepare_filepaths()
         return
 
     def set_args(self, args):
         """
-        Sets the arguments for the Plotter object.
+        Assigns phyddle settings as Plotter attributes.
 
         Args:
-            args (dict): A dictionary containing the arguments.
-
-        Returns:
-            None
+            args (dict): Contains phyddle settings.
         """
         self.args              = args
         self.verbose           = args['verbose']
@@ -104,80 +100,108 @@ class Plotter:
         self.est_color         = args['plot_est_color']
         return
 
-    def prepare_files(self):
+    def prepare_filepaths(self):
         """
-        Prepares the file paths and names for the Plotter object.
+        Prepare filepaths for the project.
 
-        Args:
-            None
+        This script generates all the filepaths for input and output based off
+        of Trainer attributes. The Format, Train, and Estimate directories
+        are input and the Plot directory is output.
 
-        Returns:
-            None
+        Returns: None
         """
-        self.network_prefix     = f'sim_batchsize{self.batch_size}_numepoch{self.num_epochs}_nt{self.tree_width}'
-
         # directories
-        self.trn_proj_dir        = f'{self.trn_dir}/{self.trn_proj}'
-        self.fmt_proj_dir        = f'{self.fmt_dir}/{self.fmt_proj}'
-        self.est_proj_dir        = f'{self.est_dir}/{self.est_proj}'
-        self.plt_proj_dir        = f'{self.plt_dir}/{self.plt_proj}'
+        self.trn_proj_dir       = f'{self.trn_dir}/{self.trn_proj}'
+        self.fmt_proj_dir       = f'{self.fmt_dir}/{self.fmt_proj}'
+        self.est_proj_dir       = f'{self.est_dir}/{self.est_proj}'
+        self.plt_proj_dir       = f'{self.plt_dir}/{self.plt_proj}'
 
+        # prefixes
+        self.network_prefix     = f'train_batchsize{self.batch_size}_numepoch{self.num_epochs}_nt{self.tree_width}'
+        self.fmt_proj_prefix    = f'{self.fmt_proj_dir}/sim.nt{self.tree_width}'
+        self.trn_proj_prefix    = f'{self.trn_proj_dir}/{self.network_prefix}'
+        self.est_proj_prefix    = f'{self.est_proj_dir}/{self.est_prefix}'
+        self.plt_proj_prefix    = f'{self.plt_proj_dir}/{self.network_prefix}'
+        
         # tensors
-        self.input_stats_fn     = f'{self.fmt_proj_dir}/sim.nt{self.tree_width}.summ_stat.csv'
-        self.input_labels_fn    = f'{self.fmt_proj_dir}/sim.nt{self.tree_width}.labels.csv'
-        self.input_hdf5_fn      = f'{self.fmt_proj_dir}/sim.nt{self.tree_width}.hdf5'
+        self.input_stats_fn     = f'{self.fmt_proj_prefix}.summ_stat.csv'
+        self.input_labels_fn    = f'{self.fmt_proj_prefix}.labels.csv'
+        self.input_hdf5_fn      = f'{self.fmt_proj_prefix}.hdf5'
 
         # network
-        self.train_pred_fn      = f'{self.trn_proj_dir}/{self.network_prefix}.train_pred.csv'
-        self.train_labels_fn    = f'{self.trn_proj_dir}/{self.network_prefix}.train_labels.csv'
-        self.test_pred_fn       = f'{self.trn_proj_dir}/{self.network_prefix}.test_pred.csv'
-        self.test_labels_fn     = f'{self.trn_proj_dir}/{self.network_prefix}.test_labels.csv'
-        self.network_fn         = f'{self.trn_proj_dir}/{self.network_prefix}.hdf5'
-        self.history_json_fn    = f'{self.trn_proj_dir}/{self.network_prefix}.train_history.json'
+        self.train_est_fn       = f'{self.trn_proj_prefix}.train_est.csv'
+        self.train_labels_fn    = f'{self.trn_proj_prefix}.train_labels.csv'
+        self.test_est_fn        = f'{self.trn_proj_prefix}.test_est.csv'
+        self.test_labels_fn     = f'{self.trn_proj_prefix}.test_labels.csv'
+        self.network_fn         = f'{self.trn_proj_prefix}.hdf5'
+        self.history_json_fn    = f'{self.trn_proj_prefix}.train_history.json'
 
         # estimates
-        self.est_aux_fn         = f'{self.est_proj_dir}/{self.est_prefix}.summ_stat.csv'
-        self.est_lbl_fn         = f'{self.est_proj_dir}/{self.est_prefix}.{self.network_prefix}.est_labels.csv'
-        self.est_known_param_fn = f'{self.est_proj_dir}/{self.est_prefix}.known_param.csv'
+        self.est_aux_fn         = f'{self.est_proj_prefix}.aux_data.csv'
+        self.est_lbl_fn         = f'{self.est_proj_prefix}.{self.network_prefix}.est_labels.csv'
+        self.est_known_param_fn = f'{self.est_proj_prefix}.known_param.csv'
         
         # plotting output
-        self.save_hist_aux_fn   = f'{self.plt_proj_dir}/{self.network_prefix}.histogram_aux.pdf'
-        self.save_hist_label_fn = f'{self.plt_proj_dir}/{self.network_prefix}.histogram_label.pdf'
-        self.save_pca_aux_fn    = f'{self.plt_proj_dir}/{self.network_prefix}.pca_aux.pdf'
-        #self.save_cpi_test_fn   = f'{self.plt_proj_dir}/{self.network_prefix}.train_CPI.pdf'
-        self.save_cpi_est_fn    = f'{self.plt_proj_dir}/{self.network_prefix}.est_CPI.pdf'
-        self.save_network_fn    = f'{self.plt_proj_dir}/{self.network_prefix}.network_architecture.pdf'
-        self.save_summary_fn    = f'{self.plt_proj_dir}/{self.network_prefix}.summary.pdf'
+        self.save_hist_aux_fn   = f'{self.plt_proj_prefix}.histogram_aux.pdf'
+        self.save_hist_label_fn = f'{self.plt_proj_prefix}.histogram_label.pdf'
+        self.save_pca_aux_fn    = f'{self.plt_proj_prefix}.pca_aux.pdf'
+        self.save_cpi_est_fn    = f'{self.plt_proj_prefix}.est_CPI.pdf'
+        self.save_network_fn    = f'{self.plt_proj_prefix}.network_architecture.pdf'
+        self.save_summary_fn    = f'{self.plt_proj_prefix}.summary.pdf'
 
         return
 
-    def load_data(self):
+    def run(self):
         """
-        Load data for the model.
+        Generates all plots.
 
-        Args:
-            None
-
-        Returns:
-            None
+        This method creates the target directory for new plots, generates
+        a set of standard summary plots, along with a combined report.
         """
-        self.model        = tf.keras.models.load_model(self.network_fn, compile=False)
+        verbose = self.verbose
 
-        self.train_preds  = pd.read_csv(self.train_pred_fn)
-        self.train_labels = pd.read_csv(self.train_labels_fn)
-        self.test_preds   = pd.read_csv(self.test_pred_fn)
-        self.test_labels  = pd.read_csv(self.test_labels_fn)
-        self.train_preds  = self.train_preds #.loc[:, self.train_preds.columns.str.contains('_value')] 
-        self.test_preds   = self.test_preds #.loc[:, self.test_preds.columns.str.contains('_value')] a
+        # print header
+        util.print_step_header('plt', [self.fmt_proj_dir, self.trn_proj_dir, self.est_proj_dir],
+                               self.plt_proj_dir, verbose)
 
-        self.param_names  = self.train_preds.columns.to_list()
-        self.param_names  = [ '_'.join(s.split('_')[:-1]) for s in self.param_names  ]
-        self.param_names  = np.unique(self.param_names)
-        
+        # prepare workspace
+        os.makedirs(self.plt_proj_dir, exist_ok=True)
+
+        # load input
+        util.print_str('▪ Loading input ...', verbose)
+        self.load_input()
+
+        # generate individual plots
+        util.print_str('▪ Generating individual plots ...', verbose)
+        self.generate_plots()
+
+        # combining all plots
+        util.print_str('▪ Combining plots ...', verbose)
+        self.combine_plots()
+
+        #done
+        util.print_str('... done!', verbose=self.verbose)
+        return
+
+#------------------------------------------------------------------------------#
+
+    def load_input(self):
+        """
+        Load input data for plotting.
+
+        This function loads input from Format, Train, and Estimate. We load the
+        simulated training examples from Format. From Train, we load the
+        network, the training history, and the test/train estimates/labels. For
+        Estimate, we load the estimates and aux. data, if they exist.
+        """
+
+        ### load input from Format step
         if self.tensor_format == 'csv':
+            # csv tensor format
             self.input_stats = pd.read_csv( self.input_stats_fn )
             self.input_labels = pd.read_csv( self.input_labels_fn )
         elif self.tensor_format == 'hdf5':
+            # hdf5 tensor format
             hdf5_file = h5py.File(self.input_hdf5_fn, 'r')
             self.input_stat_names = [ s.decode() for s in hdf5_file['aux_data_names'][0,:] ]
             self.input_label_names = [ s.decode() for s in hdf5_file['label_names'][0,:] ]
@@ -185,18 +209,25 @@ class Plotter:
             self.input_labels = pd.DataFrame( hdf5_file['labels'][:,:], columns=self.input_label_names )
             hdf5_file.close()
 
-        self.max_pred_display     = 250
-        self.train_preds_max_idx  = min( self.max_pred_display, self.train_preds.shape[0] )
-        self.train_labels_max_idx = min( self.max_pred_display, self.train_labels.shape[0] )
-        self.test_preds_max_idx   = min( self.max_pred_display, self.test_preds.shape[0] )
-        self.test_labels_max_idx  = min( self.max_pred_display, self.test_labels.shape[0] )
-
+        ### load input from Train step
+        self.model = tf.keras.models.load_model(self.network_fn, compile=False)
+        # training estimates/labels
+        self.train_ests  = pd.read_csv(self.train_est_fn)
+        self.train_labels = pd.read_csv(self.train_labels_fn)
+        # test estimates/labels
+        self.test_ests   = pd.read_csv(self.test_est_fn)
+        self.test_labels  = pd.read_csv(self.test_labels_fn)
+        # parameter names from training labels
+        self.param_names  = self.train_ests.columns.to_list()
+        self.param_names  = [ '_'.join(s.split('_')[:-1]) for s in self.param_names  ]
+        self.param_names  = np.unique(self.param_names)
+        # training history for network
         self.history_dict = json.load(open(self.history_json_fn, 'r'))
 
-        # read in prediction aux dataset, if it exists
+        ### load input from Estimate step
+        # read in aux. data from new dataset, if it exists
         self.est_aux_loaded         = os.path.isfile(self.est_aux_fn) 
         self.est_known_param_loaded = os.path.isfile(self.est_known_param_fn)
-            
         if self.est_aux_loaded:
             self.est_aux_data       = pd.read_csv(self.est_aux_fn)
         if self.est_known_param_loaded:
@@ -205,8 +236,7 @@ class Plotter:
             self.est_aux_data = self.est_aux_data[self.input_stats.columns]
         if not self.est_aux_loaded and not self.est_known_param_loaded:
             self.est_aux_data = None
-        
-        # read in predicted label dataset, if it exists
+        # read in estimates from new dataset, if it exists
         self.est_lbl_loaded = os.path.isfile(self.est_lbl_fn)
         if self.est_lbl_loaded:
             self.est_lbl_data = pd.read_csv(self.est_lbl_fn)
@@ -217,7 +247,6 @@ class Plotter:
             self.est_lbl_lower.columns = [ col.rstrip('_lower') for col in self.est_lbl_lower.columns ]
             self.est_lbl_upper.columns = [ col.rstrip('_upper') for col in self.est_lbl_upper.columns ]
             self.est_lbl_df = pd.concat( [self.est_lbl_value, self.est_lbl_lower, self.est_lbl_upper] )
-
         else:
             self.est_lbl_data = None
             self.est_lbl_value = None
@@ -225,105 +254,155 @@ class Plotter:
             self.est_lbl_upper = None
             self.est_lbl_df = None
 
-        os.makedirs(self.plt_proj_dir, exist_ok=True)
-
+        # done
         return
 
-
-    def run(self):
+    def generate_plots(self):
         """
-        This function runs the main execution of the program.
-        It loads data, generates plots, saves histograms and PCA plots, saves predictions and CI, and saves the network.
+        Generates all plots.
+        
+        This function generates the following plots:
+        - history: network metrics across training epochs
+        - predictions: truth vs. estimated values for trained network
+        - histograms: histograms of training examples
+        - PCA: PCA for training examples
+        - new results: point est. + CPI for new dataset
+        - network: neural network architecture
 
-        Returns:
-            None
+        Plots are generated based on args, which initialize filenames,
+        datasets, and colors.
         """
+        # get counts for thinning train/test examples
+        self.max_est_display= 250
+        self.train_ests_max_idx = min( self.max_est_display, self.train_ests.shape[0] )
+        self.train_labels_max_idx = min( self.max_est_display, self.train_labels.shape[0] )
+        self.test_ests_max_idx = min( self.max_est_display, self.test_ests.shape[0] )
+        self.test_labels_max_idx = min( self.max_est_display, self.test_labels.shape[0] )
 
-        utilities.print_step_header('plt', [self.fmt_proj_dir, self.trn_proj_dir, self.est_proj_dir], self.plt_proj_dir, verbose=self.verbose)
-
-        # load data
-        utilities.print_str('▪ loading input ...', verbose=self.verbose)
-        self.load_data()
-
-        utilities.print_str('▪ generating plots ...', verbose=self.verbose)
         # training stats
-        self.make_history_plot(self.history_dict, prefix=self.network_prefix+'_history', plot_dir=self.plt_proj_dir, train_color=self.train_color, val_color=self.validation_color)
+        self.make_history_plot(self.history_dict,
+                               prefix=self.network_prefix+'.history',
+                               plot_dir=self.plt_proj_dir,
+                               train_color=self.train_color,
+                               val_color=self.validation_color)
 
         # train prediction scatter plots
-        self.plot_preds_labels(\
-            preds=self.train_preds.iloc[0:self.train_preds_max_idx],
+        self.plot_est_labels(\
+            ests=self.train_ests.iloc[0:self.train_ests_max_idx],
             labels=self.train_labels.iloc[0:self.train_labels_max_idx],
             param_names=self.param_names,
-            prefix=self.network_prefix+'_train',
+            prefix=self.network_prefix+'.train',
             color=self.train_color,
             plot_dir=self.plt_proj_dir,
             title='Train')
 
-        # test predicition scatter plots
-        self.plot_preds_labels(\
-            preds=self.test_preds.iloc[0:self.test_preds_max_idx],
+        # test prediction scatter plots
+        self.plot_est_labels(\
+            ests=self.test_ests.iloc[0:self.test_ests_max_idx],
             labels=self.test_labels.iloc[0:self.test_labels_max_idx],
             param_names=self.param_names,
-            prefix=self.network_prefix+'_test',
+            prefix=self.network_prefix+'.test',
             color=self.test_color,
             plot_dir=self.plt_proj_dir,
             title='Test')
 
-
-        # save histograms
-        self.plot_sim_histogram(save_fn=self.save_hist_aux_fn, sim_values=self.input_stats, pred_values=self.est_aux_data, color=self.aux_color, title='Aux. data')
-        self.plot_sim_histogram(save_fn=self.save_hist_label_fn, sim_values=self.input_labels, pred_values=self.est_lbl_value, color=self.label_color, title='Labels' )
+        # training aux. data histogram
+        self.plot_sim_histogram(save_fn=self.save_hist_aux_fn,
+                                sim_values=self.input_stats,
+                                est_values=self.est_aux_data,
+                                color=self.aux_color, title='Aux. data')
         
-        # save PCA
-        self.plot_pca(save_fn=self.save_pca_aux_fn, sim_stat=self.input_stats, est_stat=self.est_aux_data, color=self.aux_color)
+        # training labels histogram
+        self.plot_sim_histogram(save_fn=self.save_hist_label_fn,
+                                sim_values=self.input_labels,
+                                est_values=self.est_lbl_value,
+                                color=self.label_color,
+                                title='Labels' )
         
-        # save point est. and CI for test dataset (if it exists)
-        self.plot_est_CI(save_fn=self.save_cpi_est_fn, est_label=self.est_lbl_df, title=f'Estimate: {self.est_dir}/{self.est_prefix}', color=self.est_color)
+        # PCA of training aux. data
+        self.plot_pca(save_fn=self.save_pca_aux_fn,
+                      sim_values=self.input_stats,
+                      est_values=self.est_aux_data,
+                      color=self.aux_color)
         
-        # save network
+        # point estimates and CPIs for new dataset estimates, if available
+        self.plot_est_CI(save_fn=self.save_cpi_est_fn,
+                         est_label=self.est_lbl_df,
+                         title=f'Estimate: {self.est_dir}/{self.est_prefix}',
+                         color=self.est_color)
+        
+        # network architecture
         tf.keras.utils.plot_model(self.model, to_file=self.save_network_fn, show_shapes=True)
 
-        utilities.print_str('▪ saving plots ...', verbose=self.verbose)
+        #done
+        return
+    
+    def combine_plots(self):
+        """
+        Combine all plots.
+        
+        This function collects all pdfs in the plot project directory, orders
+        them into meaningful groups, then plots a merged report.
+        """
 
         # collect and sort file names
-        files = os.listdir(self.plt_proj_dir)
-        files.sort()
-        files = [ f for f in files if '.pdf' in f and self.network_prefix in f and 'all_results' not in f ]
+        files_unsorted = os.listdir(self.plt_proj_dir)
+        files_unsorted.sort()
+        files = []
+        for f in files_unsorted:
+            has_pdf = '.pdf' in f
+            has_net = self.network_prefix in f
+            has_all_not = 'all_results' not in f
+            if all([has_pdf, has_net, has_all_not]):
+                files.append(f)
 
-        files_CPI         = list(filter(lambda x: 'CPI' in x, files))
-        files_pca        = list(filter(lambda x: 'pca' in x, files))
-        files_histogram  = list(filter(lambda x: 'histogram' in x, files))
-        files_train      = list(filter(lambda x: 'train' in x, files))
-        files_test       = list(filter(lambda x: 'test' in x, files))
-        files_arch       = list(filter(lambda x: 'architecture' in x, files))
-        files_history    = list(filter(lambda x: 'history' in x, files))
-        files_ordered    = files_CPI + files_pca + files_histogram + files_train + files_test + files_history + files_arch
+        #files = [ f for f in files if '.pdf' in f and self.network_prefix in f and 'all_results' not in f ]
+
+        # get files for different categories
+        files_CPI        = list(filter(lambda x: 'CPI' in '.'.join(x.split('.')[-2:]), files))
+        files_pca        = list(filter(lambda x: 'pca' in '.'.join(x.split('.')[-2:]), files))
+        files_histogram  = list(filter(lambda x: 'histogram' in '.'.join(x.split('.')[-2:]), files))
+        files_train      = list(filter(lambda x: 'train' in '.'.join(x.split('.')[-2:]), files))
+        files_test       = list(filter(lambda x: 'test' in '.'.join(x.split('.')[-2:]), files))
+        files_arch       = list(filter(lambda x: 'architecture' in '.'.join(x.split('.')[-2:]), files))
+        files_history    = list(filter(lambda x: 'history' in '.'.join(x.split('.')[-2:]), files))
+
+        # construct ordered list of files
+        files_ordered = files_CPI + files_pca + files_histogram + files_train + files_test + files_history + files_arch
+        #print(files_CPI)
+        #print(files_ordered)
 
         # combine pdfs
         merger = PdfMerger()
         for f in files_ordered:
             merger.append(self.plt_proj_dir + '/' + f)
 
+        # write combined pdf
         merger.write(self.save_summary_fn)
 
-        utilities.print_str('... done!', verbose=self.verbose)
-
+        # done
         return
 
+#------------------------------------------------------------------------------#
 
-    def plot_sim_histogram(self, save_fn, sim_values, pred_values=None, title='', ncol_plot=3, color='blue'):
+    def plot_sim_histogram(self, save_fn, sim_values, est_values=None,
+                           title='', ncol_plot=3, color='blue'):
         """
-        Plots histograms of simulated values with optional prediction values.
+        Plots histograms.
 
-        Args:
-        - self: The instance of the class.
-        - save_fn: The file name to save the plot as.
-        - sim_values: The simulated values to plot histograms for.
-        - pred_values: The optional prediction values to overlay on the histograms. Default is None.
-        - title: The title of the plot. Default is an empty string.
-        - ncol_plot: The number of columns to arrange the histograms in. Default is 3.
-        - color: The color of the histograms. Default is 'blue'.
+        This function plots the histograms (KDEs) for simulated training
+        examples, e.g. aux. data or labels. The function will also plot
+        values from the new dataset if it is available (est_values != None).
+
+        Arguments:
+            save_fn (str): Filename to save plot.
+            sim_values (numpy.array): Simulated values from training examples.
+            est_values (numpy.array): Estimated values from new dataset.
+            title (str): Plot title.
+            ncol_plot (int): Number of columns in plot
+            color (str): Color of histograms
         """
+        # data dimensions
         col_names = sorted( sim_values.columns )
         num_aux = len(col_names)
         nrow = int( np.ceil(num_aux/ncol_plot) )
@@ -333,10 +412,11 @@ class Plotter:
         fig_height = 1 + int(np.ceil(2*nrow))
 
         # basic figure structure
-        fig, axes = plt.subplots(ncols=ncol_plot, nrows=nrow, squeeze=False, figsize=(fig_width, fig_height))
-        fig.tight_layout() #h_pad=2.25)
-        #fig.subplots_adjust(bottom=0.05)
+        fig, axes = plt.subplots(ncols=ncol_plot, nrows=nrow, squeeze=False,
+                                 figsize=(fig_width, fig_height))
+        fig.tight_layout()
 
+        # fill in plot
         i = 0
         for i_row, ax_row in enumerate(axes):
             for j_col,ax in enumerate(ax_row):
@@ -373,19 +453,20 @@ class Plotter:
                 aux_lower_str = "L={:.2f}".format(left)
                 aux_upper_str = "U={:.2f}".format(right)
                 
+
                 ax.annotate(aux_median_str, xy=(x_pos, y_pos-0*dy_pos), xycoords='axes fraction', fontsize=10, horizontalalignment=ha, verticalalignment='top')
                 ax.annotate(aux_lower_str, xy=(x_pos, y_pos-1*dy_pos), xycoords='axes fraction', fontsize=10, horizontalalignment=ha, verticalalignment='top')
                 ax.annotate(aux_upper_str, xy=(x_pos, y_pos-2*dy_pos), xycoords='axes fraction', fontsize=10, horizontalalignment=ha, verticalalignment='top')
                 
-                if pred_values is not None and p in pred_values:
-                    x_data = pred_values[p][0]
+                if est_values is not None and p in est_values:
+                    x_data = est_values[p][0]
                     y_data = kde(x_data)
                     q_true = np.sum(x < x_data) / len(x)
                     ax.vlines(x_data, 0, y_data, color='red')
-                    lbl_pred_val_str = "X={:.2f}".format(x_data)
-                    lbl_pred_quant_str = f'Q={int(q_true*100)}%'
-                    ax.annotate(lbl_pred_val_str, xy=(x_pos, y_pos-3*dy_pos), xycoords='axes fraction', fontsize=10, horizontalalignment=ha, verticalalignment='top', color='red')
-                    ax.annotate(lbl_pred_quant_str, xy=(x_pos, y_pos-4*dy_pos), xycoords='axes fraction', fontsize=10, horizontalalignment=ha, verticalalignment='top', color='red')
+                    lbl_est_val_str = "X={:.2f}".format(x_data)
+                    lbl_est_quant_str = f'Q={int(q_true*100)}%'
+                    ax.annotate(lbl_est_val_str, xy=(x_pos, y_pos-3*dy_pos), xycoords='axes fraction', fontsize=10, horizontalalignment=ha, verticalalignment='top', color='red')
+                    ax.annotate(lbl_est_quant_str, xy=(x_pos, y_pos-4*dy_pos), xycoords='axes fraction', fontsize=10, horizontalalignment=ha, verticalalignment='top', color='red')
                     
                 # cosmetics
                 ax.title.set_text(col_names[i])
@@ -401,53 +482,66 @@ class Plotter:
         plt.savefig(fname=save_fn, format='pdf', dpi=300, bbox_inches='tight')
         plt.clf()
 
-    
+        # done
+        return
 
-    def plot_pca(self, save_fn, sim_stat, est_stat=None, num_comp=4, f_show=0.05, color='blue'):
+    def plot_pca(self, save_fn, sim_values, est_values=None, num_comp=4, f_show=0.10, color='blue'):
         """
-        Plots PCA on the given data and saves the figure as a PDF.
-        
-        Args:
-            save_fn (str): The filename to save the figure as a PDF.
-            sim_stat (pd.DataFrame): The simulated statistics data.
-            est_stat (pd.DataFrame, optional): The estimated-data statistics data. Defaults to None.
-            num_comp (int, optional): The number of components for PCA. Defaults to 4.
-            f_show (float, optional): The fraction of data to show in the scatter plot. Defaults to 0.05.
-            color (str, optional): The color for scatter points. Defaults to 'blue'.
-        """
+        Plots PCA.
 
-        scaler = StandardScaler()
-        x = scaler.fit_transform(sim_stat)
-        #x = sim_stat # pd.DataFrame(sim_stat, columns=sim_stat.columns)
-        nrow_keep = int(x.shape[0] * f_show)
-        alpha = np.min( [1, 100 / nrow_keep] )
-        
-        pca_model = PCA(n_components=num_comp)
-        pca = pca_model.fit_transform(x)
-        
-        if self.est_aux_loaded:
-            est_stat = scaler.transform(est_stat)
-            pca_est = pca_model.transform(est_stat)
-        
+        This function plots the PCA for simulated training aux. data examples.
+        The function plots a grid of pairs of principal components. It will also
+        plot values from the new dataset, when vailable (est_values != None).
+
+        Arguments:
+            save_fn (str): Filename to save plot.
+            sim_values (numpy.array): Simulated values from training examples.
+            est_values (numpy.array): Estimated values from new dataset.
+            num_comp (int): Number of components to plot (default 4)
+            f_show (float): Proportion of scatter points to show in PCs
+            color (str): Color of histograms
+        """
+        # figure size
         fig_width = 8
         fig_height = 8 
 
+        # rescale input data
+        scaler = StandardScaler()
+        x = scaler.fit_transform(sim_values)
+        
+        # thin dataset
+        nrow_keep = int(x.shape[0] * f_show)
+        alpha = np.min( [1, 100 / nrow_keep] )
+        
+        # apply PCA to sim_values
+        pca_model = PCA(n_components=num_comp)
+        pca = pca_model.fit_transform(x)
         pca_var = pca_model.explained_variance_ratio_
+        
+        # project est_values on to PCA space
+        if self.est_aux_loaded:
+            est_values = scaler.transform(est_values)
+            pca_est = pca_model.transform(est_values)
+        
+        # figure dimennsions
         fig, axs = plt.subplots(num_comp-1, num_comp-1, sharex=True, sharey=True, figsize=(fig_width, fig_height))
 
         # use this to turn off subplots
         #axes[i_row,j_col].axis('off')
 
+        # generate PCA subplots
         for i in range(0, num_comp-1):
             for j in range(i+1, num_comp-1):
                 axs[i,j].axis('off')
             for j in range(0, i+1):
+                # scatter plots
                 axs[i,j].scatter( pca[0:nrow_keep,i+1], pca[0:nrow_keep,j], alpha=alpha, marker='x', color=color )
                 if self.est_aux_loaded:    
                     axs[i,j].scatter(pca_est[0:nrow_keep,i+1], pca_est[0:nrow_keep,j],
                                      alpha=1.0, color='white', edgecolor='black', s=80)
                     axs[i,j].scatter(pca_est[0:nrow_keep,i+1], pca_est[0:nrow_keep,j],
                                      alpha=1.0, color='red', edgecolor='white', s=40)
+                # axes
                 if j == 0:
                     ylabel = 'PC{idx} ({var}%)'.format( idx=str(i+2), var=int(100*round(pca_var[i+1], ndigits=2)) )
                     axs[i,j].set_ylabel(ylabel, fontsize=12)
@@ -460,31 +554,44 @@ class Plotter:
         fig.tight_layout(rect=[0, 0.03, 1, 0.98])
         plt.savefig(save_fn, format='pdf', dpi=300, bbox_inches='tight')
         plt.clf()
+
+        #done
         return
 
-
-    def plot_est_CI(self, save_fn, est_label, title='Prediction', color='black', plot_log=True):
-
+    def plot_est_CI(self, save_fn, est_label, title='Estimates', color='black', plot_log=True):
         """
-        Plot the prediction estimates with confidence intervals.
+        Plots point estimates and CPIs.
 
-        Parameters:
-        - save_fn (str): The filename to save the plot.
-        - est_label (DataFrame): The predicted labels.
-        - title (str, optional): The title of the plot. Default is 'Prediction'.
-        - color (str, optional): The color of the confidence intervals. Default is 'black'.
-        - plot_log (bool, optional): Whether to plot the y-axis in logarithmic scale. Default is True.
+        This function plots the point estimates and calibrated prediction
+        intervals for the new dataset, if it exists.
+
+        Arguments:
+            save_fn (str): Filename to save plot.
+            est_label (numpy.array): Estimated values from new dataset.
+            title (str): Title for the plot.
+            color (str): Color of histograms
+            plot_log (bool): Plot y-axis on log scale? Default True.
         """
+        # abort if no labels from Estimate found
         if est_label is None:
             return
 
-        plt.figure(figsize=(5,5))      
+        # figure size
+        fig_width = 5
+        fig_height = 5
+
+        # data dimensions
         label_names = est_label.columns
         num_label = len(label_names)
         
+        # set up plot
+        plt.figure(figsize=(fig_width,fig_height))      
+        
+        # use log-scale for y-axis?
         if plot_log:
             plt.yscale('log')
 
+        # plot each estimated label
         for i,col in enumerate(label_names):
             col_data = est_label[col]
             y_value = col_data[0].iloc[0]
@@ -497,9 +604,11 @@ class Plotter:
             # plot CI
             plt.plot([i,i], [y_lower, y_upper],
                      color=color, linestyle="-", marker='_', linewidth=1.5)
+            
             # plot values as text
             for y_,s_ in zip( [y_value,y_lower,y_upper], [s_value, s_lower, s_upper] ):
                 plt.text( x=i+0.10, y=y_, s=s_, color='black', va='center', size=8  )
+
             # plot point estimate
             plt.scatter(i, y_value, color='white', edgecolors=color, s=60, zorder=3)
             plt.scatter(i, y_value, color='red', edgecolors='white', s=30, zorder=3)
@@ -510,18 +619,43 @@ class Plotter:
         plt.xlim( -0.5, num_label )
         plt.savefig(save_fn, format='pdf', dpi=300, bbox_inches='tight')
         plt.clf()
+        
+        #done
         return
 
 
-    def plot_preds_labels(self, preds, labels, param_names, plot_dir, prefix, color="blue", axis_labels = ["prediction", "truth"], title = '', plot_log=False):
-   
+    def plot_est_labels(self, ests, labels, param_names, plot_dir, prefix,
+                        color="blue", axis_labels = ["estimate", "truth"],
+                        title = '', plot_log=False):
+        """
+        Plots accuracy of estimates and CPIs for labels.
 
-        plt.figure(figsize=(6,6))
+        This function generates a scatterplot for true vs. estimated labels
+        from the trained network. Points are point estimates. Bars are
+        CPIs.
+
+        Arguments:
+            save_fn (str): Filename to save plot.
+            est_label (numpy.array): Estimated values from new dataset.
+            title (str): Title for the plot.
+            color (str): Color of histograms
+            plot_log (bool): Plot y-axis on log scale? Default True.
+        """
+
+        # figure size
+        fig_width = 6
+        fig_height = 6
+
+        # create figure
+        plt.figure(figsize=(fig_width,fig_height))
+
+        # plot parameters
         for i,p in enumerate(param_names):
-            # preds/labels
-            y_value = preds[f'{p}_value'][:].to_numpy()
-            y_lower = preds[f'{p}_lower'][:].to_numpy()
-            y_upper = preds[f'{p}_upper'][:].to_numpy()
+
+            # estimates (y) and true values (x)
+            y_value = ests[f'{p}_value'][:].to_numpy()
+            y_lower = ests[f'{p}_lower'][:].to_numpy()
+            y_upper = ests[f'{p}_upper'][:].to_numpy()
             x_value = labels[p][:].to_numpy()
 
             # accuracy stats
@@ -530,6 +664,7 @@ class Plotter:
             y_mse = np.mean( np.power(y_value - x_value, 2) )
             y_rmse = np.sqrt( y_mse )
             
+            # convert to strings
             s_mae  = '{:.2E}'.format(y_mae)
             s_mse  = '{:.2E}'.format(y_mse)
             s_rmse = '{:.2E}'.format(y_rmse)
@@ -541,7 +676,7 @@ class Plotter:
             f_cover = sum(y_cover) / len(y_cover) * 100
             s_cover = '{:.1f}%'.format(f_cover)
             
-            # covered predictions
+            # covered estimates
             alpha = 0.5 # 50. / len(y_cover)
             plt.scatter(x_value[y_cover], y_value[y_cover],
                         alpha=alpha, c=color, zorder=3)
@@ -549,7 +684,7 @@ class Plotter:
                      [y_lower[y_cover], y_upper[y_cover]],
                      color=color, alpha=alpha, linestyle="-", marker='_', linewidth=0.5, zorder=2 )
 
-            # not covered predictions
+            # not covered estimates
             plt.scatter(x_value[y_not_cover], y_value[y_not_cover],
                         alpha=alpha, c='red', zorder=5)
             plt.plot([x_value[y_not_cover], x_value[y_not_cover]],
@@ -560,6 +695,7 @@ class Plotter:
             plt.axline((0,0), slope=1, color=color, alpha=1.0, zorder=0)
             plt.gca().set_aspect('equal')
 
+            # set axes
             xlim = plt.xlim()
             ylim = plt.ylim()
             minlim = min(xlim[0], ylim[0])
@@ -567,6 +703,7 @@ class Plotter:
             plt.xlim([minlim, maxlim])
             plt.ylim([minlim, maxlim])
             
+            # write text
             dx = 0.03
             plt.annotate(f'MAE: {s_mae}',        xy=(0.01,0.99-0*dx), xycoords='axes fraction', fontsize=10, horizontalalignment='left', verticalalignment='top', color='black')
             plt.annotate(f'MAPE: {s_mape}',      xy=(0.01,0.99-1*dx), xycoords='axes fraction', fontsize=10, horizontalalignment='left', verticalalignment='top', color='black')
@@ -575,7 +712,7 @@ class Plotter:
             plt.annotate(f'Coverage: {s_cover}', xy=(0.01,0.99-4*dx), xycoords='axes fraction', fontsize=10, horizontalalignment='left', verticalalignment='top', color='black')
 
             # cosmetics
-            plt.title(f'{title} predictions: {p}')
+            plt.title(f'{title} estimates: {p}')
             plt.xlabel(f'{p} {axis_labels[0]}')
             plt.ylabel(f'{p} {axis_labels[1]}')
             if plot_log:
@@ -586,53 +723,61 @@ class Plotter:
             save_fn = f'{plot_dir}/{prefix}_{p}.pdf'
             plt.savefig(save_fn, format='pdf', dpi=300, bbox_inches='tight')
             plt.clf()
+
+        # done    
         return
     
 
-    def make_history_plot(self, history, prefix, plot_dir, train_color='blue', val_color='red'):
+    def make_history_plot(self, history, prefix, plot_dir, train_color='blue',
+                          val_color='red'):
         """
-        Plot predicted and labeled values for different parameters.
+        Plot training history for network.
 
-        Parameters:
-        - self: The reference to the instance of the class where the method is defined.
-        - preds: A dictionary containing predicted values for each parameter.
-        - labels: A dictionary containing labeled values for each parameter.
-        - param_names: A list of parameter names.
-        - plot_dir: The directory to save the plots.
-        - prefix: The prefix to be used in the filename of the saved plots.
-        - color: The color used for the plots (default is "blue").
-        - axis_labels: A list of two strings representing the labels for the x and y axes (default is ["prediction", "truth"]).
-        - title: The title for the plot (default is '').
-        - plot_log: A boolean indicating whether to use logarithmic scale in the plots (default is False).
+        This function plots trained network performance metrics as a time-series
+        across training epochs. Typically, it will compare performance between
+        trainiing vs. validation examples.
+
+        Arguments:
+            history (str): Training performance metrics
+            prefix (str): Used to construct filename
+            plot_dir (str): Directory for save
+            train_color (str): Color for training example metrics
+            val_color (str): Color for validation example metrics
         """
+        
+        # get data names/dimensions
         epochs       = range(1, len(history['loss']) + 1)
         train_keys   = [ x for x in history.keys() if 'val_' not in x ]
-        val_keys     = [ 'val_'+x for x in train_keys ]
+        #val_keys     = [ 'val_'+x for x in train_keys ]
         label_names  = [ '_'.join( x.split('_')[0:-1] ) for x in train_keys ]
         label_names  = sorted( np.unique(label_names) )
-        num_labels   = len(label_names)
+        #num_labels   = len(label_names)
 
+        # get metric names
         metric_names = [ x.split('_')[-1] for x in train_keys ]
         metric_names = np.unique(metric_names)
         metric_names = [ 'loss' ] + [ x for x in metric_names if x != 'loss' ]
         num_metrics  = len(metric_names)
 
+        # figure dimensions
         fig_width = 6
         fig_height = int(np.ceil(2*num_metrics))
 
+        # plot for all parameters
         for i,v1 in enumerate(label_names):
-
-            fig, axs = plt.subplots(nrows=num_metrics, ncols=1, sharex=True, figsize=(fig_width, fig_height))
+            fig, axs = plt.subplots(nrows=num_metrics, ncols=1, sharex=True,
+                                    figsize=(fig_width, fig_height))
             idx = 0
-
+            # plot for all metrics
             for j,v2 in enumerate(metric_names):
-
+                # get val name from train name 
                 if v1 == '':
                     k_train = v2
                 else:
                     k_train = f'{v1}_{v2}'
                 k_val = 'val_' + k_train
 
+                # plot training example metrics
                 legend_handles = []
                 legend_labels = []
                 if k_train in history:
@@ -642,12 +787,14 @@ class Plotter:
                     legend_handles.append( lines_train )
                     legend_labels.append( 'Train' )
 
+                # plot validation example metrics
                 if k_val in history:
                     lines_val, = axs[idx].plot(epochs, history[k_val], color=val_color, label = k_val)
                     axs[idx].scatter(epochs, history[k_val], color=val_color, label = k_val, zorder=3)
                     legend_handles.append( lines_val )
                     legend_labels.append( 'Validation' )
 
+                # plot legend
                 if k_train in history or k_val in history:
                     if idx == 0:
                         axs[idx].legend( handles=legend_handles, labels=legend_labels, loc='upper right' )
@@ -658,6 +805,7 @@ class Plotter:
                 if j >= idx:
                     axs[j].axis('off')
 
+            # aesthetics
             title_metric = label_names[i]
             if title_metric == '':
                 title_metric = 'entire network'
@@ -666,8 +814,10 @@ class Plotter:
             fig.suptitle('Training history: ' + title_metric)
             fig.tight_layout()
 
-            save_fn = plot_dir + '/' + prefix + '_' + label_names[i] + '.pdf'
-
+            # save figure
+            save_fn = f'{plot_dir}/{prefix}_{label_names[i]}.pdf'
             plt.savefig(save_fn, format='pdf', dpi=300, bbox_inches='tight')
             plt.clf()
+        
+        # done
         return

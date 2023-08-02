@@ -24,7 +24,7 @@ from keras import layers
 from keras import backend as K
 
 # phyddle imports
-from phyddle import utilities
+from phyddle import utilities as util
 
 #------------------------------------------------------------------------------#
 
@@ -69,14 +69,14 @@ class Trainer:
         # construct filepaths
         self.prepare_filepaths()
         # get size of CPV+S tensors
-        self.num_tree_row = utilities.get_num_tree_row(self.tree_encode,
-                                                       self.brlen_encode)
-        self.num_char_row = utilities.get_num_char_row(self.char_encode,
-                                                       self.num_char,
-                                                       self.num_states)
+        self.num_tree_row = util.get_num_tree_row(self.tree_encode,
+                                                  self.brlen_encode)
+        self.num_char_row = util.get_num_char_row(self.char_encode,
+                                                  self.num_char,
+                                                  self.num_states)
         self.num_data_row = self.num_tree_row + self.num_char_row
         # create logger to track runtime info
-        self.logger = utilities.Logger(args)
+        self.logger = util.Logger(args)
         # done
         return
     
@@ -129,9 +129,7 @@ class Trainer:
         self.trn_proj_dir = f'{self.trn_dir}/{self.trn_proj}'
         # input prefix
         input_prefix      = f'{self.fmt_proj_dir}/sim.nt{self.tree_width}'
-        network_prefix    = f'train_batchsize{self.batch_size}_\
-                                    numepoch{self.num_epochs}_\
-                                    nt{self.tree_width}'
+        network_prefix    = f'train_batchsize{self.batch_size}_numepoch{self.num_epochs}_nt{self.tree_width}'
         output_prefix     = f'{self.trn_proj_dir}/{network_prefix}'
         # input dataset filenames for csv or hdf5
         self.input_phy_data_fn      = f'{input_prefix}.phy_data.csv'
@@ -166,30 +164,27 @@ class Trainer:
         verbose = self.verbose
 
         # print header
-        utilities.print_step_header('trn',
-                                    [self.fmt_proj_dir],
-                                    self.trn_proj_dir,
-                                    verbose)
+        util.print_step_header('trn', [self.fmt_proj_dir], self.trn_proj_dir, verbose)
         # prepare workspace
         os.makedirs(self.trn_proj_dir, exist_ok=True)
 
         # perform run tasks
-        utilities.print_str('▪ Loading input ...', verbose)
+        util.print_str('▪ Loading input ...', verbose)
         self.load_input()
 
-        utilities.print_str('▪ Building network ...', verbose)
+        util.print_str('▪ Building network ...', verbose)
         self.build_network()
 
-        utilities.print_str('▪ Training network ...', verbose)
+        util.print_str('▪ Training network ...', verbose)
         self.train()
 
-        utilities.print_str('▪ Processing results ...', verbose)
+        util.print_str('▪ Processing results ...', verbose)
         self.make_results()
 
-        utilities.print_str('▪ Saving results ...', verbose)
+        util.print_str('▪ Saving results ...', verbose)
         self.save_results()
 
-        utilities.print_str('▪ ... done!', verbose)
+        util.print_str('▪ ... done!', verbose)
     
     def load_input(self):
         """Loads the input data for the network."""
@@ -351,24 +346,24 @@ class CnnTrainer(Trainer):
             val_idx = test_idx
 
         # normalize auxiliary data
-        self.norm_train_aux_data, self.train_aux_data_means, self.train_aux_data_sd = utilities.normalize(full_aux_data[train_idx,:])
+        self.norm_train_aux_data, self.train_aux_data_means, self.train_aux_data_sd = util.normalize(full_aux_data[train_idx,:])
         self.norm_aux_data_mean_sd =(self.train_aux_data_means, self.train_aux_data_sd)
-        self.norm_val_aux_data   = utilities.normalize(full_aux_data[val_idx,:],
-                                                       self.norm_aux_data_mean_sd)
-        self.norm_test_aux_data  = utilities.normalize(full_aux_data[test_idx,:],
-                                                       self.norm_aux_data_mean_sd)
-        self.norm_calib_aux_data = utilities.normalize(full_aux_data[calib_idx,:],
-                                                       self.norm_aux_data_mean_sd)
+        self.norm_val_aux_data   = util.normalize(full_aux_data[val_idx,:],
+                                                  self.norm_aux_data_mean_sd)
+        self.norm_test_aux_data  = util.normalize(full_aux_data[test_idx,:],
+                                                  self.norm_aux_data_mean_sd)
+        self.norm_calib_aux_data = util.normalize(full_aux_data[calib_idx,:],
+                                                  self.norm_aux_data_mean_sd)
 
         # normalize labels
-        self.norm_train_labels, self.train_label_means, self.train_label_sd = utilities.normalize(full_labels[train_idx,:])
+        self.norm_train_labels, self.train_label_means, self.train_label_sd = util.normalize(full_labels[train_idx,:])
         self.norm_labels_mean_sd = (self.train_label_means, self.train_label_sd)
-        self.norm_val_labels     = utilities.normalize(full_labels[val_idx,:],
-                                                       self.norm_labels_mean_sd)
-        self.norm_test_labels    = utilities.normalize(full_labels[test_idx,:],
-                                                       self.norm_labels_mean_sd)
-        self.norm_calib_labels   = utilities.normalize(full_labels[calib_idx,:],
-                                                       self.norm_labels_mean_sd)
+        self.norm_val_labels     = util.normalize(full_labels[val_idx,:],
+                                                  self.norm_labels_mean_sd)
+        self.norm_test_labels    = util.normalize(full_labels[test_idx,:],
+                                                  self.norm_labels_mean_sd)
+        self.norm_calib_labels   = util.normalize(full_labels[calib_idx,:],
+                                                  self.norm_labels_mean_sd)
 
         # create phylogenetic data tensors
         self.train_phy_data_tensor = full_phy_data[train_idx,:]
@@ -582,17 +577,17 @@ class CnnTrainer(Trainer):
         # scatter of estimate vs true for training data
         self.normalized_train_ests       = self.mymodel.predict([self.train_phy_data_tensor, self.train_aux_data_tensor])
         self.normalized_train_ests       = np.array(self.normalized_train_ests)
-        self.denormalized_train_ests     = utilities.denormalize(self.normalized_train_ests, self.train_label_means, self.train_label_sd)
+        self.denormalized_train_ests     = util.denormalize(self.normalized_train_ests, self.train_label_means, self.train_label_sd)
         self.denormalized_train_ests     = np.exp(self.denormalized_train_ests)
-        self.denormalized_train_labels   = utilities.denormalize(self.norm_train_labels, self.train_label_means, self.train_label_sd)
+        self.denormalized_train_labels   = util.denormalize(self.norm_train_labels, self.train_label_means, self.train_label_sd)
         self.denormalized_train_labels   = np.exp(self.denormalized_train_labels)
 
         # scatter of estimate vs true for test data
         self.normalized_test_ests        = self.mymodel.predict([self.test_phy_data_tensor, self.test_sux_data_tensor])
         self.normalized_test_ests        = np.array(self.normalized_test_ests)
-        self.denormalized_test_ests      = utilities.denormalize(self.normalized_test_ests, self.train_label_means, self.train_label_sd)
+        self.denormalized_test_ests      = util.denormalize(self.normalized_test_ests, self.train_label_means, self.train_label_sd)
         self.denormalized_test_ests      = np.exp(self.denormalized_test_ests)
-        self.denormalized_test_labels    = utilities.denormalize(self.norm_test_labels, self.train_label_means, self.train_label_sd)
+        self.denormalized_test_labels    = util.denormalize(self.norm_test_labels, self.train_label_means, self.train_label_sd)
         self.denormalized_test_labels    = np.exp(self.denormalized_test_labels)
         
          # CPI adjustments
@@ -606,14 +601,14 @@ class CnnTrainer(Trainer):
         self.denorm_train_ests_calib        = self.normalized_train_ests
         self.denorm_train_ests_calib[1,:,:] = self.denorm_train_ests_calib[1,:,:] - self.cpi_adjustments[0,:]
         self.denorm_train_ests_calib[2,:,:] = self.denorm_train_ests_calib[2,:,:] + self.cpi_adjustments[1,:]
-        self.denorm_train_ests_calib        = utilities.denormalize(self.denorm_train_ests_calib, self.train_label_means, self.train_label_sd)
+        self.denorm_train_ests_calib        = util.denormalize(self.denorm_train_ests_calib, self.train_label_means, self.train_label_sd)
         self.denorm_train_ests_calib        = np.exp(self.denorm_train_ests_calib)
 
         # test predictions with calibrated CQR CIs
         self.denorm_test_ests_calib        = self.normalized_test_ests
         self.denorm_test_ests_calib[1,:,:] = self.denorm_test_ests_calib[1,:,:] - self.cpi_adjustments[0,:]
         self.denorm_test_ests_calib[2,:,:] = self.denorm_test_ests_calib[2,:,:] + self.cpi_adjustments[1,:]
-        self.denorm_test_ests_calib        = utilities.denormalize(self.denorm_test_ests_calib, self.train_label_means, self.train_label_sd)
+        self.denorm_test_ests_calib        = util.denormalize(self.denorm_test_ests_calib, self.train_label_means, self.train_label_sd)
         self.denorm_test_ests_calib        = np.exp(self.denorm_test_ests_calib)
 
         return
@@ -653,10 +648,10 @@ class CnnTrainer(Trainer):
         df_labels.to_csv(self.train_labels_norm_fn, index=False, sep=',')
 
         # save train/test scatterplot results (Value, Lower, Upper)
-        df_train_est_nocalib = utilities.make_param_VLU_mtx(self.denormalized_train_ests[0:max_idx,:], self.param_names )
-        df_test_est_nocalib  = utilities.make_param_VLU_mtx(self.denormalized_test_ests[0:max_idx,:], self.param_names )
-        df_train_est_calib   = utilities.make_param_VLU_mtx(self.denorm_train_ests_calib[0:max_idx,:], self.param_names )
-        df_test_est_calib    = utilities.make_param_VLU_mtx(self.denorm_test_ests_calib[0:max_idx,:], self.param_names )
+        df_train_est_nocalib = util.make_param_VLU_mtx(self.denormalized_train_ests[0:max_idx,:], self.param_names )
+        df_test_est_nocalib  = util.make_param_VLU_mtx(self.denormalized_test_ests[0:max_idx,:], self.param_names )
+        df_train_est_calib   = util.make_param_VLU_mtx(self.denorm_train_ests_calib[0:max_idx,:], self.param_names )
+        df_test_est_calib    = util.make_param_VLU_mtx(self.denorm_test_ests_calib[0:max_idx,:], self.param_names )
         #df_train_pred   = pd.DataFrame( self.denormalized_train_ests[0:max_idx,:], columns=param_pred_names )
         #df_test_pred    = pd.DataFrame( self.denormalized_test_ests[0:max_idx,:], columns=param_pred_names )
 
@@ -800,7 +795,7 @@ class CnnTrainer(Trainer):
                 upper_q = np.quantile(upper_s, upper_p)
             else:
                 # Symmetric non-comformity score
-                s = np.amax(np.array((ests[0][:,i] - true[:,i], true[:,i] - ests[1][:,i])), axis=0)
+                s = np.amax(np.array((ests[0][:,i]-true[:,i], true[:,i]-ests[1][:,i])), axis=0)
                 # get adjustment constant: 1 - alpha/2's quintile of non-comformity scores
                 symm_p = inner_quantile * (1 + 1/ests.shape[1])
                 if symm_p < 0.:
@@ -818,22 +813,3 @@ class CnnTrainer(Trainer):
         return Q
 
 #------------------------------------------------------------------------------#
-
-    # def compute_conformity_scores(self, x, y, q_lower, q_upper):
-    #     """
-    #     Computes the conformity scores.
-
-    #     This function computes conformity scores for comformalized quantile
-    #     regression (CQR). 
-
-    #     Args:
-    #         x (array-like): The input data.
-    #         y (array-like): The target data.
-    #         q_lower (function): The lower quantile function.
-    #         q_upper (function): The upper quantile function.
-
-    #     Returns:
-    #         array-like: The conformity scores.
-
-    #     """
-    #     return np.max(q_lower(x)-y, y-q_upper(x))

@@ -21,7 +21,7 @@ from multiprocessing import Pool, set_start_method
 from tqdm import tqdm
 
 # phyddle imports
-from phyddle import utilities
+from phyddle import utilities as util
 
 # Uncomment to debug multiprocessing
 # import multiprocessing.util as mp_util
@@ -78,7 +78,7 @@ class Simulator:
         # where rep_idx is list of unique ints to identify simulated datasets
         self.rep_idx = list(range(self.start_idx, self.end_idx))
         # create logger to track runtime info
-        self.logger = utilities.Logger(args)
+        self.logger = util.Logger(args)
         #done
         return
 
@@ -101,17 +101,17 @@ class Simulator:
         self.sim_command  = args['sim_command']
         self.sim_logging  = args['sim_logging']
         # TODO: automatic set arg
-        # step_args = utilities.make_step_args('S', args)
+        # step_args = util.make_step_args('S', args)
         # for k,v in step_args.items():
         #     setattr(self, k, v)
         return
 
     def run(self):
         """
-        Executes all simulations.
+        Simulates training examples.
 
-        This method prints status updates, creates the target directory for new
-        simulations, then runs all simulation jobs.
+        This creates the target directory for new simulations then runs all
+        simulation jobs.
         
         Simulation jobs are numbered by the replicate-index list (self.rep_idx). 
         Each job is executed by calling self.sim_one(idx) where idx is a unique
@@ -124,16 +124,13 @@ class Simulator:
         verbose = self.verbose
 
         # print header
-        utilities.print_step_header('sim',
-                                    None,
-                                    self.sim_proj_dir,
-                                    verbose)
+        util.print_step_header('sim', None, self.sim_proj_dir, verbose)
 
         # prepare workspace
         os.makedirs(self.sim_proj_dir, exist_ok=True)
     
         # dispatch jobs
-        utilities.print_str('▪ Simulating raw data ...', verbose)
+        util.print_str('▪ Simulating raw data ...', verbose)
         if self.use_parallel:
             # parallel jobs
             # Note, it's critical to call this as list(tqdm(pool.imap(...)))
@@ -156,7 +153,7 @@ class Simulator:
                                                       desc='Simulating') ]
 
         # done
-        utilities.print_str('... done!', verbose)
+        util.print_str('... done!', verbose)
         return
     
     # main simulation function (looped)
@@ -206,11 +203,11 @@ class Simulator:
                 cmd_res = subprocess.run(cmd_str_tok, capture_output=True)
                 # save stdout
                 cmd_stdout = cmd_res.stdout.decode('UTF-8')
-                utilities.write_to_file(cmd_stdout, stdout_fn)
+                util.write_to_file(cmd_stdout, stdout_fn)
                 # save stderr
                 cmd_stderr = cmd_res.stderr.decode('UTF-8')
                 if cmd_stderr != '':
-                    utilities.write_to_file(cmd_stderr, stderr_fn)
+                    util.write_to_file(cmd_stderr, stderr_fn)
                 # done simulating
                 valid = True
             except subprocess.CalledProcessError:

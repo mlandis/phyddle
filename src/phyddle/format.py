@@ -24,7 +24,7 @@ from multiprocessing import Pool, set_start_method
 from tqdm import tqdm
 
 # phyddle imports
-from phyddle import utilities
+from phyddle import utilities as util
 
 # Uncomment to debug multiprocessing
 # import multiprocessing.util as mp_util
@@ -85,14 +85,14 @@ class Formatter:
         # where rep_idx is list of unique ints to identify simulated datasets
         self.rep_idx      = list(range(self.start_idx, self.end_idx))
         # get size of CPV+S tensors
-        self.num_tree_row = utilities.get_num_tree_row(self.tree_encode,
-                                                       self.brlen_encode)
-        self.num_char_row = utilities.get_num_char_row(self.char_encode,
-                                                       self.num_char,
-                                                       self.num_states)
+        self.num_tree_row = util.get_num_tree_row(self.tree_encode,
+                                                  self.brlen_encode)
+        self.num_char_row = util.get_num_char_row(self.char_encode,
+                                                  self.num_char,
+                                                  self.num_states)
         self.num_data_row = self.num_tree_row + self.num_char_row
         # create logger to track runtime info
-        self.logger = utilities.Logger(args)
+        self.logger = util.Logger(args)
         # done
         return        
 
@@ -143,24 +143,21 @@ class Formatter:
         verbose = self.verbose
 
         # print header
-        utilities.print_step_header('fmt',
-                                    [self.sim_proj_dir],
-                                    self.fmt_proj_dir,
-                                    verbose)
+        util.print_step_header('fmt', [self.sim_proj_dir], self.fmt_proj_dir, verbose)
         
         # prepare workspace
         os.makedirs(self.fmt_proj_dir, exist_ok=True)
 
         # encode each dataset into individual tensors
-        utilities.print_str('▪ Encoding raw data as tensors ...', verbose)
+        util.print_str('▪ Encoding raw data as tensors ...', verbose)
         self.encode_all()
 
         # write tensors across all examples to file
-        utilities.print_str('▪ Combining and writing tensors ...', verbose)
+        util.print_str('▪ Combining and writing tensors ...', verbose)
         self.write_tensor()
 
         # done
-        utilities.print_str('... done!', verbose)
+        util.print_str('... done!', verbose)
 
     
     def make_settings_str(self, idx, tree_width):
@@ -510,22 +507,22 @@ class Formatter:
         
         # read in nexus data file as numpy array
         if self.char_format == 'nexus':
-            dat = utilities.convert_nexus_to_array(dat_nex_fn,
+            dat = util.convert_nexus_to_array(dat_nex_fn,
                                                    self.char_encode,
                                                    self.num_states)
         elif self.char_format == 'csv':
-            dat = utilities.convert_csv_to_array(dat_nex_fn,
+            dat = util.convert_csv_to_array(dat_nex_fn,
                                                  self.char_encode,
                                                  self.num_states)
         
         # get tree file
-        phy = utilities.read_tree(tre_fn)
+        phy = util.read_tree(tre_fn)
         if phy is None:
             return
 
         # prune tree, if needed
         if self.tree_encode == 'extant':
-            phy_prune = utilities.make_prune_phy(phy, prune_fn)
+            phy_prune = util.make_prune_phy(phy, prune_fn)
             if phy_prune is None:
                 # abort, no valid pruned tree
                 return
@@ -543,7 +540,7 @@ class Formatter:
             return
 
         # get tree width from resulting vector
-        tree_width = utilities.find_tree_width(num_taxa, self.tree_width_cats)
+        tree_width = util.find_tree_width(num_taxa, self.tree_width_cats)
 
         # create compact phylo-state vector, CPV+S = {CBLV+S, CDV+S}
         cpvs_data = None
@@ -556,17 +553,17 @@ class Formatter:
         # save CPVS
         save_phyenc_csv_ = self.save_phyenc_csv or save_phyenc_csv
         if save_phyenc_csv_ and cpvs_data is not None:
-            cpsv_str = utilities.make_clean_phyloenc_str(cpvs_data.flatten())
-            utilities.write_to_file(cpsv_str, cpsv_fn)
+            cpsv_str = util.make_clean_phyloenc_str(cpvs_data.flatten())
+            util.write_to_file(cpsv_str, cpsv_fn)
 
         # record info
         info_str = self.make_settings_str(idx, tree_width)
-        utilities.write_to_file(info_str, info_fn)
+        util.write_to_file(info_str, info_fn)
 
         # record summ stat data
         ss     = self.make_summ_stat(phy, dat)
         ss_str = self.make_summ_stat_str(ss)
-        utilities.write_to_file(ss_str, ss_fn)
+        util.write_to_file(ss_str, ss_fn)
         
         # done!
         return cpvs_data
@@ -638,7 +635,7 @@ class Formatter:
         # done
         return summ_stats
     
-    # ==> Can probably move to utilities? seems generic and useful
+    # ==> Can probably move to util? seems generic and useful
     def make_summ_stat_str(self, ss):
         """
         Generate a string representation of the summary statistics.

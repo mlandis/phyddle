@@ -36,177 +36,7 @@ pd.set_option('display.float_format', lambda x: f'{x:,.3f}')
 
 # Tensorflow info messages
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # or any {'0', '1', '2'}
-
-##################
-# Helper Classes #
-##################
-
-# model events
-class Event:
-    """
-    Event objects define an event for a Poisson process with discrete-valued
-    states, such as continuous-time Markov processes. Note, that
-    phylogenetic birth-death models and SIR models fall into this class.
-    The Event class was originally designed for use with chemical
-    reaction simulations using the MASTER plugin in BEAST.
-    """
-    # initialize
-    def __init__(self, idx, r=0.0, n=None, g=None, ix=None, jx=None):
-        """
-        Create an Event object.
-
-        Args:
-            idx (dict): A dictionary containing the indices of the event.
-            r (float): The rate of the event.
-            n (str): The name of the event.
-            g (str): The reaction group of the event.
-            ix (list): The reaction quantities (reactants) before the event.
-            jx (list): The reaction quantities (products) after the event.
-        """
-        self.i = -1
-        self.j = -1
-        self.k = -1
-        self.idx = idx
-        if 'i' in idx:
-            self.i = idx['i']
-        if 'j' in idx:
-            self.j = idx['j']
-        if 'k' in idx:
-            self.k = idx['k']
-        self.rate = r
-        self.name = n
-        self.group = g
-        self.ix = ix
-        self.jx = jx
-        self.reaction = ' + '.join(ix) + ' -> ' + ' + '.join(jx)
-        return
-        
-    # make print string
-    def make_str(self):
-        """
-        Creates a string representation of the event.
-
-        Returns:
-            str: The string representation of the event.
-        """
-        s = 'Event({name},{group},{rate},{idx})'.format(name=self.name, group=self.group, rate=self.rate, idx=self.idx)        
-        #s += ')'
-        return s
     
-    # representation string
-    def __repr__(self):
-        """
-        Returns the representation of the event.
-
-        Returns:
-            str: The representation of the event.
-        """
-        return self.make_str()
-    
-    # print string
-    def __str__(self):
-        """
-        Returns the string representation of the event.
-
-        Returns:
-            str: The string representation of the event.
-        """
-        return self.make_str()
-
-
-# state space
-class States:
-    """
-    States objects define the state space that a model operates upon. Event
-    objects define transition rates and patterns with respect to States. The
-    central purpose of States is to manage different representations of
-    individual states in the state space, e.g. as integers, strings, vectors.
-    """
-    def __init__(self, lbl2vec):
-        """
-        Create a States object.
-
-        Args:
-            lbl2vec (dict): A dictionary with labels (str) as keys and vectors
-                            of states (int[]) as values.
-        """
-        # state space dictionary (input)
-        self.lbl2vec      = lbl2vec
-
-        # basic info
-        self.int2lbl        = list( lbl2vec.keys() )
-        self.int2vec        = list( lbl2vec.values() )
-        self.int2int        = list( range(len(self.int2vec)) )
-        self.int2set        = list( [ tuple([y for y,v in enumerate(x) if v == 1]) for x in self.int2vec ] )
-        self.lbl_one        = list( set(''.join(self.int2lbl)) )
-        self.num_char       = len( self.int2vec[0] )
-        self.num_states     = len( self.lbl_one )
-
-        # relational info
-        self.lbl2int = {k:v for k,v in list(zip(self.int2lbl, self.int2int))}
-        self.lbl2set = {k:v for k,v in list(zip(self.int2lbl, self.int2set))}
-        self.lbl2vec = {k:v for k,v in list(zip(self.int2lbl, self.int2vec))}
-        self.vec2int = {tuple(k):v for k,v in list(zip(self.int2vec, self.int2int))}
-        self.vec2lbl = {tuple(k):v for k,v in list(zip(self.int2vec, self.int2lbl))}
-        self.vec2set = {tuple(k):v for k,v in list(zip(self.int2vec, self.int2set))}
-        self.set2vec = {tuple(k):v for k,v in list(zip(self.int2set, self.int2vec))}
-        self.set2int = {tuple(k):v for k,v in list(zip(self.int2set, self.int2int))}
-        self.set2lbl = {tuple(k):v for k,v in list(zip(self.int2set, self.int2lbl))}
-        self.int2vecstr = [ ''.join([str(y) for y in x]) for x in self.int2vec ]
-        self.vecstr2int = { v:i for i,v in enumerate(self.int2vecstr) }
-       
-        # done
-        return
-
-    def make_str(self):
-        """
-        Creates a string representation of the state space.
-
-        Returns:
-            str: The string representation of the state space.
-        """
-        # state space: {'A': [1, 0, 0], 'B': [0, 1, 0], 'C': [0, 0, 1], 'AB': [1, 1, 0], 'AC': [1, 0, 1], 'BC': [0, 1, 1], 'ABC': [1, 1, 1]}
-        # string: Statespace(A,0,100;B,1,010;C,2,001;AB,3,110;AC,4,101;BC,5,011;ABC,6,111)
-        s = 'Statespace('
-        x = []
-        for i in self.int2int:
-            # each state in the space is reported as STRING,INT,VECTOR;
-            x.append( self.int2lbl[i] + ',' + str(self.int2int[i]) + ',' + ''.join( str(x) for x in self.int2vec[i]) )
-        s += ';'.join(x) + ')'
-        return s
-
-    # representation string
-    def __repr__(self):
-        """
-        Returns the representation of the state space.
-
-        Returns:
-            str: The representation of the state space.
-        """
-        return self.make_str()
-    # print string
-    def __str__(self):
-        """
-        Returns the string representation of the state space.
-
-        Returns:
-            str: The string representation of the state space.
-        """
-        return self.make_str()
-    
-    # def make_df(self):
-    #     """
-    #     ## Probably can delete????
-    #     Creates a DataFrame representation of the state space.
-
-    #     Returns:
-    #         pandas.DataFrame: The DataFrame representation of the state space.
-    #     """
-    #     df = pd.DataFrame()
-    #     return df
-
-
-
 #------------------------------------------------------------------------------#
 
 ###################
@@ -355,14 +185,12 @@ def load_config(config_fn,
         sys.exit()
 
     # overwrite config_fn is argument passed
-    print(config_fn)
     if arg_overwrite and args.cfg is not None:
         config_fn = args.cfg
     config_fn = config_fn.rstrip('.py')
 
     # get config from file
     m = importlib.import_module(config_fn)
-    print(m.args)
     
     # update arguments from defaults, when provided
     def overwrite_defaults(m, args, var):
@@ -379,6 +207,7 @@ def load_config(config_fn,
     #      think it was to allow argparse have default values, which would then
     #      improve control over how argparse, the cfg file, and the CLI cfg
     #      interact to assign args. Need to revisit this.
+    # MJL 230802: trying a new setup w/ for-loop
     for k in settings.keys():
         m = overwrite_defaults(m, args, k)
 
@@ -498,6 +327,8 @@ def add_step_proj(args): #steps, proj):
 def make_default_config():
     # 1. could run this script without writing to file if config.py DNE
     # 2. check if config.py exists and avoid overwrite (y/n prompt, .bak, etc.)
+    # MJL 230802: we should be able to generate this automatically from
+    #             settings_registry if we provide default values.
     s = """
 #==============================================================================#
 # Default phyddle config file                                                  #
@@ -1330,8 +1161,6 @@ def clean_scientific_notation(s):
     """
     return re.sub( '\.0+E\+0+', '', s)
 
-
-
 #------------------------------------------------------------------------------#
 
 #########################
@@ -1488,10 +1317,6 @@ def print_step_header(step, in_dir, out_dir, verbose=True, style=1, fg=34):
 
 #------------------------------------------------------------------------------#
 
-
-
-
-
 # cat .git/HEAD
 # ref: refs/heads/development
 # cat .git/refs/heads/development
@@ -1641,3 +1466,162 @@ class Logger:
             s += f'  {k} = {v}\n'
         
         return s
+    
+#------------------------------------------------------------------------------#
+
+##################
+# Helper Classes #
+##################
+
+# # model events
+# class Event:
+#     """
+#     Event objects define an event for a Poisson process with discrete-valued
+#     states, such as continuous-time Markov processes. Note, that
+#     phylogenetic birth-death models and SIR models fall into this class.
+#     The Event class was originally designed for use with chemical
+#     reaction simulations using the MASTER plugin in BEAST.
+#     """
+#     # initialize
+#     def __init__(self, idx, r=0.0, n=None, g=None, ix=None, jx=None):
+#         """
+#         Create an Event object.
+
+#         Args:
+#             idx (dict): A dictionary containing the indices of the event.
+#             r (float): The rate of the event.
+#             n (str): The name of the event.
+#             g (str): The reaction group of the event.
+#             ix (list): The reaction quantities (reactants) before the event.
+#             jx (list): The reaction quantities (products) after the event.
+#         """
+#         self.i = -1
+#         self.j = -1
+#         self.k = -1
+#         self.idx = idx
+#         if 'i' in idx:
+#             self.i = idx['i']
+#         if 'j' in idx:
+#             self.j = idx['j']
+#         if 'k' in idx:
+#             self.k = idx['k']
+#         self.rate = r
+#         self.name = n
+#         self.group = g
+#         self.ix = ix
+#         self.jx = jx
+#         self.reaction = ' + '.join(ix) + ' -> ' + ' + '.join(jx)
+#         return
+        
+#     # make print string
+#     def make_str(self):
+#         """
+#         Creates a string representation of the event.
+
+#         Returns:
+#             str: The string representation of the event.
+#         """
+#         s = 'Event({name},{group},{rate},{idx})'.format(name=self.name, group=self.group, rate=self.rate, idx=self.idx)        
+#         #s += ')'
+#         return s
+    
+#     # representation string
+#     def __repr__(self):
+#         """
+#         Returns the representation of the event.
+
+#         Returns:
+#             str: The representation of the event.
+#         """
+#         return self.make_str()
+    
+#     # print string
+#     def __str__(self):
+#         """
+#         Returns the string representation of the event.
+
+#         Returns:
+#             str: The string representation of the event.
+#         """
+#         return self.make_str()
+
+
+# # state space
+# class States:
+#     """
+#     States objects define the state space that a model operates upon. Event
+#     objects define transition rates and patterns with respect to States. The
+#     central purpose of States is to manage different representations of
+#     individual states in the state space, e.g. as integers, strings, vectors.
+#     """
+#     def __init__(self, lbl2vec):
+#         """
+#         Create a States object.
+
+#         Args:
+#             lbl2vec (dict): A dictionary with labels (str) as keys and vectors
+#                             of states (int[]) as values.
+#         """
+#         # state space dictionary (input)
+#         self.lbl2vec      = lbl2vec
+
+#         # basic info
+#         self.int2lbl        = list( lbl2vec.keys() )
+#         self.int2vec        = list( lbl2vec.values() )
+#         self.int2int        = list( range(len(self.int2vec)) )
+#         self.int2set        = list( [ tuple([y for y,v in enumerate(x) if v == 1]) for x in self.int2vec ] )
+#         self.lbl_one        = list( set(''.join(self.int2lbl)) )
+#         self.num_char       = len( self.int2vec[0] )
+#         self.num_states     = len( self.lbl_one )
+
+#         # relational info
+#         self.lbl2int = {k:v for k,v in list(zip(self.int2lbl, self.int2int))}
+#         self.lbl2set = {k:v for k,v in list(zip(self.int2lbl, self.int2set))}
+#         self.lbl2vec = {k:v for k,v in list(zip(self.int2lbl, self.int2vec))}
+#         self.vec2int = {tuple(k):v for k,v in list(zip(self.int2vec, self.int2int))}
+#         self.vec2lbl = {tuple(k):v for k,v in list(zip(self.int2vec, self.int2lbl))}
+#         self.vec2set = {tuple(k):v for k,v in list(zip(self.int2vec, self.int2set))}
+#         self.set2vec = {tuple(k):v for k,v in list(zip(self.int2set, self.int2vec))}
+#         self.set2int = {tuple(k):v for k,v in list(zip(self.int2set, self.int2int))}
+#         self.set2lbl = {tuple(k):v for k,v in list(zip(self.int2set, self.int2lbl))}
+#         self.int2vecstr = [ ''.join([str(y) for y in x]) for x in self.int2vec ]
+#         self.vecstr2int = { v:i for i,v in enumerate(self.int2vecstr) }
+       
+#         # done
+#         return
+
+#     def make_str(self):
+#         """
+#         Creates a string representation of the state space.
+
+#         Returns:
+#             str: The string representation of the state space.
+#         """
+#         # state space: {'A': [1, 0, 0], 'B': [0, 1, 0], 'C': [0, 0, 1], 'AB': [1, 1, 0], 'AC': [1, 0, 1], 'BC': [0, 1, 1], 'ABC': [1, 1, 1]}
+#         # string: Statespace(A,0,100;B,1,010;C,2,001;AB,3,110;AC,4,101;BC,5,011;ABC,6,111)
+#         s = 'Statespace('
+#         x = []
+#         for i in self.int2int:
+#             # each state in the space is reported as STRING,INT,VECTOR;
+#             x.append( self.int2lbl[i] + ',' + str(self.int2int[i]) + ',' + ''.join( str(x) for x in self.int2vec[i]) )
+#         s += ';'.join(x) + ')'
+#         return s
+
+#     # representation string
+#     def __repr__(self):
+#         """
+#         Returns the representation of the state space.
+
+#         Returns:
+#             str: The representation of the state space.
+#         """
+#         return self.make_str()
+#     # print string
+#     def __str__(self):
+#         """
+#         Returns the string representation of the state space.
+
+#         Returns:
+#             str: The string representation of the state space.
+#         """
+#         return self.make_str()

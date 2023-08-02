@@ -20,7 +20,7 @@ import pandas as pd
 import tensorflow as tf
 
 # phyddle imports
-from phyddle import utilities
+from phyddle import utilities as util
 
 #------------------------------------------------------------------------------#
 
@@ -64,14 +64,14 @@ class Estimator:
         # construct filepaths
         self.prepare_filepaths()
         # get size of CPV+S tensors
-        self.num_tree_row = utilities.get_num_tree_row(self.tree_encode,
-                                                       self.brlen_encode)
-        self.num_char_row = utilities.get_num_char_row(self.char_encode,
-                                                       self.num_char,
-                                                       self.num_states)
+        self.num_tree_row = util.get_num_tree_row(self.tree_encode,
+                                                  self.brlen_encode)
+        self.num_char_row = util.get_num_char_row(self.char_encode,
+                                                  self.num_char,
+                                                  self.num_states)
         self.num_data_row = self.num_tree_row + self.num_char_row
         # create logger to track runtime info
-        self.logger = utilities.Logger(args)
+        self.logger = util.Logger(args)
         # done
         return
     
@@ -105,7 +105,8 @@ class Estimator:
         Prepare filepaths for the project.
 
         This script generates all the filepaths for input and output based off
-        of Trainer attributes.
+        of Trainer attributes. The Format and Train directories are input and
+        the Estimate directory is used for both input and output.
 
         Returns: None
         """
@@ -113,7 +114,7 @@ class Estimator:
         self.trn_proj_dir           = f'{self.trn_dir}/{self.trn_proj}'
         self.est_proj_dir           = f'{self.est_dir}/{self.est_proj}'
 
-        # main job filenames
+        # prefixes
         self.model_prefix           = f'sim_batchsize{self.batch_size}_numepoch{self.num_epochs}_nt{self.tree_width}'
         self.trn_prefix_dir         = f'{self.trn_proj_dir}/{self.model_prefix}'
         self.est_prefix_dir         = f'{self.est_proj_dir}/{self.est_prefix}'
@@ -158,26 +159,25 @@ class Estimator:
         multiprocessing.Pool. When self.use_parallel is false, jobs are run
         serially with one CPU.
         """
+        verbose = self.verbose
 
         # print header
-        utilities.print_step_header(step='est',
-                                    in_dir=[self.est_proj_dir, self.trn_proj_dir],
-                                    out_dir=self.est_proj_dir,
-                                    verbose=self.verbose)        
+        util.print_step_header('est', [self.est_proj_dir, self.trn_proj_dir],
+                               self.est_proj_dir, verbose)
         
         # prepare workspace
         os.makedirs(self.est_proj_dir, exist_ok=True)
 
         # load input
-        utilities.print_str('▪ Loading input ...', verbose=self.verbose)
+        util.print_str('▪ Loading input ...', verbose)
         self.load_input()
 
         # make estimates
-        utilities.print_str('▪ Making estimates ...', verbose=self.verbose)
+        util.print_str('▪ Making estimates ...', verbose)
         self.make_results()
 
         # done
-        utilities.print_str('... done!', verbose=self.verbose)
+        util.print_str('... done!', verbose)
         
     def load_input(self):
         """
@@ -219,8 +219,9 @@ class Estimator:
 
         # reshape and rescale new aux data
         self.est_auxdata_tensor.shape = (1, -1)
-        self.norm_est_aux_data = utilities.normalize(self.est_auxdata_tensor, (self.train_aux_data_means, self.train_aux_data_sd))
-        # self.denormalized_est_aux_data  = utilities.denormalize(self.norm_est_aux_data, self.train_aux_data_means, self.train_aux_data_sd)
+        self.norm_est_aux_data = util.normalize(self.est_auxdata_tensor,
+                                                (self.train_aux_data_means, self.train_aux_data_sd))
+        # self.denormalized_est_aux_data  = util.denormalize(self.norm_est_aux_data, self.train_aux_data_means, self.train_aux_data_sd)
 
         # read in CQR interval adjustments
         self.cpi_adjustments = pd.read_csv(self.model_cpi_fn, sep=',', index_col=False).to_numpy()
@@ -247,16 +248,16 @@ class Estimator:
         # adjust upper CPI
         self.norm_est[2,:,:] = self.norm_est[2,:,:] + self.cpi_adjustments[1,:]
         # denormalize results
-        self.denormalized_est_labels = utilities.denormalize(self.norm_est,
-                                                             self.train_labels_means,
-                                                             self.train_labels_sd)
+        self.denormalized_est_labels = util.denormalize(self.norm_est,
+                                                        self.train_labels_means,
+                                                        self.train_labels_sd)
         # avoid overflow
         self.denormalized_est_labels[self.denormalized_est_labels > 300.] = 300.
         # revert from log to linear scalle
         self.est_labels = np.exp( self.denormalized_est_labels )
         # convert parameters to param table
-        self.df_est_all_labels = utilities.make_param_VLU_mtx(self.est_labels,
-                                                              self.param_names)
+        self.df_est_all_labels = util.make_param_VLU_mtx(self.est_labels,
+                                                         self.param_names)
         # save results to file
         self.df_est_all_labels.to_csv(self.model_est_fn, index=False, sep=',')
         # done
