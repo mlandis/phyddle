@@ -142,28 +142,28 @@ class Formatter:
         tensor-formatted dataset, then combines all individual tensors into
         a single tensor that contains all training examples.
         """
+        
+        verbose = self.verbose
+
         # print header
-        utilities.print_step_header(step='fmt',
-                                    in_dir=[self.sim_proj_dir],
-                                    out_dir=self.fmt_proj_dir,
-                                    verbose=self.verbose)
+        utilities.print_step_header('fmt',
+                                    [self.sim_proj_dir],
+                                    self.fmt_proj_dir,
+                                    verbose)
         
         # prepare workspace
         os.makedirs(self.fmt_proj_dir, exist_ok=True)
 
         # encode each dataset into individual tensors
-        utilities.print_str('▪ Encoding raw data as tensors ...',
-                            verbose=self.verbose)
+        utilities.print_str('▪ Encoding raw data as tensors ...', verbose)
         self.encode_all()
 
         # write tensors across all examples to file
-        utilities.print_str('▪ Combining and writing tensors ...',
-                            verbose=self.verbose)
+        utilities.print_str('▪ Combining and writing tensors ...', verbose)
         self.write_tensor()
 
         # done
-        utilities.print_str('... done!',
-                            verbose=self.verbose)
+        utilities.print_str('... done!', verbose)
 
     
     def make_settings_str(self, idx, tree_width):

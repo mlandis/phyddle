@@ -68,7 +68,6 @@ class Simulator:
 
         Args:
             args (dict): Contains phyddle settings.
-
         """
         # initialize with phyddle settings
         self.set_args(args)
@@ -88,7 +87,6 @@ class Simulator:
 
         Args:
             args (dict): Contains phyddle settings.
-
         """
         # simulator arguments
         self.args         = args
@@ -118,17 +116,19 @@ class Simulator:
         multiprocessing.Pool. When self.use_parallel is false, jobs are run
         serially with one CPU.
         """
+        verbose = self.verbose
+
         # print header
-        utilities.print_step_header(step='sim',
-                                    in_dir=None,
-                                    out_dir=self.sim_proj_dir,
-                                    verbose=self.verbose)
+        utilities.print_step_header('sim',
+                                    None,
+                                    self.sim_proj_dir,
+                                    verbose)
 
         # prepare workspace
-        os.makedirs( self.sim_dir + '/' + self.sim_proj, exist_ok=True )
+        os.makedirs(self.sim_proj_dir, exist_ok=True)
     
         # dispatch jobs
-        utilities.print_str('▪ Simulating raw data ...', verbose=self.verbose)
+        utilities.print_str('▪ Simulating raw data ...', verbose)
         if self.use_parallel:
             # parallel jobs
             # Note, it's critical to call this as list(tqdm(pool.imap(...)))
@@ -151,7 +151,7 @@ class Simulator:
                                                       desc='Simulating') ]
 
         # done
-        utilities.print_str('... done!', verbose=self.verbose)
+        utilities.print_str('... done!', verbose)
         return
     
     # main simulation function (looped)

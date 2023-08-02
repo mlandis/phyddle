@@ -1396,7 +1396,7 @@ def phyddle_str(s, style=1, fg=34):
     x      = CSTART + s + CEND
     return x
 
-def print_str(s, style=1, fg=34, verbose=True):
+def print_str(s, verbose=True, style=1, fg=34):
     """
     Prints the formatted string to the standard output.
 
@@ -1441,7 +1441,7 @@ def phyddle_header(s, style=1, fg=34):
 
     return x
 
-def print_step_header(step, in_dir, out_dir, style=1, fg=34, verbose=True):
+def print_step_header(step, in_dir, out_dir, verbose=True, style=1, fg=34):
     """
     Generate the information string for phyddle.
     
