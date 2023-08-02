@@ -42,14 +42,14 @@ except RuntimeError:
 #------------------------------------------------------------------------------#
 
 def load(args):
-    """Load a Formatter object.
+    """
+    Load a Formatter object.
 
     This function creates an instance of the Formatter class, initialized using
     phyddle settings stored in args (dict).
 
     Args:
         args (dict): Contains phyddle settings.
-
     """
     # settings
     sys.setrecursionlimit(10000)
@@ -59,7 +59,7 @@ def load(args):
     if format_method == 'default':
         return Formatter(args)
     else:
-        return None
+        return NotImplementedError
 
 #------------------------------------------------------------------------------#
 
@@ -74,7 +74,6 @@ class Formatter:
 
         Args:
             args (dict): Contains phyddle settings.
-
         """
         # initialize with phyddle settings
         self.set_args(args)
@@ -85,14 +84,12 @@ class Formatter:
         # run() attempts to generate one simulation per value in rep_idx,
         # where rep_idx is list of unique ints to identify simulated datasets
         self.rep_idx      = list(range(self.start_idx, self.end_idx))
-        # number of rows we need to tree data
+        # get size of CPV+S tensors
         self.num_tree_row = utilities.get_num_tree_row(self.tree_encode,
                                                        self.brlen_encode)
-        # number of rows for character matrix data
         self.num_char_row = utilities.get_num_char_row(self.char_encode,
                                                        self.num_char,
                                                        self.num_states)
-        # number of rows for phylo state tensor
         self.num_data_row = self.num_tree_row + self.num_char_row
         # create logger to track runtime info
         self.logger = utilities.Logger(args)

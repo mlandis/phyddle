@@ -32,17 +32,30 @@ from phyddle import utilities
 #------------------------------------------------------------------------------#
 
 def load(args):
+    """
+    Load a Plotter object.
+
+    This function creates an instance of the Plotter class, initialized using
+    phyddle settings stored in args (dict).
+
+    Args:
+        args (dict): Contains phyddle settings.
+    """
+    
     # load object
     plot_method = 'default'
     if plot_method == 'default':
         return Plotter(args)
     else:
-        return None
+        return NotImplementedError
 
 #------------------------------------------------------------------------------#
 
 class Plotter:
-    import tensorflow as tf
+    """
+    Class for simulating phylogenetic datasets that can be converted into
+    tensors with the Format step.
+    """
     def __init__(self, args):
         """
         Initializes a Plotter object with the given arguments.
@@ -53,6 +66,7 @@ class Plotter:
         Returns:
             None
         """
+        # initialize with phyddle settings
         self.set_args(args)
         self.prepare_files()
         return

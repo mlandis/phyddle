@@ -29,14 +29,14 @@ from phyddle import utilities
 #------------------------------------------------------------------------------#
 
 def load(args):
-    """Load a Trainer object.
+    """
+    Load a Trainer object.
 
     This function creates an instance of the Trainer class, initialized using
     phyddle settings stored in args (dict).
 
     Args:
         args (dict): Contains phyddle settings.
-
     """
 
     # load object
@@ -46,7 +46,7 @@ def load(args):
     elif trn_objective == 'model_test':
         raise NotImplementedError
     else:
-        return None
+        return NotImplementedError
 
 #------------------------------------------------------------------------------#
 
@@ -174,19 +174,19 @@ class Trainer:
         os.makedirs(self.trn_proj_dir, exist_ok=True)
 
         # perform run tasks
-        utilities.print_str('▪ loading input ...', verbose)
+        utilities.print_str('▪ Loading input ...', verbose)
         self.load_input()
 
-        utilities.print_str('▪ building network ...', verbose)
+        utilities.print_str('▪ Building network ...', verbose)
         self.build_network()
 
-        utilities.print_str('▪ training network ...', verbose)
+        utilities.print_str('▪ Training network ...', verbose)
         self.train()
 
-        utilities.print_str('▪ processing results ...', verbose)
+        utilities.print_str('▪ Processing results ...', verbose)
         self.make_results()
 
-        utilities.print_str('▪ saving results ...', verbose)
+        utilities.print_str('▪ Saving results ...', verbose)
         self.save_results()
 
         utilities.print_str('▪ ... done!', verbose)
@@ -292,7 +292,6 @@ class CnnTrainer(Trainer):
         return
 
     def load_input(self):
-
         """
         Load input data for the model.
 
@@ -301,9 +300,6 @@ class CnnTrainer(Trainer):
         data from files, reshaping tensors, normalizing summary stats and
         labels, randomizing data, and splitting the dataset into training,
         validation, test, and calibration parts.
-
-        Returns:
-            None
         """
         # read phy. data, aux. data, and labels
         if self.tensor_format == 'csv':
@@ -579,9 +575,6 @@ class CnnTrainer(Trainer):
 
         This function undoes all the transformation and rescaling for the 
         input and output datasets.
-
-        Returns:
-            None
         """
         # evaluate (fitting)
         self.mymodel.evaluate([self.test_phy_data_tensor, self.test_sux_data_tensor], self.norm_test_labels)

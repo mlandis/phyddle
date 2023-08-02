@@ -213,72 +213,90 @@ class States:
 # CONFIG LOADER   #
 ###################
 
+def make_step_args(step, args):
+    """Get all args for settings registered with step"""
+    if step not in 'SFTEP':
+        raise ValueError
+    
+    ret = {}
+    # search through all registered phyddle settings
+    settings = settings_registry()
+    for k,v in settings.items():
+        # does this setting apply to the step?
+        if step in v['step']:
+            # get the setting from args to return
+            ret[k] = args[k]
+    # return args the match settings for step
+    return ret
 
 def settings_registry():
+    """
+    Return registry of phyddle settings
+    """
     settings = {
         # basic phyddle options
-        'cfg'              : { 'type':str,   'help':'Config file name', 'opt':'c' },
-        'proj'             : { 'type':str,   'help':'Project name(s) for pipeline step(s)', 'opt':'p' },
-        'step'             : { 'type':str,   'help':'Pipeline step(s) defined with (S)imulate, (F)ormat, (T)rain, (E)stimate, (P)lot, or (A)ll', 'opt':'s' },
-        'verbose'          : { 'type':bool,  'help':'Verbose output to screen?', 'opt':'v' },
-        'force'            : { 'type':None,  'help':'Arguments override config file settings', 'opt':'f' },
-        'make_cfg'         : { 'type':None,  'help':"Write default config file to 'config_default.py'?'" },
+        'cfg'              : { 'step':'',      'type':str,   'help':'Config file name', 'opt':'c' },
+        'proj'             : { 'step':'SFTEP', 'type':str,   'help':'Project name(s) for pipeline step(s)', 'opt':'p' },
+        'step'             : { 'step':'SFTEP', 'type':str,   'help':'Pipeline step(s) defined with (S)imulate, (F)ormat, (T)rain, (E)stimate, (P)lot, or (A)ll', 'opt':'s' },
+        'verbose'          : { 'step':'SFTEP', 'type':bool,  'help':'Verbose output to screen?', 'opt':'v' },
+        'force'            : { 'step':'',      'type':None,  'help':'Arguments override config file settings', 'opt':'f' },
+        'make_cfg'         : { 'step':'',      'type':None,  'help':"Write default config file to 'config_default.py'?'" },
 
         # multiprocessing options 
-        'use_parallel'     : { 'type':bool,  'help':'Use parallelization? (recommended)' },
-        'num_proc'         : { 'type':int,   'help':'Number of cores for multiprocessing (when --use_parallel=True)' },
+        'use_parallel'     : { 'step':'SF',    'type':bool,  'help':'Use parallelization? (recommended)' },
+        'num_proc'         : { 'step':'SF',    'type':int,   'help':'Number of cores for multiprocessing (when --use_parallel=True)' },
         
         # directories
-        'sim_dir'          : { 'type':str,   'help':'Directory for raw simulated data' },
-        'fmt_dir'          : { 'type':str,   'help':'Directory for tensor-formatted simulated data' },
-        'trn_dir'          : { 'type':str,   'help':'Directory for trained networks and training output' },
-        'est_dir'          : { 'type':str,   'help':'Directory for new datasets and estimates' },
-        'plt_dir'          : { 'type':str,   'help':'Directory for plotted results' },
-        'log_dir'          : { 'type':str,   'help':'Directory for logs of analysis metadata' },
+        'sim_dir'          : { 'step':'S',     'type':str,   'help':'Directory for raw simulated data' },
+        'fmt_dir'          : { 'step':'SF',    'type':str,   'help':'Directory for tensor-formatted simulated data' },
+        'trn_dir'          : { 'step':'FT',    'type':str,   'help':'Directory for trained networks and training output' },
+        'est_dir'          : { 'step':'FTE',   'type':str,   'help':'Directory for new datasets and estimates' },
+        'plt_dir'          : { 'step':'FTEP',  'type':str,   'help':'Directory for plotted results' },
+        'log_dir'          : { 'step':'SFTEP', 'type':str,   'help':'Directory for logs of analysis metadata' },
 
         # simulation options
-        'sim_command'      : { 'type':str,   'help':'Simulation command to run single job (see documentation)' },
-        'sim_logging'      : { 'type':str,   'help':'Simulation logging style', 'choices':['clean', 'verbose', 'compress'] },
-        'start_idx'        : { 'type':int,   'help':'Start replicate index for simulated training dataset' },
-        'end_idx'          : { 'type':int,   'help':'End replicate index for simulated training dataset' },
+        'sim_command'      : { 'step':'S',     'type':str,   'help':'Simulation command to run single job (see documentation)' },
+        'sim_logging'      : { 'step':'S',     'type':str,   'help':'Simulation logging style', 'choices':['clean', 'verbose', 'compress'] },
+        'start_idx'        : { 'step':'SF',    'type':int,   'help':'Start replicate index for simulated training dataset' },
+        'end_idx'          : { 'step':'SF',    'type':int,   'help':'End replicate index for simulated training dataset' },
 
         # formatting options
-        'num_char'         : { 'type':int,   'help':'Number of characters' },
-        'num_states'       : { 'type':int,   'help':'Number of states per character' },
-        'min_num_taxa'     : { 'type':int,   'help':'Minimum number of taxa allowed when formatting' },
-        'max_num_taxa'     : { 'type':int,   'help':'Maximum number of taxa allowed when formatting' },
-        'tree_width_cats'  : { 'type':str,   'help':'The phylo-state tensor widths for formatting training datasets (space-delimited)' },
-        'tree_encode'      : { 'type':str,   'help':'Encoding strategy for tree',                   'choices':['extant', 'serial'] },
-        'brlen_encode'     : { 'type':str,   'help':'Encoding strategy for branch lengths',         'choices':['height_only', 'height_brlen'] },
-        'char_encode'      : { 'type':str,   'help':'Encoding strategy for character data',         'choices':['one_hot', 'integer', 'numeric'] },
-        'char_format'      : { 'type':str,   'help':'File format for character data',               'choices':['csv', 'nexus'] },
-        'tensor_format'    : { 'type':str,   'help':'File format for training example tensors',     'choices':['csv', 'hdf5'] },
-        'save_phyenc_csv'  : { 'type':bool,  'help':'Save encoded phylogenetic tensor encoding to csv?' },
+        'num_char'         : { 'step':'FTE',   'type':int,   'help':'Number of characters' },
+        'num_states'       : { 'step':'FTE',   'type':int,   'help':'Number of states per character' },
+        'min_num_taxa'     : { 'step':'F',     'type':int,   'help':'Minimum number of taxa allowed when formatting' },
+        'max_num_taxa'     : { 'step':'F',     'type':int,   'help':'Maximum number of taxa allowed when formatting' },
+        'tree_width_cats'  : { 'step':'F',     'type':str,   'help':'The phylo-state tensor widths for formatting training datasets (space-delimited)' },
+        'tree_encode'      : { 'step':'FTE',   'type':str,   'help':'Encoding strategy for tree',                   'choices':['extant', 'serial'] },
+        'brlen_encode'     : { 'step':'FTE',   'type':str,   'help':'Encoding strategy for branch lengths',         'choices':['height_only', 'height_brlen'] },
+        'char_encode'      : { 'step':'FTE',   'type':str,   'help':'Encoding strategy for character data',         'choices':['one_hot', 'integer', 'numeric'] },
+        'char_format'      : { 'step':'FTE',   'type':str,   'help':'File format for character data',               'choices':['csv', 'nexus'] },
+        'tensor_format'    : { 'step':'FTE',   'type':str,   'help':'File format for training example tensors',     'choices':['csv', 'hdf5'] },
+        'save_phyenc_csv'  : { 'step':'F',     'type':bool,  'help':'Save encoded phylogenetic tensor encoding to csv?' },
         
         # training options
-        'trn_objective'    : { 'type':str,   'help':'Objective of training procedure', 'choices':['param_est', 'model_test'] },
-        'tree_width'       : { 'type':int,   'help':'The phylo-state tensor width used to train the neural network' },
-        'num_epochs'       : { 'type':int,   'help':'Number of training epochs' },
-        'batch_size'       : { 'type':int,   'help':'Training batch sizes' },
-        'prop_test'        : { 'type':float, 'help':'Proportion of data used as test examples (assess trained network performance)' },
-        'prop_val'         : { 'type':float, 'help':'Proportion of data used as validation examples (diagnose network overtraining)' },
-        'prop_cal'         : { 'type':float, 'help':'Proportion of data used as calibration examples (calibrate CPIs)' },
-        'combine_test_val' : { 'type':bool,  'help':'Combine test and validation datasets when assessing network fit?' },
-        'cpi_coverage'     : { 'type':float, 'help':'Expected coverage percent for calibrated prediction intervals (CPIs)' },
-        'cpi_asymmetric'   : { 'type':bool,  'help':'Use asymmetric (True) or symmetric (False) adjustments for CPIs?' },
-        'loss'             : { 'type':str,   'help':'Loss function for optimization', 'choices':['mse', 'mae']},
-        'optimizer'        : { 'type':str,   'help':'Method used for optimizing neural network', 'choices':['adam'] },
+        'trn_objective'    : { 'step':'T',     'type':str,   'help':'Objective of training procedure', 'choices':['param_est', 'model_test'] },
+        'tree_width'       : { 'step':'TEP',   'type':int,   'help':'The phylo-state tensor width used to train the neural network' },
+        'num_epochs'       : { 'step':'TEP',   'type':int,   'help':'Number of training epochs' },
+        'batch_size'       : { 'step':'TEP',   'type':int,   'help':'Training batch sizes' },
+        'prop_test'        : { 'step':'T',     'type':float, 'help':'Proportion of data used as test examples (assess trained network performance)' },
+        'prop_val'         : { 'step':'T',     'type':float, 'help':'Proportion of data used as validation examples (diagnose network overtraining)' },
+        'prop_cal'         : { 'step':'T',     'type':float, 'help':'Proportion of data used as calibration examples (calibrate CPIs)' },
+        'combine_test_val' : { 'step':'T',     'type':bool,  'help':'Combine test and validation datasets when assessing network fit?' },
+        'cpi_coverage'     : { 'step':'T',     'type':float, 'help':'Expected coverage percent for calibrated prediction intervals (CPIs)' },
+        'cpi_asymmetric'   : { 'step':'T',     'type':bool,  'help':'Use asymmetric (True) or symmetric (False) adjustments for CPIs?' },
+        'loss'             : { 'step':'T',     'type':str,   'help':'Loss function for optimization', 'choices':['mse', 'mae']},
+        'optimizer'        : { 'step':'T',     'type':str,   'help':'Method used for optimizing neural network', 'choices':['adam'] },
         
         # estimating options
-        'est_prefix'       : { 'type':str,  'help':'Predict results for this dataset' },
+        'est_prefix'       : { 'step':'EP',    'type':str,  'help':'Predict results for this dataset' },
 
         # plotting options
-        'plot_train_color' : { 'type':str,  'help':'Plotting color for training data elements' },
-        'plot_label_color' : { 'type':str,  'help':'Plotting color for training label elements' },
-        'plot_test_color'  : { 'type':str,  'help':'Plotting color for test data elements' },
-        'plot_val_color'   : { 'type':str,  'help':'Plotting color for validation data elements' },
-        'plot_aux_color'   : { 'type':str,  'help':'Plotting color for auxiliary data elements' },
-        'plot_est_color'   : { 'type':str,  'help':'Plotting color for new estimation elements' }
+        'plot_train_color' : { 'step':'P',     'type':str,  'help':'Plotting color for training data elements' },
+        'plot_label_color' : { 'step':'P',     'type':str,  'help':'Plotting color for training label elements' },
+        'plot_test_color'  : { 'step':'P',     'type':str,  'help':'Plotting color for test data elements' },
+        'plot_val_color'   : { 'step':'P',     'type':str,  'help':'Plotting color for validation data elements' },
+        'plot_aux_color'   : { 'step':'P',     'type':str,  'help':'Plotting color for auxiliary data elements' },
+        'plot_est_color'   : { 'step':'P',     'type':str,  'help':'Plotting color for new estimation elements' }
     }
     return settings
 

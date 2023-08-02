@@ -39,16 +39,17 @@ except RuntimeError:
 #------------------------------------------------------------------------------#
 
 def load(args):
-    """Load a Simulator object.
+    """
+    Load a Simulator object.
 
     This function creates an instance of the Simulator class, initialized using
     phyddle settings stored in args (dict).
 
     Args:
         args (dict): Contains phyddle settings.
-
     """
 
+    # load object
     simulate_method = 'default'
     if simulate_method == 'default':
         return Simulator(args)
@@ -99,6 +100,10 @@ class Simulator:
         self.use_parallel = args['use_parallel']
         self.sim_command  = args['sim_command']
         self.sim_logging  = args['sim_logging']
+        # TODO: automatic set arg
+        # step_args = utilities.make_step_args('S', args)
+        # for k,v in step_args.items():
+        #     setattr(self, k, v)
         return
 
     def run(self):
