@@ -58,7 +58,7 @@ args = {
     # Train Step settings           #
     #-------------------------------#
     'trn_objective'     : 'param_est',      # what is the learning task? param_est or model_test
-    'tree_width'        : 500,              # tree width category used to train network
+    'tree_width'        : 200,              # tree width category used to train network
     'num_epochs'        : 20,               # number of training intervals (epochs)
     'prop_test'         : 0.05,             # proportion of sims in test dataset
     'prop_val'          : 0.05,             # proportion of sims in validation dataset

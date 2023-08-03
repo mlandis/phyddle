@@ -115,7 +115,7 @@ class Estimator:
         self.est_proj_dir           = f'{self.est_dir}/{self.est_proj}'
 
         # prefixes
-        self.model_prefix           = f'sim_batchsize{self.batch_size}_numepoch{self.num_epochs}_nt{self.tree_width}'
+        self.model_prefix           = f'train_batchsize{self.batch_size}_numepoch{self.num_epochs}_nt{self.tree_width}'
         self.trn_prefix_dir         = f'{self.trn_proj_dir}/{self.model_prefix}'
         self.est_prefix_dir         = f'{self.est_proj_dir}/{self.est_prefix}'
 
@@ -129,7 +129,7 @@ class Estimator:
         self.model_est_fn           = f'{self.est_prefix_dir}.{self.model_prefix}.est_labels.csv'
 
         # test summ stats
-        self.est_aux_data_fn        = f'{self.est_prefix_dir}.aux_data.csv'
+        self.est_aux_data_fn        = f'{self.est_prefix_dir}.summ_stat.csv'
         self.est_known_param_fn     = f'{self.est_prefix_dir}.known_param.csv'
 
         # test phy vector

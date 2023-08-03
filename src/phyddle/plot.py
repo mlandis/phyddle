@@ -124,7 +124,7 @@ class Plotter:
         self.plt_proj_prefix    = f'{self.plt_proj_dir}/{self.network_prefix}'
         
         # tensors
-        self.input_stats_fn     = f'{self.fmt_proj_prefix}.summ_stat.csv'
+        self.input_aux_data_fn     = f'{self.fmt_proj_prefix}.summ_stat.csv'
         self.input_labels_fn    = f'{self.fmt_proj_prefix}.labels.csv'
         self.input_hdf5_fn      = f'{self.fmt_proj_prefix}.hdf5'
 
@@ -137,13 +137,13 @@ class Plotter:
         self.history_json_fn    = f'{self.trn_proj_prefix}.train_history.json'
 
         # estimates
-        self.est_aux_fn         = f'{self.est_proj_prefix}.aux_data.csv'
+        self.est_summ_stat_fn   = f'{self.est_proj_prefix}.summ_stat.csv'
         self.est_lbl_fn         = f'{self.est_proj_prefix}.{self.network_prefix}.est_labels.csv'
         self.est_known_param_fn = f'{self.est_proj_prefix}.known_param.csv'
         
         # plotting output
-        self.save_hist_aux_fn   = f'{self.plt_proj_prefix}.histogram_aux.pdf'
-        self.save_hist_label_fn = f'{self.plt_proj_prefix}.histogram_label.pdf'
+        self.save_hist_aux_fn   = f'{self.plt_proj_prefix}.density_aux.pdf'
+        self.save_hist_label_fn = f'{self.plt_proj_prefix}.density_label.pdf'
         self.save_pca_aux_fn    = f'{self.plt_proj_prefix}.pca_aux.pdf'
         self.save_cpi_est_fn    = f'{self.plt_proj_prefix}.est_CPI.pdf'
         self.save_network_fn    = f'{self.plt_proj_prefix}.network_architecture.pdf'
@@ -183,8 +183,6 @@ class Plotter:
         util.print_str('... done!', verbose=self.verbose)
         return
 
-#------------------------------------------------------------------------------#
-
     def load_input(self):
         """
         Load input data for plotting.
@@ -198,14 +196,14 @@ class Plotter:
         ### load input from Format step
         if self.tensor_format == 'csv':
             # csv tensor format
-            self.input_stats = pd.read_csv( self.input_stats_fn )
+            self.input_aux_data = pd.read_csv( self.input_aux_data_fn )
             self.input_labels = pd.read_csv( self.input_labels_fn )
         elif self.tensor_format == 'hdf5':
             # hdf5 tensor format
             hdf5_file = h5py.File(self.input_hdf5_fn, 'r')
-            self.input_stat_names = [ s.decode() for s in hdf5_file['aux_data_names'][0,:] ]
+            self.input_aux_data_names = [ s.decode() for s in hdf5_file['aux_data_names'][0,:] ]
             self.input_label_names = [ s.decode() for s in hdf5_file['label_names'][0,:] ]
-            self.input_stats = pd.DataFrame( hdf5_file['aux_data'][:,:], columns=self.input_stat_names )
+            self.input_aux_data = pd.DataFrame( hdf5_file['aux_data'][:,:], columns=self.input_aux_data_names )
             self.input_labels = pd.DataFrame( hdf5_file['labels'][:,:], columns=self.input_label_names )
             hdf5_file.close()
 
@@ -226,16 +224,17 @@ class Plotter:
 
         ### load input from Estimate step
         # read in aux. data from new dataset, if it exists
-        self.est_aux_loaded         = os.path.isfile(self.est_aux_fn) 
-        self.est_known_param_loaded = os.path.isfile(self.est_known_param_fn)
+        self.est_aux_loaded = os.path.isfile(self.est_summ_stat_fn) 
         if self.est_aux_loaded:
-            self.est_aux_data       = pd.read_csv(self.est_aux_fn)
+            self.est_aux_data = pd.read_csv(self.est_summ_stat_fn)
+        self.est_known_param_loaded = os.path.isfile(self.est_known_param_fn)
         if self.est_known_param_loaded:
             self.est_known_params = pd.read_csv(self.est_known_param_fn) #, sep=',', index_col=False).to_numpy().flatten()
             self.est_aux_data = pd.concat( [self.est_aux_data, self.est_known_params], axis=1)
-            self.est_aux_data = self.est_aux_data[self.input_stats.columns]
+            self.est_aux_data = self.est_aux_data[self.input_aux_data.columns]
         if not self.est_aux_loaded and not self.est_known_param_loaded:
             self.est_aux_data = None
+
         # read in estimates from new dataset, if it exists
         self.est_lbl_loaded = os.path.isfile(self.est_lbl_fn)
         if self.est_lbl_loaded:
@@ -256,6 +255,8 @@ class Plotter:
 
         # done
         return
+    
+#------------------------------------------------------------------------------#
 
     def generate_plots(self):
         """
@@ -272,67 +273,30 @@ class Plotter:
         Plots are generated based on args, which initialize filenames,
         datasets, and colors.
         """
-        # get counts for thinning train/test examples
-        self.max_est_display= 250
-        self.train_ests_max_idx = min( self.max_est_display, self.train_ests.shape[0] )
-        self.train_labels_max_idx = min( self.max_est_display, self.train_labels.shape[0] )
-        self.test_ests_max_idx = min( self.max_est_display, self.test_ests.shape[0] )
-        self.test_labels_max_idx = min( self.max_est_display, self.test_labels.shape[0] )
-
-        # training stats
-        self.make_history_plot(self.history_dict,
-                               prefix=self.network_prefix+'.history',
-                               plot_dir=self.plt_proj_dir,
-                               train_color=self.train_color,
-                               val_color=self.validation_color)
-
-        # train prediction scatter plots
-        self.plot_est_labels(\
-            ests=self.train_ests.iloc[0:self.train_ests_max_idx],
-            labels=self.train_labels.iloc[0:self.train_labels_max_idx],
-            param_names=self.param_names,
-            prefix=self.network_prefix+'.train',
-            color=self.train_color,
-            plot_dir=self.plt_proj_dir,
-            title='Train')
-
-        # test prediction scatter plots
-        self.plot_est_labels(\
-            ests=self.test_ests.iloc[0:self.test_ests_max_idx],
-            labels=self.test_labels.iloc[0:self.test_labels_max_idx],
-            param_names=self.param_names,
-            prefix=self.network_prefix+'.test',
-            color=self.test_color,
-            plot_dir=self.plt_proj_dir,
-            title='Test')
-
-        # training aux. data histogram
-        self.plot_sim_histogram(save_fn=self.save_hist_aux_fn,
-                                sim_values=self.input_stats,
-                                est_values=self.est_aux_data,
-                                color=self.aux_color, title='Aux. data')
+        
+        # training aux. data densities
+        self.make_plot_stat_density('aux_data')
         
         # training labels histogram
-        self.plot_sim_histogram(save_fn=self.save_hist_label_fn,
-                                sim_values=self.input_labels,
-                                est_values=self.est_lbl_value,
-                                color=self.label_color,
-                                title='Labels' )
+        self.make_plot_stat_density('labels')
         
         # PCA of training aux. data
-        self.plot_pca(save_fn=self.save_pca_aux_fn,
-                      sim_values=self.input_stats,
-                      est_values=self.est_aux_data,
-                      color=self.aux_color)
+        self.make_plot_pca()
+
+        # train scatter accuracy
+        self.make_plot_scatter_accuracy('train')
+
+        # test scatter accuracy
+        self.make_plot_scatter_accuracy('test')
+
+        # when available, point estimates and CPIs for new dataset
+        self.make_plot_est_CI()
         
-        # point estimates and CPIs for new dataset estimates, if available
-        self.plot_est_CI(save_fn=self.save_cpi_est_fn,
-                         est_label=self.est_lbl_df,
-                         title=f'Estimate: {self.est_dir}/{self.est_prefix}',
-                         color=self.est_color)
-        
+        # training history stats
+        self.make_plot_train_history()
+
         # network architecture
-        tf.keras.utils.plot_model(self.model, to_file=self.save_network_fn, show_shapes=True)
+        self.make_plot_network_architecture()
 
         #done
         return
@@ -356,26 +320,23 @@ class Plotter:
             if all([has_pdf, has_net, has_all_not]):
                 files.append(f)
 
-        #files = [ f for f in files if '.pdf' in f and self.network_prefix in f and 'all_results' not in f ]
-
         # get files for different categories
-        files_CPI        = list(filter(lambda x: 'CPI' in '.'.join(x.split('.')[-2:]), files))
-        files_pca        = list(filter(lambda x: 'pca' in '.'.join(x.split('.')[-2:]), files))
-        files_histogram  = list(filter(lambda x: 'histogram' in '.'.join(x.split('.')[-2:]), files))
-        files_train      = list(filter(lambda x: 'train' in '.'.join(x.split('.')[-2:]), files))
-        files_test       = list(filter(lambda x: 'test' in '.'.join(x.split('.')[-2:]), files))
-        files_arch       = list(filter(lambda x: 'architecture' in '.'.join(x.split('.')[-2:]), files))
-        files_history    = list(filter(lambda x: 'history' in '.'.join(x.split('.')[-2:]), files))
+        files_CPI        = self.filter_files(files, 'CPI')
+        files_pca        = self.filter_files(files, 'pca')
+        files_density    = self.filter_files(files, 'density')
+        files_train      = self.filter_files(files, 'train')
+        files_test       = self.filter_files(files, 'test')
+        files_arch       = self.filter_files(files, 'architecture')
+        files_history    = self.filter_files(files, 'history')
 
         # construct ordered list of files
-        files_ordered = files_CPI + files_pca + files_histogram + files_train + files_test + files_history + files_arch
-        #print(files_CPI)
-        #print(files_ordered)
-
+        files_ordered = files_CPI + files_pca + files_density + \
+                        files_train + files_test + files_history + files_arch
+        
         # combine pdfs
         merger = PdfMerger()
         for f in files_ordered:
-            merger.append(self.plt_proj_dir + '/' + f)
+            merger.append( f'{self.plt_proj_dir}/{f}' )
 
         # write combined pdf
         merger.write(self.save_summary_fn)
@@ -383,9 +344,95 @@ class Plotter:
         # done
         return
 
+    def filter_files(self, files, filter):
+        ret = []
+        for f in files:
+            if filter in '.'.join(f.split('.')[-2:]):
+                ret.append(f)
+        return ret
+    
 #------------------------------------------------------------------------------#
 
-    def plot_sim_histogram(self, save_fn, sim_values, est_values=None,
+    def make_plot_stat_density(self, type):
+        """Calls plot_stat_density with arguments."""
+        assert(type in ['aux_data', 'labels'])
+        if type == 'aux_data':
+            self.plot_stat_density(save_fn=self.save_hist_aux_fn,
+                                   sim_values=self.input_aux_data,
+                                   est_values=self.est_aux_data,
+                                   color=self.aux_color,
+                                   title='Aux. data')
+        elif type == 'labels':
+            self.plot_stat_density(save_fn=self.save_hist_label_fn,
+                                   sim_values=self.input_labels,
+                                   est_values=self.est_lbl_value,
+                                   color=self.label_color,
+                                   title='Labels' )
+                
+        return
+    
+    def make_plot_scatter_accuracy(self, type):
+        """Calls plot_scatter_accuracy with arguments."""
+        assert(type in ['train', 'test'])
+
+        n_max = 250
+        if type == 'train':
+            # plot train scatter
+            n = min(n_max, self.train_ests.shape[0])
+            self.plot_scatter_accuracy(ests=self.train_ests.iloc[0:n],
+                                       labels=self.train_labels.iloc[0:n],
+                                       param_names=self.param_names,
+                                       prefix=f'{self.network_prefix}.train',
+                                       color=self.train_color,
+                                       plot_dir=self.plt_proj_dir,
+                                       title='Train')
+        elif type == 'test':
+            # plot test scatter
+            n = min(n_max, self.test_ests.shape[0])
+            self.plot_scatter_accuracy(ests=self.test_ests.iloc[0:n],
+                                       labels=self.test_labels.iloc[0:n],
+                                       param_names=self.param_names,
+                                       prefix=f'{self.network_prefix}.test',
+                                       color=self.test_color,
+                                       plot_dir=self.plt_proj_dir,
+                                       title='Test')
+        # done
+        return
+
+    def make_plot_pca(self):
+        """Calls plot_PCA with arguments."""
+        self.plot_pca(save_fn=self.save_pca_aux_fn,
+                      sim_values=self.input_aux_data,
+                      est_values=self.est_aux_data,
+                      color=self.aux_color)
+        return
+
+    def make_plot_est_CI(self):
+        """Calls plot_est_CI with arguments."""
+        self.plot_est_CI(save_fn=self.save_cpi_est_fn,
+                         est_label=self.est_lbl_df,
+                         title=f'Estimate: {self.est_dir}/{self.est_prefix}',
+                         color=self.est_color)
+        return
+
+    def make_plot_train_history(self):
+        prefix = f'{self.plt_proj_dir}/{self.network_prefix}.history'
+        self.plot_train_history(self.history_dict,
+                                prefix=prefix,
+                                train_color=self.train_color,
+                                val_color=self.validation_color)
+        return
+
+    def make_plot_network_architecture(self):
+        """Calls tf.keras.utils.plot_model with arguments."""
+        tf.keras.utils.plot_model(self.model,
+                                  to_file=self.save_network_fn,
+                                  show_shapes=True)
+        return
+    
+#------------------------------------------------------------------------------#        
+
+    def plot_stat_density(self, save_fn, sim_values, est_values=None,
                            title='', ncol_plot=3, color='blue'):
         """
         Plots histograms.
@@ -557,76 +604,10 @@ class Plotter:
 
         #done
         return
-
-    def plot_est_CI(self, save_fn, est_label, title='Estimates', color='black', plot_log=True):
-        """
-        Plots point estimates and CPIs.
-
-        This function plots the point estimates and calibrated prediction
-        intervals for the new dataset, if it exists.
-
-        Arguments:
-            save_fn (str): Filename to save plot.
-            est_label (numpy.array): Estimated values from new dataset.
-            title (str): Title for the plot.
-            color (str): Color of histograms
-            plot_log (bool): Plot y-axis on log scale? Default True.
-        """
-        # abort if no labels from Estimate found
-        if est_label is None:
-            return
-
-        # figure size
-        fig_width = 5
-        fig_height = 5
-
-        # data dimensions
-        label_names = est_label.columns
-        num_label = len(label_names)
-        
-        # set up plot
-        plt.figure(figsize=(fig_width,fig_height))      
-        
-        # use log-scale for y-axis?
-        if plot_log:
-            plt.yscale('log')
-
-        # plot each estimated label
-        for i,col in enumerate(label_names):
-            col_data = est_label[col]
-            y_value = col_data[0].iloc[0]
-            y_lower = col_data[0].iloc[1]
-            y_upper = col_data[0].iloc[2]
-            s_value = '{:.2E}'.format(y_value)
-            s_lower = '{:.2E}'.format(y_lower)
-            s_upper = '{:.2E}'.format(y_upper)
-            
-            # plot CI
-            plt.plot([i,i], [y_lower, y_upper],
-                     color=color, linestyle="-", marker='_', linewidth=1.5)
-            
-            # plot values as text
-            for y_,s_ in zip( [y_value,y_lower,y_upper], [s_value, s_lower, s_upper] ):
-                plt.text( x=i+0.10, y=y_, s=s_, color='black', va='center', size=8  )
-
-            # plot point estimate
-            plt.scatter(i, y_value, color='white', edgecolors=color, s=60, zorder=3)
-            plt.scatter(i, y_value, color='red', edgecolors='white', s=30, zorder=3)
-            
-        # plot values as text
-        plt.title(title)
-        plt.xticks(np.arange(num_label), label_names)
-        plt.xlim( -0.5, num_label )
-        plt.savefig(save_fn, format='pdf', dpi=300, bbox_inches='tight')
-        plt.clf()
-        
-        #done
-        return
-
-
-    def plot_est_labels(self, ests, labels, param_names, plot_dir, prefix,
-                        color="blue", axis_labels = ["estimate", "truth"],
-                        title = '', plot_log=False):
+    
+    def plot_scatter_accuracy(self, ests, labels, param_names, plot_dir, prefix,
+                              color="blue", axis_labels = ["estimate", "truth"],
+                              title = '', plot_log=False):
         """
         Plots accuracy of estimates and CPIs for labels.
 
@@ -727,8 +708,72 @@ class Plotter:
         # done    
         return
     
+    def plot_est_CI(self, save_fn, est_label, title='Estimates', color='black', plot_log=True):
+        """
+        Plots point estimates and CPIs.
 
-    def make_history_plot(self, history, prefix, plot_dir, train_color='blue',
+        This function plots the point estimates and calibrated prediction
+        intervals for the new dataset, if it exists.
+
+        Arguments:
+            save_fn (str): Filename to save plot.
+            est_label (numpy.array): Estimated values from new dataset.
+            title (str): Title for the plot.
+            color (str): Color of histograms
+            plot_log (bool): Plot y-axis on log scale? Default True.
+        """
+        # abort if no labels from Estimate found
+        if est_label is None:
+            return
+
+        # figure size
+        fig_width = 5
+        fig_height = 5
+
+        # data dimensions
+        label_names = est_label.columns
+        num_label = len(label_names)
+        
+        # set up plot
+        plt.figure(figsize=(fig_width,fig_height))      
+        
+        # use log-scale for y-axis?
+        if plot_log:
+            plt.yscale('log')
+
+        # plot each estimated label
+        for i,col in enumerate(label_names):
+            col_data = est_label[col]
+            y_value = col_data[0].iloc[0]
+            y_lower = col_data[0].iloc[1]
+            y_upper = col_data[0].iloc[2]
+            s_value = '{:.2E}'.format(y_value)
+            s_lower = '{:.2E}'.format(y_lower)
+            s_upper = '{:.2E}'.format(y_upper)
+            
+            # plot CI
+            plt.plot([i,i], [y_lower, y_upper],
+                     color=color, linestyle="-", marker='_', linewidth=1.5)
+            
+            # plot values as text
+            for y_,s_ in zip( [y_value,y_lower,y_upper], [s_value, s_lower, s_upper] ):
+                plt.text( x=i+0.10, y=y_, s=s_, color='black', va='center', size=8  )
+
+            # plot point estimate
+            plt.scatter(i, y_value, color='white', edgecolors=color, s=60, zorder=3)
+            plt.scatter(i, y_value, color='red', edgecolors='white', s=30, zorder=3)
+            
+        # plot values as text
+        plt.title(title)
+        plt.xticks(np.arange(num_label), label_names)
+        plt.xlim( -0.5, num_label )
+        plt.savefig(save_fn, format='pdf', dpi=300, bbox_inches='tight')
+        plt.clf()
+        
+        #done
+        return
+    
+    def plot_train_history(self, history, prefix, train_color='blue',
                           val_color='red'):
         """
         Plot training history for network.
@@ -740,7 +785,6 @@ class Plotter:
         Arguments:
             history (str): Training performance metrics
             prefix (str): Used to construct filename
-            plot_dir (str): Directory for save
             train_color (str): Color for training example metrics
             val_color (str): Color for validation example metrics
         """
@@ -815,9 +859,13 @@ class Plotter:
             fig.tight_layout()
 
             # save figure
-            save_fn = f'{plot_dir}/{prefix}_{label_names[i]}.pdf'
+            save_fn = f'{prefix}'
+            if label_names[i] != '':
+                save_fn += f'_{label_names[i]}'
+            save_fn += '.pdf'
             plt.savefig(save_fn, format='pdf', dpi=300, bbox_inches='tight')
             plt.clf()
         
         # done
         return
+#------------------------------------------------------------------------------#
