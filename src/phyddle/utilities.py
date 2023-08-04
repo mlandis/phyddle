@@ -44,7 +44,16 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # or any {'0', '1', '2'}
 ###################
 
 def make_step_args(step, args):
-    """Get all args for settings registered with step"""
+    """
+    Collect arguments for a step.
+
+    This function loads the settings registry, then filters out all settings
+    matching a valid step code. The returned dictionary can then be used
+    to initialize the phyddle objects that execute the specified step.
+
+    Returns:
+        ret (dict): args to initialize a phyddle step object
+    """
     if step not in 'SFTEP':
         raise ValueError
     
@@ -61,7 +70,18 @@ def make_step_args(step, args):
 
 def settings_registry():
     """
-    Return registry of phyddle settings
+    Make registry of phyddle settings.
+
+    This function manages all allowed phyddle settings with a dictionary. Each
+    key is the name of a setting, and the value is a dictionary of that the
+    properties for that setting. The properties for each setting are:
+        - step : which step(s) this setting will be applied to
+        - type : argument type expected by argparse
+        - help : argument description for argparse and config file [TBD]
+        - opt  : short single-dash code for argparse (e.g. '-c' )
+
+    Returns:
+        settings (dict) : all valid phyddle settings with extra info
     """
     settings = {
         # basic phyddle options
@@ -135,11 +155,25 @@ def load_config(config_fn,
                 arg_overwrite=True,
                 args=None):
     """
-    Loads the configuration.
+    Makes a dictionary of phyddle arguments.
+    
+    This function populates a dictionary for all phyddle settings that are
+    intended to be customizable by users. The combines information from three
+    main sources: the settings registry, a configuration file, and command
+    line arguments. Overview of steps in function:
+        1. Construct a blank argument parser with argparse
+        2. Retrieve dictionary of registered settings
+        3. Translate registered settings into argparse arguments
+        4. Load configuration file
+        5. Convert configuration dictionary into settings
+        6. Apply command-line argument as settings
+        7. Validate settings (when possible)
+        8. Return settings
 
-    Args:
+    Arguments:
         config_fn (str): The config file name.
-        arg_overwrite (bool, optional): Whether to overwrite config file settings with arguments. Defaults to True.
+        arg_overwrite (bool, optional): Overwrite config file arguments?
+        args (list, optional): List of provided arguments (mainly for debugging)
 
     Returns:
         dict: The loaded configuration.
