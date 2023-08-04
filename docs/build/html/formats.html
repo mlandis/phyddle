@@ -50,8 +50,8 @@
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="pipeline.html">Pipeline</a></li>
 <li class="toctree-l1"><a class="reference internal" href="settings.html">Settings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pipeline.html">Pipeline</a></li>
 <li class="toctree-l1"><a class="reference internal" href="workspace.html">Workspace</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Formats</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#input-datasets">Input datasets</a></li>
@@ -93,7 +93,7 @@
            <div itemprop="articleBody">
              
   <section id="formats">
-<h1>Formats<a class="headerlink" href="#formats" title="Permalink to this heading"></a></h1>
+<span id="id1"></span><h1>Formats<a class="headerlink" href="#formats" title="Permalink to this heading"></a></h1>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>(incomplete) Important: This section assume the project name is ‘example’ while actual projects will likely use different names.</p>
@@ -132,7 +132,7 @@ END<span class="p">;</span>
 </div>
 </section>
 <section id="tensor-formats">
-<span id="id1"></span><h2>Tensor formats<a class="headerlink" href="#tensor-formats" title="Permalink to this heading"></a></h2>
+<span id="id2"></span><h2>Tensor formats<a class="headerlink" href="#tensor-formats" title="Permalink to this heading"></a></h2>
 <p>Phylogenetic data (e.g. from a Newick file) and character matrix data (e.g. from a Nexus file) are encoded into compact phylogenetic state tensors. Internally, phyddle uses <cite>dendropy.Tree</cite> to represent phylogenies, <cite>pandas.DataFrame</cite> to represent character matrices (verify), and <cite>numpy.ndarray</cite> to store phylogenetic-state tensors.</p>
 <p>There are two types of phylogenetic-state tensors in phyddle: the compact bijective ladderized vector + states (CBLV+S) and the compact diversity vector + states (CDV+S). CBLV+S is used for trees that contain serially sampled (non-ultrametric) taxa whereas CDV+S is used for trees that contain only extant (ultrametric) taxa. The <cite>tree_width</cite> of the encoding defines the maximum number of taxa the phylogenetic-state tensor may contain. The <code class="docutils literal notranslate"><span class="pre">tree_type</span></code> setting determines if the tree is a <code class="docutils literal notranslate"><span class="pre">'serial'</span></code> tree encoded with CBLV+S or an <code class="docutils literal notranslate"><span class="pre">'extant'</span></code> tree encoded with CDV+S. Setting <code class="docutils literal notranslate"><span class="pre">tree_encode_type</span></code> and <code class="docutils literal notranslate"><span class="pre">char_encode_type</span></code> alter how information is stored into the phylogenetic-state tensor.</p>
 <section id="cblv-s">

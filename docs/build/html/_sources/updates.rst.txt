@@ -8,6 +8,7 @@ The complete commit history for phyddle is located here: https://github.com/mlan
 
 * Pipeline steps renamed to: Simulate, Format, Train, Estimate, Plot
 * Simulators now in scripts/sim/MASTER, scripts/sim/R, scripts/sim/Rev
+* Streamlined handling of phyddle settings, internally
 * Model configuration code moved outside phyddle
 * MASTER simulator now outside phyddle, in scripts/sim/MASTER
 * Source code reorg/rename

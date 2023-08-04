@@ -5,57 +5,46 @@ Pipeline
 ..
     This guide provides phyddle users with an overview for how the pipeline toolkit works, where it stores files, and how to interpret files and figures. Learn how to configure phyddle analyses by reading the :ref:`Settings` documentation. 
 
-A phyddle pipeline analysis has five steps: :ref:`Simulate`, :ref:`Format`, :ref:`Train`, :ref:`Estimate`, and :ref:`Plot`. Standard analyses run all steps, in order for a single batch of settings. That said, steps can be run multiple times under different settings and orders, which is useful for exploratory and advanced analyses.
+.. note:: 
+    
+    This section describes how a standard phyddle pipeline analysis is configured and how settings determine the behavior of a phyddle analysis. Visit :ref:`Settings` to learn how to assign settings for a phyddle analysis.
 
-This page describes how different analysis settings control phyddle pipeline behavior, whereas the :ref:`Settings` page describes how to apply settings to the software. In addition, the examples in this section follow the :ref:`Example Project Workspace <Example_Project>` layout.
+A phyddle pipeline analysis has five steps: :ref:`Simulate`, :ref:`Format`, :ref:`Train`, :ref:`Estimate`, and :ref:`Plot`.
 
-.. _Model_Configuration:
+Standard analyses run all steps, in order for a single batch of settings. That said, steps can be run multiple times under different settings and orders, which is useful for exploratory and advanced analyses. Visit :ref:`Tricks` to learn how to use phyddle to its fullest potential.
 
-Model Configuration
--------------------
+All pipeline steps create output files. All pipeline (except :ref:`Simulate`) also require input files corresponding to at least one other pipeline step. A full phyddle analysis for a *project* will automatically generate the input files for downstream pipeline steps and store them in a predictable *project directory*.
 
-:ref:`Model_Configuration` is only needed if you use phyddle to simulate training data through the :ref:`Simulate` step. The :ref:`Simulate` step describes what formats phyddle expects for training datasets.
-
-Models in phyddle are designed by setting five control variables: ``model_type``, ``model_variant``, ``num_char``, ``rv_fn``, ``rv_arg``.
-
-At a high level, ``model_type`` defines a class of models that share similar statespaces and eventspaces. The ``model_variant`` defines how rates are assigned to distinct event patterns in the eventspace. The behavior of how characters evolve and how character states influence other evolutionary dynamics are internally determined by ``model_type`` and ``model_variant``. The number of distinct character supported by the model is set by ``num_char``. Lastly, the way base parameter values are drawn for each simulated example in the training dataset are controlled with a set of random variable functions (``rv_fn``) and random variable arguments (``rv_arg``). Both ``rv_fn`` and ``rv_arg`` are dictionaries with keys that correspond to event class labels. With ``rv_fn`` the values are data-generating functions that have arguments and behavior equivalent to ``scipy.stats.distribution.rvs``. With ``rv_arg`` the values are the arguments passed in to the corresponding ``rv_fn`` functions.
-
-Descriptions of supported built-in models that you can specify with ``model_type`` and ``model_variant`` are listed using the ``--show_models``. (More models to come. Developer guide will describe how to add new back-end model variants \[easier\] and types \[harder\].)
+Below is the project directory structure that a standard phyddle analysis would use, assuming the project name was ``example``:
 
 .. code-block:: shell
 
-	$ ./run_phyddle.py --show_models
-	Type                Variant             Description
-	============================================================
-	geosse              --                  Geographic State-dependent Speciation Extinction [GeoSSE]
-						free_rates          rates differ among all events within type
-						equal_rates         rates equal among all events within type
-						density_effect      equal_rates + local density-dependent extinction
+    Simulate 
+    - input:   None
+    - output:  workspace/simulate/example   # simulated datasets
 
-	sirm                --                  Susceptible-Infected-Recovered-Migration [SIRM]
-						free_rates          rates differ among all events within type
-						equal_rates         rates equal among all events within type
+    Format
+    - input:   workspace/simulate/example
+    - output:  workspace/format/example     # formatted datasets
+  
+    Train
+    - input:   workspace/format/example
+    - output:  workspace/train/example      # trained network + results
+  
+    Estimate
+    - input:   workspace/estimate/example   # new (emprical) dataset
+               workspace/train/example
+    - output:  workspace/estimate/example   # new (empirical) estimates
 
-Let's create a geographic state-dependent speciation-extinction (GeoSSE) model as a concrete example. GeoSSE models describe how species move and evolve among discrete regions through four event classes: within-region speciation, between-region speciation, dispersal, and local extinction. We'll create a GeoSSE model for a biogeographic system with three regions where all events within a class have equal rates, where rates are exponentially distributed with expected values of 1.0. The settings in the configuration file for this would be
+    Plot
+    - input:   workspace/format/example
+               workspace/train/example
+               workspace/estimate/example   # (optional)
+    - output:  workspace/plot/example       # analysis figures
 
-.. code-block:: python
+Users may also elect to use phyddle for only some steps in their analysis, and produce files for other steps by different means. For example, :ref:`Format` expects to format and combine large numbers of simulated datasets into tensor formats that can be used for supervised learning with neural networks. These simulated files might be generated with phyddle through the They can either be generated through phyddle with the :ref:`Simulate` step or outside of phyddle entirely.
 
-	'model_type'     : 'geosse',
-	'model_variant'  : 'equal_rates',
-	'num_char'       : 3,
-	'rv_fn'          : {
-			'w' : sp.stats.expon.rvs,
-			'b' : sp.stats.expon.rvs,
-			'd' : sp.stats.expon.rvs,
-			'e' : sp.stats.expon.rvs
-		},
-	'rv_arg'         : {
-			'w' : { 'scale' : 1.0 },
-			'b' : { 'scale' : 1.0 },
-			'd' : { 'scale' : 1.0 },
-			'e' : { 'scale' : 1.0 }
-		}
-
+This page describes how different analysis settings control phyddle pipeline behavior, whereas :ref:`Settings` describes how to apply settings to the software. Visit :ref:`Workspace` to learn how phyddle pipeline analyses require the filesystem for project files to be organized. Visit :ref:`Formats` to learn what formats for input and output files are supported by phyddle. In addition, the examples in this section follow the :ref:`Example Project Workspace <Example_Project>` layout.
 
 
 
@@ -64,21 +53,7 @@ Let's create a geographic state-dependent speciation-extinction (GeoSSE) model a
 Simulate
 --------
 
-:ref:`Simulate` instructs phyddle to simulate your training dataset. Currently, phyddle supports simulation by user-provided :ref:`Command_Line_Simulations` command line scripts and through the :ref:`Master_Simulations` plugin from BEAST.
-
-
-.. _Command_Line_Simulations:
-
-Command Line Simulations
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-Simulators that can be called from command-line can be used to generate training datasets for phyddle.
-This allows researchers to use their favorite simulator with phyddle for phylogenetic modeling tasks.
-
-To use a command-line simulator, set the ``sim_method`` equal to ``command``.
-Next, set ``sim_command`` equal to a command string of the form ``MY_COMMAND [MY_ARGUMENT_LIST]``.
-When simulating, phyddle will append the prefix of a simulation replicate to the command string,
-then execute a command with the form ``MY_COMMAND [MY_ARGUMENT_LIST] SIM_PREFIX``.
+:ref:`Simulate` instructs phyddle to simulate your training dataset. Any simulator that can be called from command-line can be used to generate training datasets with phyddle. This allows researchers to use their favorite simulator with phyddle for phylogenetic modeling tasks.
 
 As a worked example, suppose we have an R script called ``sim_one.R`` containing the following code
 
@@ -124,6 +99,9 @@ First, the simulator is entirely reponsible for simulating the dataset.
 Second, the script assumes it will be provided a runtime argument (``args[1]``) to generate filenames for the training example.
 Third, output for the Newick string is stored into a ``.tre`` file, for the character matrix data into a ``.dat.nex`` Nexus file, and for the training labels into a comma-separated ``.csv`` file.
 
+Now that we understand thee script, we need to configure phyddle to call it properly.
+This is done by setting the ``sim_command`` argumetn equal to a command string of the form ``MY_COMMAND [MY_COMMAND_ARGUMENTS]``. During simulation, phyddle executes the command string against different filepath locations. More specifically, phyddle will execute the commadn ``MY_COMMAND [MY_COMMAND_ARGUMENTS] SIM_PREFIX``, where ``SIM_PREFIX`` contains the beginning of the filepath locating for an individual simulated dataset. As part of the Simulate step, phyddle will execute the command string against a range of values of ``SIM_PREFIX`` generates the complete simulated dataset of replicated training examples.
+
 The correct ``sim_command`` is:
 
 .. code-block:: python
@@ -142,48 +120,29 @@ Assuming ``sim_dir = ../workspace/simulate`` and ``proj = my_project``, phyddle 
 for every replication index between ``start_idx`` and ``end_idx``.
 In fact, executing ``Rscript sim_one.R ../workspace/simulate/my_project/sim.0`` from terminal is the perfect way to validate that your custom simulator is compatible with the phyddle requirements.
 
-.. _Master_Simulations:
-
-MASTER Simulations
-^^^^^^^^^^^^^^^^^^
-MASTER was designed primarily to simulate under Susceptible-Infected-Recovered compartment models from epidemiology. These models allow for lineage to evolve according to rates that depend on the state of the entire evolutionary system. For example, the rate of change for one species may depend on its state and the number of other species in that state or other states. See the Requirements section to see how phyddle expects MASTER and BEAST are configured for its use.
-
-Results from simulations are stored based on the ``sim_dir`` and ``proj`` settings. ``sim_dir`` is the directory in phyddle that contains the "raw" simulated output across all projects, and is typically set to ``simulate``. ``proj`` defines the simulations for a single project. Each individual simulation is assigned a replicate index. You can simulate replicates in different "chunks" with the start (``start_idx``) and end (``end_idx``) index variables, which is especially useful for building up a training dataset for a project over multiple jobs, e.g. on a cluster.
-
-Each replicate being simulated will run for some length of evolutionary time (``stop_time``) and may require some minimum (``min_num_taxa``) and/or maximum (``max_num_taxa``) number of lineages per simulation.
-
-Assuming that ``sim_dir == workspace/simulate`` and ``proj == example``, the standard simulation output will follow this format
-
-.. code-block:: shell
-
-	workspace/simulate/example/sim.0.tre
-	workspace/simulate/example/sim.0.dat.nex
-	workspace/simulate/example/sim.0.param_col.csv
-	workspace/simulate/example/sim.0.param_row.csv
-
-
-The ``.tre`` file contains a Newick string. The ``.dat.nex`` contains a Nexus character matrix. These are reformatted as tensors to become the input training dataset. The ``.param_col.csv`` and ``.param_row.csv`` contain the simulating parameters in column and row format, with the row format files being converted to a tensor of training labels. 
-
-In addition, MASTER will retain only the certain simulated taxa (populations) from the system, set using ``sample_population``. phyddle generates an ``xml`` file that specifies the MASTER simulation, a ``beast.log`` file that reports the text generated by BEAST during simulation, and a ``json`` file that reports metadata about the evolutionary history of the system. These files can be valuable for debugging and postprocessing, but they may become quite large, so the ``sim_logging`` setting will control whether they are retained, compressed, or deleted.
-
-Note, that downstream steps in the pipeline, such as `Format`, only require that the appropriate files with the appropriate content exist to proceed. They can either be generated with the `Simulate` step within phyddle or completely outside of phyddle.
 
 .. _Format:
 
 Format
 ------
 
-Raw simulated data must first boverted into a tensor format to interface with the neural network we'll later train and use for future estimateions. For most computational purposes, it is safe to think of a tensor as an n-dimensional array. It is essential that all individual datasets share a standard shape (e.g. numbers of rows and columns) to ensure the training dataset that contains estimateable data patterns. Learn more about phyddle tensors on the :ref:`Tensor Formats <Tensor_Formats>` page. Briefly, formatting in phyddle encodes two input tensors and one output tensor:
+:ref:`Format` converts the simulated data for a project into a tensor format that phyddle uses to train neural networks in the :ref:`Train` step.
 
-- One input tensor is the **phylogenetic-state tensor**. Loosely speaking, these tensors contain information about terminal taxa across columns and information about relevant branch lengths and states per taxon across rows. The phylogenetic-state tensors used by phyddle are based on the compact bijective ladderized vector (CBLV) format of Voznica et al. (2022).
+:ref:`Format` performs two main tasks:
+1. Encode all individual raw datasets in the simulate project directory into individual tensor representations
+2. Combines all the individual tensors into larger, singular tensors to act as the training dataset
+
+For each simulated example, :ref:`Format` encodes the raw data into two input tensors and one output tensor:
+
+- One input tensor is the **phylogenetic-state tensor**. Loosely speaking, these tensors contain information about terminal taxa across columns and information about relevant branch lengths and states per taxon across rows. The phylogenetic-state tensors used by phyddle are based on the compact bijective ladderized vector (**CBLV**) format of Voznica et al. (2022) and the compact diversity-reordered vector (**CDV**) format of Lambert et al. (2022) that incorporates tip states (**CBLV+S** and **CDV+S**) using the technique described in Thompson et al. (2022).
 - The second input is the **auxiliary data tensor**. This tensor contains summary statistics for the phylogeny and character data matrix and "known" parameters for the data generating process.
-- The output tensor reports **labels** that are generally unknown data generating parameters to be estimated using the neural network.  Depending on the estimation task, all or only some model parameters might be treated as labels for training and estimateion. For example, when ``model_variant == 'free_rates'`` one might want to estimate every rate in the model, but estimate only one parameter per event-class when ``model_variant == 'equal_rates'``.
+- The output tensor reports **labels** that are generally unknown data generating parameters to be estimated using the neural network.  Depending on the estimation task, all or only some model parameters might be treated as labels for training and estimation.
 
-phyddle saves its formatted tensors to ``fmt_dir`` in a subdirectory called ``fmt_proj``. For example, if ``fmt_dir == workspace/format`` and ``fmt_proj == example`` then the tensors are stored in ``workspace/format/example``.
+For most purposes within phyddle, it is safe to think of a tensor as an n-dimensional array, such as a 1-d vector or a 2-d matrix. The tensor encoding ensures training examples share a standard shape (e.g. numbers of rows and columns) that helps the neural network to detect predictable data patterns. Learn more about the formats of phyddle tensors on the :ref:`Tensor Formats <Tensor_Formats>` page.
 
-Format processes the tree, data matrix, and model parameters for each replicate. This is done in parallel, when the setting is enabled. Simulated data are processed using ``CBLV+S`` format if ``tree_type == 'serial'``. If ``tree_type = 'extant'`` then all non-extant taxa are pruned, saved as ``pruned.tre``, then encoded using CDV+S. The size of each tree ($n$) is then used to identify the largest value in ``tree_width_cats`` it can fit into. The phylogenetics-state tensors and auxiliary data tensors are then created. If ``save_phyenc_csv`` is set, then individual csv files are saved for each dataset, which is especially useful for formatting new empirical datasets into an accepted phyddle format. The ``param_pred`` setting identifies which parameters in the labels tensor you want to treat as downstream estimateion targets. The ``param_data`` setting identifies which of those parameters you want to treat as "known" auxiliary data.
+During tensor-encoding, :ref:`Format` processes the tree, data matrix, and model parameters for each replicate. This is done in parallel, when the setting ``use_parallel`` is set to ``True``. Simulated data are processed using CBLV+S format if ``tree_type`` is set to ``'serial'``. If ``tree_type`` is set to ``'extant'`` then all non-extant taxa are pruned, saved as ``pruned.tre``, then encoded using CDV+S. The size of each tree ($n$) is then used to identify the largest value in the integer list ``tree_width_cats`` it can fit into. For example, if ``tree_width_cats`` is has the value ``[200, 500]``, then a training example with 207 taxa would be added to a tensor containing other trees with 201 to 500 taxa. The phylogenetics-state tensors and auxiliary data tensors are then created. If ``save_phyenc_csv`` is set, then individual csv files are saved for each dataset, which is especially useful for formatting new empirical datasets into an accepted phyddle format. The ``param_est`` setting identifies which parameters in the labels tensor you want to treat as downstream estimation targets. The ``param_data`` setting identifies which of those parameters you want to treat as "known" auxiliary data.
 
-Formatted tensors are then saved to disk either in simple comma-separated value format or in a compressed HDF5 format. For example, suppose we set ``fmt_dir == 'format``, ``proj == 'example'``, and ``tree_type == 'serial'``. If we set, it produces ``tensor_format == 'hdf5'``:
+Formatted tensors are then saved to disk either in simple comma-separated value format or in a compressed HDF5 format. For example, suppose we set ``fmt_dir`` to ``'format'``, ``proj`` to ``'example'``, and ``tree_encode`` to ``'serial'``. If we set ``tensor_format`` to ``'hdf5'`` it produces :
 
 .. code-block:: shell
 
@@ -201,7 +160,7 @@ or if ``tensor_format == 'csv'``:
 	workspace/format/example/sim.nt500.labels.csv
 	workspace/format/example/sim.nt500.summ_stat.csv
 
-These files can then be processed by the `Train` step.
+These files can then be processed by the :ref:`Train` step.
 
 
 .. _Train:
@@ -209,11 +168,38 @@ These files can then be processed by the `Train` step.
 Train
 -----
 
-`Train` builds a neural network that can be trained to make estimateions based on the tensors made by the `Format` step. This step also shuffles the replicate indices and splits the entire dataset into separate training, test, validation, and calibration subsets. The phylogenetic-state tensor is processed by convolutional and pooling layers, while the auxiliary data is processed by dense layers. All input layers are concatenated then pushed into three branches terminating in output layers to produce point estimates and upper and lower estimateion intervals. Lastly, the step runs the training procedure and stores its results, including the history and trained network, to file.
+:ref:`Train` builds a neural network and trains it to make model-based estimates using the training example tensors compiled by the :ref:`Format` step.
 
-When data are read in, they are shuffled, with some set aside for test data (``prop_test``), validation data (``prop_validation``), and calibration data (``prop_calibration``), with the remaining data being used for ``training``. A network must be trained against a particular ``tree_width`` size (see above). The network also must target a particular estimateion interval (e.g. ``cpi_coverage == 0.95`` means 95% of test estimateions are expected contain the true simulating value) for two-sided conformalized quantile regression). Training runs for a number of intervals given by ``num_epoch`` using batch stochastic gradient descent, with batch sizes given by ``batch_size``. Parameter point estimates use a loss function (e.g. ``loss == 'mse'``; Tensorflow-supported string or function) while lower/upper estimateion intervals must use a pinball loss function (hard-coded). Different optimizers can be used to update network weight and bias parameters (e.g. ``optimizer == 'adam'``; Tensorflow-supported string or function).
+The :ref:`Train` step performs six main tasks:
+1. Load the input training example tensor.
+2. Shuffle the input tensor and split it into training, test, validation, and calibration subsets.
+3. Build and configure the neural network
+4. Use supervised learning to train neural network to make accurate estimates (predictions)
+5. Record network training performance to file
+6. Save the trained network to file
 
-Training is automatically parallelized using CPUs and GPUs, dependent on how Tensorflow was installed and system hardware. Output files are stored in the directory assigned to ``<lrn_dir>`` in the subdirectory ``<proj>``.
+When data are read in, they are shuffled, with some set aside for test data (``prop_test``), validation data (``prop_val``), and calibration data (``prop_cal``), with all remaining data being used for training. A network must be trained against a particular ``tree_width`` size (see above). 
+
+phyddle uses `TensorFlow <https://www.tensorflow.org/>`__ and `Keras <https://keras.io/>`__ to build and train the network. The phylogenetic-state tensor is processed by convolutional and pooling layers, while the auxiliary data is processed by dense layers. All input layers are concatenated then pushed into three branches terminating in output layers to produce point estimates and upper and lower estimation intervals. Here is a simplified schematic of the network architecture:
+
+.. code-block:: shell
+
+    Simplified network architecture:
+
+                              ,--> Conv1D-normal + Pool --.
+        Phylo. Data Tensor --+---> Conv1D-stride + Pool ---\                          ,--> Point estimate
+                              '--> Conv1D-dilate + Pool ----+--> Concat + Output(s)--+---> Lower quantile
+                                                           /                          '--> Upper quantile
+        Aux. Data Tensor   ------> Dense -----------------'
+
+
+Parameter point estimates use a loss function (e.g. ``loss`` set to ``'mse'``; Tensorflow-supported string or function) while lower/upper quantile estimates use a pinball loss function (hard-coded).
+
+Calibrated prediction intervals (CPIs) are estimated using the conformalized quantile regression technique of Romano et al. (2019). CPIs target a particular estimation interval, e.g. set ``cpi_coverage`` to ``0.95`` so 95% of test estimations are expected contain the true simulating value. More accurate CPIs can be obtained using two-sided conformalized quantile regression by setting ``cpi_asymmetric`` to ``True``, though this often requires larger numbers of calibration examples, determined through ``prop_cal``. 
+
+The network is trained iteratively for ``num_epoch`` training cycles using batch stochastic gradient descent, with batch sizes given by ``batch_size``. Different optimizers can be used to update network weight and bias parameters (e.g. ``optimizer == 'adam'``; Tensorflow-supported string or function).
+
+Training is automatically parallelized using CPUs and GPUs, dependent on how Tensorflow was installed and system hardware. Output files are stored in the directory assigned to ``trn_dir`` in the subdirectory ``proj``.
 
 
 .. _Estimate:
@@ -232,13 +218,13 @@ Plot
 `Plot` collects all results from the `Format`, `Train`, and `Estimate` steps to compile a set of useful figures, listed below. When results from `Estimate` are available, the step will integrate it into other figures to contextualize where that input dataset and estimateed labels fall with respect to the training dataset. Plots are stored within ``<plot_dir>`` in the ``<plot_proj>`` subdirectory. Colors for plot elements can be modified with ``plot_train_color``, ``plot_label_color``, ``plot_test_color``, ``plot_val_color``, ``plot_aux_color``, and ``plot_est_color`` using common color names or hex codes supported by Matplotlib.
 
 - ``summary.pdf`` contains all figures in a single plot
-- ``est_CI.pdf`` - simple plot of point estimates and calibrated estimateion intervals for estimateion
+- ``est_CI.pdf`` - simple plot of point estimates and calibrated estimation intervals for estimation
 - ``histogram_aux.pdf`` - histograms of all values in the auxiliary dataset; red line for estimateed dataset
 - ``pca_aux.pdf`` - pairwise PCA of all values in the auxiliary dataset; red dot for estimateed dataset
 - ``history_.pdf`` - loss performance across epochs for test/validation datasets for entire network
 - ``history_<stat_name>.pdf`` - loss, accuracy, error performance across epochs for test/validation datasets for particular statistics (point est., lower CPI, upper CPI)
-- ``train_<label_name>.pdf`` - point estimates and calibrated estimateion intervals for training dataset
-- ``test_<label_name>.pdf`` - point estimates and calibrated estimateion intervals for test dataset
+- ``train_<label_name>.pdf`` - point estimates and calibrated estimation intervals for training dataset
+- ``test_<label_name>.pdf`` - point estimates and calibrated estimation intervals for test dataset
 - ``network_architecture.pdf`` - visualization of Tensorflow architecture
 
 

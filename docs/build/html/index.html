@@ -49,8 +49,8 @@
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="pipeline.html">Pipeline</a></li>
 <li class="toctree-l1"><a class="reference internal" href="settings.html">Settings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pipeline.html">Pipeline</a></li>
 <li class="toctree-l1"><a class="reference internal" href="workspace.html">Workspace</a></li>
 <li class="toctree-l1"><a class="reference internal" href="formats.html">Formats</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tricks.html">Tricks</a></li>
@@ -93,16 +93,17 @@
 <a class="reference internal image-reference" href="_images/phyddle_pipeline.png"><img alt="_images/phyddle_pipeline.png" class="align-right" src="_images/phyddle_pipeline.png" style="width: 259.22px; height: 277.16px;" /></a>
 <ul class="simple">
 <li><p><strong>Pipeline configuration</strong> applies analysis settings provided through a config file and/or command line arguments.</p></li>
-<li><p><strong>Model configuration</strong> constructs a base simulating model to be <em>Simulated</em> (states, events, rates).</p></li>
 <li><p><strong>Simulate</strong> simulates a large training dataset under the model to be <em>Formatted</em> (parallelized, partly compressed).</p></li>
 <li><p><strong>Format</strong> encodes the raw simulated data into tensor format for <em>Training</em>.</p></li>
 <li><p><strong>Train</strong> shuffles and splits training data, builds a network, then trains and saves the network with the data for <em>Estimation</em>.</p></li>
 <li><p><strong>Estimate</strong> produces model estimates for a new dataset with the trained network.</p></li>
 <li><p><strong>Plot</strong> generates figures that summarize the training data (<em>Format</em>), the network and its training (<em>Train</em>), and any estimates for new datasets (<em>Estimate</em>).</p></li>
 </ul>
+<p>In addition, phyddle is distributed with example scripts to simulate phylogenetic training datasets using <a class="reference external" href="http://revbayes.com">RevBayes</a>, <a class="reference external" href="https://www.r-project.org/">R</a>, and <a class="reference external" href="https://tgvaughan.github.io/MASTER/">MASTER</a>.</p>
+<p>To learn how to use phyddle, we recommend exploring the topics from top-to-bottom as listed on the left-hand side of this page.
+Visit the <a class="reference internal" href="quick_start.html#quick-start"><span class="std std-ref">Quick start</span></a> and <a class="reference internal" href="installation.html#installation"><span class="std std-ref">Installation</span></a> pages to get started.</p>
 <div class="toctree-wrapper compound">
 </div>
-<p>Visit the <a class="reference internal" href="quick_start.html#quick-start"><span class="std std-ref">Quick start</span></a> and <a class="reference internal" href="installation.html#installation"><span class="std std-ref">Installation</span></a> pages to get started.</p>
 </section>
 
 

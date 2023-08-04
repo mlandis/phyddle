@@ -1,15 +1,9 @@
-
 #==============================================================================#
-# Default phyddle config file                                                  #
+# Config:       Default phyddle config file                                    #
+# Authors:      Michael Landis and Ammon Thompson                              #
+# Date:         230804                                                         #
+# Description:  Simple birth-death and equal-rates CTMC model in R using ape   #
 #==============================================================================#
-
-# external import
-#import scipy.stats
-#import scipy as sp
-
-# helper variables
-num_char = 2
-num_states = 3
 
 args = {
 
@@ -44,8 +38,8 @@ args = {
     #-------------------------------#
     # Format Step settings          #
     #-------------------------------#
-    'num_char'          : num_char,         # number of evolutionary characters
-    'num_states'        : num_states,       # number of states per character
+    'num_char'          : 2,                # number of evolutionary characters
+    'num_states'        : 3,                # number of states per character
     'min_num_taxa'      : 10,               # min number of taxa for valid sim
     'max_num_taxa'      : 500,              # max number of taxa for valid sim
     'tree_encode'       : 'extant',         # use model with serial or extant tree

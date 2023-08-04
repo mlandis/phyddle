@@ -10,12 +10,13 @@ Quick install
 
 .. note:: 
 
-    Just kidding. Support for conda is not yet configured.
+    The quick install guide won't work until the public release. Try installing with the more-complicated :ref:`Conda_Install` guide below. 
 
-We recommend installing phyddle using `conda <https://docs.conda.io/en/latest/>`_:
+We recommend installing phyddle using `conda <https://docs.conda.io/en/latest/>`__:
 
 .. code-block::
 
+    # This doesn't work yet (see note above)
     conda update conda
     conda create phyddle_env
     conda activate phyddle_env
@@ -98,10 +99,12 @@ To install these packages:
 phyddle is also used with a 64-core Ubuntu LTS 22.04 server using Python 3.xx.xx (aptitude) and similar package versions. phyddle has yet not been tested using conda, Windows, M1 Macs, various GPUs, etc.
 
 
+.. _Conda_Install:
+
 Conda install
 -------------
 
-phyddle can easily be installed and run using [conda](https://docs.conda.io). conda lets you create and configure virtual environments to run Python code, meaning you can choose which versions of Python and its packages you use inside each virual environment without interfering with the default versions of the operating system. Most clusters already have conda installed. It's also easy to [install conda](https://docs.conda.io/projects/conda/en/stable/user-guide/install/index.html) yourself.
+phyddle can easily be installed and run using `conda <https://docs.conda.io>`__. conda lets you create and configure virtual environments to run Python code, meaning you can choose which versions of Python and its packages you use inside each virual environment without interfering with the default versions of the operating system. Most clusters already have conda installed. It's also easy to `install conda <https://docs.conda.io/projects/conda/en/stable/user-guide/install/index.html>`_ yourself.
 
 To install phyddle using conda, run these commands from the phyddle directory:
 

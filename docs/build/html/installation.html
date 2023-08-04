@@ -20,7 +20,7 @@
     <link rel="author" title="About these documents" href="about.html" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Pipeline" href="pipeline.html" />
+    <link rel="next" title="Settings" href="settings.html" />
     <link rel="prev" title="Quick start" href="quick_start.html" /> 
 </head>
 
@@ -58,8 +58,8 @@
 <li class="toctree-l2"><a class="reference internal" href="#simulator-requirements">Simulator requirements</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="pipeline.html">Pipeline</a></li>
 <li class="toctree-l1"><a class="reference internal" href="settings.html">Settings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pipeline.html">Pipeline</a></li>
 <li class="toctree-l1"><a class="reference internal" href="workspace.html">Workspace</a></li>
 <li class="toctree-l1"><a class="reference internal" href="formats.html">Formats</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tricks.html">Tricks</a></li>
@@ -98,10 +98,11 @@
 <h2>Quick install<a class="headerlink" href="#quick-install" title="Permalink to this heading"></a></h2>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Just kidding. Support for conda is not yet configured.</p>
+<p>The quick install guide won’t work until the public release. Try installing with the more-complicated <a class="reference internal" href="#conda-install"><span class="std std-ref">Conda install</span></a> guide below.</p>
 </div>
 <p>We recommend installing phyddle using <a class="reference external" href="https://docs.conda.io/en/latest/">conda</a>:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">update</span> <span class="n">conda</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># This doesn&#39;t work yet (see note above)</span>
+<span class="n">conda</span> <span class="n">update</span> <span class="n">conda</span>
 <span class="n">conda</span> <span class="n">create</span> <span class="n">phyddle_env</span>
 <span class="n">conda</span> <span class="n">activate</span> <span class="n">phyddle_env</span>
 <span class="n">conda</span> <span class="n">install</span> <span class="n">phyddle</span>
@@ -166,8 +167,8 @@
 <p>phyddle is also used with a 64-core Ubuntu LTS 22.04 server using Python 3.xx.xx (aptitude) and similar package versions. phyddle has yet not been tested using conda, Windows, M1 Macs, various GPUs, etc.</p>
 </section>
 <section id="conda-install">
-<h2>Conda install<a class="headerlink" href="#conda-install" title="Permalink to this heading"></a></h2>
-<p>phyddle can easily be installed and run using [conda](<a class="reference external" href="https://docs.conda.io">https://docs.conda.io</a>). conda lets you create and configure virtual environments to run Python code, meaning you can choose which versions of Python and its packages you use inside each virual environment without interfering with the default versions of the operating system. Most clusters already have conda installed. It’s also easy to [install conda](<a class="reference external" href="https://docs.conda.io/projects/conda/en/stable/user-guide/install/index.html">https://docs.conda.io/projects/conda/en/stable/user-guide/install/index.html</a>) yourself.</p>
+<span id="id2"></span><h2>Conda install<a class="headerlink" href="#conda-install" title="Permalink to this heading"></a></h2>
+<p>phyddle can easily be installed and run using <a class="reference external" href="https://docs.conda.io">conda</a>. conda lets you create and configure virtual environments to run Python code, meaning you can choose which versions of Python and its packages you use inside each virual environment without interfering with the default versions of the operating system. Most clusters already have conda installed. It’s also easy to <a class="reference external" href="https://docs.conda.io/projects/conda/en/stable/user-guide/install/index.html">install conda</a> yourself.</p>
 <p>To install phyddle using conda, run these commands from the phyddle directory:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># create conda environment with phyddle dependencies</span>
 <span class="n">conda</span> <span class="n">create</span> <span class="o">--</span><span class="n">name</span> <span class="n">phyddle</span> <span class="o">-</span><span class="n">c</span> <span class="n">bioconda</span> <span class="s1">&#39;python&gt;=3.11&#39;</span> <span class="s1">&#39;dendropy&gt;=4.6&#39;</span> <span class="s1">&#39;tensorflow&gt;=2.12&#39;</span> <span class="n">numpy</span><span class="o">=</span><span class="mf">1.23</span> <span class="n">pandas</span><span class="o">=</span><span class="mf">2.0</span> <span class="n">scipy</span><span class="o">=</span><span class="mf">1.11</span> <span class="n">joblib</span><span class="o">=</span><span class="mf">1.2</span> <span class="n">tqdm</span><span class="o">=</span><span class="mf">4.65</span> <span class="n">h5py</span><span class="o">=</span><span class="mf">3.8</span> <span class="n">keras</span><span class="o">=</span><span class="mf">2.12</span>  <span class="n">matplotlib</span><span class="o">=</span><span class="mf">3.7</span> <span class="n">pypdf</span><span class="o">=</span><span class="mf">3.12</span> <span class="n">Pillow</span><span class="o">=</span><span class="mf">10.0</span> <span class="n">scikit</span><span class="o">-</span><span class="n">learn</span><span class="o">=</span><span class="mf">1.2</span> <span class="n">graphviz</span> <span class="n">python</span><span class="o">-</span><span class="n">graphviz</span> <span class="n">pydot</span>
@@ -225,7 +226,7 @@ Java version 17.0.5
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="quick_start.html" class="btn btn-neutral float-left" title="Quick start" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="pipeline.html" class="btn btn-neutral float-right" title="Pipeline" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="settings.html" class="btn btn-neutral float-right" title="Settings" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

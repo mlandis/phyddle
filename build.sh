@@ -1,7 +1,8 @@
-#!/bin/sh
+#!/usr/bin/env sh
 
 # rebuild local phyddle install
-pip install .
+pip install -e .
+
 # rebuild sphinx pages
 cd docs
 make html
