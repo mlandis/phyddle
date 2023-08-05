@@ -13,7 +13,8 @@ Pipeline
     This section describes how a standard phyddle pipeline analysis is
     configured and how settings determine the behavior of a phyddle analysis.
     Visit :ref:`Configuration` to learn how to assign settings for a phyddle
-    analysis.
+    analysis. Visit :ref:`Glossary` to learn more about
+    how phyddle defines different terms
 
 .. image:: phyddle_pipeline.png
 	:scale: 18%

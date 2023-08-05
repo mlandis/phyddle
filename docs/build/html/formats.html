@@ -65,6 +65,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="tricks.html">Tricks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="glossary.html">Glossary</a></li>
 <li class="toctree-l1"><a class="reference internal" href="updates.html">Updates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="about.html">About</a></li>
 </ul>
@@ -97,17 +98,32 @@
 <span id="id1"></span><h1>Formats<a class="headerlink" href="#formats" title="Permalink to this heading"></a></h1>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>(incomplete) Important: This section assume the project name is ‘example’ while actual projects will likely use different names.</p>
+<p>(incomplete) Important: This section assume the project name is ‘example’ while actual projects will likely use different names. Visit <a class="reference internal" href="glossary.html#glossary"><span class="std std-ref">Glossary</span></a> to learn more about
+how phyddle defines different terms.</p>
 </div>
+<p>This page describes different internal datatype formats and file formats used
+by phyddle.</p>
 <section id="input-datasets">
 <span id="fmt-input-files"></span><h2>Input datasets<a class="headerlink" href="#input-datasets" title="Permalink to this heading"></a></h2>
-<p>phyddle can make phylogenetic model predictions against input datasets with previously trained networks. Valid phyddle input datasets contain a set of files with a shared filename prefix. For example, a dataset with the prefix <code class="docutils literal notranslate"><span class="pre">sim.3</span></code> would contain a tree file <code class="docutils literal notranslate"><span class="pre">sim.3.tre</span></code>, a character matrix file <code class="docutils literal notranslate"><span class="pre">sim.3.dat.nex</span></code>, and (when applicable) a “known parameters”file <code class="docutils literal notranslate"><span class="pre">sim.3.known_params.csv</span></code>. Simulated training datasets and real biological datasets follow the same format.</p>
-<p>Trees are encoded as raw data in simple Newick format. Trees are assumed to be rooted, bifurcating, time-calibrated trees. Trees may be ultrametric or non-ultrametric trees. Ultrametric trees should only be analyzed using <cite>treetype == ‘extant’</cite>. Non-ultrametric trees, such as those containing serially sampled viruses or fossils should be analyzed using <cite>treetype == ‘serial’</cite>. Here is an example of an extant tree with N=8 taxa.</p>
+<p>phyddle can make phylogenetic model predictions against input datasets with
+previously trained networks. Valid phyddle input datasets contain a set of
+files with a shared filename prefix. For example, a dataset with the prefix
+<code class="docutils literal notranslate"><span class="pre">sim.3</span></code> would contain a tree file <code class="docutils literal notranslate"><span class="pre">sim.3.tre</span></code>, a character matrix file
+<code class="docutils literal notranslate"><span class="pre">sim.3.dat.nex</span></code>, and (when applicable) a ‘known parameters’ file
+<code class="docutils literal notranslate"><span class="pre">sim.3.known_params.csv</span></code>. Simulated training datasets and real biological
+datasets follow the same format.</p>
+<p>Trees are encoded as raw data in simple Newick format. Trees are assumed to be
+rooted, bifurcating, time-calibrated trees. Trees may be ultrametric or
+non-ultrametric trees. Ultrametric trees should only be analyzed using
+<cite>treetype == ‘extant’</cite>. Non-ultrametric trees, such as those containing
+serially sampled viruses or fossils should be analyzed using
+<cite>treetype == ‘serial’</cite>. Here is an example of an extant tree with N=8 taxa.</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>cat<span class="w"> </span>workspace/raw_data/example/sim.3.tre
 <span class="o">((((</span><span class="m">1</span>:0.35994691486501296,2:0.35994691486501296<span class="o">)</span>:1.389952711060852,<span class="o">(</span><span class="m">3</span>:1.5810568349100933,<span class="o">(</span><span class="m">4</span>:0.5830569936279364,5:0.5830569936279364<span class="o">)</span>:0.9979998412821569<span class="o">)</span>:0.1688427910157717<span class="o">)</span>:5.655066077200624,6:7.404965703126489<span class="o">)</span>:0.3108578683347094,<span class="o">(</span><span class="m">7</span>:0.7564319839861859,8:0.7564319839861859<span class="o">)</span>:6.959391587475013<span class="o">)</span>:2.2841764285388018<span class="p">;</span>
 </pre></div>
 </div>
-<p>Character data matrices are encoded as raw data in Nexus format. Here is an example of a matrix with N=8 taxa and M=3 binary characters.</p>
+<p>Character data matrices are encoded as raw data in Nexus format. Here is an
+example of a matrix with N=8 taxa and M=3 binary characters.</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>cat<span class="w"> </span>workspace/raw_data/example/sim.3.dat.nex
 <span class="c1">#NEXUS</span>
 Begin<span class="w"> </span>DATA<span class="p">;</span>
@@ -126,7 +142,10 @@ Matrix
 END<span class="p">;</span>
 </pre></div>
 </div>
-<p>Some models can make use of auxiliary data. For example, the recovery period of a virus may be considered a “known” parameter in epidemiological studies. These auxiliary data are encoded as raw data in comma-separated value format with column headers.</p>
+<p>Some models can make use of auxiliary data. For example, the recovery period
+of a virus may be considered a “known” parameter in epidemiological studies.
+These auxiliary data are encoded as raw data in comma-separated value format
+with column headers.</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>recovery_0,recovery_1,recovery_2
 <span class="m">0</span>.113,0.120,0.115
 </pre></div>
@@ -134,11 +153,25 @@ END<span class="p">;</span>
 </section>
 <section id="tensor-formats">
 <span id="id2"></span><h2>Tensor formats<a class="headerlink" href="#tensor-formats" title="Permalink to this heading"></a></h2>
-<p>Phylogenetic data (e.g. from a Newick file) and character matrix data (e.g. from a Nexus file) are encoded into compact phylogenetic state tensors. Internally, phyddle uses <cite>dendropy.Tree</cite> to represent phylogenies, <cite>pandas.DataFrame</cite> to represent character matrices (verify), and <cite>numpy.ndarray</cite> to store phylogenetic-state tensors.</p>
-<p>There are two types of phylogenetic-state tensors in phyddle: the compact bijective ladderized vector + states (CBLV+S) and the compact diversity vector + states (CDV+S). CBLV+S is used for trees that contain serially sampled (non-ultrametric) taxa whereas CDV+S is used for trees that contain only extant (ultrametric) taxa. The <cite>tree_width</cite> of the encoding defines the maximum number of taxa the phylogenetic-state tensor may contain. The <code class="docutils literal notranslate"><span class="pre">tree_type</span></code> setting determines if the tree is a <code class="docutils literal notranslate"><span class="pre">'serial'</span></code> tree encoded with CBLV+S or an <code class="docutils literal notranslate"><span class="pre">'extant'</span></code> tree encoded with CDV+S. Setting <code class="docutils literal notranslate"><span class="pre">tree_encode_type</span></code> and <code class="docutils literal notranslate"><span class="pre">char_encode_type</span></code> alter how information is stored into the phylogenetic-state tensor.</p>
+<p>Phylogenetic data (e.g. from a Newick file) and character matrix data (e.g.
+from a Nexus file) are encoded into compact phylogenetic state tensors.
+Internally, phyddle uses <cite>dendropy.Tree</cite> to represent phylogenies,
+<cite>pandas.DataFrame</cite> to represent character matrices (verify), and
+<cite>numpy.ndarray</cite> to store phylogenetic-state tensors.</p>
+<p>There are two types of phylogenetic-state tensors in phyddle: the compact
+bijective ladderized vector + states (CBLV+S) and the compact diversity vector +
+states (CDV+S). CBLV+S is used for trees that contain serially sampled
+(non-ultrametric) taxa whereas CDV+S is used for trees that contain only extant
+(ultrametric) taxa. The <cite>tree_width</cite> of the encoding defines the maximum number
+of taxa the phylogenetic-state tensor may contain. The <code class="docutils literal notranslate"><span class="pre">tree_type</span></code> setting
+determines if the tree is a <code class="docutils literal notranslate"><span class="pre">'serial'</span></code> tree encoded with CBLV+S or an
+<code class="docutils literal notranslate"><span class="pre">'extant'</span></code> tree encoded with CDV+S. Setting <code class="docutils literal notranslate"><span class="pre">tree_encode_type</span></code> and
+<code class="docutils literal notranslate"><span class="pre">char_encode_type</span></code> alter how information is stored into the
+phylogenetic-state tensor.</p>
 <section id="cblv-s">
 <h3>CBLV+S<a class="headerlink" href="#cblv-s" title="Permalink to this heading"></a></h3>
-<p>This is an example for the CBLV+S encoding of 5 taxa with 2 characters. This is the Newick string:</p>
+<p>This is an example for the CBLV+S encoding of 5 taxa with 2 characters. This
+is the Newick string:</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="o">(((</span>A:2,B:1<span class="o">)</span>:1,<span class="o">(</span>C:3,D:2<span class="o">)</span>:3<span class="o">)</span>:1,E:2<span class="o">)</span><span class="p">;</span>
 </pre></div>
 </div>
@@ -157,8 +190,20 @@ Matrix
 END<span class="p">;</span>
 </pre></div>
 </div>
-<p>These data can be encoded in different ways, based on the <code class="docutils literal notranslate"><span class="pre">char_encode_type</span></code> setting. When <code class="docutils literal notranslate"><span class="pre">char_encode_type</span> <span class="pre">==</span> <span class="pre">'integer'</span></code> then the encoding will treat each character as a row in the resulting data matrix, and assign the appropriate integer-valued state to that character for each taxon. Alternatively, when <code class="docutils literal notranslate"><span class="pre">char_encode_type</span> <span class="pre">==</span> <span class="pre">'one_hot'</span></code> then the encoding will treat every distinct state-character combination as its own row in the resulting data matrix, then mark each species as <code class="docutils literal notranslate"><span class="pre">1</span></code> for a cell when a species has that character-state and <code class="docutils literal notranslate"><span class="pre">0</span></code> if not. One-hot encoding is applied individually to each homologous character (fewer distinct combinations) not against the entire character set (more distinct combinations).</p>
-<p>Ladderizing clades by maximum root-to-tip distance orders the taxa C, D, A, B, then E, which correspond to the first five columns of the CBLV+S tensor. When <code class="docutils literal notranslate"><span class="pre">tree_encode_type</span> <span class="pre">==</span> <span class="pre">'height_only'</span></code> the un-rescaled CBLV+S file would look like this:</p>
+<p>These data can be encoded in different ways, based on the <code class="docutils literal notranslate"><span class="pre">char_encode_type</span></code>
+setting. When <code class="docutils literal notranslate"><span class="pre">char_encode_type</span> <span class="pre">==</span> <span class="pre">'integer'</span></code> then the encoding will treat
+each character as a row in the resulting data matrix, and assign the
+appropriate integer-valued state to that character for each taxon.
+Alternatively, when <code class="docutils literal notranslate"><span class="pre">char_encode_type</span> <span class="pre">==</span> <span class="pre">'one_hot'</span></code> then the encoding will
+treat every distinct state-character combination as its own row in the
+resulting data matrix, then mark each species as <code class="docutils literal notranslate"><span class="pre">1</span></code> for a cell when a
+species has that character-state and <code class="docutils literal notranslate"><span class="pre">0</span></code> if not. One-hot encoding is
+applied individually to each homologous character (fewer distinct combinations)
+not against the entire character set (more distinct combinations).</p>
+<p>Ladderizing clades by maximum root-to-tip distance orders the taxa C, D, A,
+B, then E, which correspond to the first five columns of the CBLV+S tensor.
+When <code class="docutils literal notranslate"><span class="pre">tree_encode_type</span></code> is set to <code class="docutils literal notranslate"><span class="pre">'height_only'</span></code> the un-rescaled CBLV+S file
+would look like this:</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># C,D,A,B,E,-,-,-,-,-</span>
 <span class="w">  </span><span class="m">7</span>,2,3,1,2,0,0,0,0,0<span class="w">  </span><span class="c1"># tip-to-node distance</span>
 <span class="w">  </span><span class="m">0</span>,4,1,2,0,0,0,0,0,0<span class="w">  </span><span class="c1"># node-to-root distance</span>
@@ -166,7 +211,7 @@ END<span class="p">;</span>
 <span class="w">  </span><span class="m">0</span>,0,1,1,1,0,0,0,0,0<span class="w">  </span><span class="c1"># character 2</span>
 </pre></div>
 </div>
-<p>and like this when <code class="docutils literal notranslate"><span class="pre">tree_encode_type</span> <span class="pre">==</span> <span class="pre">'height_brlen'</span></code>:</p>
+<p>and like this when <code class="docutils literal notranslate"><span class="pre">tree_encode_type</span></code> is set to <code class="docutils literal notranslate"><span class="pre">'height_brlen'</span></code>:</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># C,D,A,B,E,-,-,-,-,-</span>
 <span class="w">  </span><span class="m">7</span>,2,3,1,2,0,0,0,0,0<span class="w">  </span><span class="c1"># tip-to-node distance</span>
 <span class="w">  </span><span class="m">0</span>,4,1,2,0,0,0,0,0,0<span class="w">  </span><span class="c1"># node-to-root distance</span>
@@ -176,7 +221,8 @@ END<span class="p">;</span>
 <span class="w">  </span><span class="m">0</span>,0,1,1,1,0,0,0,0,0<span class="w">  </span><span class="c1"># character 2</span>
 </pre></div>
 </div>
-<p>By default, all branch length entries are rescaled from 0 to 1 as proportion to tree height (formatted to ease reading):</p>
+<p>By default, all branch length entries are rescaled from 0 to 1 as proportion
+to tree height (formatted to ease reading):</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1">#    C,   D,   A,   B,   E,   -,   -,   -,   -,   -</span>
 <span class="w">  </span><span class="m">1</span>.00,0.29,0.43,0.14,0.29,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span><span class="w">  </span><span class="c1"># tip-to-node distance</span>
 <span class="w">  </span><span class="m">0</span>.00,0.57,0.14,0.29,0.00,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span><span class="w">  </span><span class="c1"># node-to-root distance</span>
@@ -189,12 +235,22 @@ END<span class="p">;</span>
 </section>
 <section id="cdv-s">
 <h3>CDV+S<a class="headerlink" href="#cdv-s" title="Permalink to this heading"></a></h3>
-<p>CDV+S is used to encode phylogenetic-state information for trees of only extant taxa. CDV+S has a similar structure to CBLV+S, except in two principal ways. First, CDV+S uses total subclade diversity rather than tip node with max distance-from-root-node to determine how to ladderize the tree, which in turn determines which columns are associated with which tip nodes. Second, because CDV+S is used for extant-only trees, it does not need to report the redundant information about tip-to-node distances, as the tip-to-root distances are equal among all tips (by definition). This means that CDV+S does not contain a row with tip-to-node distances (the first row of CBLV+S).</p>
+<p>CDV+S is used to encode phylogenetic-state information for trees of only
+extant taxa. CDV+S has a similar structure to CBLV+S, except in two
+principal ways. First, CDV+S uses total subclade diversity rather than
+tip node with max distance-from-root-node to determine how to ladderize
+the tree, which in turn determines which columns are associated with which
+tip nodes. Second, because CDV+S is used for extant-only trees, it does not
+need to report the redundant information about tip-to-node distances, as
+the tip-to-root distances are equal among all tips (by definition). This
+means that CDV+S does not contain a row with tip-to-node distances (the
+first row of CBLV+S).</p>
 <p>For example, the following Newick string for an ultrametric tree</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="o">(((</span>A:5,B:5<span class="o">)</span>:1,<span class="o">(</span>C:3,D:3<span class="o">)</span>:3<span class="o">)</span>:1,E:7<span class="o">)</span><span class="p">;</span>
 </pre></div>
 </div>
-<p>and associating the same character data as above with taxa A through E yields the following CDV+S tensor:</p>
+<p>and associating the same character data as above with taxa A through E
+yields the following CDV+S tensor:</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># C,D,A,B,E,-,-,-,-,-</span>
 <span class="w">  </span><span class="m">0</span>,4,1,2,0,0,0,0,0,0<span class="w">  </span><span class="c1"># node-to-root distance</span>
 <span class="w">  </span><span class="m">3</span>,2,2,1,2,0,0,0,0,0<span class="w">  </span><span class="c1"># tip edge length</span>
@@ -206,7 +262,9 @@ END<span class="p">;</span>
 </section>
 <section id="auxiliary-data">
 <h3>Auxiliary data<a class="headerlink" href="#auxiliary-data" title="Permalink to this heading"></a></h3>
-<p>The auxiliary data tensor contains a panel of summary statistics extracted from the inputted phylogeny and character data matrix for a given dataset. Currently, phyddle generates the following summary statistics:</p>
+<p>The auxiliary data tensor contains a panel of summary statistics extracted
+from the inputted phylogeny and character data matrix for a given dataset.
+Currently, phyddle generates the following summary statistics:</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>tree_length<span class="w">       </span><span class="c1"># sum of branch lengths</span>
 num_taxa<span class="w">          </span><span class="c1"># number of terminal taxa in tree/data</span>
 root_age<span class="w">          </span><span class="c1"># longest root-to-tip distance</span>
@@ -216,7 +274,7 @@ brlen_skew<span class="w">        </span><span class="c1"># skewness of branch l
 age_mean<span class="w">          </span><span class="c1"># mean of internal node ages</span>
 age_var<span class="w">           </span><span class="c1"># variance of internal node ages</span>
 age_skew<span class="w">          </span><span class="c1"># skewness of internal node ages</span>
-B1<span class="w">                </span><span class="c1"># https://dendropy.org/library/treemeasure.html#dendropy.calculate.treemeasure.B1</span>
+B1<span class="w">                </span><span class="c1"># [`link &lt;https://dendropy.org/library/treemeasure.html#dendropy.calculate.treemeasure.B1&gt;`__]</span>
 N_bar<span class="w">             </span><span class="c1"># https://dendropy.org/library/treemeasure.html#dendropy.calculate.treemeasure.N_bar</span>
 colless<span class="w">           </span><span class="c1"># https://dendropy.org/library/treemeasure.html?highlight=colless#dendropy.calculate.treemeasure.colless_tree_imbalance</span>
 treeness<span class="w">          </span><span class="c1"># https://dendropy.org/library/treemeasure.html#dendropy.calculate.treemeasure.treeness</span>

@@ -7,7 +7,8 @@ Configuration
     
     This section describes how to configure settings for a phyddle analysis.
     Visit :ref:`Pipeline` to learn more about how settings determine the
-    behavior of a phyddle analysis.
+    behavior of a phyddle analysis. Visit :ref:`Glossary` to learn more about
+    how phyddle defines different terms.
 
 There are two ways to configure the settings of a phyddle analysis: through a
 :ref:`config file <config_file>` or the :ref:`command line <config_cli>`.

@@ -74,14 +74,45 @@ Training a network creates the following files in the ``workspace/train/my_proje
     train_prefix.train_pred_nocalib.csv
     train_prefix.train_summ_stat_norm.csv
 
-where ``train_prefix`` describes the training settings for the network. For example, the network prefix ``sim_batchsize128_numepoch20_nt500`` indicated a network trained with a batch size of 128 samples for 20 epochs on the tree width size-category of max. 500 taxa.
+where ``train_prefix`` describes the training settings for the network. For
+example, the network prefix ``sim_batchsize128_numepoch20_nt500`` indicated a
+network trained with a batch size of 128 samples for 20 epochs on the tree
+width size-category of max. 500 taxa.
 
-Descriptions of the files are as follows
+Descriptions of the files are as follows, with ``train_prefix`` omitted for brevity:
+* ``network.hdf5``: a saved copy of the trained neural network that can be loaded by Tensorflow
+* ``train_label_norm.csv`` and ``train_aux_data_norm.csv``: the location-scale values from the training dataset to (de)normalize the labels and auxiliary data from any dataset
+* ``train_labels.csv`` and ``test_labels.csv``: the true values of labels for the training and test datasets, where columns correspond to estimated labels (e.g. model parameters)
+* ``train_est.csv`` and ``test_est.csv``: the trained network estimates of labels for the training and test datasets, with calibrated prediction intervals, where columns correspond to point estimates and estimates for lower CPI and upper CPI bounds for each named label (e.g. model parameter)
+* ``train_pred_nocalib.csv`` and ``test_pred_nocalib.csv``: the trained network estimates of labels for the training and test datasets, with uncalibrated prediction intervals
+* ``train_history.json``: the metrics across training epochs monitored during network training
 * ``cpi_adjustments.csv``: calibrated prediction interval adjustments, where columns correspond to parameters, the first row contains lower bound adjustments, and the second row contains upper bound adjustments
 
 
 ``estimate``
 ------------
+
+The ``estimate`` directory is intended to store input *and* output for the
+:ref:`Estimate` step. 
+
+.. code-block:: shell
+
+    new.1.tre
+    new.1.dat.nex
+
+Running the :ref:`Estimate` step would yield these files:
+
+.. code-block:: shell
+
+    new.1.tre
+    new.1.dat.nex
+    new.1.cdvs.csv
+    new.1.sim_batchsize128_numepoch20_nt500.pred_labels.csv
+    new.1.summ_stat.csv
+    new.1.extant.tre                                        
+    new.1.info.csv
+
+Files will 
 
 .. code-block:: shell
 
@@ -94,5 +125,24 @@ Columns are grouped first by label (e.g. parameter) and then statistic (e.g. val
 
 ``plot``
 --------
-(incomplete)
 
+.. code-block:: shell
+
+    train_batchsize128_numepoch20_nt500.density_aux.pdf
+    train_batchsize128_numepoch20_nt500.density_label.pdf
+    train_batchsize128_numepoch20_nt500.est_CPI.pdf
+    train_batchsize128_numepoch20_nt500.history.pdf
+    train_batchsize128_numepoch20_nt500.history_param_lower.pdf
+    train_batchsize128_numepoch20_nt500.history_param_upper.pdf
+    train_batchsize128_numepoch20_nt500.history_param_value.pdf
+    train_batchsize128_numepoch20_nt500.network_architecture.pdf
+    train_batchsize128_numepoch20_nt500.pca_aux.pdf
+    train_batchsize128_numepoch20_nt500.summary.pdf
+    train_batchsize128_numepoch20_nt500.test_b_0_1.pdf
+    train_batchsize128_numepoch20_nt500.test_d_0_1.pdf
+    train_batchsize128_numepoch20_nt500.test_e_0.pdf
+    train_batchsize128_numepoch20_nt500.test_w_0.pdf
+    train_batchsize128_numepoch20_nt500.train_b_0_1.pdf
+    train_batchsize128_numepoch20_nt500.train_d_0_1.pdf
+    train_batchsize128_numepoch20_nt500.train_e_0.pdf
+    train_batchsize128_numepoch20_nt500.train_w_0.pdf
