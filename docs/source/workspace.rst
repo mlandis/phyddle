@@ -53,7 +53,50 @@ Next, we give an overview of the standard files and formats corresponding to eac
 
 ``format``
 ----------
-(incomplete)
+
+Applying :ref:`Format` to a directory of simulated datasets will output
+tensors containing the entire set of training examples, stored to, e.g.
+``workspace/format/example``. What formatted files are created depends on
+the value of ``tensor_format`` and ``tree_width_cats``.
+
+When ``tree_width_cats`` is set to ``[200, 500]``, :ref:`Format` will yield two
+tensors of training examples: one with all training examples containing 200
+or fewer taxa, and second containing all examples with 201 to 500 taxa.
+
+If the ``tensor_format`` setting is ``'csv'`` (Comma-Separated Value, or CSV
+format), the formatted files are:
+
+.. code-block:: shell
+    
+    sim.nt200.phy_data.csv
+    sim.nt200.aux_data.csv
+    sim.nt200.labels.csv
+    sim.nt500.phy_data.csv
+    sim.nt500.aux_data.csv
+    sim.nt500.labels.csv
+
+where the `phy_data.csv` files contain one flattened Compact Phylogenetic Vector +
+States (CPV+S) entry per row, the `aux_data.csv` files contain one vector of
+auxiliary data (summary statistics and known parameters) values per row, and
+`labels.csv` contains one vector of label (estimated parameters) per row. Each
+row for each of the CSV files will correspond to a single, matched simulated
+training example. All files are stored in standard comma-separated value
+format, making them easily read by standard CSV-reading functions.
+
+If the ``tensor_format`` setting is ``'hdf5'``, the resulting files are:
+
+.. code-block:: shell
+    
+    sim.nt200.hdf5
+    sim.nt500.hdf5
+
+where each HDF5 file contains all phylogenetic-state (CPV+S) data, auxiliary
+data, and label data. Individual simulated training examples share the same
+set of ordered examples across three iternal datasets stored in the file. HDF5
+format is not as easily readable as CSV format. However, phyddle uses gzip
+to automatically (de)compress records, which often leads to files that are
+over twenty times smaller than equivalent uncompressed CSV formatted tensors.
+
 
 ``train``
 ---------
@@ -92,27 +135,34 @@ Descriptions of the files are as follows, with ``train_prefix`` omitted for brev
 ``estimate``
 ------------
 
-The ``estimate`` directory is intended to store input *and* output for the
-:ref:`Estimate` step. 
+The :ref:`Estimate` step will both read new (biological) datasets from the
+project directory, and save new intermediate files, and store outputted
+estimates in the same directory, located at e.g. 
+``workspace/estimate/example``:
 
 .. code-block:: shell
 
-    new.1.tre
-    new.1.dat.nex
+    new.1.tre               # input:             initial tree
+    new.1.dat.nex           # input:             character data
+    new.1.known_params.csv  # input:             params for aux. data (optional)
+    new.1.extant.tre        # intermediate:      pruned tree                                
+    new.1.phy_data.csv      # intermediate:      CPV+S tensor data 
+    new.1.aux_data.csv      # intermediate:      aux. data tensor data 
+    new.1.info.csv          # intermediate:      formatting info
+    new.1.sim_batchsize128_numepoch20_nt500.est_labels.csv  # output: estimates
 
-Running the :ref:`Estimate` step would yield these files:
+All files have previously been explained in the ``simulate``, ``format``,
+or ``train`` workspace sections, except for two.
 
-.. code-block:: shell
+The ``known_params.csv`` file is optional, and is used to provide "known"
+data-generating parameter values to the network for training, as part of the
+auxiliary dataset. If provided, it contains a row of names for known parameters
+followed by a row of respective values.
 
-    new.1.tre
-    new.1.dat.nex
-    new.1.cdvs.csv
-    new.1.sim_batchsize128_numepoch20_nt500.pred_labels.csv
-    new.1.summ_stat.csv
-    new.1.extant.tre                                        
-    new.1.info.csv
-
-Files will 
+The ``est_labels.csv`` file reports the point estimates and lower and upper
+CPI estimates for all targetted parameters. Estimates for parameters appear
+across columns, where columns are grouped first by label (e.g. parameter) and
+then statistic (e.g. value, lower-bound, upper-bound). For example:
 
 .. code-block:: shell
 
@@ -120,29 +170,24 @@ Files will
    w_0_value,w_0_lower,w_0_upper,e_0_value,e_0_lower,e_0_upper,d_0_1_value,d_0_1_lower,d_0_1_upper,b_0_1_value,b_0_1_lower,b_0_1_upper
    0.2867125345651129,0.1937433853918723,0.45733220552078013,0.02445545359384659,0.002880695707341881,0.10404499205878459,0.4502031713887769,0.1966340488593367,0.5147956690178682,0.06199703190510973,0.0015074254823161301,0.27544015163806645
 
-Columns are grouped first by label (e.g. parameter) and then statistic (e.g. value, lower-bound, upper-bound).
 
 
 ``plot``
 --------
 
-.. code-block:: shell
+The :ref:`Plot` step generates visualizations for results previously generated
+by :ref:`Format`, :ref:`Train`, and (when available) :ref:`Estimate`. 
 
-    train_batchsize128_numepoch20_nt500.density_aux.pdf
-    train_batchsize128_numepoch20_nt500.density_label.pdf
-    train_batchsize128_numepoch20_nt500.est_CPI.pdf
-    train_batchsize128_numepoch20_nt500.history.pdf
-    train_batchsize128_numepoch20_nt500.history_param_lower.pdf
-    train_batchsize128_numepoch20_nt500.history_param_upper.pdf
-    train_batchsize128_numepoch20_nt500.history_param_value.pdf
-    train_batchsize128_numepoch20_nt500.network_architecture.pdf
-    train_batchsize128_numepoch20_nt500.pca_aux.pdf
-    train_batchsize128_numepoch20_nt500.summary.pdf
-    train_batchsize128_numepoch20_nt500.test_b_0_1.pdf
-    train_batchsize128_numepoch20_nt500.test_d_0_1.pdf
-    train_batchsize128_numepoch20_nt500.test_e_0.pdf
-    train_batchsize128_numepoch20_nt500.test_w_0.pdf
-    train_batchsize128_numepoch20_nt500.train_b_0_1.pdf
-    train_batchsize128_numepoch20_nt500.train_d_0_1.pdf
-    train_batchsize128_numepoch20_nt500.train_e_0.pdf
-    train_batchsize128_numepoch20_nt500.train_w_0.pdf
+.. code-block:: shell
+    
+    est_CPI.pdf                    # results from Estimate step
+    density_{label,aux}.pdf        # densities from Simulate/Format steps
+    pca_aux.pdf                    # PCA of Simulate/Format steps
+    {test,train}_{param}.pdf       # prediction accuracy from Train steps       
+    history.pdf                    # training history for entire network
+    history_param_{statistic}.pdf  # training history for each estimation target
+    network_architecture.pdf       # neural network architecture
+    summary.pdf                    # compiled report of all figures
+
+Visit :ref:`pipeline` to learn more about the files.
+    
