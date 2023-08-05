@@ -35,5 +35,6 @@ Visit the :ref:`Quick_Start` and :ref:`Installation` pages to get started.
     workspace
     formats
     tricks
+    glossary
     updates
     about

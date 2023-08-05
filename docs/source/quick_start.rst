@@ -41,7 +41,7 @@ Provide phyddle with command-line options to customize how each pipeline step is
     ./run_phyddle.py -s EP -c config
 
 
-Visit :ref:`Settings` to learn more about currently supported phyddle options. View supported command-line options with:
+Visit :ref:`Configuration` to learn more about currently supported phyddle settings. View supported command-line options with:
 
 .. code-block:: shell
 
