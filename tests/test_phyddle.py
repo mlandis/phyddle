@@ -1,21 +1,15 @@
-from phyddle import Utilities
-from phyddle import ModelLoader
-from phyddle import Simulating
-from phyddle import Formatting
-from phyddle import Learning
-from phyddle import Predicting
-from phyddle import Plotting
+
+import phyddle
+import phyddle.utilities as util
+import phyddle.simulate as sim
+import phyddle.format as fmt
+import phyddle.train as trn
+import phyddle.estimate as est
+import phyddle.plot as plt
 
 # set random seed
 import numpy as np
-import h5py
 import os
-import subprocess
-
-#print(os.getcwd())
-#print(os.listdir('.'))
-#print(os.listdir('./workspace'))
-#print(os.listdir('./workspace/raw_data/test'))
 
 #-----------------------------------------------------------------------------#
 
@@ -28,7 +22,7 @@ def test_inc():
 #-----------------------------------------------------------------------------#
 
 def test_onehot_encoding():
-    s = Utilities.convert_nexus_to_array('./data/sim.1.dat.nex', 'onehot', 333)
+    s = util.convert_nexus_to_array('./data/sim.1.dat.nex', 'onehot', 333)
     print(s)
     assert s != ''
 
@@ -43,7 +37,7 @@ def test_onehot_encoding():
 
 def run_pipeline():
 
-    my_args = Utilities.load_config('config', arg_overwrite=True, args=[])
+    my_args = util.load_config('config', arg_overwrite=True, args=[])
     
     proj = my_args['proj']
     sim_dir = my_args['sim_dir']
@@ -54,18 +48,14 @@ def run_pipeline():
     ################
 
     # Step 1: simulate training data
-    my_mdl = ModelLoader.load(my_args)
-    my_sim = Simulating.load(my_args, my_mdl)
+    my_sim = sim.load(my_args)
     my_sim.run()
 
-    print('here i am')
     print(os.getcwd())
-    print(os.listdir('./tests/workspace/raw_data/test'))
-    #print(os.listdir('./tests/workspace/raw_data'))
-
+    print(os.listdir('./tests/workspace/simulate/test'))
 
     # Step 2: format training data into tensors
-    my_fmt = Formatting.load(my_args)
+    my_fmt = fmt.load(my_args)
     my_fmt.run()
 
     # Step 3: train network with training data
