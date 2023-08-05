@@ -7,7 +7,7 @@ Pipeline
 
 .. note:: 
     
-    This section describes how a standard phyddle pipeline analysis is configured and how settings determine the behavior of a phyddle analysis. Visit :ref:`Settings` to learn how to assign settings for a phyddle analysis.
+    This section describes how a standard phyddle pipeline analysis is configured and how settings determine the behavior of a phyddle analysis. Visit :ref:`Configuration` to learn how to assign settings for a phyddle analysis.
 
 A phyddle pipeline analysis has five steps: :ref:`Simulate`, :ref:`Format`, :ref:`Train`, :ref:`Estimate`, and :ref:`Plot`.
 
@@ -15,7 +15,7 @@ Standard analyses run all steps, in order for a single batch of settings. That s
 
 All pipeline steps create output files. All pipeline (except :ref:`Simulate`) also require input files corresponding to at least one other pipeline step. A full phyddle analysis for a *project* will automatically generate the input files for downstream pipeline steps and store them in a predictable *project directory*.
 
-Below is the project directory structure that a standard phyddle analysis would use, assuming the project name was ``example``:
+Below is the project directory structure that a standard phyddle analysis would use. In general, we assume the project name is ``example``:
 
 .. code-block:: shell
 
@@ -42,9 +42,15 @@ Below is the project directory structure that a standard phyddle analysis would 
                workspace/estimate/example   # (optional)
     - output:  workspace/plot/example       # analysis figures
 
-Users may also elect to use phyddle for only some steps in their analysis, and produce files for other steps by different means. For example, :ref:`Format` expects to format and combine large numbers of simulated datasets into tensor formats that can be used for supervised learning with neural networks. These simulated files might be generated with phyddle through the They can either be generated through phyddle with the :ref:`Simulate` step or outside of phyddle entirely.
+Users may also elect to use phyddle for only some steps in their analysis, and
+produce files for other steps by different means. For example, :ref:`Format`
+expects to format and combine large numbers of simulated datasets into tensor
+formats that can be used for supervised learning with neural networks.
+These simulated files can either be generated through phyddle with
+the :ref:`Simulate` step or outside of phyddle entirely.
 
-This page describes how different analysis settings control phyddle pipeline behavior, whereas :ref:`Settings` describes how to apply settings to the software. Visit :ref:`Workspace` to learn how phyddle pipeline analyses require the filesystem for project files to be organized. Visit :ref:`Formats` to learn what formats for input and output files are supported by phyddle. In addition, the examples in this section follow the :ref:`Example Project Workspace <Example_Project>` layout.
+.. This page describes how different analysis settings control phyddle pipeline behavior, whereas :ref:`Configuration` describes how to apply settings to the software.
+
 
 
 
@@ -121,6 +127,8 @@ for every replication index between ``start_idx`` and ``end_idx``.
 In fact, executing ``Rscript sim_one.R ../workspace/simulate/my_project/sim.0`` from terminal is the perfect way to validate that your custom simulator is compatible with the phyddle requirements.
 
 
+
+
 .. _Format:
 
 Format
@@ -163,6 +171,8 @@ or if ``tensor_format == 'csv'``:
 These files can then be processed by the :ref:`Train` step.
 
 
+
+
 .. _Train:
 
 Train
@@ -202,12 +212,15 @@ The network is trained iteratively for ``num_epoch`` training cycles using batch
 Training is automatically parallelized using CPUs and GPUs, dependent on how Tensorflow was installed and system hardware. Output files are stored in the directory assigned to ``trn_dir`` in the subdirectory ``proj``.
 
 
+
+
 .. _Estimate:
 
 Estimate
 --------
 
 `Estimate` loads a new dataset stored in ``<est_dir>/<est_proj>`` with filenames ``<est_prefix.tre>`` and ``<est_prefix>.dat.nex``. This step then loads a pretrained network and has it estimate new point estimates and calibrated prediction intervals (CPIs) based on other project settings. New estimations are then stored into the original ``<est_dir>/<est_proj>``.
+
 
 
 .. _Plot:
@@ -226,5 +239,3 @@ Plot
 - ``train_<label_name>.pdf`` - point estimates and calibrated estimation intervals for training dataset
 - ``test_<label_name>.pdf`` - point estimates and calibrated estimation intervals for test dataset
 - ``network_architecture.pdf`` - visualization of Tensorflow architecture
-
-

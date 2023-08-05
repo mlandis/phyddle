@@ -30,7 +30,7 @@ Visit the :ref:`Quick_Start` and :ref:`Installation` pages to get started.
 
     quick_start
     installation
-    settings
+    configuration
     pipeline
     workspace
     formats

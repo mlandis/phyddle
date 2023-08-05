@@ -21,7 +21,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Workspace" href="workspace.html" />
-    <link rel="prev" title="Settings" href="settings.html" /> 
+    <link rel="prev" title="Configuration" href="configuration.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -50,7 +50,7 @@
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="settings.html">Settings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Pipeline</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#simulate">Simulate</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#format">Format</a></li>
@@ -94,12 +94,12 @@
 <span id="id1"></span><h1>Pipeline<a class="headerlink" href="#pipeline" title="Permalink to this heading"></a></h1>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>This section describes how a standard phyddle pipeline analysis is configured and how settings determine the behavior of a phyddle analysis. Visit <a class="reference internal" href="settings.html#settings"><span class="std std-ref">Settings</span></a> to learn how to assign settings for a phyddle analysis.</p>
+<p>This section describes how a standard phyddle pipeline analysis is configured and how settings determine the behavior of a phyddle analysis. Visit <a class="reference internal" href="configuration.html#configuration"><span class="std std-ref">Configuration</span></a> to learn how to assign settings for a phyddle analysis.</p>
 </div>
 <p>A phyddle pipeline analysis has five steps: <a class="reference internal" href="#simulate"><span class="std std-ref">Simulate</span></a>, <a class="reference internal" href="#format"><span class="std std-ref">Format</span></a>, <a class="reference internal" href="#train"><span class="std std-ref">Train</span></a>, <a class="reference internal" href="#estimate"><span class="std std-ref">Estimate</span></a>, and <a class="reference internal" href="#plot"><span class="std std-ref">Plot</span></a>.</p>
 <p>Standard analyses run all steps, in order for a single batch of settings. That said, steps can be run multiple times under different settings and orders, which is useful for exploratory and advanced analyses. Visit <a class="reference internal" href="tricks.html#tricks"><span class="std std-ref">Tricks</span></a> to learn how to use phyddle to its fullest potential.</p>
 <p>All pipeline steps create output files. All pipeline (except <a class="reference internal" href="#simulate"><span class="std std-ref">Simulate</span></a>) also require input files corresponding to at least one other pipeline step. A full phyddle analysis for a <em>project</em> will automatically generate the input files for downstream pipeline steps and store them in a predictable <em>project directory</em>.</p>
-<p>Below is the project directory structure that a standard phyddle analysis would use, assuming the project name was <code class="docutils literal notranslate"><span class="pre">example</span></code>:</p>
+<p>Below is the project directory structure that a standard phyddle analysis would use. In general, we assume the project name is <code class="docutils literal notranslate"><span class="pre">example</span></code>:</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>Simulate
 -<span class="w"> </span>input:<span class="w">   </span>None
 -<span class="w"> </span>output:<span class="w">  </span>workspace/simulate/example<span class="w">   </span><span class="c1"># simulated datasets</span>
@@ -124,8 +124,12 @@ Plot
 -<span class="w"> </span>output:<span class="w">  </span>workspace/plot/example<span class="w">       </span><span class="c1"># analysis figures</span>
 </pre></div>
 </div>
-<p>Users may also elect to use phyddle for only some steps in their analysis, and produce files for other steps by different means. For example, <a class="reference internal" href="#format"><span class="std std-ref">Format</span></a> expects to format and combine large numbers of simulated datasets into tensor formats that can be used for supervised learning with neural networks. These simulated files might be generated with phyddle through the They can either be generated through phyddle with the <a class="reference internal" href="#simulate"><span class="std std-ref">Simulate</span></a> step or outside of phyddle entirely.</p>
-<p>This page describes how different analysis settings control phyddle pipeline behavior, whereas <a class="reference internal" href="settings.html#settings"><span class="std std-ref">Settings</span></a> describes how to apply settings to the software. Visit <a class="reference internal" href="workspace.html#workspace"><span class="std std-ref">Workspace</span></a> to learn how phyddle pipeline analyses require the filesystem for project files to be organized. Visit <a class="reference internal" href="formats.html#formats"><span class="std std-ref">Formats</span></a> to learn what formats for input and output files are supported by phyddle. In addition, the examples in this section follow the <a class="reference internal" href="workspace.html#example-project"><span class="std std-ref">Example Project Workspace</span></a> layout.</p>
+<p>Users may also elect to use phyddle for only some steps in their analysis, and
+produce files for other steps by different means. For example, <a class="reference internal" href="#format"><span class="std std-ref">Format</span></a>
+expects to format and combine large numbers of simulated datasets into tensor
+formats that can be used for supervised learning with neural networks.
+These simulated files can either be generated through phyddle with
+the <a class="reference internal" href="#simulate"><span class="std std-ref">Simulate</span></a> step or outside of phyddle entirely.</p>
 <section id="simulate">
 <span id="id2"></span><h2>Simulate<a class="headerlink" href="#simulate" title="Permalink to this heading"></a></h2>
 <p><a class="reference internal" href="#simulate"><span class="std std-ref">Simulate</span></a> instructs phyddle to simulate your training dataset. Any simulator that can be called from command-line can be used to generate training datasets with phyddle. This allows researchers to use their favorite simulator with phyddle for phylogenetic modeling tasks.</p>
@@ -267,7 +271,7 @@ workspace/format/example/sim.nt500.summ_stat.csv
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="settings.html" class="btn btn-neutral float-left" title="Settings" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="configuration.html" class="btn btn-neutral float-left" title="Configuration" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="workspace.html" class="btn btn-neutral float-right" title="Workspace" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

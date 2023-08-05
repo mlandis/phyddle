@@ -1,0 +1,48 @@
+Setting,Step(s),Type,Description
+``proj``,SFTEP,*str*,Name of the project directory(s); *see detailed description* [:ref:`link <setting_description_proj>`]
+``step``,SFTEP,*str*,Step(s) to run for analysis; *see detailed description* [:ref:`link <setting_description_step>`]
+``verbose``,SFTEP,*bool*,Print verbose output? True or False
+``sim_dir``,SF,*str*,Filepath to the Simulate directory
+``fmt_dir``,FTP,*str*,Filepath to the Format directory
+``trn_dir``,TEP,*str*,Filepath to the Train directory 
+``est_dir``,EP,*str*,Filepath to the Estimate directory
+``plt_dir``,P,*str*,Filepath to the Plot directory
+``log_dir``,P,*str*,Filepath to the Log directory
+``start_idx``,SF,*int*,Start replicate index for simulated training dataset
+``end_idx``,SF,*int*,End replicate index for simulated training dataset
+``use_parallel``,SF,*bool*,Use multiprocessing? True or False
+``num_proc``,SF,*int*,Number of cores for multiprocessing (when ``use_parallel==True``)
+``sim_logging``,S,*str*,Method for handling simulation logs (*clean: delete; compress: zip; verbose: keep*)
+``num_char``,FTE,*int*,Number of characters
+``num_state``,FTE,*int* or *int[]*,Number of states per character
+``min_num_taxa``,F,*int*,Minimum number of taxa; smaller datasets discarded
+``min_num_taxa``,F,*int*,Maximum number of taxa; larger datasets discarded
+``tree_width_cats``,F,*int[]*,Last index (minus one) for simulated training example datasets
+``tree_encode``,FTE,*str*,How to encode tree (`'serial'`: CBLV; `'extant'`: CDV)
+``brlen_encode``,FTE,*str*,How to encode branch length info (`'height_only'': minimal; `'height_brlen'`: extra info)
+``char_encode``,FTE,*str*,How to encode character data (`'integer'`: ordered; `'one_hot'`: categorical)
+``param_est``,FE,*str[]*,List of parameters in labels to be estimated
+``param_data``,FE,*str[]*,List of parameters in labels to be treated as auxiliary adata
+``char_format``,FE,*str*,Character data file format (`'nexus'` or `'csv'`)
+``tensor_format``,FTEP,*str*,Training tensor data file format (`'hdf5'` or `'csv'`)
+``save_phyenc_csv``,F,*bool*,Save intermediate phylogenetic tensor encodings to file?
+``trn_objective``,TEP,*str*,Training objective for network (`'param_est'`)
+``tree_width``,TEP,*int*,Number of columns in compact phylogenetic vector + states tensor
+``num_epochs``,TEP,*int*,Number of training iterations
+``batch_size``,TEP,*int*,Number of training examples per batch with all batches visited during each epoch 
+``prop_test``,T,*float*,Proportion of training examples in test dataset
+``prop_val``,T,*float*,Proportion of training examples in validation dataset
+``prop_cal``,T,*float*,Proportion of training examples in calibration dataset
+``combine_test_val``,T,*bool*,Combine test and validation datasets into one dataset for training
+``cpi_coverage``,T,*float*,Percent of training examples where CPI contains (covers) true parameter value
+``cpi_asymmetric``,T,*bool*,Use symmetric one-sided (False) or asymmetric two-sided (True) calibration conformity scores
+``loss``,T,*str*,Loss function used to assess neural network fit
+``optimizer``,T,*str*,Optimizer used to minimize loss score of network during training
+``metrics``,T,*str[]*,Metrics to log during training history
+``est_prefix``,EP,*str*,Name of prefix for new (biological) dataset to estimate
+``plot_train_color``,P,*str*,Plot color for training data elements
+``plot_test_color``,P,*str*,Plot color for test data elements
+``plot_val_color``,P,*str*,Plot color for validation data elements
+``plot_aux_color``,P,*str*,Plot color for auxiliary data elements
+``plot_label_color``,P,*str*,Plot color for label (parameter) elements
+``plot_est_color``,P,*str*,Plot color for estimates (for new dataset) elements
