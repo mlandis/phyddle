@@ -1,0 +1,36 @@
+Term|Definition
+*accuracy*|How well the neural network predicts the training example labels. Accuracy for categorical data is the frequency that the predicted label matches the true example label.
+*calibration dataset*|Used to calibrate the prediction intervals obtained with conformalized quantile regression to attain desired coverage properties. A subset of examples withheld from the training examples.
+*calibration prediction interval (CPI)*|Predicted intervals calibrated to have desired the exact coverage properties (e.g. coverage of p=0.95) by fine-tuning uncalibrated prediction intervals with a dataset of calibration training examples, not used during the training procedure itself. See Romano et al. (2019).
+*compact bijective ladderized vector (CBLV or CBLV+S)*|A compact representation for a phylogenetic tree of serially sampled taxa. CBLV ladderizes the vector elements based on whichever clade contains the taxon with the youngest age, and records 2N elements corresponding to node heights. See Voznica et al. (2022).
+*compact diversity-reordered vector (CDV or CDV+S)*|A compact representation for a phylogenetic tree of extant-only taxa. CDV ladderizes the vector elements based on whichever clade contains the greatest clade-length (sum of branch lengths), and records N elements corresponding to internal node heights. See Lambert et al. (2022). Note: the original CDV formulation includes a second row for integer-encoded tip-state data for a single binary character. We have replaced this row with the generalizable +S extension for multiple characters/states as described in Thompson et al. (2022).
+*compact phylogenetic vector (CPV or CPV+S)*|A compact representation for a phylogenetic tree, encoded either using CBLV or CDV criteria. See Voznica et al. (2022) and Lambert et al. (2022). Any CPV may also include states, yielding CPV+S format. See Thompson et al. (2022).
+*conformalized quantile regression*|A machine learning technique for estimating the lower and upper bounds of a prediction interval at a given confidence interval (e.g. p=0.95) that contain the true parameter value with frequency p over the entire dataset of training examples. See Romano et al. (2019).
+*convolutional neural network (CNN)*|A neural network with multiple layers designed to summarize spatial information in the data patterns using convolution and pooling transformations. CNNs are specialized for extracting information from translation invariant data patterns, such as images or [in our case] phylogenetic state tensors.
+*coverage*|The coverage interval for a new dataset will contain the true parameter value with a given probability (e.g. p=0.95). Assumes relevant datasets were generated under the assumed model.
+*epoch*|One training interval for minimizing the loss function. An epoch may contain multiple smaller steps, including stochastic batch sampling.
+*feed forward neural network (FFNN)*|A neural network with multiple layers designed to extract information from highly structured data, such as numbers in a data table or [in our case] summary statistics.
+*integer encoding*|Representing the value of a K-state categorical variable with a single integer. This representation requires little space but implies an ordering among categories.
+*label*|A value to be predicted from a dataset patten by a neural network. Labels may be training examples in the :ref:`Train` step or they may be estimated quantities in the :ref:`Estimate` step.
+*loss function*|The function that computes the average distance between the actual label and predicted label values in a training example. Mean squared error (MSE) and mean absolute error (MAE) are commonly used.
+*loss*|The value being minimized during training, computed with the loss function.
+*mean absolute error*|The mean over all absolute errors between each training example label and the predicted label from the network.
+*mean squared error*|The mean over all squared errors between each training example label and the predicted label from the network.
+*neural network*|A graphical model composed of extremely large numbers of nodes and vertices with a predictable structure. The structure generally involves a series of layers with dense connectivity between nodes from adjacent layers and no connectivity with nodes in the same layer or non-adjacent layers.
+*one-hot encoding*|Representing the value of a K-state categorical variable with K binary values, where only a single one-hot variable marked as 1 while all other one-hot variables are marked as 0. This representation requires more space but eliminates and ordering among categories.
+*overtraining*|When the neural network prediction accuracy continues to increase for the training dataset while seeing no improvement in accuracy for the the validation and/or test datasets.
+*phylogenetic model*|A stochastic model that defines a set of evolutionary events and rates that can generate (1) a phylogeny, (2) character data, or (3) both (1) and (2).
+*phylogenetic-state tensor*|The tensor containing all compact phylogenetic vector + states data.
+*project*|Directories sharing information across pipeline stages for a single phyddle analysis.
+*simulated replicate*|The dataset generated from a single run of a simulator.
+*simulator*|A program that can generate new datasets under a fully specified model.
+*step*|A major set of tasks for a phyddle pipeline analysis. The steps are: :ref:`Simulate`, :ref:`Format`, :ref:`Train`, :ref:`Estimate`, and :ref:`Plot`.
+*supervised learning*|A method for training a neural network by providing it training examples for how label values are correlated with data values.
+*test dataset*|Used to test network prediction accuracy. A subset of examples withheld from the training examples. 
+*training dataset*|Used to train the network. Includes all remaining training examples that were not used for test, validation, or calibration datasets, and is usually much larger than the other three datasets.
+*training examples*|The collected examples of data patterns and corresponding labels used to train the network for its prediction task.
+*training*|Minimizing the loss function for a given neural network and training dataset.
+*tree width*|The number of columns in a phylogenetic-state tensor.
+*undertraining*|When the neural network prediction accuracy can be improved for both the training dataset and other validation and/or test datasets.
+*validation dataset*|Used to validate network performance, namely to diagnose overtraining of the network. A subset of examples withheld from the training examples. 
+*workspace*|Directory that organizes files across all steps, analyses, and projects.
