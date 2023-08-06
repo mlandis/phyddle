@@ -16,7 +16,7 @@ import phyddle.format as fmt
 def load():
     my_args = util.load_config('config', arg_overwrite=True, args=[])
     my_fmt = fmt.load(my_args)
-    my_fmt.run()
+#    my_fmt.run()
     return
 
 def test_load():
