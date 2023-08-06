@@ -72,12 +72,12 @@ def run_pipeline():
     #my_plt = Plotting.load(my_args)
     #my_plt.run()
 
-    cdvs_fn = f'{sim_dir}/{proj}/sim.0.cdvs.csv'
-    cdvs = np.loadtxt(cdvs_fn, delimiter=',')
-    cdvs_sum = round(np.sum(cdvs), ndigits=8)
-    print(cdvs_sum)
+    phy_data_fn = f'{sim_dir}/{proj}/sim.0.phy_data.csv'
+    phy_data = np.loadtxt(phy_data_fn, delimiter=',')
+    phy_data_sum = round(np.sum(phy_data), ndigits=8)
+    print(phy_data_sum)
 
-    return cdvs_sum
+    return phy_data_sum
 
 def test_run_pipeline():
     val = run_pipeline()
