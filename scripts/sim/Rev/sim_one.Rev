@@ -3,7 +3,12 @@
 #if (!exists("tmp_fn")) tmp_fn = "../workspace/raw_data/Rev_project/sim.0"
 
 # expect that phyddle calls `rb --args <tmp_fn>`
-if (exists("args") && args.size() > 0) tmp_fn = args[1]
+if (exists("args") && args.size() > 0) {
+    out_path = args[1]
+    idx = args[2]
+    sim_batch_size = args[3]
+    tmp_fn = out_path + "/sim." + idx
+}
 
 # filenames
 phy_fn = tmp_fn + ".tre"
