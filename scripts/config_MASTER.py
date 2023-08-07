@@ -1,14 +1,9 @@
 #==============================================================================#
-# Default phyddle config file                                                  #
+# MASTER phyddle config file                                                   #
 #==============================================================================#
 
-# external import
-#import scipy.stats
-#import scipy as sp
 
 # helper variables
-num_char = 3
-num_states = 2
 
 args = {
     
@@ -32,31 +27,26 @@ args = {
     'num_proc'       : 10,                  # how many CPUs to use (-2 means all but 2)
     
     #-------------------------------#
-    # Model Configuration           #
-    #-------------------------------#
-    'num_char'           : num_char,        # number of evolutionary characters
-    'num_states'         : num_states,      # number of states per character
-
-    #-------------------------------#
     # Simulate Step settings        #
     #-------------------------------#
-    'sim_command'       : 'python3 sim/MASTER/sim_one.py', # exact command string, argument is output file prefix
+    'sim_command'       : './sim/MASTER/sim_one.py', # exact command string, argument is output file prefix
     'sim_logging'       : 'verbose',        # verbose, compressed, or clean
     'start_idx'         : 0,                # first simulation replicate index
     'end_idx'           : 1000,             # last simulation replicate index
-    'sample_population' : ['S'],            # name of population to sample
-    'stop_time'         : 10,               # time to stop simulation
-    'min_num_taxa'      : 10,               # min number of taxa for valid sim
-    'max_num_taxa'      : 500,              # max number of taxa for valid sim
+    'sim_batch_size'    : 1,                # num replicates per sim job
 
     #-------------------------------#
     # Format Step settings          #
     #-------------------------------#
-    'tree_type'         : 'extant',         # use model with serial or extant tree
-    'chardata_format'   : 'nexus',
+    'num_char'          : 3,                # number of evolutionary characters
+    'num_states'        : 2,                # number of states per character
+    'min_num_taxa'      : 10,               # min number of taxa for valid sim
+    'max_num_taxa'      : 500,              # max number of taxa for valid sim
+    'tree_encode'       : 'extant',         # use model with serial or extant tree
+    'char_format'       : 'nexus',
     'tree_width_cats'   : [ 200, 500 ],     # tree width categories for phylo-state tensors
-    'tree_encode_type'  : 'height_brlen',   # how to encode phylo brlen? height_only or height_brlen
-    'char_encode_type'  : 'integer',        # how to encode discrete states? one_hot or integer
+    'brlen_encode'      : 'height_brlen',   # how to encode phylo brlen? height_only or height_brlen
+    'char_encode'       : 'integer',        # how to encode discrete states? one_hot or integer
     'param_est'         : [                 # model parameters to estimate (labels)
         'w_0', 'e_0', 'd_0_1', 'b_0_1'
     ],
@@ -68,11 +58,12 @@ args = {
     # Train Step settings           #
     #-------------------------------#
     'trn_objective'     : 'param_est',      # what is the learning task? param_est or model_test
-    'tree_width'        : 500,              # tree width category used to train network
+    'tree_width'        : 200,              # tree width category used to train network
     'num_epochs'        : 20,               # number of training intervals (epochs)
     'prop_test'         : 0.05,             # proportion of sims in test dataset
-    'prop_validation'   : 0.05,             # proportion of sims in validation dataset
-    'prop_calibration'  : 0.20,             # proportion of sims in CPI calibration dataset 
+    'prop_val'          : 0.05,             # proportion of sims in validation dataset
+    'prop_cal'          : 0.20,             # proportion of sims in CPI calibration dataset 
+    'combine_test_val'  : False,            # combine test and validation data?
     'cpi_coverage'      : 0.95,             # coverage level for CPIs
     'cpi_asymmetric'    : True,             # upper/lower (True) or symmetric (False) CPI adjustments
     'batch_size'        : 128,              # number of samples in each training batch

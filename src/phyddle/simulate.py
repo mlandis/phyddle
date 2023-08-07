@@ -76,7 +76,9 @@ class Simulator:
         self.sim_proj_dir = f'{self.sim_dir}/{self.sim_proj}'
         # run() attempts to generate one simulation per value in rep_idx,
         # where rep_idx is list of unique ints to identify simulated datasets
-        self.rep_idx = list(range(self.start_idx, self.end_idx))
+        self.rep_idx = list(range(self.start_idx,
+                                  self.end_idx,
+                                  self.sim_batch_size))
         # create logger to track runtime info
         self.logger = util.Logger(args)
         #done
@@ -90,16 +92,19 @@ class Simulator:
             args (dict): Contains phyddle settings.
         """
         # simulator arguments
-        self.args         = args
-        self.verbose      = args['verbose']
-        self.sim_dir      = args['sim_dir']
-        self.sim_proj     = args['sim_proj']
-        self.start_idx    = args['start_idx']
-        self.end_idx      = args['end_idx']
-        self.num_proc     = args['num_proc']
-        self.use_parallel = args['use_parallel']
-        self.sim_command  = args['sim_command']
-        self.sim_logging  = args['sim_logging']
+        self.args           = args
+        self.verbose        = args['verbose']
+        self.sim_dir        = args['sim_dir']
+        self.sim_proj       = args['sim_proj']
+        self.start_idx      = args['start_idx']
+        self.end_idx        = args['end_idx']
+        self.sim_batch_size = 1
+        if 'sim_batch_size' in args:
+            self.sim_batch_size = args['sim_batch_size']
+        self.num_proc       = args['num_proc']
+        self.use_parallel   = args['use_parallel']
+        self.sim_command    = args['sim_command']
+        self.sim_logging    = args['sim_logging']
         # TODO: automatic set arg
         # step_args = util.make_step_args('S', args)
         # for k,v in step_args.items():
@@ -186,12 +191,11 @@ class Simulator:
             idx (int): The index of the simulation iteration.
         """
         # get filesystem info for generic job
-        out_path   = f'{self.sim_dir}/{self.sim_proj}/sim'
-        tmp_fn     = f'{out_path}.{idx}'
-        cmd_str    = f'{self.sim_command} {tmp_fn}'
+        out_path   = f'{self.sim_dir}/{self.sim_proj}'
+        tmp_fn     = f'{out_path}/sim.{idx}'
+        cmd_str    = f'{self.sim_command} {out_path} {idx} {self.sim_batch_size}'
         stdout_fn  = f'{tmp_fn}.stdout.log'
         stderr_fn  = f'{tmp_fn}.stderr.log'
-
         # run generic job
         num_attempt = 10
         valid = False

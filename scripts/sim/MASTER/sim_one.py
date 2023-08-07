@@ -6,11 +6,13 @@ import os
 import re
 import subprocess
 
-# get index for replicate
-#tmp_fn = '/Users/mlandis/projects/phyddle/workspace/simulate/MASTER_example/sim.0'
-#print(sys.argv)
-tmp_fn       = sys.argv[1]
-idx          = int(tmp_fn.split('.')[-1])
+# get arguments
+out_path     = sys.argv[1]
+idx          = int(sys.argv[2])
+batch_size   = int(sys.argv[3])
+
+# process arguments
+tmp_fn       = sys.argv[1] + f'/sim.{idx}'
 sim_tok      = tmp_fn.split('/')
 sim_dir      = '/'.join(sim_tok[:-2])
 proj         = sim_tok[-2]

@@ -109,6 +109,7 @@ def settings_registry():
         'sim_logging'      : { 'step':'S',     'type':str,   'help':'Simulation logging style', 'choices':['clean', 'verbose', 'compress'] },
         'start_idx'        : { 'step':'SF',    'type':int,   'help':'Start replicate index for simulated training dataset' },
         'end_idx'          : { 'step':'SF',    'type':int,   'help':'End replicate index for simulated training dataset' },
+        'sim_batch_size'   : { 'step':'S',     'type':int,   'help':'Number of replicates per simulation command' },
 
         # formatting options
         'num_char'         : { 'step':'FTE',   'type':int,   'help':'Number of characters' },
@@ -297,6 +298,7 @@ def check_args(args):
     assert args['num_char'] > 0
     assert args['num_epochs'] > 0
     assert args['batch_size'] > 0
+    assert args['sim_batch_size'] > 0
     assert args['cpi_coverage'] >= 0. and args['cpi_coverage'] <= 1.
     assert args['prop_test'] >= 0. and args['prop_test'] <= 1.
     assert args['prop_val'] >= 0. and args['prop_val'] <= 1.
