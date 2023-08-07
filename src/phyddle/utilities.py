@@ -128,7 +128,7 @@ def settings_registry():
         'trn_objective'    : { 'step':'T',     'type':str,   'help':'Objective of training procedure', 'choices':['param_est', 'model_test'] },
         'tree_width'       : { 'step':'TEP',   'type':int,   'help':'The phylo-state tensor width used to train the neural network' },
         'num_epochs'       : { 'step':'TEP',   'type':int,   'help':'Number of training epochs' },
-        'batch_size'       : { 'step':'TEP',   'type':int,   'help':'Training batch sizes' },
+        'trn_batch_size'   : { 'step':'TEP',   'type':int,   'help':'Training batch sizes' },
         'prop_test'        : { 'step':'T',     'type':float, 'help':'Proportion of data used as test examples (assess trained network performance)' },
         'prop_val'         : { 'step':'T',     'type':float, 'help':'Proportion of data used as validation examples (diagnose network overtraining)' },
         'prop_cal'         : { 'step':'T',     'type':float, 'help':'Proportion of data used as calibration examples (calibrate CPIs)' },
@@ -297,7 +297,7 @@ def check_args(args):
     assert args['num_states'] > 0
     assert args['num_char'] > 0
     assert args['num_epochs'] > 0
-    assert args['batch_size'] > 0
+    assert args['trn_batch_size'] > 0
     assert args['sim_batch_size'] > 0
     assert args['cpi_coverage'] >= 0. and args['cpi_coverage'] <= 1.
     assert args['prop_test'] >= 0. and args['prop_test'] <= 1.

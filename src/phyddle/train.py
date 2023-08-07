@@ -100,7 +100,7 @@ class Trainer:
         self.brlen_encode      = args['brlen_encode']
         self.char_encode       = args['char_encode']
         self.tensor_format     = args['tensor_format']
-        self.batch_size        = args['batch_size']
+        self.batch_size        = args['trn_batch_size']
         self.num_epochs        = args['num_epochs']    
         self.prop_test         = args['prop_test']
         self.prop_val          = args['prop_val']
@@ -391,7 +391,7 @@ class CnnTrainer(Trainer):
         Simplified network architecture:
         
                               ,--> Conv1D-normal + Pool --. 
-        Phylo. Data Tensor --+---> Conv1D-stride + Pool ---\                          ,--> Point estimate
+        Phylo. Data Tensor --+---> Conv1D-stride + Pool ---\\                         ,--> Point estimate
                               '--> Conv1D-dilate + Pool ----+--> Concat + Output(s)--+---> Lower quantile
                                                            /                          '--> Upper quantile
         Aux. Data Tensor   ------> Dense -----------------'

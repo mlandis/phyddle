@@ -90,7 +90,7 @@ class Estimator:
         self.trn_proj      = args['trn_proj']
         self.est_proj      = args['est_proj']
         self.est_prefix    = args['est_prefix']
-        self.batch_size    = args['batch_size']
+        self.batch_size    = args['trn_batch_size']
         self.num_char      = args['num_char']
         self.num_states    = args['num_states']
         self.num_epochs    = args['num_epochs']

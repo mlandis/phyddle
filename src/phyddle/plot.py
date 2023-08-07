@@ -88,7 +88,7 @@ class Plotter:
         self.trn_proj          = args['trn_proj']
         self.plt_proj          = args['plt_proj']
         self.est_proj          = args['est_proj']
-        self.batch_size        = args['batch_size']
+        self.batch_size        = args['trn_batch_size']
         self.num_epochs        = args['num_epochs']
         self.tree_width        = args['tree_width']
         self.tensor_format     = args['tensor_format']

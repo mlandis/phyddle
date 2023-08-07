@@ -33,6 +33,7 @@ args = {
     'sim_logging'       : 'verbose',        # verbose, compressed, or clean
     'start_idx'         : 0,                # first simulation replicate index
     'end_idx'           : 1,                # last simulation replicate index
+    'sim_batch_size'    : 1,                # simulation batch size
 
     #-------------------------------#
     # Formatting Step settings      #
@@ -65,7 +66,7 @@ args = {
     'combine_test_val'  : False,
     'cpi_coverage'      : 0.95,             # coverage level for CPIs
     'cpi_asymmetric'    : 0.95,             # coverage level for CPIs
-    'batch_size'        : 128,              # number of samples in each training batch
+    'trn_batch_size'    : 128,              # number of samples in each training batch
     'loss'              : 'mse',            # loss function for learning
     'optimizer'         : 'adam',           # optimizer for network weight/bias parameters
     'metrics'           : ['mae', 'acc'],   # recorded training metrics
