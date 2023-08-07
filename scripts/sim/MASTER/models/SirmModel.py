@@ -15,10 +15,8 @@ import scipy as sp
 import numpy as np
 import pandas as pd
 
-from models import model
+from models.model import BaseModel
 from master_util import States,Event
-
-#from phyddle.utilities import States,Event
 
 
 model_type = 'SIRM'
@@ -30,16 +28,23 @@ model_variants = {
     'equal_rates' : {
         'desc':'all event rates of type share one value',
         'params':['R0','S0','sampling','recovery','migration']
+    },
+    'vistor' : {
+        'desc':'visitor model',
+        'params':['R0','S0','sampling','recovery','migration','return']
     }
 }
 
 variant_registry = []
 variant_registry_names = ['variant_name',      'description'  ] 
-variant_registry.append( ['free_rates',        'rates differ among all events within type'] )
-variant_registry.append( ['equal_rates',       'rates equal among all events within type'] )
+for k,v in model_variants.items():
+    variant_name = k
+    variant_desc = v['desc']
+    variant_registry.append([variant_name, variant_desc])
+
 variant_registry = pd.DataFrame( variant_registry, columns = variant_registry_names)
 
-class SirmModel(Model.BaseModel):
+class SirmModel(BaseModel):
 
     # initialize model
     def __init__(self, args):
@@ -52,6 +57,7 @@ class SirmModel(Model.BaseModel):
     def set_args(self, args):
         super().set_args(args)
         self.num_char = args['num_char']
+        self.num_states = args['num_states']
         return
     
     def set_model(self, idx):
@@ -60,15 +66,16 @@ class SirmModel(Model.BaseModel):
 
     # SIRM state space
     def make_states(self):
-        num_char = self.num_char
+        #num_char = self.num_char
+        num_states = self.num_states
         # S: Susceptible, I: Infected, R: Recovered, A: Acquired ('Sampled')
         compartments = 'SIRA'
         # Location 0, Location 1, Location 2, ...
-        locations = [ str(x) for x in list(range(num_char)) ]
+        locations = [ str(x) for x in list(range(num_states)) ]
         # S0, S1, S2, ..., I0, I1, I2, ..., R0, R1, R2, ...
         lbl = [ ''.join(x) for x in list(itertools.product(compartments,locations)) ]
         # 1000, 0100, 0010, 0001 (one-hot encoding for N locations)
-        vec = np.identity(num_char, dtype='int').tolist()
+        vec = np.identity(num_states, dtype='int').tolist()
         # { S0:1000, S1:0100, S2:0010, ..., I0:1000, I1:0100, I2:0010, ... }
         lbl2vec = {}
         for i,v in enumerate(lbl):
@@ -77,18 +84,6 @@ class SirmModel(Model.BaseModel):
         # state space object
         states = States(lbl2vec)
         return states
-    
-    # def make_start_sizes(self):
-    #     # rv_fn = self.rv_fn
-    #     # rv_arg = self.rv_arg
-    #     # num_char = self.num_char
-    #     # # X ~ Gamma(shape=0.5, scale=1e6) 
-    #     # start_sizes = rv_fn['n0'](size=num_char, random_state=self.rng, **rv_arg['n0'])
-    #     # start_sizes = [ int(np.ceil(x)) for x in start_sizes ]
-    #     ret = { 'S' : self.params['S0'] } ## this info could be added to self.params s.t. it can be used for training
-    #     #if 'I0' in self.params:
-    #     #    ret['I'] = self.params['I0']
-    #     return ret
         
     def make_start_conditions(self):
         # p_start_sizes = self.start_sizes['S'] / np.sum(self.start_sizes['S'])
@@ -104,7 +99,7 @@ class SirmModel(Model.BaseModel):
         params = {}
 
         # get sim RV functions and arguments
-        num_char = self.num_char
+        num_states = self.num_states
         rv_fn = self.rv_fn
         rv_arg = self.rv_arg
 
@@ -112,11 +107,11 @@ class SirmModel(Model.BaseModel):
         if model_variant == 'free_rates':
             # check to make sure arguments in settings are applied to model variant
             params = {
-                'S0'        : rv_fn['S0'](size=num_char, random_state=self.rng, **rv_arg['S0']),
-                'R0'        : rv_fn['R0'](size=num_char, random_state=self.rng, **rv_arg['R0']),
-                'sampling'  : rv_fn['sampling'](size=num_char, random_state=self.rng, **rv_arg['sampling']),
-                'recovery'  : rv_fn['recovery'](size=num_char, random_state=self.rng, **rv_arg['recovery']),
-                'migration' : rv_fn['migration'](size=num_char**2, random_state=self.rng, **rv_arg['migration']).reshape((num_char,num_char))
+                'S0'        : rv_fn['S0'](size=num_states, random_state=self.rng, **rv_arg['S0']),
+                'R0'        : rv_fn['R0'](size=num_states, random_state=self.rng, **rv_arg['R0']),
+                'sampling'  : rv_fn['sampling'](size=num_states, random_state=self.rng, **rv_arg['sampling']),
+                'recovery'  : rv_fn['recovery'](size=num_states, random_state=self.rng, **rv_arg['recovery']),
+                'migration' : rv_fn['migration'](size=num_states**2, random_state=self.rng, **rv_arg['migration']).reshape((num_states,num_states))
             }
             params['S0'] = int( np.round(params['S0']) )
             params['infection'] = params['R0'] / (params['recovery'] + params['sampling']) * (1. / params['S0'])
@@ -128,11 +123,12 @@ class SirmModel(Model.BaseModel):
         # all rates are drawn iid
         elif model_variant == 'equal_rates':
             params = {
-                'S0'        : np.full(num_char, rv_fn['S0'](size=1, random_state=self.rng, **rv_arg['S0'])[0]),
-                'R0'        : np.full(num_char, rv_fn['R0'](size=1, random_state=self.rng, **rv_arg['R0'])[0]),
-                'sampling'  : np.full(num_char, rv_fn['sampling'](size=1, random_state=self.rng, **rv_arg['sampling'])[0]),
-                'recovery'  : np.full(num_char, rv_fn['recovery'](size=1, random_state=self.rng, **rv_arg['recovery'])[0]),
-                'migration' : np.full((num_char,num_char), rv_fn['migration'](size=1, random_state=self.rng, **rv_arg['migration'])[0])
+                'S0'        : np.full(num_states, rv_fn['S0'](size=1, random_state=self.rng, **rv_arg['S0'])[0]),
+                'R0'        : np.full(num_states, rv_fn['R0'](size=1, random_state=self.rng, **rv_arg['R0'])[0]),
+                'sampling'  : np.full(num_states, rv_fn['sampling'](size=1, random_state=self.rng, **rv_arg['sampling'])[0]),
+                'recovery'  : np.full(num_states, rv_fn['recovery'](size=1, random_state=self.rng, **rv_arg['recovery'])[0]),
+                'migration' : np.full((num_states,num_states),
+                                      rv_fn['migration'](size=1, random_state=self.rng, **rv_arg['migration'])[0])
             }
             params['S0'] = np.round(params['S0'])
             # R0 = infection/(recovery+sampling) so infection = R0*(recovery+sampling)
@@ -146,10 +142,10 @@ class SirmModel(Model.BaseModel):
         elif model_variant == 'feature_rates':
             # other parameters checked for effect-strength of feature on rates
             params = {
-                #'Infect': np.full(num_char, sp.stats.expon.rvs(size=1)[0]),
-                #'Recover': np.full(num_char, sp.stats.expon.rvs(size=1)[0]), 
-                #'Sample': np.full(num_char, sp.stats.expon.rvs(size=1)[0]), 
-                #'Migrate': np.full((num_char,num_char), sp.stats.expon.rvs(size=1)[0])
+                #'Infect': np.full(num_states, sp.stats.expon.rvs(size=1)[0]),
+                #'Recover': np.full(num_states, sp.stats.expon.rvs(size=1)[0]), 
+                #'Sample': np.full(num_states, sp.stats.expon.rvs(size=1)[0]), 
+                #'Migrate': np.full((num_states,num_states), sp.stats.expon.rvs(size=1)[0])
             }
         # return rates
         #print(rates)

@@ -91,6 +91,7 @@ class Formatter:
                                                   self.num_char,
                                                   self.num_states)
         self.num_data_row = self.num_tree_row + self.num_char_row
+
         # create logger to track runtime info
         self.logger = util.Logger(args)
         # done
@@ -328,7 +329,7 @@ class Formatter:
             res = [ self.load_one_sim(idx=idx, tree_width=tree_width) for idx in tqdm(_rep_idx,
                                 total=len(_rep_idx),
                                 desc='Combining') ]
-            
+
             # store all numerical data into hdf5)
             if len(res) > 0:
                 dat_data[:,:] = np.vstack( [ x[0] for x in res ] )
