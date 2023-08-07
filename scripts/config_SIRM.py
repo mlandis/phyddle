@@ -1,17 +1,17 @@
 #==============================================================================#
-# Config:       Default phyddle config file                                    #
-# Authors:      Michael Landis and Ammon Thompson                              #
-# Date:         230804                                                         #
-# Description:  Simple birth-death and equal-rates CTMC model in R using ape   #
+# MASTER phyddle config file                                                   #
 #==============================================================================#
 
-args = {
 
+# helper variables
+
+args = {
+    
     #-------------------------------#
     # Project organization          #
     #-------------------------------#
-    'proj'    : 'R_example',                # project name(s)
-    'step'    : 'SFTEP',                    # step(s) to run
+    'proj'    : 'SIRM_example',               # project name(s)
+    'step'    : 'SFTEP',                        # step(s) to run
     'verbose' : True,                       # print verbose phyddle output?
     'sim_dir' : '../workspace/simulate',    # directory for simulated data
     'fmt_dir' : '../workspace/format',      # directory for tensor-formatted data
@@ -19,40 +19,41 @@ args = {
     'plt_dir' : '../workspace/plot',        # directory for plotted figures
     'est_dir' : '../workspace/estimate',    # directory for predictions on new data
     'log_dir' : '../workspace/log',         # directory for analysis logs
-
+    
     #-------------------------------#
     # Multiprocessing               #
     #-------------------------------#
     'use_parallel'   : True,                # use multiprocessing to speed up jobs?
     'num_proc'       : 10,                  # how many CPUs to use (-2 means all but 2)
-
+    
     #-------------------------------#
     # Simulate Step settings        #
     #-------------------------------#
-    'sim_method'        : 'command',         # command, master, [phylojunction], ...
-    'sim_command'       : 'Rscript sim/R/sim_one.R', # exact command string, argument is output file prefix
+    'sim_command'       : './sim/MASTER/sim_one_SIRM.py', # exact command string, argument is output file prefix
     'sim_logging'       : 'verbose',        # verbose, compressed, or clean
     'start_idx'         : 0,                # first simulation replicate index
     'end_idx'           : 1000,             # last simulation replicate index
-    'sim_batch_size'    : 1,
+    'sim_batch_size'    : 1,                # num replicates per sim job
 
     #-------------------------------#
     # Format Step settings          #
     #-------------------------------#
-    'num_char'          : 2,                # number of evolutionary characters
-    'num_states'        : 3,                # number of states per character
+    'num_char'          : 3,                # number of evolutionary characters
+    'num_states'        : 2,                # number of states per character
     'min_num_taxa'      : 10,               # min number of taxa for valid sim
     'max_num_taxa'      : 500,              # max number of taxa for valid sim
-    'tree_encode'       : 'extant',         # use model with serial or extant tree
+    'tree_encode'       : 'serial',         # use model with serial or extant tree
+    'char_format'       : 'nexus',
+    'tree_width_cats'   : [ 200, 500 ],     # tree width categories for phylo-state tensors
     'brlen_encode'      : 'height_brlen',   # how to encode phylo brlen? height_only or height_brlen
     'char_encode'       : 'integer',        # how to encode discrete states? one_hot or integer
-    'tree_width_cats'   : [ 200, 500 ],     # tree width categories for phylo-state tensors
-    'param_est'         : [                 # model parameters to predict (labels)
-        'birth', 'death', 'state_rate'
+    'param_est'         : [                 # model parameters to estimate (labels)
+        'R0_0', 'sampling_0', 'migration_0_1'
     ],
-    'param_data'        : [],               # model parameters that are known (aux. data)
+    'param_data'        : [                 # model parameters that are known (aux. data)
+        'recovery_0', 'S0_0'
+    ],
     'tensor_format'     : 'hdf5',           # save as compressed HDF5 or raw csv
-    'char_format'       : 'nexus',
     'save_phyenc_csv'   : False,            # save intermediate phylo-state vectors to file
 
     #-------------------------------#
@@ -63,11 +64,11 @@ args = {
     'num_epochs'        : 20,               # number of training intervals (epochs)
     'prop_test'         : 0.05,             # proportion of sims in test dataset
     'prop_val'          : 0.05,             # proportion of sims in validation dataset
-    'prop_cal'          : 0.20,             # proportion of sims in CPI calibration dataset
-    'combine_test_val'  : True,
+    'prop_cal'          : 0.20,             # proportion of sims in CPI calibration dataset 
+    'combine_test_val'  : False,            # combine test and validation data?
     'cpi_coverage'      : 0.95,             # coverage level for CPIs
     'cpi_asymmetric'    : True,             # upper/lower (True) or symmetric (False) CPI adjustments
-    'trn_batch_size'    : 128,              # number of samples in each training batch
+    'batch_size'        : 128,              # number of samples in each training batch
     'loss'              : 'mse',            # loss function for learning
     'optimizer'         : 'adam',           # optimizer for network weight/bias parameters
     'metrics'           : ['mae', 'acc'],   # recorded training metrics
@@ -88,3 +89,4 @@ args = {
     'plot_est_color'        : 'black'       # plot color for estimated data/values
 
 }
+

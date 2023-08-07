@@ -28,28 +28,8 @@ args = {
     # Multiprocessing               #
     #-------------------------------#
     'use_parallel'   : True,                # use multiprocessing to speed up jobs?
-    'num_proc'       : -2,                  # how many CPUs to use (-2 means all but 2)
+    'num_proc'       : 10,                  # how many CPUs to use (-2 means all but 2)
     
-    #-------------------------------#
-    # Model Configuration           #
-    #-------------------------------#
-#    'model_type'         : 'geosse',        # model type defines general states and events
-#    'model_variant'      : 'equal_rates',   # model variant defines rate assignments
-    'num_char'           : num_char,        # number of evolutionary characters
-    'num_states'         : num_states,      # number of states per discrete character
-#    'rv_fn'              : {                # distributions for model parameters
-#        'w': sp.stats.expon.rvs,
-#        'e': sp.stats.expon.rvs,
-#        'd': sp.stats.expon.rvs,
-#        'b': sp.stats.expon.rvs
-#    },
-#    'rv_arg'             : {                # loc/scale/shape for model parameter dists
-#        'w': { 'scale' : 0.2 },
-#        'e': { 'scale' : 0.1 },
-#        'd': { 'scale' : 0.1 },
-#        'b': { 'scale' : 0.5 }
-#    },
-
     #-------------------------------#
     # Simulating Step settings      #
     #-------------------------------#
@@ -58,24 +38,25 @@ args = {
     'sim_logging'       : 'verbose',        # verbose, compressed, or clean
     'start_idx'         : 0,                # first simulation replicate index
     'end_idx'           : 1000,             # last simulation replicate index
-#    'sample_population' : ['S'],            # name of population to sample
-#    'stop_time'         : 10,               # time to stop simulation
-#    'min_num_taxa'      : 10,               # min number of taxa for valid sim
-#    'max_num_taxa'      : 500,              # max number of taxa for valid sim
+    'sim_batch_size'    : 1,
 
     #-------------------------------#
     # Formatting Step settings      #
     #-------------------------------#
-    'tree_type'         : 'extant',         # use model with serial or extant tree
+    'num_char'          : 2,                # number of evolutionary characters
+    'num_states'        : 3,                # number of states per discrete character
+    'min_num_taxa'      : 10,
+    'max_num_taxa'      : 500,
     'tree_width_cats'   : [ 200, 500 ],     # tree width categories for phylo-state tensors
-    'tree_encode_type'  : 'height_brlen',   # how to encode phylo brlen? height_only or height_brlen
-    'char_encode_type'  : 'one_hot',        # how to encode discrete states? one_hot or integer 
-    'param_pred'        : [                 # model parameters to predict (labels)
+    'tree_encode'       : 'extant',         # use model with serial or extant tree
+    'brlen_encode'      : 'height_brlen',   # how to encode phylo brlen? height_only or height_brlen
+    'char_encode'       : 'one_hot',        # how to encode discrete states? one_hot or integer 
+    'param_est'        : [                 # model parameters to predict (labels)
         'birth', 'death', 'state_rate'
     ],
     'param_data'        : [],               # model parameters that are known (aux. data)
     'tensor_format'     : 'hdf5',           # save as compressed HDF5 or raw csv
-    'chardata_format'   : 'nexus',          # expect character data is in nexus or csv format
+    'char_format'       : 'nexus',          # expect character data is in nexus or csv format
     'save_phyenc_csv'   : False,            # save intermediate phylo-state vectors to file
 
     #-------------------------------#
@@ -85,11 +66,12 @@ args = {
     'tree_width'        : 500,              # tree width category used to train network
     'num_epochs'        : 20,               # number of training intervals (epochs)
     'prop_test'         : 0.05,             # proportion of sims in test dataset
-    'prop_validation'   : 0.05,             # proportion of sims in validation dataset
-    'prop_calibration'  : 0.20,             # proportion of sims in CPI calibration dataset 
+    'prop_val'          : 0.05,             # proportion of sims in validation dataset
+    'prop_cal'          : 0.20,             # proportion of sims in CPI calibration dataset 
+    'combine_test_val'  : False,
     'cpi_coverage'      : 0.95,             # coverage level for CPIs
     'cpi_asymmetric'    : True,             # two-sided (True) or one-sided (False) CPI adjustments
-    'batch_size'        : 128,              # number of samples in each training batch
+    'trn_batch_size'    : 128,              # number of samples in each training batch
     'loss'              : 'mse',            # loss function for learning
     'optimizer'         : 'adam',           # optimizer for network weight/bias parameters
     'metrics'           : ['mae', 'acc'],   # recorded training metrics
