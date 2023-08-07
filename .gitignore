@@ -23,29 +23,34 @@ paper/
 dist/
 code/
 _old/
+scripts/config
 
 # Ignore phyddle accessory files
 notes.txt
 pkg_notes.txt
 
-# Ignore __pycache__
-scripts/__pycache__/*
-*/__pycache__/*
-*/*/__pycache__/*
-*/__pycache__
-*/*/__pycache__
+# Ignore everywhere
+#.Rhistory
+#.swp
+#.vscode/
+#.ipynb_checkpoints/
+#__pycache__
+#.DS_Store
+#.DS_Store?
+**/.Rhistory
+**/*.swp
+**/.vscode/
+**/.ipynb_checkpoints/
+**/__pycache__
+**/.DS_Store
+**/.DS_Store?
 
 # Ignore Sphinx extras
 docs/build/doctrees
 docs/build/doctrees/*
+docs/build/html
 
 # Ignore OS files
-.DS_Store
-.DS_Store?
 
 # Ignore programming files
-.Rhistory
-.swp
-.vscode/
-.ipynb_checkpoints/
 
