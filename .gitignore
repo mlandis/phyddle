@@ -46,9 +46,10 @@ pkg_notes.txt
 **/.DS_Store?
 
 # Ignore Sphinx extras
-docs/build/doctrees
-docs/build/doctrees/*
-docs/build/html
+#docs/build/doctrees
+#docs/build/doctrees/*
+#docs/build/html
+docs/build/*
 
 # Ignore OS files
 

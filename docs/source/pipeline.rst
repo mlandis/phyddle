@@ -273,7 +273,7 @@ concatenated then pushed into three branches terminating in output layers
 to produce point estimates and upper and lower estimation intervals. Here
 is a simplified schematic of the network architecture:
 
-.. code-block:: shell
+.. code-block::
 
     Simplified network architecture:
 

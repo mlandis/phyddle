@@ -10,7 +10,7 @@ Workspace
 
 This section describes how phyddle organizes files and directories in its
 workspace. Visit :ref:`Formats` to learn more about file formats. Visit
-:ref:`Settings` to learn more about managing directories and projects
+:ref:`Configuration` to learn more about managing directories and projects
 within a workspace.
 
 By default, phyddle saves work from its pipeline steps to the location
