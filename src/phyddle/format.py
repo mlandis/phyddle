@@ -120,6 +120,7 @@ class Formatter:
         self.num_states        = args['num_states']
         self.min_num_taxa      = args['min_num_taxa']
         self.max_num_taxa      = args['max_num_taxa']
+        self.downsample_taxa   = args['downsample_taxa']
         self.tree_encode       = args['tree_encode']
         self.brlen_encode      = args['brlen_encode']
         self.char_encode       = args['char_encode']
@@ -489,6 +490,7 @@ class Formatter:
         dat_nex_fn = tmp_fn + '.dat.nex'
         tre_fn     = tmp_fn + '.tre'
         prune_fn   = tmp_fn + '.extant.tre'
+        down_fn    = tmp_fn + '.downsampled.tre'
         cpsv_fn    = tmp_fn + '.phy_data.csv'
         ss_fn      = tmp_fn + '.summ_stat.csv'
         info_fn    = tmp_fn + '.info.csv'
@@ -531,6 +533,12 @@ class Formatter:
                 # valid pruned tree
                 phy = copy.deepcopy(phy_prune)
 
+        # downsample taxa
+        phy,prop_taxa = util.make_downsample_phy(
+            phy, down_fn,
+            max_taxa=max(self.tree_width_cats),
+            strategy=self.downsample_taxa)
+
         # get tree size
         num_taxa = len(phy.leaf_nodes())
         if num_taxa > np.max(self.tree_width_cats):
@@ -562,7 +570,10 @@ class Formatter:
         util.write_to_file(info_str, info_fn)
 
         # record summ stat data
-        ss     = self.make_summ_stat(phy, dat)
+        ss = self.make_summ_stat(phy, dat)
+        # add downsampling info
+        ss['prop_taxa'] = prop_taxa
+        # save summ. stats.
         ss_str = self.make_summ_stat_str(ss)
         util.write_to_file(ss_str, ss_fn)
         

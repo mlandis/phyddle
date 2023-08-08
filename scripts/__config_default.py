@@ -45,6 +45,7 @@ args = {
   'num_states'         : None,                 # Number of states per character 
   'min_num_taxa'       : 10,                   # Minimum number of taxa allowed when formatting
   'max_num_taxa'       : 500,                  # Maximum number of taxa allowed when formatting
+  'downsample_taxa'    : 'uniform',            # Downsampling strategy taxon count
   'tree_width_cats'    : [200, 500],           # The phylo-state tensor widths for formatting training datasets (space-delimited)
   'tree_encode'        : 'extant',             # Encoding strategy for tree     
   'brlen_encode'       : 'height_brlen',       # Encoding strategy for branch lengths

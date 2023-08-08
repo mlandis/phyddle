@@ -119,6 +119,7 @@ def settings_registry():
         'num_states'       : { 'step':'FTE', 'type':int,  'section':'Format', 'default':None,           'help':'Number of states per character' },
         'min_num_taxa'     : { 'step':'F',   'type':int,  'section':'Format', 'default':10,             'help':'Minimum number of taxa allowed when formatting' },
         'max_num_taxa'     : { 'step':'F',   'type':int,  'section':'Format', 'default':500,            'help':'Maximum number of taxa allowed when formatting' },
+        'downsample_taxa'  : { 'step':'FTE', 'type':str,  'section':'Format', 'default':'uniform',      'help':'Downsampling strategy taxon count',            'choices':['uniform'] },
         'tree_width_cats'  : { 'step':'F',   'type':list, 'section':'Format', 'default':[200, 500],     'help':'The phylo-state tensor widths for formatting training datasets (space-delimited)' },
         'tree_encode'      : { 'step':'FTE', 'type':str,  'section':'Format', 'default':'extant',       'help':'Encoding strategy for tree',                   'choices':['extant', 'serial'] },
         'brlen_encode'     : { 'step':'FTE', 'type':str,  'section':'Format', 'default':'height_brlen', 'help':'Encoding strategy for branch lengths',         'choices':['height_only', 'height_brlen'] },
@@ -239,8 +240,6 @@ def load_config(config_fn,
     # merge default, user_file, and user_cmd settings
     for k in settings.keys():
         m = reconcile_settings(m_default, m_file, args, k)
-
-    print(m.args)
 
     # update steps
     if m.args['step'] == 'A':
@@ -1047,6 +1046,37 @@ def make_prune_phy(phy, prune_fn):
         # write pruned tree
         phy_.write(path=prune_fn, schema='newick')
         return phy_
+
+
+def make_downsample_phy(phy, down_fn, max_taxa, strategy):
+    """Subsampling of taxa."""
+    if strategy == 'uniform':
+        phy,rho = make_uniform_downsample_phy(phy, down_fn, max_taxa)
+    else:
+        raise NotImplementedError    
+    return phy,rho
+
+def make_uniform_downsample_phy(phy, down_fn, max_taxa):
+    """Uniform random subsampling of taxa."""
+    max_taxa = int(max_taxa/10)
+    # copy input tree
+    phy_ = copy.deepcopy(phy)
+    # get number of taxa
+    leaf_nodes = phy_.leaf_nodes()
+    num_taxa = len(leaf_nodes)
+    # if downsampling is needed
+    if num_taxa > max_taxa:
+        drop_taxon_labels = [ str(nd.taxon) for nd in leaf_nodes ]
+        np.random.shuffle(drop_taxon_labels)
+        drop_taxon_labels = drop_taxon_labels[max_taxa:]
+        phy_.prune_taxa_with_labels( drop_taxon_labels )
+    # save downsampled tree
+    phy_.write(path=down_fn, schema='newick')
+    # record proportion of remaining taxa
+    prop_taxa = min(max_taxa/num_taxa, 1.0)
+    # done
+    return phy_, prop_taxa
+
 
 def settings_to_str(settings, taxon_category):
     """
