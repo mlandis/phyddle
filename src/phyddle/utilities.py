@@ -36,7 +36,10 @@ pd.set_option('display.float_format', lambda x: f'{x:,.3f}')
 
 # Tensorflow info messages
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # or any {'0', '1', '2'}
-    
+
+# DEFAULT
+CONFIG_DEFAULT_FN = '__config_default.py'
+
 #------------------------------------------------------------------------------#
 
 ###################
@@ -85,69 +88,72 @@ def settings_registry():
     """
     settings = {
         # basic phyddle options
-        'cfg'              : { 'step':'',      'type':str,   'help':'Config file name', 'opt':'c' },
-        'proj'             : { 'step':'SFTEP', 'type':str,   'help':'Project name(s) for pipeline step(s)', 'opt':'p' },
-        'step'             : { 'step':'SFTEP', 'type':str,   'help':'Pipeline step(s) defined with (S)imulate, (F)ormat, (T)rain, (E)stimate, (P)lot, or (A)ll', 'opt':'s' },
-        'verbose'          : { 'step':'SFTEP', 'type':bool,  'help':'Verbose output to screen?', 'opt':'v' },
-        'force'            : { 'step':'',      'type':None,  'help':'Arguments override config file settings', 'opt':'f' },
-        'make_cfg'         : { 'step':'',      'type':None,  'help':"Write default config file to 'config_default.py'?'" },
+        'cfg'              : { 'step':'',      'type':str,  'section':'Basic', 'default':'config.py',  'help':'Config file name', 'opt':'c' },
+        'proj'             : { 'step':'SFTEP', 'type':str,  'section':'Basic', 'default':'my_project', 'help':'Project name(s) for pipeline step(s)', 'opt':'p' },
+        'step'             : { 'step':'SFTEP', 'type':str,  'section':'Basic', 'default':'SFTEP',      'help':'Pipeline step(s) defined with (S)imulate, (F)ormat, (T)rain, (E)stimate, (P)lot, or (A)ll', 'opt':'s' },
+        'verbose'          : { 'step':'SFTEP', 'type':bool, 'section':'Basic', 'default':True,         'help':'Verbose output to screen?', 'opt':'v' },
+        'force'            : { 'step':'',      'type':None, 'section':'Basic', 'default':None,         'help':'Arguments override config file settings', 'opt':'f' },
+        'make_cfg'         : { 'step':'',      'type':None, 'section':'Basic', 'default':None,         'help':"Write default config file to 'config_default.py'?'" },
 
-        # multiprocessing options 
-        'use_parallel'     : { 'step':'SF',    'type':bool,  'help':'Use parallelization? (recommended)' },
-        'num_proc'         : { 'step':'SF',    'type':int,   'help':'Number of cores for multiprocessing (when --use_parallel=True)' },
+        # analysis options 
+        'use_parallel'     : { 'step':'SF', 'type':bool, 'section':'Analysis', 'default':True, 'help':'Use parallelization? (recommended)' },
+        'num_proc'         : { 'step':'SF', 'type':int,  'section':'Analysis', 'default':8,    'help':'Number of cores for multiprocessing (when --use_parallel=True)' },
         
         # directories
-        'sim_dir'          : { 'step':'S',     'type':str,   'help':'Directory for raw simulated data' },
-        'fmt_dir'          : { 'step':'SF',    'type':str,   'help':'Directory for tensor-formatted simulated data' },
-        'trn_dir'          : { 'step':'FT',    'type':str,   'help':'Directory for trained networks and training output' },
-        'est_dir'          : { 'step':'FTE',   'type':str,   'help':'Directory for new datasets and estimates' },
-        'plt_dir'          : { 'step':'FTEP',  'type':str,   'help':'Directory for plotted results' },
-        'log_dir'          : { 'step':'SFTEP', 'type':str,   'help':'Directory for logs of analysis metadata' },
+        'sim_dir'          : { 'step':'S',     'type':str, 'section':'Workspace', 'default':'../workspace/simulate', 'help':'Directory for raw simulated data' },
+        'fmt_dir'          : { 'step':'SF',    'type':str, 'section':'Workspace', 'default':'../workspace/format',   'help':'Directory for tensor-formatted simulated data' },
+        'trn_dir'          : { 'step':'FT',    'type':str, 'section':'Workspace', 'default':'../workspace/train',    'help':'Directory for trained networks and training output' },
+        'est_dir'          : { 'step':'FTE',   'type':str, 'section':'Workspace', 'default':'../workspace/estimate', 'help':'Directory for new datasets and estimates' },
+        'plt_dir'          : { 'step':'FTEP',  'type':str, 'section':'Workspace', 'default':'../workspace/plot',     'help':'Directory for plotted results' },
+        'log_dir'          : { 'step':'SFTEP', 'type':str, 'section':'Workspace', 'default':'../workspace/log',      'help':'Directory for logs of analysis metadata' },
 
         # simulation options
-        'sim_command'      : { 'step':'S',     'type':str,   'help':'Simulation command to run single job (see documentation)' },
-        'sim_logging'      : { 'step':'S',     'type':str,   'help':'Simulation logging style', 'choices':['clean', 'verbose', 'compress'] },
-        'start_idx'        : { 'step':'SF',    'type':int,   'help':'Start replicate index for simulated training dataset' },
-        'end_idx'          : { 'step':'SF',    'type':int,   'help':'End replicate index for simulated training dataset' },
-        'sim_batch_size'   : { 'step':'S',     'type':int,   'help':'Number of replicates per simulation command' },
+        'sim_command'      : { 'step':'S',  'type':str, 'section':'Simulate', 'default':None,    'help':'Simulation command to run single job (see documentation)' },
+        'sim_logging'      : { 'step':'S',  'type':str, 'section':'Simulate', 'default':'clean', 'help':'Simulation logging style', 'choices':['clean', 'compress', 'verbose'] },
+        'start_idx'        : { 'step':'SF', 'type':int, 'section':'Simulate', 'default':0,       'help':'Start replicate index for simulated training dataset' },
+        'end_idx'          : { 'step':'SF', 'type':int, 'section':'Simulate', 'default':1000,    'help':'End replicate index for simulated training dataset' },
+        'sim_batch_size'   : { 'step':'S',  'type':int, 'section':'Simulate', 'default':1,       'help':'Number of replicates per simulation command' },
 
         # formatting options
-        'num_char'         : { 'step':'FTE',   'type':int,   'help':'Number of characters' },
-        'num_states'       : { 'step':'FTE',   'type':int,   'help':'Number of states per character' },
-        'min_num_taxa'     : { 'step':'F',     'type':int,   'help':'Minimum number of taxa allowed when formatting' },
-        'max_num_taxa'     : { 'step':'F',     'type':int,   'help':'Maximum number of taxa allowed when formatting' },
-        'tree_width_cats'  : { 'step':'F',     'type':str,   'help':'The phylo-state tensor widths for formatting training datasets (space-delimited)' },
-        'tree_encode'      : { 'step':'FTE',   'type':str,   'help':'Encoding strategy for tree',                   'choices':['extant', 'serial'] },
-        'brlen_encode'     : { 'step':'FTE',   'type':str,   'help':'Encoding strategy for branch lengths',         'choices':['height_only', 'height_brlen'] },
-        'char_encode'      : { 'step':'FTE',   'type':str,   'help':'Encoding strategy for character data',         'choices':['one_hot', 'integer', 'numeric'] },
-        'char_format'      : { 'step':'FTE',   'type':str,   'help':'File format for character data',               'choices':['csv', 'nexus'] },
-        'tensor_format'    : { 'step':'FTE',   'type':str,   'help':'File format for training example tensors',     'choices':['csv', 'hdf5'] },
-        'save_phyenc_csv'  : { 'step':'F',     'type':bool,  'help':'Save encoded phylogenetic tensor encoding to csv?' },
+        'num_char'         : { 'step':'FTE', 'type':int,  'section':'Format', 'default':None,           'help':'Number of characters' },
+        'num_states'       : { 'step':'FTE', 'type':int,  'section':'Format', 'default':None,           'help':'Number of states per character' },
+        'min_num_taxa'     : { 'step':'F',   'type':int,  'section':'Format', 'default':10,             'help':'Minimum number of taxa allowed when formatting' },
+        'max_num_taxa'     : { 'step':'F',   'type':int,  'section':'Format', 'default':500,            'help':'Maximum number of taxa allowed when formatting' },
+        'tree_width_cats'  : { 'step':'F',   'type':list, 'section':'Format', 'default':[200, 500],     'help':'The phylo-state tensor widths for formatting training datasets (space-delimited)' },
+        'tree_encode'      : { 'step':'FTE', 'type':str,  'section':'Format', 'default':'extant',       'help':'Encoding strategy for tree',                   'choices':['extant', 'serial'] },
+        'brlen_encode'     : { 'step':'FTE', 'type':str,  'section':'Format', 'default':'height_brlen', 'help':'Encoding strategy for branch lengths',         'choices':['height_only', 'height_brlen'] },
+        'char_encode'      : { 'step':'FTE', 'type':str,  'section':'Format', 'default':'one_hot',      'help':'Encoding strategy for character data',         'choices':['one_hot', 'integer', 'numeric'] },
+        'param_est'        : { 'step':'FTE', 'type':list, 'section':'Format', 'default':None,           'help':'Model parameters to estimate' },
+        'param_data'       : { 'step':'FTE', 'type':list, 'section':'Format', 'default':None,           'help':'Model parameters treated as data' },
+        'char_format'      : { 'step':'FTE', 'type':str,  'section':'Format', 'default':'nexus',        'help':'File format for character data',               'choices':['csv', 'nexus'] },
+        'tensor_format'    : { 'step':'FTE', 'type':str,  'section':'Format', 'default':'hdf5',         'help':'File format for training example tensors',     'choices':['csv', 'hdf5'] },
+        'save_phyenc_csv'  : { 'step':'F',   'type':bool, 'section':'Format', 'default':False,          'help':'Save encoded phylogenetic tensor encoding to csv?' },
         
         # training options
-        'trn_objective'    : { 'step':'T',     'type':str,   'help':'Objective of training procedure', 'choices':['param_est', 'model_test'] },
-        'tree_width'       : { 'step':'TEP',   'type':int,   'help':'The phylo-state tensor width used to train the neural network' },
-        'num_epochs'       : { 'step':'TEP',   'type':int,   'help':'Number of training epochs' },
-        'trn_batch_size'   : { 'step':'TEP',   'type':int,   'help':'Training batch sizes' },
-        'prop_test'        : { 'step':'T',     'type':float, 'help':'Proportion of data used as test examples (assess trained network performance)' },
-        'prop_val'         : { 'step':'T',     'type':float, 'help':'Proportion of data used as validation examples (diagnose network overtraining)' },
-        'prop_cal'         : { 'step':'T',     'type':float, 'help':'Proportion of data used as calibration examples (calibrate CPIs)' },
-        'combine_test_val' : { 'step':'T',     'type':bool,  'help':'Combine test and validation datasets when assessing network fit?' },
-        'cpi_coverage'     : { 'step':'T',     'type':float, 'help':'Expected coverage percent for calibrated prediction intervals (CPIs)' },
-        'cpi_asymmetric'   : { 'step':'T',     'type':bool,  'help':'Use asymmetric (True) or symmetric (False) adjustments for CPIs?' },
-        'loss'             : { 'step':'T',     'type':str,   'help':'Loss function for optimization', 'choices':['mse', 'mae']},
-        'optimizer'        : { 'step':'T',     'type':str,   'help':'Method used for optimizing neural network', 'choices':['adam'] },
+        'trn_objective'    : { 'step':'T',   'type':str,   'section':'Train', 'default':'param_est',   'help':'Objective of training procedure', 'choices':['param_est'] },
+        'tree_width'       : { 'step':'TEP', 'type':int,   'section':'Train', 'default':200,           'help':'The phylo-state tensor width used to train the neural network' },
+        'num_epochs'       : { 'step':'TEP', 'type':int,   'section':'Train', 'default':20,            'help':'Number of training epochs' },
+        'trn_batch_size'   : { 'step':'TEP', 'type':int,   'section':'Train', 'default':128,           'help':'Training batch sizes' },
+        'prop_test'        : { 'step':'T',   'type':float, 'section':'Train', 'default':0.05,          'help':'Proportion of data used as test examples (assess trained network performance)' },
+        'prop_val'         : { 'step':'T',   'type':float, 'section':'Train', 'default':0.05,          'help':'Proportion of data used as validation examples (diagnose network overtraining)' },
+        'prop_cal'         : { 'step':'T',   'type':float, 'section':'Train', 'default':0.20,          'help':'Proportion of data used as calibration examples (calibrate CPIs)' },
+        'combine_test_val' : { 'step':'T',   'type':bool,  'section':'Train', 'default':True,          'help':'Combine test and validation datasets when assessing network fit?' },
+        'cpi_coverage'     : { 'step':'T',   'type':float, 'section':'Train', 'default':0.95,          'help':'Expected coverage percent for calibrated prediction intervals (CPIs)' },
+        'cpi_asymmetric'   : { 'step':'T',   'type':bool,  'section':'Train', 'default':True,          'help':'Use asymmetric (True) or symmetric (False) adjustments for CPIs?' },
+        'loss'             : { 'step':'T',   'type':str,   'section':'Train', 'default':'mse',         'help':'Loss function for optimization', 'choices':['mse', 'mae']},
+        'optimizer'        : { 'step':'T',   'type':str,   'section':'Train', 'default':'adam',        'help':'Method used for optimizing neural network', 'choices':['adam'] },
+        'metrics'          : { 'step':'T',   'type':list,  'section':'Train', 'default':['mae','acc'], 'help':'Recorded training metrics' },
         
         # estimating options
-        'est_prefix'       : { 'step':'EP',    'type':str,  'help':'Predict results for this dataset' },
+        'est_prefix'       : { 'step':'EP', 'type':str, 'section':'Estimate', 'default':None, 'help':'Predict results for this dataset' },
 
         # plotting options
-        'plot_train_color' : { 'step':'P',     'type':str,  'help':'Plotting color for training data elements' },
-        'plot_label_color' : { 'step':'P',     'type':str,  'help':'Plotting color for training label elements' },
-        'plot_test_color'  : { 'step':'P',     'type':str,  'help':'Plotting color for test data elements' },
-        'plot_val_color'   : { 'step':'P',     'type':str,  'help':'Plotting color for validation data elements' },
-        'plot_aux_color'   : { 'step':'P',     'type':str,  'help':'Plotting color for auxiliary data elements' },
-        'plot_est_color'   : { 'step':'P',     'type':str,  'help':'Plotting color for new estimation elements' }
+        'plot_train_color' : { 'step':'P',  'type':str, 'section':'Plot', 'default':'blue',   'help':'Plotting color for training data elements' },
+        'plot_label_color' : { 'step':'P',  'type':str, 'section':'Plot', 'default':'purple', 'help':'Plotting color for training label elements' },
+        'plot_test_color'  : { 'step':'P',  'type':str, 'section':'Plot', 'default':'red',    'help':'Plotting color for test data elements' },
+        'plot_val_color'   : { 'step':'P',  'type':str, 'section':'Plot', 'default':'green',  'help':'Plotting color for validation data elements' },
+        'plot_aux_color'   : { 'step':'P',  'type':str, 'section':'Plot', 'default':'orange', 'help':'Plotting color for auxiliary data elements' },
+        'plot_est_color'   : { 'step':'P',  'type':str, 'section':'Plot', 'default':'black',  'help':'Plotting color for new estimation elements' }
     }
     return settings
 
@@ -213,38 +219,28 @@ def load_config(config_fn,
     # parse arguments
     args = parser.parse_args(args)
     
-    # make default config
+    # make/overwrite default config, if requested
     if args.make_cfg:
         make_default_config()
-        print('Created default config as \'config_default.py\' ...')
+        print(f'Created default config as \'{CONFIG_DEFAULT_FN}\' ...')
         sys.exit()
 
-    # overwrite config_fn is argument passed
+    # load default config from file
+    if os.path.exists(CONFIG_DEFAULT_FN) is False:
+        print(f'Created default config as \'{CONFIG_DEFAULT_FN}\' ...')
+        make_default_config()
+    m_default = importlib.import_module(strip_py(CONFIG_DEFAULT_FN))
+
+    # load user config from file
     if arg_overwrite and args.cfg is not None:
         config_fn = args.cfg
-    config_fn = config_fn.rstrip('.py')
-
-    # get config from file
-    m = importlib.import_module(config_fn)
+    m_file = importlib.import_module(strip_py(config_fn))
     
-    # update arguments from defaults, when provided
-    def overwrite_defaults(m, args, var):
-        x = getattr(args, var)
-        if x is not None:
-            # if args.force:
-            #     m.args[var] = x
-            # elif var not in m.args:
-            #     m.args[var] = x
-            m.args[var] = x
-        return m
-    
-    # MJL: I can't remember why I didn't do this as a loop but, originally I
-    #      think it was to allow argparse have default values, which would then
-    #      improve control over how argparse, the cfg file, and the CLI cfg
-    #      interact to assign args. Need to revisit this.
-    # MJL 230802: trying a new setup w/ for-loop
+    # merge default, user_file, and user_cmd settings
     for k in settings.keys():
-        m = overwrite_defaults(m, args, k)
+        m = reconcile_settings(m_default, m_file, args, k)
+
+    print(m.args)
 
     # update steps
     if m.args['step'] == 'A':
@@ -361,110 +357,126 @@ def add_step_proj(args): #steps, proj):
     return args
 
 def make_default_config():
-    # 1. could run this script without writing to file if config.py DNE
-    # 2. check if config.py exists and avoid overwrite (y/n prompt, .bak, etc.)
-    # MJL 230802: we should be able to generate this automatically from
-    #             settings_registry if we provide default values.
-    s = """
-#==============================================================================#
-# Default phyddle config file                                                  #
-#==============================================================================#
+    settings = settings_registry()
+    
+    # sort settings by section
+    section_settings = {}
+    for k,v in settings.items():
+        sect = v['section']
+        if sect not in section_settings.keys():
+            section_settings[sect] = {}
+        section_settings[sect][k] = v
+        
+    
+    # constant tokens
+    s_assign = ' : '
+    s_comment = '  # '
+    s_indent = '  '
+    
+    # token lengths               # token examples
+    len_indent = len(s_indent)    # "  "
+    len_assign = len(s_assign)    # " : "
+    len_comment = len(s_comment)  # " # ""
+    len_punct = len_indent + len_assign + len_comment
+    len_key = 20                  # "'num_epochs'".ljust(len_key, ' ')
+    len_value = 20                # str(20).ljust(len_value, ' ')
+    len_help = 32                 # "Number of training examples"
+    len_line = 80
+    
+    section_str = {}
+    for i,(k1,v1) in enumerate(section_settings.items()):
+        # section header
+        s_sect  =  "  #-------------------------------#\n"
+        s_sect +=  "  # " + str(k1).ljust(30, ' ') +      "#\n"
+        s_sect +=  "  #-------------------------------#\n"
 
-# external import
-import scipy.stats
-import scipy as sp
+        # max widths for sections
+        max_key, max_value, max_help = 0, 0, 0
 
-# helper variables
-num_char = 3
-num_states = 2
+        # info for sections
+        v_key, v_value, v_help = [], [], []
 
-args = {
+        # get key,value,help and max sizes per section
+        for k2,v2 in v1.items():
+            # key
+            s_key = f"'{str(k2)}'" #.ljust(len_key, ' ')
+            v_key.append(s_key)
+            max_key = max(max_key, len(s_key))
 
-    #-------------------------------#
-    # Project organization          #
-    #-------------------------------#
-    'proj'    : 'my_project',               # project name(s)
-    'step'    : 'SFTEP',                    # step(s) to run
-    'verbose' : True,                       # print verbose phyddle output?
-    'sim_dir' : '../workspace/simulate',    # directory for simulated data
-    'fmt_dir' : '../workspace/format',      # directory for tensor-formatted data
-    'trn_dir' : '../workspace/train',       # directory for trained network
-    'plt_dir' : '../workspace/plot',        # directory for plotted figures
-    'est_dir' : '../workspace/estimate',    # directory for predictions on new data
-    'log_dir' : '../workspace/log',         # directory for analysis logs
+            # value
+            s_value = str(v2['default'])
+            if (v2['type'] is str and s_value != 'None'):
+                s_value = "'" + s_value + "'"
+            v_value.append(s_value+',')
+            max_value = max(max_value, len(s_value))
 
-    #-------------------------------#
-    # Multiprocessing               #
-    #-------------------------------#
-    'use_parallel'   : True,                # use multiprocessing to speed up jobs?
-    'num_proc'       : -2,                  # how many CPUs to use (-2 means all but 2)
+            # help
+            s_help = v2['help']
+            v_help.append(s_help)
+            max_help = max(max_help, len(s_help))
 
-    #-------------------------------#
-    # Model Configuration           #
-    #-------------------------------#
-    'num_char'           : num_char,        # number of evolutionary characters
-    'num_states'         : num_states,      # number of states per character
+        # make key,value,help strings for each section entry
+        for ki,vi,hi in zip(v_key, v_value, v_help):
+            
+            width_key = max(len_key, max_key)
+            width_value = max(len_value, max_value)
+            width_help = len_line - (width_key + width_value + len_punct)
+            
+            s_tok = []
+            s_tok.append(s_indent)
+            s_tok.append(ki.ljust(width_key, ' '))
+            s_tok.append(s_assign)
+            s_tok.append(vi.ljust(width_value, ' '))
+            s_tok.append(s_comment)
+            s_tok.append(hi.ljust(width_help, ' '))
+        
+            s_sect += ''.join(s_tok) + '\n'
 
-    #-------------------------------#
-    # Simulate Step settings        #
-    #-------------------------------#
-    'sim_command'       : 'python3 sim/MASTER/sim_one.py', # exact command, arg will be output file prefix
-    'sim_logging'       : 'verbose',        # verbose, compressed, or clean
-    'start_idx'         : 0,                # first simulation replicate index
-    'end_idx'           : 1000,             # last simulation replicate index
+        section_str[k1] = s_sect
 
-    #-------------------------------#
-    # Format Step settings          #
-    #-------------------------------#
-    'tree_type'         : 'extant',         # use model with serial or extant tree
-    'chardata_format'   : 'nexus',
-    'tree_width_cats'   : [ 200, 500 ],     # tree width categories for phylo-state tensors
-    'tree_encode_type'  : 'height_brlen',   # how to encode phylo brlen? height_only or height_brlen
-    'char_encode_type'  : 'integer',        # how to encode discrete states? one_hot or integer
-    'param_est'        : [                  # model parameters to estimate (labels)
-        'w_0', 'e_0', 'd_0_1', 'b_0_1'
-    ],
-    'param_data'        : [],               # model parameters that are known (aux. data)
-    'tensor_format'     : 'hdf5',           # save as compressed HDF5 or raw csv
-    'save_phyenc_csv'   : False,            # save intermediate phylo-state vectors to file
+    # build file content
+    s_cfg  = "#==============================================================================#\n"
+    s_cfg += "# Default phyddle config file                                                  #\n"
+    s_cfg += "#==============================================================================#\n"
+    s_cfg += "\n"
+    s_cfg += "args = {\n"
+    for k,v in section_str.items():
+        s_cfg += v + '\n'
+    s_cfg += "}\n"
 
-    #-------------------------------#
-    # Train Step settings           #
-    #-------------------------------#
-    'trn_objective'     : 'param_est',      # what is the learning task? param_est or model_test
-    'tree_width'        : 500,              # tree width category used to train network
-    'num_epochs'        : 20,               # number of training intervals (epochs)
-    'prop_test'         : 0.05,             # proportion of sims in test dataset
-    'prop_validation'   : 0.05,             # proportion of sims in validation dataset
-    'prop_calibration'  : 0.20,             # proportion of sims in CPI calibration dataset
-    'cpi_coverage'      : 0.95,             # coverage level for CPIs
-    'cpi_asymmetric'    : True,             # upper/lower (True) or symmetric (False) CPI adjustments
-    'batch_size'        : 128,              # number of samples in each training batch
-    'loss'              : 'mse',            # loss function for learning
-    'optimizer'         : 'adam',           # optimizer for network weight/bias parameters
-    'metrics'           : ['mae', 'acc'],   # recorded training metrics
-
-    #-------------------------------#
-    # Estimate Step settings        #
-    #-------------------------------#
-    'est_prefix'     : 'new.1',             # prefix for new dataset to predict
-
-    #-------------------------------#
-    # Plot Step settings            #
-    #-------------------------------#
-    'plot_train_color'      : 'blue',       # plot color for training data
-    'plot_test_color'       : 'purple',     # plot color for test data
-    'plot_val_color'        : 'red',        # plot color for validation data
-    'plot_aux_color'        : 'green',      # plot color for input auxiliary data
-    'plot_label_color'      : 'orange',     # plot color for labels (params)
-    'plot_est_color'        : 'black'       # plot color for estimated data/values
-
-}
-"""
-    f = open('config_default.py', 'w')
-    f.write(s)
+    # write file content
+    f = open(CONFIG_DEFAULT_FN, 'w')
+    f.write(s_cfg)
     f.close()
+    
+    # done
     return
+
+# update arguments from defaults, when provided
+def reconcile_settings(default_args, file_args, cmd_args, var):
+        
+        # print('DEFAULT:',m_default.args)
+        # print('FILE:',m_file.args)
+        # print('ARGS:',args)
+        # first apply file args
+        if var in file_args.args.keys():
+            x_file = file_args.args[var]
+            #x_file = getattr(m_file.args, var)
+            if x_file is not None:
+                default_args.args[var] = x_file
+
+        # then apply command args
+        x_cmd = getattr(cmd_args, var)
+        #if var in cmd_args.keys():
+        #    x_cmd = cmd_args[var]
+        if x_cmd is not None:
+            default_args.args[var] = x_cmd
+
+        return default_args
+
+
+def strip_py(s):
+    return re.sub(r'\.py$', '', s)
 
 def generate_random_hex_string(length):
     """
@@ -1661,3 +1673,111 @@ class Logger:
 #             str: The string representation of the state space.
 #         """
 #         return self.make_str()
+
+
+
+# def make_default_config2():
+#     # 1. could run this script without writing to file if config.py DNE
+#     # 2. check if config.py exists and avoid overwrite (y/n prompt, .bak, etc.)
+#     # MJL 230802: we should be able to generate this automatically from
+#     #             settings_registry if we provide default values.
+#     s = """
+# #==============================================================================#
+# # Default phyddle config file                                                  #
+# #==============================================================================#
+
+# # external import
+# import scipy.stats
+# import scipy as sp
+
+# # helper variables
+# num_char = 3
+# num_states = 2
+
+# args = {
+
+#     #-------------------------------#
+#     # Project organization          #
+#     #-------------------------------#
+#     'proj'    : 'my_project',               # project name(s)
+#     'step'    : 'SFTEP',                    # step(s) to run
+#     'verbose' : True,                       # print verbose phyddle output?
+#     'sim_dir' : '../workspace/simulate',    # directory for simulated data
+#     'fmt_dir' : '../workspace/format',      # directory for tensor-formatted data
+#     'trn_dir' : '../workspace/train',       # directory for trained network
+#     'plt_dir' : '../workspace/plot',        # directory for plotted figures
+#     'est_dir' : '../workspace/estimate',    # directory for predictions on new data
+#     'log_dir' : '../workspace/log',         # directory for analysis logs
+
+#     #-------------------------------#
+#     # Multiprocessing               #
+#     #-------------------------------#
+#     'use_parallel'   : True,                # use multiprocessing to speed up jobs?
+#     'num_proc'       : -2,                  # how many CPUs to use (-2 means all but 2)
+
+#     #-------------------------------#
+#     # Model Configuration           #
+#     #-------------------------------#
+#     'num_char'           : num_char,        # number of evolutionary characters
+#     'num_states'         : num_states,      # number of states per character
+
+#     #-------------------------------#
+#     # Simulate Step settings        #
+#     #-------------------------------#
+#     'sim_command'       : 'python3 sim/MASTER/sim_one.py', # exact command, arg will be output file prefix
+#     'sim_logging'       : 'verbose',        # verbose, compressed, or clean
+#     'start_idx'         : 0,                # first simulation replicate index
+#     'end_idx'           : 1000,             # last simulation replicate index
+
+#     #-------------------------------#
+#     # Format Step settings          #
+#     #-------------------------------#
+#     'tree_type'         : 'extant',         # use model with serial or extant tree
+#     'chardata_format'   : 'nexus',
+#     'tree_width_cats'   : [ 200, 500 ],     # tree width categories for phylo-state tensors
+#     'tree_encode_type'  : 'height_brlen',   # how to encode phylo brlen? height_only or height_brlen
+#     'char_encode_type'  : 'integer',        # how to encode discrete states? one_hot or integer
+#     'param_est'        : [                  # model parameters to estimate (labels)
+#         'w_0', 'e_0', 'd_0_1', 'b_0_1'
+#     ],
+#     'param_data'        : [],               # model parameters that are known (aux. data)
+#     'tensor_format'     : 'hdf5',           # save as compressed HDF5 or raw csv
+#     'save_phyenc_csv'   : False,            # save intermediate phylo-state vectors to file
+
+#     #-------------------------------#
+#     # Train Step settings           #
+#     #-------------------------------#
+#     'trn_objective'     : 'param_est',      # what is the learning task? param_est or model_test
+#     'tree_width'        : 500,              # tree width category used to train network
+#     'num_epochs'        : 20,               # number of training intervals (epochs)
+#     'prop_test'         : 0.05,             # proportion of sims in test dataset
+#     'prop_validation'   : 0.05,             # proportion of sims in validation dataset
+#     'prop_calibration'  : 0.20,             # proportion of sims in CPI calibration dataset
+#     'cpi_coverage'      : 0.95,             # coverage level for CPIs
+#     'cpi_asymmetric'    : True,             # upper/lower (True) or symmetric (False) CPI adjustments
+#     'batch_size'        : 128,              # number of samples in each training batch
+#     'loss'              : 'mse',            # loss function for learning
+#     'optimizer'         : 'adam',           # optimizer for network weight/bias parameters
+#     'metrics'           : ['mae', 'acc'],   # recorded training metrics
+
+#     #-------------------------------#
+#     # Estimate Step settings        #
+#     #-------------------------------#
+#     'est_prefix'     : 'new.1',             # prefix for new dataset to predict
+
+#     #-------------------------------#
+#     # Plot Step settings            #
+#     #-------------------------------#
+#     'plot_train_color'      : 'blue',       # plot color for training data
+#     'plot_test_color'       : 'purple',     # plot color for test data
+#     'plot_val_color'        : 'red',        # plot color for validation data
+#     'plot_aux_color'        : 'green',      # plot color for input auxiliary data
+#     'plot_label_color'      : 'orange',     # plot color for labels (params)
+#     'plot_est_color'        : 'black'       # plot color for estimated data/values
+
+# }
+# """
+#     f = open('config_default.py', 'w')
+#     f.write(s)
+#     f.close()
+#     return
