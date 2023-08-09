@@ -36,11 +36,13 @@ args = {
   'sim_logging'        : 'clean',              # Simulation logging style       
   'start_idx'          : 0,                    # Start replicate index for simulated training dataset
   'end_idx'            : 1000,                 # End replicate index for simulated training dataset
+  'sim_more'           : 0,                    # Add more simulations with auto-generated indices
   'sim_batch_size'     : 1,                    # Number of replicates per simulation command
 
   #-------------------------------#
   # Format                        #
   #-------------------------------#
+  'encode_all_sim'     : True,                 # Encode all simulated replicates into tensor?
   'num_char'           : None,                 # Number of characters           
   'num_states'         : None,                 # Number of states per character 
   'min_num_taxa'       : 10,                   # Minimum number of taxa allowed when formatting

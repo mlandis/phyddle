@@ -16,7 +16,7 @@ import os
 import subprocess
 
 # external imports
-from multiprocessing import Pool, set_start_method
+from multiprocessing import Pool, set_start_method, cpu_count
 
 from tqdm import tqdm
 
@@ -74,11 +74,11 @@ class Simulator:
         self.set_args(args)
         # directory to store simulations
         self.sim_proj_dir = f'{self.sim_dir}/{self.sim_proj}'
-        # run() attempts to generate one simulation per value in rep_idx,
-        # where rep_idx is list of unique ints to identify simulated datasets
-        self.rep_idx = list(range(self.start_idx,
-                                  self.end_idx,
-                                  self.sim_batch_size))
+        # set number of processors
+        if self.num_proc < 0:
+            self.num_proc = cpu_count() + self.num_proc
+        # simulate replicate IDs to generate
+        self.rep_idx = self.get_rep_idx()
         # create logger to track runtime info
         self.logger = util.Logger(args)
         #done
@@ -98,18 +98,35 @@ class Simulator:
         self.sim_proj       = args['sim_proj']
         self.start_idx      = args['start_idx']
         self.end_idx        = args['end_idx']
-        self.sim_batch_size = 1
-        if 'sim_batch_size' in args:
-            self.sim_batch_size = args['sim_batch_size']
+        self.sim_more       = args['sim_more']
         self.num_proc       = args['num_proc']
         self.use_parallel   = args['use_parallel']
         self.sim_command    = args['sim_command']
         self.sim_logging    = args['sim_logging']
+        self.sim_batch_size = args['sim_batch_size']
+        
         # TODO: automatic set arg
         # step_args = util.make_step_args('S', args)
         # for k,v in step_args.items():
         #     setattr(self, k, v)
         return
+
+    def get_rep_idx(self):
+        # if sim_more arg is defined, use it to overwrite rep_idx
+        if self.sim_more > 0:
+            rep_idx = set()
+            files = os.listdir(f'{self.sim_proj_dir}')
+            for f in files:
+                rep_idx.add(int(f.split('.')[1]))
+            max_rep_idx = max(list(rep_idx))
+            self.start_idx = max_rep_idx + 1
+            self.end_idx = self.start_idx + self.sim_more
+        # determine rep_idx
+        rep_idx = list(range(self.start_idx,
+                             self.end_idx,
+                             self.sim_batch_size))
+
+        return rep_idx
 
     def run(self):
         """

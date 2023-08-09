@@ -112,9 +112,11 @@ def settings_registry():
         'sim_logging'      : { 'step':'S',  'type':str, 'section':'Simulate', 'default':'clean', 'help':'Simulation logging style', 'choices':['clean', 'compress', 'verbose'] },
         'start_idx'        : { 'step':'SF', 'type':int, 'section':'Simulate', 'default':0,       'help':'Start replicate index for simulated training dataset' },
         'end_idx'          : { 'step':'SF', 'type':int, 'section':'Simulate', 'default':1000,    'help':'End replicate index for simulated training dataset' },
+        'sim_more'         : { 'step':'S',  'type':int, 'section':'Simulate', 'default':0,       'help':'Add more simulations with auto-generated indices' },
         'sim_batch_size'   : { 'step':'S',  'type':int, 'section':'Simulate', 'default':1,       'help':'Number of replicates per simulation command' },
 
         # formatting options
+        'encode_all_sim'   : { 'step':'F',   'type':bool, 'section':'Format', 'default':True,           'help':'Encode all simulated replicates into tensor?' },
         'num_char'         : { 'step':'FTE', 'type':int,  'section':'Format', 'default':None,           'help':'Number of characters' },
         'num_states'       : { 'step':'FTE', 'type':int,  'section':'Format', 'default':None,           'help':'Number of states per character' },
         'min_num_taxa'     : { 'step':'F',   'type':int,  'section':'Format', 'default':10,             'help':'Minimum number of taxa allowed when formatting' },
@@ -286,6 +288,7 @@ def check_args(args):
     assert args['start_idx'] >= 0
     assert args['end_idx'] >= 0
     assert args['start_idx'] <= args['end_idx']
+    assert args['sim_more'] >= 0
     assert args['min_num_taxa'] >= 0
     assert args['max_num_taxa'] >= 0
     assert args['min_num_taxa'] <= args['max_num_taxa']
@@ -1058,7 +1061,7 @@ def make_downsample_phy(phy, down_fn, max_taxa, strategy):
 
 def make_uniform_downsample_phy(phy, down_fn, max_taxa):
     """Uniform random subsampling of taxa."""
-    max_taxa = int(max_taxa/10)
+    #print('Downsample:')
     # copy input tree
     phy_ = copy.deepcopy(phy)
     # get number of taxa
@@ -1066,15 +1069,18 @@ def make_uniform_downsample_phy(phy, down_fn, max_taxa):
     num_taxa = len(leaf_nodes)
     # if downsampling is needed
     if num_taxa > max_taxa:
-        drop_taxon_labels = [ str(nd.taxon) for nd in leaf_nodes ]
+        drop_taxon_labels = [ str(nd.taxon).strip("'").replace(' ','_') for nd in leaf_nodes ]
         np.random.shuffle(drop_taxon_labels)
         drop_taxon_labels = drop_taxon_labels[max_taxa:]
         phy_.prune_taxa_with_labels( drop_taxon_labels )
+        #print('drop!')
     # save downsampled tree
     phy_.write(path=down_fn, schema='newick')
+    #print('Num nodes left:', len(phy_.leaf_nodes()))
     # record proportion of remaining taxa
     prop_taxa = min(max_taxa/num_taxa, 1.0)
     # done
+    #print('---')
     return phy_, prop_taxa
 
 

@@ -20,7 +20,7 @@ import h5py
 import numpy as np
 import scipy as sp
 import pandas as pd
-from multiprocessing import Pool, set_start_method
+from multiprocessing import Pool, set_start_method, cpu_count
 from tqdm import tqdm
 
 # phyddle imports
@@ -81,9 +81,15 @@ class Formatter:
         self.sim_proj_dir = f'{self.sim_dir}/{self.sim_proj}'
         # directory for formatted tensors (output)
         self.fmt_proj_dir = f'{self.fmt_dir}/{self.fmt_proj}'
+        # set number of processors
+        if self.num_proc < 0:
+            self.num_proc = cpu_count() + self.num_proc
         # run() attempts to generate one simulation per value in rep_idx,
         # where rep_idx is list of unique ints to identify simulated datasets
-        self.rep_idx      = list(range(self.start_idx, self.end_idx))
+        if self.encode_all:
+            self.rep_idx = self.get_rep_idx()
+        else:
+            self.rep_idx = list(range(self.start_idx, self.end_idx))
         # get size of CPV+S tensors
         self.num_tree_row = util.get_num_tree_row(self.tree_encode,
                                                   self.brlen_encode)
@@ -116,6 +122,7 @@ class Formatter:
         self.fmt_proj          = args['fmt_proj']
         self.use_parallel      = args['use_parallel']
         self.num_proc          = args['num_proc']
+        self.encode_all_sim    = args['encode_all_sim']
         self.num_char          = args['num_char']
         self.num_states        = args['num_states']
         self.min_num_taxa      = args['min_num_taxa']
@@ -130,6 +137,7 @@ class Formatter:
         self.param_est         = args['param_est']
         self.param_data        = args['param_data']
         self.save_phyenc_csv   = args['save_phyenc_csv']
+
         return
 
     def run(self):
@@ -200,6 +208,7 @@ class Formatter:
 
         # construct list of encoding arguments
         args = []
+
         for idx in self.rep_idx:
             args.append((f'{self.sim_proj_dir}/sim.{idx}', idx))
 
@@ -241,6 +250,14 @@ class Formatter:
 
         return
     
+    def get_rep_idx(self):
+        rep_idx = set()
+        files = os.listdir(f'{self.sim_proj_dir}')
+        for f in files:
+            rep_idx.add(int(f.split('.')[1]))
+        rep_idx = sorted(list(rep_idx))
+        return rep_idx
+
     def get_summ_stat_names(self):
         """
         Get names of summary statistics from first representative file.
@@ -544,7 +561,7 @@ class Formatter:
         if num_taxa > np.max(self.tree_width_cats):
             # abort, too many taxa
             return
-        elif num_taxa < self.min_num_taxa or num_taxa < 0:
+        if num_taxa < self.min_num_taxa or num_taxa < 0:
             # abort, too few taxa
             return
 
