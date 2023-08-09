@@ -17,7 +17,7 @@ args = {
   # Analysis                      #
   #-------------------------------#
   'use_parallel'       : True,                 # Use parallelization? (recommended)
-  'num_proc'           : 8,                    # Number of cores for multiprocessing (when --use_parallel=True)
+  'num_proc'           : -2,                   # Number of cores for multiprocessing (-N for all but N)
 
   #-------------------------------#
   # Workspace                     #
@@ -48,7 +48,7 @@ args = {
   'min_num_taxa'       : 10,                   # Minimum number of taxa allowed when formatting
   'max_num_taxa'       : 500,                  # Maximum number of taxa allowed when formatting
   'downsample_taxa'    : 'uniform',            # Downsampling strategy taxon count
-  'tree_width_cats'    : [200, 500],           # The phylo-state tensor widths for formatting training datasets (space-delimited)
+  'tree_width'         : 500,                  # Width of phylo-state tensor    
   'tree_encode'        : 'extant',             # Encoding strategy for tree     
   'brlen_encode'       : 'height_brlen',       # Encoding strategy for branch lengths
   'char_encode'        : 'one_hot',            # Encoding strategy for character data
@@ -62,7 +62,6 @@ args = {
   # Train                         #
   #-------------------------------#
   'trn_objective'      : 'param_est',          # Objective of training procedure
-  'tree_width'         : 200,                  # The phylo-state tensor width used to train the neural network
   'num_epochs'         : 20,                   # Number of training epochs      
   'trn_batch_size'     : 128,                  # Training batch sizes           
   'prop_test'          : 0.05,                 # Proportion of data used as test examples (assess trained network performance)

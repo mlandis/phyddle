@@ -22,6 +22,7 @@ import re
 import sys
 from datetime import datetime
 from itertools import chain, combinations
+#from time import gmtime, strftime
 
 # external packages
 import pandas as pd
@@ -97,7 +98,7 @@ def settings_registry():
 
         # analysis options 
         'use_parallel'     : { 'step':'SF', 'type':bool, 'section':'Analysis', 'default':True, 'help':'Use parallelization? (recommended)' },
-        'num_proc'         : { 'step':'SF', 'type':int,  'section':'Analysis', 'default':8,    'help':'Number of cores for multiprocessing (when --use_parallel=True)' },
+        'num_proc'         : { 'step':'SF', 'type':int,  'section':'Analysis', 'default':-2,   'help':'Number of cores for multiprocessing (-N for all but N)' },
         
         # directories
         'sim_dir'          : { 'step':'S',     'type':str, 'section':'Workspace', 'default':'../workspace/simulate', 'help':'Directory for raw simulated data' },
@@ -122,7 +123,8 @@ def settings_registry():
         'min_num_taxa'     : { 'step':'F',   'type':int,  'section':'Format', 'default':10,             'help':'Minimum number of taxa allowed when formatting' },
         'max_num_taxa'     : { 'step':'F',   'type':int,  'section':'Format', 'default':500,            'help':'Maximum number of taxa allowed when formatting' },
         'downsample_taxa'  : { 'step':'FTE', 'type':str,  'section':'Format', 'default':'uniform',      'help':'Downsampling strategy taxon count',            'choices':['uniform'] },
-        'tree_width_cats'  : { 'step':'F',   'type':list, 'section':'Format', 'default':[200, 500],     'help':'The phylo-state tensor widths for formatting training datasets (space-delimited)' },
+        'tree_width'       : { 'step':'TEP', 'type':int,  'section':'Format', 'default':500,            'help':'Width of phylo-state tensor' },
+        #'tree_width_cats'  : { 'step':'F',   'type':int, 'section':'Format', 'default':[200, 500],     'help':'The phylo-state tensor widths for formatting training datasets (space-delimited)' },
         'tree_encode'      : { 'step':'FTE', 'type':str,  'section':'Format', 'default':'extant',       'help':'Encoding strategy for tree',                   'choices':['extant', 'serial'] },
         'brlen_encode'     : { 'step':'FTE', 'type':str,  'section':'Format', 'default':'height_brlen', 'help':'Encoding strategy for branch lengths',         'choices':['height_only', 'height_brlen'] },
         'char_encode'      : { 'step':'FTE', 'type':str,  'section':'Format', 'default':'one_hot',      'help':'Encoding strategy for character data',         'choices':['one_hot', 'integer', 'numeric'] },
@@ -134,7 +136,6 @@ def settings_registry():
         
         # training options
         'trn_objective'    : { 'step':'T',   'type':str,   'section':'Train', 'default':'param_est',   'help':'Objective of training procedure', 'choices':['param_est'] },
-        'tree_width'       : { 'step':'TEP', 'type':int,   'section':'Train', 'default':200,           'help':'The phylo-state tensor width used to train the neural network' },
         'num_epochs'       : { 'step':'TEP', 'type':int,   'section':'Train', 'default':20,            'help':'Number of training epochs' },
         'trn_batch_size'   : { 'step':'TEP', 'type':int,   'section':'Train', 'default':128,           'help':'Training batch sizes' },
         'prop_test'        : { 'step':'T',   'type':float, 'section':'Train', 'default':0.05,          'help':'Proportion of data used as test examples (assess trained network performance)' },
@@ -301,10 +302,10 @@ def check_args(args):
     assert args['prop_test'] >= 0. and args['prop_test'] <= 1.
     assert args['prop_val'] >= 0. and args['prop_val'] <= 1.
     assert args['prop_cal'] >= 0. and args['prop_cal'] <= 1.
-    assert len(args['tree_width_cats']) > 0
-    for i in range(len(args['tree_width_cats'])):
-        assert args['tree_width_cats'][i] > 0
-    assert args['tree_width'] in args['tree_width_cats']
+    #assert len(args['tree_width_cats']) > 0
+    #for i in range(len(args['tree_width_cats'])):
+    #    assert args['tree_width_cats'][i] > 0
+    #assert args['tree_width'] in args['tree_width_cats']
 
     return
 
@@ -1054,14 +1055,13 @@ def make_prune_phy(phy, prune_fn):
 def make_downsample_phy(phy, down_fn, max_taxa, strategy):
     """Subsampling of taxa."""
     if strategy == 'uniform':
-        phy,rho = make_uniform_downsample_phy(phy, down_fn, max_taxa)
+        phy = make_uniform_downsample_phy(phy, down_fn, max_taxa)
     else:
         raise NotImplementedError    
-    return phy,rho
+    return phy
 
 def make_uniform_downsample_phy(phy, down_fn, max_taxa):
     """Uniform random subsampling of taxa."""
-    #print('Downsample:')
     # copy input tree
     phy_ = copy.deepcopy(phy)
     # get number of taxa
@@ -1073,15 +1073,10 @@ def make_uniform_downsample_phy(phy, down_fn, max_taxa):
         np.random.shuffle(drop_taxon_labels)
         drop_taxon_labels = drop_taxon_labels[max_taxa:]
         phy_.prune_taxa_with_labels( drop_taxon_labels )
-        #print('drop!')
     # save downsampled tree
     phy_.write(path=down_fn, schema='newick')
-    #print('Num nodes left:', len(phy_.leaf_nodes()))
-    # record proportion of remaining taxa
-    prop_taxa = min(max_taxa/num_taxa, 1.0)
     # done
-    #print('---')
-    return phy_, prop_taxa
+    return phy_
 
 
 def settings_to_str(settings, taxon_category):

@@ -185,6 +185,7 @@ class Trainer:
         self.save_results()
 
         util.print_str('▪ ... done!', verbose)
+        return
     
     def load_input(self):
         """Loads the input data for the network."""

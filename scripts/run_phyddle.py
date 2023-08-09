@@ -42,9 +42,9 @@ if 'T' in step:
 
 # Step 4: estimates for new dataset
 if 'E' in step:
-    prd_prefix = f"{my_args['est_dir']}/{my_args['proj']}/{my_args['est_prefix']}"
+    est_prefix = f"{my_args['est_dir']}/{my_args['proj']}/{my_args['est_prefix']}"
     my_fmt = fmt.load(my_args)
-    my_fmt.encode_one(tmp_fn=prd_prefix, idx=-1, save_phyenc_csv=True)
+    my_fmt.encode_one(tmp_fn=est_prefix, idx=-1, save_phyenc_csv=True)
     my_est = est.load(my_args)
     my_est.run()
 

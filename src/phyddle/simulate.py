@@ -75,7 +75,7 @@ class Simulator:
         # directory to store simulations
         self.sim_proj_dir = f'{self.sim_dir}/{self.sim_proj}'
         # set number of processors
-        if self.num_proc < 0:
+        if self.num_proc <= 0:
             self.num_proc = cpu_count() + self.num_proc
         # simulate replicate IDs to generate
         self.rep_idx = self.get_rep_idx()

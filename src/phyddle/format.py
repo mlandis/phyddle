@@ -82,7 +82,7 @@ class Formatter:
         # directory for formatted tensors (output)
         self.fmt_proj_dir = f'{self.fmt_dir}/{self.fmt_proj}'
         # set number of processors
-        if self.num_proc < 0:
+        if self.num_proc <= 0:
             self.num_proc = cpu_count() + self.num_proc
         # run() attempts to generate one simulation per value in rep_idx,
         # where rep_idx is list of unique ints to identify simulated datasets
@@ -133,7 +133,8 @@ class Formatter:
         self.char_encode       = args['char_encode']
         self.char_format       = args['char_format']
         self.tensor_format     = args['tensor_format']
-        self.tree_width_cats   = args['tree_width_cats']
+        #self.tree_width_cats   = args['tree_width_cats']
+        self.tree_width_cats   = [ args['tree_width'] ] # MJL remove later, if desired
         self.param_est         = args['param_est']
         self.param_data        = args['param_data']
         self.save_phyenc_csv   = args['save_phyenc_csv']
@@ -551,7 +552,8 @@ class Formatter:
                 phy = copy.deepcopy(phy_prune)
 
         # downsample taxa
-        phy,prop_taxa = util.make_downsample_phy(
+        num_taxa_orig = len(phy.leaf_nodes())
+        phy = util.make_downsample_phy(
             phy, down_fn,
             max_taxa=max(self.tree_width_cats),
             strategy=self.downsample_taxa)
@@ -589,7 +591,9 @@ class Formatter:
         # record summ stat data
         ss = self.make_summ_stat(phy, dat)
         # add downsampling info
-        ss['prop_taxa'] = prop_taxa
+        ss['num_taxa'] = num_taxa_orig
+        ss['prop_taxa'] = num_taxa / num_taxa_orig
+
         # save summ. stats.
         ss_str = self.make_summ_stat_str(ss)
         util.write_to_file(ss_str, ss_fn)
@@ -627,7 +631,6 @@ class Formatter:
         #tree_height               = np.max( root_distances )
 
         # tree statistics
-        summ_stats['n_taxa']      = num_taxa
         summ_stats['tree_length'] = phy.length()
         summ_stats['root_age']    = root_age
         summ_stats['brlen_mean']  = np.mean(branch_lengths)
