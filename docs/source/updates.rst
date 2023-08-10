@@ -4,9 +4,28 @@ Updates
 The complete commit history for phyddle is located here: https://github.com/mlandis/phyddle/commits/main
 
 
-**phyddle v0.0.6** -- (in progress)
+**phyddle v0.0.7** -- (in progress)
+- Format now splits training from test datasets.
+- Estimate now applies trained model against test dataset.
+- New Step base class for all steps.
+- Steps now apply arguments using settings look-up table.
+- Simplify filenames for many steps, where users should use projects to differentiate step results under different settings.
+- Add start/end/duration, config name, override CLI settings to header.
+- Verify logging for all steps.
+
+
+**phyddle v0.0.6** -- 23.08.09
 
 * Refreshed documentation, plus added setting tables and glossary.
+* Centralize management of settings.
+* Settings now automatically apply default config, then user config, then command line arguments.
+* Format only enodes for a single tree width category now.
+* Format now downsamples and stores raw num. taxa for each data point.
+* Allow for "all-but-X" CPUs for multiprocessing.
+* Simulate wth --sim_more option to add new replicates to training examples.
+* Format encodes all detected datasets by default.
+* Support to allow scripts to simulate batches (>1) of replicates.
+* Major overhaul of help docs, but not done.
 
 **phyddle v0.0.5** -- 23.07.30
 
