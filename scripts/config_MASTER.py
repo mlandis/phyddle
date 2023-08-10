@@ -24,7 +24,7 @@ args = {
     # Multiprocessing               #
     #-------------------------------#
     'use_parallel'   : True,                # use multiprocessing to speed up jobs?
-    'num_proc'       : 10,                  # how many CPUs to use (-2 means all but 2)
+    'num_proc'       : -2,                  # how many CPUs to use (-2 means all but 2)
     
     #-------------------------------#
     # Simulate Step settings        #
@@ -44,7 +44,6 @@ args = {
     'max_num_taxa'      : 500,              # max number of taxa for valid sim
     'tree_encode'       : 'extant',         # use model with serial or extant tree
     'char_format'       : 'nexus',
-    'tree_width_cats'   : [ 200, 500 ],     # tree width categories for phylo-state tensors
     'brlen_encode'      : 'height_brlen',   # how to encode phylo brlen? height_only or height_brlen
     'char_encode'       : 'integer',        # how to encode discrete states? one_hot or integer
     'param_est'         : [                 # model parameters to estimate (labels)

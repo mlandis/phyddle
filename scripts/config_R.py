@@ -24,29 +24,29 @@ args = {
     # Multiprocessing               #
     #-------------------------------#
     'use_parallel'   : True,                # use multiprocessing to speed up jobs?
-    'num_proc'       : 10,                  # how many CPUs to use (-2 means all but 2)
+    'num_proc'       : -2,                  # how many CPUs to use (-2 means all but 2)
 
     #-------------------------------#
     # Simulate Step settings        #
     #-------------------------------#
-    'sim_method'        : 'command',         # command, master, [phylojunction], ...
     'sim_command'       : 'Rscript sim/R/sim_one.R', # exact command string, argument is output file prefix
     'sim_logging'       : 'verbose',        # verbose, compressed, or clean
     'start_idx'         : 0,                # first simulation replicate index
     'end_idx'           : 1000,             # last simulation replicate index
-    'sim_batch_size'    : 2,
+    'sim_batch_size'    : 5,
 
     #-------------------------------#
     # Format Step settings          #
     #-------------------------------#
+    'encode_all_sim'    : True,
     'num_char'          : 2,                # number of evolutionary characters
     'num_states'        : 3,                # number of states per character
     'min_num_taxa'      : 10,               # min number of taxa for valid sim
     'max_num_taxa'      : 500,              # max number of taxa for valid sim
+    'tree_width'        : 200,              # tree width category used to train network
     'tree_encode'       : 'extant',         # use model with serial or extant tree
     'brlen_encode'      : 'height_brlen',   # how to encode phylo brlen? height_only or height_brlen
     'char_encode'       : 'integer',        # how to encode discrete states? one_hot or integer
-    'tree_width_cats'   : [ 200, 500 ],     # tree width categories for phylo-state tensors
     'param_est'         : [                 # model parameters to predict (labels)
         'birth', 'death', 'state_rate'
     ],
@@ -59,7 +59,6 @@ args = {
     # Train Step settings           #
     #-------------------------------#
     'trn_objective'     : 'param_est',      # what is the learning task? param_est or model_test
-    'tree_width'        : 200,              # tree width category used to train network
     'num_epochs'        : 20,               # number of training intervals (epochs)
     'prop_test'         : 0.05,             # proportion of sims in test dataset
     'prop_val'          : 0.05,             # proportion of sims in validation dataset

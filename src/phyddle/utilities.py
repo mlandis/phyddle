@@ -121,7 +121,7 @@ def settings_registry():
         'num_char'         : { 'step':'FTE', 'type':int,  'section':'Format', 'default':None,           'help':'Number of characters' },
         'num_states'       : { 'step':'FTE', 'type':int,  'section':'Format', 'default':None,           'help':'Number of states per character' },
         'min_num_taxa'     : { 'step':'F',   'type':int,  'section':'Format', 'default':10,             'help':'Minimum number of taxa allowed when formatting' },
-        'max_num_taxa'     : { 'step':'F',   'type':int,  'section':'Format', 'default':500,            'help':'Maximum number of taxa allowed when formatting' },
+        'max_num_taxa'     : { 'step':'F',   'type':int,  'section':'Format', 'default':1000,           'help':'Maximum number of taxa allowed when formatting' },
         'downsample_taxa'  : { 'step':'FTE', 'type':str,  'section':'Format', 'default':'uniform',      'help':'Downsampling strategy taxon count',            'choices':['uniform'] },
         'tree_width'       : { 'step':'TEP', 'type':int,  'section':'Format', 'default':500,            'help':'Width of phylo-state tensor' },
         #'tree_width_cats'  : { 'step':'F',   'type':int, 'section':'Format', 'default':[200, 500],     'help':'The phylo-state tensor widths for formatting training datasets (space-delimited)' },

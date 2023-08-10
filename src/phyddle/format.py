@@ -225,13 +225,15 @@ class Formatter:
                 res = list(tqdm(pool.imap(self.encode_one_star,
                                           args, chunksize=5),
                                 total=len(args),
-                                desc='Encoding'))
+                                desc='Encoding',
+                                smoothing=0))
                 
         else:
             # serial jobs
             res = [ self.encode_one_star(a) for a in tqdm(args,
                                                           total=len(args),
-                                                          desc='Encoding') ]
+                                                          desc='Encoding',
+                                                          smoothing=0) ]
 
         # save all phylogenetic-state tensors into the phy_tensors dictionary,
         # while sorting tensors into different tree-width categories

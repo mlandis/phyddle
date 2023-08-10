@@ -166,13 +166,15 @@ class Simulator:
             with Pool(processes=self.num_proc) as pool:
                  res = list(tqdm(pool.imap(self.sim_one, self.rep_idx, chunksize=1),
                             total=len(self.rep_idx),
-                            desc='Simulating'))
+                            desc='Simulating',
+                            smoothing=0))
             
         else:
             # serial jobs
             res = [ self.sim_one(idx) for idx in tqdm(self.rep_idx,
                                                       total=len(self.rep_idx),
-                                                      desc='Simulating') ]
+                                                      desc='Simulating',
+                                                      smoothing=0) ]
 
         # done
         util.print_str('... done!', verbose)
