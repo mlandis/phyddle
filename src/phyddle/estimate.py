@@ -83,21 +83,26 @@ class Estimator:
             args (dict): Contains phyddle settings.
         """
         # estimator arguments
-        self.args          = args
-        self.verbose       = args['verbose']
-        self.trn_dir       = args['trn_dir']
-        self.est_dir       = args['est_dir']
-        self.trn_proj      = args['trn_proj']
-        self.est_proj      = args['est_proj']
-        self.est_prefix    = args['est_prefix']
-        self.batch_size    = args['trn_batch_size']
-        self.num_char      = args['num_char']
-        self.num_states    = args['num_states']
-        self.num_epochs    = args['num_epochs']
-        self.tree_width    = args['tree_width']
-        self.tree_encode   = args['tree_encode']
-        self.char_encode   = args['char_encode']
-        self.brlen_encode  = args['brlen_encode']
+        self.args = args
+        step_args = util.make_step_args('E', args)
+        for k,v in step_args.items():
+            setattr(self, k, v)
+
+        # self.args          = args
+        # self.verbose       = args['verbose']
+        # self.trn_dir       = args['trn_dir']
+        # self.est_dir       = args['est_dir']
+        # self.trn_proj      = args['trn_proj']
+        # self.est_proj      = args['est_proj']
+        # self.est_prefix    = args['est_prefix']
+        # self.batch_size    = args['trn_batch_size']
+        # self.num_char      = args['num_char']
+        # self.num_states    = args['num_states']
+        # self.num_epochs    = args['num_epochs']
+        # self.tree_width    = args['tree_width']
+        # self.tree_encode   = args['tree_encode']
+        # self.char_encode   = args['char_encode']
+        # self.brlen_encode  = args['brlen_encode']
         return
     
     def prepare_filepaths(self):
@@ -115,7 +120,9 @@ class Estimator:
         self.est_proj_dir           = f'{self.est_dir}/{self.est_proj}'
 
         # prefixes
-        self.model_prefix           = f'train_batchsize{self.batch_size}_numepoch{self.num_epochs}_nt{self.tree_width}'
+        
+        self.model_prefix           = f'network_nt{self.tree_width}'
+        #self.model_prefix           = f'train_batchsize{self.trn_batch_size}_numepoch{self.num_epochs}_nt{self.tree_width}'
         self.trn_prefix_dir         = f'{self.trn_proj_dir}/{self.model_prefix}'
         self.est_prefix_dir         = f'{self.est_proj_dir}/{self.est_prefix}'
 
@@ -264,3 +271,32 @@ class Estimator:
         return
     
 #------------------------------------------------------------------------------#
+
+
+        # # scatter of estimate vs true for test data
+        # self.normalized_test_ests        = self.mymodel.predict([self.test_phy_data_tensor, self.test_sux_data_tensor])
+        # self.normalized_test_ests        = np.array(self.normalized_test_ests)
+        # self.denormalized_test_ests      = util.denormalize(self.normalized_test_ests, self.train_label_means, self.train_label_sd)
+        # self.denormalized_test_ests      = np.exp(self.denormalized_test_ests)
+        # self.denormalized_test_labels    = util.denormalize(self.norm_test_labels, self.train_label_means, self.train_label_sd)
+        # self.denormalized_test_labels    = np.exp(self.denormalized_test_labels)
+        
+        # # test predictions with calibrated CQR CIs
+        # self.denorm_test_ests_calib        = self.normalized_test_ests
+        # self.denorm_test_ests_calib[1,:,:] = self.denorm_test_ests_calib[1,:,:] - self.cpi_adjustments[0,:]
+        # self.denorm_test_ests_calib[2,:,:] = self.denorm_test_ests_calib[2,:,:] + self.cpi_adjustments[1,:]
+        # self.denorm_test_ests_calib        = util.denormalize(self.denorm_test_ests_calib, self.train_label_means, self.train_label_sd)
+        # self.denorm_test_ests_calib        = np.exp(self.denorm_test_ests_calib)
+
+        #  # test scatterplot results (Value, Lower, Upper)
+        # df_test_est_nocalib  = util.make_param_VLU_mtx(self.denormalized_test_ests[0:max_idx,:], self.param_names )
+        # df_test_est_calib    = util.make_param_VLU_mtx(self.denorm_test_ests_calib[0:max_idx,:], self.param_names )
+        
+        # # save train/test labels
+        # df_test_labels   = pd.DataFrame( self.denormalized_test_labels[0:max_idx,:], columns=self.param_names )
+
+        # # convert to csv and save
+        # df_test_est_nocalib.to_csv(self.test_est_nocalib_fn, index=False, sep=',')
+        # df_test_est_calib.to_csv(self.test_est_calib_fn, index=False, sep=',')
+        # df_test_labels.to_csv(self.test_labels_fn, index=False, sep=',')
+        

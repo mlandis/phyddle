@@ -77,27 +77,31 @@ class Plotter:
         Args:
             args (dict): Contains phyddle settings.
         """
-        self.args              = args
-        self.verbose           = args['verbose']
-        self.fmt_dir           = args['fmt_dir']
-        self.trn_dir           = args['trn_dir']
-        self.plt_dir           = args['plt_dir']
-        self.est_dir           = args['est_dir'] if 'est_dir' in args else ''
-        self.est_prefix        = args['est_prefix'] if 'est_prefix' in args else ''
-        self.fmt_proj          = args['fmt_proj']
-        self.trn_proj          = args['trn_proj']
-        self.plt_proj          = args['plt_proj']
-        self.est_proj          = args['est_proj']
-        self.batch_size        = args['trn_batch_size']
-        self.num_epochs        = args['num_epochs']
-        self.tree_width        = args['tree_width']
-        self.tensor_format     = args['tensor_format']
-        self.train_color       = args['plot_train_color']
-        self.test_color        = args['plot_test_color']
-        self.validation_color  = args['plot_val_color']
-        self.aux_color         = args['plot_aux_color']
-        self.label_color       = args['plot_label_color']
-        self.est_color         = args['plot_est_color']
+        self.args = args
+        step_args = util.make_step_args('P', args)
+        for k,v in step_args.items():
+            setattr(self, k, v)
+
+        # self.verbose           = args['verbose']
+        # self.fmt_dir           = args['fmt_dir']
+        # self.trn_dir           = args['trn_dir']
+        # self.plt_dir           = args['plt_dir']
+        # self.est_dir           = args['est_dir'] if 'est_dir' in args else ''
+        # self.est_prefix        = args['est_prefix'] if 'est_prefix' in args else ''
+        # self.fmt_proj          = args['fmt_proj']
+        # self.trn_proj          = args['trn_proj']
+        # self.plt_proj          = args['plt_proj']
+        # self.est_proj          = args['est_proj']
+        # self.batch_size        = args['trn_batch_size']
+        # self.num_epochs        = args['num_epochs']
+        # self.tree_width        = args['tree_width']
+        # self.tensor_format     = args['tensor_format']
+        # self.plot_train_color       = args['plot_train_color']
+        # self.plot_test_color        = args['plot_test_color']
+        # self.plot_val_color  = args['plot_val_color']
+        # self.plot_aux_color         = args['plot_aux_color']
+        # self.plot_label_color       = args['plot_label_color']
+        # self.plot_est_color         = args['plot_est_color']
         return
 
     def prepare_filepaths(self):
@@ -117,14 +121,14 @@ class Plotter:
         self.plt_proj_dir       = f'{self.plt_dir}/{self.plt_proj}'
 
         # prefixes
-        self.network_prefix     = f'train_batchsize{self.batch_size}_numepoch{self.num_epochs}_nt{self.tree_width}'
-        self.fmt_proj_prefix    = f'{self.fmt_proj_dir}/sim.nt{self.tree_width}'
+        self.network_prefix     = f'network_nt{self.tree_width}'
+        self.fmt_proj_prefix    = f'{self.fmt_proj_dir}/train.nt{self.tree_width}'
         self.trn_proj_prefix    = f'{self.trn_proj_dir}/{self.network_prefix}'
         self.est_proj_prefix    = f'{self.est_proj_dir}/{self.est_prefix}'
         self.plt_proj_prefix    = f'{self.plt_proj_dir}/{self.network_prefix}'
         
         # tensors
-        self.input_aux_data_fn     = f'{self.fmt_proj_prefix}.summ_stat.csv'
+        self.input_aux_data_fn  = f'{self.fmt_proj_prefix}.summ_stat.csv'
         self.input_labels_fn    = f'{self.fmt_proj_prefix}.labels.csv'
         self.input_hdf5_fn      = f'{self.fmt_proj_prefix}.hdf5'
 
@@ -360,13 +364,13 @@ class Plotter:
             self.plot_stat_density(save_fn=self.save_hist_aux_fn,
                                    sim_values=self.input_aux_data,
                                    est_values=self.est_aux_data,
-                                   color=self.aux_color,
+                                   color=self.plot_aux_color,
                                    title='Aux. data')
         elif type == 'labels':
             self.plot_stat_density(save_fn=self.save_hist_label_fn,
                                    sim_values=self.input_labels,
                                    est_values=self.est_lbl_value,
-                                   color=self.label_color,
+                                   color=self.plot_label_color,
                                    title='Labels' )
                 
         return
@@ -383,7 +387,7 @@ class Plotter:
                                        labels=self.train_labels.iloc[0:n],
                                        param_names=self.param_names,
                                        prefix=f'{self.network_prefix}.train',
-                                       color=self.train_color,
+                                       color=self.plot_train_color,
                                        plot_dir=self.plt_proj_dir,
                                        title='Train')
         elif type == 'test':
@@ -393,7 +397,7 @@ class Plotter:
                                        labels=self.test_labels.iloc[0:n],
                                        param_names=self.param_names,
                                        prefix=f'{self.network_prefix}.test',
-                                       color=self.test_color,
+                                       color=self.plot_test_color,
                                        plot_dir=self.plt_proj_dir,
                                        title='Test')
         # done
@@ -404,7 +408,7 @@ class Plotter:
         self.plot_pca(save_fn=self.save_pca_aux_fn,
                       sim_values=self.input_aux_data,
                       est_values=self.est_aux_data,
-                      color=self.aux_color)
+                      color=self.plot_aux_color)
         return
 
     def make_plot_est_CI(self):
@@ -412,15 +416,15 @@ class Plotter:
         self.plot_est_CI(save_fn=self.save_cpi_est_fn,
                          est_label=self.est_lbl_df,
                          title=f'Estimate: {self.est_dir}/{self.est_prefix}',
-                         color=self.est_color)
+                         color=self.plot_est_color)
         return
 
     def make_plot_train_history(self):
         prefix = f'{self.plt_proj_dir}/{self.network_prefix}.history'
         self.plot_train_history(self.history_dict,
                                 prefix=prefix,
-                                train_color=self.train_color,
-                                val_color=self.validation_color)
+                                train_color=self.plot_train_color,
+                                val_color=self.plot_val_color)
         return
 
     def make_plot_network_architecture(self):

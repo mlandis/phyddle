@@ -87,32 +87,40 @@ class Trainer:
         Args:
             args (dict): Contains phyddle settings.
         """
-        self.args              = args
-        self.verbose           = args['verbose']
-        self.fmt_dir           = args['fmt_dir']
-        self.trn_dir           = args['trn_dir']
-        self.fmt_proj          = args['fmt_proj']
-        self.trn_proj          = args['trn_proj']
-        self.num_char          = args['num_char']
-        self.num_states        = args['num_states']
-        self.tree_width        = args['tree_width']
-        self.tree_encode       = args['tree_encode']
-        self.brlen_encode      = args['brlen_encode']
-        self.char_encode       = args['char_encode']
-        self.tensor_format     = args['tensor_format']
-        self.batch_size        = args['trn_batch_size']
-        self.num_epochs        = args['num_epochs']    
-        self.prop_test         = args['prop_test']
-        self.prop_val          = args['prop_val']
-        self.prop_cal          = args['prop_cal']
-        self.combine_test_val  = args['combine_test_val']
-        self.cpi_coverage      = args['cpi_coverage']
-        self.cpi_asymmetric    = args['cpi_asymmetric']
-        self.loss              = args['loss']
-        self.optimizer         = args['optimizer']
-        self.metrics           = args['metrics']
-        self.trn_objective     = args['trn_objective']
+        self.args = args
+        step_args = util.make_step_args('T', args)
+        for k,v in step_args.items():
+            setattr(self, k, v)
+
+        # special case
         self.kernel_init       = 'glorot_uniform'
+
+        # self.tree_width_cats = [ self.tree_width ] # will be removed
+        # self.verbose           = args['verbose']
+        # self.fmt_dir           = args['fmt_dir']
+        # self.trn_dir           = args['trn_dir']
+        # self.fmt_proj          = args['fmt_proj']
+        # self.trn_proj          = args['trn_proj']
+        # self.num_char          = args['num_char']
+        # self.num_states        = args['num_states']
+        # self.tree_width        = args['tree_width']
+        # self.tree_encode       = args['tree_encode']
+        # self.brlen_encode      = args['brlen_encode']
+        # self.char_encode       = args['char_encode']
+        # self.tensor_format     = args['tensor_format']
+        # self.batch_size        = args['trn_batch_size']
+        # self.num_epochs        = args['num_epochs']    
+        # self.prop_test         = args['prop_test']
+        # self.prop_val          = args['prop_val']
+        # self.prop_cal          = args['prop_cal']
+        # self.combine_test_val  = args['combine_test_val']
+        # self.cpi_coverage      = args['cpi_coverage']
+        # self.cpi_asymmetric    = args['cpi_asymmetric']
+        # self.loss              = args['loss']
+        # self.optimizer         = args['optimizer']
+        # self.metrics           = args['metrics']
+        # self.trn_objective     = args['trn_objective']
+        # self.kernel_init       = 'glorot_uniform'
         return
     
     def prepare_filepaths(self):
@@ -128,8 +136,9 @@ class Trainer:
         self.fmt_proj_dir = f'{self.fmt_dir}/{self.fmt_proj}'
         self.trn_proj_dir = f'{self.trn_dir}/{self.trn_proj}'
         # input prefix
-        input_prefix      = f'{self.fmt_proj_dir}/sim.nt{self.tree_width}'
-        network_prefix    = f'train_batchsize{self.batch_size}_numepoch{self.num_epochs}_nt{self.tree_width}'
+        input_prefix      = f'{self.fmt_proj_dir}/train.nt{self.tree_width}'
+        # network_prefix    = f'train_batchsize{self.trn_batch_size}_numepoch{self.num_epochs}_nt{self.tree_width}'
+        network_prefix    = f'network_nt{self.tree_width}'
         output_prefix     = f'{self.trn_proj_dir}/{network_prefix}'
         # input dataset filenames for csv or hdf5
         self.input_phy_data_fn      = f'{input_prefix}.phy_data.csv'
@@ -555,7 +564,7 @@ class CnnTrainer(Trainer):
                  self.train_aux_data_tensor], 
             y = self.norm_train_labels,
             epochs = self.num_epochs,
-            batch_size = self.batch_size, 
+            batch_size = self.trn_batch_size, 
             validation_data = ([self.val_phy_data_tensor,
                                 self.val_aux_data_tensor],
                                 self.norm_val_labels))

@@ -17,6 +17,9 @@ __author__ = 'Michael Landis and Ammon Thompson'
 __copyright__ = '(c) 2022-2023, Michael Landis and Ammon Thompson'
 __citation__ = 'A Thompson, B Liebeskind, EJ Scully, MJ Landis. 2023. Deep learning approaches to viral phylogeography are fast and as robust as likelihood methods to model misspecification. bioRxiv 2023.02.08.527714.'
 
+# DEFAULT
+CONFIG_DEFAULT_FN = '__config_default.py'
+PHYDDLE_VERSION = '0.0.6'
 
 if __name__ == '__main__':
     # set the start method

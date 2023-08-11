@@ -8,6 +8,7 @@ args = {
   #-------------------------------#
   'cfg'                : 'config.py',          # Config file name               
   'proj'               : 'my_project',         # Project name(s) for pipeline step(s)
+  'name'               : '',                   # Nickname for file-set within project
   'step'               : 'SFTEP',              # Pipeline step(s) defined with (S)imulate, (F)ormat, (T)rain, (E)stimate, (P)lot, or (A)ll
   'verbose'            : True,                 # Verbose output to screen?      
   'force'              : None,                 # Arguments override config file settings
@@ -46,7 +47,7 @@ args = {
   'num_char'           : None,                 # Number of characters           
   'num_states'         : None,                 # Number of states per character 
   'min_num_taxa'       : 10,                   # Minimum number of taxa allowed when formatting
-  'max_num_taxa'       : 500,                  # Maximum number of taxa allowed when formatting
+  'max_num_taxa'       : 1000,                 # Maximum number of taxa allowed when formatting
   'downsample_taxa'    : 'uniform',            # Downsampling strategy taxon count
   'tree_width'         : 500,                  # Width of phylo-state tensor    
   'tree_encode'        : 'extant',             # Encoding strategy for tree     

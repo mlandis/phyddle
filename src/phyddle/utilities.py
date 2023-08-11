@@ -29,6 +29,9 @@ import pandas as pd
 import numpy as np
 import dendropy as dp
 
+# phyddle imports
+from . import PHYDDLE_VERSION, CONFIG_DEFAULT_FN
+
 # Precision settings
 NUM_DIGITS = 10
 np.set_printoptions(floatmode='maxprec', precision=NUM_DIGITS)
@@ -38,8 +41,6 @@ pd.set_option('display.float_format', lambda x: f'{x:,.3f}')
 # Tensorflow info messages
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # or any {'0', '1', '2'}
 
-# DEFAULT
-CONFIG_DEFAULT_FN = '__config_default.py'
 
 #------------------------------------------------------------------------------#
 
@@ -58,10 +59,12 @@ def make_step_args(step, args):
     Returns:
         ret (dict): args to initialize a phyddle step object
     """
+    
     if step not in 'SFTEP':
         raise ValueError
     
     ret = {}
+
     # search through all registered phyddle settings
     settings = settings_registry()
     for k,v in settings.items():
@@ -69,6 +72,12 @@ def make_step_args(step, args):
         if step in v['step']:
             # get the setting from args to return
             ret[k] = args[k]
+    
+    # project directories
+    for p in ['sim','fmt','trn','est','plt']:
+        k = f'{p}_proj'
+        ret[k] = args[k]
+    
     # return args the match settings for step
     return ret
 
@@ -91,6 +100,7 @@ def settings_registry():
         # basic phyddle options
         'cfg'              : { 'step':'',      'type':str,  'section':'Basic', 'default':'config.py',  'help':'Config file name', 'opt':'c' },
         'proj'             : { 'step':'SFTEP', 'type':str,  'section':'Basic', 'default':'my_project', 'help':'Project name(s) for pipeline step(s)', 'opt':'p' },
+        'name'             : { 'step':'SFTEP', 'type':str,  'section':'Basic', 'default':'',           'help':'Nickname for file-set within project', 'opt':'n' },
         'step'             : { 'step':'SFTEP', 'type':str,  'section':'Basic', 'default':'SFTEP',      'help':'Pipeline step(s) defined with (S)imulate, (F)ormat, (T)rain, (E)stimate, (P)lot, or (A)ll', 'opt':'s' },
         'verbose'          : { 'step':'SFTEP', 'type':bool, 'section':'Basic', 'default':True,         'help':'Verbose output to screen?', 'opt':'v' },
         'force'            : { 'step':'',      'type':None, 'section':'Basic', 'default':None,         'help':'Arguments override config file settings', 'opt':'f' },
@@ -101,11 +111,11 @@ def settings_registry():
         'num_proc'         : { 'step':'SF', 'type':int,  'section':'Analysis', 'default':-2,   'help':'Number of cores for multiprocessing (-N for all but N)' },
         
         # directories
-        'sim_dir'          : { 'step':'S',     'type':str, 'section':'Workspace', 'default':'../workspace/simulate', 'help':'Directory for raw simulated data' },
-        'fmt_dir'          : { 'step':'SF',    'type':str, 'section':'Workspace', 'default':'../workspace/format',   'help':'Directory for tensor-formatted simulated data' },
-        'trn_dir'          : { 'step':'FT',    'type':str, 'section':'Workspace', 'default':'../workspace/train',    'help':'Directory for trained networks and training output' },
-        'est_dir'          : { 'step':'FTE',   'type':str, 'section':'Workspace', 'default':'../workspace/estimate', 'help':'Directory for new datasets and estimates' },
-        'plt_dir'          : { 'step':'FTEP',  'type':str, 'section':'Workspace', 'default':'../workspace/plot',     'help':'Directory for plotted results' },
+        'sim_dir'          : { 'step':'SF',    'type':str, 'section':'Workspace', 'default':'../workspace/simulate', 'help':'Directory for raw simulated data' },
+        'fmt_dir'          : { 'step':'FTP',   'type':str, 'section':'Workspace', 'default':'../workspace/format',   'help':'Directory for tensor-formatted simulated data' },
+        'trn_dir'          : { 'step':'FTEP',  'type':str, 'section':'Workspace', 'default':'../workspace/train',    'help':'Directory for trained networks and training output' },
+        'est_dir'          : { 'step':'TEP',   'type':str, 'section':'Workspace', 'default':'../workspace/estimate', 'help':'Directory for new datasets and estimates' },
+        'plt_dir'          : { 'step':'P',     'type':str, 'section':'Workspace', 'default':'../workspace/plot',     'help':'Directory for plotted results' },
         'log_dir'          : { 'step':'SFTEP', 'type':str, 'section':'Workspace', 'default':'../workspace/log',      'help':'Directory for logs of analysis metadata' },
 
         # simulation options
@@ -117,28 +127,28 @@ def settings_registry():
         'sim_batch_size'   : { 'step':'S',  'type':int, 'section':'Simulate', 'default':1,       'help':'Number of replicates per simulation command' },
 
         # formatting options
-        'encode_all_sim'   : { 'step':'F',   'type':bool, 'section':'Format', 'default':True,           'help':'Encode all simulated replicates into tensor?' },
-        'num_char'         : { 'step':'FTE', 'type':int,  'section':'Format', 'default':None,           'help':'Number of characters' },
-        'num_states'       : { 'step':'FTE', 'type':int,  'section':'Format', 'default':None,           'help':'Number of states per character' },
-        'min_num_taxa'     : { 'step':'F',   'type':int,  'section':'Format', 'default':10,             'help':'Minimum number of taxa allowed when formatting' },
-        'max_num_taxa'     : { 'step':'F',   'type':int,  'section':'Format', 'default':1000,           'help':'Maximum number of taxa allowed when formatting' },
-        'downsample_taxa'  : { 'step':'FTE', 'type':str,  'section':'Format', 'default':'uniform',      'help':'Downsampling strategy taxon count',            'choices':['uniform'] },
-        'tree_width'       : { 'step':'TEP', 'type':int,  'section':'Format', 'default':500,            'help':'Width of phylo-state tensor' },
+        'encode_all_sim'   : { 'step':'F',    'type':bool, 'section':'Format', 'default':True,           'help':'Encode all simulated replicates into tensor?' },
+        'num_char'         : { 'step':'FTE',  'type':int,  'section':'Format', 'default':None,           'help':'Number of characters' },
+        'num_states'       : { 'step':'FTE',  'type':int,  'section':'Format', 'default':None,           'help':'Number of states per character' },
+        'min_num_taxa'     : { 'step':'F',    'type':int,  'section':'Format', 'default':10,             'help':'Minimum number of taxa allowed when formatting' },
+        'max_num_taxa'     : { 'step':'F',    'type':int,  'section':'Format', 'default':1000,           'help':'Maximum number of taxa allowed when formatting' },
+        'downsample_taxa'  : { 'step':'FTE',  'type':str,  'section':'Format', 'default':'uniform',      'help':'Downsampling strategy taxon count',            'choices':['uniform'] },
+        'tree_width'       : { 'step':'FTEP', 'type':int,  'section':'Format', 'default':500,            'help':'Width of phylo-state tensor' },
         #'tree_width_cats'  : { 'step':'F',   'type':int, 'section':'Format', 'default':[200, 500],     'help':'The phylo-state tensor widths for formatting training datasets (space-delimited)' },
-        'tree_encode'      : { 'step':'FTE', 'type':str,  'section':'Format', 'default':'extant',       'help':'Encoding strategy for tree',                   'choices':['extant', 'serial'] },
-        'brlen_encode'     : { 'step':'FTE', 'type':str,  'section':'Format', 'default':'height_brlen', 'help':'Encoding strategy for branch lengths',         'choices':['height_only', 'height_brlen'] },
-        'char_encode'      : { 'step':'FTE', 'type':str,  'section':'Format', 'default':'one_hot',      'help':'Encoding strategy for character data',         'choices':['one_hot', 'integer', 'numeric'] },
-        'param_est'        : { 'step':'FTE', 'type':list, 'section':'Format', 'default':None,           'help':'Model parameters to estimate' },
-        'param_data'       : { 'step':'FTE', 'type':list, 'section':'Format', 'default':None,           'help':'Model parameters treated as data' },
-        'char_format'      : { 'step':'FTE', 'type':str,  'section':'Format', 'default':'nexus',        'help':'File format for character data',               'choices':['csv', 'nexus'] },
-        'tensor_format'    : { 'step':'FTE', 'type':str,  'section':'Format', 'default':'hdf5',         'help':'File format for training example tensors',     'choices':['csv', 'hdf5'] },
-        'save_phyenc_csv'  : { 'step':'F',   'type':bool, 'section':'Format', 'default':False,          'help':'Save encoded phylogenetic tensor encoding to csv?' },
+        'tree_encode'      : { 'step':'FTE',  'type':str,  'section':'Format', 'default':'extant',       'help':'Encoding strategy for tree',                   'choices':['extant', 'serial'] },
+        'brlen_encode'     : { 'step':'FTE',  'type':str,  'section':'Format', 'default':'height_brlen', 'help':'Encoding strategy for branch lengths',         'choices':['height_only', 'height_brlen'] },
+        'char_encode'      : { 'step':'FTE',  'type':str,  'section':'Format', 'default':'one_hot',      'help':'Encoding strategy for character data',         'choices':['one_hot', 'integer', 'numeric'] },
+        'param_est'        : { 'step':'FTE',  'type':list, 'section':'Format', 'default':None,           'help':'Model parameters to estimate' },
+        'param_data'       : { 'step':'FTE',  'type':list, 'section':'Format', 'default':None,           'help':'Model parameters treated as data' },
+        'char_format'      : { 'step':'FTE',  'type':str,  'section':'Format', 'default':'nexus',        'help':'File format for character data',               'choices':['csv', 'nexus'] },
+        'tensor_format'    : { 'step':'FTEP', 'type':str,  'section':'Format', 'default':'hdf5',         'help':'File format for training example tensors',     'choices':['csv', 'hdf5'] },
+        'save_phyenc_csv'  : { 'step':'F',    'type':bool, 'section':'Format', 'default':False,          'help':'Save encoded phylogenetic tensor encoding to csv?' },
         
         # training options
         'trn_objective'    : { 'step':'T',   'type':str,   'section':'Train', 'default':'param_est',   'help':'Objective of training procedure', 'choices':['param_est'] },
         'num_epochs'       : { 'step':'TEP', 'type':int,   'section':'Train', 'default':20,            'help':'Number of training epochs' },
         'trn_batch_size'   : { 'step':'TEP', 'type':int,   'section':'Train', 'default':128,           'help':'Training batch sizes' },
-        'prop_test'        : { 'step':'T',   'type':float, 'section':'Train', 'default':0.05,          'help':'Proportion of data used as test examples (assess trained network performance)' },
+        'prop_test'        : { 'step':'FT',  'type':float, 'section':'Train', 'default':0.05,          'help':'Proportion of data used as test examples (assess trained network performance)' },
         'prop_val'         : { 'step':'T',   'type':float, 'section':'Train', 'default':0.05,          'help':'Proportion of data used as validation examples (diagnose network overtraining)' },
         'prop_cal'         : { 'step':'T',   'type':float, 'section':'Train', 'default':0.20,          'help':'Proportion of data used as calibration examples (calibrate CPIs)' },
         'combine_test_val' : { 'step':'T',   'type':bool,  'section':'Train', 'default':True,          'help':'Combine test and validation datasets when assessing network fit?' },
@@ -254,8 +264,10 @@ def load_config(config_fn,
     # set steps & projects
     m.args = add_step_proj(m.args)
     
-    # add unique ID
-    m.args['job_id'] = generate_random_hex_string(16)
+    # add session info
+    date_obj = datetime.now()
+    m.args['date'] = date_obj.strftime("%y%m%d_%H%M%S")
+    m.args['job_id'] = generate_random_hex_string(7)
     
     # print header?
     verbose = m.args['verbose']
@@ -1333,7 +1345,7 @@ def phyddle_header(s, style=1, fg=34):
     Returns:
         str: The header string.
     """
-    version = 'v.0.0.5'.rjust(8, ' ')
+    version = f'v{PHYDDLE_VERSION}'.rjust(8, ' ')
     steps = { 'sim' : 'Simulating',
               'fmt' : 'Formatting',
               'trn' : 'Training',
@@ -1414,6 +1426,7 @@ class Logger:
         self.arg_str     = self.make_arg_str()
         self.job_id      = self.args['job_id']
         self.log_dir     = self.args['log_dir']
+        self.date_str    = self.args['date']
         self.proj        = self.args['proj']
 
         # collect other info and set constants
@@ -1421,12 +1434,10 @@ class Logger:
         self.version     = pkg_resources.get_distribution(self.pkg_name).version
         self.commit      = '(to be done)'
         self.command     = ' '.join(sys.argv)
-        self.date_obj    = datetime.now()
-        self.date_str    = self.date_obj.strftime("%y%m%d_%H%M%S")
         self.max_lines   = 1e5
 
         # filesystem
-        self.base_fn     = f'{self.pkg_name}_{self.version}_{self.date_str}_{self.job_id}'
+        self.base_fn     = f'{self.pkg_name}_{self.version}_{self.date_str}'
         self.base_dir    = f'{self.log_dir}/{self.proj}'
         self.base_fp     = f'{self.base_dir}/{self.base_fn}' 
         self.fn_dict    = {
@@ -1453,7 +1464,7 @@ class Logger:
         s = ''
         for k,v in self.args.items():
             if k not in ignore_keys:
-                s += f'{k} : {v}\n'
+                s += f'{k}\t{v}\n'
         return s
 
     def save_log(self, step):
@@ -1505,11 +1516,11 @@ class Logger:
             str: String representation of Phyddle settings.
         """
         s = '# PHYDDLE SETTINGS\n'
-        s += f'job_id = {self.job_id}\n'
-        s += f'version = {self.version}\n'
-        s +=  'commit = TBD\n'
+        s += f'job_id\t{self.job_id}\n'
+        s += f'version\t{self.version}\n'
+        #s +=  'commit = TBD\n'
         s += f'date = {self.date_str}\n'
-        s += f'command = {self.command}\n'
+        s += f'command\t{self.command}\n'
         s += self.make_arg_str()
         return s
     
@@ -1537,12 +1548,12 @@ class Logger:
 
         # convert into string
         s = '# SYSTEM SETTINGS\n'
-        s += f'operating system = {platform.platform()}\n'
-        s += f'machine architecture = {platform.machine()}\n'
-        s += f'Python version = {platform.python_version()}\n'
+        s += f'operating system\t{platform.platform()}\n'
+        s += f'machine architecture\t{platform.machine()}\n'
+        s += f'Python version\t{platform.python_version()}\n'
         s +=  'Python packages:\n'
         for k,v in d.items():
-            s += f'  {k} = {v}\n'
+            s += f'{k}\t{v}\n'
         
         return s
     
