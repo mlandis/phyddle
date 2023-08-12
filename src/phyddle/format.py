@@ -335,90 +335,182 @@ class Formatter:
         """
         self.split_idx = self.split_examples()
         if self.tensor_format == 'csv':
-            self.write_tensor_csv()
-            self.write_tensor_csv_alt('train')
-            self.write_tensor_csv_alt('test')
+            # self.write_tensor_csv()
+            self.write_tensor_csv('train')
+            self.write_tensor_csv('test')
         elif self.tensor_format == 'hdf5':
-            self.write_tensor_hdf5()
-            self.write_tensor_hdf5_alt('train')
-            self.write_tensor_hdf5_alt('test')
+            # self.write_tensor_hdf5()
+            self.write_tensor_hdf5('train')
+            self.write_tensor_hdf5('test')
         return
 
-    def write_tensor_hdf5(self):
+
+    def write_tensor_hdf5(self, data_str):
         """
         Writes data to HDF5 file for each tree width.
 
         This class creates HDF5 files
 
         """
+
+        assert(data_str in ['test', 'train'])
         
         # build files
-        for tree_width in sorted(list(self.phy_tensors.keys())):
+        tree_width = self.tree_width_cats[0]
+        #phy_tensor = self.phy_tensors[tree_width]
                  
-            # dimensions
-            rep_idx = sorted(list(self.phy_tensors[tree_width]))
-            num_samples = len(rep_idx)
-            num_data_length = tree_width * self.num_data_row
+        # dimensions
+        rep_idx = self.split_idx[data_str]
+        num_samples = len(rep_idx)
+        num_data_length = tree_width * self.num_data_row
 
-            # print info
-            print('Combining {n} files for tree_type={tt} and tree_width={ts}'.format(n=num_samples, tt=self.tree_encode, ts=tree_width))
+        # print info
+        print(f'Making {data_str} hdf5 dataset: {num_samples} examples for tree width = {tree_width}')
 
-            # HDF5 file
-            out_hdf5_fn = f'{self.fmt_proj_dir}/sim.nt{tree_width}.hdf5'
-            hdf5_file = h5py.File(out_hdf5_fn, 'w')
+        # HDF5 file
+        out_hdf5_fn = f'{self.fmt_proj_dir}/{data_str}.nt{tree_width}.hdf5'
+        hdf5_file = h5py.File(out_hdf5_fn, 'w')
 
-            # create datasets for numerical data
-            dat_data = hdf5_file.create_dataset('phy_data',
-                                                (num_samples, num_data_length),
+        # create datasets for numerical data
+        dat_data = hdf5_file.create_dataset('phy_data',
+                                            (num_samples, num_data_length),
+                                            dtype='f', compression='gzip')
+        dat_stat = hdf5_file.create_dataset('summ_stat',
+                                            (num_samples, self.num_summ_stat),
+                                            dtype='f', compression='gzip')
+        dat_labels = hdf5_file.create_dataset('labels',
+                                                (num_samples, self.num_labels),
                                                 dtype='f', compression='gzip')
-            dat_stat = hdf5_file.create_dataset('summ_stat',
-                                                (num_samples, self.num_summ_stat),
-                                                dtype='f', compression='gzip')
-            dat_labels = hdf5_file.create_dataset('labels',
-                                                  (num_samples, self.num_labels),
-                                                  dtype='f', compression='gzip')
 
-            # the replicates for this tree width
-            _rep_idx = list(self.phy_tensors[tree_width].keys())
+        # the replicates for this tree width
+        #_rep_idx = list(phy_tensor.keys())
+        
+        # load all the info
+        res = [ self.load_one_sim(idx=idx, tree_width=tree_width) for idx in tqdm(rep_idx,
+                            total=len(rep_idx),
+                            desc='Combining',
+                            smoothing=0) ]
+
+        # store all numerical data into hdf5)
+        if len(res) > 0:
+            dat_data[:,:] = np.vstack( [ x[0] for x in res ] )
+            dat_stat[:,:] = np.vstack( [ x[1] for x in res ] )
+            dat_labels[:,:] = np.vstack( [ x[2] for x in res ] )
+
+        # read in summ_stats and labels (_all_ params) dataframes
+        df_summ_stats = pd.DataFrame(dat_stat, columns=self.summ_stat_names)
+        df_labels = pd.DataFrame(dat_labels, columns=self.label_names)
+        
+        # separate data parameters (things we know) from label parameters (things we estimate)
+        df_labels_new = df_labels[self.param_est]
+        df_labels_move = df_labels[self.param_data]
+
+        # concatenate new data parameters as column to existing summ_stats dataframe
+        df_aux_data = df_summ_stats.join( df_labels_move )
+
+        # get new label/stat names
+        new_label_names = self.param_est
+        new_aux_data_names = self.summ_stat_names + self.param_data
+
+        # delete original datasets 
+        del hdf5_file['summ_stat']
+        del hdf5_file['labels']
+        
+        # create new datasets
+        hdf5_file.create_dataset('labels', df_labels_new.shape, 'f', df_labels_new, compression='gzip')
+        hdf5_file.create_dataset('label_names', (1, len(new_label_names)), 'S64', new_label_names, compression='gzip')
+        hdf5_file.create_dataset('aux_data', df_aux_data.shape, 'f', df_aux_data, compression='gzip')
+        hdf5_file.create_dataset('aux_data_names', (1, len(new_aux_data_names)), 'S64', new_aux_data_names, compression='gzip')
+
+        # close HDF5 files
+        hdf5_file.close()
+
+        return
+    
+    def write_tensor_csv(self, data_str):
+        """
+        Writes CSV files for phylogenetic tensors.
+        
+        The method iterates through the phylogenetic tensors for each tree width
+        and generates CSV files containing the tensor data and labels.
+        """
+        assert(data_str in ['test', 'train'])
+        
+        # build files
+        tree_width = self.tree_width_cats[0]
+        phy_tensor = self.phy_tensors[tree_width]
+
+        # dimensions
+        rep_idx = self.split_idx[data_str]
+        num_samples = len(rep_idx)
             
-            # load all the info
-            res = [ self.load_one_sim(idx=idx, tree_width=tree_width) for idx in tqdm(_rep_idx,
-                                total=len(_rep_idx),
-                                desc='Combining') ]
+        # info
+        print(f'Making {data_str} csv dataset: {num_samples} examples for tree width = {tree_width}')
+        
+        # output csv filepaths
+        #out_hdf5_fn = f'{self.fmt_proj_dir}/{data_str}.nt{tree_width}.hdf5'
+        out_prefix    = f'{self.fmt_proj_dir}/{data_str}.nt{tree_width}'
+        in_prefix     = f'{self.sim_proj_dir}/sim'
+        out_phys_fn   = f'{out_prefix}.phy_data.csv'
+        out_stat_fn   = f'{out_prefix}.aux_data.csv'
+        out_labels_fn = f'{out_prefix}.labels.csv'
 
-            # store all numerical data into hdf5)
-            if len(res) > 0:
-                dat_data[:,:] = np.vstack( [ x[0] for x in res ] )
-                dat_stat[:,:] = np.vstack( [ x[1] for x in res ] )
-                dat_labels[:,:] = np.vstack( [ x[2] for x in res ] )
+        # phylogenetic state tensor
+        with open(out_phys_fn, 'w') as outfile:
+            for idx in rep_idx:
+                pt = phy_tensor[idx] 
+            #for j,(idx,pt) in enumerate(phy_tensor.items()):
+                s = ','.join(map(str, pt.flatten())) + '\n'
+                outfile.write(s)
 
-            # read in summ_stats and labels (_all_ params) dataframes
-            df_summ_stats = pd.DataFrame(dat_stat, columns=self.summ_stat_names)
-            df_labels = pd.DataFrame(dat_labels, columns=self.label_names)
-            
-            # separate data parameters (things we know) from label parameters (things we estimate)
-            df_labels_new = df_labels[self.param_est]
-            df_labels_move = df_labels[self.param_data]
+        # summary stats tensor
+        with open(out_stat_fn, 'w') as outfile:
+            is_first = True
+            for idx in rep_idx:
+            # for j,idx in enumerate(phy_tensor.keys()):
+                # if idx in rep_idx:
+                fname = f'{in_prefix}.{idx}.summ_stat.csv'
+                with open(fname, 'r') as infile:
+                    if is_first:
+                        s = infile.read()
+                        is_first = False
+                    else:
+                        s = ''.join(infile.readlines()[1:])
+                    outfile.write(s)
+                    
+        # labels input tensor
+        with open(out_labels_fn, 'w') as outfile:
+            is_first = True
+            for idx in rep_idx:
+            # for j,idx in enumerate(phy_tensor.keys()):
+                # if idx in rep_idx:
+                fname = f'{in_prefix}.{idx}.param_row.csv'
+                with open(fname, 'r') as infile:
+                    if is_first:
+                        s = infile.read()
+                        is_first = False
+                    else:
+                        s = ''.join(infile.readlines()[1:])
+                    outfile.write(s)
 
-            # concatenate new data parameters as column to existing summ_stats dataframe
-            df_aux_data = df_summ_stats.join( df_labels_move )
+        # rearrange labels and summary statistics
+        # - labels contains param_est
+        # - aux_data contains summ_stat and param_data
 
-            # get new label/stat names
-            new_label_names = self.param_est
-            new_aux_data_names = self.summ_stat_names + self.param_data
+        # read in summ_stats and labels
+        df_summ_stats = pd.read_csv(out_stat_fn)
+        df_labels = pd.read_csv(out_labels_fn)
 
-            # delete original datasets 
-            del hdf5_file['summ_stat']
-            del hdf5_file['labels']
-            
-            # create new datasets
-            hdf5_file.create_dataset('labels', df_labels_new.shape, 'f', df_labels_new, compression='gzip')
-            hdf5_file.create_dataset('label_names', (1, len(new_label_names)), 'S64', new_label_names, compression='gzip')
-            hdf5_file.create_dataset('aux_data', df_aux_data.shape, 'f', df_aux_data, compression='gzip')
-            hdf5_file.create_dataset('aux_data_names', (1, len(new_aux_data_names)), 'S64', new_aux_data_names, compression='gzip')
+        # separate data parameters (things we know) from label parameters (things we predict)
+        df_labels_keep = df_labels[self.param_est]
+        df_labels_move = df_labels[self.param_data]
 
-            # close HDF5 files
-            hdf5_file.close()
+        # concatenate new data parameters as column to existing summ_stats dataframe
+        df_summ_stats = df_summ_stats.join( df_labels_move )
+
+        # overwrite original files with new modified versions
+        df_summ_stats.to_csv(out_stat_fn, index=False)
+        df_labels_keep.to_csv(out_labels_fn, index=False)
 
         return
     
@@ -439,78 +531,6 @@ class Formatter:
         x2 = np.loadtxt(fname_stat, delimiter=',', skiprows=1)
         x3 = np.loadtxt(fname_param, delimiter=',', skiprows=1)
         return (x1,x2,x3)
-        
-    def write_tensor_csv(self):
-        """
-        Writes CSV files for phylogenetic tensors.
-        
-        The method iterates through the phylogenetic tensors for each tree width
-        and generates CSV files containing the tensor data and labels.
-        """
-        # build files
-        for tree_width in sorted(list(self.phy_tensors.keys())):
-            
-            # helper variables
-            phy_tensors = self.phy_tensors[tree_width]
-            num_samples = len(phy_tensors)
-            
-            print('Formatting {n} files for tree_type={tt} and tree_width={ts}'.format(n=num_samples, tt=self.tree_encode, ts=tree_width))
-            
-            # output csv filepaths
-            out_prefix    = f'{self.fmt_proj_dir}/sim.nt{tree_width}'
-            in_prefix     = f'{self.sim_proj_dir}/sim'
-            out_phys_fn   = f'{out_prefix}.phy_data.csv'
-            out_stat_fn   = f'{out_prefix}.aux_data.csv'
-            out_labels_fn = f'{out_prefix}.labels.csv'
-
-            # phylogenetic state tensor
-            with open(out_phys_fn, 'w') as outfile:
-                for j,(idx,pt) in enumerate(phy_tensors.items()):
-                    s = ','.join(map(str, pt.flatten())) + '\n'
-                    outfile.write(s)
-
-            # summary stats tensor
-            with open(out_stat_fn, 'w') as outfile:
-                for j,idx in enumerate(phy_tensors.keys()):
-                    fname = f'{in_prefix}.{idx}.summ_stat.csv'
-                    with open(fname, 'r') as infile:
-                        if j == 0:
-                            s = infile.read()
-                        else:
-                            s = ''.join(infile.readlines()[1:])
-                        outfile.write(s)
-                        
-            # labels input tensor
-            with open(out_labels_fn, 'w') as outfile:
-                for j,idx in enumerate(phy_tensors.keys()):
-                    fname = f'{in_prefix}.{idx}.param_row.csv'
-                    with open(fname, 'r') as infile:
-                        if j == 0:
-                            s = infile.read()
-                        else:
-                            s = ''.join(infile.readlines()[1:])
-                        outfile.write(s)
-
-            # rearrange labels and summary statistics
-            # - labels contains param_est
-            # - aux_data contains summ_stat and param_data
-
-            # read in summ_stats and labels
-            df_summ_stats = pd.read_csv(out_stat_fn)
-            df_labels = pd.read_csv(out_labels_fn)
-
-            # separate data parameters (things we know) from label parameters (things we predict)
-            df_labels_keep = df_labels[self.param_est]
-            df_labels_move = df_labels[self.param_data]
-
-            # concatenate new data parameters as column to existing summ_stats dataframe
-            df_summ_stats = df_summ_stats.join( df_labels_move )
-
-            # overwrite original files with new modified versions
-            df_summ_stats.to_csv(out_stat_fn, index=False)
-            df_labels_keep.to_csv(out_labels_fn, index=False)
-
-        return
 
     def encode_one_star(self, args):
         """Wrapper for encode_one w/ unpacked args"""
@@ -891,171 +911,153 @@ class Formatter:
 
 #------------------------------------------------------------------------------#
 
-    def write_tensor_hdf5_alt(self, data_str):
-        """
-        Writes data to HDF5 file for each tree width.
 
-        This class creates HDF5 files
+    # def write_tensor_hdf5_old(self):
+    #     """
+    #     Writes data to HDF5 file for each tree width.
 
-        """
+    #     This class creates HDF5 files
 
-        assert(data_str in ['test', 'train'])
+    #     """
         
-        # build files
-        tree_width = self.tree_width_cats[0]
-        #phy_tensor = self.phy_tensors[tree_width]
+    #     # build files
+    #     for tree_width in sorted(list(self.phy_tensors.keys())):
                  
-        # dimensions
-        rep_idx = self.split_idx[data_str]
-        num_samples = len(rep_idx)
-        num_data_length = tree_width * self.num_data_row
+    #         # dimensions
+    #         rep_idx = sorted(list(self.phy_tensors[tree_width]))
+    #         num_samples = len(rep_idx)
+    #         num_data_length = tree_width * self.num_data_row
 
-        # print info
-        print(f'Making {data_str} hdf5 dataset: {num_samples} examples for tree width = {tree_width}')
+    #         # print info
+    #         print('Combining {n} files for tree_type={tt} and tree_width={ts}'.format(n=num_samples, tt=self.tree_encode, ts=tree_width))
 
-        # HDF5 file
-        out_hdf5_fn = f'{self.fmt_proj_dir}/{data_str}.nt{tree_width}.hdf5'
-        hdf5_file = h5py.File(out_hdf5_fn, 'w')
+    #         # HDF5 file
+    #         out_hdf5_fn = f'{self.fmt_proj_dir}/sim.nt{tree_width}.hdf5'
+    #         hdf5_file = h5py.File(out_hdf5_fn, 'w')
 
-        # create datasets for numerical data
-        dat_data = hdf5_file.create_dataset('phy_data',
-                                            (num_samples, num_data_length),
-                                            dtype='f', compression='gzip')
-        dat_stat = hdf5_file.create_dataset('summ_stat',
-                                            (num_samples, self.num_summ_stat),
-                                            dtype='f', compression='gzip')
-        dat_labels = hdf5_file.create_dataset('labels',
-                                                (num_samples, self.num_labels),
-                                                dtype='f', compression='gzip')
+    #         # create datasets for numerical data
+    #         dat_data = hdf5_file.create_dataset('phy_data',
+    #                                             (num_samples, num_data_length),
+    #                                             dtype='f', compression='gzip')
+    #         dat_stat = hdf5_file.create_dataset('summ_stat',
+    #                                             (num_samples, self.num_summ_stat),
+    #                                             dtype='f', compression='gzip')
+    #         dat_labels = hdf5_file.create_dataset('labels',
+    #                                               (num_samples, self.num_labels),
+    #                                               dtype='f', compression='gzip')
 
-        # the replicates for this tree width
-        #_rep_idx = list(phy_tensor.keys())
-        
-        # load all the info
-        res = [ self.load_one_sim(idx=idx, tree_width=tree_width) for idx in tqdm(rep_idx,
-                            total=len(rep_idx),
-                            desc='Combining',
-                            smoothing=0) ]
-
-        # store all numerical data into hdf5)
-        if len(res) > 0:
-            dat_data[:,:] = np.vstack( [ x[0] for x in res ] )
-            dat_stat[:,:] = np.vstack( [ x[1] for x in res ] )
-            dat_labels[:,:] = np.vstack( [ x[2] for x in res ] )
-
-        # read in summ_stats and labels (_all_ params) dataframes
-        df_summ_stats = pd.DataFrame(dat_stat, columns=self.summ_stat_names)
-        df_labels = pd.DataFrame(dat_labels, columns=self.label_names)
-        
-        # separate data parameters (things we know) from label parameters (things we estimate)
-        df_labels_new = df_labels[self.param_est]
-        df_labels_move = df_labels[self.param_data]
-
-        # concatenate new data parameters as column to existing summ_stats dataframe
-        df_aux_data = df_summ_stats.join( df_labels_move )
-
-        # get new label/stat names
-        new_label_names = self.param_est
-        new_aux_data_names = self.summ_stat_names + self.param_data
-
-        # delete original datasets 
-        del hdf5_file['summ_stat']
-        del hdf5_file['labels']
-        
-        # create new datasets
-        hdf5_file.create_dataset('labels', df_labels_new.shape, 'f', df_labels_new, compression='gzip')
-        hdf5_file.create_dataset('label_names', (1, len(new_label_names)), 'S64', new_label_names, compression='gzip')
-        hdf5_file.create_dataset('aux_data', df_aux_data.shape, 'f', df_aux_data, compression='gzip')
-        hdf5_file.create_dataset('aux_data_names', (1, len(new_aux_data_names)), 'S64', new_aux_data_names, compression='gzip')
-
-        # close HDF5 files
-        hdf5_file.close()
-
-        return
-    
-    def write_tensor_csv_alt(self, data_str):
-        """
-        Writes CSV files for phylogenetic tensors.
-        
-        The method iterates through the phylogenetic tensors for each tree width
-        and generates CSV files containing the tensor data and labels.
-        """
-        assert(data_str in ['test', 'train'])
-        
-        # build files
-        tree_width = self.tree_width_cats[0]
-        phy_tensor = self.phy_tensors[tree_width]
-
-        # dimensions
-        rep_idx = self.split_idx[data_str]
-        num_samples = len(rep_idx)
+    #         # the replicates for this tree width
+    #         _rep_idx = list(self.phy_tensors[tree_width].keys())
             
-        # info
-        print(f'Making {data_str} csv dataset: {num_samples} examples for tree width = {tree_width}')
+    #         # load all the info
+    #         res = [ self.load_one_sim(idx=idx, tree_width=tree_width) for idx in tqdm(_rep_idx,
+    #                             total=len(_rep_idx),
+    #                             desc='Combining') ]
+
+    #         # store all numerical data into hdf5)
+    #         if len(res) > 0:
+    #             dat_data[:,:] = np.vstack( [ x[0] for x in res ] )
+    #             dat_stat[:,:] = np.vstack( [ x[1] for x in res ] )
+    #             dat_labels[:,:] = np.vstack( [ x[2] for x in res ] )
+
+    #         # read in summ_stats and labels (_all_ params) dataframes
+    #         df_summ_stats = pd.DataFrame(dat_stat, columns=self.summ_stat_names)
+    #         df_labels = pd.DataFrame(dat_labels, columns=self.label_names)
+            
+    #         # separate data parameters (things we know) from label parameters (things we estimate)
+    #         df_labels_new = df_labels[self.param_est]
+    #         df_labels_move = df_labels[self.param_data]
+
+    #         # concatenate new data parameters as column to existing summ_stats dataframe
+    #         df_aux_data = df_summ_stats.join( df_labels_move )
+
+    #         # get new label/stat names
+    #         new_label_names = self.param_est
+    #         new_aux_data_names = self.summ_stat_names + self.param_data
+
+    #         # delete original datasets 
+    #         del hdf5_file['summ_stat']
+    #         del hdf5_file['labels']
+            
+    #         # create new datasets
+    #         hdf5_file.create_dataset('labels', df_labels_new.shape, 'f', df_labels_new, compression='gzip')
+    #         hdf5_file.create_dataset('label_names', (1, len(new_label_names)), 'S64', new_label_names, compression='gzip')
+    #         hdf5_file.create_dataset('aux_data', df_aux_data.shape, 'f', df_aux_data, compression='gzip')
+    #         hdf5_file.create_dataset('aux_data_names', (1, len(new_aux_data_names)), 'S64', new_aux_data_names, compression='gzip')
+
+    #         # close HDF5 files
+    #         hdf5_file.close()
+
+    #     return
+         
+    # def write_tensor_csv_old(self):
+    #     """
+    #     Writes CSV files for phylogenetic tensors.
         
-        # output csv filepaths
-        #out_hdf5_fn = f'{self.fmt_proj_dir}/{data_str}.nt{tree_width}.hdf5'
-        out_prefix    = f'{self.fmt_proj_dir}/{data_str}.nt{tree_width}'
-        in_prefix     = f'{self.sim_proj_dir}/sim'
-        out_phys_fn   = f'{out_prefix}.phy_data.csv'
-        out_stat_fn   = f'{out_prefix}.aux_data.csv'
-        out_labels_fn = f'{out_prefix}.labels.csv'
+    #     The method iterates through the phylogenetic tensors for each tree width
+    #     and generates CSV files containing the tensor data and labels.
+    #     """
+    #     # build files
+    #     for tree_width in sorted(list(self.phy_tensors.keys())):
+            
+    #         # helper variables
+    #         phy_tensors = self.phy_tensors[tree_width]
+    #         num_samples = len(phy_tensors)
+            
+    #         print('Formatting {n} files for tree_type={tt} and tree_width={ts}'.format(n=num_samples, tt=self.tree_encode, ts=tree_width))
+            
+    #         # output csv filepaths
+    #         out_prefix    = f'{self.fmt_proj_dir}/sim.nt{tree_width}'
+    #         in_prefix     = f'{self.sim_proj_dir}/sim'
+    #         out_phys_fn   = f'{out_prefix}.phy_data.csv'
+    #         out_stat_fn   = f'{out_prefix}.aux_data.csv'
+    #         out_labels_fn = f'{out_prefix}.labels.csv'
 
-        # phylogenetic state tensor
-        with open(out_phys_fn, 'w') as outfile:
-            for idx in rep_idx:
-                pt = phy_tensor[idx] 
-            #for j,(idx,pt) in enumerate(phy_tensor.items()):
-                s = ','.join(map(str, pt.flatten())) + '\n'
-                outfile.write(s)
+    #         # phylogenetic state tensor
+    #         with open(out_phys_fn, 'w') as outfile:
+    #             for j,(idx,pt) in enumerate(phy_tensors.items()):
+    #                 s = ','.join(map(str, pt.flatten())) + '\n'
+    #                 outfile.write(s)
 
-        # summary stats tensor
-        with open(out_stat_fn, 'w') as outfile:
-            is_first = True
-            for idx in rep_idx:
-            # for j,idx in enumerate(phy_tensor.keys()):
-                # if idx in rep_idx:
-                fname = f'{in_prefix}.{idx}.summ_stat.csv'
-                with open(fname, 'r') as infile:
-                    if is_first:
-                        s = infile.read()
-                        is_first = False
-                    else:
-                        s = ''.join(infile.readlines()[1:])
-                    outfile.write(s)
-                    
-        # labels input tensor
-        with open(out_labels_fn, 'w') as outfile:
-            is_first = True
-            for idx in rep_idx:
-            # for j,idx in enumerate(phy_tensor.keys()):
-                # if idx in rep_idx:
-                fname = f'{in_prefix}.{idx}.param_row.csv'
-                with open(fname, 'r') as infile:
-                    if is_first:
-                        s = infile.read()
-                        is_first = False
-                    else:
-                        s = ''.join(infile.readlines()[1:])
-                    outfile.write(s)
+    #         # summary stats tensor
+    #         with open(out_stat_fn, 'w') as outfile:
+    #             for j,idx in enumerate(phy_tensors.keys()):
+    #                 fname = f'{in_prefix}.{idx}.summ_stat.csv'
+    #                 with open(fname, 'r') as infile:
+    #                     if j == 0:
+    #                         s = infile.read()
+    #                     else:
+    #                         s = ''.join(infile.readlines()[1:])
+    #                     outfile.write(s)
+                        
+    #         # labels input tensor
+    #         with open(out_labels_fn, 'w') as outfile:
+    #             for j,idx in enumerate(phy_tensors.keys()):
+    #                 fname = f'{in_prefix}.{idx}.param_row.csv'
+    #                 with open(fname, 'r') as infile:
+    #                     if j == 0:
+    #                         s = infile.read()
+    #                     else:
+    #                         s = ''.join(infile.readlines()[1:])
+    #                     outfile.write(s)
 
-        # rearrange labels and summary statistics
-        # - labels contains param_est
-        # - aux_data contains summ_stat and param_data
+    #         # rearrange labels and summary statistics
+    #         # - labels contains param_est
+    #         # - aux_data contains summ_stat and param_data
 
-        # read in summ_stats and labels
-        df_summ_stats = pd.read_csv(out_stat_fn)
-        df_labels = pd.read_csv(out_labels_fn)
+    #         # read in summ_stats and labels
+    #         df_summ_stats = pd.read_csv(out_stat_fn)
+    #         df_labels = pd.read_csv(out_labels_fn)
 
-        # separate data parameters (things we know) from label parameters (things we predict)
-        df_labels_keep = df_labels[self.param_est]
-        df_labels_move = df_labels[self.param_data]
+    #         # separate data parameters (things we know) from label parameters (things we predict)
+    #         df_labels_keep = df_labels[self.param_est]
+    #         df_labels_move = df_labels[self.param_data]
 
-        # concatenate new data parameters as column to existing summ_stats dataframe
-        df_summ_stats = df_summ_stats.join( df_labels_move )
+    #         # concatenate new data parameters as column to existing summ_stats dataframe
+    #         df_summ_stats = df_summ_stats.join( df_labels_move )
 
-        # overwrite original files with new modified versions
-        df_summ_stats.to_csv(out_stat_fn, index=False)
-        df_labels_keep.to_csv(out_labels_fn, index=False)
+    #         # overwrite original files with new modified versions
+    #         df_summ_stats.to_csv(out_stat_fn, index=False)
+    #         df_labels_keep.to_csv(out_labels_fn, index=False)
 
-        return
+    #     return

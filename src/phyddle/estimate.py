@@ -152,8 +152,13 @@ class Estimator:
         self.out_sim_est_fn         = f'{self.est_prefix_dir}.sim_test_est.labels.csv'
         self.out_sim_true_fn        = f'{self.est_prefix_dir}.sim_test_true.labels.csv'
     
-        print(self.test_aux_data_fn)
-        print(self.est_aux_data_fn)
+        
+        self.emp_input_exists = True
+        for fn in [ self.est_summ_stat_fn,
+                    self.est_phy_data_fn ]:
+            if not os.path.exists(fn):
+                self.emp_input_exists = False
+
         # done
         return
 
@@ -207,8 +212,10 @@ class Estimator:
 
 
         # read & reshape new phylo-state data
-        self.est_data_tensor = pd.read_csv(self.est_phy_data_fn, header=None, sep=',', index_col=False).to_numpy()
-        self.est_data_tensor = self.est_data_tensor.reshape((1, -1, self.num_data_row))
+        self.est_data_tensor = None
+        if self.emp_input_exists:
+            self.est_data_tensor = pd.read_csv(self.est_phy_data_fn, header=None, sep=',', index_col=False).to_numpy()
+            self.est_data_tensor = self.est_data_tensor.reshape((1, -1, self.num_data_row))
 
         # denormalization factors for new aux data
         train_aux_data_norm = pd.read_csv(self.train_aux_data_norm_fn, sep=',', index_col=False)
@@ -227,17 +234,19 @@ class Estimator:
         # self.aux_data_names     = train_aux_data_norm['name'].to_list()
         
         # read & normalize new aux data (when files exist)
-        self.est_aux_data = pd.read_csv(self.est_summ_stat_fn, sep=',', index_col=False).to_numpy().flatten()
-        try:
-            self.est_known_params = pd.read_csv(self.est_known_param_fn, sep=',', index_col=False).to_numpy().flatten()
-            self.est_auxdata_tensor = np.concatenate([self.est_aux_data, self.est_known_params])
-        except FileNotFoundError:
-            self.est_auxdata_tensor = self.est_aux_data
+        self.est_auxdata_tensor = None
+        if self.emp_input_exists:
+            self.est_aux_data = pd.read_csv(self.est_summ_stat_fn, sep=',', index_col=False).to_numpy().flatten()
+            try:
+                self.est_known_params = pd.read_csv(self.est_known_param_fn, sep=',', index_col=False).to_numpy().flatten()
+                self.est_auxdata_tensor = np.concatenate([self.est_aux_data, self.est_known_params])
+            except FileNotFoundError:
+                self.est_auxdata_tensor = self.est_aux_data
 
-        # reshape and rescale new aux data
-        self.est_auxdata_tensor.shape = (1, -1)
-        self.norm_est_aux_data = util.normalize(self.est_auxdata_tensor,
-                                                (self.train_aux_data_means, self.train_aux_data_sd))
+            # reshape and rescale new aux data
+            self.est_auxdata_tensor.shape = (1, -1)
+            self.norm_est_aux_data = util.normalize(self.est_auxdata_tensor,
+                                                    (self.train_aux_data_means, self.train_aux_data_sd))
         # self.denormalized_est_aux_data  = util.denormalize(self.norm_est_aux_data, self.train_aux_data_means, self.train_aux_data_sd)
 
         # read in CQR interval adjustments
@@ -295,30 +304,31 @@ class Estimator:
 
         ######### Biological Dataset
 
-        # get estimates
-        self.norm_est = self.mymodel.predict([self.est_data_tensor,
-                                              self.norm_est_aux_data])
-        # point estimates & CPIs
-        self.norm_est        = np.array( self.norm_est )
-        self.norm_est[1,:,:] = self.norm_est[1,:,:] - self.cpi_adjustments[0,:]
-        self.norm_est[2,:,:] = self.norm_est[2,:,:] + self.cpi_adjustments[1,:]
-        # denormalize results
-        self.denorm_est = util.denormalize(self.norm_est,
-                                           self.train_labels_means,
-                                           self.train_labels_sd)
-        # avoid overflow
-        self.denorm_est[self.denorm_est > 300.] = 300.
-        # revert from log to linear scalle
-        self.emp_est_labels = np.exp( self.denorm_est )
-        # convert parameters to param table
-        self.df_emp_est_labels = util.make_param_VLU_mtx(self.emp_est_labels,
-                                                         self.param_names)
-        # save results to file
-        self.df_emp_est_labels.to_csv(self.out_emp_est_fn, index=False, sep=',')
-        self.df_emp_aux_data = pd.DataFrame(self.est_auxdata_tensor,
-                                               columns=self.aux_data_names)
-        self.df_emp_aux_data.to_csv(self.est_aux_data_fn, index=False, sep=',')
-        
+        if self.emp_input_exists:
+            # get estimates
+            self.norm_est = self.mymodel.predict([self.est_data_tensor,
+                                                self.norm_est_aux_data])
+            # point estimates & CPIs
+            self.norm_est        = np.array( self.norm_est )
+            self.norm_est[1,:,:] = self.norm_est[1,:,:] - self.cpi_adjustments[0,:]
+            self.norm_est[2,:,:] = self.norm_est[2,:,:] + self.cpi_adjustments[1,:]
+            # denormalize results
+            self.denorm_est = util.denormalize(self.norm_est,
+                                            self.train_labels_means,
+                                            self.train_labels_sd)
+            # avoid overflow
+            self.denorm_est[self.denorm_est > 300.] = 300.
+            # revert from log to linear scalle
+            self.emp_est_labels = np.exp( self.denorm_est )
+            # convert parameters to param table
+            self.df_emp_est_labels = util.make_param_VLU_mtx(self.emp_est_labels,
+                                                            self.param_names)
+            # save results to file
+            self.df_emp_est_labels.to_csv(self.out_emp_est_fn, index=False, sep=',')
+            self.df_emp_aux_data = pd.DataFrame(self.est_auxdata_tensor,
+                                                columns=self.aux_data_names)
+            self.df_emp_aux_data.to_csv(self.est_aux_data_fn, index=False, sep=',')
+            
 
 
         ###### Test Dataset
