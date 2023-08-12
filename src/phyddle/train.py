@@ -384,7 +384,7 @@ class CnnTrainer(Trainer):
         # create auxiliary data tensors (with scaling)
         self.train_aux_data_tensor = self.norm_train_aux_data
         self.val_aux_data_tensor   = self.norm_val_aux_data
-        self.test_sux_data_tensor  = self.norm_test_aux_data
+        self.test_aux_data_tensor  = self.norm_test_aux_data
         self.calib_aux_data_tensor = self.norm_calib_aux_data
 
         return
@@ -582,7 +582,7 @@ class CnnTrainer(Trainer):
         input and output datasets.
         """
         # evaluate (fitting)
-        self.mymodel.evaluate([self.test_phy_data_tensor, self.test_sux_data_tensor], self.norm_test_labels)
+        self.mymodel.evaluate([self.test_phy_data_tensor, self.test_aux_data_tensor], self.norm_test_labels)
 
         # scatter of estimate vs true for training data
         self.normalized_train_ests       = self.mymodel.predict([self.train_phy_data_tensor, self.train_aux_data_tensor])
@@ -593,7 +593,7 @@ class CnnTrainer(Trainer):
         self.denormalized_train_labels   = np.exp(self.denormalized_train_labels)
 
         # scatter of estimate vs true for test data
-        self.normalized_test_ests        = self.mymodel.predict([self.test_phy_data_tensor, self.test_sux_data_tensor])
+        self.normalized_test_ests        = self.mymodel.predict([self.test_phy_data_tensor, self.test_aux_data_tensor])
         self.normalized_test_ests        = np.array(self.normalized_test_ests)
         self.denormalized_test_ests      = util.denormalize(self.normalized_test_ests, self.train_label_means, self.train_label_sd)
         self.denormalized_test_ests      = np.exp(self.denormalized_test_ests)

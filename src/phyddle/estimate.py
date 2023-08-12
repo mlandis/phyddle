@@ -18,6 +18,7 @@ import os
 import numpy as np
 import pandas as pd
 import tensorflow as tf
+import h5py
 
 # phyddle imports
 from phyddle import utilities as util
@@ -118,13 +119,15 @@ class Estimator:
         # main directories
         self.trn_proj_dir           = f'{self.trn_dir}/{self.trn_proj}'
         self.est_proj_dir           = f'{self.est_dir}/{self.est_proj}'
+        self.fmt_proj_dir           = f'{self.fmt_dir}/{self.fmt_proj}'
 
         # prefixes
-        
+        self.test_prefix            = f'test.nt{self.tree_width}'
         self.model_prefix           = f'network_nt{self.tree_width}'
         #self.model_prefix           = f'train_batchsize{self.trn_batch_size}_numepoch{self.num_epochs}_nt{self.tree_width}'
         self.trn_prefix_dir         = f'{self.trn_proj_dir}/{self.model_prefix}'
         self.est_prefix_dir         = f'{self.est_proj_dir}/{self.est_prefix}'
+        self.fmt_prefix_dir         = f'{self.fmt_proj_dir}/{self.test_prefix}'
 
         # model files
         self.model_sav_fn           = f'{self.trn_prefix_dir}.hdf5'
@@ -132,23 +135,26 @@ class Estimator:
         self.train_aux_data_norm_fn = f'{self.trn_prefix_dir}.train_aux_data_norm.csv'
         self.model_cpi_fn           = f'{self.trn_prefix_dir}.cpi_adjustments.csv'
 
-        # save estimates to file
-        self.model_est_fn           = f'{self.est_prefix_dir}.{self.model_prefix}.est_labels.csv'
+        # simulated test datasets for csv or hdf5
+        self.test_phy_data_fn      = f'{self.fmt_prefix_dir}.phy_data.csv'
+        self.test_aux_data_fn      = f'{self.fmt_prefix_dir}.aux_data.csv'
+        self.test_labels_fn        = f'{self.fmt_prefix_dir}.labels.csv'
+        self.test_hdf5_fn          = f'{self.fmt_prefix_dir}.hdf5'
 
-        # test summ stats
-        self.est_aux_data_fn        = f'{self.est_prefix_dir}.summ_stat.csv'
+        # empirical test dataset
+        self.est_summ_stat_fn       = f'{self.est_prefix_dir}.summ_stat.csv'
         self.est_known_param_fn     = f'{self.est_prefix_dir}.known_param.csv'
-
-        # test phy vector
+        self.est_aux_data_fn        = f'{self.est_prefix_dir}.aux_data.csv'
         self.est_phy_data_fn        = f'{self.est_prefix_dir}.phy_data.csv'    
-        #if self.tree_encode == 'extant':
-        #    self.est_phy_data_fn      = f'{self.est_prefix_dir}.phy_data.csv'    
-        #elif self.tree_encode == 'serial':
-        #    self.est_phy_data_fn      = f'{self.est_prefix_dir}.phy_data.csv'
-        #else:
-        #    error_msg = f'{self.tree_encode} not recognized tree type'
-        #    raise NotImplementedError(error_msg)
-
+        
+        # test outputs
+        self.out_emp_est_fn         = f'{self.est_prefix_dir}.emp_test_est.labels.csv'
+        self.out_sim_est_fn         = f'{self.est_prefix_dir}.sim_test_est.labels.csv'
+        self.out_sim_true_fn        = f'{self.est_prefix_dir}.sim_test_true.labels.csv'
+    
+        print(self.test_aux_data_fn)
+        print(self.est_aux_data_fn)
+        # done
         return
 
     def run(self):
@@ -198,6 +204,8 @@ class Estimator:
         The script re-normalizes the new estimation to match the scale/location
         used for simulated training examples to train the network.
         """
+
+
         # read & reshape new phylo-state data
         self.est_data_tensor = pd.read_csv(self.est_phy_data_fn, header=None, sep=',', index_col=False).to_numpy()
         self.est_data_tensor = self.est_data_tensor.reshape((1, -1, self.num_data_row))
@@ -206,18 +214,20 @@ class Estimator:
         train_aux_data_norm = pd.read_csv(self.train_aux_data_norm_fn, sep=',', index_col=False)
         self.train_aux_data_means = train_aux_data_norm['mean'].T.to_numpy().flatten()
         self.train_aux_data_sd = train_aux_data_norm['sd'].T.to_numpy().flatten()
+        self.train_aux_data_mean_sd =(self.train_aux_data_means, self.train_aux_data_sd)
 
         # denormalization factors for labels
         train_labels_norm = pd.read_csv(self.train_labels_norm_fn, sep=',', index_col=False)
         self.train_labels_means = train_labels_norm['mean'].T.to_numpy().flatten()
         self.train_labels_sd = train_labels_norm['sd'].T.to_numpy().flatten()
+        self.train_labels_mean_sd =(self.train_labels_means, self.train_labels_sd)
 
         # get param_names from training labels
         self.param_names = train_labels_norm['name'].to_list()
         # self.aux_data_names     = train_aux_data_norm['name'].to_list()
         
         # read & normalize new aux data (when files exist)
-        self.est_aux_data = pd.read_csv(self.est_aux_data_fn, sep=',', index_col=False).to_numpy().flatten()
+        self.est_aux_data = pd.read_csv(self.est_summ_stat_fn, sep=',', index_col=False).to_numpy().flatten()
         try:
             self.est_known_params = pd.read_csv(self.est_known_param_fn, sep=',', index_col=False).to_numpy().flatten()
             self.est_auxdata_tensor = np.concatenate([self.est_aux_data, self.est_known_params])
@@ -233,6 +243,42 @@ class Estimator:
         # read in CQR interval adjustments
         self.cpi_adjustments = pd.read_csv(self.model_cpi_fn, sep=',', index_col=False).to_numpy()
         
+
+        # TEST DATA
+        # load all the test dataset
+        if self.tensor_format == 'csv':
+            test_phy_data = pd.read_csv(self.test_phy_data_fn, header=None,
+                                        on_bad_lines='skip').to_numpy()
+            test_aux_data = pd.read_csv(self.test_aux_data_fn, header=None,
+                                        on_bad_lines='skip').to_numpy()
+            test_labels   = pd.read_csv(self.test_labels_fn, header=None,
+                                        on_bad_lines='skip').to_numpy()
+            self.aux_data_names = test_aux_data[0,:]
+            self.param_names    = test_labels[0,:]
+            test_aux_data       = test_aux_data[1:,:].astype('float64')
+            test_labels         = test_labels[1:,:].astype('float64')   
+
+        elif self.tensor_format == 'hdf5':
+            hdf5_file = h5py.File(self.test_hdf5_fn, 'r')
+            self.aux_data_names = [ s.decode() for s in hdf5_file['aux_data_names'][0,:] ]
+            self.param_names    = [ s.decode() for s in hdf5_file['label_names'][0,:] ]
+            test_phy_data       = pd.DataFrame(hdf5_file['phy_data']).to_numpy()
+            test_aux_data       = pd.DataFrame(hdf5_file['aux_data']).to_numpy()
+            test_labels         = pd.DataFrame(hdf5_file['labels']).to_numpy()
+            hdf5_file.close()
+
+        num_sample = test_phy_data.shape[0]
+        test_phy_data.shape = (num_sample, -1, self.num_data_row)
+
+        # create phylogenetic data tensors
+        self.test_phy_data = test_phy_data
+        self.test_aux_data = test_aux_data
+        self.norm_test_aux_data = util.normalize(test_aux_data,
+                                                 self.train_aux_data_mean_sd)
+        self.norm_test_labels = util.normalize(test_labels,
+                                               self.train_labels_mean_sd)
+        self.sim_true_labels = test_labels
+
         return
 
 
@@ -246,27 +292,64 @@ class Estimator:
         """
         # load model
         self.mymodel = tf.keras.models.load_model(self.model_sav_fn, compile=False)
+
+        ######### Biological Dataset
+
         # get estimates
-        self.norm_est = self.mymodel.predict([self.est_data_tensor, self.norm_est_aux_data])
-        # point estimates
-        self.norm_est = np.array( self.norm_est )
-        # adjust lower CPI
+        self.norm_est = self.mymodel.predict([self.est_data_tensor,
+                                              self.norm_est_aux_data])
+        # point estimates & CPIs
+        self.norm_est        = np.array( self.norm_est )
         self.norm_est[1,:,:] = self.norm_est[1,:,:] - self.cpi_adjustments[0,:]
-        # adjust upper CPI
         self.norm_est[2,:,:] = self.norm_est[2,:,:] + self.cpi_adjustments[1,:]
         # denormalize results
-        self.denormalized_est_labels = util.denormalize(self.norm_est,
-                                                        self.train_labels_means,
-                                                        self.train_labels_sd)
+        self.denorm_est = util.denormalize(self.norm_est,
+                                           self.train_labels_means,
+                                           self.train_labels_sd)
         # avoid overflow
-        self.denormalized_est_labels[self.denormalized_est_labels > 300.] = 300.
+        self.denorm_est[self.denorm_est > 300.] = 300.
         # revert from log to linear scalle
-        self.est_labels = np.exp( self.denormalized_est_labels )
+        self.emp_est_labels = np.exp( self.denorm_est )
         # convert parameters to param table
-        self.df_est_all_labels = util.make_param_VLU_mtx(self.est_labels,
+        self.df_emp_est_labels = util.make_param_VLU_mtx(self.emp_est_labels,
                                                          self.param_names)
         # save results to file
-        self.df_est_all_labels.to_csv(self.model_est_fn, index=False, sep=',')
+        self.df_emp_est_labels.to_csv(self.out_emp_est_fn, index=False, sep=',')
+        self.df_emp_aux_data = pd.DataFrame(self.est_auxdata_tensor,
+                                               columns=self.aux_data_names)
+        self.df_emp_aux_data.to_csv(self.est_aux_data_fn, index=False, sep=',')
+        
+
+
+        ###### Test Dataset
+        self.norm_sim_est = self.mymodel.predict([self.test_phy_data,
+                                                  self.norm_test_aux_data])
+        # point estimates & CPIs
+        self.norm_sim_est = np.array( self.norm_sim_est )
+        self.norm_sim_est[1,:,:] = self.norm_sim_est[1,:,:] - self.cpi_adjustments[0,:]
+        self.norm_sim_est[2,:,:] = self.norm_sim_est[2,:,:] + self.cpi_adjustments[1,:]
+        # denormalize results
+        self.denorm_sim_est = util.denormalize(self.norm_sim_est,
+                                               self.train_labels_means,
+                                               self.train_labels_sd)
+        # avoid overflow
+        self.denorm_sim_est[self.denorm_sim_est > 300.] = 300.
+        # revert from log to linear scalle
+        self.sim_est_labels = np.exp( self.denorm_sim_est )
+        # convert parameters to param table
+        self.df_sim_est_labels = util.make_param_VLU_mtx(self.sim_est_labels,
+                                                         self.param_names)
+        # save results to file
+        #max_idx = 1000
+        self.df_sim_est_labels.to_csv(self.out_sim_est_fn, index=False, sep=',')
+        self.df_sim_true_labels = pd.DataFrame(self.sim_true_labels,
+                                               columns=self.param_names)
+        self.df_sim_true_labels.to_csv(self.out_sim_true_fn, index=False, sep=',')
+        #df_test_true_labels = pd.DataFrame( self.denormalized_test_labels[0:max_idx,:], columns=self.param_names )
+        #df_test_est_nocalib.to_csv(self.test_est_nocalib_fn, index=False, sep=',')
+        #self.df_test_est_labels.to_csv(self.test_est_calib_fn, index=False, sep=',')
+        #df_test_labels.to_csv(self.test_labels_fn, index=False, sep=',')
+        
         # done
         return
     

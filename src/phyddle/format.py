@@ -1003,28 +1003,38 @@ class Formatter:
 
         # phylogenetic state tensor
         with open(out_phys_fn, 'w') as outfile:
-            for j,(idx,pt) in enumerate(phy_tensor.items()):
+            for idx in rep_idx:
+                pt = phy_tensor[idx] 
+            #for j,(idx,pt) in enumerate(phy_tensor.items()):
                 s = ','.join(map(str, pt.flatten())) + '\n'
                 outfile.write(s)
 
         # summary stats tensor
         with open(out_stat_fn, 'w') as outfile:
-            for j,idx in enumerate(phy_tensor.keys()):
+            is_first = True
+            for idx in rep_idx:
+            # for j,idx in enumerate(phy_tensor.keys()):
+                # if idx in rep_idx:
                 fname = f'{in_prefix}.{idx}.summ_stat.csv'
                 with open(fname, 'r') as infile:
-                    if j == 0:
+                    if is_first:
                         s = infile.read()
+                        is_first = False
                     else:
                         s = ''.join(infile.readlines()[1:])
                     outfile.write(s)
                     
         # labels input tensor
         with open(out_labels_fn, 'w') as outfile:
-            for j,idx in enumerate(phy_tensor.keys()):
+            is_first = True
+            for idx in rep_idx:
+            # for j,idx in enumerate(phy_tensor.keys()):
+                # if idx in rep_idx:
                 fname = f'{in_prefix}.{idx}.param_row.csv'
                 with open(fname, 'r') as infile:
-                    if j == 0:
+                    if is_first:
                         s = infile.read()
+                        is_first = False
                     else:
                         s = ''.join(infile.readlines()[1:])
                     outfile.write(s)

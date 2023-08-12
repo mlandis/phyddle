@@ -128,22 +128,23 @@ class Plotter:
         self.plt_proj_prefix    = f'{self.plt_proj_dir}/{self.network_prefix}'
         
         # tensors
-        self.input_aux_data_fn  = f'{self.fmt_proj_prefix}.summ_stat.csv'
+        self.input_aux_data_fn  = f'{self.fmt_proj_prefix}.aux_data.csv'
         self.input_labels_fn    = f'{self.fmt_proj_prefix}.labels.csv'
         self.input_hdf5_fn      = f'{self.fmt_proj_prefix}.hdf5'
 
         # network
         self.train_est_fn       = f'{self.trn_proj_prefix}.train_est.csv'
         self.train_labels_fn    = f'{self.trn_proj_prefix}.train_labels.csv'
-        self.test_est_fn        = f'{self.trn_proj_prefix}.test_est.csv'
-        self.test_labels_fn     = f'{self.trn_proj_prefix}.test_labels.csv'
         self.network_fn         = f'{self.trn_proj_prefix}.hdf5'
         self.history_json_fn    = f'{self.trn_proj_prefix}.train_history.json'
 
         # estimates
-        self.est_summ_stat_fn   = f'{self.est_proj_prefix}.summ_stat.csv'
-        self.est_lbl_fn         = f'{self.est_proj_prefix}.{self.network_prefix}.est_labels.csv'
+        self.est_summ_stat_fn   = f'{self.est_proj_prefix}.aux_data.csv'
         self.est_known_param_fn = f'{self.est_proj_prefix}.known_param.csv'
+        self.est_lbl_fn         = f'{self.est_proj_prefix}.emp_test_est.labels.csv'
+        self.test_est_fn        = f'{self.est_proj_prefix}.sim_test_est.labels.csv'
+        self.test_labels_fn     = f'{self.est_proj_prefix}.sim_test_true.labels.csv'
+        print(self.est_summ_stat_fn)
         
         # plotting output
         self.save_hist_aux_fn   = f'{self.plt_proj_prefix}.density_aux.pdf'

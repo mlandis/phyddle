@@ -112,7 +112,7 @@ def settings_registry():
         
         # directories
         'sim_dir'          : { 'step':'SF',    'type':str, 'section':'Workspace', 'default':'../workspace/simulate', 'help':'Directory for raw simulated data' },
-        'fmt_dir'          : { 'step':'FTP',   'type':str, 'section':'Workspace', 'default':'../workspace/format',   'help':'Directory for tensor-formatted simulated data' },
+        'fmt_dir'          : { 'step':'FTEP',  'type':str, 'section':'Workspace', 'default':'../workspace/format',   'help':'Directory for tensor-formatted simulated data' },
         'trn_dir'          : { 'step':'FTEP',  'type':str, 'section':'Workspace', 'default':'../workspace/train',    'help':'Directory for trained networks and training output' },
         'est_dir'          : { 'step':'TEP',   'type':str, 'section':'Workspace', 'default':'../workspace/estimate', 'help':'Directory for new datasets and estimates' },
         'plt_dir'          : { 'step':'P',     'type':str, 'section':'Workspace', 'default':'../workspace/plot',     'help':'Directory for plotted results' },
@@ -1558,6 +1558,70 @@ class Logger:
         return s
     
 #------------------------------------------------------------------------------#
+
+# class Tensor:
+#     """Batch of tensor-shaped datasets"""
+    
+#     def __init__(self, data, norms=None, calibs=None):
+        
+#         # initialize values
+#         self.data = self.set_format(data)
+#         self.standardizations = norms
+#         self.calibs = calibs
+#         self.names = self.data.columns
+#         self.shape = self.data.shape
+
+#         if norms is None:
+#             self.data_norm, mean, sd = self.normalize(self.data)
+#         else:
+#             mean = norms[0,:]
+#             sd = norms[1,:]
+#             self.data_norm, mean, sd = self.normalize(self.data, mean, sd)
+#         self.mean = mean
+#         self.sd = sd
+
+#         return
+
+#     def apply_scalers(self, data):
+
+#         return
+    
+#     def normalize(self, data, m_sd=None):
+#         """
+#         Normalize the data using mean and standard deviation.
+
+#         This function normalizes the input data using the mean and standard deviation. If the `m_sd` parameter is not provided, the function computes the mean and standard deviation of the data and performs normalization. If `m_sd` is provided, it assumes that the mean and standard deviation have already been computed and uses them for normalization.
+
+#         Args:
+#             data (numpy.ndarray): The input data to be normalized.
+#             m_sd (tuple): A tuple containing the mean and standard deviation. If not provided, the mean and standard deviation will be computed from the data.
+
+#         Returns:
+#             numpy.ndarray: The normalized data.
+#         """
+#         if type(m_sd) == type(None):
+#             m = data.mean(axis = 0)
+#             sd = data.std(axis = 0)
+#             sd[np.where(sd == 0)] = 1
+#             return (data - m)/sd, m, sd
+#         else:
+#             m_sd[1][np.where(m_sd[1] == 0)] = 1
+#             return (data - m_sd[0])/m_sd[1]
+            
+        
+
+#     def denormalize(self):
+#         return
+    
+#     def calibrate(self):
+#         return
+    
+#     def decalibrate(self):
+#         return
+
+
+
+
 
 ##################
 # Helper Classes #
