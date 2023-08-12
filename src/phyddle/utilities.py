@@ -1301,6 +1301,28 @@ def denormalize(data, train_mean, train_sd):
     """
     return data * train_sd + train_mean
 
+def denormalize2(data, m_sd, exp=False, tol=300):
+    """
+    Denormalize the data using the mean and standard deviation.
+
+    This function denormalizes the input data using the provided mean and standard deviation. It reverses the normalization process and brings the data back to its original scale.
+
+    Args:
+        data (numpy.ndarray): The normalized data to be denormalized.
+        train_mean (numpy.ndarray): The mean used for normalization.
+        train_sd (numpy.ndarray): The standard deviation used for normalization.
+
+    Returns:
+        numpy.ndarray: The denormalized data.
+    """
+    if exp:
+        x = data * m_sd[1] + m_sd[0]
+        x[x>=tol] = tol
+        x[x<=-tol] = -tol
+        return np.exp(x)
+    else:
+        return data * m_sd[1] + m_sd[0]
+
 #------------------------------------------------------------------------------#
 
 ######################

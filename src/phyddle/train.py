@@ -153,12 +153,12 @@ class Trainer:
         self.train_labels_norm_fn   = f'{output_prefix}.train_label_norm.csv'
         self.train_aux_data_norm_fn = f'{output_prefix}.train_aux_data_norm.csv'
         # output estimates
-        self.train_labels_fn        = f'{output_prefix}.train_labels.csv'
+        self.train_label_true_fn        = f'{output_prefix}.train_true.labels.csv'
         # self.test_labels_fn         = f'{output_prefix}.test_labels.csv'
         # output CPI calibrations
-        self.train_est_calib_fn     = f'{output_prefix}.train_est.csv'
+        self.train_label_est_calib_fn     = f'{output_prefix}.train_est.labels.csv'
         # self.test_est_calib_fn      = f'{output_prefix}.test_est.csv'
-        self.train_est_nocalib_fn   = f'{output_prefix}.train_est_nocalib.csv'
+        self.train_label_est_nocalib_fn   = f'{output_prefix}.train_label_est_nocalib.csv'
         # self.test_est_nocalib_fn    = f'{output_prefix}.test_est_nocalib.csv'
         #done
         return
@@ -239,7 +239,7 @@ class CnnTrainer(Trainer):
         Split tensor into parts.
 
         This function splits the indexes for training examples into training,
-        test, validation, and calibration sets. 
+        validation, and calibration sets. 
 
         Args:
             num_sample (int): The total number of samples in the dataset.
@@ -248,15 +248,12 @@ class CnnTrainer(Trainer):
         Returns:
             train_idx (numpy.ndarray): The indices for the training subset.
             val_idx (numpy.ndarray): The indices for the validation subset.
-            test_idx (numpy.ndarray): The indices for the test subset.
             calib_idx (numpy.ndarray): The indices for the calibration subset.
         """
 
-        # get number of training, test, validation, and calibration datapoints
+        # get number of training, validation, and calibration datapoints
         num_calib = int(np.floor(num_sample * self.prop_cal)) 
         num_val   = int(np.floor(num_sample * self.prop_val))
-        #num_test  = int(np.floor(num_sample * self.prop_test))
-        #num_train = num_sample - (num_val + num_test + num_calib)
         num_train = num_sample - (num_val + num_calib)
         assert(num_train > 0)
 
@@ -266,7 +263,6 @@ class CnnTrainer(Trainer):
         calib_idx = np.arange(num_calib,  dtype='int') + num_train + num_val
 
         # return
-        # return train_idx, val_idx, test_idx, calib_idx
         return train_idx, val_idx, calib_idx
     
     def validate_tensor_idx(self, train_idx, val_idx, calib_idx):
@@ -315,14 +311,14 @@ class CnnTrainer(Trainer):
             full_labels   = pd.read_csv(self.input_labels_fn, header=None,
                                         on_bad_lines='skip').to_numpy()
             self.aux_data_names = full_aux_data[0,:]
-            self.param_names    = full_labels[0,:]
+            self.label_names    = full_labels[0,:]
             full_aux_data       = full_aux_data[1:,:].astype('float64')
             full_labels         = full_labels[1:,:].astype('float64')   
 
         elif self.tensor_format == 'hdf5':
             hdf5_file = h5py.File(self.input_hdf5_fn, 'r')
             self.aux_data_names = [ s.decode() for s in hdf5_file['aux_data_names'][0,:] ]
-            self.param_names    = [ s.decode() for s in hdf5_file['label_names'][0,:] ]
+            self.label_names    = [ s.decode() for s in hdf5_file['label_names'][0,:] ]
             full_phy_data       = pd.DataFrame(hdf5_file['phy_data']).to_numpy()
             full_aux_data       = pd.DataFrame(hdf5_file['aux_data']).to_numpy()
             full_labels         = pd.DataFrame(hdf5_file['labels']).to_numpy()
@@ -355,36 +351,34 @@ class CnnTrainer(Trainer):
             # test_idx = np.concatenate([, val_idx])
             # val_idx = test_idx
 
+        # save original training input
+        #self.train_aux_data = full_aux_data[train_idx,:]
+        self.train_label_true = np.exp(full_labels[train_idx,:])
+
         # normalize auxiliary data
-        self.norm_train_aux_data, self.train_aux_data_means, self.train_aux_data_sd = util.normalize(full_aux_data[train_idx,:])
-        self.norm_aux_data_mean_sd =(self.train_aux_data_means, self.train_aux_data_sd)
-        self.norm_val_aux_data   = util.normalize(full_aux_data[val_idx,:],
-                                                  self.norm_aux_data_mean_sd)
-        # self.norm_test_aux_data  = util.normalize(full_aux_data[test_idx,:],
-        #                                           self.norm_aux_data_mean_sd)
+        self.norm_train_aux_data, train_aux_data_means, train_aux_data_sd = util.normalize(full_aux_data[train_idx,:])
+        self.train_aux_data_mean_sd = (train_aux_data_means, train_aux_data_sd)
+        self.norm_val_aux_data = util.normalize(full_aux_data[val_idx,:],
+                                                self.train_aux_data_mean_sd)
         self.norm_calib_aux_data = util.normalize(full_aux_data[calib_idx,:],
-                                                  self.norm_aux_data_mean_sd)
+                                                  self.train_aux_data_mean_sd)
 
         # normalize labels
-        self.norm_train_labels, self.train_label_means, self.train_label_sd = util.normalize(full_labels[train_idx,:])
-        self.norm_labels_mean_sd = (self.train_label_means, self.train_label_sd)
+        self.norm_train_labels, train_label_means, train_label_sd = util.normalize(full_labels[train_idx,:])
+        self.train_labels_mean_sd = (train_label_means, train_label_sd)
         self.norm_val_labels     = util.normalize(full_labels[val_idx,:],
-                                                  self.norm_labels_mean_sd)
-        # self.norm_test_labels    = util.normalize(full_labels[test_idx,:],
-        #                                           self.norm_labels_mean_sd)
+                                                  self.train_labels_mean_sd)
         self.norm_calib_labels   = util.normalize(full_labels[calib_idx,:],
-                                                  self.norm_labels_mean_sd)
+                                                  self.train_labels_mean_sd)
 
         # create phylogenetic data tensors
         self.train_phy_data_tensor = full_phy_data[train_idx,:]
         self.val_phy_data_tensor   = full_phy_data[val_idx,:]
-        # self.test_phy_data_tensor  = full_phy_data[test_idx,:]
         self.calib_phy_data_tensor = full_phy_data[calib_idx,:]
 
         # create auxiliary data tensors (with scaling)
         self.train_aux_data_tensor = self.norm_train_aux_data
         self.val_aux_data_tensor   = self.norm_val_aux_data
-        # self.test_aux_data_tensor  = self.norm_test_aux_data
         self.calib_aux_data_tensor = self.norm_calib_aux_data
 
         return
@@ -584,42 +578,41 @@ class CnnTrainer(Trainer):
         # evaluate (fitting)
         # self.mymodel.evaluate([self.test_phy_data_tensor, self.test_aux_data_tensor], self.norm_test_labels)
 
-        # scatter of estimate vs true for training data
-        self.normalized_train_ests       = self.mymodel.predict([self.train_phy_data_tensor, self.train_aux_data_tensor])
-        self.normalized_train_ests       = np.array(self.normalized_train_ests)
-        self.denormalized_train_ests     = util.denormalize(self.normalized_train_ests, self.train_label_means, self.train_label_sd)
-        self.denormalized_train_ests     = np.exp(self.denormalized_train_ests)
-        self.denormalized_train_labels   = util.denormalize(self.norm_train_labels, self.train_label_means, self.train_label_sd)
-        self.denormalized_train_labels   = np.exp(self.denormalized_train_labels)
+        # training label estimates
+        norm_train_label_est = self.mymodel.predict([self.train_phy_data_tensor, self.train_aux_data_tensor])
+        norm_train_label_est = np.array(norm_train_label_est)
+        log_train_label_est = util.denormalize(norm_train_label_est,
+                                               self.train_labels_mean_sd[0],
+                                               self.train_labels_mean_sd[1])
+        self.train_label_est = np.exp(log_train_label_est)
 
-        # scatter of estimate vs true for test data
-        # self.normalized_test_ests        = self.mymodel.predict([self.test_phy_data_tensor, self.test_aux_data_tensor])
-        # self.normalized_test_ests        = np.array(self.normalized_test_ests)
-        # self.denormalized_test_ests      = util.denormalize(self.normalized_test_ests, self.train_label_means, self.train_label_sd)
-        # self.denormalized_test_ests      = np.exp(self.denormalized_test_ests)
-        # self.denormalized_test_labels    = util.denormalize(self.norm_test_labels, self.train_label_means, self.train_label_sd)
-        # self.denormalized_test_labels    = np.exp(self.denormalized_test_labels)
-        
-         # CPI adjustments
-        self.normalized_calib_ests       = self.mymodel.predict([self.calib_phy_data_tensor, self.calib_aux_data_tensor])
-        self.normalized_calib_ests       = np.array(self.normalized_calib_ests)
-        norm_calib_est_quantiles         = self.normalized_calib_ests[1:,:,:]
-        self.cpi_adjustments             = self.get_CQR_constant(norm_calib_est_quantiles, self.norm_calib_labels, inner_quantile=self.cpi_coverage, asymmetric=self.cpi_asymmetric)
-        self.cpi_adjustments             = np.array( self.cpi_adjustments ).reshape((2,-1))
-
+        # norm_train_label_true = np.array(self.norm_train_labels)
+        # log_train_label_true = util.denormalize(self.norm_train_labels,
+        #                                         self.train_labels_mean_sd[0],
+        #                                         self.train_labels_mean_sd[1])
+        # self.train_label_true = np.exp(log_train_label_true)
+ 
+        # calibration label estimates + CPI adjustment
+        norm_calib_label_est = self.mymodel.predict([self.calib_phy_data_tensor,
+                                                     self.calib_aux_data_tensor])
+        norm_calib_label_est = np.array(norm_calib_label_est)
+        norm_calib_est_quantiles = norm_calib_label_est[1:,:,:]
+        self.cpi_adjustments = self.get_CQR_constant(norm_calib_est_quantiles,
+                                                     self.norm_calib_labels,
+                                                     inner_quantile=self.cpi_coverage,
+                                                     asymmetric=self.cpi_asymmetric)
+        self.cpi_adjustments = np.array(self.cpi_adjustments).reshape((2,-1))
+    
         # training predictions with calibrated CQR CIs
-        self.denorm_train_ests_calib        = self.normalized_train_ests
-        self.denorm_train_ests_calib[1,:,:] = self.denorm_train_ests_calib[1,:,:] - self.cpi_adjustments[0,:]
-        self.denorm_train_ests_calib[2,:,:] = self.denorm_train_ests_calib[2,:,:] + self.cpi_adjustments[1,:]
-        self.denorm_train_ests_calib        = util.denormalize(self.denorm_train_ests_calib, self.train_label_means, self.train_label_sd)
-        self.denorm_train_ests_calib        = np.exp(self.denorm_train_ests_calib)
+        norm_train_label_est_calib = norm_train_label_est
+        norm_train_label_est_calib[1,:,:] = norm_train_label_est_calib[1,:,:] - self.cpi_adjustments[0,:]
+        norm_train_label_est_calib[2,:,:] = norm_train_label_est_calib[2,:,:] + self.cpi_adjustments[1,:]
+        log_train_label_est_calib = util.denormalize(norm_train_label_est_calib,
+                                                     self.train_labels_mean_sd[0],
+                                                     self.train_labels_mean_sd[1])
+        self.train_label_est_calib = np.exp(log_train_label_est_calib)
 
-        # test predictions with calibrated CQR CIs
-        # self.denorm_test_ests_calib        = self.normalized_test_ests
-        # self.denorm_test_ests_calib[1,:,:] = self.denorm_test_ests_calib[1,:,:] - self.cpi_adjustments[0,:]
-        # self.denorm_test_ests_calib[2,:,:] = self.denorm_test_ests_calib[2,:,:] + self.cpi_adjustments[1,:]
-        # self.denorm_test_ests_calib        = util.denormalize(self.denorm_test_ests_calib, self.train_label_means, self.train_label_sd)
-        # self.denorm_test_ests_calib        = np.exp(self.denorm_test_ests_calib)
+        #
 
         return
     
@@ -645,40 +638,32 @@ class CnnTrainer(Trainer):
 
         # save aux_data names, means, sd for new test dataset normalization
         df_aux_data = pd.DataFrame([self.aux_data_names,
-                                    self.train_aux_data_means,
-                                    self.train_aux_data_sd]).T
+                                    self.train_aux_data_mean_sd[0],
+                                    self.train_aux_data_mean_sd[1]]).T
         df_aux_data.columns = ['name', 'mean', 'sd']
         df_aux_data.to_csv(self.train_aux_data_norm_fn, index=False, sep=',')
  
         # save label names, means, sd for new test dataset normalization
-        df_labels = pd.DataFrame([self.param_names,
-                                  self.train_label_means,
-                                  self.train_label_sd]).T
+        df_labels = pd.DataFrame([self.label_names,
+                                  self.train_labels_mean_sd[0],
+                                  self.train_labels_mean_sd[1]]).T
         df_labels.columns = ['name', 'mean', 'sd']
         df_labels.to_csv(self.train_labels_norm_fn, index=False, sep=',')
 
         # save train/test scatterplot results (Value, Lower, Upper)
-        df_train_est_nocalib = util.make_param_VLU_mtx(self.denormalized_train_ests[0:max_idx,:], self.param_names )
-        # df_test_est_nocalib  = util.make_param_VLU_mtx(self.denormalized_test_ests[0:max_idx,:], self.param_names )
-        df_train_est_calib   = util.make_param_VLU_mtx(self.denorm_train_ests_calib[0:max_idx,:], self.param_names )
-        # df_test_est_calib    = util.make_param_VLU_mtx(self.denorm_test_ests_calib[0:max_idx,:], self.param_names )
-        #df_train_pred   = pd.DataFrame( self.denormalized_train_ests[0:max_idx,:], columns=param_pred_names )
-        #df_test_pred    = pd.DataFrame( self.denormalized_test_ests[0:max_idx,:], columns=param_pred_names )
-
+        df_train_label_est_nocalib = util.make_param_VLU_mtx(self.train_label_est[0:max_idx,:], self.label_names )
+        df_train_label_est_calib   = util.make_param_VLU_mtx(self.train_label_est_calib[0:max_idx,:], self.label_names )
+        
         # save train/test labels
-        df_train_labels  = pd.DataFrame( self.denormalized_train_labels[0:max_idx,:], columns=self.param_names )
-        # df_test_labels   = pd.DataFrame( self.denormalized_test_labels[0:max_idx,:], columns=self.param_names )
-
+        df_train_label_true = pd.DataFrame(self.train_label_true[0:max_idx,:], columns=self.label_names )
+        
         # save CPI intervals
-        df_cpi_intervals = pd.DataFrame( self.cpi_adjustments, columns=self.param_names )
+        df_cpi_intervals = pd.DataFrame( self.cpi_adjustments, columns=self.label_names )
 
         # convert to csv and save
-        df_train_est_nocalib.to_csv(self.train_est_nocalib_fn, index=False, sep=',')
-        # df_test_est_nocalib.to_csv(self.test_est_nocalib_fn, index=False, sep=',')
-        df_train_est_calib.to_csv(self.train_est_calib_fn, index=False, sep=',')
-        # df_test_est_calib.to_csv(self.test_est_calib_fn, index=False, sep=',')
-        df_train_labels.to_csv(self.train_labels_fn, index=False, sep=',')
-        # df_test_labels.to_csv(self.test_labels_fn, index=False, sep=',')
+        df_train_label_est_nocalib.to_csv(self.train_label_est_nocalib_fn, index=False, sep=',')
+        df_train_label_est_calib.to_csv(self.train_label_est_calib_fn, index=False, sep=',')
+        df_train_label_true.to_csv(self.train_label_true_fn, index=False, sep=',')
         df_cpi_intervals.to_csv(self.model_cpi_fn, index=False, sep=',')
 
         return

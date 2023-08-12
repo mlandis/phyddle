@@ -133,11 +133,11 @@ class Plotter:
         self.input_hdf5_fn      = f'{self.fmt_proj_prefix}.hdf5'
 
         # network
-        self.train_est_fn       = f'{self.trn_proj_prefix}.train_est.csv'
-        self.train_labels_fn    = f'{self.trn_proj_prefix}.train_labels.csv'
         self.network_fn         = f'{self.trn_proj_prefix}.hdf5'
         self.history_json_fn    = f'{self.trn_proj_prefix}.train_history.json'
-
+        self.train_est_fn       = f'{self.trn_proj_prefix}.train_est.labels.csv'
+        self.train_labels_fn    = f'{self.trn_proj_prefix}.train_true.labels.csv'
+        
         # estimates
         self.est_summ_stat_fn   = f'{self.est_proj_prefix}.aux_data.csv'
         self.est_known_param_fn = f'{self.est_proj_prefix}.known_param.csv'
