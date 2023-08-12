@@ -22,6 +22,7 @@ import re
 import sys
 from datetime import datetime
 from itertools import chain, combinations
+import __main__ as main
 #from time import gmtime, strftime
 
 # external packages
@@ -41,6 +42,8 @@ pd.set_option('display.float_format', lambda x: f'{x:,.3f}')
 # Tensorflow info messages
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # or any {'0', '1', '2'}
 
+# run mode
+INTERACTIVE_SESSION = not hasattr(main, '__file__')
 
 #------------------------------------------------------------------------------#
 
@@ -201,13 +204,14 @@ def load_config(config_fn,
     """
 
     # use command line sys.argv if no args provided
-    if args is None:
+    if INTERACTIVE_SESSION:
+        args = []
+    elif args is None:
         args = sys.argv[1:]
 
     # argument parsing
     parser = argparse.ArgumentParser(description='phyddle pipeline config') #,
                                      #formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-
     # read settings registry and populate argument parser
     settings = settings_registry()
     for k,v in settings.items():
