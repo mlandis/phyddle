@@ -10,7 +10,7 @@ args = {
     #-------------------------------#
     # Project organization          #
     #-------------------------------#
-    'proj'    : 'SIRM_example',               # project name(s)
+    'proj'    : 'SIR_example',               # project name(s)
     'step'    : 'SFTEP',                        # step(s) to run
     'verbose' : True,                       # print verbose phyddle output?
     'sim_dir' : '../workspace/simulate',    # directory for simulated data
@@ -29,7 +29,7 @@ args = {
     #-------------------------------#
     # Simulate Step settings        #
     #-------------------------------#
-    'sim_command'       : './sim/MASTER/sim_one_SIRM.py', # exact command string, argument is output file prefix
+    'sim_command'       : './sim/MASTER/sim_one_SIR.py', # exact command string, argument is output file prefix
     'sim_logging'       : 'verbose',        # verbose, compressed, or clean
     'start_idx'         : 0,                # first simulation replicate index
     'end_idx'           : 1000,             # last simulation replicate index
