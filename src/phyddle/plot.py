@@ -141,10 +141,9 @@ class Plotter:
         # estimates
         self.est_summ_stat_fn   = f'{self.est_proj_prefix}.aux_data.csv'
         self.est_known_param_fn = f'{self.est_proj_prefix}.known_param.csv'
-        self.est_lbl_fn         = f'{self.est_proj_prefix}.emp_test_est.labels.csv'
-        self.test_est_fn        = f'{self.est_proj_prefix}.sim_test_est.labels.csv'
-        self.test_labels_fn     = f'{self.est_proj_prefix}.sim_test_true.labels.csv'
-        print(self.est_summ_stat_fn)
+        self.est_lbl_fn         = f'{self.est_proj_prefix}.emp_est.labels.csv'
+        self.test_est_fn        = f'{self.est_proj_prefix}.test_est.labels.csv'
+        self.test_labels_fn     = f'{self.est_proj_prefix}.test_true.labels.csv'
         
         # plotting output
         self.save_hist_aux_fn   = f'{self.plt_proj_prefix}.density_aux.pdf'
