@@ -334,8 +334,6 @@ class Estimator:
             # save empirical auxiliary dataset
             df_emp_aux_data = pd.DataFrame(self.emp_aux_data, columns=self.aux_data_names)
             df_emp_aux_data.to_csv(self.est_aux_data_fn, index=False, sep=',')
-            print(df_emp_aux_data)
-            print(self.est_aux_data_fn)
 
 
         # test dataset
