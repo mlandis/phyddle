@@ -581,11 +581,13 @@ class CnnTrainer(Trainer):
         # training label estimates
         norm_train_label_est = self.mymodel.predict([self.train_phy_data_tensor, self.train_aux_data_tensor])
         norm_train_label_est = np.array(norm_train_label_est)
-        log_train_label_est = util.denormalize(norm_train_label_est,
-                                               self.train_labels_mean_sd[0],
-                                               self.train_labels_mean_sd[1])
-        self.train_label_est = np.exp(log_train_label_est)
-
+        # log_train_label_est = util.denormalize(norm_train_label_est,
+        #                                        self.train_labels_mean_sd[0],
+        #                                        self.train_labels_mean_sd[1])
+        # self.train_label_est = np.exp(log_train_label_est)
+        self.train_label_est = util.denormalize2(norm_train_label_est,
+                                                 self.train_labels_mean_sd,
+                                                 exp=True)
         # norm_train_label_true = np.array(self.norm_train_labels)
         # log_train_label_true = util.denormalize(self.norm_train_labels,
         #                                         self.train_labels_mean_sd[0],
@@ -607,11 +609,13 @@ class CnnTrainer(Trainer):
         norm_train_label_est_calib = norm_train_label_est
         norm_train_label_est_calib[1,:,:] = norm_train_label_est_calib[1,:,:] - self.cpi_adjustments[0,:]
         norm_train_label_est_calib[2,:,:] = norm_train_label_est_calib[2,:,:] + self.cpi_adjustments[1,:]
-        log_train_label_est_calib = util.denormalize(norm_train_label_est_calib,
-                                                     self.train_labels_mean_sd[0],
-                                                     self.train_labels_mean_sd[1])
-        self.train_label_est_calib = np.exp(log_train_label_est_calib)
-
+        # log_train_label_est_calib = util.denormalize(norm_train_label_est_calib,
+        #                                              self.train_labels_mean_sd[0],
+        #                                              self.train_labels_mean_sd[1])
+        # self.train_label_est_calib = np.exp(log_train_label_est_calib)
+        self.train_label_est_calib = util.denormalize2(norm_train_label_est_calib,
+                                                       self.train_labels_mean_sd,
+                                                       exp=True)
         #
 
         return
