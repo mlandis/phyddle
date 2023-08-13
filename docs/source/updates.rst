@@ -5,10 +5,11 @@ The complete commit history for phyddle is located here: https://github.com/mlan
 
 
 **phyddle v0.0.7** -- (in progress)
-- Format now splits training from test datasets.
-- Estimate now applies trained model against test dataset.
-- New Step base class for all steps.
-- Steps now apply arguments using settings look-up table.
+
+* Format now splits training from test datasets.
+* Estimate now applies trained model against test dataset.
+* Steps now initialize using settings look-up table.
+- Generic file handler for reading with helpful error messages (file not found)
 - Simplify filenames for many steps, where users should use projects to differentiate step results under different settings.
 - Add start/end/duration, config name, override CLI settings to header.
 - Verify logging for all steps.

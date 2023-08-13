@@ -534,55 +534,56 @@ def make_symm(m):
     np.fill_diagonal(m, d)  # Restores the original diagonal elements
     return m
 
-def sort_binary_vectors(binary_vectors):
-    """
-    Sorts a list of binary vectors.
+# def sort_binary_vectors(binary_vectors):
+#     """
+#     Sorts a list of binary vectors.
 
-    The binary vectors are sorted first based on the number of "on" bits, and then from left to right in terms of which bits are "on".
+#     The binary vectors are sorted first based on the number of "on" bits, and
+#     then from left to right in terms of which bits are "on".
 
-    Args:
-        binary_vectors (List[List[int]]): The list of binary vectors to be sorted.
+#     Args:
+#         binary_vectors (List[List[int]]): The list of binary vectors to be sorted.
 
-    Returns:
-        List[List[int]]: The sorted list of binary vectors.
-    """
-    def count_ones(binary_vector):
-        """
-        Counts the number of "on" bits in a binary vector.
+#     Returns:
+#         List[List[int]]: The sorted list of binary vectors.
+#     """
+#     def count_ones(binary_vector):
+#         """
+#         Counts the number of "on" bits in a binary vector.
 
-        Args:
-            binary_vector (List[int]): The binary vector.
+#         Args:
+#             binary_vector (List[int]): The binary vector.
 
-        Returns:
-            int: The count of "on" bits.
-        """
-        return sum(binary_vector)
+#         Returns:
+#             int: The count of "on" bits.
+#         """
+#         return sum(binary_vector)
 
-    sorted_vectors = sorted(binary_vectors, key=count_ones)
+#     sorted_vectors = sorted(binary_vectors, key=count_ones)
 
-    for i in range(len(sorted_vectors)):
-        for j in range(i+1, len(sorted_vectors)):
-            if count_ones(sorted_vectors[j]) == count_ones(sorted_vectors[i]):
-                for k in range(len(sorted_vectors[i])):
-                    if sorted_vectors[i][k] != sorted_vectors[j][k]:
-                        if sorted_vectors[j][k] > sorted_vectors[i][k]:
-                            sorted_vectors[i], sorted_vectors[j] = sorted_vectors[j], sorted_vectors[i]
-                        break
+#     for i in range(len(sorted_vectors)):
+#         for j in range(i+1, len(sorted_vectors)):
+#             if count_ones(sorted_vectors[j]) == count_ones(sorted_vectors[i]):
+#                 for k in range(len(sorted_vectors[i])):
+#                     if sorted_vectors[i][k] != sorted_vectors[j][k]:
+#                         if sorted_vectors[j][k] > sorted_vectors[i][k]:
+#                             sorted_vectors[i], sorted_vectors[j] = sorted_vectors[j], sorted_vectors[i]
+#                         break
 
-    return sorted_vectors
+#     return sorted_vectors
 
-def powerset(iterable):
-    """
-    Generates all possible subsets (powerset) of the given iterable.
+# def powerset(iterable):
+#     """
+#     Generates all possible subsets (powerset) of the given iterable.
 
-    Args:
-        iterable: An iterable object.
+#     Args:
+#         iterable: An iterable object.
 
-    Returns:
-        generator: A generator that yields each subset.
-    """
-    s = list(iterable)  # Convert the iterable to a list
-    return chain.from_iterable(combinations(s, r) for r in range(len(s) + 1))
+#     Returns:
+#         generator: A generator that yields each subset.
+#     """
+#     s = list(iterable)  # Convert the iterable to a list
+#     return chain.from_iterable(combinations(s, r) for r in range(len(s) + 1))
 
 
 def find_tree_width(num_taxa, max_taxa):
@@ -875,11 +876,14 @@ def convert_nexus_to_integer_array(dat_fn):
 def convert_nexus_to_onehot_array(dat_fn, num_states):
     """Converts a NEXUS file to a one-hot encoded pandas DataFrame.
 
-    Reads the NEXUS file specified by `dat_fn`, extracts the data matrix, and constructs a pandas DataFrame where rows represent character states and columns represent taxa.
+    Reads the NEXUS file specified by `dat_fn`, extracts the data matrix, and
+    constructs a pandas DataFrame where rows represent character states and
+    columns represent taxa.
 
     Args:
         dat_fn (str): The file name or path of the NEXUS file.
-        num_states (int, optional): Number of states to one-hot encode. Learned from length of symbols when None. Defaults to None.
+        num_states (int, optional): Number of states to one-hot encode. Learned
+            from length of symbols when None. Defaults to None.
 
     Returns:
         pd.DataFrame: The pandas DataFrame representing the data matrix.
@@ -968,19 +972,25 @@ def convert_nexus_to_onehot_array(dat_fn, num_states):
 
 def convert_phy2dat_nex(phy_nex_fn, int2vec):
     """
-    Converts a phylogenetic tree in NHX format to a NEXUS file with taxon-state data.
+    Converts a phylogenetic tree in NHX format to a NEXUS file with taxon-state
+    data.
 
-    Reads the phylogenetic tree file in NHX format specified by `phy_nex_fn` and converts it to a NEXUS file containing taxon-state data. The binary state representations are based on the provided `int2vec` mapping.
+    Reads the phylogenetic tree file in NHX format specified by `phy_nex_fn`
+    and converts it to a NEXUS file containing taxon-state data. The binary
+    state representations are based on the provided `int2vec` mapping.
 
     Args:
-        phy_nex_fn (str): The file name or path of the phylogenetic tree file in NHX format.
-        int2vec (List[int]): The mapping of integer states to binary state vectors.
+        phy_nex_fn (str): The file name or path of the phylogenetic tree file
+            in NHX format.
+        int2vec (List[int]): The mapping of integer states to binary state
+            vectors.
 
     Returns:
         str: The NEXUS file content as a string.
 
     Raises:
-        FileNotFoundError: If the phylogenetic tree file at `phy_nex_fn` does not exist.
+        FileNotFoundError: If the phylogenetic tree file at `phy_nex_fn` does
+            not exist.
     """
 
     # get num regions from size of bit vector
@@ -1018,16 +1028,21 @@ END;
     return s
 
 def make_prune_phy(phy, prune_fn):
-    """Prunes a phylogenetic tree by removing non-extant taxa and writes the pruned tree to a file.
+    """Prunes a phylogenetic tree by removing non-extant taxa and writes the
+    pruned tree to a file.
 
-    The function takes a phylogenetic tree `phy` and a file name `prune_fn` as input. It prunes the tree by removing non-extant taxa and writes the pruned tree to the specified file.
+    The function takes a phylogenetic tree `phy` and a file name `prune_fn` as 
+    input. It prunes the tree by removing non-extant taxa and writes the pruned
+    tree to the specified file.
 
     Args:
         phy (Tree): The input phylogenetic tree.
         prune_fn (str): The file name or path to write the pruned tree.
 
     Returns:
-        Tree or None: The pruned phylogenetic tree if pruning is successful, or None if the pruned tree would have fewer than two leaf nodes (invalid tree).
+        Tree or None: The pruned phylogenetic tree if pruning is successful,
+            or None if the pruned tree would have fewer than two leaf nodes
+            (invalid tree).
 
     Raises:
         None.
@@ -1099,7 +1114,10 @@ def settings_to_str(settings, taxon_category):
     """
     Convert settings dictionary and taxon category to a string representation.
 
-    This function takes a settings dictionary and a taxon category and converts them into a comma-separated string representation. The resulting string includes the keys and values of the settings dictionary, as well as the taxon category.
+    This function takes a settings dictionary and a taxon category and converts
+    them into a comma-separated string representation. The resulting string
+    includes the keys and values of the settings dictionary, as well as the
+    taxon category.
 
     Args:
         settings (dict): The settings dictionary.
@@ -1119,13 +1137,18 @@ def param_dict_to_str(params):
     """
     Convert parameter dictionary to two string representations.
 
-    This function takes a parameter dictionary and converts it into two string representations. The resulting strings includes the parameter names, indices, and values. The first representation is column-based, the second representation is row-based.
+    This function takes a parameter dictionary and converts it into two string
+    representations. The resulting strings includes the parameter names,
+    indices, and values. The first representation is column-based, the second
+    representation is row-based.
 
     Args:
         params (dict): The parameter dictionary.
 
     Returns:
-        tuple: A tuple of two strings. The first string represents the parameter values with indices, and the second string represents the parameter names.
+        tuple: A tuple of two strings. The first string represents the parameter
+            values with indices, and the second string represents the parameter
+            names.
     """
     s1 = 'param,i,j,value\n'
     s2 = ''
@@ -1147,55 +1170,63 @@ def param_dict_to_str(params):
     s4 = s2.rstrip(',') + '\n' + s3.rstrip(',') + '\n'
     return s1,s4
 
-def events2df(events):
-    """
-    Convert a list of Event objects to a pandas DataFrame.
+# def events2df(events):
+#     """
+#     Convert a list of Event objects to a pandas DataFrame.
 
-    This function takes a list of Event objects and converts it into a pandas DataFrame. Each Event object represents a row in the resulting DataFrame, with the Event attributes mapped to columns.
+#     This function takes a list of Event objects and converts it into a pandas
+#     DataFrame. Each Event object represents a row in the resulting DataFrame,
+#     with the Event attributes mapped to columns.
 
-    Args:
-        events (list): A list of Event objects.
+#     Args:
+#         events (list): A list of Event objects.
 
-    Returns:
-        pandas.DataFrame: The resulting DataFrame with columns 'name', 'group', 'i', 'j', 'k', 'reaction', and 'rate'.
-    """
-    df = pd.DataFrame({
-        'name'     : [ e.name for e in events ],
-        'group'    : [ e.group for e in events ], 
-        'i'        : [ e.i for e in events ],
-        'j'        : [ e.j for e in events ],
-        'k'        : [ e.k for e in events ],
-        'reaction' : [ e.reaction for e in events ],
-        'rate'     : [ e.rate for e in events ]
-    })
-    return df
+#     Returns:
+#         pandas.DataFrame: The resulting DataFrame with columns 'name', 'group',
+#         'i', 'j', 'k', 'reaction', and 'rate'.
+#     """
+#     df = pd.DataFrame({
+#         'name'     : [ e.name for e in events ],
+#         'group'    : [ e.group for e in events ], 
+#         'i'        : [ e.i for e in events ],
+#         'j'        : [ e.j for e in events ],
+#         'k'        : [ e.k for e in events ],
+#         'reaction' : [ e.reaction for e in events ],
+#         'rate'     : [ e.rate for e in events ]
+#     })
+#     return df
 
-def states2df(states):
-    """
-    Convert a States object to a pandas DataFrame.
+# def states2df(states):
+#     """
+#     Convert a States object to a pandas DataFrame.
 
-    This function takes a States object and converts it into a pandas DataFrame. The States object contains information about the state space, and the resulting DataFrame has columns 'lbl', 'int', 'set', and 'vec', representing the labels, integer representations, set representations, and vector representations of the states, respectively.
+#     This function takes a States object and converts it into a pandas DataFrame. The States object contains information about the state space, and the resulting DataFrame has columns 'lbl', 'int', 'set', and 'vec', representing the labels, integer representations, set representations, and vector representations of the states, respectively.
 
-    Args:
-        states (States): The States object to convert to a DataFrame.
+#     Args:
+#         states (States): The States object to convert to a DataFrame.
 
-    Returns:
-        pandas.DataFrame: The resulting DataFrame with columns 'lbl', 'int', 'set', and 'vec'.
-    """
-    df = pd.DataFrame({
-        'lbl' : states.int2lbl,
-        'int' : states.int2int,
-        'set' : states.int2set,
-        'vec' : states.int2vec
-    })
-    return df
+#     Returns:
+#         pandas.DataFrame: The resulting DataFrame with columns 'lbl', 'int', 'set', and 'vec'.
+#     """
+#     df = pd.DataFrame({
+#         'lbl' : states.int2lbl,
+#         'int' : states.int2int,
+#         'set' : states.int2set,
+#         'vec' : states.int2vec
+#     })
+#     return df
 
 # make matrix with parameter values, lower-bounds, upper-bounds: 3D->2D
 def make_param_VLU_mtx(A, param_names):
     """
-    Convert a parameter matrix to a pandas DataFrame with combined header indices.
+    Convert a parameter matrix to a pandas DataFrame with combined header
+    indices.
 
-    This function takes a parameter matrix A and a list of parameter names and creates a pandas DataFrame with combined header indices. The resulting DataFrame has columns representing different statistics (value, lower, upper), replicated indices, and parameters. The parameter names and statistics are combined to form the column headers.
+    This function takes a parameter matrix A and a list of parameter names and
+    creates a pandas DataFrame with combined header indices. The resulting
+    DataFrame has columns representing different statistics (value, lower,
+    upper), replicated indices, and parameters. The parameter names and
+    statistics are combined to form the column headers.
 
     Args:
         A (numpy.ndarray): The parameter matrix.
@@ -1228,7 +1259,11 @@ def make_clean_phyloenc_str(x):
     """
     Convert a numpy array to a clean string representation.
 
-    This function takes a numpy array `x` and converts it to a clean string representation. The resulting string is obtained by formatting the array with a comma separator, removing the square brackets, and replacing line breaks and unnecessary whitespace characters. The string representation is useful for displaying or saving the array in a clean and readable format.
+    This function takes a numpy array `x` and converts it to a clean string
+    representation. The resulting string is obtained by formatting the array
+    with a comma separator, removing the square brackets, and replacing line
+    breaks and unnecessary whitespace characters. The string representation is
+    useful for displaying or saving the array in a clean and readable format.
 
     Args:
         x (numpy.ndarray): The numpy array to convert.
@@ -1246,7 +1281,10 @@ def clean_scientific_notation(s):
     """
     Clean up a string representation of a number in scientific notation.
 
-    This function takes a string `s` representing a number in scientific notation and removes unnecessary characters that indicate zero values. The resulting string represents the number without trailing zeros in the exponent.
+    This function takes a string `s` representing a number in scientific
+    notation and removes unnecessary characters that indicate zero values.
+    The resulting string represents the number without trailing zeros in the
+    exponent.
 
     Args:
         s (str): The string representation of a number in scientific notation.
@@ -1266,11 +1304,17 @@ def normalize(data, m_sd = None):
     """
     Normalize the data using mean and standard deviation.
 
-    This function normalizes the input data using the mean and standard deviation. If the `m_sd` parameter is not provided, the function computes the mean and standard deviation of the data and performs normalization. If `m_sd` is provided, it assumes that the mean and standard deviation have already been computed and uses them for normalization.
+    This function normalizes the input data using the mean and standard
+    deviation. If the `m_sd` parameter is not provided, the function computes
+    the mean and standard deviation of the data and performs normalization.
+    If `m_sd` is provided, it assumes that the mean and standard deviation
+    have already been computed and uses them for normalization.
 
     Args:
         data (numpy.ndarray): The input data to be normalized.
-        m_sd (tuple): A tuple containing the mean and standard deviation. If not provided, the mean and standard deviation will be computed from the data.
+        m_sd (tuple): A tuple containing the mean and standard deviation. If
+            not provided, the mean and standard deviation will be computed from
+            the data.
 
     Returns:
         numpy.ndarray: The normalized data.
@@ -1289,7 +1333,9 @@ def denormalize(data, train_mean, train_sd):
     """
     Denormalize the data using the mean and standard deviation.
 
-    This function denormalizes the input data using the provided mean and standard deviation. It reverses the normalization process and brings the data back to its original scale.
+    This function denormalizes the input data using the provided mean and
+    standard deviation. It reverses the normalization process and brings the
+    data back to its original scale.
 
     Args:
         data (numpy.ndarray): The normalized data to be denormalized.
@@ -1305,7 +1351,9 @@ def denormalize2(data, m_sd, exp=False, tol=300):
     """
     Denormalize the data using the mean and standard deviation.
 
-    This function denormalizes the input data using the provided mean and standard deviation. It reverses the normalization process and brings the data back to its original scale.
+    This function denormalizes the input data using the provided mean and
+    standard deviation. It reverses the normalization process and brings the
+    data back to its original scale.
 
     Args:
         data (numpy.ndarray): The normalized data to be denormalized.

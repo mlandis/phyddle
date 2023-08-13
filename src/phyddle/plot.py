@@ -122,10 +122,11 @@ class Plotter:
 
         # prefixes
         self.network_prefix     = f'network_nt{self.tree_width}'
+        self.plot_prefix        = f'fig_nt{self.tree_width}'
         self.fmt_proj_prefix    = f'{self.fmt_proj_dir}/train.nt{self.tree_width}'
         self.trn_proj_prefix    = f'{self.trn_proj_dir}/{self.network_prefix}'
         self.est_proj_prefix    = f'{self.est_proj_dir}/{self.est_prefix}'
-        self.plt_proj_prefix    = f'{self.plt_proj_dir}/{self.network_prefix}'
+        self.plt_proj_prefix    = f'{self.plt_proj_dir}/{self.plot_prefix}'
         
         # tensors
         self.input_aux_data_fn  = f'{self.fmt_proj_prefix}.aux_data.csv'
@@ -319,7 +320,7 @@ class Plotter:
         files = []
         for f in files_unsorted:
             has_pdf = '.pdf' in f
-            has_net = self.network_prefix in f
+            has_net = self.plot_prefix in f
             has_all_not = 'all_results' not in f
             if all([has_pdf, has_net, has_all_not]):
                 files.append(f)
@@ -386,7 +387,7 @@ class Plotter:
             self.plot_scatter_accuracy(ests=self.train_ests.iloc[0:n],
                                        labels=self.train_labels.iloc[0:n],
                                        param_names=self.param_names,
-                                       prefix=f'{self.network_prefix}.train',
+                                       prefix=f'{self.plot_prefix}.train',
                                        color=self.plot_train_color,
                                        plot_dir=self.plt_proj_dir,
                                        title='Train')
@@ -396,7 +397,7 @@ class Plotter:
             self.plot_scatter_accuracy(ests=self.test_ests.iloc[0:n],
                                        labels=self.test_labels.iloc[0:n],
                                        param_names=self.param_names,
-                                       prefix=f'{self.network_prefix}.test',
+                                       prefix=f'{self.plot_prefix}.test',
                                        color=self.plot_test_color,
                                        plot_dir=self.plt_proj_dir,
                                        title='Test')
@@ -420,7 +421,7 @@ class Plotter:
         return
 
     def make_plot_train_history(self):
-        prefix = f'{self.plt_proj_dir}/{self.network_prefix}.history'
+        prefix = f'{self.plt_proj_dir}/{self.plot_prefix}.history'
         self.plot_train_history(self.history_dict,
                                 prefix=prefix,
                                 train_color=self.plot_train_color,
@@ -478,6 +479,8 @@ class Plotter:
                 # input data
                 p = col_names[i]
                 x = sorted(sim_values[p])
+                if np.var(x) == 0.0:
+                    x = sp.stats.norm.rvs(size=len(x), loc=x, scale=x[0]*1e-3)
                 
                 mn = np.min(x)
                 mx = np.max(x)
