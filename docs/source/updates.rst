@@ -13,6 +13,7 @@ The complete commit history for phyddle is located here: https://github.com/mlan
 - Simplify filenames for many steps, where users should use projects to differentiate step results under different settings.
 - Add start/end/duration, config name, override CLI settings to header.
 - Verify logging for all steps.
+- Improve PCA.
 
 
 **phyddle v0.0.6** -- 23.08.09
