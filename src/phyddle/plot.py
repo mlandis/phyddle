@@ -150,6 +150,7 @@ class Plotter:
         self.save_hist_aux_fn   = f'{self.plt_proj_prefix}.density_aux.pdf'
         self.save_hist_label_fn = f'{self.plt_proj_prefix}.density_label.pdf'
         self.save_pca_aux_fn    = f'{self.plt_proj_prefix}.pca_aux.pdf'
+        self.save_pca_contour_fn = f'{self.plt_proj_prefix}.pca_contour_aux.pdf'
         self.save_cpi_est_fn    = f'{self.plt_proj_prefix}.est_CPI.pdf'
         self.save_network_fn    = f'{self.plt_proj_prefix}.network_architecture.pdf'
         self.save_summary_fn    = f'{self.plt_proj_prefix}.summary.pdf'
@@ -288,6 +289,9 @@ class Plotter:
         # PCA of training aux. data
         self.make_plot_pca()
 
+        # PCA-counter of training aux. data
+        self.make_plot_pca_contour()
+
         # train scatter accuracy
         self.make_plot_scatter_accuracy('train')
 
@@ -410,6 +414,13 @@ class Plotter:
                       sim_values=self.input_aux_data,
                       est_values=self.est_aux_data,
                       color=self.plot_aux_color)
+        return
+    
+    def make_plot_pca_contour(self):
+        self.plot_pca_contour(save_fn=self.save_pca_contour_fn,
+                              sim_values=self.input_aux_data,
+                              est_values=self.est_aux_data,
+                              color=self.plot_aux_color)
         return
 
     def make_plot_est_CI(self):
@@ -612,6 +623,111 @@ class Plotter:
         #done
         return
     
+    def plot_pca_contour(self, save_fn, sim_values, est_values=None,
+                         num_comp=4, f_show=0.10, color='blue'):
+        """
+        Plots PCA.
+
+        This function plots the PCA for simulated training aux. data examples.
+        The function plots a grid of pairs of principal components. It will also
+        plot values from the new dataset, when vailable (est_values != None).
+
+        Arguments:
+            save_fn (str): Filename to save plot.
+            sim_values (numpy.array): Simulated values from training examples.
+            est_values (numpy.array): Estimated values from new dataset.
+            num_comp (int): Number of components to plot (default 4)
+            f_show (float): Proportion of scatter points to show in PCs
+            color (str): Color of histograms
+        """
+        # figure size
+        fig_width = 8
+        fig_height = 8 
+
+        # rescale input data
+        scaler = StandardScaler()
+        x = scaler.fit_transform(sim_values)
+        
+        # thin dataset
+        nrow_keep = int(x.shape[0] * f_show)
+        alpha = np.min( [1, 100 / nrow_keep] )
+        
+        # apply PCA to sim_values
+        pca_model = PCA(n_components=num_comp)
+        pca = pca_model.fit_transform(x)
+        pca_var = pca_model.explained_variance_ratio_
+        
+        # project est_values on to PCA space
+        if self.est_aux_loaded:
+            est_values = scaler.transform(est_values)
+            pca_est = pca_model.transform(est_values)
+        
+        # figure dimennsions
+        fig, axs = plt.subplots(num_comp-1, num_comp-1, sharex=True, sharey=True, figsize=(fig_width, fig_height))
+
+        # use this to turn off subplots
+        #axes[i_row,j_col].axis('off')
+
+        # generate PCA subplots
+        for i in range(0, num_comp-1):
+            for j in range(i+1, num_comp-1):
+                axs[i,j].axis('off')
+            for j in range(0, i+1):
+                # scatter plots
+                #axs[i,j].scatter( pca[0:nrow_keep,i+1], pca[0:nrow_keep,j], alpha=alpha, marker='x', color=color )
+                
+                # contours
+                # h, xedges, yedges = np.histogram2d(pca[0:nrow_keep,i+1], pca[0:nrow_keep,j], bins=9)
+                # xbins = xedges[:-1] + (xedges[1] - xedges[0]) / 2
+                # ybins = yedges[:-1] + (yedges[1] - yedges[0]) / 2
+                # h = h.T
+                # axs[i,j].contour(xbins, ybins, h)
+
+                #axs[i,j].tricontour(xbins, ybins, h, levels=5, linewidths=0.5, colors='k')
+                #axs[i,j].tricontourf(x, y, z, levels=14, cmap="RdBu_r")
+
+                #axs[i,j].contour([X, Y,] Z, [levels], **kwargs)
+
+                # countours
+                x = pca[0:nrow_keep,i+1]
+                y = pca[0:nrow_keep,j]
+                xmin, xmax = np.min(x), np.max(x)
+                ymin, ymax = np.min(y), np.max(y)
+
+                # Peform the kernel density estimate
+                xx, yy = np.mgrid[xmin:xmax:100j, ymin:ymax:100j]
+                positions = np.vstack([xx.ravel(), yy.ravel()])
+                values = np.vstack([x, y])
+                kernel = sp.stats.gaussian_kde(values)
+                f = np.reshape(kernel(positions).T, xx.shape)
+                n_levels = 5
+                extent = (-4,4,-4,4)
+                cfset = axs[i,j].contourf(xx, yy, f, levels=n_levels, extend='both', cmap='Blues')
+                cset = axs[i,j].contour(xx, yy, f, levels=n_levels, extend='both', linewidths=0.5, colors='k')
+                axs[i,j].clabel(cset, inline=1, fontsize=6)
+
+                if self.est_aux_loaded:    
+                    axs[i,j].scatter(pca_est[0:nrow_keep,i+1], pca_est[0:nrow_keep,j],
+                                     alpha=1.0, color='white', edgecolor='black', s=80, zorder=2.1)
+                    axs[i,j].scatter(pca_est[0:nrow_keep,i+1], pca_est[0:nrow_keep,j],
+                                     alpha=1.0, color='red', edgecolor='white', s=40, zorder=2.1)
+                # axes
+                if j == 0:
+                    ylabel = 'PC{idx} ({var}%)'.format( idx=str(i+2), var=int(100*round(pca_var[i+1], ndigits=2)) )
+                    axs[i,j].set_ylabel(ylabel, fontsize=12)
+                if i == (num_comp-2):
+                    xlabel = 'PC{idx} ({var}%)'.format( idx=str(j+1), var=int(100*round(pca_var[j], ndigits=2)) )
+                    axs[i,j].set_xlabel(xlabel, fontsize=12)
+                
+        plt.tight_layout()
+        fig.suptitle('PCA: aux. data')
+        fig.tight_layout(rect=[0, 0.03, 1, 0.98])
+        plt.savefig(save_fn, format='pdf', dpi=300, bbox_inches='tight')
+        plt.clf()
+
+        #done
+        return
+
     def plot_scatter_accuracy(self, ests, labels, param_names, plot_dir, prefix,
                               color="blue", axis_labels = ["estimate", "truth"],
                               title = '', plot_log=False):
