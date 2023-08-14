@@ -126,35 +126,6 @@ class Formatter:
 
         return
 
-        # self.verbose           = args['verbose']
-        # self.start_idx         = args['start_idx']
-        # self.end_idx           = args['end_idx']
-        # self.sim_dir           = args['sim_dir']
-        # self.fmt_dir           = args['fmt_dir']
-        # self.sim_proj          = args['sim_proj']
-        # self.fmt_proj          = args['fmt_proj']
-        # self.use_parallel      = args['use_parallel']
-        # self.num_proc          = args['num_proc']
-        # self.encode_all_sim    = args['encode_all_sim']
-        # self.num_char          = args['num_char']
-        # self.num_states        = args['num_states']
-        # self.min_num_taxa      = args['min_num_taxa']
-        # self.max_num_taxa      = args['max_num_taxa']
-        # self.downsample_taxa   = args['downsample_taxa']
-        # self.tree_encode       = args['tree_encode']
-        # self.brlen_encode      = args['brlen_encode']
-        # self.char_encode       = args['char_encode']
-        # self.char_format       = args['char_format']
-        # self.tensor_format     = args['tensor_format']
-        # #self.tree_width_cats   = args['tree_width_cats']
-        # self.tree_width_cats   = [ args['tree_width'] ] # MJL remove later, if desired
-        # self.param_est         = args['param_est']
-        # self.param_data        = args['param_data']
-        # self.save_phyenc_csv   = args['save_phyenc_csv']
-        # self.prop_test         = args['prop_test']
-
-        return
-
     def run(self):
         """
         Formats all raw datasets into tensors.
@@ -252,12 +223,13 @@ class Formatter:
         # save all phylogenetic-state tensors into the phy_tensors dictionary,
         # while sorting tensors into different tree-width categories
         self.phy_tensors = {}
-        for size in self.tree_width_cats:
-            self.phy_tensors[size] = {}
+        # for size in self.tree_width_cats:
+        #     self.phy_tensors[size] = {}
         for i in range(len(res)):
             if res[i] is not None:
-                tensor_size = res[i].shape[1]
-                self.phy_tensors[tensor_size][i] = res[i]
+                # tensor_size = res[i].shape[1]
+                # self.phy_tensors[tensor_size][i] = res[i]
+                self.phy_tensors[i] = res[i]
 
         # save names/lengths of summary statistic and label lists
         self.summ_stat_names = self.get_summ_stat_names()
@@ -284,11 +256,14 @@ class Formatter:
         """
         # get first representative file
         idx = None
-        for i in self.tree_width_cats:
-            k_list = list(self.phy_tensors[i].keys())
-            if len(k_list) > 0 and idx is None:
-                idx = k_list[0]
-                
+        # for i in self.tree_width_cats:
+        #     k_list = list(self.phy_tensors[i].keys())
+        #     if len(k_list) > 0 and idx is None:
+        #         idx = k_list[0]
+        k_list = list(self.phy_tensors.keys())
+        if len(k_list) > 0 and idx is None:
+            idx = k_list[0]
+
         fn = f'{self.sim_proj_dir}/sim.{idx}.summ_stat.csv'
         df = pd.read_csv(fn,header=0)
         ret = df.columns.to_list()
@@ -303,10 +278,13 @@ class Formatter:
         """
         # get first representative file
         idx = None
-        for i in self.tree_width_cats:
-            k_list = list(self.phy_tensors[i].keys())
-            if len(k_list) > 0 and idx is None:
-                idx = k_list[0]
+        # for i in self.tree_width_cats:
+        #     k_list = list(self.phy_tensors[i].keys())
+        #     if len(k_list) > 0 and idx is None:
+        #         idx = k_list[0]
+        k_list = list(self.phy_tensors.keys())
+        if len(k_list) > 0 and idx is None:
+            idx = k_list[0]
 
         fn = f'{self.sim_proj_dir}/sim.{idx}.param_row.csv'
         df = pd.read_csv(fn,header=0)
@@ -318,9 +296,9 @@ class Formatter:
         Split examples into training and test datasets.
         """
         split_idx = {}
-        tree_width = self.tree_width_cats[0]
-        
-        rep_idx = sorted(list(self.phy_tensors[tree_width]))
+        # tree_width = self.tree_width_cats[0]
+        # rep_idx = sorted(list(self.phy_tensors[tree_width]))
+        rep_idx = sorted(list(self.phy_tensors.keys()))
         num_samples = len(rep_idx)
         np.random.shuffle(rep_idx)
         num_test = int(num_samples * self.prop_test)
@@ -356,7 +334,7 @@ class Formatter:
         assert(data_str in ['test', 'train'])
         
         # build files
-        tree_width = self.tree_width_cats[0]
+        tree_width = self.tree_width #self.tree_width_cats[0]
         #phy_tensor = self.phy_tensors[tree_width]
                  
         # dimensions
@@ -437,8 +415,8 @@ class Formatter:
         assert(data_str in ['test', 'train'])
         
         # build files
-        tree_width = self.tree_width_cats[0]
-        phy_tensor = self.phy_tensors[tree_width]
+        tree_width = self.tree_width #_cats[0]
+        phy_tensor = self.phy_tensors #[tree_width]
 
         # dimensions
         rep_idx = self.split_idx[data_str]
@@ -527,7 +505,8 @@ class Formatter:
         fname_base  = f'{self.sim_proj_dir}/sim.{idx}'
         fname_param = fname_base + '.param_row.csv'
         fname_stat  = fname_base + '.summ_stat.csv'
-        x1 = self.phy_tensors[tree_width][idx].flatten()
+        # x1 = self.phy_tensors[tree_width][idx].flatten()
+        x1 = self.phy_tensors[idx].flatten()
         x2 = np.loadtxt(fname_stat, delimiter=',', skiprows=1)
         x3 = np.loadtxt(fname_param, delimiter=',', skiprows=1)
         return (x1,x2,x3)

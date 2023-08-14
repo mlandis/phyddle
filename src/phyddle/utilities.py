@@ -154,7 +154,7 @@ def settings_registry():
         'prop_test'        : { 'step':'FT',  'type':float, 'section':'Train', 'default':0.05,          'help':'Proportion of data used as test examples (assess trained network performance)' },
         'prop_val'         : { 'step':'T',   'type':float, 'section':'Train', 'default':0.05,          'help':'Proportion of data used as validation examples (diagnose network overtraining)' },
         'prop_cal'         : { 'step':'T',   'type':float, 'section':'Train', 'default':0.20,          'help':'Proportion of data used as calibration examples (calibrate CPIs)' },
-        'combine_test_val' : { 'step':'T',   'type':bool,  'section':'Train', 'default':True,          'help':'Combine test and validation datasets when assessing network fit?' },
+        # 'combine_test_val' : { 'step':'T',   'type':bool,  'section':'Train', 'default':True,          'help':'Combine test and validation datasets when assessing network fit?' },
         'cpi_coverage'     : { 'step':'T',   'type':float, 'section':'Train', 'default':0.95,          'help':'Expected coverage percent for calibrated prediction intervals (CPIs)' },
         'cpi_asymmetric'   : { 'step':'T',   'type':bool,  'section':'Train', 'default':True,          'help':'Use asymmetric (True) or symmetric (False) adjustments for CPIs?' },
         'loss'             : { 'step':'T',   'type':str,   'section':'Train', 'default':'mse',         'help':'Loss function for optimization', 'choices':['mse', 'mae']},
@@ -1327,27 +1327,8 @@ def normalize(data, m_sd = None):
     else:
         m_sd[1][np.where(m_sd[1] == 0)] = 1
         return (data - m_sd[0])/m_sd[1]
-        
-    
-def denormalize(data, train_mean, train_sd):
-    """
-    Denormalize the data using the mean and standard deviation.
 
-    This function denormalizes the input data using the provided mean and
-    standard deviation. It reverses the normalization process and brings the
-    data back to its original scale.
-
-    Args:
-        data (numpy.ndarray): The normalized data to be denormalized.
-        train_mean (numpy.ndarray): The mean used for normalization.
-        train_sd (numpy.ndarray): The standard deviation used for normalization.
-
-    Returns:
-        numpy.ndarray: The denormalized data.
-    """
-    return data * train_sd + train_mean
-
-def denormalize2(data, m_sd, exp=False, tol=300):
+def denormalize(data, m_sd, exp=False, tol=300):
     """
     Denormalize the data using the mean and standard deviation.
 

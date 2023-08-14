@@ -17,6 +17,7 @@ import os
 
 # external imports
 import h5py
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -81,27 +82,6 @@ class Plotter:
         step_args = util.make_step_args('P', args)
         for k,v in step_args.items():
             setattr(self, k, v)
-
-        # self.verbose           = args['verbose']
-        # self.fmt_dir           = args['fmt_dir']
-        # self.trn_dir           = args['trn_dir']
-        # self.plt_dir           = args['plt_dir']
-        # self.est_dir           = args['est_dir'] if 'est_dir' in args else ''
-        # self.est_prefix        = args['est_prefix'] if 'est_prefix' in args else ''
-        # self.fmt_proj          = args['fmt_proj']
-        # self.trn_proj          = args['trn_proj']
-        # self.plt_proj          = args['plt_proj']
-        # self.est_proj          = args['est_proj']
-        # self.batch_size        = args['trn_batch_size']
-        # self.num_epochs        = args['num_epochs']
-        # self.tree_width        = args['tree_width']
-        # self.tensor_format     = args['tensor_format']
-        # self.plot_train_color       = args['plot_train_color']
-        # self.plot_test_color        = args['plot_test_color']
-        # self.plot_val_color  = args['plot_val_color']
-        # self.plot_aux_color         = args['plot_aux_color']
-        # self.plot_label_color       = args['plot_label_color']
-        # self.plot_est_color         = args['plot_est_color']
         return
 
     def prepare_filepaths(self):
@@ -668,25 +648,14 @@ class Plotter:
         # use this to turn off subplots
         #axes[i_row,j_col].axis('off')
 
+        # color map
+        cmap0 = mpl.colors.LinearSegmentedColormap.from_list('white2col', ['white', color])
+
         # generate PCA subplots
         for i in range(0, num_comp-1):
             for j in range(i+1, num_comp-1):
                 axs[i,j].axis('off')
             for j in range(0, i+1):
-                # scatter plots
-                #axs[i,j].scatter( pca[0:nrow_keep,i+1], pca[0:nrow_keep,j], alpha=alpha, marker='x', color=color )
-                
-                # contours
-                # h, xedges, yedges = np.histogram2d(pca[0:nrow_keep,i+1], pca[0:nrow_keep,j], bins=9)
-                # xbins = xedges[:-1] + (xedges[1] - xedges[0]) / 2
-                # ybins = yedges[:-1] + (yedges[1] - yedges[0]) / 2
-                # h = h.T
-                # axs[i,j].contour(xbins, ybins, h)
-
-                #axs[i,j].tricontour(xbins, ybins, h, levels=5, linewidths=0.5, colors='k')
-                #axs[i,j].tricontourf(x, y, z, levels=14, cmap="RdBu_r")
-
-                #axs[i,j].contour([X, Y,] Z, [levels], **kwargs)
 
                 # countours
                 x = pca[0:nrow_keep,i+1]
@@ -702,7 +671,7 @@ class Plotter:
                 f = np.reshape(kernel(positions).T, xx.shape)
                 n_levels = 5
                 extent = (-4,4,-4,4)
-                cfset = axs[i,j].contourf(xx, yy, f, levels=n_levels, extend='both', cmap='Blues')
+                cfset = axs[i,j].contourf(xx, yy, f, levels=n_levels, extend='both', cmap=cmap0)
                 cset = axs[i,j].contour(xx, yy, f, levels=n_levels, extend='both', linewidths=0.5, colors='k')
                 axs[i,j].clabel(cset, inline=1, fontsize=6)
 

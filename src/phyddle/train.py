@@ -95,32 +95,6 @@ class Trainer:
         # special case
         self.kernel_init       = 'glorot_uniform'
 
-        # self.tree_width_cats = [ self.tree_width ] # will be removed
-        # self.verbose           = args['verbose']
-        # self.fmt_dir           = args['fmt_dir']
-        # self.trn_dir           = args['trn_dir']
-        # self.fmt_proj          = args['fmt_proj']
-        # self.trn_proj          = args['trn_proj']
-        # self.num_char          = args['num_char']
-        # self.num_states        = args['num_states']
-        # self.tree_width        = args['tree_width']
-        # self.tree_encode       = args['tree_encode']
-        # self.brlen_encode      = args['brlen_encode']
-        # self.char_encode       = args['char_encode']
-        # self.tensor_format     = args['tensor_format']
-        # self.batch_size        = args['trn_batch_size']
-        # self.num_epochs        = args['num_epochs']    
-        # self.prop_test         = args['prop_test']
-        # self.prop_val          = args['prop_val']
-        # self.prop_cal          = args['prop_cal']
-        # self.combine_test_val  = args['combine_test_val']
-        # self.cpi_coverage      = args['cpi_coverage']
-        # self.cpi_asymmetric    = args['cpi_asymmetric']
-        # self.loss              = args['loss']
-        # self.optimizer         = args['optimizer']
-        # self.metrics           = args['metrics']
-        # self.trn_objective     = args['trn_objective']
-        # self.kernel_init       = 'glorot_uniform'
         return
     
     def prepare_filepaths(self):
@@ -135,32 +109,32 @@ class Trainer:
         # main directories
         self.fmt_proj_dir = f'{self.fmt_dir}/{self.fmt_proj}'
         self.trn_proj_dir = f'{self.trn_dir}/{self.trn_proj}'
+
         # input prefix
         input_prefix      = f'{self.fmt_proj_dir}/train.nt{self.tree_width}'
-        # network_prefix    = f'train_batchsize{self.trn_batch_size}_numepoch{self.num_epochs}_nt{self.tree_width}'
         network_prefix    = f'network_nt{self.tree_width}'
         output_prefix     = f'{self.trn_proj_dir}/{network_prefix}'
+
         # input dataset filenames for csv or hdf5
         self.input_phy_data_fn      = f'{input_prefix}.phy_data.csv'
         self.input_aux_data_fn      = f'{input_prefix}.aux_data.csv'
         self.input_labels_fn        = f'{input_prefix}.labels.csv'
         self.input_hdf5_fn          = f'{input_prefix}.hdf5'
+
         # output network model info
         self.model_sav_fn           = f'{output_prefix}.hdf5'
         self.model_history_fn       = f'{output_prefix}.train_history.json'
         self.model_cpi_fn           = f'{output_prefix}.cpi_adjustments.csv'
+
         # output scaling terms
         self.train_labels_norm_fn   = f'{output_prefix}.train_label_norm.csv'
         self.train_aux_data_norm_fn = f'{output_prefix}.train_aux_data_norm.csv'
-        # output estimates
+        
+        # output training labels
         self.train_label_true_fn        = f'{output_prefix}.train_true.labels.csv'
-        # self.test_labels_fn         = f'{output_prefix}.test_labels.csv'
-        # output CPI calibrations
         self.train_label_est_calib_fn     = f'{output_prefix}.train_est.labels.csv'
-        # self.test_est_calib_fn      = f'{output_prefix}.test_est.csv'
         self.train_label_est_nocalib_fn   = f'{output_prefix}.train_label_est_nocalib.csv'
-        # self.test_est_nocalib_fn    = f'{output_prefix}.test_est_nocalib.csv'
-        #done
+        
         return
 
     def run(self):
@@ -282,8 +256,6 @@ class CnnTrainer(Trainer):
             msg = 'Training dataset is empty: len(train_idx) == 0'
         elif len(val_idx) == 0:
             msg = 'Validation dataset is empty: len(val_idx) == 0'
-        # elif len(test_idx) == 0:
-        #     msg = 'Test dataset is empty: len(test_idx) == 0'
         elif len(calib_idx) == 0:
             msg = 'Calibration dataset is empty: len(calib_idx) == 0'           
         if msg != '':
@@ -352,7 +324,6 @@ class CnnTrainer(Trainer):
             # val_idx = test_idx
 
         # save original training input
-        #self.train_aux_data = full_aux_data[train_idx,:]
         self.train_label_true = np.exp(full_labels[train_idx,:])
 
         # normalize auxiliary data
@@ -540,8 +511,6 @@ class CnnTrainer(Trainer):
             None
         """
         # gather loss functions
-        # lower_quantile_loss,upper_quantile_loss = self.get_pinball_loss_fns(self.cpi_coverage)
-        # self.pinball_loss_q_0_025, self.pinball_loss_q_0_975
         my_loss = [self.loss,
                    self.pinball_loss_q_0_025,
                    self.pinball_loss_q_0_975]
@@ -575,24 +544,13 @@ class CnnTrainer(Trainer):
         This function undoes all the transformation and rescaling for the 
         input and output datasets.
         """
-        # evaluate (fitting)
-        # self.mymodel.evaluate([self.test_phy_data_tensor, self.test_aux_data_tensor], self.norm_test_labels)
-
+        
         # training label estimates
         norm_train_label_est = self.mymodel.predict([self.train_phy_data_tensor, self.train_aux_data_tensor])
         norm_train_label_est = np.array(norm_train_label_est)
-        # log_train_label_est = util.denormalize(norm_train_label_est,
-        #                                        self.train_labels_mean_sd[0],
-        #                                        self.train_labels_mean_sd[1])
-        # self.train_label_est = np.exp(log_train_label_est)
-        self.train_label_est = util.denormalize2(norm_train_label_est,
-                                                 self.train_labels_mean_sd,
-                                                 exp=True)
-        # norm_train_label_true = np.array(self.norm_train_labels)
-        # log_train_label_true = util.denormalize(self.norm_train_labels,
-        #                                         self.train_labels_mean_sd[0],
-        #                                         self.train_labels_mean_sd[1])
-        # self.train_label_true = np.exp(log_train_label_true)
+        self.train_label_est = util.denormalize(norm_train_label_est,
+                                                self.train_labels_mean_sd,
+                                                exp=True)
  
         # calibration label estimates + CPI adjustment
         norm_calib_label_est = self.mymodel.predict([self.calib_phy_data_tensor,
@@ -609,14 +567,9 @@ class CnnTrainer(Trainer):
         norm_train_label_est_calib = norm_train_label_est
         norm_train_label_est_calib[1,:,:] = norm_train_label_est_calib[1,:,:] - self.cpi_adjustments[0,:]
         norm_train_label_est_calib[2,:,:] = norm_train_label_est_calib[2,:,:] + self.cpi_adjustments[1,:]
-        # log_train_label_est_calib = util.denormalize(norm_train_label_est_calib,
-        #                                              self.train_labels_mean_sd[0],
-        #                                              self.train_labels_mean_sd[1])
-        # self.train_label_est_calib = np.exp(log_train_label_est_calib)
-        self.train_label_est_calib = util.denormalize2(norm_train_label_est_calib,
-                                                       self.train_labels_mean_sd,
-                                                       exp=True)
-        #
+        self.train_label_est_calib = util.denormalize(norm_train_label_est_calib,
+                                                      self.train_labels_mean_sd,
+                                                      exp=True)
 
         return
     

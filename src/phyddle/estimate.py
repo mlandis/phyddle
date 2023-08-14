@@ -326,9 +326,9 @@ class Estimator:
             #                                      self.train_labels_mean_sd[1])
             # log_emp_label_est[log_emp_label_est > 300.] = 300.
             # emp_label_est = np.exp(log_emp_label_est)
-            emp_label_est = util.denormalize2(norm_emp_label_est,
-                                              self.train_labels_mean_sd,
-                                              exp=True)
+            emp_label_est = util.denormalize(norm_emp_label_est,
+                                             self.train_labels_mean_sd,
+                                             exp=True)
 
             # save empirial label estimates
             df_emp_label_est = util.make_param_VLU_mtx(emp_label_est, self.label_names)
@@ -354,9 +354,9 @@ class Estimator:
         #                                       self.train_labels_mean_sd[1])
         # log_test_label_est[log_test_label_est > 300.] = 300.
         # test_label_est = np.exp(log_test_label_est)
-        test_label_est = util.denormalize2(norm_test_label_est,
-                                           self.train_labels_mean_sd,
-                                           exp=True)
+        test_label_est = util.denormalize(norm_test_label_est,
+                                          self.train_labels_mean_sd,
+                                          exp=True)
 
         #save test estimates
         df_test_label_est = util.make_param_VLU_mtx(test_label_est, self.label_names)

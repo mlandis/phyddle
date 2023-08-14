@@ -96,18 +96,6 @@ class Simulator:
         step_args = util.make_step_args('S', args)
         for k,v in step_args.items():
             setattr(self, k, v)
-        # self.verbose        = args['verbose']
-        # self.sim_dir        = args['sim_dir']
-        # self.sim_proj       = args['sim_proj']
-        # self.start_idx      = args['start_idx']
-        # self.end_idx        = args['end_idx']
-        # self.sim_more       = args['sim_more']
-        # self.num_proc       = args['num_proc']
-        # self.use_parallel   = args['use_parallel']
-        # self.sim_command    = args['sim_command']
-        # self.sim_logging    = args['sim_logging']
-        # self.sim_batch_size = args['sim_batch_size']
-
         return
 
     def get_rep_idx(self):

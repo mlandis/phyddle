@@ -68,7 +68,6 @@ args = {
   'prop_test'          : 0.05,                 # Proportion of data used as test examples (assess trained network performance)
   'prop_val'           : 0.05,                 # Proportion of data used as validation examples (diagnose network overtraining)
   'prop_cal'           : 0.2,                  # Proportion of data used as calibration examples (calibrate CPIs)
-  'combine_test_val'   : True,                 # Combine test and validation datasets when assessing network fit?
   'cpi_coverage'       : 0.95,                 # Expected coverage percent for calibrated prediction intervals (CPIs)
   'cpi_asymmetric'     : True,                 # Use asymmetric (True) or symmetric (False) adjustments for CPIs?
   'loss'               : 'mse',                # Loss function for optimization 
