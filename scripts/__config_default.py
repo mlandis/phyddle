@@ -10,14 +10,14 @@ args = {
   'proj'               : 'my_project',         # Project name(s) for pipeline step(s)
   'name'               : '',                   # Nickname for file-set within project
   'step'               : 'SFTEP',              # Pipeline step(s) defined with (S)imulate, (F)ormat, (T)rain, (E)stimate, (P)lot, or (A)ll
-  'verbose'            : True,                 # Verbose output to screen?      
+  'verbose'            : 'T',                  # Verbose output to screen?      
   'force'              : None,                 # Arguments override config file settings
   'make_cfg'           : None,                 # Write default config file to 'config_default.py'?'
 
   #-------------------------------#
   # Analysis                      #
   #-------------------------------#
-  'use_parallel'       : True,                 # Use parallelization? (recommended)
+  'use_parallel'       : 'T',                  # Use parallelization? (recommended)
   'num_proc'           : -2,                   # Number of cores for multiprocessing (-N for all but N)
 
   #-------------------------------#
@@ -43,7 +43,7 @@ args = {
   #-------------------------------#
   # Format                        #
   #-------------------------------#
-  'encode_all_sim'     : True,                 # Encode all simulated replicates into tensor?
+  'encode_all_sim'     : 'T',                  # Encode all simulated replicates into tensor?
   'num_char'           : None,                 # Number of characters           
   'num_states'         : None,                 # Number of states per character 
   'min_num_taxa'       : 10,                   # Minimum number of taxa allowed when formatting
@@ -57,7 +57,7 @@ args = {
   'param_data'         : None,                 # Model parameters treated as data
   'char_format'        : 'nexus',              # File format for character data 
   'tensor_format'      : 'hdf5',               # File format for training example tensors
-  'save_phyenc_csv'    : False,                # Save encoded phylogenetic tensor encoding to csv?
+  'save_phyenc_csv'    : 'F',                  # Save encoded phylogenetic tensor encoding to csv?
 
   #-------------------------------#
   # Train                         #
@@ -69,7 +69,7 @@ args = {
   'prop_val'           : 0.05,                 # Proportion of data used as validation examples (diagnose network overtraining)
   'prop_cal'           : 0.2,                  # Proportion of data used as calibration examples (calibrate CPIs)
   'cpi_coverage'       : 0.95,                 # Expected coverage percent for calibrated prediction intervals (CPIs)
-  'cpi_asymmetric'     : True,                 # Use asymmetric (True) or symmetric (False) adjustments for CPIs?
+  'cpi_asymmetric'     : 'T',                  # Use asymmetric (True) or symmetric (False) adjustments for CPIs?
   'loss'               : 'mse',                # Loss function for optimization 
   'optimizer'          : 'adam',               # Method used for optimizing neural network
   'metrics'            : ['mae', 'acc'],       # Recorded training metrics      

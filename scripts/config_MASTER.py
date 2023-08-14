@@ -10,9 +10,9 @@ args = {
     #-------------------------------#
     # Project organization          #
     #-------------------------------#
-    'proj'    : 'MASTER_example',               # project name(s)
-    'step'    : 'SFTEP',                        # step(s) to run
-    'verbose' : True,                       # print verbose phyddle output?
+    'proj'    : 'MASTER_example',           # project name(s)
+    'step'    : 'SFTEP',                    # step(s) to run
+    'verbose' : 'True',                     # print verbose phyddle output?
     'sim_dir' : '../workspace/simulate',    # directory for simulated data
     'fmt_dir' : '../workspace/format',      # directory for tensor-formatted data
     'trn_dir' : '../workspace/train',       # directory for trained network
@@ -23,7 +23,7 @@ args = {
     #-------------------------------#
     # Multiprocessing               #
     #-------------------------------#
-    'use_parallel'   : True,                # use multiprocessing to speed up jobs?
+    'use_parallel'   : 'True',              # use multiprocessing to speed up jobs?
     'num_proc'       : -2,                  # how many CPUs to use (-2 means all but 2)
     
     #-------------------------------#
@@ -51,7 +51,7 @@ args = {
     ],
     'param_data'        : [],               # model parameters that are known (aux. data)
     'tensor_format'     : 'hdf5',           # save as compressed HDF5 or raw csv
-    'save_phyenc_csv'   : False,            # save intermediate phylo-state vectors to file
+    'save_phyenc_csv'   : 'F',              # save intermediate phylo-state vectors to file
 
     #-------------------------------#
     # Train Step settings           #
@@ -62,9 +62,8 @@ args = {
     'prop_test'         : 0.05,             # proportion of sims in test dataset
     'prop_val'          : 0.05,             # proportion of sims in validation dataset
     'prop_cal'          : 0.20,             # proportion of sims in CPI calibration dataset 
-    'combine_test_val'  : False,            # combine test and validation data?
     'cpi_coverage'      : 0.95,             # coverage level for CPIs
-    'cpi_asymmetric'    : True,             # upper/lower (True) or symmetric (False) CPI adjustments
+    'cpi_asymmetric'    : 'T',              # upper/lower (True) or symmetric (False) CPI adjustments
     'trn_batch_size'    : 128,              # number of samples in each training batch
     'loss'              : 'mse',            # loss function for learning
     'optimizer'         : 'adam',           # optimizer for network weight/bias parameters

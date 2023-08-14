@@ -105,13 +105,13 @@ def settings_registry():
         'proj'             : { 'step':'SFTEP', 'type':str,  'section':'Basic', 'default':'my_project', 'help':'Project name(s) for pipeline step(s)', 'opt':'p' },
         'name'             : { 'step':'SFTEP', 'type':str,  'section':'Basic', 'default':'',           'help':'Nickname for file-set within project', 'opt':'n' },
         'step'             : { 'step':'SFTEP', 'type':str,  'section':'Basic', 'default':'SFTEP',      'help':'Pipeline step(s) defined with (S)imulate, (F)ormat, (T)rain, (E)stimate, (P)lot, or (A)ll', 'opt':'s' },
-        'verbose'          : { 'step':'SFTEP', 'type':bool, 'section':'Basic', 'default':True,         'help':'Verbose output to screen?', 'opt':'v' },
-        'force'            : { 'step':'',      'type':None, 'section':'Basic', 'default':None,         'help':'Arguments override config file settings', 'opt':'f' },
-        'make_cfg'         : { 'step':'',      'type':None, 'section':'Basic', 'default':None,         'help':"Write default config file to 'config_default.py'?'" },
+        'verbose'          : { 'step':'SFTEP', 'type':str,  'section':'Basic', 'default':'T',          'help':'Verbose output to screen?', 'bool':True, 'opt':'v' },
+        'force'            : { 'step':'',      'type':None,  'section':'Basic', 'default':None,        'help':'Arguments override config file settings', 'opt':'f' },
+        'make_cfg'         : { 'step':'',      'type':None,  'section':'Basic', 'default':None,        'help':"Write default config file to 'config_default.py'?'" },
 
         # analysis options 
-        'use_parallel'     : { 'step':'SF', 'type':bool, 'section':'Analysis', 'default':True, 'help':'Use parallelization? (recommended)' },
-        'num_proc'         : { 'step':'SF', 'type':int,  'section':'Analysis', 'default':-2,   'help':'Number of cores for multiprocessing (-N for all but N)' },
+        'use_parallel'     : { 'step':'SF', 'type':str, 'section':'Analysis', 'default':'T', 'help':'Use parallelization? (recommended)', 'bool':True },
+        'num_proc'         : { 'step':'SF', 'type':int, 'section':'Analysis', 'default':-2, 'help':'Number of cores for multiprocessing (-N for all but N)' },
         
         # directories
         'sim_dir'          : { 'step':'SF',    'type':str, 'section':'Workspace', 'default':'../workspace/simulate', 'help':'Directory for raw simulated data' },
@@ -130,7 +130,7 @@ def settings_registry():
         'sim_batch_size'   : { 'step':'S',  'type':int, 'section':'Simulate', 'default':1,       'help':'Number of replicates per simulation command' },
 
         # formatting options
-        'encode_all_sim'   : { 'step':'F',    'type':bool, 'section':'Format', 'default':True,           'help':'Encode all simulated replicates into tensor?' },
+        'encode_all_sim'   : { 'step':'F',    'type':str,  'section':'Format', 'default':'T',             'help':'Encode all simulated replicates into tensor?', 'bool':True },
         'num_char'         : { 'step':'FTE',  'type':int,  'section':'Format', 'default':None,           'help':'Number of characters' },
         'num_states'       : { 'step':'FTE',  'type':int,  'section':'Format', 'default':None,           'help':'Number of states per character' },
         'min_num_taxa'     : { 'step':'F',    'type':int,  'section':'Format', 'default':10,             'help':'Minimum number of taxa allowed when formatting' },
@@ -145,7 +145,7 @@ def settings_registry():
         'param_data'       : { 'step':'FTE',  'type':list, 'section':'Format', 'default':None,           'help':'Model parameters treated as data' },
         'char_format'      : { 'step':'FTE',  'type':str,  'section':'Format', 'default':'nexus',        'help':'File format for character data',               'choices':['csv', 'nexus'] },
         'tensor_format'    : { 'step':'FTEP', 'type':str,  'section':'Format', 'default':'hdf5',         'help':'File format for training example tensors',     'choices':['csv', 'hdf5'] },
-        'save_phyenc_csv'  : { 'step':'F',    'type':bool, 'section':'Format', 'default':False,          'help':'Save encoded phylogenetic tensor encoding to csv?' },
+        'save_phyenc_csv'  : { 'step':'F',    'type':str,  'section':'Format', 'default':'F',            'help':'Save encoded phylogenetic tensor encoding to csv?', 'bool':True },
         
         # training options
         'trn_objective'    : { 'step':'T',   'type':str,   'section':'Train', 'default':'param_est',   'help':'Objective of training procedure', 'choices':['param_est'] },
@@ -156,7 +156,7 @@ def settings_registry():
         'prop_cal'         : { 'step':'T',   'type':float, 'section':'Train', 'default':0.20,          'help':'Proportion of data used as calibration examples (calibrate CPIs)' },
         # 'combine_test_val' : { 'step':'T',   'type':bool,  'section':'Train', 'default':True,          'help':'Combine test and validation datasets when assessing network fit?' },
         'cpi_coverage'     : { 'step':'T',   'type':float, 'section':'Train', 'default':0.95,          'help':'Expected coverage percent for calibrated prediction intervals (CPIs)' },
-        'cpi_asymmetric'   : { 'step':'T',   'type':bool,  'section':'Train', 'default':True,          'help':'Use asymmetric (True) or symmetric (False) adjustments for CPIs?' },
+        'cpi_asymmetric'   : { 'step':'T',   'type':str,   'section':'Train', 'default':'T',           'help':'Use asymmetric (True) or symmetric (False) adjustments for CPIs?', 'bool':True },
         'loss'             : { 'step':'T',   'type':str,   'section':'Train', 'default':'mse',         'help':'Loss function for optimization', 'choices':['mse', 'mae']},
         'optimizer'        : { 'step':'T',   'type':str,   'section':'Train', 'default':'adam',        'help':'Method used for optimizing neural network', 'choices':['adam'] },
         'metrics'          : { 'step':'T',   'type':list,  'section':'Train', 'default':['mae','acc'], 'help':'Recorded training metrics' },
@@ -212,6 +212,7 @@ def load_config(config_fn,
     # argument parsing
     parser = argparse.ArgumentParser(description='phyddle pipeline config') #,
                                      #formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+
     # read settings registry and populate argument parser
     settings = settings_registry()
     for k,v in settings.items():
@@ -258,6 +259,9 @@ def load_config(config_fn,
     for k in settings.keys():
         m = reconcile_settings(m_default, m_file, args, k)
 
+    # fix convert string-valued bool to true bool
+    m = fix_bool(m)
+
     # update steps
     if m.args['step'] == 'A':
         m.args['step'] = 'SFTEP'
@@ -280,6 +284,26 @@ def load_config(config_fn,
 
     # return new args
     return m.args
+
+
+def fix_bool(m):
+    settings = settings_registry()
+    for k,v in settings.items():
+        if 'bool' in v:
+            arg_val = m.args[k]
+            arg_val_new = arg_str2bool(arg_val, k)
+            m.args[k] = arg_val_new
+    return m
+
+
+def arg_str2bool(x, arg):
+    if x.lower() in ['true', 'yes', 't', 'y', '1' ]:
+        return True
+    elif x.lower() in ['false', 'no', 'f', 'n', '0' ]:
+        return False
+    else:
+        raise ValueError(f'{x} invalid value for {arg}')
+
 
 def check_args(args):
     """

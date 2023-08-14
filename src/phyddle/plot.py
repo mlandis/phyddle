@@ -606,7 +606,7 @@ class Plotter:
     def plot_pca_contour(self, save_fn, sim_values, est_values=None,
                          num_comp=4, f_show=0.10, color='blue'):
         """
-        Plots PCA.
+        Plots PCA Contour Plot.
 
         This function plots the PCA for simulated training aux. data examples.
         The function plots a grid of pairs of principal components. It will also
@@ -636,6 +636,10 @@ class Plotter:
         pca_model = PCA(n_components=num_comp)
         pca = pca_model.fit_transform(x)
         pca_var = pca_model.explained_variance_ratio_
+        pca_coef = np.transpose(pca_model.components_)
+
+        print(pca_coef)
+        print(pca_coef.shape)
         
         # project est_values on to PCA space
         if self.est_aux_loaded:
@@ -662,6 +666,16 @@ class Plotter:
                 y = pca[0:nrow_keep,j]
                 xmin, xmax = np.min(x), np.max(x)
                 ymin, ymax = np.min(y), np.max(y)
+                xscale = (xmax - xmin) * 0.9
+                yscale = (ymax - ymin) * 0.9
+
+                # # loads
+                # nn = pca_coef.shape[0]
+                # for k in range(nn):
+                #     axs[i,j].arrow(0,0,pca_coef[k,i]*xscale,pca_coef[k,j]*yscale,color='red',alpha=0.5)
+                #     axs[i,j].text(pca_coef[k,i]*1.2*xscale,pca_coef[k,j]*1.2*yscale,
+                #                   self.input_aux_data_names[k],color='black',
+                #                   ha='center',va='center')
 
                 # Peform the kernel density estimate
                 xx, yy = np.mgrid[xmin:xmax:100j, ymin:ymax:100j]
