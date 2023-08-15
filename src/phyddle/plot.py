@@ -176,10 +176,9 @@ class Plotter:
 
         # end time
         end_time,end_time_str = util.get_time()
-        util.print_str(f'▪ End time of {end_time_str}', verbose)
-
         run_time = util.get_time_diff(start_time, end_time)
-        util.print_str(f'▪ Total time of {run_time}', verbose)
+        # util.print_str(f'▪ End time:     {end_time_str}', verbose)
+        util.print_str(f'▪ End time of {end_time_str} (+{run_time})', verbose)
 
         #done
         util.print_str('... done!', verbose=self.verbose)
@@ -361,6 +360,7 @@ class Plotter:
 #------------------------------------------------------------------------------#
 
     def make_report(self):
+        # dataset sizes
         # get train estimation stats
         # get test estimation stats
         # get emp estimation stats
