@@ -12,11 +12,6 @@ out_path    = args[1]
 start_idx   = as.numeric(args[2])
 batch_size  = as.numeric(args[3])
 rep_idx     = start_idx:(start_idx+batch_size-1)
-
-print(args)
-print(start_idx)
-print(batch_size)
-print(rep_idx)
 num_rep     = length(rep_idx)
 
 # filesystem

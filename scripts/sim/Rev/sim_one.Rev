@@ -4,16 +4,12 @@
 
 # expect that phyddle calls `rb --args <tmp_fn>`
 if (exists("args") && args.size() > 0) {
-    out_path = args[1]
-    idx = args[2]
-    sim_batch_size = args[3]
-    tmp_fn = out_path + "/sim." + idx
+    out_path   = args[1]
+    start_idx  = args[2]
+    batch_size = args[3]
+    rep_idx    = start_idx:(start_idx+batch_size-1)
 }
 
-# filenames
-phy_fn = tmp_fn + ".tre"
-dat_fn = tmp_fn + ".dat.nex"
-lbl_fn = tmp_fn + ".param_row.csv"
 
 # dataset dimensions
 num_char        <- 2
@@ -24,49 +20,59 @@ for (i in 1:num_taxa) {
     taxa[i] = taxon("T"+i, 0.0, 0.0)
 }
 
-# model parameters
-birth      ~ dnUnif(0, 1)
-death      ~ dnUnif(0, birth)
-max_time   ~ dnUnif(0, 12)
-state_rate ~ dnUnif(0, 1)
-state_freq <- simplex(1, num_states)
+# loop over replicates
+for (idx in rep_idx) {
 
-# make tree variable
-phy ~ dnBDP(lambda=birth,
-            mu=death,
-            rho=1.0,
-            rootAge=max_time,
-            condition="nTaxa",
-            taxa=taxa)
-        
-# make rate matrix
-clock := state_rate * abs(num_states-1)
-Q <- fnJC(num_states)
+    # filenames
+    tmp_fn     = out_path + "/sim." + idx
+    phy_fn = tmp_fn + ".tre"
+    dat_fn = tmp_fn + ".dat.nex"
+    lbl_fn = tmp_fn + ".param_row.csv"
 
-# make phylogenetic CTMC
-dat ~ dnPhyloCTMC(tree=phy,
-                  Q=Q,
-                  rootFrequencies=state_freq,
-                  branchRates=clock,
-                  nSites=num_char,
-                  type="Standard")
+    # model parameters
+    birth      ~ dnUnif(0, 1)
+    death      ~ dnUnif(0, birth)
+    max_time   ~ dnUnif(0, 12)
+    state_rate ~ dnUnif(0, 1)
+    state_freq <- simplex(1, num_states)
+
+    # make tree variable
+    phy ~ dnBDP(lambda=birth,
+                mu=death,
+                rho=1.0,
+                rootAge=max_time,
+                condition="nTaxa",
+                taxa=taxa)
+            
+    # make rate matrix
+    clock := state_rate * abs(num_states-1)
+    Q <- fnJC(num_states)
+
+    # make phylogenetic CTMC
+    dat ~ dnPhyloCTMC(tree=phy,
+                      Q=Q,
+                      rootFrequencies=state_freq,
+                      branchRates=clock,
+                      nSites=num_char,
+                      type="Standard")
 
 
-# make training labels
-label_str = "birth,death,state_rate\n"
-label_values = [birth, death, state_rate]
-for (i in 1:label_values.size()) {
-    if (i != 1) {
-        label_str += ","
+    # make training labels
+    label_str = "birth,death,state_rate\n"
+    label_values = [birth, death, state_rate]
+    for (i in 1:label_values.size()) {
+        if (i != 1) {
+            label_str += ","
+        }
+        label_str += ""+label_values[i]
     }
-    label_str += ""+label_values[i]
-}
-label_str += "\n"
+    label_str += "\n"
 
-# save output
-write(phy, filename=phy_fn)
-writeNexus(data=dat, filename=dat_fn)
-write(label_str, filename=lbl_fn)
+    # save output
+    write(phy, filename=phy_fn)
+    writeNexus(data=dat, filename=dat_fn)
+    write(label_str, filename=lbl_fn)
+}
 
 # done!
 quit()

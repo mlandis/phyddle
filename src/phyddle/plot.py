@@ -207,14 +207,15 @@ class Plotter:
             self.input_aux_data = pd.DataFrame( hdf5_file['aux_data'][:,:], columns=self.input_aux_data_names )
             self.input_labels = pd.DataFrame( hdf5_file['labels'][:,:], columns=self.input_label_names )
             hdf5_file.close()
+            
 
         ### load input from Train step
         self.model = tf.keras.models.load_model(self.network_fn, compile=False)
         # training estimates/labels
-        self.train_ests  = pd.read_csv(self.train_est_fn)
+        self.train_ests   = pd.read_csv(self.train_est_fn)
         self.train_labels = pd.read_csv(self.train_labels_fn)
         # test estimates/labels
-        self.test_ests   = pd.read_csv(self.test_est_fn)
+        self.test_ests    = pd.read_csv(self.test_est_fn)
         self.test_labels  = pd.read_csv(self.test_labels_fn)
         # parameter names from training labels
         self.param_names  = self.train_ests.columns.to_list()
@@ -240,12 +241,12 @@ class Plotter:
         self.est_lbl_loaded = os.path.isfile(self.est_lbl_fn)
         if self.est_lbl_loaded:
             self.est_lbl_data = pd.read_csv(self.est_lbl_fn)
-            self.est_lbl_value = self.est_lbl_data[ [col for col in self.est_lbl_data.columns if 'value' in col] ]
-            self.est_lbl_lower = self.est_lbl_data[ [col for col in self.est_lbl_data.columns if 'lower' in col] ]
-            self.est_lbl_upper = self.est_lbl_data[ [col for col in self.est_lbl_data.columns if 'upper' in col] ]
-            self.est_lbl_value.columns = [ col.rstrip('_value') for col in self.est_lbl_value.columns ]
-            self.est_lbl_lower.columns = [ col.rstrip('_lower') for col in self.est_lbl_lower.columns ]
-            self.est_lbl_upper.columns = [ col.rstrip('_upper') for col in self.est_lbl_upper.columns ]
+            self.est_lbl_value = self.est_lbl_data[ [col for col in self.est_lbl_data.columns if '_value' in col] ]
+            self.est_lbl_lower = self.est_lbl_data[ [col for col in self.est_lbl_data.columns if '_lower' in col] ]
+            self.est_lbl_upper = self.est_lbl_data[ [col for col in self.est_lbl_data.columns if '_upper' in col] ]
+            self.est_lbl_value.columns = [ col.replace('_value','') for col in self.est_lbl_value.columns ]
+            self.est_lbl_lower.columns = [ col.replace('_lower','') for col in self.est_lbl_lower.columns ]
+            self.est_lbl_upper.columns = [ col.replace('_upper','') for col in self.est_lbl_upper.columns ]
             self.est_lbl_df = pd.concat( [self.est_lbl_value, self.est_lbl_lower, self.est_lbl_upper] )
         else:
             self.est_lbl_data = None
