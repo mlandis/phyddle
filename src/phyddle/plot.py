@@ -637,10 +637,8 @@ class Plotter:
         pca = pca_model.fit_transform(x)
         pca_var = pca_model.explained_variance_ratio_
         pca_coef = np.transpose(pca_model.components_)
+        plot_pca_loadings = False
 
-        print(pca_coef)
-        print(pca_coef.shape)
-        
         # project est_values on to PCA space
         if self.est_aux_loaded:
             est_values = scaler.transform(est_values)
@@ -666,16 +664,8 @@ class Plotter:
                 y = pca[0:nrow_keep,j]
                 xmin, xmax = np.min(x), np.max(x)
                 ymin, ymax = np.min(y), np.max(y)
-                xscale = (xmax - xmin) * 0.9
-                yscale = (ymax - ymin) * 0.9
-
-                # # loads
-                # nn = pca_coef.shape[0]
-                # for k in range(nn):
-                #     axs[i,j].arrow(0,0,pca_coef[k,i]*xscale,pca_coef[k,j]*yscale,color='red',alpha=0.5)
-                #     axs[i,j].text(pca_coef[k,i]*1.2*xscale,pca_coef[k,j]*1.2*yscale,
-                #                   self.input_aux_data_names[k],color='black',
-                #                   ha='center',va='center')
+                xscale = (xmax - xmin)
+                yscale = (ymax - ymin)
 
                 # Peform the kernel density estimate
                 xx, yy = np.mgrid[xmin:xmax:100j, ymin:ymax:100j]
@@ -689,6 +679,20 @@ class Plotter:
                 cset = axs[i,j].contour(xx, yy, f, levels=n_levels, extend='both', linewidths=0.5, colors='k')
                 axs[i,j].clabel(cset, inline=1, fontsize=6)
 
+                # loads
+                if plot_pca_loadings:
+                    nn = pca_coef.shape[0]
+                    for k in range(nn):
+                        axs[i,j].arrow(x=0,y=0,
+                                    dx=pca_coef[k,i]*yscale/2,
+                                    dy=pca_coef[k,j]*xscale/2,
+                                    color='black',alpha=0.75, width=0.05)
+                        axs[i,j].text(pca_coef[k,i]*yscale,
+                                    pca_coef[k,j]*xscale,
+                                    self.input_aux_data_names[k],
+                                    color='black', fontsize=8,
+                                    ha='center',va='center')
+                    
                 if self.est_aux_loaded:    
                     axs[i,j].scatter(pca_est[0:nrow_keep,i+1], pca_est[0:nrow_keep,j],
                                      alpha=1.0, color='white', edgecolor='black', s=80, zorder=2.1)
