@@ -144,13 +144,24 @@ class Formatter:
         # prepare workspace
         os.makedirs(self.fmt_proj_dir, exist_ok=True)
 
+        # start time
+        start_time,start_time_str = util.get_time()
+        util.print_str(f'▪ Start time of {start_time_str}', verbose)
+
         # encode each dataset into individual tensors
-        util.print_str('▪ Encoding raw data as tensors ...', verbose)
+        util.print_str('▪ Encoding raw data as tensors', verbose)
         self.encode_all()
 
         # write tensors across all examples to file
-        util.print_str('▪ Combining and writing tensors ...', verbose)
+        util.print_str('▪ Combining and writing tensors', verbose)
         self.write_tensor()
+
+        # end time
+        end_time,end_time_str = util.get_time()
+        util.print_str(f'▪ End time of {end_time_str}', verbose)
+
+        run_time = util.get_time_diff(start_time, end_time)
+        util.print_str(f'▪ Total time of {run_time}', verbose)
 
         # done
         util.print_str('... done!', verbose)

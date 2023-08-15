@@ -138,8 +138,12 @@ class Simulator:
         # prepare workspace
         os.makedirs(self.sim_proj_dir, exist_ok=True)
     
+        # start time
+        start_time,start_time_str = util.get_time()
+        util.print_str(f'▪ Start time of {start_time_str}', verbose)
+
         # dispatch jobs
-        util.print_str('▪ Simulating raw data ...', verbose)
+        util.print_str('▪ Simulating raw data', verbose)
         if self.use_parallel:
             # parallel jobs
             # Note, it's critical to call this as list(tqdm(pool.imap(...)))
@@ -162,6 +166,14 @@ class Simulator:
                                                       total=len(self.rep_idx),
                                                       desc='Simulating',
                                                       smoothing=0) ]
+
+
+        # end time
+        end_time,end_time_str = util.get_time()
+        util.print_str(f'▪ End time of {end_time_str}', verbose)
+
+        run_time = util.get_time_diff(start_time, end_time)
+        util.print_str(f'▪ Total time of {run_time}', verbose)
 
         # done
         util.print_str('... done!', verbose)

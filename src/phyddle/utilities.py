@@ -21,7 +21,8 @@ import platform
 import re
 import sys
 from datetime import datetime
-from itertools import chain, combinations
+#from itertools import chain, combinations
+import time
 import __main__ as main
 #from time import gmtime, strftime
 
@@ -541,6 +542,22 @@ def generate_random_hex_string(length):
 ###################
 # GENERAL HELPERS #
 ###################
+
+def get_time():
+    t = time.localtime()
+    s = time.strftime("%H:%M:%S", t)
+    return time.mktime(t),s
+
+def get_time_diff(start_time, end_time):
+    difference_seconds = end_time - start_time
+    hours, remainder = divmod(difference_seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+    h = f'{int(hours)}'.rjust(2, '0')
+    m = f'{int(minutes)}'.rjust(2, '0')
+    s = f'{int(seconds)}'.rjust(2, '0')
+    ret = f'{h}:{m}:{s}'
+    return ret
+
 
 def make_symm(m):
     """
@@ -1425,6 +1442,7 @@ def phyddle_header(s, style=1, fg=34):
         str: The header string.
     """
     version = f'v{PHYDDLE_VERSION}'.rjust(8, ' ')
+
     steps = { 'sim' : 'Simulating',
               'fmt' : 'Formatting',
               'trn' : 'Training',
@@ -1473,7 +1491,7 @@ def print_step_header(step, in_dir, out_dir, verbose=True, style=1, fg=34):
     
     # out path
     if out_dir is not None:
-        run_info += phyddle_str('  ┃')  + '\n'
+        #run_info += phyddle_str('  ┃')  + '\n'
         out_path = f'{out_dir}'
     run_info += phyddle_str(f'  ┗━━━▪ output: {out_path}' ) + '\n'
     

@@ -151,21 +151,31 @@ class Trainer:
         # prepare workspace
         os.makedirs(self.trn_proj_dir, exist_ok=True)
 
+        # start time
+        start_time,start_time_str = util.get_time()
+        util.print_str(f'▪ Start time of {start_time_str}', verbose)
+
         # perform run tasks
-        util.print_str('▪ Loading input ...', verbose)
+        util.print_str('▪ Loading input', verbose)
         self.load_input()
 
-        util.print_str('▪ Building network ...', verbose)
+        util.print_str('▪ Building network', verbose)
         self.build_network()
 
-        util.print_str('▪ Training network ...', verbose)
+        util.print_str('▪ Training network', verbose)
         self.train()
 
-        util.print_str('▪ Processing results ...', verbose)
+        util.print_str('▪ Processing results', verbose)
         self.make_results()
 
-        util.print_str('▪ Saving results ...', verbose)
+        util.print_str('▪ Saving results', verbose)
         self.save_results()
+
+        end_time,end_time_str = util.get_time()
+        util.print_str(f'▪ End time of {end_time_str}', verbose)
+
+        run_time = util.get_time_diff(start_time, end_time)
+        util.print_str(f'▪ Total time of {run_time}', verbose)
 
         util.print_str('▪ ... done!', verbose)
         return

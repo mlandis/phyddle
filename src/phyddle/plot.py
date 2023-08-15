@@ -129,8 +129,9 @@ class Plotter:
         # plotting output
         self.save_hist_aux_fn   = f'{self.plt_proj_prefix}.density_aux.pdf'
         self.save_hist_label_fn = f'{self.plt_proj_prefix}.density_label.pdf'
-        self.save_pca_aux_fn    = f'{self.plt_proj_prefix}.pca_aux.pdf'
-        self.save_pca_contour_fn = f'{self.plt_proj_prefix}.pca_contour_aux.pdf'
+        #self.save_pca_aux_fn    = f'{self.plt_proj_prefix}.pca_aux.pdf'
+        self.save_pca_aux_data_fn  = f'{self.plt_proj_prefix}.pca_contour_aux_data.pdf'
+        self.save_pca_labels_fn    = f'{self.plt_proj_prefix}.pca_contour_labels.pdf'
         self.save_cpi_est_fn    = f'{self.plt_proj_prefix}.est_CPI.pdf'
         self.save_network_fn    = f'{self.plt_proj_prefix}.network_architecture.pdf'
         self.save_summary_fn    = f'{self.plt_proj_prefix}.summary.pdf'
@@ -153,17 +154,32 @@ class Plotter:
         # prepare workspace
         os.makedirs(self.plt_proj_dir, exist_ok=True)
 
+        # start time
+        start_time,start_time_str = util.get_time()
+        util.print_str(f'▪ Start time of {start_time_str}', verbose)
+
         # load input
-        util.print_str('▪ Loading input ...', verbose)
+        util.print_str('▪ Loading input', verbose)
         self.load_input()
 
         # generate individual plots
-        util.print_str('▪ Generating individual plots ...', verbose)
+        util.print_str('▪ Generating individual plots', verbose)
         self.generate_plots()
 
         # combining all plots
-        util.print_str('▪ Combining plots ...', verbose)
+        util.print_str('▪ Combining plots', verbose)
         self.combine_plots()
+
+        # generating output summary
+        util.print_str('▪ Making csv report', verbose)
+        self.make_report()
+
+        # end time
+        end_time,end_time_str = util.get_time()
+        util.print_str(f'▪ End time of {end_time_str}', verbose)
+
+        run_time = util.get_time_diff(start_time, end_time)
+        util.print_str(f'▪ Total time of {run_time}', verbose)
 
         #done
         util.print_str('... done!', verbose=self.verbose)
@@ -267,10 +283,13 @@ class Plotter:
         self.make_plot_stat_density('labels')
         
         # PCA of training aux. data
-        self.make_plot_pca()
+        # self.make_plot_pca()
 
-        # PCA-counter of training aux. data
-        self.make_plot_pca_contour()
+        # PCA-contour of training aux. data
+        self.make_plot_pca_contour('aux_data')
+
+        # PCA-contour of training aux. data
+        self.make_plot_pca_contour('labels')
 
         # train scatter accuracy
         self.make_plot_scatter_accuracy('train')
@@ -339,7 +358,17 @@ class Plotter:
             if filter in '.'.join(f.split('.')[-2:]):
                 ret.append(f)
         return ret
-    
+#------------------------------------------------------------------------------#
+
+    def make_report(self):
+        # get train estimation stats
+        # get test estimation stats
+        # get emp estimation stats
+        # get train aux data stats
+        # get emp aux data stats
+        
+        return
+
 #------------------------------------------------------------------------------#
 
     def make_plot_stat_density(self, type):
@@ -396,11 +425,19 @@ class Plotter:
                       color=self.plot_aux_color)
         return
     
-    def make_plot_pca_contour(self):
-        self.plot_pca_contour(save_fn=self.save_pca_contour_fn,
-                              sim_values=self.input_aux_data,
-                              est_values=self.est_aux_data,
-                              color=self.plot_aux_color)
+    def make_plot_pca_contour(self, type):
+        if type == 'aux_data':
+            self.plot_pca_contour(save_fn=self.save_pca_aux_data_fn,
+                                  sim_values=self.input_aux_data,
+                                  est_values=self.est_aux_data,
+                                  color=self.plot_aux_color,
+                                  title='Aux. data')
+        elif type == 'labels':
+            self.plot_pca_contour(save_fn=self.save_pca_labels_fn,
+                                  sim_values=self.input_labels,
+                                  est_values=self.est_lbl_value,
+                                  color=self.plot_label_color,
+                                  title='Labels')
         return
 
     def make_plot_est_CI(self):
@@ -604,7 +641,7 @@ class Plotter:
         return
     
     def plot_pca_contour(self, save_fn, sim_values, est_values=None,
-                         num_comp=4, f_show=0.10, color='blue'):
+                         num_comp=4, f_show=0.10, color='blue', title=''):
         """
         Plots PCA Contour Plot.
 
@@ -624,13 +661,12 @@ class Plotter:
         fig_width = 8
         fig_height = 8 
 
+        # reduce num components if needed
+        num_comp = min(sim_values.shape[1], num_comp)
+
         # rescale input data
         scaler = StandardScaler()
         x = scaler.fit_transform(sim_values)
-        
-        # thin dataset
-        nrow_keep = int(x.shape[0] * f_show)
-        alpha = np.min( [1, 100 / nrow_keep] )
         
         # apply PCA to sim_values
         pca_model = PCA(n_components=num_comp)
@@ -645,7 +681,9 @@ class Plotter:
             pca_est = pca_model.transform(est_values)
         
         # figure dimennsions
-        fig, axs = plt.subplots(num_comp-1, num_comp-1, sharex=True, sharey=True, figsize=(fig_width, fig_height))
+        fig, axs = plt.subplots(num_comp-1, num_comp-1,
+                                sharex=True, sharey=True,
+                                figsize=(fig_width, fig_height))
 
         # use this to turn off subplots
         #axes[i_row,j_col].axis('off')
@@ -655,13 +693,15 @@ class Plotter:
 
         # generate PCA subplots
         for i in range(0, num_comp-1):
+            
+            # disable x,y axes for all plots, later turned on for some
             for j in range(i+1, num_comp-1):
                 axs[i,j].axis('off')
-            for j in range(0, i+1):
 
+            for j in range(0, i+1):
                 # countours
-                x = pca[0:nrow_keep,i+1]
-                y = pca[0:nrow_keep,j]
+                x = pca[:,i+1]
+                y = pca[:,j]
                 xmin, xmax = np.min(x), np.max(x)
                 ymin, ymax = np.min(y), np.max(y)
                 xscale = (xmax - xmin)
@@ -673,10 +713,12 @@ class Plotter:
                 values = np.vstack([x, y])
                 kernel = sp.stats.gaussian_kde(values)
                 f = np.reshape(kernel(positions).T, xx.shape)
-                n_levels = 5
+                n_levels = 4
                 extent = (-4,4,-4,4)
-                cfset = axs[i,j].contourf(xx, yy, f, levels=n_levels, extend='both', cmap=cmap0)
-                cset = axs[i,j].contour(xx, yy, f, levels=n_levels, extend='both', linewidths=0.5, colors='k')
+                cfset = axs[i,j].contourf(xx, yy, f, levels=n_levels,
+                                          extend='both', cmap=cmap0)
+                cset = axs[i,j].contour(xx, yy, f, levels=n_levels, 
+                                        extend='both', linewidths=0.5, colors='k')
                 axs[i,j].clabel(cset, inline=1, fontsize=6)
 
                 # loads
@@ -694,10 +736,12 @@ class Plotter:
                                     ha='center',va='center')
                     
                 if self.est_aux_loaded:    
-                    axs[i,j].scatter(pca_est[0:nrow_keep,i+1], pca_est[0:nrow_keep,j],
-                                     alpha=1.0, color='white', edgecolor='black', s=80, zorder=2.1)
-                    axs[i,j].scatter(pca_est[0:nrow_keep,i+1], pca_est[0:nrow_keep,j],
-                                     alpha=1.0, color='red', edgecolor='white', s=40, zorder=2.1)
+                    axs[i,j].scatter(pca_est[:,i+1], pca_est[:,j],
+                                     alpha=1.0, color='white',
+                                     edgecolor='black', s=80, zorder=2.1)
+                    axs[i,j].scatter(pca_est[:,i+1], pca_est[:,j],
+                                     alpha=1.0, color='red',
+                                     edgecolor='white', s=40, zorder=2.1)
                 # axes
                 if j == 0:
                     ylabel = 'PC{idx} ({var}%)'.format( idx=str(i+2), var=int(100*round(pca_var[i+1], ndigits=2)) )
@@ -707,7 +751,7 @@ class Plotter:
                     axs[i,j].set_xlabel(xlabel, fontsize=12)
                 
         plt.tight_layout()
-        fig.suptitle('PCA: aux. data')
+        fig.suptitle(f'PCA: {title}')
         fig.tight_layout(rect=[0, 0.03, 1, 0.98])
         plt.savefig(save_fn, format='pdf', dpi=300, bbox_inches='tight')
         plt.clf()
