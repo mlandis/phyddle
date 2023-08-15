@@ -563,81 +563,81 @@ class Plotter:
         # done
         return
 
-    def plot_pca(self, save_fn, sim_values, est_values=None, num_comp=4, f_show=0.10, color='blue'):
-        """
-        Plots PCA.
+    # def plot_pca(self, save_fn, sim_values, est_values=None, num_comp=4, f_show=0.10, color='blue'):
+    #     """
+    #     Plots PCA.
 
-        This function plots the PCA for simulated training aux. data examples.
-        The function plots a grid of pairs of principal components. It will also
-        plot values from the new dataset, when vailable (est_values != None).
+    #     This function plots the PCA for simulated training aux. data examples.
+    #     The function plots a grid of pairs of principal components. It will also
+    #     plot values from the new dataset, when vailable (est_values != None).
 
-        Arguments:
-            save_fn (str): Filename to save plot.
-            sim_values (numpy.array): Simulated values from training examples.
-            est_values (numpy.array): Estimated values from new dataset.
-            num_comp (int): Number of components to plot (default 4)
-            f_show (float): Proportion of scatter points to show in PCs
-            color (str): Color of histograms
-        """
-        # figure size
-        fig_width = 8
-        fig_height = 8 
+    #     Arguments:
+    #         save_fn (str): Filename to save plot.
+    #         sim_values (numpy.array): Simulated values from training examples.
+    #         est_values (numpy.array): Estimated values from new dataset.
+    #         num_comp (int): Number of components to plot (default 4)
+    #         f_show (float): Proportion of scatter points to show in PCs
+    #         color (str): Color of histograms
+    #     """
+    #     # figure size
+    #     fig_width = 8
+    #     fig_height = 8 
 
-        # rescale input data
-        scaler = StandardScaler()
-        x = scaler.fit_transform(sim_values)
+    #     # rescale input data
+    #     scaler = StandardScaler()
+    #     x = scaler.fit_transform(sim_values)
         
-        # thin dataset
-        nrow_keep = int(x.shape[0] * f_show)
-        alpha = np.min( [1, 100 / nrow_keep] )
+    #     # thin dataset
+    #     nrow_keep = int(x.shape[0] * f_show)
+    #     alpha = np.min( [1, 100 / nrow_keep] )
         
-        # apply PCA to sim_values
-        pca_model = PCA(n_components=num_comp)
-        pca = pca_model.fit_transform(x)
-        pca_var = pca_model.explained_variance_ratio_
+    #     # apply PCA to sim_values
+    #     pca_model = PCA(n_components=num_comp)
+    #     pca = pca_model.fit_transform(x)
+    #     pca_var = pca_model.explained_variance_ratio_
         
-        # project est_values on to PCA space
-        if est_values is not None:
-            est_values = scaler.transform(est_values)
-            pca_est = pca_model.transform(est_values)
+    #     # project est_values on to PCA space
+    #     if est_values is not None:
+    #         est_values = scaler.transform(est_values)
+    #         pca_est = pca_model.transform(est_values)
         
-        # figure dimennsions
-        fig, axs = plt.subplots(num_comp-1, num_comp-1, sharex=True, sharey=True, figsize=(fig_width, fig_height))
+    #     # figure dimennsions
+    #     fig, axs = plt.subplots(num_comp-1, num_comp-1, sharex=True, sharey=True, figsize=(fig_width, fig_height))
 
-        # use this to turn off subplots
-        #axes[i_row,j_col].axis('off')
+    #     # use this to turn off subplots
+    #     #axes[i_row,j_col].axis('off')
 
-        # generate PCA subplots
-        for i in range(0, num_comp-1):
-            for j in range(i+1, num_comp-1):
-                axs[i,j].axis('off')
-            for j in range(0, i+1):
-                # scatter plots
-                axs[i,j].scatter( pca[0:nrow_keep,i+1], pca[0:nrow_keep,j], alpha=alpha, marker='x', color=color )
-                if est_values is not None:    
-                    axs[i,j].scatter(pca_est[0:nrow_keep,i+1], pca_est[0:nrow_keep,j],
-                                     alpha=1.0, color='white', edgecolor='black', s=80)
-                    axs[i,j].scatter(pca_est[0:nrow_keep,i+1], pca_est[0:nrow_keep,j],
-                                     alpha=1.0, color='red', edgecolor='white', s=40)
-                # axes
-                if j == 0:
-                    ylabel = 'PC{idx} ({var}%)'.format( idx=str(i+2), var=int(100*round(pca_var[i+1], ndigits=2)) )
-                    axs[i,j].set_ylabel(ylabel, fontsize=12)
-                if i == (num_comp-2):
-                    xlabel = 'PC{idx} ({var}%)'.format( idx=str(j+1), var=int(100*round(pca_var[j], ndigits=2)) )
-                    axs[i,j].set_xlabel(xlabel, fontsize=12)
+    #     # generate PCA subplots
+    #     for i in range(0, num_comp-1):
+    #         for j in range(i+1, num_comp-1):
+    #             axs[i,j].axis('off')
+    #         for j in range(0, i+1):
+    #             # scatter plots
+    #             axs[i,j].scatter( pca[0:nrow_keep,i+1], pca[0:nrow_keep,j], alpha=alpha, marker='x', color=color )
+    #             if est_values is not None:    
+    #                 axs[i,j].scatter(pca_est[0:nrow_keep,i+1], pca_est[0:nrow_keep,j],
+    #                                  alpha=1.0, color='white', edgecolor='black', s=80)
+    #                 axs[i,j].scatter(pca_est[0:nrow_keep,i+1], pca_est[0:nrow_keep,j],
+    #                                  alpha=1.0, color='red', edgecolor='white', s=40)
+    #             # axes
+    #             if j == 0:
+    #                 ylabel = 'PC{idx} ({var}%)'.format( idx=str(i+2), var=int(100*round(pca_var[i+1], ndigits=2)) )
+    #                 axs[i,j].set_ylabel(ylabel, fontsize=12)
+    #             if i == (num_comp-2):
+    #                 xlabel = 'PC{idx} ({var}%)'.format( idx=str(j+1), var=int(100*round(pca_var[j], ndigits=2)) )
+    #                 axs[i,j].set_xlabel(xlabel, fontsize=12)
                 
-        plt.tight_layout()
-        fig.suptitle('PCA: aux. data')
-        fig.tight_layout(rect=[0, 0.03, 1, 0.98])
-        plt.savefig(save_fn, format='pdf', dpi=300, bbox_inches='tight')
-        plt.clf()
+    #     plt.tight_layout()
+    #     fig.suptitle('PCA: aux. data')
+    #     fig.tight_layout(rect=[0, 0.03, 1, 0.98])
+    #     plt.savefig(save_fn, format='pdf', dpi=300, bbox_inches='tight')
+    #     plt.clf()
 
-        #done
-        return
+    #     #done
+    #     return
     
     def plot_pca_contour(self, save_fn, sim_values, est_values=None,
-                         num_comp=4, f_show=0.10, color='blue', title=''):
+                         num_comp=4, color='blue', title=''):
         """
         Plots PCA Contour Plot.
 
