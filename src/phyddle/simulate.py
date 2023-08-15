@@ -140,7 +140,7 @@ class Simulator:
     
         # start time
         start_time,start_time_str = util.get_time()
-        util.print_str(f'▪ Start time of {start_time_str}', verbose)
+        #util.print_str(f'▪ Start time {start_time_str}', verbose)
 
         # dispatch jobs
         util.print_str('▪ Simulating raw data', verbose)
@@ -170,10 +170,10 @@ class Simulator:
 
         # end time
         end_time,end_time_str = util.get_time()
-        util.print_str(f'▪ End time of {end_time_str}', verbose)
-
         run_time = util.get_time_diff(start_time, end_time)
-        util.print_str(f'▪ Total time of {run_time}', verbose)
+        #util.print_str(f'▪ End time {end_time_str}', verbose)
+
+        util.print_str(f'▪ Run time of {run_time}', verbose)
 
         # done
         util.print_str('... done!', verbose)

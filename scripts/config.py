@@ -12,7 +12,7 @@ args = {
     #-------------------------------#
     'proj'    : 'R_example',                # project name(s)
     'step'    : 'SFTEP',                    # step(s) to run
-    'verbose' : True,                       # print verbose phyddle output?
+    'verbose' : 'T',                        # print verbose phyddle output?
     'sim_dir' : '../workspace/simulate',    # directory for simulated data
     'fmt_dir' : '../workspace/format',      # directory for tensor-formatted data
     'trn_dir' : '../workspace/train',       # directory for trained network
@@ -23,13 +23,12 @@ args = {
     #-------------------------------#
     # Multiprocessing               #
     #-------------------------------#
-    'use_parallel'   : True,                # use multiprocessing to speed up jobs?
+    'use_parallel'   : 'T',                 # use multiprocessing to speed up jobs?
     'num_proc'       : 10,                  # how many CPUs to use (-2 means all but 2)
 
     #-------------------------------#
     # Simulate Step settings        #
     #-------------------------------#
-    'sim_method'        : 'command',         # command, master, [phylojunction], ...
     'sim_command'       : 'Rscript sim/R/sim_one.R', # exact command string, argument is output file prefix
     'sim_logging'       : 'verbose',        # verbose, compressed, or clean
     'start_idx'         : 0,                # first simulation replicate index
@@ -53,7 +52,7 @@ args = {
     'param_data'        : [],               # model parameters that are known (aux. data)
     'tensor_format'     : 'hdf5',           # save as compressed HDF5 or raw csv
     'char_format'       : 'nexus',
-    'save_phyenc_csv'   : False,            # save intermediate phylo-state vectors to file
+    'save_phyenc_csv'   : 'F',              # save intermediate phylo-state vectors to file
 
     #-------------------------------#
     # Train Step settings           #
@@ -64,9 +63,8 @@ args = {
     'prop_test'         : 0.05,             # proportion of sims in test dataset
     'prop_val'          : 0.05,             # proportion of sims in validation dataset
     'prop_cal'          : 0.20,             # proportion of sims in CPI calibration dataset
-    'combine_test_val'  : True,
     'cpi_coverage'      : 0.95,             # coverage level for CPIs
-    'cpi_asymmetric'    : True,             # upper/lower (True) or symmetric (False) CPI adjustments
+    'cpi_asymmetric'    : 'T',              # upper/lower (True) or symmetric (False) CPI adjustments
     'trn_batch_size'    : 128,              # number of samples in each training batch
     'loss'              : 'mse',            # loss function for learning
     'optimizer'         : 'adam',           # optimizer for network weight/bias parameters

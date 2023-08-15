@@ -548,6 +548,9 @@ def get_time():
     s = time.strftime("%H:%M:%S", t)
     return time.mktime(t),s
 
+def get_time_str():
+    return get_time()[1]
+
 def get_time_diff(start_time, end_time):
     difference_seconds = end_time - start_time
     hours, remainder = divmod(difference_seconds, 3600)
