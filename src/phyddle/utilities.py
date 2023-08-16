@@ -104,7 +104,7 @@ def settings_registry():
         # basic phyddle options
         'cfg'              : { 'step':'',      'type':str,  'section':'Basic', 'default':'config.py',  'help':'Config file name', 'opt':'c' },
         'proj'             : { 'step':'SFTEP', 'type':str,  'section':'Basic', 'default':'my_project', 'help':'Project name(s) for pipeline step(s)', 'opt':'p' },
-        'name'             : { 'step':'SFTEP', 'type':str,  'section':'Basic', 'default':'',           'help':'Nickname for file-set within project', 'opt':'n' },
+        # 'name'             : { 'step':'SFTEP', 'type':str,  'section':'Basic', 'default':'',           'help':'Nickname for file-set within project', 'opt':'n' },
         'step'             : { 'step':'SFTEP', 'type':str,  'section':'Basic', 'default':'SFTEP',      'help':'Pipeline step(s) defined with (S)imulate, (F)ormat, (T)rain, (E)stimate, (P)lot, or (A)ll', 'opt':'s' },
         'verbose'          : { 'step':'SFTEP', 'type':str,  'section':'Basic', 'default':'T',          'help':'Verbose output to screen?', 'bool':True, 'opt':'v' },
         'force'            : { 'step':'',      'type':None,  'section':'Basic', 'default':None,        'help':'Arguments override config file settings', 'opt':'f' },
@@ -203,7 +203,7 @@ def load_config(config_fn,
     Returns:
         dict: The loaded configuration.
     """
-
+    
     # use command line sys.argv if no args provided
     if INTERACTIVE_SESSION:
         args = []
@@ -1483,8 +1483,10 @@ def print_step_header(step, in_dir, out_dir, verbose=True, style=1, fg=34):
     run_info  = phyddle_header( step ) + '\n'
     
     # in paths
+    plot_bar = True
     if in_dir is not None:
         run_info += phyddle_str('  ┃')  + '\n'
+        plot_bar = False
         for i,_in_dir in enumerate(in_dir):
             in_path = f'{_in_dir}'
             if i == 0:
@@ -1496,6 +1498,9 @@ def print_step_header(step, in_dir, out_dir, verbose=True, style=1, fg=34):
     if out_dir is not None:
         #run_info += phyddle_str('  ┃')  + '\n'
         out_path = f'{out_dir}'
+    if plot_bar:
+        run_info += phyddle_str('  ┃')  + '\n'
+    
     run_info += phyddle_str(f'  ┗━━━▪ output: {out_path}' ) + '\n'
     
     # print if verbose is True

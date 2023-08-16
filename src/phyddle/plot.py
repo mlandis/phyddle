@@ -127,7 +127,7 @@ class Plotter:
         self.test_labels_fn     = f'{est_proj_prefix}.test_true.labels.csv'
         
         # plotting output
-        self.save_density_aux_fn   = f'{plt_proj_prefix}.density_aux.pdf'
+        self.save_density_aux_fn   = f'{plt_proj_prefix}.density_aux_data.pdf'
         self.save_density_label_fn = f'{plt_proj_prefix}.density_label.pdf'
         self.save_train_est_fn     = f'{plt_proj_prefix}.estimate_train'
         self.save_test_est_fn      = f'{plt_proj_prefix}.estimate_test'
@@ -851,7 +851,7 @@ class Plotter:
                 plt.yscale('log')         
 
             # save
-            save_fn = f'{prefix}.{p}.pdf'
+            save_fn = f'{prefix}_{p}.pdf'
             plt.savefig(save_fn, format='pdf', dpi=300, bbox_inches='tight')
             plt.clf()
 

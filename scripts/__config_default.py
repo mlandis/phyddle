@@ -8,7 +8,6 @@ args = {
   #-------------------------------#
   'cfg'                : 'config.py',          # Config file name               
   'proj'               : 'my_project',         # Project name(s) for pipeline step(s)
-  'name'               : '',                   # Nickname for file-set within project
   'step'               : 'SFTEP',              # Pipeline step(s) defined with (S)imulate, (F)ormat, (T)rain, (E)stimate, (P)lot, or (A)ll
   'verbose'            : 'T',                  # Verbose output to screen?      
   'force'              : None,                 # Arguments override config file settings
