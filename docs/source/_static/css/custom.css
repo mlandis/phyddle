@@ -10,6 +10,11 @@
     background: #FFFFFF;
 }
 
+
+.version {
+    color: #16639a !important;
+}
+
 /* not sure */
 .wy-body-for-nav {
 	background: #FFFFFF;
@@ -31,7 +36,9 @@
 }
 
 /* color for menu item text */
-.wy-menu-vertical a { color: #16639a; }
+.wy-menu-vertical a {
+    color: #16639a;
+}
 
 /* mouseover color for menu items */
 .wy-menu-vertical a:hover {
