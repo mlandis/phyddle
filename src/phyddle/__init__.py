@@ -9,6 +9,8 @@ Copyright: (c) 2022-2023, Michael Landis and Ammon Thompson
 License:   MIT
 """
 
+import os
+import sys
 from multiprocessing import set_start_method
 
 __project__ = 'phyddle'
@@ -20,6 +22,11 @@ __citation__ = 'A Thompson, B Liebeskind, EJ Scully, MJ Landis. 2023. Deep learn
 # DEFAULT
 CONFIG_DEFAULT_FN = '__config_default.py'
 PHYDDLE_VERSION = '0.0.6'
+
+# add local directory to system path
+# allows import of local cfg
+# ...but might switch over to simple tab-deilmited file
+sys.path.insert(0, os.getcwd())
 
 if __name__ == '__main__':
     # set the start method

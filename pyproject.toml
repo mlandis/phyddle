@@ -26,3 +26,6 @@ classifiers = [
 line-length = 400
 # skip unused variable rules (`F841`)
 extend-ignore = ["F841"]
+
+[project.scripts]
+phyddle = "phyddle.command_line:run"
