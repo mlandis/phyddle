@@ -320,12 +320,16 @@ in the directory assigned to ``trn_dir`` in the subdirectory ``proj``.
 Estimate
 --------
 
-:ref:`Estimate` loads a new dataset stored in ``<est_dir>/<est_proj>`` with
-filenames ``<est_prefix.tre>`` and ``<est_prefix>.dat.nex``. This step then
-loads a pretrained network and has it estimate new point estimates and
-calibrated prediction intervals (CPIs) based on other project settings.
-New estimations are then stored into the original ``<est_dir>/<est_proj>``.
+:ref:`Estimate` loads the simulated test dataset saved with the format indicated
+by ``tensor_format`` stored in ``<fmt_dir>/<fmt_proj>``. :ref:`Estimate` also
+loads a new dataset stored in ``<est_dir>/<est_proj>`` with filenames
+``<est_prefix.tre>`` and ``<est_prefix>.dat.nex``, if the new dataset exists.
 
+This step then loads a pretrained network for a given ``tree_width`` and
+uses it to estimate parameter values and calibrated prediction intervals
+(CPIs) for both the new (empirical) dataset and the test (simulated) dataset.
+Estimates are then stored as separated datasets into the original
+``<est_dir>/<est_proj>`` directory.
 
 
 .. _Plot:

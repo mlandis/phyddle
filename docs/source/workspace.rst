@@ -72,23 +72,23 @@ produce the following files
 Applying :ref:`Format` to a directory of simulated datasets will output
 tensors containing the entire set of training examples, stored to, e.g.
 ``workspace/format/example``. What formatted files are created depends on
-the value of ``tensor_format`` and ``tree_width_cats``.
+the value of ``tensor_format`` and ``tree_width``.
 
-When ``tree_width_cats`` is set to ``[200, 500]``, :ref:`Format` will yield two
-tensors of training examples: one with all training examples containing 200
-or fewer taxa, and second containing all examples with 201 to 500 taxa.
+When ``tree_width`` is set to ``200``, :ref:`Format` will yield two simulated
+dataset tensors: one for the training examples and another for the test
+examples.
 
 If the ``tensor_format`` setting is ``'csv'`` (Comma-Separated Value, or CSV
 format), the formatted files are:
 
 .. code-block:: shell
     
-    sim.nt200.phy_data.csv
-    sim.nt200.aux_data.csv
-    sim.nt200.labels.csv
-    sim.nt500.phy_data.csv
-    sim.nt500.aux_data.csv
-    sim.nt500.labels.csv
+    test.nt200.phy_data.csv
+    test.nt200.aux_data.csv
+    test.nt200.labels.csv
+    train.nt200.phy_data.csv
+    train.nt200.aux_data.csv
+    train.nt200.labels.csv
 
 where the `phy_data.csv` files contain one flattened Compact Phylogenetic Vector +
 States (CPV+S) entry per row, the `aux_data.csv` files contain one vector of
@@ -102,8 +102,8 @@ If the ``tensor_format`` setting is ``'hdf5'``, the resulting files are:
 
 .. code-block:: shell
     
-    sim.nt200.hdf5
-    sim.nt500.hdf5
+    test.nt200.hdf5
+    train.nt200.hdf5
 
 where each HDF5 file contains all phylogenetic-state (CPV+S) data, auxiliary
 data, and label data. Individual simulated training examples share the same
@@ -120,29 +120,26 @@ Training a network creates the following files in the ``workspace/train/my_proje
 
 .. code-block:: shell
 
-    train_prefix.cpi_adjustments.csv
-    train_prefix.hdf5
-    train_prefix.test_labels.csv
-    train_prefix.test_pred.csv
-    train_prefix.test_pred_nocalib.csv
-    train_prefix.train_history.json
-    train_prefix.train_label_norm.csv
-    train_prefix.train_labels.csv
-    train_prefix.train_pred.csv
-    train_prefix.train_pred_nocalib.csv
-    train_prefix.train_summ_stat_norm.csv
+    network_nt200.cpi_adjustments.csv
+    network_nt200.hdf5
+    network_nt200.train_aux_data_norm.csv
+    network_nt200.train_est.csv
+    network_nt200.train_est.labels.csv
+    network_nt200.train_history.json
+    network_nt200.train_label_est_nocalib.csv
+    network_nt200.train_label_norm.csv
+    network_nt200.train_true.labels.csv
 
-where ``train_prefix`` describes the training settings for the network. For
-example, the network prefix ``sim_batchsize128_numepoch20_nt500`` indicated a
-network trained with a batch size of 128 samples for 20 epochs on the tree
+For example, the network prefix ``sim_batchsize128_numepoch20_nt500`` indicated
+a network trained with a batch size of 128 samples for 20 epochs on the tree
 width size-category of max. 500 taxa.
 
 Descriptions of the files are as follows, with ``train_prefix`` omitted for brevity:
 * ``network.hdf5``: a saved copy of the trained neural network that can be loaded by Tensorflow
 * ``train_label_norm.csv`` and ``train_aux_data_norm.csv``: the location-scale values from the training dataset to (de)normalize the labels and auxiliary data from any dataset
-* ``train_labels.csv`` and ``test_labels.csv``: the true values of labels for the training and test datasets, where columns correspond to estimated labels (e.g. model parameters)
-* ``train_est.csv`` and ``test_est.csv``: the trained network estimates of labels for the training and test datasets, with calibrated prediction intervals, where columns correspond to point estimates and estimates for lower CPI and upper CPI bounds for each named label (e.g. model parameter)
-* ``train_pred_nocalib.csv`` and ``test_pred_nocalib.csv``: the trained network estimates of labels for the training and test datasets, with uncalibrated prediction intervals
+* ``train_true.labels.csv``: the true values of labels for the training and test datasets, where columns correspond to estimated labels (e.g. model parameters)
+* ``train_est.labels.csv``: the trained network estimates of labels for the training and test datasets, with calibrated prediction intervals, where columns correspond to point estimates and estimates for lower CPI and upper CPI bounds for each named label (e.g. model parameter)
+* ``train_label_est_nocalib.csv``: the trained network estimates of labels for the training and test datasets, with uncalibrated prediction intervals
 * ``train_history.json``: the metrics across training epochs monitored during network training
 * ``cpi_adjustments.csv``: calibrated prediction interval adjustments, where columns correspond to parameters, the first row contains lower bound adjustments, and the second row contains upper bound adjustments
 
@@ -164,7 +161,7 @@ estimates in the same directory, located at e.g.
     new.1.phy_data.csv      # intermediate:      CPV+S tensor data 
     new.1.aux_data.csv      # intermediate:      aux. data tensor data 
     new.1.info.csv          # intermediate:      formatting info
-    new.1.sim_batchsize128_numepoch20_nt500.est_labels.csv  # output: estimates
+    new.1.network_nt200.est_labels.csv  # output: estimates
 
 All files have previously been explained in the ``simulate``, ``format``,
 or ``train`` workspace sections, except for two.
@@ -195,14 +192,14 @@ by :ref:`Format`, :ref:`Train`, and (when available) :ref:`Estimate`.
 
 .. code-block:: shell
     
-    est_CPI.pdf                    # results from Estimate step
-    density_{label,aux}.pdf        # densities from Simulate/Format steps
-    pca_aux.pdf                    # PCA of Simulate/Format steps
-    {test,train}_{param}.pdf       # prediction accuracy from Train steps       
-    history.pdf                    # training history for entire network
-    history_param_{statistic}.pdf  # training history for each estimation target
-    network_architecture.pdf       # neural network architecture
-    summary.pdf                    # compiled report of all figures
+    est_CPI.pdf                       # results from Estimate step
+    density_{label,aux_data}.pdf      # densities from Simulate/Format steps
+    pca_contour_{label,aux_data}.pdf  # PCA of Simulate/Format steps
+    estimate_{test,train}_{param}.pdf # estimation accuracy from Train steps       
+    history.pdf                       # training history for entire network
+    history_param_{statistic}.pdf     # training history for each estimation target
+    network_architecture.pdf          # neural network architecture
+    summary.pdf                       # compiled report of all figures
 
 Visit :ref:`pipeline` to learn more about the files.
     
