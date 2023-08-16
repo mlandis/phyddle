@@ -1,4 +1,4 @@
-# phyddle
+# phyddle v0.0.7
 
 #### Tools to fiddle around with deep learning for phylogenetic models
 
