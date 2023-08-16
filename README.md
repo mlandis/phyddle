@@ -2,7 +2,7 @@
 
 #### A pipeline-based toolkit for fiddling around with phylogenetic models and deep learning
 
-> <b>NOTE: *This private beta version of phyddle is still under development.</b>
+> <b>NOTE: *This private beta version of phyddle is still under development.*</b>
 
 ## User guide
 Visit https://mlandis.github.io/phyddle to learn more about phyddle.
