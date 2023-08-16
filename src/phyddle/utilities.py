@@ -245,55 +245,72 @@ def load_config(config_fn,
         print(f'Created default config as \'{CONFIG_DEFAULT_FN}\' ...')
         sys.exit()
 
-    # load default config from file
-    if os.path.exists(CONFIG_DEFAULT_FN) is False:
-        print(f'Created default config as \'{CONFIG_DEFAULT_FN}\' ...')
-        make_default_config()
-    m_default = importlib.import_module(strip_py(CONFIG_DEFAULT_FN))
+    # # load default config from file
+    # if os.path.exists(CONFIG_DEFAULT_FN) is False:
+    #     print(f'Created default config as \'{CONFIG_DEFAULT_FN}\' ...')
+    #     make_default_config()
+    # m_default = importlib.import_module(strip_py(CONFIG_DEFAULT_FN))
 
-    # load user config from file
+    # # load user config from file
+    # if arg_overwrite and args.cfg is not None:
+    #     config_fn = args.cfg
+    # m_file = importlib.import_module(strip_py(config_fn))
+    
+    namespace = {}
+    with open(CONFIG_DEFAULT_FN) as file:
+        code = file.read()
+        exec(code, namespace)
+
+    default_args = namespace['args']
+    
     if arg_overwrite and args.cfg is not None:
         config_fn = args.cfg
-    m_file = importlib.import_module(strip_py(config_fn))
     
+    with open(config_fn) as file:
+        code = file.read()
+        exec(code, namespace)
+
+    file_args = namespace['args']
+    
+
     # merge default, user_file, and user_cmd settings
     for k in settings.keys():
-        m = reconcile_settings(m_default, m_file, args, k)
+        m = reconcile_settings(default_args, file_args, args, k)
 
     # fix convert string-valued bool to true bool
     m = fix_bool(m)
 
     # update steps
-    if m.args['step'] == 'A':
-        m.args['step'] = 'SFTEP'
+    if m['step'] == 'A':
+        m['step'] = 'SFTEP'
     
     # check arguments are valid
-    check_args(m.args)
+    check_args(m)
 
     # set steps & projects
-    m.args = add_step_proj(m.args)
+    m = add_step_proj(m)
     
     # add session info
     date_obj = datetime.now()
-    m.args['date'] = date_obj.strftime("%y%m%d_%H%M%S")
-    m.args['job_id'] = generate_random_hex_string(7)
+    m['date'] = date_obj.strftime("%y%m%d_%H%M%S")
+    m['job_id'] = generate_random_hex_string(7)
     
     # print header?
-    verbose = m.args['verbose']
+    verbose = m['verbose']
     if verbose:
         print(phyddle_header('title'))
 
     # return new args
-    return m.args
+    return m
 
 
 def fix_bool(m):
     settings = settings_registry()
     for k,v in settings.items():
         if 'bool' in v:
-            arg_val = m.args[k]
+            arg_val = m[k]
             arg_val_new = arg_str2bool(arg_val, k)
-            m.args[k] = arg_val_new
+            m[k] = arg_val_new
     return m
 
 
@@ -503,18 +520,18 @@ def reconcile_settings(default_args, file_args, cmd_args, var):
         # print('FILE:',m_file.args)
         # print('ARGS:',args)
         # first apply file args
-        if var in file_args.args.keys():
-            x_file = file_args.args[var]
+        if var in file_args.keys():
+            x_file = file_args[var]
             #x_file = getattr(m_file.args, var)
             if x_file is not None:
-                default_args.args[var] = x_file
+                default_args[var] = x_file
 
         # then apply command args
         x_cmd = getattr(cmd_args, var)
         #if var in cmd_args.keys():
         #    x_cmd = cmd_args[var]
         if x_cmd is not None:
-            default_args.args[var] = x_cmd
+            default_args[var] = x_cmd
 
         return default_args
 

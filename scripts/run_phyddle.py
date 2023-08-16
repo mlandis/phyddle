@@ -7,7 +7,7 @@
 import phyddle
 import phyddle.utilities as util
 
-my_args = util.load_config('config', arg_overwrite=True)
+my_args = util.load_config('config.py', arg_overwrite=True)
 step = my_args['step']
 
 logger = util.Logger(my_args)
