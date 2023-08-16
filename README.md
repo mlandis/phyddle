@@ -48,7 +48,7 @@ git pull
 ./build.sh
 ```
 
-phyddle uses third-party simulators to generate training datasets. The standard workflow assumes that R, RevBayes, or BEAST v2.7.3 with MASTER v7.0.0 (plugin) is installed on your machine and be executed as a command from terminal. The documentation explains how to configure R for use with phyddle.
+phyddle uses third-party simulators to generate training datasets. The standard workflow assumes that [R](https://cran.r-project.org) v4.2.2, [RevBayes](https://revbayes.github.io) v1.2.1, or [BEAST](https://www.beast2.org/) v2.7.3 with [MASTER](https://github.com/tgvaughan/MASTER) v7.0.0 (plugin) is installed on your machine and be executed as a command from terminal. The documentation explains how to configure R for use with phyddle.
 
 ## Quick start
 
@@ -62,7 +62,7 @@ Then create and run a pipeline under the settings you've specified in `my_config
 ./run_phyddle.py --cfg config
 ```
 
-This will run a phyddle analysis with 1000 simulations from R and the ape pacckage for a simple birth-death model with two 3-state characters. In practice, you'll want to generate a larger training dataset with anywhere from 10k to 1M examples, depending on the model.
+This will run a phyddle analysis with 1000 simulations from R and the ape package for a simple birth-death model with two 3-state characters. In practice, you'll want to generate a larger training dataset with anywhere from 10k to 1M examples, depending on the model.
 
 To add new examples to your training set
 ```shell
