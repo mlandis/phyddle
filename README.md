@@ -41,17 +41,7 @@ git pull
 ./build.sh
 ```
 
-Project [documentation](docs/build/html/index.html) can be viewed from your local web browser, but will be hosted online once the repo is made public. The `build.sh` script will build a local copy of the documentation on your filesystem. The terminal command `open docs/build/html/index.html` will open the documentation on Mac OS X in your web browser.
-
-The full documentation explains that running phyddle requires a recent version of Python (3.10+) and recent versions of several Python packages. The packages can be installed using pip with this command.
-
-```shell
-python3 -m ensurepip --upgrade
-python3 -m pip install --upgrade pip
-python3 -m pip install argparse h5py joblib keras matplotlib numpy pandas Pillow pydot_ng pypdf scipy scikit-learn tensorflow tqdm
-```
-
-phyddle uses third-party simulators to generate training datasets. The standard workflow assumes that BEAST v2.7.3 with MASTER v7.0.0 (plugin) is installed on your machine and be executed from terminal with the command `beast`. The documentation explains how to configure BEAST and MASTER for use with phyddle.
+phyddle uses third-party simulators to generate training datasets. The standard workflow assumes that R, RevBayes, or BEAST v2.7.3 with MASTER v7.0.0 (plugin) is installed on your machine and be executed as a command from terminal. The documentation explains how to configure R for use with phyddle.
 
 ## Quick start
 
@@ -62,33 +52,34 @@ cd ~/projects/phyddle/scripts
 
 Then create and run a pipeline under the settings you've specified in `my_config.py`:
 ```shell
-./run_phyddle.py --cfg my_config
+./run_phyddle.py --cfg config
 ```
 
-This will run a phyddle analysis for a simple 3-region GeoSSE model with just 500 training examples. In practice, you'll want to generate a larger training dataset with anywhere from 10k to 1M examples, depending on the model.
+This will run a phyddle analysis with 1000 simulations from R and the ape pacckage for a simple birth-death model with two 3-state characters. In practice, you'll want to generate a larger training dataset with anywhere from 10k to 1M examples, depending on the model.
 
 To add new examples to your training set
 ```shell
-# simulate new training examples and store in raw_data/my_project
-./run_phyddle.py -s sim -c my_config --start_idx 500 --end_idx 15000
+# simulate new training examples and store in simulate/my_project
+./run_phyddle.py -s S -c config --sim_more 14000
 
-# encode all raw_data examples as tensors in tensor_data/my_project
-./run_phyddle.py -s fmt -c my_config --start_idx 0 --end_idx 15000
+# encode all raw_data examples as tensors in format/my_project
+./run_phyddle.py -s F -c config
 
-# train network with tensor_data, but override batch size, then store in network/my_project
-./run_phyddle.py -s lrn -c my_config --batch_size 256
+# train network with tensor_data, but override batch size, then store in train/my_project
+./run_phyddle.py -s T -c config --batch_size 256
 
 # make prediction with example dataset
-./run_phyddle.py -s prd -c my_config
+./run_phyddle.py -s E -c config
 
 # generate figures and store in plot
-./run_phyddle.spy -s plt -c my_config
+./run_phyddle.spy -s P -c config
 ```
 
 Pipeline options are applied to all pipeline stages. See the full list of currently supported options with
 ```shell
 ./run_phyddle.sh --help
 ```
+
 ## Note on code stability
 
 Code on the [main](https://github.com/mlandis/phyddle/tree/main) branch is tested and stable with respect to the standard use cases. Code on the [development](https://github.com/mlandis/phyddle/tree/development) branch contains new features, but is not as rigorously tested. Most phyddle development occurs on a 16-core Intel Macbook Pro laptop and a 64-core Intel Ubuntu server, so there are also unknown portability/scalability issues to correct. Any feedback is appreciated! michael.landis@wustl.edu*
