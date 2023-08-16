@@ -253,6 +253,7 @@ class Plotter:
             self.est_lbl_df.index = ['value','lower','upper']
             self.est_lbl_value = pd.DataFrame(_value, columns=self.param_names)
         else:
+            self.est_lbl_value = None
             self.est_lbl_df = None
 
         # done
