@@ -4,7 +4,7 @@ Updates
 The complete commit history for phyddle is located here: https://github.com/mlandis/phyddle/commits/main
 
 **phyddle v0.0.8** -- (in progress)
-* ...
+* Attempting TestPyPI upload
 
 
 **phyddle v0.0.7** -- 23.08.16
