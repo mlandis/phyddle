@@ -211,8 +211,9 @@ def load_config(config_fn,
         args = sys.argv[1:]
 
     # argument parsing
-    parser = argparse.ArgumentParser(description='phyddle pipeline config') #,
-                                     #formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    desc = 'Software to fiddle around with deep learning for phylogenetic models'
+    parser = argparse.ArgumentParser(description=desc)
+    #, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     # read settings registry and populate argument parser
     settings = settings_registry()

@@ -1,6 +1,6 @@
 # phyddle 0.0.7
 
-#### Tools to fiddle around with deep learning for phylogenetic models
+#### Software to fiddle around with deep learning for phylogenetic models
 
 > *NOTE: This private beta version of phyddle is still under development.*
 

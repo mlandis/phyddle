@@ -3,8 +3,11 @@ Updates
 
 The complete commit history for phyddle is located here: https://github.com/mlandis/phyddle/commits/main
 
+**phyddle v0.0.8** -- (in progress)
+* ...
 
-**phyddle v0.0.7** -- (in progress)
+
+**phyddle v0.0.7** -- 23.08.16
 
 * Format now splits training from test datasets.
 * Estimate now applies trained model against test dataset.
@@ -12,6 +15,9 @@ The complete commit history for phyddle is located here: https://github.com/mlan
 * Add PCA contour plot.
 * Simplify filenames within projects for many steps.
 * Timestamp step start/end/duration.
+* Docs now hosted online at http://mlandis.github.io/phyddle
+* Python package now hosted through pip at https://pypi.org/project/phyddle/
+* Add bump2version support
 
 
 **phyddle v0.0.6** -- 23.08.09

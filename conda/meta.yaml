@@ -1,0 +1,57 @@
+{% set name = "phyddle" %}
+{% set version = "development" %}
+
+package:
+  name: {{name}}
+  version: {{version}}
+
+source:
+  url: https://files.pythonhosted.org/packages/3f/04/18e622aaee2e4a29a4918298ed881b78d999f8fa6bb67735d65151f784bc/phyddle-0.0.7.tar.gz
+  sha: 28d9388666a5b1a667dd7ce92291b35cc0203c7230819dd608703d8820bf4182
+  #git_url: https://github.com/mlandis/phyddle.git
+  #git_rev: {{version}}
+
+build:
+  number: 0
+  script: "{{ PYTHON }} -m pip install . --no-deps --ignore-installed -vv "
+
+requirements:
+  host:
+    - pip
+    - python >=3.10
+    - git
+    - git-lfs
+    - hatchling
+  run:
+
+    #'python>=3.11' 'dendropy>=4.6' 'tensorflow>=2.12' numpy=1.23 pandas=2.0 scipy=1.11 joblib=1.2 tqdm=4.65 h5py=3.8 keras=2.12  matplotlib=3.7 pypdf=3.12 Pillow=10.0 scikit-learn=1.2 graphviz python-graphviz pydot
+
+    - python >=3.10
+    - dendropy
+    - graphviz
+    - h5py
+    - keras >=2.12
+    - matplotlib
+    - numpy
+    - pandas
+    - pydot
+    - pypdf
+    - python-graphviz
+    - scikit-learn
+    - scipy
+    - tensorflow >=2.12
+    - tqdm
+
+test:
+  imports:
+    - phyddle
+  commands:
+    - phyddle --help
+
+about:
+  home: https://mlandis.github.io/phyddle
+  dev_url: http://github.com/mlandis/phyddle
+  doc_url: https://mlandis.github.io/phyddle
+  license: MIT
+  license_family: MIT
+  summary: Software to fiddle around with deep learning for phylogenetic models
