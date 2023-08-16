@@ -23,6 +23,7 @@
 /* center content panel color */
 .wy-nav-content {
 	background: #FFFFFF;
+    max-width: 1200px !important;
 }
 
 .wy-nav-side {

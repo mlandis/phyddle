@@ -47,26 +47,27 @@ would use. In general, we assume the project name is ``example``:
 
     Simulate 
     - input:   None
-    - output:  workspace/simulate/example   # simulated datasets
+    - output:  workspace/simulate/example  # simulated datasets
 
     Format
-    - input:   workspace/simulate/example
-    - output:  workspace/format/example     # formatted datasets
+    - input:   workspace/simulate/example  # simulated datasets
+    - output:  workspace/format/example    # formatted datasets
   
     Train
-    - input:   workspace/format/example
-    - output:  workspace/train/example      # trained network + results
+    - input:   workspace/format/example    # simulated training dataset
+    - output:  workspace/train/example     # trained network + results
   
     Estimate
-    - input:   workspace/estimate/example   # new (emprical) dataset
-               workspace/train/example
-    - output:  workspace/estimate/example   # new (empirical) estimates
+    - input:   workspace/format/example    # simulated test dataset
+               workspace/train/example     # trained network
+               workspace/estimate/example  # new (emprical) dataset
+    - output:  workspace/estimate/example  # new (empirical) estimates
 
     Plot
-    - input:   workspace/format/example
-               workspace/train/example
-               workspace/estimate/example   # (optional)
-    - output:  workspace/plot/example       # analysis figures
+    - input:   workspace/format/example    # simulated training dataset
+               workspace/train/example     # trained network and output
+               workspace/estimate/example  # new (empirical) dataset & estimates
+    - output:  workspace/plot/example      # analysis figures
 
 
 .. _Simulate:
@@ -204,18 +205,19 @@ model parameters for each replicate. This is done in parallel, when the
 setting ``use_parallel`` is set to ``True``. Simulated data are processed
 using CBLV+S format if ``tree_type`` is set to ``'serial'``. If ``tree_type``
 is set to ``'extant'`` then all non-extant taxa are pruned, saved as
-``pruned.tre``, then encoded using CDV+S. The size of each tree ($n$) is then
-used to identify the largest value in the integer list ``tree_width_cats``
-it can fit into. For example, if ``tree_width_cats`` is has the value
-``[200, 500]``, then a training example with 207 taxa would be added to a
-tensor containing other trees with 201 to 500 taxa. The phylogenetics-state
-tensors and auxiliary data tensors are then created. If ``save_phyenc_csv``
-is set, then individual csv files are saved for each dataset, which is
-especially useful for formatting new empirical datasets into an accepted
-phyddle format. The ``param_est`` setting identifies which parameters in
-the labels tensor you want to treat as downstream estimation targets. The
-``param_data`` setting identifies which of those parameters you want to
-treat as "known" auxiliary data.
+``pruned.tre``, then encoded using CDV+S. Each tree is then encoded into a
+phylogenetic-state tensor with a maximum of ``tree_width`` sampled taxa. Trees
+that contain more taxa are downsampled to ``tree_width`` taxa. The number of
+taxa in each original dataset is recorded in the summary statistics, regardless
+of its size. The phylogenetc-state tensors and auxiliary data tensors are
+then created. If ``save_phyenc_csv`` is set, then individual csv files are
+saved for each dataset, which is especially useful for formatting new empirical
+datasets into an accepted phyddle format. The ``param_est`` setting identifies
+which parameters in the labels tensor you want to treat as downstream
+estimation targets. The ``param_data`` setting identifies which of those
+parameters you want to treat as "known" auxiliary data. Lastly, Format creates
+a test dataset containing proportion `test_prop` of examples, and a second
+training dataset that contains all remaining examples.
 
 Formatted tensors are then saved to disk either in simple comma-separated
 value format or in a compressed HDF5 format. For example, suppose we set
@@ -224,19 +226,20 @@ to ``'serial'``. If we set ``tensor_format`` to ``'hdf5'`` it produces:
 
 .. code-block:: shell
 
-	workspace/format/example/sim.nt200.hdf5
-	workspace/format/example/sim.nt500.hdf5
+    workspace/format/example/test.nt200.hdf5
+    workspace/format/example/train.nt200.hdf5
 
 or if ``tensor_format == 'csv'``:
 
 .. code-block:: shell
 
-	workspace/format/example/sim.nt200.cdvs.data.csv
-	workspace/format/example/sim.nt200.labels.csv
-	workspace/format/example/sim.nt200.summ_stat.csv
-	workspace/format/example/sim.nt500.cdvs.data.csv
-	workspace/format/example/sim.nt500.labels.csv
-	workspace/format/example/sim.nt500.summ_stat.csv
+    workspace/format/example/test.nt200.aux_data.csv
+    workspace/format/example/test.nt200.labels.csv
+    workspace/format/example/test.nt200.phy_data.csv
+    workspace/format/example/train.nt200.aux_data.csv
+    workspace/format/example/train.nt200.labels.csv
+    workspace/format/example/train.nt200.phy_data.csv
+	
 
 These files can then be processed by the :ref:`Train` step.
 
@@ -260,10 +263,12 @@ The :ref:`Train` step performs six main tasks:
 5. Record network training performance to file
 6. Save the trained network to file
 
-When data are read in, they are shuffled, with some set aside for test data
-(``prop_test``), validation data (``prop_val``), and calibration data
-(``prop_cal``), with all remaining data being used for training. A network
-must be trained against a particular ``tree_width`` size (see above). 
+When the training dataset is read in, its examples are randomly shuffled by
+replicate index. It then sets aside some examples for a validation dataset
+(``prop_val``) and others for a calibration dataset (``prop_cal``). Note, some
+examples were already set aside for the training dataset during the
+Format step (``prop_test``). All remaining examples are used for training.
+A network must be trained against a particular ``tree_width`` size (see above). 
 
 phyddle uses `TensorFlow <https://www.tensorflow.org/>`__ and
 `Keras <https://keras.io/>`__ to build and train the network. The
@@ -279,8 +284,8 @@ is a simplified schematic of the network architecture:
 
                               ,--> Conv1D-normal + Pool --.
         Phylo. Data Tensor --+---> Conv1D-stride + Pool ---\                          ,--> Point estimate
-                              '--> Conv1D-dilate + Pool ----+--> Concat + Output(s)--+---> Lower quantile
-                                                           /                          '--> Upper quantile
+                              `--> Conv1D-dilate + Pool ----+--> Concat + Output(s)--+---> Lower quantile
+                                                           /                          `--> Upper quantile
         Aux. Data Tensor   ------> Dense -----------------'
 
 
@@ -341,19 +346,23 @@ Colors for plot elements can be modified with ``plot_train_color``,
 names supported by `Matplotlib <https://matplotlib.org/stable/gallery/color/named_colors.html>`__.
 
 - ``summary.pdf`` contains all figures in a single plot
-- ``est_CI.pdf`` - simple plot of point estimates and calibrated estimation
-  intervals for estimation
-- ``histogram_aux.pdf`` - histograms of all values in the auxiliary dataset;
+- ``density_aux_data.pdf`` - densities of all values in the auxiliary dataset;
   red line for estimateed dataset
-- ``pca_aux.pdf`` - pairwise PCA of all values in the auxiliary dataset;
+- ``density_label.pdf`` - densities of all values in the auxiliary dataset;
+  red line for estimateed dataset
+- ``pca_contour_aux_data.pdf`` - pairwise PCA of all values in the auxiliary dataset;
   red dot for estimateed dataset
-- ``history_.pdf`` - loss performance across epochs for test/validation
+- ``pca_contour_label.pdf`` - pairwise PCA of all values in the auxiliary dataset;
+  red dot for estimateed dataset
+- ``train_history.pdf`` - loss performance across epochs for test/validation
   datasets for entire network
-- ``history_<stat_name>.pdf`` - loss, accuracy, error performance across
+- ``train_history_<stat_name>.pdf`` - loss, accuracy, error performance across
   epochs for test/validation datasets for particular statistics (point est.,
   lower CPI, upper CPI)
-- ``train_<label_name>.pdf`` - point estimates and calibrated estimation
+- ``estimate_train_<label_name>.pdf`` - point estimates and calibrated estimation
   intervals for training dataset
-- ``test_<label_name>.pdf`` - point estimates and calibrated estimation
+- ``estimate_test_<label_name>.pdf`` - point estimates and calibrated estimation
   intervals for test dataset
+- ``estimate_new.pdf`` - simple plot of point estimates and calibrated estimation
+  intervals for estimation
 - ``network_architecture.pdf`` - visualization of Tensorflow architecture

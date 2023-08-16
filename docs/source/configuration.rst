@@ -44,89 +44,94 @@ if desired.
     # Description:  Simple birth-death and equal-rates CTMC model in R using ape   #
     #==============================================================================#
 
-    # helper variables
     args = {
+        #-------------------------------#
+        # Basic                         #
+        #-------------------------------#
+        'cfg'                : 'config.py',          # Config file name
+        'proj'               : 'my_project',         # Project name(s) for pipeline step(s)
+        'step'               : 'SFTEP',              # Pipeline step(s) defined with (S)imulate, (F)ormat,
+                                                     #     (T)rain, (E)stimate, (P)lot, or (A)ll
+        'verbose'            : 'T',                  # Verbose output to screen?
+        'force'              : None,                 # Arguments override config file settings
+        'make_cfg'           : None,                 # Write default config file to 'config_default.py'?'
 
         #-------------------------------#
-        # Project organization          #
+        # Analysis                      #
         #-------------------------------#
-        'proj'    : 'R_example',                # project name(s)
-        'step'    : 'SFTEP',                    # step(s) to run
-        'verbose' : True,                       # print verbose phyddle output?
-        'sim_dir' : '../workspace/simulate',    # directory for simulated data
-        'fmt_dir' : '../workspace/format',      # directory for tensor-formatted data
-        'trn_dir' : '../workspace/train',       # directory for trained network
-        'plt_dir' : '../workspace/plot',        # directory for plotted figures
-        'est_dir' : '../workspace/estimate',    # directory for predictions on new data
-        'log_dir' : '../workspace/log',         # directory for analysis logs
+        'use_parallel'       : 'T',                  # Use parallelization? (recommended)
+        'num_proc'           : -2,                   # Number of cores for multiprocessing (-N for all but N)
 
         #-------------------------------#
-        # Multiprocessing               #
+        # Workspace                     #
         #-------------------------------#
-        'use_parallel'   : True,                # use multiprocessing to speed up jobs?
-        'num_proc'       : 10,                  # how many CPUs to use (-2 means all but 2)
+        'sim_dir'            : '../workspace/simulate',  # Directory for raw simulated data
+        'fmt_dir'            : '../workspace/format',    # Directory for tensor-formatted simulated data
+        'trn_dir'            : '../workspace/train',     # Directory for trained networks and training output
+        'est_dir'            : '../workspace/estimate',  # Directory for new datasets and estimates
+        'plt_dir'            : '../workspace/plot',      # Directory for plotted results
+        'log_dir'            : '../workspace/log',       # Directory for logs of analysis metadata
 
         #-------------------------------#
-        # Simulate Step settings        #
+        # Simulate                      #
         #-------------------------------#
-        'sim_method'        : 'command',        # command, master, [phylojunction], ...
-        'sim_command'       : 'Rscript sim/R/sim_one.R', # exact command string, argument is output file prefix
-        'sim_logging'       : 'verbose',        # verbose, compressed, or clean
-        'start_idx'         : 0,                # first simulation replicate index
-        'end_idx'           : 1000,             # last simulation replicate index
+        'sim_command'        : None,                 # Simulation command to run single job (see documentation)
+        'sim_logging'        : 'clean',              # Simulation logging style
+        'start_idx'          : 0,                    # Start replicate index for simulated training dataset
+        'end_idx'            : 1000,                 # End replicate index for simulated training dataset
+        'sim_more'           : 0,                    # Add more simulations with auto-generated indices
+        'sim_batch_size'     : 1,                    # Number of replicates per simulation command
 
         #-------------------------------#
-        # Format Step settings          #
+        # Format                        #
         #-------------------------------#
-        'num_char'          : 2,                # number of evolutionary characters
-        'num_states'        : 3,                # number of states per character
-        'min_num_taxa'      : 10,               # min number of taxa for valid sim
-        'max_num_taxa'      : 500,              # max number of taxa for valid sim
-        'tree_encode'       : 'extant',         # use model with serial or extant tree
-        'brlen_encode'      : 'height_brlen',   # how to encode phylo brlen? height_only or height_brlen
-        'char_encode'       : 'integer',        # how to encode discrete states? one_hot or integer
-        'tree_width_cats'   : [ 200, 500 ],     # tree width categories for phylo-state tensors
-        'param_est'         : [                 # model parameters to predict (labels)
-            'birth', 'death', 'state_rate'
-        ],
-        'param_data'        : [],               # model parameters that are known (aux. data)
-        'tensor_format'     : 'hdf5',           # save as compressed HDF5 or raw csv
-        'char_format'       : 'nexus',
-        'save_phyenc_csv'   : False,            # save intermediate phylo-state vectors to file
+        'encode_all_sim'     : 'T',                  # Encode all simulated replicates into tensor?
+        'num_char'           : None,                 # Number of characters
+        'num_states'         : None,                 # Number of states per character
+        'min_num_taxa'       : 10,                   # Minimum number of taxa allowed when formatting
+        'max_num_taxa'       : 1000,                 # Maximum number of taxa allowed when formatting
+        'downsample_taxa'    : 'uniform',            # Downsampling strategy taxon count
+        'tree_width'         : 500,                  # Width of phylo-state tensor
+        'tree_encode'        : 'extant',             # Encoding strategy for tree
+        'brlen_encode'       : 'height_brlen',       # Encoding strategy for branch lengths
+        'char_encode'        : 'one_hot',            # Encoding strategy for character data
+        'param_est'          : None,                 # Model parameters to estimate
+        'param_data'         : None,                 # Model parameters treated as data
+        'char_format'        : 'nexus',              # File format for character data
+        'tensor_format'      : 'hdf5',               # File format for training example tensors
+        'save_phyenc_csv'    : 'F',                  # Save encoded phylogenetic tensor encoding to csv?
 
         #-------------------------------#
-        # Train Step settings           #
+        # Train                         #
         #-------------------------------#
-        'trn_objective'     : 'param_est',      # what is the learning task? param_est or model_test
-        'tree_width'        : 200,              # tree width category used to train network
-        'num_epochs'        : 20,               # number of training intervals (epochs)
-        'prop_test'         : 0.05,             # proportion of sims in test dataset
-        'prop_val'          : 0.05,             # proportion of sims in validation dataset
-        'prop_cal'          : 0.20,             # proportion of sims in CPI calibration dataset
-        'combine_test_val'  : True,             # treat test and validation as combined
-        'cpi_coverage'      : 0.95,             # coverage level for CPIs
-        'cpi_asymmetric'    : True,             # upper/lower (True) or symmetric (False) CPI adjustments
-        'batch_size'        : 128,              # number of samples in each training batch
-        'loss'              : 'mse',            # loss function for learning
-        'optimizer'         : 'adam',           # optimizer for network weight/bias parameters
-        'metrics'           : ['mae', 'acc'],   # recorded training metrics
+        'trn_objective'      : 'param_est',          # Objective of training procedure
+        'num_epochs'         : 20,                   # Number of training epochs
+        'trn_batch_size'     : 128,                  # Training batch sizes
+        'prop_test'          : 0.05,                 # Proportion of data used as test examples (assess network performance)
+        'prop_val'           : 0.05,                 # Proportion of data used as validation examples (diagnose overtraining)
+        'prop_cal'           : 0.2,                  # Proportion of data used as calibration examples (calibrate CPIs)
+        'cpi_coverage'       : 0.95,                 # Expected coverage percent for calibrated prediction intervals (CPIs)
+        'cpi_asymmetric'     : 'T',                  # Use asymmetric (True) or symmetric (False) adjustments for CPIs?
+        'loss'               : 'mse',                # Loss function for optimization
+        'optimizer'          : 'adam',               # Method used for optimizing neural network
+        'metrics'            : ['mae', 'acc'],       # Recorded training metrics
 
         #-------------------------------#
-        # Estimate Step settings        #
+        # Estimate                      #
         #-------------------------------#
-        'est_prefix'     : 'new.1',             # prefix for new dataset to predict
+        'est_prefix'         : None,                 # Predict results for this dataset
 
         #-------------------------------#
-        # Plot Step settings            #
+        # Plot                          #
         #-------------------------------#
-        'plot_train_color'      : 'blue',       # plot color for training data
-        'plot_test_color'       : 'purple',     # plot color for test data
-        'plot_val_color'        : 'red',        # plot color for validation data
-        'plot_aux_color'        : 'green',      # plot color for input auxiliary data
-        'plot_label_color'      : 'orange',     # plot color for labels (params)
-        'plot_est_color'        : 'black'       # plot color for estimated data/values
+        'plot_train_color'   : 'blue',               # Plotting color for training data elements
+        'plot_label_color'   : 'purple',             # Plotting color for training label elements
+        'plot_test_color'    : 'red',                # Plotting color for test data elements
+        'plot_val_color'     : 'green',              # Plotting color for validation data elements
+        'plot_aux_color'     : 'orange',             # Plotting color for auxiliary data elements
+        'plot_est_color'     : 'black',              # Plotting color for new estimation elements
 
-    }
+        }
 
 
 .. _config_CLI:
@@ -141,68 +146,78 @@ Using command line options makes it easy to adjust the behavior of pipeline
 steps without needing to edit the config file. List all settings that can be
 adjusted with the command line using the ``--help`` option:
 
-.. code-block:: shell
+.. code-block::
 
 	$ ./run_phyddle.py --help
     
-    usage: run_phyddle.py [-h] [-c] [-p] [-s] [-v] [-f] [--make_cfg] [--use_parallel] [--num_proc] [--sim_dir] [--fmt_dir] [--trn_dir] [--est_dir] [--plt_dir] [--log_dir] [--sim_command]
-                      [--sim_logging] [--start_idx] [--end_idx] [--num_char] [--num_states] [--min_num_taxa] [--max_num_taxa] [--tree_width_cats] [--tree_encode] [--brlen_encode]
-                      [--char_encode] [--char_format] [--tensor_format] [--save_phyenc_csv] [--trn_objective] [--tree_width] [--num_epochs] [--batch_size] [--prop_test] [--prop_val]
-                      [--prop_cal] [--combine_test_val] [--cpi_coverage] [--cpi_asymmetric] [--loss] [--optimizer] [--est_prefix] [--plot_train_color] [--plot_label_color]
-                      [--plot_test_color] [--plot_val_color] [--plot_aux_color] [--plot_est_color]
+    usage: run_phyddle.py [-h] [-c] [-p] [-s] [-v] [-f] [--make_cfg] [--use_parallel] [--num_proc] [--sim_dir]
+                      [--fmt_dir] [--trn_dir] [--est_dir] [--plt_dir] [--log_dir] [--sim_command] [--sim_logging]
+                      [--start_idx] [--end_idx] [--sim_more] [--sim_batch_size] [--encode_all_sim] [--num_char]
+                      [--num_states] [--min_num_taxa] [--max_num_taxa] [--downsample_taxa] [--tree_width]
+                      [--tree_encode] [--brlen_encode] [--char_encode] [--param_est] [--param_data]
+                      [--char_format] [--tensor_format] [--save_phyenc_csv] [--trn_objective] [--num_epochs]
+                      [--trn_batch_size] [--prop_test] [--prop_val] [--prop_cal] [--cpi_coverage]
+                      [--cpi_asymmetric] [--loss] [--optimizer] [--metrics] [--est_prefix] [--plot_train_color]
+                      [--plot_label_color] [--plot_test_color] [--plot_val_color] [--plot_aux_color]
+                      [--plot_est_color]
 
     phyddle pipeline config
 
     options:
-      -h, --help           show this help message and exit
-      -c , --cfg           Config file name
-      -p , --proj          Project name(s) for pipeline step(s)
-      -s , --step          Pipeline step(s) defined with (S)imulate, (F)ormat, (T)rain, (E)stimate, (P)lot, or (A)ll
-      -v , --verbose       Verbose output to screen?
-      -f, --force          Arguments override config file settings
-      --make_cfg           Write default config file to 'config_default.py'?
-      --use_parallel       Use parallelization? (recommended)
-      --num_proc           Number of cores for multiprocessing (when --use_parallel=True)
-      --sim_dir            Directory for raw simulated data
-      --fmt_dir            Directory for tensor-formatted simulated data
-      --trn_dir            Directory for trained networks and training output
-      --est_dir            Directory for new datasets and estimates
-      --plt_dir            Directory for plotted results
-      --log_dir            Directory for logs of analysis metadata
-      --sim_command        Simulation command to run single job (see documentation)
-      --sim_logging        Simulation logging style
-      --start_idx          Start replicate index for simulated training dataset
-      --end_idx            End replicate index for simulated training dataset
-      --num_char           Number of characters
-      --num_states         Number of states per character
-      --min_num_taxa       Minimum number of taxa allowed when formatting
-      --max_num_taxa       Maximum number of taxa allowed when formatting
-      --tree_width_cats    The phylo-state tensor widths for formatting training datasets (space-delimited)
-      --tree_encode        Encoding strategy for tree
-      --brlen_encode       Encoding strategy for branch lengths
-      --char_encode        Encoding strategy for character data
-      --char_format        File format for character data
-      --tensor_format      File format for training example tensors
-      --save_phyenc_csv    Save encoded phylogenetic tensor encoding to csv?
-      --trn_objective      Objective of training procedure
-      --tree_width         The phylo-state tensor width used to train the neural network
-      --num_epochs         Number of training epochs
-      --batch_size         Training batch sizes
-      --prop_test          Proportion of data used as test examples (assess trained network performance)
-      --prop_val           Proportion of data used as validation examples (diagnose network overtraining)
-      --prop_cal           Proportion of data used as calibration examples (calibrate CPIs)
-      --combine_test_val   Combine test and validation datasets when assessing network fit?
-      --cpi_coverage       Expected coverage percent for calibrated prediction intervals (CPIs)
-      --cpi_asymmetric     Use asymmetric (True) or symmetric (False) adjustments for CPIs?
-      --loss               Loss function for optimization
-      --optimizer          Method used for optimizing neural network
-      --est_prefix         Predict results for this dataset
-      --plot_train_color   Plotting color for training data elements
-      --plot_label_color   Plotting color for training label elements
-      --plot_test_color    Plotting color for test data elements
-      --plot_val_color     Plotting color for validation data elements
-      --plot_aux_color     Plotting color for auxiliary data elements
-      --plot_est_color     Plotting color for new estimation elements
+    -h, --help           show this help message and exit
+    -c , --cfg           Config file name
+    -p , --proj          Project name(s) for pipeline step(s)
+    -s , --step          Pipeline step(s) defined with (S)imulate, (F)ormat, (T)rain, (E)stimate, (P)lot, or (A)ll
+    -v , --verbose       Verbose output to screen?
+    -f, --force          Arguments override config file settings
+    --make_cfg           Write default config file to 'config_default.py'?'
+    --use_parallel       Use parallelization? (recommended)
+    --num_proc           Number of cores for multiprocessing (-N for all but N)
+    --sim_dir            Directory for raw simulated data
+    --fmt_dir            Directory for tensor-formatted simulated data
+    --trn_dir            Directory for trained networks and training output
+    --est_dir            Directory for new datasets and estimates
+    --plt_dir            Directory for plotted results
+    --log_dir            Directory for logs of analysis metadata
+    --sim_command        Simulation command to run single job (see documentation)
+    --sim_logging        Simulation logging style
+    --start_idx          Start replicate index for simulated training dataset
+    --end_idx            End replicate index for simulated training dataset
+    --sim_more           Add more simulations with auto-generated indices
+    --sim_batch_size     Number of replicates per simulation command
+    --encode_all_sim     Encode all simulated replicates into tensor?
+    --num_char           Number of characters
+    --num_states         Number of states per character
+    --min_num_taxa       Minimum number of taxa allowed when formatting
+    --max_num_taxa       Maximum number of taxa allowed when formatting
+    --downsample_taxa    Downsampling strategy taxon count
+    --tree_width         Width of phylo-state tensor
+    --tree_encode        Encoding strategy for tree
+    --brlen_encode       Encoding strategy for branch lengths
+    --char_encode        Encoding strategy for character data
+    --param_est          Model parameters to estimate
+    --param_data         Model parameters treated as data
+    --char_format        File format for character data
+    --tensor_format      File format for training example tensors
+    --save_phyenc_csv    Save encoded phylogenetic tensor encoding to csv?
+    --trn_objective      Objective of training procedure
+    --num_epochs         Number of training epochs
+    --trn_batch_size     Training batch sizes
+    --prop_test          Proportion of data used as test examples (assess trained network performance)
+    --prop_val           Proportion of data used as validation examples (diagnose network overtraining)
+    --prop_cal           Proportion of data used as calibration examples (calibrate CPIs)
+    --cpi_coverage       Expected coverage percent for calibrated prediction intervals (CPIs)
+    --cpi_asymmetric     Use asymmetric (True) or symmetric (False) adjustments for CPIs?
+    --loss               Loss function for optimization
+    --optimizer          Method used for optimizing neural network
+    --metrics            Recorded training metrics
+    --est_prefix         Predict results for this dataset
+    --plot_train_color   Plotting color for training data elements
+    --plot_label_color   Plotting color for training label elements
+    --plot_test_color    Plotting color for test data elements
+    --plot_val_color     Plotting color for validation data elements
+    --plot_aux_color     Plotting color for auxiliary data elements
+    --plot_est_color     Plotting color for new estimation elements
 
 .. _Setting_Summary:
 
