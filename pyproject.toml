@@ -9,7 +9,7 @@ authors = [
   { name="Michael Landis", email="michael.landis@wustl.edu" },
   { name="Ammon Thompson", email="ammonthompson@gmail.com" },
 ]
-description = "A package to fiddle around with phylogenetic models and deep learning"
+description = "Tools to fiddle around with deep learning for phylogenetic models"
 readme = "README.md"
 requires-python = ">=3.7"
 classifiers = [

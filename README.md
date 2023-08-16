@@ -1,6 +1,6 @@
 # phyddle
 
-#### A pipeline-based toolkit for fiddling around with phylogenetic models and deep learning
+#### Tools to fiddle around with deep learning for phylogenetic models
 
 > *NOTE: This private beta version of phyddle is still under development.*
 
@@ -22,8 +22,6 @@ A standard phyddle analysis performs the following tasks for you:
 
 
 ## Quick installation
-
-> Note: phyddle is currently on a private repository. Installing phyddle and viewing documentation will be easier once the repository is made public.
 
 A stable version of phyddle can be installed using pip:
 
