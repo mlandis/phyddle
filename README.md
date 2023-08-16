@@ -25,19 +25,26 @@ A standard phyddle analysis performs the following tasks for you:
 
 > Note: phyddle is currently on a private repository. Installing phyddle and viewing documentation will be easier once the repository is made public.
 
-Currently, phyddle must be manually installed on the local filesystem to be used.
-To install it, clone the repository, enter the new phyddle directory, then run the `build.sh` script.
+A stable version of phyddle can be installed using pip:
 
 ```shell
-git clone git@github.com:mlandis/phyddle.git
-cd phyddle
-git checkout development
-./build.sh
+# install pip
+python -m ensurepip --upgrade
+# install phyddle
+python3 -m pip install --upgrade phyddle
 ```
 
-To get the newest features added to phyddle, you will want to pull changes into the development branch, then rebuild the package
+The newest development version of phyddle must be manually installed through a local build:
 ```shell
+# clone phyddle repo
+git clone git@github.com:mlandis/phyddle.git
+# enter phyddle
+cd phyddle
+# switch to development branch
+git checkout development
+# pull to acquire newest changes (not needed after first clone)
 git pull
+# build local phyddle package
 ./build.sh
 ```
 
