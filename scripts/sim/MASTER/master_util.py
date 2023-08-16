@@ -457,3 +457,40 @@ def cleanup(prefix, clean_type):
 		pass
 		# do nothing
 	return
+
+
+def convert_loc_rates_to_compartments(local_rates, sigfigs = 3):
+    """ Function to convert location-specific rates to a single global rate
+        and a set of compartments who's pop sizes scale that global rate to 
+        equal the local rates: 
+
+                global_rate * compartment_size_i = local_rate_i
+        
+        Params:
+        - local_rates (list or array): location-specific rates
+        - sigfigs (positive intiger, optinal): level of precision [default = 3]
+
+        Returns:
+        - tuple:
+            the global rate magnitude e.g. 0.01 and
+            the population sizes for each input rate that when multiplied by
+            the above will preduce the same input rates (local_rates)
+
+    """
+    min_rate_str = '{:.6f}'.format(min(local_rates)).rstrip('0') # in case sci notation
+    
+    if re.search('\.[0]+', min_rate_str) is not None:
+        zeros_after_decimal = len(re.findall('\.[0]+', min_rate_str)[0]) - 1 # subtract "\."
+    else:
+        zeros_after_decimal = 0
+        if re.search('\.', min_rate_str) is None:
+            sigfigs = 0
+
+    power = sigfigs + zeros_after_decimal
+    rate_scale_magnitude = 10 ** -power
+    
+    rate_multiplier = [i / rate_scale_magnitude for i in local_rates]
+    compartment_sizes = np.round(rate_multiplier, 0).astype(int)
+
+    return rate_scale_magnitude, compartment_sizes
+
