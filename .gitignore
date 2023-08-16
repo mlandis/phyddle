@@ -20,7 +20,6 @@ tests/workspace/*
 # Ignore phyddle accessory dirs
 sandbox/
 paper/
-dist/
 code/
 _old/
 scripts/config

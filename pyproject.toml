@@ -7,19 +7,31 @@ name = "phyddle"
 version = "0.0.7"
 authors = [
   { name="Michael Landis", email="michael.landis@wustl.edu" },
+  { name="Ammon Thompson", email="ammonthompson@gmail.com" },
 ]
 description = "A package to fiddle around with phylogenetic models and deep learning"
 readme = "README.md"
 requires-python = ">=3.7"
 classifiers = [
     "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
+    "License :: OSI Approved :: MIT License",
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Mathematics",
+    "Natural Language :: English"
 ]
+
+[project.scripts]
+phyddle = "phyddle.command_line:run"
 
 [project.urls]
 "Homepage" = "https://github.com/mlandis/phyddle"
-"Bug Tracker" = "https://github.com/mlandis/phyddle/issues"
+"Bug Reports" = "https://github.com/mlandis/phyddle/issues"
+"Documentation" = "https://mlandis.github.io/phyddle"
 
 [tool.ruff]
 # maximum line length
@@ -27,5 +39,3 @@ line-length = 400
 # skip unused variable rules (`F841`)
 extend-ignore = ["F841"]
 
-[project.scripts]
-phyddle = "phyddle.command_line:run"
