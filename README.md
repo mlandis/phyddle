@@ -1,9 +1,11 @@
 # phyddle
 
-A pipeline-based toolkit for fiddling around with phylogenetic models and deep learning 
+#### A pipeline-based toolkit for fiddling around with phylogenetic models and deep learning
 
-> <b>NOTE: *This private beta version of phyddle is still under development.</b> Code on the main brain is tested and stable with respect to the standard use cases. Code on the development branch contains new features, but is not as rigorously tested. Most phyddle development occurs on a 16-core Intel Macbook Pro laptop and a 64-core Intel Ubuntu server, so there are also unknown portability/scalability issues to correct. Any feedback is appreciated! michael.landis@wustl.edu*
+> <b>NOTE: *This private beta version of phyddle is still under development.</b>
 
+## User guide
+Visit https://mlandis.github.io/phyddle to learn more about phyddle.
 
 ## Overview
 
@@ -12,12 +14,11 @@ A pipeline-based toolkit for fiddling around with phylogenetic models and deep l
 A standard phyddle analysis performs the following tasks for you:
 
 - **Pipeline configuration** applies analysis settings provided through a config file and/or command line arguments.
-- **Model configuration** constructs a base simulating model to be *Simulated* (states, events, rates).
-- **Simulating** simulates a large training dataset under the model to be *Formatted* (parallelized, partly compressed). Saves output in the [`raw_data`](workspace/raw_data) directory.
-- **Formatting** encodes the raw simulated data into tensor format for *Learning* (parallelized, compressed). Saves output in the [`tensor_data`](workspace/tensor_data) directory.
-- **Learning** shuffles and splits training data, builds a network, then trains and saves the network with the data for *Prediction*. Saves output in the [`network`](workspace/network) directory.
-- **Predicting** estimates model parameters for a new dataset with the trained network. Saves output in the [`predict`](workspace/predict) directory.
-- **Plotting** generates figures that summarize the training data (*Formatting*), the network and its training (*Learning*), and any new predictions (*Predicting*). Saves output in the [`plot`](workspace/plot) directory.
+- **Simulate** simulates a large training dataset under the model to be *Formatted* (parallelized, partly compressed). Saves output in the [`simulate`](workspace/simulate) directory.
+- **Format** encodes the raw simulated data into tensor format for *Train*. Saves output in the [`format`](workspace/format) directory.
+- **Train** loads and splits training data, builds a network, then trains and saves the network with the data for *Estimate*. Saves output in the [`train`](workspace/train) directory.
+- **Estimate** estimates model parameters for a new dataset with the trained network. Saves output in the [`train`](workspace/train) directory.
+- **Plot** generates figures that summarize the training data (*Formatting*), the network and its training (*Train*), and any new predictions (*Estimate*). Saves output in the [`plot`](workspace/plot) directory.
 
 
 ## Quick installation
@@ -88,20 +89,9 @@ Pipeline options are applied to all pipeline stages. See the full list of curren
 ```shell
 ./run_phyddle.sh --help
 ```
+## Note on code stability
 
-## Features
-
-Current features:
-- trained network generates parameter estimates and coverage-calibrated prediction intervals (CPIs) for input datasets
-- provides several state-dependent birth-death model types and variants (more to come)
-- parallelized simulating, formatting, and learning
-- encoding of phylogenetic-state tensor from serial and extant-only input with multiple states (CBLV+S and CDV+S extensions)
-- encoding of auxiliary data tensor from automatically computed summary statistics and "known" parameter (e.g. sampling rate)
-- HDF5 with gzip compression for tensor data
-- shuffles and splits input tensors into training, test, validation, and calibration datasets for supervised learning
-- builds network with convolution, pooling, and dense layers that match input tensors
-- trains network and saves history
-- automatic figure generation with Matplotlib
+Code on the [main](https://github.com/mlandis/phyddle/tree/main) branch is tested and stable with respect to the standard use cases. Code on the [development](https://github.com/mlandis/phyddle/tree/development) branch contains new features, but is not as rigorously tested. Most phyddle development occurs on a 16-core Intel Macbook Pro laptop and a 64-core Intel Ubuntu server, so there are also unknown portability/scalability issues to correct. Any feedback is appreciated! michael.landis@wustl.edu*
 
 ## About
 Thanks for your interest in phyddle. The phyddle project emerged from a phylogenetic deep learning study led by Ammon Thompson ([paper](https://www.biorxiv.org/content/10.1101/2023.02.08.527714v2)). The goal of phyddle is to provide its users with a generalizable pipeline workflow for phylogenetic modeling and deep learning. This hopefully will make it easier for phylogenetic model enthusiasts and developers to explore and apply models that do not have tractable likelihood functions. It's also intended for use by methods developers who want to characterize how deep learning methods perform under different conditions for standard phylogenetic estimation tasks.
