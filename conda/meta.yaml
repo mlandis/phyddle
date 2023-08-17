@@ -1,15 +1,13 @@
 {% set name = "phyddle" %}
-{% set version = "development" %}
+{% set version = "0.0.8" %}
 
 package:
   name: {{name}}
   version: {{version}}
 
 source:
-  url: https://files.pythonhosted.org/packages/3f/04/18e622aaee2e4a29a4918298ed881b78d999f8fa6bb67735d65151f784bc/phyddle-0.0.8.tar.gz
+  url: https://files.pythonhosted.org/packages/4b/9e/408cb02b063226ecd474f2bb600371b6ae723c05ddda651eba7429e6b955/phyddle-0.0.8.tar.gz
   sha: 28d9388666a5b1a667dd7ce92291b35cc0203c7230819dd608703d8820bf4182
-  #git_url: https://github.com/mlandis/phyddle.git
-  #git_rev: {{version}}
 
 build:
   number: 0
@@ -18,7 +16,7 @@ build:
 requirements:
   host:
     - pip
-    - python >=3.10
+    - python
     - git
     - git-lfs
     - hatchling
@@ -26,11 +24,11 @@ requirements:
 
     #'python>=3.11' 'dendropy>=4.6' 'tensorflow>=2.12' numpy=1.23 pandas=2.0 scipy=1.11 joblib=1.2 tqdm=4.65 h5py=3.8 keras=2.12  matplotlib=3.7 pypdf=3.12 Pillow=10.0 scikit-learn=1.2 graphviz python-graphviz pydot
 
-    - python >=3.10
+    - python
     - dendropy
     - graphviz
     - h5py
-    - keras >=2.12
+    - keras
     - matplotlib
     - numpy
     - pandas
@@ -39,7 +37,7 @@ requirements:
     - python-graphviz
     - scikit-learn
     - scipy
-    - tensorflow >=2.12
+    - tensorflow
     - tqdm
 
 test:

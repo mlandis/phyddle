@@ -264,8 +264,6 @@ https://docs.conda.io/projects/conda-build/en/stable/user-guide/tutorials/build-
 - `build.sh` -- Unix/Mac install shell script
 - `bld.bat` -- Windows install batch file
 
-To build conda
-- conda build .
 
 I could not get `conda build` to work the standard approach that relies on `meta.yml`, `build.sh`, `bld.bat`,  `setup.py`i and `source: git_url` or `source: git_rev`.
 
@@ -274,4 +272,50 @@ Instead, we use the PyPI `.tar.gz` as the source and build using `pyproject.toml
 ```
 url: <get from PyPI Manage Project>
 sha: <get from PyPI Manage Project> 
+```
+
+This was pretty annoying to setup.
+
+```
+brew install miniconda
+brew install conda
+```
+
+Then link `anaconda` into PATH somehow, e.g.
+
+```
+cd ~/.local/bin
+ln -s ~/opt/miniconda/bin/anaconda .
+```
+
+Also, installed blackmamba/boa to speed up install
+```
+forgot how
+```
+
+
+Build with conda
+```
+cd ~/projects/phyddle
+# need -c bioconductor for dendropy
+conda build . -c bioconductor 
+
+Create anaconda account and login
+```
+anaconda login
+# enter user/password
+anaconda upload \
+    /Users/mlandis/opt/miniconda3/conda-bld/osx-64/phyddle-development-py39_0.conda
+```
+
+File is uploaded here: https://anaconda.org/landismj/phyddle
+
+To install
+
+https://anaconda.org/landismj/phyddle
+
+```
+conda create --name phyddle
+conda activate phyddle
+conda install -c bioconda -c landismj phyddle
 ```
