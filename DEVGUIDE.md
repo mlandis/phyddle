@@ -9,13 +9,24 @@ Main technologies:
     - bump2version to manage version-strings
     - Conda to provide virtual environments
 
-Update procedure (details below):
-``
+-----
+
+# Standard update procedure
+
+These are the steps to release a new version of phyddle (main branch). It is
+not possible to "undo" a new version. Bad versions must be patched and assigned
+a new version number. Go slowly, read the output from each step, and verify
+everything looks okay as you go.
+
+```
 # enter phyddle project directory
 cd ~/projects/phyddle
 
 # enter main branch
 git checkout main
+
+# merge in development changes
+git merge development
 
 # add notes to docs
 vim docs/source/updates.rst
@@ -27,16 +38,27 @@ git commit -am 'preparing for version update'
 bump2version patch                                
 git commit -am 'apply version update to x.x.x'
 
-# build project
+# build pypi
 python3 -m build
 
-# upload dist to testpypi with twine
+# upload dist to testpypi
 python3 -m twine upload --skip-existing --repository testpypi dist/phyddle-x.x.x.*
 
-# upload 
+# upload dist to pypi
 twine upload dist/phyddle-x.x.x.*
 
+# build conda project
+mamba build . -c bioconda
+
+# authenticate with anaconda
+anaconda login
+
+# upload to anaconda
+anaconda upload \
+    /Users/mlandis/opt/miniconda3/conda-bld/osx-64/phyddle-x.x.x-py39_0.conda
+
 ```
+
 
 -----
 
@@ -255,10 +277,66 @@ file is hosted here:
 
 # conda
 
-Building in conda takes >15 minutes
+### Installing conda tools
 
-Directions:
+Install anaconda from website?
+Optional: install blackmamba/boa to speed up install (don't remember how).
+```
+brew install miniconda
+brew install conda
+conda update -n base -c conda-forge conda
+```
+
+I used mambaforge (C++ implementation of conda [faster])
+```
+brew install mambaforge
+
+Ensure `anaconda` and `conda` are in PATH
+
+### Installing from conda
+
+New install on new system should be easy. 
+
+```
+conda create -n phyddle
+conda activate phyddle
+conda install -c bioconda -c landismj phyddle
+```
+
+### Updating conda package
+
+Updating conda with new phyddle version is also not too hard. You must register
+an account with anaconda.org. 
+
+Build sequence might take 15 minutes.
+
+```
+cd ~/projects/phyddle
+# need -c bioconda for dendropy
+conda build . -c bioconda
+# (optional) using mambabuild, faster
+conda mambabuild . -c bioconda
+```
+
+Create anaconda account and login
+```
+anaconda login
+# enter user/password
+anaconda upload \
+    /Users/mlandis/opt/miniconda3/conda-bld/osx-64/phyddle-x.x.x-py39_0.conda
+```
+
+
+File is uploaded here: https://anaconda.org/landismj/phyddle
+
+
+
+### Setting up conda
+
+
+Useful links:
 https://docs.conda.io/projects/conda-build/en/stable/user-guide/tutorials/build-pkgs.html
+https://docs.anaconda.com/free/anacondaorg/user-guide/tasks/work-with-packages/
 
 - `meta.yml` defines the conda build design
 - `build.sh` -- Unix/Mac install shell script
@@ -276,46 +354,4 @@ sha: <get from PyPI Manage Project>
 
 This was pretty annoying to setup.
 
-```
-brew install miniconda
-brew install conda
-```
 
-Then link `anaconda` into PATH somehow, e.g.
-
-```
-cd ~/.local/bin
-ln -s ~/opt/miniconda/bin/anaconda .
-```
-
-Also, installed blackmamba/boa to speed up install
-```
-forgot how
-```
-
-
-Build with conda
-```
-cd ~/projects/phyddle
-# need -c bioconductor for dendropy
-conda build . -c bioconductor 
-
-Create anaconda account and login
-```
-anaconda login
-# enter user/password
-anaconda upload \
-    /Users/mlandis/opt/miniconda3/conda-bld/osx-64/phyddle-development-py39_0.conda
-```
-
-File is uploaded here: https://anaconda.org/landismj/phyddle
-
-To install
-
-https://anaconda.org/landismj/phyddle
-
-```
-conda create --name phyddle
-conda activate phyddle
-conda install -c bioconda -c landismj phyddle
-```
