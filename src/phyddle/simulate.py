@@ -12,7 +12,9 @@ License:   MIT
 """
 
 # standard imports
+import sys
 import os
+import shutil
 import subprocess
 
 # external imports
@@ -72,6 +74,8 @@ class Simulator:
         """
         # initialize with phyddle settings
         self.set_args(args)
+        # validate sim_command
+        self.validate_sim_command()
         # directory to store simulations
         self.sim_proj_dir = f'{self.sim_dir}/{self.sim_proj}'
         # set number of processors
@@ -114,6 +118,47 @@ class Simulator:
                              self.sim_batch_size))
 
         return rep_idx
+
+    def validate_sim_command(self):
+        """
+        Validates sim_command
+        
+        This function verifies that self.sim_command executes properly. It
+        verifies the command and script exist. Then it runs a test job
+        against a local temp directory, and verifies the correct output files
+        with correct formats are generated. Validation then deletes any
+        temporary files.
+        """
+
+        tok = self.sim_command.split(' ')
+        
+        if len(tok) < 2:
+            msg = f"Invalid sim_command setting. Command string '{self.sim_command}' is incomplete. A valid command string consists of the command, then a space, then the path to the simulation script, e.g. '[command] [sim_script]'."
+            util.print_err(msg)
+            sys.exit()
+
+        # get command and script
+        cmd = tok[0]
+        fn = ' '.join(tok[1])
+
+        # verify executable exists
+        if shutil.which(cmd) is None:
+            msg = f"Invalid sim_command setting. Command '{cmd}' not found. Please verify the current user can execute the command from the local directory."
+            util.print_err(msg)
+            sys.exit()
+
+        # verify test script exists
+        if not os.path.exists(fn):
+            msg = f"Invalid sim_command setting. Simulator script '{fn}' not found. Please verify the script is visible to the current user from the local directory."
+            util.print_err(msg)
+            sys.exit()
+
+        # todo:
+        # run test job
+        # check output
+        # clean-up
+
+        return
 
     def run(self):
         """

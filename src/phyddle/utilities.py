@@ -14,7 +14,7 @@ License:   MIT
 # standard packages
 import argparse
 import copy
-import importlib
+# import importlib
 import os
 import pkg_resources
 import platform
@@ -237,43 +237,56 @@ def load_config(config_fn,
         else:
              parser.add_argument(*arg_opt, action='store_true', help=arg_help)
    
-    # parse arguments
+    # COMMAND LINE SETTINGS
     args = parser.parse_args(args)
+
     
+
+    # DEFAULT CONFIG FILE SETTINGS
+
     # make/overwrite default config, if requested
     if args.make_cfg:
         make_default_config()
-        print(f'Created default config as \'{CONFIG_DEFAULT_FN}\' ...')
+        print_str(f"Created default config as '{CONFIG_DEFAULT_FN}' ...")
         sys.exit()
 
-    # # load default config from file
-    # if os.path.exists(CONFIG_DEFAULT_FN) is False:
-    #     print(f'Created default config as \'{CONFIG_DEFAULT_FN}\' ...')
-    #     make_default_config()
-    # m_default = importlib.import_module(strip_py(CONFIG_DEFAULT_FN))
-
-    # # load user config from file
-    # if arg_overwrite and args.cfg is not None:
-    #     config_fn = args.cfg
-    # m_file = importlib.import_module(strip_py(config_fn))
+    if not os.path.exists(CONFIG_DEFAULT_FN):
+        msg = f"Default config file '{CONFIG_DEFAULT_FN} not found. Creating "
+        msg += "default config file in current directory."
+        print_warn(msg)
+        make_default_config()
     
-    namespace = {}
+    namespace = {}        
     with open(CONFIG_DEFAULT_FN) as file:
         code = file.read()
         exec(code, namespace)
 
+    # move imported args into local variable
     default_args = namespace['args']
     
+    # PROJECT CONFIG FILE SETTINGS
     if arg_overwrite and args.cfg is not None:
         config_fn = args.cfg
     
+    if not os.path.exists(config_fn):
+        msg =  f"Project config file '{config_fn}' not found. If you have a "
+        msg +=  "project config file, please verify access to the file. There "
+        msg +=  "are two easy ways to create a user config file: (1) copy the "
+        msg += f"default config file '{CONFIG_DEFAULT_FN}' and modify it as "
+        msg +=  "needed, or (2) download an existing project config file from "
+        msg +=  "https://github.com/mlandis/phyddle/tree/main/scripts."
+        print_err(msg)
+        sys.exit()
+
+    namespace = {}
     with open(config_fn) as file:
         code = file.read()
         exec(code, namespace)
 
+    # move imported args into local variable
     file_args = namespace['args']
     
-
+    # MERGE SETTINGS
     # merge default, user_file, and user_cmd settings
     for k in settings.keys():
         m = reconcile_settings(default_args, file_args, args, k)
@@ -334,6 +347,10 @@ def check_args(args):
     Raises:
     AssertionError: If any of the conditions are not met.
     """
+
+    # probably should turn all of these into helpful error messages, with
+    # links to user facing documentation
+
     # string values
     assert all([s in 'ASFTEP' for s in args['step']])
     assert args['sim_logging']       in ['clean', 'verbose', 'compress']
@@ -1449,6 +1466,35 @@ def print_str(s, verbose=True, style=1, fg=34):
     """
     if verbose:
         print(phyddle_str(s, style, fg))
+
+def print_err(s, verbose=True, style=1, fg=34):
+    """
+    Prints the formatted string to the standard output.
+
+    Parameters:
+    s (str): The string to be printed.
+    style (int, optional): The style of the string. Defaults to 1.
+    fg (int, optional): The foreground color of the string. Defaults to 34.
+    verbose (bool, optional): If True, prints the formatted string. Defaults to True.
+    """
+    if verbose:
+        s = 'ERROR: ' + s
+        print(phyddle_str(s, style, fg))
+
+def print_warn(s, verbose=True, style=1, fg=34):
+    """
+    Prints the formatted string to the standard output.
+
+    Parameters:
+    s (str): The string to be printed.
+    style (int, optional): The style of the string. Defaults to 1.
+    fg (int, optional): The foreground color of the string. Defaults to 34.
+    verbose (bool, optional): If True, prints the formatted string. Defaults to True.
+    """
+    if verbose:
+        s = 'WARNING: ' + s
+        print(phyddle_str(s, style, fg))
+
 
 def phyddle_header(s, style=1, fg=34):
     """
