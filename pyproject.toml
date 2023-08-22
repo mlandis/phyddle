@@ -11,7 +11,26 @@ authors = [
 ]
 description = "Software to fiddle around with deep learning for phylogenetic models"
 readme = "README.md"
+
 requires-python = ">=3.7"
+
+dependencies = [
+  "dendropy",
+  "graphviz",
+  "h5py",
+  "keras",
+  "matplotlib",
+  "numpy",
+  "pandas",
+  "pydot",
+  "pypdf",
+  "python-graphviz",
+  "scikit-learn",
+  "scipy",
+  "tensorflow",
+  "tqdm"
+]
+
 classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",
