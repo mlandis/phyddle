@@ -24,7 +24,6 @@ dependencies = [
   "pandas",
   "pydot",
   "pypdf",
-  "python-graphviz",
   "scikit-learn",
   "scipy",
   "tensorflow",
