@@ -55,7 +55,9 @@ anaconda login
 
 # upload to anaconda
 anaconda upload \
-    /Users/mlandis/opt/miniconda3/conda-bld/osx-64/phyddle-x.x.x-py39_0.conda
+    /Users/mlandis/anaconda3/conda-bld/osx-64/phyddle-0.0.9-py311_0.tar.bz2
+
+# done!
 
 ```
 

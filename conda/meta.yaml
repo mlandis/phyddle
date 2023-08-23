@@ -1,13 +1,14 @@
 {% set name = "phyddle" %}
-{% set version = "0.0.8" %}
+{% set version = "0.0.9" %}
 
 package:
   name: {{name}}
   version: {{version}}
 
 source:
-  url: https://files.pythonhosted.org/packages/4b/9e/408cb02b063226ecd474f2bb600371b6ae723c05ddda651eba7429e6b955/phyddle-0.0.9.tar.gz
-  sha: 28d9388666a5b1a667dd7ce92291b35cc0203c7230819dd608703d8820bf4182
+  # get URL & SHA for new version from: https://pypi.org/project/phyddle/#modal-close
+  url: https://files.pythonhosted.org/packages/26/bb/2adbcc4ad3a1be7f9f3b46cd505069e164ff1643fa77297bf07339d089f8/phyddle-0.0.9.tar.gz 
+  sha: f1dad7fbb7cb35a4a34b8a951e8de8b075747d6df4d5a2f306219bff362227a0
 
 build:
   number: 0
@@ -25,19 +26,19 @@ requirements:
     #'python>=3.11' 'dendropy>=4.6' 'tensorflow>=2.12' numpy=1.23 pandas=2.0 scipy=1.11 joblib=1.2 tqdm=4.65 h5py=3.8 keras=2.12  matplotlib=3.7 pypdf=3.12 Pillow=10.0 scikit-learn=1.2 graphviz python-graphviz pydot
 
     - python
-    - dendropy
+    - dendropy >=4.5
     - graphviz
     - h5py
     - keras
-    - matplotlib
-    - numpy
-    - pandas
+    - matplotlib >=3.7
+    - numpy >=1.22
+    - pandas >=2.0
     - pydot
     - pypdf
     - python-graphviz
-    - scikit-learn
-    - scipy
-    - tensorflow
+    - scikit-learn >=1.2
+    - scipy >=1.11
+    - tensorflow >=2.12
     - tqdm
 
 test:
