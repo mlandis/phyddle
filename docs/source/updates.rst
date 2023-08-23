@@ -4,10 +4,11 @@ Updates
 The complete commit history for phyddle is located here: https://github.com/mlandis/phyddle/commits/main
 
 
-**phyddle v0.0.9** -- (in progress)
+**phyddle v0.0.9** -- 23.08.23
 
   * Package now hosted through conda: https://anaconda.org/landismj/phyddle
   * Better errors for missing files (configs, command, scripts, etc.)
+  * PyPI package installed through pip now autoinstalls dependencies
 
 
 **phyddle v0.0.8** -- 23.08.16
