@@ -6,7 +6,7 @@ package:
   version: {{version}}
 
 source:
-  url: https://files.pythonhosted.org/packages/4b/9e/408cb02b063226ecd474f2bb600371b6ae723c05ddda651eba7429e6b955/phyddle-0.0.8.tar.gz
+  url: https://files.pythonhosted.org/packages/4b/9e/408cb02b063226ecd474f2bb600371b6ae723c05ddda651eba7429e6b955/phyddle-0.0.9.tar.gz
   sha: 28d9388666a5b1a667dd7ce92291b35cc0203c7230819dd608703d8820bf4182
 
 build:
