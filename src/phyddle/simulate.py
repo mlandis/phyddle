@@ -139,7 +139,7 @@ class Simulator:
 
         # get command and script
         cmd = tok[0]
-        fn = ' '.join(tok[1])
+        fn = tok[1]
 
         # verify executable exists
         if shutil.which(cmd) is None:
