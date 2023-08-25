@@ -41,14 +41,16 @@ except RuntimeError:
 #------------------------------------------------------------------------------#
 
 def load(args):
-    """
-    Load a Simulator object.
+    """Load a Simulator object.
 
     This function creates an instance of the Simulator class, initialized using
     phyddle settings stored in args (dict).
 
     Args:
         args (dict): Contains phyddle settings.
+
+    Returns:
+        Simulator: A new Simulator object.
     """
 
     # load object
@@ -66,8 +68,7 @@ class Simulator:
     tensors with the Format step.
     """
     def __init__(self, args):
-        """
-        Initializes a new Simulator object.
+        """Initializes a new Simulator object.
 
         Args:
             args (dict): Contains phyddle settings.
@@ -89,8 +90,7 @@ class Simulator:
         return
 
     def set_args(self, args):
-        """
-        Assigns phyddle settings as Simulator attributes.
+        """Assigns phyddle settings as Simulator attributes.
 
         Args:
             args (dict): Contains phyddle settings.
@@ -103,6 +103,17 @@ class Simulator:
         return
 
     def get_rep_idx(self):
+        """Determines replicate indices to use.
+
+        This function will use the provided start and end index for new
+        replicates, unless sim_more > 0. In that case, the function finds
+        the largest replicate index, k, in sim_proj_dir and then uses
+        [k+1:k+sim_more] as replicate indices.
+
+        Returns:
+            int[]: List of replicate indices.
+
+        """
         # if sim_more arg is defined, use it to overwrite rep_idx
         if self.sim_more > 0:
             rep_idx = set()
@@ -112,6 +123,7 @@ class Simulator:
             max_rep_idx = max(list(rep_idx))
             self.start_idx = max_rep_idx + 1
             self.end_idx = self.start_idx + self.sim_more
+
         # determine rep_idx
         rep_idx = list(range(self.start_idx,
                              self.end_idx,
@@ -120,8 +132,7 @@ class Simulator:
         return rep_idx
 
     def validate_sim_command(self):
-        """
-        Validates sim_command
+        """Reports error if sim_command is invalid.
         
         This function verifies that self.sim_command executes properly. It
         verifies the command and script exist. Then it runs a test job
@@ -133,7 +144,10 @@ class Simulator:
         tok = self.sim_command.split(' ')
         
         if len(tok) < 2:
-            msg = f"Invalid sim_command setting. Command string '{self.sim_command}' is incomplete. A valid command string consists of the command, then a space, then the path to the simulation script, e.g. '[command] [sim_script]'."
+            msg = ( "Invalid sim_command setting. Command string "
+                   f"'{self.sim_command}' is incomplete. A valid command "
+                    "string is the command, then a space, then the relative "
+                    "path to the simulation script: '[command] [sim_script]'.")
             util.print_err(msg)
             sys.exit()
 
@@ -143,13 +157,17 @@ class Simulator:
 
         # verify executable exists
         if shutil.which(cmd) is None:
-            msg = f"Invalid sim_command setting. Command '{cmd}' not found. Please verify the current user can execute the command from the local directory."
+            msg = (f"Invalid sim_command setting. Command '{cmd}' not found.  "
+                    "Please verify the current user can execute the command "
+                    "from the local directory.")
             util.print_err(msg)
             sys.exit()
 
         # verify test script exists
         if not os.path.exists(fn):
-            msg = f"Invalid sim_command setting. Simulator script '{fn}' not found. Please verify the script is visible to the current user from the local directory."
+            msg = (f"Invalid sim_command setting. Simulator script '{fn}' "
+                    "not found. Please verify the script is visible to the "
+                    "current user from the local directory.")
             util.print_err(msg)
             sys.exit()
 
@@ -161,8 +179,7 @@ class Simulator:
         return
 
     def run(self):
-        """
-        Simulates training examples.
+        """Simulates training examples.
 
         This creates the target directory for new simulations then runs all
         simulation jobs.
@@ -170,6 +187,9 @@ class Simulator:
         Simulation jobs are numbered by the replicate-index list (self.rep_idx). 
         Each job is executed by calling self.sim_one(idx) where idx is a unique
         value in self.rep_idx.
+
+        Each dispatched simulation task is expected to produce n=chunksize 
+        sequentially numbered new simulated datasets.
  
         When self.use_parallel is True then all jobs are run in parallel via
         multiprocessing.Pool. When self.use_parallel is false, jobs are run
@@ -200,10 +220,13 @@ class Simulator:
             # - chunksize=1 vs chunksize=5
             # - worth testing more, though
             with Pool(processes=self.num_proc) as pool:
-                 res = list(tqdm(pool.imap(self.sim_one, self.rep_idx, chunksize=1),
-                            total=len(self.rep_idx),
-                            desc='Simulating',
-                            smoothing=0))
+                 res = list(
+                     tqdm(
+                        pool.imap(self.sim_one, self.rep_idx, chunksize=1),
+                        total=len(self.rep_idx),
+                        desc='Simulating',
+                        smoothing=0)
+                    )
             
         else:
             # serial jobs
@@ -216,7 +239,6 @@ class Simulator:
         # end time
         end_time,end_time_str = util.get_time()
         run_time = util.get_time_diff(start_time, end_time)
-        # util.print_str(f'▪ End time:     {end_time_str}', verbose)
         util.print_str(f'▪ End time of {end_time_str} (+{run_time})', verbose)
 
         # done
