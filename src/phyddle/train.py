@@ -29,14 +29,14 @@ from phyddle import utilities as util
 #------------------------------------------------------------------------------#
 
 def load(args):
-    """
-    Load a Trainer object.
+    """Load a Trainer object.
 
     This function creates an instance of the Trainer class, initialized using
     phyddle settings stored in args (dict).
 
     Args:
         args (dict): Contains phyddle settings.
+
     """
 
     # load object
@@ -58,11 +58,11 @@ class Trainer:
     """
 
     def __init__(self, args):
-        """
-        Initializes a new Trainer object.
+        """Initializes a new Trainer object.
 
         Args:
             args (dict): Contains phyddle settings.
+
         """
         # initialize with phyddle settings
         self.set_args(args)
@@ -81,11 +81,11 @@ class Trainer:
         return
     
     def set_args(self, args):
-        """
-        Assigns phyddle settings as Trainer attributes.
+        """Assigns phyddle settings as Trainer attributes.
 
         Args:
             args (dict): Contains phyddle settings.
+
         """
         self.args = args
         step_args = util.make_step_args('T', args)
@@ -98,13 +98,11 @@ class Trainer:
         return
     
     def prepare_filepaths(self):
-        """
-        Prepare filepaths for the project.
+        """Prepare filepaths for the project.
 
         This script generates all the filepaths for input and output based off
         of Trainer attributes.
 
-        Returns: None
         """
         # main directories
         self.fmt_proj_dir = f'{self.fmt_dir}/{self.fmt_proj}'
@@ -138,11 +136,11 @@ class Trainer:
         return
 
     def run(self):
-        """
-        Builds and trains the network.
+        """Builds and trains the network.
 
         This method loads all training examples, builds the network, trains the
         network, collects results, then saves results to file.
+
         """
         verbose = self.verbose
 
@@ -212,6 +210,7 @@ class CnnTrainer(Trainer):
 
         Args:
             args (dict): Contains phyddle settings.
+
         """
         # initialize base class
         super().__init__(args)
@@ -233,6 +232,7 @@ class CnnTrainer(Trainer):
             train_idx (numpy.ndarray): The indices for the training subset.
             val_idx (numpy.ndarray): The indices for the validation subset.
             calib_idx (numpy.ndarray): The indices for the calibration subset.
+
         """
 
         # get number of training, validation, and calibration datapoints
@@ -251,16 +251,21 @@ class CnnTrainer(Trainer):
     
     def validate_tensor_idx(self, train_idx, val_idx, calib_idx):
         """
-        Validates the sizes of the training, validation, test, and calibration datasets.
+        Validates input tensors.
+
+        Checks that training, validation, and calibration input tensors are
+        each non-empty.
 
         Args:
-            train_idx (list): The index of the training dataset.
-            val_idx (list): The index of the validation dataset.
-            calib_idx (list): The index of the calibration dataset.
+            train_idx (list): Training example indices.
+            val_idx (list): Validation example indices.
+            calib_idx (list): Calibration example indices.
 
         Returns:
-            ValueError if any of the datasets are empty. Otherwise, returns None.
+            ValueError if any of the datasets are empty, otherwise returns None.
+
         """
+
         msg = ''
         if len(train_idx) == 0:
             msg = 'Training dataset is empty: len(train_idx) == 0'
@@ -275,14 +280,14 @@ class CnnTrainer(Trainer):
         return
 
     def load_input(self):
-        """
-        Load input data for the model.
+        """Load input data for the model.
 
         This function loads input data based on the specified tensor format
         (csv or hdf5). It performs necessary preprocessing steps such as reading
         data from files, reshaping tensors, normalizing summary stats and
         labels, randomizing data, and splitting the dataset into training,
         validation, test, and calibration parts.
+
         """
         # read phy. data, aux. data, and labels
         if self.tensor_format == 'csv':
@@ -397,13 +402,14 @@ class CnnTrainer(Trainer):
                              outputs = output_layers)
         
     def build_network_input_layers(self):
-        """
-        Build the input layers for the network.
+        """Build the input layers for the network.
 
         Returns:
             dict: A dictionary containing the input layers for phylogenetic
                   state data and auxiliary data tensors.
+
         """
+
         input_phylo_tensor = Input(shape=self.train_phy_data_tensor.shape[1:3], name='input_phylo')
         input_aux_tensor   = Input(shape=self.train_aux_data_tensor.shape[1:2], name='input_aux')
 
@@ -411,8 +417,7 @@ class CnnTrainer(Trainer):
 
     
     def build_network_aux_layers(self, input_aux_tensor):
-        """
-        Build the auxiliary data layers for the network.
+        """Build the auxiliary data layers for the network.
 
         This function assumes a densely connected feed-forward neural network
         design for the layers. This is later concatenated with the CNN arms.
@@ -422,7 +427,9 @@ class CnnTrainer(Trainer):
 
         Returns:
             list: A list of auxiliary data FFNN layers.
+
         """
+
         w_aux_ffnn = layers.Dense(128, activation = 'relu', kernel_initializer = self.kernel_init, name='ff_aux1')(input_aux_tensor)
         w_aux_ffnn = layers.Dense(64, activation = 'relu', kernel_initializer = self.kernel_init, name='ff_aux2')(w_aux_ffnn)
         w_aux_ffnn = layers.Dense(32, activation = 'relu', kernel_initializer = self.kernel_init, name='ff_aux3')(w_aux_ffnn)
@@ -430,8 +437,7 @@ class CnnTrainer(Trainer):
         return [ w_aux_ffnn ]
 
     def build_network_phylo_layers(self, input_data_tensor):
-        """
-        Build the phylogenetic state data layers for the network.
+        """Build the phylogenetic state data layers for the network.
 
         This function assumes a convolutional neural network design, composed
         of three 1D-convolution + pool layer seqeuences ("arms"). The three
@@ -443,7 +449,9 @@ class CnnTrainer(Trainer):
 
         Returns:
             list: A list of phylo layers.
+
         """
+
         # convolutional layers
         # e.g. you expect to see 64 patterns, width of 3,
         # stride (skip-size) of 1, padding zeroes so all windows are 'same'
@@ -465,8 +473,7 @@ class CnnTrainer(Trainer):
         return [ w_conv_gavg, w_stride_gavg, w_dilated_gavg ]
 
     def build_network_output_layers(self, phylo_layers, aux_layers):
-        """
-        Build the output layers for the network.
+        """Build the output layers for the network.
 
         This function concatenates the output from the CNN and FFNN arms of the
         network, and then constructs three new FFNN arms that lead towards
@@ -479,7 +486,9 @@ class CnnTrainer(Trainer):
 
         Returns:
             list: A list of output layers.
+
         """
+
         # combine phylo and aux layers lists
         all_layers = phylo_layers + aux_layers
 
@@ -509,8 +518,7 @@ class CnnTrainer(Trainer):
 #------------------------------------------------------------------------------#
 
     def train(self):
-        """
-        Trains the neural network model.
+        """Trains the neural network model.
 
         This function compiles the network model to prepare it for training. 
         Perform training by compiling the model with appropriate loss functions
@@ -519,6 +527,7 @@ class CnnTrainer(Trainer):
 
         Returns:
             None
+
         """
         # gather loss functions
         my_loss = [self.loss,
@@ -548,11 +557,11 @@ class CnnTrainer(Trainer):
         return
 
     def make_results(self):
-        """
-        Makes all results from the Train step.
+        """Makes all results from the Train step.
 
         This function undoes all the transformation and rescaling for the 
         input and output datasets.
+
         """
         
         # training label estimates
@@ -584,15 +593,12 @@ class CnnTrainer(Trainer):
         return
     
     def save_results(self):
-        """
-        Save training results.
+        """Save training results.
 
         Saves all results from training procedure. Saved results include the
         trained network, the normalization parameters for training/calibration,
         CPI adjustment terms, and the training history.
 
-        Returns:
-            None
         """
         max_idx = 1000
         
@@ -638,12 +644,12 @@ class CnnTrainer(Trainer):
 #------------------------------------------------------------------------------#
 
     def pinball_loss(self, y_true, y_pred, alpha):
-        """
-        Calculate the pinball Loss for quantile regression.
+        """Calculate the pinball loss.
 
         This function calculates the pinball Loss, which measures the
         difference between the true target values (`y_true`) and the predicted
-        target values (`y_pred`) for a quantile regression model.
+        target values (`y_pred`) for a quantile regression model. Used for
+        quantile regression.
 
         The Pinball Loss is calculated using the following formula:
             mean(maximum(alpha * err, (alpha - 1) * err))
@@ -655,7 +661,9 @@ class CnnTrainer(Trainer):
 
         Returns:
             float: Value of pinball loss
+
         """
+
         err = y_true - y_pred
         return K.mean(K.maximum(alpha*err, (alpha-1)*err), axis=-1)
 
@@ -693,8 +701,7 @@ class CnnTrainer(Trainer):
         return self.pinball_loss(y_true, y_pred, alpha=0.85)
 
     def get_pinball_loss_fns(self, coverage):
-        """
-        Returns the correct pinball loss functions
+        """Gets correct pinball loss functions.
 
         The CnnTrainer class currently implements lower and upper quantiles for
         70%, 80%, 90%, 95%.
@@ -704,7 +711,9 @@ class CnnTrainer(Trainer):
 
         Returns:
             tuple: Two pinball loss functions for the specified coverage level.
+
         """
+
         if coverage == 0.95:
             return self.pinball_loss_q_0_025, self.pinball_loss_q_0_975
         elif coverage == 0.90:
@@ -717,8 +726,7 @@ class CnnTrainer(Trainer):
             raise NotImplementedError
         
     def get_CQR_constant(self, ests, true, inner_quantile=0.95, asymmetric = True):
-        """
-        Computes the conformalized quantile regression (CQR) constants
+        """Computes the conformalized quantile regression (CQR) constants.
         
         This function computes symmetric or asymmetric CQR constants for the
         specified inner-quantile range.
@@ -737,6 +745,7 @@ class CnnTrainer(Trainer):
             array-like: The conformity scores.
 
         """
+        
         # compute non-comformity scores
         Q = np.empty((2, ests.shape[2]))
         
@@ -748,10 +757,12 @@ class CnnTrainer(Trainer):
                 lower_p = (1 - inner_quantile)/2 * (1 + 1/ests.shape[1])
                 upper_p = (1 + inner_quantile)/2 * (1 + 1/ests.shape[1])
                 if lower_p < 0.:
-                    self.logger.write_log('trn', 'get_CQR_constant: lower_p >= 0.')
+                    self.logger.write_log('train',
+                                          'get_CQR_constant: lower_p >= 0.')
                     lower_p = 0.
                 if upper_p > 1.:
-                    self.logger.write_log('trn', 'get_CQR_constant: upper_p <= 1.')
+                    self.logger.write_log('train',
+                                          'get_CQR_constant: upper_p <= 1.')
                     upper_p = 1.
                 lower_q = np.quantile(lower_s, lower_p)
                 upper_q = np.quantile(upper_s, upper_p)
@@ -761,10 +772,12 @@ class CnnTrainer(Trainer):
                 # get adjustment constant: 1 - alpha/2's quintile of non-comformity scores
                 symm_p = inner_quantile * (1 + 1/ests.shape[1])
                 if symm_p < 0.:
-                    self.logger.write_log('train', 'get_CQR_constant: symm_p >= 0.')
+                    self.logger.write_log('train',
+                                          'get_CQR_constant: symm_p >= 0.')
                     symm_p = 0.
                 elif symm_p > 1.:
-                    self.logger.write_log('train', 'get_CQR_constant: symm_p <= 1.')
+                    self.logger.write_log('train',
+                                          'get_CQR_constant: symm_p <= 1.')
                     symm_p = 1.                    
                 lower_q = np.quantile(s, symm_p)
                 upper_q = lower_q
