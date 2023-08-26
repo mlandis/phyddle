@@ -26,14 +26,14 @@ from phyddle import utilities as util
 #------------------------------------------------------------------------------#
 
 def load(args):
-    """
-    Load an Estimator object.
+    """Load an Estimator object.
 
     This function creates an instance of the Estimator class, initialized using
     phyddle settings stored in args (dict).
 
     Args:
         args (dict): Contains phyddle settings.
+
     """
 
     # load object
@@ -54,12 +54,13 @@ class Estimator:
     """
 
     def __init__(self, args):
-        """
-        Initializes a new Simulator object.
+        """Initializes a new Simulator object.
 
         Args:
             args (dict): Contains phyddle settings.
+            
         """
+
         # initialize with phyddle settings
         self.set_args(args)
         # construct filepaths
@@ -76,12 +77,13 @@ class Estimator:
         # done
         return
     
+
     def set_args(self, args):
-        """
-        Assigns phyddle settings as Estimator attributes.
+        """Assigns phyddle settings as Estimator attributes.
 
         Args:
             args (dict): Contains phyddle settings.
+
         """
         # estimator arguments
         self.args = args
@@ -107,14 +109,12 @@ class Estimator:
         return
     
     def prepare_filepaths(self):
-        """
-        Prepare filepaths for the project.
+        """Prepare filepaths for the project.
 
         This script generates all the filepaths for input and output based off
         of Trainer attributes. The Format and Train directories are input and
         the Estimate directory is used for both input and output.
 
-        Returns: None
         """
         # main directories
         self.trn_proj_dir           = f'{self.trn_dir}/{self.trn_proj}'
@@ -163,24 +163,25 @@ class Estimator:
         return
 
     def run(self):
-        """
-        Executes all simulations.
+        """Executes all estimation tasks.
 
         This method prints status updates, creates the target directory for new
-        simulations, then runs all simulation jobs.
+        estimates, then runs all estimation jobs.
+
+        Estimation tasks are performed against all entries in the test
+        dataset and against a single dataset (typically assumed to be the
+        empirical dataset).
+
+        Estimation will load the trained network, predict point estimates
+        and calibrated prediction intervals (CPIs), and save results to file.
         
-        Simulation jobs are numbered by the replicate-index list (self.rep_idx). 
-        Each job is executed by calling self.sim_one(idx) where idx is a unique
-        value in self.rep_idx.
- 
-        When self.use_parallel is True then all jobs are run in parallel via
-        multiprocessing.Pool. When self.use_parallel is false, jobs are run
-        serially with one CPU.
         """
         verbose = self.verbose
 
         # print header
-        util.print_step_header('est', [self.est_proj_dir, self.trn_proj_dir],
+        util.print_step_header('est',
+                               [self.fmt_proj_dir, self.est_proj_dir,
+                                self.trn_proj_dir],
                                self.est_proj_dir, verbose)
         
         # prepare workspace
@@ -206,10 +207,10 @@ class Estimator:
 
         # done
         util.print_str('... done!', verbose)
+        return
         
     def load_input(self):
-        """
-        Load input data for estimation.
+        """Load input data for estimation.
 
         This function loads input from Train and Estimate. From Train, it
         imports the trained network, scaling factors for the aux. data and
@@ -218,8 +219,8 @@ class Estimator:
         
         The script re-normalizes the new estimation to match the scale/location
         used for simulated training examples to train the network.
-        """
 
+        """
 
         # read & reshape new phylo-state data
         self.emp_phy_data = None
@@ -303,16 +304,16 @@ class Estimator:
         #                                        self.train_labels_mean_sd)
         self.test_label_true = test_labels
 
+        # done
         return
 
-
     def make_results(self):
-        """
-        Makes all results for the Estimate step.
+        """Makes all results for the Estimate step.
 
         This function loads a trained model from the Train stem, then uses it
         to perform the estimation task. For example, the step might estimate all
         model parameter values and adjusted lower and upper CPI bounds. This step 
+
         """
         
         # load model
@@ -378,32 +379,3 @@ class Estimator:
         return
     
 #------------------------------------------------------------------------------#
-
-
-        # # scatter of estimate vs true for test data
-        # self.normalized_test_ests        = self.mymodel.predict([self.test_phy_data_tensor, self.test_sux_data_tensor])
-        # self.normalized_test_ests        = np.array(self.normalized_test_ests)
-        # self.denormalized_test_ests      = util.denormalize(self.normalized_test_ests, self.train_label_means, self.train_label_sd)
-        # self.denormalized_test_ests      = np.exp(self.denormalized_test_ests)
-        # self.denormalized_test_labels    = util.denormalize(self.norm_test_labels, self.train_label_means, self.train_label_sd)
-        # self.denormalized_test_labels    = np.exp(self.denormalized_test_labels)
-        
-        # # test predictions with calibrated CQR CIs
-        # self.denorm_test_ests_calib        = self.normalized_test_ests
-        # self.denorm_test_ests_calib[1,:,:] = self.denorm_test_ests_calib[1,:,:] - self.cpi_adjustments[0,:]
-        # self.denorm_test_ests_calib[2,:,:] = self.denorm_test_ests_calib[2,:,:] + self.cpi_adjustments[1,:]
-        # self.denorm_test_ests_calib        = util.denormalize(self.denorm_test_ests_calib, self.train_label_means, self.train_label_sd)
-        # self.denorm_test_ests_calib        = np.exp(self.denorm_test_ests_calib)
-
-        #  # test scatterplot results (Value, Lower, Upper)
-        # df_test_est_nocalib  = util.make_param_VLU_mtx(self.denormalized_test_ests[0:max_idx,:], self.label_names )
-        # df_test_est_calib    = util.make_param_VLU_mtx(self.denorm_test_ests_calib[0:max_idx,:], self.label_names )
-        
-        # # save train/test labels
-        # df_test_labels   = pd.DataFrame( self.denormalized_test_labels[0:max_idx,:], columns=self.label_names )
-
-        # # convert to csv and save
-        # df_test_est_nocalib.to_csv(self.test_est_nocalib_fn, index=False, sep=',')
-        # df_test_est_calib.to_csv(self.test_est_calib_fn, index=False, sep=',')
-        # df_test_labels.to_csv(self.test_labels_fn, index=False, sep=',')
-        
