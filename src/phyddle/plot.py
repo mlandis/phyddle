@@ -410,7 +410,7 @@ class Plotter:
             n = min(n_max, self.test_ests.shape[0])
             self.plot_scatter_accuracy(ests=self.test_ests.iloc[0:n],
                                        labels=self.test_labels.iloc[0:n],
-                                       prefix=self.save_train_est_fn,
+                                       prefix=self.save_test_est_fn,
                                        color=self.plot_test_color,
                                        title='Test')
         # done
