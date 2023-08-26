@@ -14,24 +14,21 @@ License:   MIT
 # standard packages
 import argparse
 import copy
-# import importlib
 import os
 import pkg_resources
 import platform
 import re
 import sys
-from datetime import datetime
-#from itertools import chain, combinations
 import time
-import __main__ as main
-#from time import gmtime, strftime
+from datetime import datetime
 
 # external packages
-import pandas as pd
-import numpy as np
 import dendropy as dp
+import numpy as np
+import pandas as pd
 
 # phyddle imports
+import __main__ as main
 from . import PHYDDLE_VERSION, CONFIG_DEFAULT_FN
 
 # Precision settings
@@ -41,7 +38,7 @@ pd.set_option('display.precision', NUM_DIGITS)
 pd.set_option('display.float_format', lambda x: f'{x:,.3f}')
 
 # Tensorflow info messages
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # or any {'0', '1', '2'}
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 # run mode
 INTERACTIVE_SESSION = not hasattr(main, '__file__')
@@ -53,22 +50,24 @@ INTERACTIVE_SESSION = not hasattr(main, '__file__')
 ###################
 
 def make_step_args(step, args):
-    """
-    Collect arguments for a step.
+    """Collect arguments for a step.
 
     This function loads the settings registry, then filters out all settings
     matching a valid step code. The returned dictionary can then be used
     to initialize the phyddle objects that execute the specified step.
 
     Returns:
-        ret (dict): args to initialize a phyddle step object
+        dict: args to initialize a phyddle step object
+
     """
     
+    # return variable
+    ret = {}
+
+    # check that step code is valid
     if step not in 'SFTEP':
         raise ValueError
     
-    ret = {}
-
     # search through all registered phyddle settings
     settings = settings_registry()
     for k,v in settings.items():
@@ -86,19 +85,20 @@ def make_step_args(step, args):
     return ret
 
 def settings_registry():
-    """
-    Make registry of phyddle settings.
+    """Make registry of phyddle settings.
 
     This function manages all allowed phyddle settings with a dictionary. Each
     key is the name of a setting, and the value is a dictionary of that the
     properties for that setting. The properties for each setting are:
         - step : which step(s) this setting will be applied to
         - type : argument type expected by argparse
+        - section: what part of the config file to appear in
         - help : argument description for argparse and config file [TBD]
         - opt  : short single-dash code for argparse (e.g. '-c' )
+        - bool : default bool value for T/F strings
 
     Returns:
-        settings (dict) : all valid phyddle settings with extra info
+        dict : all valid phyddle settings with extra info
     """
     settings = {
         # basic phyddle options
@@ -179,8 +179,7 @@ def settings_registry():
 def load_config(config_fn,
                 arg_overwrite=True,
                 args=None):
-    """
-    Makes a dictionary of phyddle arguments.
+    """Makes a dictionary of phyddle arguments.
     
     This function populates a dictionary for all phyddle settings that are
     intended to be customizable by users. The combines information from three
@@ -197,11 +196,12 @@ def load_config(config_fn,
 
     Arguments:
         config_fn (str): The config file name.
-        arg_overwrite (bool, optional): Overwrite config file arguments?
-        args (list, optional): List of provided arguments (mainly for debugging)
+        arg_overwrite (bool): Overwrite config file arguments?
+        args (list): List of provided arguments (mainly for debugging)
 
     Returns:
         dict: The loaded configuration.
+
     """
     
     # use command line sys.argv if no args provided
@@ -240,41 +240,35 @@ def load_config(config_fn,
     # COMMAND LINE SETTINGS
     args = parser.parse_args(args)
 
-    
-
     # DEFAULT CONFIG FILE SETTINGS
-
     # make/overwrite default config, if requested
     if args.make_cfg:
         make_default_config()
         print_str(f"Created default config as '{CONFIG_DEFAULT_FN}' ...")
         sys.exit()
-
     if not os.path.exists(CONFIG_DEFAULT_FN):
         msg = f"Default config file '{CONFIG_DEFAULT_FN} not found. Creating "
         msg += "default config file in current directory."
         print_warn(msg)
         make_default_config()
-    
+    # load config into namespace
     namespace = {}        
     with open(CONFIG_DEFAULT_FN) as file:
         code = file.read()
         exec(code, namespace)
-
     # move imported args into local variable
     default_args = namespace['args']
     
     # PROJECT CONFIG FILE SETTINGS
     if arg_overwrite and args.cfg is not None:
         config_fn = args.cfg
-    
     if not os.path.exists(config_fn):
-        msg =  f"Project config file '{config_fn}' not found. If you have a "
-        msg +=  "project config file, please verify access to the file. There "
-        msg +=  "are two easy ways to create a user config file: (1) copy the "
-        msg += f"default config file '{CONFIG_DEFAULT_FN}' and modify it as "
-        msg +=  "needed, or (2) download an existing project config file from "
-        msg +=  "https://github.com/mlandis/phyddle/tree/main/scripts."
+        msg = (f"Project config file '{config_fn}' not found. If you have a "
+                "project config file, please verify access to the file. There "
+                "are two easy ways to create a user config file: (1) copy the "
+               f"default config file '{CONFIG_DEFAULT_FN}' and modify it as "
+                "needed, or (2) download an existing project config file from "
+                "https://github.com/mlandis/phyddle/tree/main/scripts." )
         print_err(msg)
         sys.exit()
 
@@ -317,29 +311,29 @@ def load_config(config_fn,
     # return new args
     return m
 
-
 def fix_bool(m):
+    """Convert bool-str arguments to True/False bool."""
     settings = settings_registry()
     for k,v in settings.items():
         if 'bool' in v:
             arg_val = m[k]
-            arg_val_new = arg_str2bool(arg_val, k)
+            arg_val_new = str2bool(arg_val)
+            if arg_val_new is None:
+                raise ValueError(f'{arg_val} invalid value for {k}')
             m[k] = arg_val_new
     return m
 
-
-def arg_str2bool(x, arg):
+def str2bool(x, arg):
+    """Convert a str value to True/False"""
     if x.lower() in ['true', 'yes', 't', 'y', '1' ]:
         return True
     elif x.lower() in ['false', 'no', 'f', 'n', '0' ]:
         return False
     else:
-        raise ValueError(f'{x} invalid value for {arg}')
-
+        return None
 
 def check_args(args):
-    """
-    Checks if the given arguments meet certain conditions.
+    """Checks if the given arguments meet certain conditions.
 
     Parameters:
     args (dict): A dictionary containing the arguments.
@@ -378,16 +372,24 @@ def check_args(args):
     assert args['prop_test'] >= 0. and args['prop_test'] <= 1.
     assert args['prop_val'] >= 0. and args['prop_val'] <= 1.
     assert args['prop_cal'] >= 0. and args['prop_cal'] <= 1.
-    #assert len(args['tree_width_cats']) > 0
-    #for i in range(len(args['tree_width_cats'])):
-    #    assert args['tree_width_cats'][i] > 0
-    #assert args['tree_width'] in args['tree_width_cats']
 
+    # done
     return
 
 def add_step_proj(args): #steps, proj):
-    """
-    Manages which steps use which project directories.
+    """Manages project directories for steps.
+
+    This function determines which step will be used from args. Next it
+    processes the project string to determine the project(s) name(s) across
+    all steps. Last, it creates step-specific project directories and stores
+    them back into args.
+
+    Args:
+        args (dict): Un-updated phyddle settings dictionary
+    
+    Returns:
+        dict: Updated the phyddle settings dictionary.
+
     """
     # get relevant args
     steps = args['step']
@@ -427,7 +429,8 @@ def add_step_proj(args): #steps, proj):
     # verify all steps are covered
     for s in steps:
         if d_map[s][0] not in d_arg.keys():
-            raise ValueError(f"Step {s} ({d_map[s][1]}) has no assigned project name")
+            msg = f"Step {s} ({d_map[s][1]}) has no assigned project name"
+            raise ValueError(msg)
 
     for k in d_arg.keys():
         k_str = k + '_proj'
@@ -436,6 +439,14 @@ def add_step_proj(args): #steps, proj):
     return args
 
 def make_default_config():
+    """Generate default config file.
+
+    Processes all items in the settings_registry to create a formatted
+    default config dictionary. Writes config to file.
+
+    """
+    
+    # get settings registry
     settings = settings_registry()
     
     # sort settings by section
@@ -445,7 +456,6 @@ def make_default_config():
         if sect not in section_settings.keys():
             section_settings[sect] = {}
         section_settings[sect][k] = v
-        
     
     # constant tokens
     s_assign = ' : '
@@ -533,21 +543,34 @@ def make_default_config():
 
 # update arguments from defaults, when provided
 def reconcile_settings(default_args, file_args, cmd_args, var):
+        """Reconciles settings from all sources.
+
+        Settings are applied and overwritten in this order:
+        1. default settings
+        2. config file settings
+        3. command line settings
+
+        Settings are applied to default settings before being returned.
+
+        Args:
+            default_args (dict): Default settings
+            file_args (dict): Config file settings
+            cmd_args (dict): Command line settings
+            var (str): Key for setting to be updated
         
-        # print('DEFAULT:',m_default.args)
-        # print('FILE:',m_file.args)
-        # print('ARGS:',args)
+        Returns:
+            default_args (dict): Updated default settings.
+
+        """
+        
         # first apply file args
         if var in file_args.keys():
             x_file = file_args[var]
-            #x_file = getattr(m_file.args, var)
             if x_file is not None:
                 default_args[var] = x_file
 
         # then apply command args
         x_cmd = getattr(cmd_args, var)
-        #if var in cmd_args.keys():
-        #    x_cmd = cmd_args[var]
         if x_cmd is not None:
             default_args[var] = x_cmd
 
@@ -555,17 +578,18 @@ def reconcile_settings(default_args, file_args, cmd_args, var):
 
 
 def strip_py(s):
+    """Remove .py suffix from file."""
     return re.sub(r'\.py$', '', s)
 
 def generate_random_hex_string(length):
     """
-    Generates a random hex string of a given length. Used for phyddle run ID.
+    Generates a random hex string of a given length. Used for phyddle run id.
 
-    Parameters:
-    length (int): The length of the hex string.
+    Args:
+        length (int): The length of the hex string.
 
     Returns:
-    str: The generated random hex string.
+        str: The generated random hex string.
     """
     hex_chars = '0123456789abcdef'
     random_indices = np.random.randint(0, len(hex_chars), size=length)
@@ -579,14 +603,25 @@ def generate_random_hex_string(length):
 ###################
 
 def get_time():
+    """Get current clock time."""
     t = time.localtime()
     s = time.strftime("%H:%M:%S", t)
     return time.mktime(t),s
 
 def get_time_str():
+    """Make time string."""
     return get_time()[1]
 
 def get_time_diff(start_time, end_time):
+    """Make time-difference string.
+    
+    Args:
+        start_time (object): start time
+        end_time (object): end time
+
+    Returns:
+        str: String reports time difference, HH:MM:SS
+    """
     difference_seconds = end_time - start_time
     hours, remainder = divmod(difference_seconds, 3600)
     minutes, seconds = divmod(remainder, 60)
@@ -613,100 +648,59 @@ def make_symm(m):
     np.fill_diagonal(m, d)  # Restores the original diagonal elements
     return m
 
-# def sort_binary_vectors(binary_vectors):
-#     """
-#     Sorts a list of binary vectors.
+def get_num_tree_row(tree_encode, brlen_encode):
+    """Gets number of tree rows.
+    
+    Computes number of rows for encoding tree information using a compact
+    phylogenetic vector + states (CPV+S) format.
 
-#     The binary vectors are sorted first based on the number of "on" bits, and
-#     then from left to right in terms of which bits are "on".
+    CBLV (2 rows) is used if tree_encode == 'serial'. CDV (1 row) is used if
+    tree_encode == 'extant'.
 
-#     Args:
-#         binary_vectors (List[List[int]]): The list of binary vectors to be sorted.
-
-#     Returns:
-#         List[List[int]]: The sorted list of binary vectors.
-#     """
-#     def count_ones(binary_vector):
-#         """
-#         Counts the number of "on" bits in a binary vector.
-
-#         Args:
-#             binary_vector (List[int]): The binary vector.
-
-#         Returns:
-#             int: The count of "on" bits.
-#         """
-#         return sum(binary_vector)
-
-#     sorted_vectors = sorted(binary_vectors, key=count_ones)
-
-#     for i in range(len(sorted_vectors)):
-#         for j in range(i+1, len(sorted_vectors)):
-#             if count_ones(sorted_vectors[j]) == count_ones(sorted_vectors[i]):
-#                 for k in range(len(sorted_vectors[i])):
-#                     if sorted_vectors[i][k] != sorted_vectors[j][k]:
-#                         if sorted_vectors[j][k] > sorted_vectors[i][k]:
-#                             sorted_vectors[i], sorted_vectors[j] = sorted_vectors[j], sorted_vectors[i]
-#                         break
-
-#     return sorted_vectors
-
-# def powerset(iterable):
-#     """
-#     Generates all possible subsets (powerset) of the given iterable.
-
-#     Args:
-#         iterable: An iterable object.
-
-#     Returns:
-#         generator: A generator that yields each subset.
-#     """
-#     s = list(iterable)  # Convert the iterable to a list
-#     return chain.from_iterable(combinations(s, r) for r in range(len(s) + 1))
-
-
-def find_tree_width(num_taxa, max_taxa):
-    """Finds the CPSV width.
-
-    Returns the smallest suitable compact phylogenetic-state vector
-    representation such that num_taxa <= val for val in max_taxa.
-    Returns 0 if num_taxa == 0.
-    Returns -1 if num_taxa > max_taxa[-1].
+    No extra rows are used if brlen_encode == 'height_only'. Two extra rows
+    are used if brlen_encode == 'height_brlen'.
 
     Args:
-        num_taxa (int): the number of taxa in the raw dataset
-        max_taxa (list[int]):  a list of tree widths for CPSV encoding
-    
+        tree_encode (str): Use CBLV (serial) or CDV (extant) for tree encoding.
+        brlen_encode (str): Use height-only or height + brlen encoding.
+
     Returns:
-        int: The smallest suitable tree width encoding
+        int: The number of rows for the CPV encoding.
+
     """
-    if num_taxa == 0:
-        return 0
-    elif num_taxa > max_taxa[-1]:
-        return -1
-    for i in max_taxa:
-        if num_taxa <= i:
-            return i
-    # should never call this
-    raise Exception('error in find_tree_width()', num_taxa, max_taxa)
-    #return -2
 
-
-def get_num_tree_row(tree_type, tree_encode_type):
-    if tree_type == 'serial':
+    if tree_encode == 'serial':
         num_tree_row = 2
-    elif tree_type == 'extant':
+    elif tree_encode == 'extant':
         num_tree_row = 1
 
-    if tree_encode_type == 'height_only':
+    if brlen_encode == 'height_only':
         num_tree_row += 0
-    elif tree_encode_type == 'height_brlen':
+    elif brlen_encode == 'height_brlen':
         num_tree_row += 2
 
     return num_tree_row
 
 def get_num_char_row(state_encode_type, num_char, num_states):
+    """Gets number of character rows.
+    
+    Computes number of rows for encoding state information using a compact
+    phylogenetic vector + states (CPV+S) format.
+
+    Integer encoding uses one row per character, with any number of states
+    per character.
+
+    One-hot encoding uses k rows per character, where k is the number of
+    states.
+
+    Args:
+        char_encode (str): Use integer or one_hot encoding
         
+    Returns:
+        int: The number of rows for the +S encoding.
+    
+    """
+    
     if state_encode_type == 'integer':
         num_char_row = num_char
     elif state_encode_type == 'one_hot':
@@ -727,11 +721,10 @@ def write_to_file(s, fn):
 
     Args:
         s (str): The string to write.
-        fn (str): The file name or path to write the string to.
+        fn (str): The path of the file to write the string to.
 
-    Returns:
-        None
     """
+
     f = open(fn, 'w')
     f.write(s)
     f.close()
@@ -745,11 +738,14 @@ def read_tree(tre_fn):
         tre_fn (str): The file name or path of the tree file.
 
     Returns:
-        dp.Tree or None: The parsed phylogenetic tree object, or None if the tree cannot be read.
+        dp.Tree: The parsed phylogenetic tree object, or None if
+                 the tree cannot be read.
 
     Raises:
         FileNotFoundError: If the tree file at `tre_fn` does not exist.
+
     """
+
     if not os.path.exists(tre_fn):
         raise FileNotFoundError(f'Could not find tree file at {tre_fn}')
 
@@ -765,19 +761,17 @@ def read_tree(tre_fn):
     return phy
 
 
-
-
 #------------------------------------------------------------------------------#
 
 #####################
 # FORMAT CONVERTERS #
 #####################
 
-
-def convert_csv_to_array(dat_fn, char_encode_type, num_states=None):
-    if char_encode_type == 'numeric':
+def convert_csv_to_array(dat_fn, char_encode, num_states=None):
+    """Converts CSV to array format."""
+    if char_encode == 'numeric':
         dat = convert_csv_to_numeric_array(dat_fn, num_states)
-    elif char_encode_type == 'one_hot':
+    elif char_encode == 'one_hot':
         dat = convert_csv_to_onehot_array(dat_fn, num_states)
     else:
         return NotImplementedError
@@ -786,9 +780,7 @@ def convert_csv_to_array(dat_fn, char_encode_type, num_states=None):
 
 
 def convert_csv_to_numeric_array(dat_fn, pca_compress=None):
-    """Converts a csv file to an integer-encoded pandas DataFrame.
-
-    """
+    """Converts a csv file to an integer-encoded pandas DataFrame."""
     # read as pandas
     dat = pd.read_csv(dat_fn, delimiter=',', index_col=0, header=None).T 
 
@@ -796,8 +788,7 @@ def convert_csv_to_numeric_array(dat_fn, pca_compress=None):
     return dat
 
 def convert_csv_to_onehot_array(dat_fn, num_states):
-    """Converts a csv file to an integer-encoded pandas DataFrame.
-    """
+    """Converts a csv file to an integer-encoded pandas DataFrame."""
     
     # read data
     dat_raw = pd.read_csv(dat_fn, delimiter=',', index_col=0, header=None).T
@@ -864,21 +855,23 @@ def to_categorical(y, num_classes=None, dtype="float32"):
     categorical = np.reshape(categorical, output_shape)
     return categorical
 
-def convert_nexus_to_array(dat_fn, char_encode_type, num_states=None):
+def convert_nexus_to_array(dat_fn, char_encode, num_states=None):
     """
     Convert Nexus file to array format.
 
-    Parameters:
-    dat_fn (str): The file name of the Nexus file.
-    char_encode_type (str): The type of character encoding to use. Valid options are "integer" or "one_hot".
-    num_states (int, optional): The number of states. Only applicable if char_encode_type is "one_hot".
+    Args:
+        dat_fn (str): The file name of the Nexus file.
+        char_encode (str): The type of character encoding to use. 
+                           Valid options are "integer" or "one_hot".
+        num_states (int): The number of states. Only applicable if char_encode
+                          is "one_hot".
 
     Returns:
     dat (array): The converted array.
     """
-    if char_encode_type == 'integer':
+    if char_encode == 'integer':
         dat = convert_nexus_to_integer_array(dat_fn)
-    elif char_encode_type == 'one_hot':
+    elif char_encode == 'one_hot':
         dat = convert_nexus_to_onehot_array(dat_fn, num_states)
     else:
         return NotImplementedError
@@ -888,7 +881,9 @@ def convert_nexus_to_array(dat_fn, char_encode_type, num_states=None):
 def convert_nexus_to_integer_array(dat_fn):
     """Converts a NEXUS file to an integer-encoded pandas DataFrame.
 
-    Reads the NEXUS file specified by `dat_fn`, extracts the data matrix, and constructs a pandas DataFrame where rows represent character states and columns represent taxa.
+    Reads the NEXUS file specified by `dat_fn`, extracts the data matrix,
+    and constructs a pandas DataFrame where rows represent character states
+    and columns represent taxa.
 
     Args:
         dat_fn (str): The file name or path of the NEXUS file.
@@ -896,9 +891,8 @@ def convert_nexus_to_integer_array(dat_fn):
     Returns:
         pd.DataFrame: The pandas DataFrame representing the data matrix.
 
-    Raises:
-        FileNotFoundError: If the NEXUS file at `dat_fn` does not exist.
     """
+    
     # read file
     f = open(dat_fn, 'r')
     lines = f.readlines()
@@ -1067,9 +1061,6 @@ def convert_phy2dat_nex(phy_nex_fn, int2vec):
     Returns:
         str: The NEXUS file content as a string.
 
-    Raises:
-        FileNotFoundError: If the phylogenetic tree file at `phy_nex_fn` does
-            not exist.
     """
 
     # get num regions from size of bit vector
@@ -1119,12 +1110,10 @@ def make_prune_phy(phy, prune_fn):
         prune_fn (str): The file name or path to write the pruned tree.
 
     Returns:
-        Tree or None: The pruned phylogenetic tree if pruning is successful,
-            or None if the pruned tree would have fewer than two leaf nodes
-            (invalid tree).
+        dp.Tree: The pruned phylogenetic tree if pruning is successful,
+                 or None if the pruned tree would have fewer than two
+                 leaf nodes (invalid tree).
 
-    Raises:
-        None.
     """
     # copy input tree
     phy_ = copy.deepcopy(phy)
@@ -1188,118 +1177,9 @@ def make_uniform_downsample_phy(phy, down_fn, max_taxa):
     # done
     return phy_
 
-
-def settings_to_str(settings, taxon_category):
-    """
-    Convert settings dictionary and taxon category to a string representation.
-
-    This function takes a settings dictionary and a taxon category and converts
-    them into a comma-separated string representation. The resulting string
-    includes the keys and values of the settings dictionary, as well as the
-    taxon category.
-
-    Args:
-        settings (dict): The settings dictionary.
-        taxon_category (str): The taxon category.
-
-    Returns:
-        str: The string representation of the settings and taxon category.
-    """
-    s = 'setting,value\n'
-    s += 'model_name,' + settings['model_name'] + '\n'
-    s += 'model_type,' + settings['model_type'] + '\n'
-    s += 'replicate_index,' + str(settings['replicate_index']) + '\n'
-    s += 'taxon_category,' + str(taxon_category) + '\n'
-    return s
-
-def param_dict_to_str(params):
-    """
-    Convert parameter dictionary to two string representations.
-
-    This function takes a parameter dictionary and converts it into two string
-    representations. The resulting strings includes the parameter names,
-    indices, and values. The first representation is column-based, the second
-    representation is row-based.
-
-    Args:
-        params (dict): The parameter dictionary.
-
-    Returns:
-        tuple: A tuple of two strings. The first string represents the parameter
-            values with indices, and the second string represents the parameter
-            names.
-    """
-    s1 = 'param,i,j,value\n'
-    s2 = ''
-    s3 = ''
-    for k,v in params.items():
-        for i,x in enumerate(v):
-            if len(v.shape) == 1:
-                rate = np.round(x, NUM_DIGITS)
-                s1 += '{k},{i},{i},{v}\n'.format(k=k,i=i,v=rate)
-                s2 += '{k}_{i},'.format(k=k,i=i)
-                s3 += str(rate) + ','
-            else:
-                for j,y in enumerate(x):
-                    rate = np.round(y, NUM_DIGITS)
-                    s1 += '{k},{i},{j},{v}\n'.format(k=k,i=i,j=j,v=rate)
-                    s2 += '{k}_{i}_{j},'.format(k=k,i=i,j=j)
-                    s3 += str(rate) + ','
-
-    s4 = s2.rstrip(',') + '\n' + s3.rstrip(',') + '\n'
-    return s1,s4
-
-# def events2df(events):
-#     """
-#     Convert a list of Event objects to a pandas DataFrame.
-
-#     This function takes a list of Event objects and converts it into a pandas
-#     DataFrame. Each Event object represents a row in the resulting DataFrame,
-#     with the Event attributes mapped to columns.
-
-#     Args:
-#         events (list): A list of Event objects.
-
-#     Returns:
-#         pandas.DataFrame: The resulting DataFrame with columns 'name', 'group',
-#         'i', 'j', 'k', 'reaction', and 'rate'.
-#     """
-#     df = pd.DataFrame({
-#         'name'     : [ e.name for e in events ],
-#         'group'    : [ e.group for e in events ], 
-#         'i'        : [ e.i for e in events ],
-#         'j'        : [ e.j for e in events ],
-#         'k'        : [ e.k for e in events ],
-#         'reaction' : [ e.reaction for e in events ],
-#         'rate'     : [ e.rate for e in events ]
-#     })
-#     return df
-
-# def states2df(states):
-#     """
-#     Convert a States object to a pandas DataFrame.
-
-#     This function takes a States object and converts it into a pandas DataFrame. The States object contains information about the state space, and the resulting DataFrame has columns 'lbl', 'int', 'set', and 'vec', representing the labels, integer representations, set representations, and vector representations of the states, respectively.
-
-#     Args:
-#         states (States): The States object to convert to a DataFrame.
-
-#     Returns:
-#         pandas.DataFrame: The resulting DataFrame with columns 'lbl', 'int', 'set', and 'vec'.
-#     """
-#     df = pd.DataFrame({
-#         'lbl' : states.int2lbl,
-#         'int' : states.int2int,
-#         'set' : states.int2set,
-#         'vec' : states.int2vec
-#     })
-#     return df
-
 # make matrix with parameter values, lower-bounds, upper-bounds: 3D->2D
 def make_param_VLU_mtx(A, param_names):
-    """
-    Convert a parameter matrix to a pandas DataFrame with combined header
-    indices.
+    """Make paramter Value-Lower-Upper matrix.
 
     This function takes a parameter matrix A and a list of parameter names and
     creates a pandas DataFrame with combined header indices. The resulting
@@ -1309,10 +1189,11 @@ def make_param_VLU_mtx(A, param_names):
 
     Args:
         A (numpy.ndarray): The parameter matrix.
-        param_names (list): A list of parameter names.
+        param_names (str[]): A list of parameter names.
 
     Returns:
         pandas.DataFrame: The resulting DataFrame with combined header indices.
+
     """
     
     # axis labels
@@ -1335,8 +1216,7 @@ def make_param_VLU_mtx(A, param_names):
     return df
 
 def make_clean_phyloenc_str(x):
-    """
-    Convert a numpy array to a clean string representation.
+    """Convert a numpy array to a clean string representation.
 
     This function takes a numpy array `x` and converts it to a clean string
     representation. The resulting string is obtained by formatting the array
@@ -1350,28 +1230,13 @@ def make_clean_phyloenc_str(x):
     Returns:
         str: The clean string representation of the numpy array.
     """
-    s = np.array2string(x, separator=',', max_line_width=1e200, threshold=1e200, edgeitems=1e200, precision=10, floatmode='maxprec')
+    s = np.array2string(x, separator=',', max_line_width=1e200,
+                        threshold=1e200, edgeitems=1e200, precision=10,
+                        floatmode='maxprec')
     s = re.sub(r'[\[\]]', '', string=s)
     s = re.sub(r',\n ', '\n', string=s)
     s = s + '\n'
     return s
-
-def clean_scientific_notation(s):
-    """
-    Clean up a string representation of a number in scientific notation.
-
-    This function takes a string `s` representing a number in scientific
-    notation and removes unnecessary characters that indicate zero values.
-    The resulting string represents the number without trailing zeros in the
-    exponent.
-
-    Args:
-        s (str): The string representation of a number in scientific notation.
-
-    Returns:
-        str: The cleaned up string representation of the number.
-    """
-    return re.sub( '\.0+E\+0+', '', s)
 
 #------------------------------------------------------------------------------#
 
@@ -1438,76 +1303,78 @@ def denormalize(data, m_sd, exp=False, tol=300):
 ######################
 
 def phyddle_str(s, style=1, fg=34):
-    """
-    Apply styling to a string using ANSI escape sequences.
+    """Make printable phyddle output string.
     
     Args:
         s (str): The string to be styled.
-        style (int, optional): The style code for the text. Default is 1.
-        fg (int, optional): The color code for the foreground. Default is 34 (blue).
+        style (int, optional): Style code.
+        fg (int, optional): Foreground color code.
     
     Returns:
         str: The styled string.
+
     """
+
     CSTART = f'\x1b[{style};{fg};m'
     CEND   = '\x1b[0m'
     x      = CSTART + s + CEND
     return x
 
 def print_str(s, verbose=True, style=1, fg=34):
-    """
-    Prints the formatted string to the standard output.
+    """Prints a phyddle string to the standard output.
 
-    Parameters:
-    s (str): The string to be printed.
-    style (int, optional): The style of the string. Defaults to 1.
-    fg (int, optional): The foreground color of the string. Defaults to 34.
-    verbose (bool, optional): If True, prints the formatted string. Defaults to True.
+    Args:
+        s (str): The string to be styled.
+        style (int, optional): Style code.
+        fg (int, optional): Foreground color code.
+        verbose (bool, optional): Prints the formatted string if True.
+
     """
+
     if verbose:
         print(phyddle_str(s, style, fg))
+    return
 
 def print_err(s, verbose=True, style=1, fg=34):
-    """
-    Prints the formatted string to the standard output.
+    """Prints a phyddle error to the standard output.
 
-    Parameters:
-    s (str): The string to be printed.
-    style (int, optional): The style of the string. Defaults to 1.
-    fg (int, optional): The foreground color of the string. Defaults to 34.
-    verbose (bool, optional): If True, prints the formatted string. Defaults to True.
+    Args:
+        s (str): The string to be styled.
+        style (int, optional): Style code.
+        fg (int, optional): Foreground color code.
+        verbose (bool, optional): Prints the formatted string if True.
+
     """
-    if verbose:
-        s = 'ERROR: ' + s
-        print(phyddle_str(s, style, fg))
+    print_str(f'ERROR: {s}', verbose, style, fg)
+    return
 
 def print_warn(s, verbose=True, style=1, fg=34):
-    """
-    Prints the formatted string to the standard output.
+    """Prints a phyddle warning to the standard output.
 
-    Parameters:
-    s (str): The string to be printed.
-    style (int, optional): The style of the string. Defaults to 1.
-    fg (int, optional): The foreground color of the string. Defaults to 34.
-    verbose (bool, optional): If True, prints the formatted string. Defaults to True.
-    """
-    if verbose:
-        s = 'WARNING: ' + s
-        print(phyddle_str(s, style, fg))
+    Args:
+        s (str): The string to be styled.
+        style (int, optional): Style code.
+        fg (int, optional): Foreground color code.
+        verbose (bool, optional): Prints the formatted string if True.
 
+    """
+
+    print_str(f'WARNING: {s}', verbose, style, fg)
+    return
 
 def phyddle_header(s, style=1, fg=34):
-    """
-    Generate a header string for phyddle.
+    """Generate a phyddle header string.
     
     Args:
-        s (str): The type of header to generate ('title' or a step symbol).
-        style (int, optional): The style code for the text. Default is 1.
-        fg (int, optional): The color code for the foreground. Default is 34 (blue).
-    
+        s (str): The string to be styled.
+        style (int, optional): Style code.
+        fg (int, optional): Foreground color code.
+
     Returns:
         str: The header string.
+
     """
+
     version = f'v{PHYDDLE_VERSION}'.rjust(8, ' ')
 
     steps = { 'sim' : 'Simulating',
@@ -1530,19 +1397,20 @@ def phyddle_header(s, style=1, fg=34):
     return x
 
 def print_step_header(step, in_dir, out_dir, verbose=True, style=1, fg=34):
-    """
-    Generate the information string for phyddle.
+    """Generate a phyddle step info string.
     
     Args:
         step (str): The step symbol.
         in_dir (list): A list of input directories.
         out_dir (str): The output directory.
-        style (int, optional): The style code for the text. Default is 1.
-        fg (int, optional): The color code for the foreground. Default is 34 (blue).
-       
+        style (int, optional): Style code.
+        fg (int, optional): Foreground color code.
+        
     Returns:
         str: The information string.
+
     """
+
     # header
     run_info  = phyddle_header( step ) + '\n'
     
@@ -1572,8 +1440,6 @@ def print_step_header(step, in_dir, out_dir, verbose=True, style=1, fg=34):
         print(run_info)
 
     return
-    # return
-    #return run_info
 
 #------------------------------------------------------------------------------#
 
@@ -1583,13 +1449,13 @@ def print_step_header(step, in_dir, out_dir, verbose=True, style=1, fg=34):
 # ef56245e012ff547c803e8a0308e6bff2718762c
 
 class Logger:
-
+    """ 
+    Logger  manages logging functionality for a project. It collects
+    various information such as command arguments, package versions,
+    system settings, and saves them into log files.
+    """
     def __init__(self, args):
-        """ 
-        :class:Logger is a class that manages logging functionality for a
-        project. It collects various information such as command arguments,
-        package versions, system settings, and saves them into log files.
-        """
+        
         # collect info from args        
         self.args        = args
         self.arg_str     = self.make_arg_str()
@@ -1623,12 +1489,13 @@ class Logger:
         return
 
     def make_arg_str(self):
-        """
-        Creates a string representation of command arguments.
+        """Creates a string representation of command arguments.
 
         Returns:
             str: String representation of command arguments.
+
         """
+
         ignore_keys = ['job_id']
         s = ''
         for k,v in self.args.items():
@@ -1637,33 +1504,32 @@ class Logger:
         return s
 
     def save_log(self, step):
-        """
-        Saves log file for a specific step.
+        """Saves log file for a specific step.
 
         Args:
             step (str): Step identifier.
         """
+
         if step == 'run':
             self.save_run_log()
         return
 
     def write_log(self, step, msg):
-        """
-        Writes a log message to a file.
+        """Writes a log message to a file.
 
         Args:
             step (str): Step identifier.
             msg (str): Log message.
+
         """
+
         fn = self.fn_dict[step]
         with open(fn, 'a') as file:
             file.write( f'{msg}\n' )
         return
     
     def save_run_log(self):
-        """
-        Saves run log file.
-        """
+        """Saves run log file."""
         fn    = self.fn_dict['run']
         s_sys = self.make_system_log()
         s_run = self.make_phyddle_log()
@@ -1678,12 +1544,13 @@ class Logger:
         return
     
     def make_phyddle_log(self):
-        """
-        Creates a string representation of Phyddle settings.
+        """Creates a string representation of phyddle settings.
 
         Returns:
-            str: String representation of Phyddle settings.
+            str: String representation of phyddle settings.
+
         """
+
         s = '# PHYDDLE SETTINGS\n'
         s += f'job_id\t{self.job_id}\n'
         s += f'version\t{self.version}\n'
@@ -1694,12 +1561,14 @@ class Logger:
         return s
     
     def make_system_log(self):
-        """
-        Creates a string representation of system settings.
-        Note: doesn't do perfect job of finding all custom packages
+        """Creates a string representation of system settings.
+        
+        Note: doesn't do perfect job of finding all custom packages. Need
+        to revisit this, but not urgent.
 
         Returns:
             str: String representation of system settings.
+            
         """
 
         # make dict of installed, imported packages
@@ -2056,3 +1925,204 @@ class Logger:
 #     f.write(s)
 #     f.close()
 #     return
+
+# def sort_binary_vectors(binary_vectors):
+#     """
+#     Sorts a list of binary vectors.
+
+#     The binary vectors are sorted first based on the number of "on" bits, and
+#     then from left to right in terms of which bits are "on".
+
+#     Args:
+#         binary_vectors (List[List[int]]): The list of binary vectors to be sorted.
+
+#     Returns:
+#         List[List[int]]: The sorted list of binary vectors.
+#     """
+#     def count_ones(binary_vector):
+#         """
+#         Counts the number of "on" bits in a binary vector.
+
+#         Args:
+#             binary_vector (List[int]): The binary vector.
+
+#         Returns:
+#             int: The count of "on" bits.
+#         """
+#         return sum(binary_vector)
+
+#     sorted_vectors = sorted(binary_vectors, key=count_ones)
+
+#     for i in range(len(sorted_vectors)):
+#         for j in range(i+1, len(sorted_vectors)):
+#             if count_ones(sorted_vectors[j]) == count_ones(sorted_vectors[i]):
+#                 for k in range(len(sorted_vectors[i])):
+#                     if sorted_vectors[i][k] != sorted_vectors[j][k]:
+#                         if sorted_vectors[j][k] > sorted_vectors[i][k]:
+#                             sorted_vectors[i], sorted_vectors[j] = sorted_vectors[j], sorted_vectors[i]
+#                         break
+
+#     return sorted_vectors
+
+# def powerset(iterable):
+#     """
+#     Generates all possible subsets (powerset) of the given iterable.
+
+#     Args:
+#         iterable: An iterable object.
+
+#     Returns:
+#         generator: A generator that yields each subset.
+#     """
+#     s = list(iterable)  # Convert the iterable to a list
+#     return chain.from_iterable(combinations(s, r) for r in range(len(s) + 1))
+
+
+# def events2df(events):
+#     """
+#     Convert a list of Event objects to a pandas DataFrame.
+
+#     This function takes a list of Event objects and converts it into a pandas
+#     DataFrame. Each Event object represents a row in the resulting DataFrame,
+#     with the Event attributes mapped to columns.
+
+#     Args:
+#         events (list): A list of Event objects.
+
+#     Returns:
+#         pandas.DataFrame: The resulting DataFrame with columns 'name', 'group',
+#         'i', 'j', 'k', 'reaction', and 'rate'.
+#     """
+#     df = pd.DataFrame({
+#         'name'     : [ e.name for e in events ],
+#         'group'    : [ e.group for e in events ], 
+#         'i'        : [ e.i for e in events ],
+#         'j'        : [ e.j for e in events ],
+#         'k'        : [ e.k for e in events ],
+#         'reaction' : [ e.reaction for e in events ],
+#         'rate'     : [ e.rate for e in events ]
+#     })
+#     return df
+
+# def states2df(states):
+#     """
+#     Convert a States object to a pandas DataFrame.
+
+#     This function takes a States object and converts it into a pandas DataFrame. The States object contains information about the state space, and the resulting DataFrame has columns 'lbl', 'int', 'set', and 'vec', representing the labels, integer representations, set representations, and vector representations of the states, respectively.
+
+#     Args:
+#         states (States): The States object to convert to a DataFrame.
+
+#     Returns:
+#         pandas.DataFrame: The resulting DataFrame with columns 'lbl', 'int', 'set', and 'vec'.
+#     """
+#     df = pd.DataFrame({
+#         'lbl' : states.int2lbl,
+#         'int' : states.int2int,
+#         'set' : states.int2set,
+#         'vec' : states.int2vec
+#     })
+#     return df
+
+
+
+# def find_tree_width(num_taxa, max_taxa):
+#     """Finds the CPSV width.
+
+#     Returns the smallest suitable compact phylogenetic-state vector
+#     representation such that num_taxa <= val for val in max_taxa.
+#     Returns 0 if num_taxa == 0.
+#     Returns -1 if num_taxa > max_taxa[-1].
+
+#     Args:
+#         num_taxa (int): the number of taxa in the raw dataset
+#         max_taxa (list[int]):  a list of tree widths for CPSV encoding
+    
+#     Returns:
+#         int: The smallest suitable tree width encoding
+#     """
+#     if num_taxa == 0:
+#         return 0
+#     elif num_taxa > max_taxa[-1]:
+#         return -1
+#     for i in max_taxa:
+#         if num_taxa <= i:
+#             return i
+#     # should never call this
+#     raise Exception('error in find_tree_width()', num_taxa, max_taxa)
+#     #return -2
+
+
+# def settings_to_str(settings, taxon_category):
+#     """Convert settings dictionary and taxon category to a string representation.
+
+#     This function takes a settings dictionary and a taxon category and converts
+#     them into a comma-separated string representation. The resulting string
+#     includes the keys and values of the settings dictionary, as well as the
+#     taxon category.
+
+#     Args:
+#         settings (dict): The settings dictionary.
+#         taxon_category (str): The taxon category.
+
+#     Returns:
+#         str: The string representation of the settings and taxon category.
+#     """
+#     s = 'setting,value\n'
+#     s += 'model_name,' + settings['model_name'] + '\n'
+#     s += 'model_type,' + settings['model_type'] + '\n'
+#     s += 'replicate_index,' + str(settings['replicate_index']) + '\n'
+#     s += 'taxon_category,' + str(taxon_category) + '\n'
+#     return s
+
+# def param_dict_to_str(params):
+#     """Convert parameter dictionary to two string representations.
+
+#     This function takes a parameter dictionary and converts it into two string
+#     representations. The resulting strings includes the parameter names,
+#     indices, and values. The first representation is column-based, the second
+#     representation is row-based.
+
+#     Args:
+#         params (dict): The parameter dictionary.
+
+#     Returns:
+#         tuple: A tuple of two strings. The first string represents the parameter
+#             values with indices, and the second string represents the parameter
+#             names.
+#     """
+#     s1 = 'param,i,j,value\n'
+#     s2 = ''
+#     s3 = ''
+#     for k,v in params.items():
+#         for i,x in enumerate(v):
+#             if len(v.shape) == 1:
+#                 rate = np.round(x, NUM_DIGITS)
+#                 s1 += '{k},{i},{i},{v}\n'.format(k=k,i=i,v=rate)
+#                 s2 += '{k}_{i},'.format(k=k,i=i)
+#                 s3 += str(rate) + ','
+#             else:
+#                 for j,y in enumerate(x):
+#                     rate = np.round(y, NUM_DIGITS)
+#                     s1 += '{k},{i},{j},{v}\n'.format(k=k,i=i,j=j,v=rate)
+#                     s2 += '{k}_{i}_{j},'.format(k=k,i=i,j=j)
+#                     s3 += str(rate) + ','
+
+#     s4 = s2.rstrip(',') + '\n' + s3.rstrip(',') + '\n'
+#     return s1,s4
+
+# def clean_scientific_notation(s):
+#     """Clean up a string representation of a number in scientific notation.
+
+#     This function takes a string `s` representing a number in scientific
+#     notation and removes unnecessary characters that indicate zero values.
+#     The resulting string represents the number without trailing zeros in the
+#     exponent.
+
+#     Args:
+#         s (str): The string representation of a number in scientific notation.
+
+#     Returns:
+#         str: The cleaned up string representation of the number.
+#     """
+#     return re.sub( '\.0+E\+0+', '', s)
