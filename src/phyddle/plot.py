@@ -33,14 +33,14 @@ from phyddle import utilities as util
 #------------------------------------------------------------------------------#
 
 def load(args):
-    """
-    Load a Plotter object.
+    """Load a Plotter object.
 
     This function creates an instance of the Plotter class, initialized using
     phyddle settings stored in args (dict).
 
     Args:
         args (dict): Contains phyddle settings.
+
     """
     
     # load object
@@ -60,24 +60,25 @@ class Plotter:
     combined pdf.
     """
     def __init__(self, args):
-        """
-        Initializes a new Plotter object.
+        """Initializes a new Plotter object.
 
         Args:
-            args (dict): Contains phyddle settings.
+           
+             args (dict): Contains phyddle settings.
         """
+
         # initialize with phyddle settings
         self.set_args(args)
         self.prepare_filepaths()
         return
 
     def set_args(self, args):
-        """
-        Assigns phyddle settings as Plotter attributes.
+        """Assigns phyddle settings as Plotter attributes.
 
         Args:
             args (dict): Contains phyddle settings.
         """
+
         self.args = args
         step_args = util.make_step_args('P', args)
         for k,v in step_args.items():
@@ -85,15 +86,14 @@ class Plotter:
         return
 
     def prepare_filepaths(self):
-        """
-        Prepare filepaths for the project.
+        """Prepare filepaths for the project.
 
         This script generates all the filepaths for input and output based off
         of Trainer attributes. The Format, Train, and Estimate directories
         are input and the Plot directory is output.
 
-        Returns: None
         """
+
         # directories
         self.trn_proj_dir       = f'{self.trn_dir}/{self.trn_proj}'
         self.fmt_proj_dir       = f'{self.fmt_dir}/{self.fmt_proj}'
@@ -141,12 +141,13 @@ class Plotter:
         return
 
     def run(self):
-        """
-        Generates all plots.
+        """Generates all plots.
 
         This method creates the target directory for new plots, generates
         a set of standard summary plots, along with a combined report.
+
         """
+
         verbose = self.verbose
 
         # print header
@@ -179,7 +180,6 @@ class Plotter:
         # end time
         end_time,end_time_str = util.get_time()
         run_time = util.get_time_diff(start_time, end_time)
-        # util.print_str(f'▪ End time:     {end_time_str}', verbose)
         util.print_str(f'▪ End time of {end_time_str} (+{run_time})', verbose)
 
         #done
@@ -187,13 +187,13 @@ class Plotter:
         return
 
     def load_input(self):
-        """
-        Load input data for plotting.
+        """Load input data for plotting.
 
         This function loads input from Format, Train, and Estimate. We load the
         simulated training examples from Format. From Train, we load the
         network, the training history, and the test/train estimates/labels. For
         Estimate, we load the estimates and aux. data, if they exist.
+
         """
 
         ### load input from Format step
@@ -262,8 +262,7 @@ class Plotter:
 #------------------------------------------------------------------------------#
 
     def generate_plots(self):
-        """
-        Generates all plots.
+        """Generates all plots.
         
         This function generates the following plots:
         - history: network metrics across training epochs
@@ -275,6 +274,7 @@ class Plotter:
 
         Plots are generated based on args, which initialize filenames,
         datasets, and colors.
+
         """
         
         # training aux. data densities
@@ -311,11 +311,11 @@ class Plotter:
         return
     
     def combine_plots(self):
-        """
-        Combine all plots.
+        """Combine all plots.
         
         This function collects all pdfs in the plot project directory, orders
         them into meaningful groups, then plots a merged report.
+
         """
 
         # collect and sort file names
@@ -362,6 +362,7 @@ class Plotter:
 #------------------------------------------------------------------------------#
 
     def make_report(self):
+        """Makes CSV of main results."""
         # dataset sizes
         # get train estimation stats
         # get test estimation stats
@@ -464,21 +465,22 @@ class Plotter:
 
     def plot_stat_density(self, save_fn, sim_values, est_values=None,
                            title='', ncol_plot=3, color='blue'):
-        """
-        Plots histograms.
+        """Plots histograms.
 
         This function plots the histograms (KDEs) for simulated training
         examples, e.g. aux. data or labels. The function will also plot
         values from the new dataset if it is available (est_values != None).
 
-        Arguments:
+        Args:
             save_fn (str): Filename to save plot.
             sim_values (numpy.array): Simulated values from training examples.
             est_values (numpy.array): Estimated values from new dataset.
             title (str): Plot title.
             ncol_plot (int): Number of columns in plot
             color (str): Color of histograms
+
         """
+        
         # data dimensions
         col_names = sorted( sim_values.columns )
         num_aux = len(col_names)
@@ -563,6 +565,439 @@ class Plotter:
 
         # done
         return
+    
+    def plot_pca_contour(self, save_fn, sim_values, est_values=None,
+                         num_comp=4, color='blue', title=''):
+        """
+        Plots PCA Contour Plot.
+
+        This function plots the PCA for simulated training aux. data examples.
+        The function plots a grid of pairs of principal components. It will also
+        plot values from the new dataset, when vailable (est_values != None).
+
+        Args:
+            save_fn (str): Filename to save plot.
+            sim_values (numpy.array): Simulated values from training examples.
+            est_values (numpy.array): Estimated values from new dataset.
+            num_comp (int): Number of components to plot (default 4)
+            f_show (float): Proportion of scatter points to show in PCs
+            color (str): Color of histograms
+
+        """
+        
+        # figure size
+        fig_width = 8
+        fig_height = 8 
+
+        # reduce num components if needed
+        num_comp = min(sim_values.shape[1], num_comp)
+
+        # rescale input data
+        scaler = StandardScaler()
+        x = scaler.fit_transform(sim_values)
+        
+        # apply PCA to sim_values
+        pca_model = PCA(n_components=num_comp)
+        pca = pca_model.fit_transform(x)
+        pca_var = pca_model.explained_variance_ratio_
+        pca_coef = np.transpose(pca_model.components_)
+        plot_pca_loadings = False
+
+        # project est_values on to PCA space
+        if est_values is not None:
+            est_values = scaler.transform(est_values)
+            pca_est = pca_model.transform(est_values)
+        
+        # figure dimennsions
+        fig, axs = plt.subplots(num_comp-1, num_comp-1,
+                                sharex=True, sharey=True,
+                                figsize=(fig_width, fig_height))
+
+        # use this to turn off subplots
+        #axes[i_row,j_col].axis('off')
+
+        # color map
+        cmap0 = mpl.colors.LinearSegmentedColormap.from_list('white2col',
+                                                             ['white', color])
+
+        # generate PCA subplots
+        for i in range(0, num_comp-1):
+            
+            # disable x,y axes for all plots, later turned on for some
+            for j in range(i+1, num_comp-1):
+                axs[i,j].axis('off')
+
+            for j in range(0, i+1):
+                # countours
+                x = pca[:,i+1]
+                y = pca[:,j]
+                xmin, xmax = np.min(x), np.max(x)
+                ymin, ymax = np.min(y), np.max(y)
+                xscale = (xmax - xmin)
+                yscale = (ymax - ymin)
+
+                # Peform the kernel density estimate
+                xx, yy = np.mgrid[xmin:xmax:100j, ymin:ymax:100j]
+                positions = np.vstack([xx.ravel(), yy.ravel()])
+                values = np.vstack([x, y])
+                kernel = sp.stats.gaussian_kde(values)
+                f = np.reshape(kernel(positions).T, xx.shape)
+                n_levels = 4
+                extent = (-4,4,-4,4)
+                cfset = axs[i,j].contourf(xx, yy, f, levels=n_levels,
+                                          extend='both', cmap=cmap0)
+                cset = axs[i,j].contour(xx, yy, f, levels=n_levels, 
+                                        extend='both', linewidths=0.5,
+                                        colors='k')
+                axs[i,j].clabel(cset, inline=1, fontsize=6)
+
+                # loads
+                if plot_pca_loadings:
+                    nn = pca_coef.shape[0]
+                    for k in range(nn):
+                        axs[i,j].arrow(x=0,y=0,
+                                    dx=pca_coef[k,i]*yscale/2,
+                                    dy=pca_coef[k,j]*xscale/2,
+                                    color='black',alpha=0.75, width=0.05)
+                        axs[i,j].text(pca_coef[k,i]*yscale,
+                                    pca_coef[k,j]*xscale,
+                                    self.train_aux_data_names[k],
+                                    color='black', fontsize=8,
+                                    ha='center',va='center')
+                    
+                if est_values is not None:    
+                    axs[i,j].scatter(pca_est[:,i+1], pca_est[:,j],
+                                     alpha=1.0, color='white',
+                                     edgecolor='black', s=80, zorder=2.1)
+                    axs[i,j].scatter(pca_est[:,i+1], pca_est[:,j],
+                                     alpha=1.0, color='red',
+                                     edgecolor='white', s=40, zorder=2.1)
+                # axes
+                if j == 0:
+                    idx = str(i+2)
+                    var = int(100*round(pca_var[i+1], ndigits=2))
+                    ylabel = f'PC{idx} ({var}%)'
+                    axs[i,j].set_ylabel(ylabel, fontsize=12)
+                if i == (num_comp-2):
+                    idx=str(j+1)
+                    var=int(100*round(pca_var[j], ndigits=2))
+                    xlabel = f'PC{idx} ({var}%)'
+                    axs[i,j].set_xlabel(xlabel, fontsize=12)
+                
+        plt.tight_layout()
+        fig.suptitle(f'PCA: {title}')
+        fig.tight_layout(rect=[0, 0.03, 1, 0.98])
+        plt.savefig(save_fn, format='pdf', dpi=300, bbox_inches='tight')
+        plt.clf()
+
+        #done
+        return
+
+    def plot_scatter_accuracy(self, ests, labels, prefix,
+                              color="blue", axis_labels = ["estimate", "truth"],
+                              title = '', plot_log=False):
+        """Plots accuracy of estimates and CPIs for labels.
+
+        This function generates a scatterplot for true vs. estimated labels
+        from the trained network. Points are point estimates. Bars are
+        CPIs.
+
+        Args:
+            save_fn (str): Filename to save plot.
+            est_label (numpy.array): Estimated values from new dataset.
+            title (str): Title for the plot.
+            color (str): Color of histograms
+            plot_log (bool): Plot y-axis on log scale? Default True.
+
+        """
+
+        # figure size
+        fig_width = 6
+        fig_height = 6
+
+        # create figure
+        plt.figure(figsize=(fig_width,fig_height))
+
+        # plot parameters
+        for i,p in enumerate(self.param_names):
+
+            # estimates (y) and true values (x)
+            y_value = ests[f'{p}_value'][:].to_numpy()
+            y_lower = ests[f'{p}_lower'][:].to_numpy()
+            y_upper = ests[f'{p}_upper'][:].to_numpy()
+            x_value = labels[p][:].to_numpy()
+
+            # accuracy stats
+            y_mae = np.mean( np.abs(y_value - x_value) )
+            y_mape = 100 * np.mean( np.abs(x_value - y_value) / x_value )
+            y_mse = np.mean( np.power(y_value - x_value, 2) )
+            y_rmse = np.sqrt( y_mse )
+            
+            # convert to strings
+            s_mae  = '{:.2E}'.format(y_mae)
+            s_mse  = '{:.2E}'.format(y_mse)
+            s_rmse = '{:.2E}'.format(y_rmse)
+            s_mape = '{:.1f}%'.format(y_mape)
+
+            # coverage stats
+            y_cover = np.logical_and(y_lower < x_value, x_value < y_upper )
+            y_not_cover = np.logical_not(y_cover)
+            f_cover = sum(y_cover) / len(y_cover) * 100
+            s_cover = '{:.1f}%'.format(f_cover)
+            
+            # covered estimates
+            alpha = 0.5 # 50. / len(y_cover)
+            plt.scatter(x_value[y_cover], y_value[y_cover],
+                        alpha=alpha, c=color, zorder=3)
+            plt.plot([x_value[y_cover], x_value[y_cover]],
+                     [y_lower[y_cover], y_upper[y_cover]],
+                     color=color, alpha=alpha, linestyle="-", marker='_',
+                     linewidth=0.5, zorder=2 )
+
+            # not covered estimates
+            plt.scatter(x_value[y_not_cover], y_value[y_not_cover],
+                        alpha=alpha, c='red', zorder=5)
+            plt.plot([x_value[y_not_cover], x_value[y_not_cover]],
+                     [y_lower[y_not_cover], y_upper[y_not_cover]],
+                     color='red', alpha=alpha, linestyle="-", marker='_',
+                     linewidth=0.5, zorder=4 )
+            
+            # 1:1 line
+            plt.axline((0,0), slope=1, color=color, alpha=1.0, zorder=0)
+            plt.gca().set_aspect('equal')
+
+            # set axes
+            xlim = plt.xlim()
+            ylim = plt.ylim()
+            minlim = min(xlim[0], ylim[0])
+            maxlim = max(xlim[1], ylim[1])
+            plt.xlim([minlim, maxlim])
+            plt.ylim([minlim, maxlim])
+            
+            # write text
+            dx = 0.03
+            stat_str = [f'MAE: {s_mae}', f'MAPE: {s_mape}', f'MSE: {s_mse}',
+                        f'RMSE: {s_rmse}', f'Coverage: {s_cover}' ]
+            
+            for j,s in enumerate(stat_str):
+                plt.annotate(s, xy=(0.01,0.99-j*dx),
+                         xycoords='axes fraction', fontsize=10,
+                         horizontalalignment='left', verticalalignment='top',
+                         color='black')
+            # plt.annotate(f'MAE: {s_mae}', xy=(0.01,0.99-0*dx),
+            #              xycoords='axes fraction', fontsize=10,
+            #              horizontalalignment='left', verticalalignment='top',
+            #              color='black')
+            # plt.annotate(f'MAPE: {s_mape}', xy=(0.01,0.99-1*dx),
+            #              xycoords='axes fraction', fontsize=10,
+            #              horizontalalignment='left', verticalalignment='top',
+            #              color='black')
+            # plt.annotate(f'MSE: {s_mse}', xy=(0.01,0.99-2*dx),
+            #              xycoords='axes fraction', fontsize=10,
+            #              horizontalalignment='left', verticalalignment='top',
+            #              color='black')
+            # plt.annotate(f'RMSE: {s_rmse}', xy=(0.01,0.99-3*dx),
+            #              xycoords='axes fraction', fontsize=10,
+            #              horizontalalignment='left', verticalalignment='top',
+            #              color='black')
+            # plt.annotate(f'Coverage: {s_cover}', xy=(0.01,0.99-4*dx),
+            #              xycoords='axes fraction', fontsize=10,
+            #              horizontalalignment='left', verticalalignment='top',
+            #              color='black')
+
+            # cosmetics
+            plt.title(f'{title} estimates: {p}')
+            plt.xlabel(f'{p} {axis_labels[0]}')
+            plt.ylabel(f'{p} {axis_labels[1]}')
+            if plot_log:
+                plt.xscale('log')         
+                plt.yscale('log')         
+
+            # save
+            save_fn = f'{prefix}_{p}.pdf'
+            plt.savefig(save_fn, format='pdf', dpi=300, bbox_inches='tight')
+            plt.clf()
+
+        # done    
+        return
+    
+    def plot_est_CI(self, save_fn, est_label, title='Estimates', color='black',
+                    plot_log=True):
+        """Plots point estimates and CPIs.
+
+        This function plots the point estimates and calibrated prediction
+        intervals for the new dataset, if it exists.
+
+        Args:
+            save_fn (str): Filename to save plot.
+            est_label (numpy.array): Estimated values from new dataset.
+            title (str): Title for the plot.
+            color (str): Color of histograms
+            plot_log (bool): Plot y-axis on log scale? Default True.
+
+        """
+
+        # abort if no labels from Estimate found
+        if est_label is None:
+            return
+
+        # figure size
+        fig_width = 5
+        fig_height = 5
+
+        # data dimensions
+        label_names = est_label.columns
+        num_label = len(label_names)
+        
+        # set up plot
+        plt.figure(figsize=(fig_width,fig_height))      
+        
+        # use log-scale for y-axis?
+        if plot_log:
+            plt.yscale('log')
+
+        # plot each estimated label
+        for i,col in enumerate(label_names):
+            col_data = est_label[col]
+            y_value = col_data.loc['value']
+            y_lower = col_data.loc['lower']
+            y_upper = col_data.loc['upper']
+            s_value = '{:.2E}'.format(y_value)
+            s_lower = '{:.2E}'.format(y_lower)
+            s_upper = '{:.2E}'.format(y_upper)
+            
+            # plot CI
+            plt.plot([i,i], [y_lower, y_upper],
+                     color=color, linestyle="-",
+                     marker='_', linewidth=1.5)
+            
+            # plot values as text
+            for y_,s_ in zip([y_value,y_lower,y_upper],
+                             [s_value, s_lower, s_upper]):
+                plt.text(x=i+0.10, y=y_, s=s_,
+                         color='black', va='center', size=8)
+
+            # plot point estimate
+            plt.scatter(i, y_value, color='white',
+                        edgecolors=color, s=60, zorder=3)
+            plt.scatter(i, y_value, color='red',
+                        edgecolors='white', s=30, zorder=3)
+            
+        # plot values as text
+        plt.title(title)
+        plt.xticks(np.arange(num_label), label_names)
+        plt.xlim( -0.5, num_label )
+        plt.savefig(save_fn, format='pdf', dpi=300, bbox_inches='tight')
+        plt.clf()
+        
+        #done
+        return
+    
+    def plot_train_history(self, history, prefix, train_color='blue',
+                          val_color='red'):
+        """Plot training history for network.
+
+        This function plots trained network performance metrics as a time-series
+        across training epochs. Typically, it will compare performance between
+        trainiing vs. validation examples.
+
+        Args:
+            history (str): Training performance metrics
+            prefix (str): Used to construct filename
+            train_color (str): Color for training example metrics
+            val_color (str): Color for validation example metrics
+
+        """
+        
+        # get data names/dimensions
+        epochs       = range(1, len(history['loss']) + 1)
+        train_keys   = [ x for x in history.keys() if 'val_' not in x ]
+        #val_keys     = [ 'val_'+x for x in train_keys ]
+        label_names  = [ '_'.join( x.split('_')[0:-1] ) for x in train_keys ]
+        label_names  = sorted( np.unique(label_names) )
+        #num_labels   = len(label_names)
+
+        # get metric names
+        metric_names = [ x.split('_')[-1] for x in train_keys ]
+        metric_names = np.unique(metric_names)
+        metric_names = [ 'loss' ] + [ x for x in metric_names if x != 'loss' ]
+        num_metrics  = len(metric_names)
+
+        # figure dimensions
+        fig_width = 6
+        fig_height = int(np.ceil(2*num_metrics))
+
+        # plot for all parameters
+        for i,v1 in enumerate(label_names):
+            fig, axs = plt.subplots(nrows=num_metrics, ncols=1, sharex=True,
+                                    figsize=(fig_width, fig_height))
+            idx = 0
+            # plot for all metrics
+            for j,v2 in enumerate(metric_names):
+                # get val name from train name 
+                if v1 == '':
+                    k_train = v2
+                else:
+                    k_train = f'{v1}_{v2}'
+                k_val = 'val_' + k_train
+
+                # plot training example metrics
+                legend_handles = []
+                legend_labels = []
+                if k_train in history:
+                    lines_train, = axs[idx].plot(epochs, history[k_train],
+                                                 color=train_color,
+                                                 label = k_train)
+                    axs[idx].scatter(epochs, history[k_train],
+                                     color=train_color, label = k_train,
+                                     zorder=3)
+                    axs[idx].set(ylabel=metric_names[j])
+                    legend_handles.append( lines_train )
+                    legend_labels.append( 'Train' )
+
+                # plot validation example metrics
+                if k_val in history:
+                    lines_val, = axs[idx].plot(epochs, history[k_val],
+                                               color=val_color, label = k_val)
+                    axs[idx].scatter(epochs, history[k_val], color=val_color,
+                                     label = k_val, zorder=3)
+                    legend_handles.append( lines_val )
+                    legend_labels.append( 'Validation' )
+
+                # plot legend
+                if k_train in history or k_val in history:
+                    if idx == 0:
+                        axs[idx].legend(handles=legend_handles,
+                                        labels=legend_labels,
+                                        loc='upper right' )
+                    idx += 1
+
+            # turn off unused rows            
+            for j in range(num_metrics):
+                if j >= idx:
+                    axs[j].axis('off')
+
+            # aesthetics
+            title_metric = label_names[i]
+            if title_metric == '':
+                title_metric = 'entire network'
+            fig.supxlabel('Epochs')
+            fig.supylabel('Metrics')
+            fig.suptitle('Training history: ' + title_metric)
+            fig.tight_layout()
+
+            # save figure
+            save_fn = f'{prefix}'
+            if label_names[i] != '':
+                save_fn += f'_{label_names[i]}'
+            save_fn += '.pdf'
+            plt.savefig(save_fn, format='pdf', dpi=300, bbox_inches='tight')
+            plt.clf()
+        
+        # done
+        return
+#------------------------------------------------------------------------------#
+
 
     # def plot_pca(self, save_fn, sim_values, est_values=None, num_comp=4, f_show=0.10, color='blue'):
     #     """
@@ -636,387 +1071,3 @@ class Plotter:
 
     #     #done
     #     return
-    
-    def plot_pca_contour(self, save_fn, sim_values, est_values=None,
-                         num_comp=4, color='blue', title=''):
-        """
-        Plots PCA Contour Plot.
-
-        This function plots the PCA for simulated training aux. data examples.
-        The function plots a grid of pairs of principal components. It will also
-        plot values from the new dataset, when vailable (est_values != None).
-
-        Arguments:
-            save_fn (str): Filename to save plot.
-            sim_values (numpy.array): Simulated values from training examples.
-            est_values (numpy.array): Estimated values from new dataset.
-            num_comp (int): Number of components to plot (default 4)
-            f_show (float): Proportion of scatter points to show in PCs
-            color (str): Color of histograms
-        """
-        # figure size
-        fig_width = 8
-        fig_height = 8 
-
-        # reduce num components if needed
-        num_comp = min(sim_values.shape[1], num_comp)
-
-        # rescale input data
-        scaler = StandardScaler()
-        x = scaler.fit_transform(sim_values)
-        
-        # apply PCA to sim_values
-        pca_model = PCA(n_components=num_comp)
-        pca = pca_model.fit_transform(x)
-        pca_var = pca_model.explained_variance_ratio_
-        pca_coef = np.transpose(pca_model.components_)
-        plot_pca_loadings = False
-
-        # project est_values on to PCA space
-        if est_values is not None:
-            est_values = scaler.transform(est_values)
-            pca_est = pca_model.transform(est_values)
-        
-        # figure dimennsions
-        fig, axs = plt.subplots(num_comp-1, num_comp-1,
-                                sharex=True, sharey=True,
-                                figsize=(fig_width, fig_height))
-
-        # use this to turn off subplots
-        #axes[i_row,j_col].axis('off')
-
-        # color map
-        cmap0 = mpl.colors.LinearSegmentedColormap.from_list('white2col', ['white', color])
-
-        # generate PCA subplots
-        for i in range(0, num_comp-1):
-            
-            # disable x,y axes for all plots, later turned on for some
-            for j in range(i+1, num_comp-1):
-                axs[i,j].axis('off')
-
-            for j in range(0, i+1):
-                # countours
-                x = pca[:,i+1]
-                y = pca[:,j]
-                xmin, xmax = np.min(x), np.max(x)
-                ymin, ymax = np.min(y), np.max(y)
-                xscale = (xmax - xmin)
-                yscale = (ymax - ymin)
-
-                # Peform the kernel density estimate
-                xx, yy = np.mgrid[xmin:xmax:100j, ymin:ymax:100j]
-                positions = np.vstack([xx.ravel(), yy.ravel()])
-                values = np.vstack([x, y])
-                kernel = sp.stats.gaussian_kde(values)
-                f = np.reshape(kernel(positions).T, xx.shape)
-                n_levels = 4
-                extent = (-4,4,-4,4)
-                cfset = axs[i,j].contourf(xx, yy, f, levels=n_levels,
-                                          extend='both', cmap=cmap0)
-                cset = axs[i,j].contour(xx, yy, f, levels=n_levels, 
-                                        extend='both', linewidths=0.5, colors='k')
-                axs[i,j].clabel(cset, inline=1, fontsize=6)
-
-                # loads
-                if plot_pca_loadings:
-                    nn = pca_coef.shape[0]
-                    for k in range(nn):
-                        axs[i,j].arrow(x=0,y=0,
-                                    dx=pca_coef[k,i]*yscale/2,
-                                    dy=pca_coef[k,j]*xscale/2,
-                                    color='black',alpha=0.75, width=0.05)
-                        axs[i,j].text(pca_coef[k,i]*yscale,
-                                    pca_coef[k,j]*xscale,
-                                    self.train_aux_data_names[k],
-                                    color='black', fontsize=8,
-                                    ha='center',va='center')
-                    
-                if est_values is not None:    
-                    axs[i,j].scatter(pca_est[:,i+1], pca_est[:,j],
-                                     alpha=1.0, color='white',
-                                     edgecolor='black', s=80, zorder=2.1)
-                    axs[i,j].scatter(pca_est[:,i+1], pca_est[:,j],
-                                     alpha=1.0, color='red',
-                                     edgecolor='white', s=40, zorder=2.1)
-                # axes
-                if j == 0:
-                    ylabel = 'PC{idx} ({var}%)'.format( idx=str(i+2), var=int(100*round(pca_var[i+1], ndigits=2)) )
-                    axs[i,j].set_ylabel(ylabel, fontsize=12)
-                if i == (num_comp-2):
-                    xlabel = 'PC{idx} ({var}%)'.format( idx=str(j+1), var=int(100*round(pca_var[j], ndigits=2)) )
-                    axs[i,j].set_xlabel(xlabel, fontsize=12)
-                
-        plt.tight_layout()
-        fig.suptitle(f'PCA: {title}')
-        fig.tight_layout(rect=[0, 0.03, 1, 0.98])
-        plt.savefig(save_fn, format='pdf', dpi=300, bbox_inches='tight')
-        plt.clf()
-
-        #done
-        return
-
-    def plot_scatter_accuracy(self, ests, labels, prefix,
-                              color="blue", axis_labels = ["estimate", "truth"],
-                              title = '', plot_log=False):
-        """
-        Plots accuracy of estimates and CPIs for labels.
-
-        This function generates a scatterplot for true vs. estimated labels
-        from the trained network. Points are point estimates. Bars are
-        CPIs.
-
-        Arguments:
-            save_fn (str): Filename to save plot.
-            est_label (numpy.array): Estimated values from new dataset.
-            title (str): Title for the plot.
-            color (str): Color of histograms
-            plot_log (bool): Plot y-axis on log scale? Default True.
-        """
-
-        # figure size
-        fig_width = 6
-        fig_height = 6
-
-        # create figure
-        plt.figure(figsize=(fig_width,fig_height))
-
-        # plot parameters
-        for i,p in enumerate(self.param_names):
-
-            # estimates (y) and true values (x)
-            y_value = ests[f'{p}_value'][:].to_numpy()
-            y_lower = ests[f'{p}_lower'][:].to_numpy()
-            y_upper = ests[f'{p}_upper'][:].to_numpy()
-            x_value = labels[p][:].to_numpy()
-
-            # accuracy stats
-            y_mae = np.mean( np.abs(y_value - x_value) )
-            y_mape = 100 * np.mean( np.abs(x_value - y_value) / x_value )
-            y_mse = np.mean( np.power(y_value - x_value, 2) )
-            y_rmse = np.sqrt( y_mse )
-            
-            # convert to strings
-            s_mae  = '{:.2E}'.format(y_mae)
-            s_mse  = '{:.2E}'.format(y_mse)
-            s_rmse = '{:.2E}'.format(y_rmse)
-            s_mape = '{:.1f}%'.format(y_mape)
-
-            # coverage stats
-            y_cover = np.logical_and(y_lower < x_value, x_value < y_upper )
-            y_not_cover = np.logical_not(y_cover)
-            f_cover = sum(y_cover) / len(y_cover) * 100
-            s_cover = '{:.1f}%'.format(f_cover)
-            
-            # covered estimates
-            alpha = 0.5 # 50. / len(y_cover)
-            plt.scatter(x_value[y_cover], y_value[y_cover],
-                        alpha=alpha, c=color, zorder=3)
-            plt.plot([x_value[y_cover], x_value[y_cover]],
-                     [y_lower[y_cover], y_upper[y_cover]],
-                     color=color, alpha=alpha, linestyle="-", marker='_', linewidth=0.5, zorder=2 )
-
-            # not covered estimates
-            plt.scatter(x_value[y_not_cover], y_value[y_not_cover],
-                        alpha=alpha, c='red', zorder=5)
-            plt.plot([x_value[y_not_cover], x_value[y_not_cover]],
-                     [y_lower[y_not_cover], y_upper[y_not_cover]],
-                     color='red', alpha=alpha, linestyle="-", marker='_', linewidth=0.5, zorder=4 )
-            
-            # 1:1 line
-            plt.axline((0,0), slope=1, color=color, alpha=1.0, zorder=0)
-            plt.gca().set_aspect('equal')
-
-            # set axes
-            xlim = plt.xlim()
-            ylim = plt.ylim()
-            minlim = min(xlim[0], ylim[0])
-            maxlim = max(xlim[1], ylim[1])
-            plt.xlim([minlim, maxlim])
-            plt.ylim([minlim, maxlim])
-            
-            # write text
-            dx = 0.03
-            plt.annotate(f'MAE: {s_mae}',        xy=(0.01,0.99-0*dx), xycoords='axes fraction', fontsize=10, horizontalalignment='left', verticalalignment='top', color='black')
-            plt.annotate(f'MAPE: {s_mape}',      xy=(0.01,0.99-1*dx), xycoords='axes fraction', fontsize=10, horizontalalignment='left', verticalalignment='top', color='black')
-            plt.annotate(f'MSE: {s_mse}',        xy=(0.01,0.99-2*dx), xycoords='axes fraction', fontsize=10, horizontalalignment='left', verticalalignment='top', color='black')
-            plt.annotate(f'RMSE: {s_rmse}',      xy=(0.01,0.99-3*dx), xycoords='axes fraction', fontsize=10, horizontalalignment='left', verticalalignment='top', color='black')
-            plt.annotate(f'Coverage: {s_cover}', xy=(0.01,0.99-4*dx), xycoords='axes fraction', fontsize=10, horizontalalignment='left', verticalalignment='top', color='black')
-
-            # cosmetics
-            plt.title(f'{title} estimates: {p}')
-            plt.xlabel(f'{p} {axis_labels[0]}')
-            plt.ylabel(f'{p} {axis_labels[1]}')
-            if plot_log:
-                plt.xscale('log')         
-                plt.yscale('log')         
-
-            # save
-            save_fn = f'{prefix}_{p}.pdf'
-            plt.savefig(save_fn, format='pdf', dpi=300, bbox_inches='tight')
-            plt.clf()
-
-        # done    
-        return
-    
-    def plot_est_CI(self, save_fn, est_label, title='Estimates', color='black', plot_log=True):
-        """
-        Plots point estimates and CPIs.
-
-        This function plots the point estimates and calibrated prediction
-        intervals for the new dataset, if it exists.
-
-        Arguments:
-            save_fn (str): Filename to save plot.
-            est_label (numpy.array): Estimated values from new dataset.
-            title (str): Title for the plot.
-            color (str): Color of histograms
-            plot_log (bool): Plot y-axis on log scale? Default True.
-        """
-        # abort if no labels from Estimate found
-        if est_label is None:
-            return
-
-        # figure size
-        fig_width = 5
-        fig_height = 5
-
-        # data dimensions
-        label_names = est_label.columns
-        num_label = len(label_names)
-        
-        # set up plot
-        plt.figure(figsize=(fig_width,fig_height))      
-        
-        # use log-scale for y-axis?
-        if plot_log:
-            plt.yscale('log')
-
-        # plot each estimated label
-        for i,col in enumerate(label_names):
-            col_data = est_label[col]
-            y_value = col_data.loc['value']
-            y_lower = col_data.loc['lower']
-            y_upper = col_data.loc['upper']
-            s_value = '{:.2E}'.format(y_value)
-            s_lower = '{:.2E}'.format(y_lower)
-            s_upper = '{:.2E}'.format(y_upper)
-            
-            # plot CI
-            plt.plot([i,i], [y_lower, y_upper],
-                     color=color, linestyle="-", marker='_', linewidth=1.5)
-            
-            # plot values as text
-            for y_,s_ in zip( [y_value,y_lower,y_upper], [s_value, s_lower, s_upper] ):
-                plt.text( x=i+0.10, y=y_, s=s_, color='black', va='center', size=8  )
-
-            # plot point estimate
-            plt.scatter(i, y_value, color='white', edgecolors=color, s=60, zorder=3)
-            plt.scatter(i, y_value, color='red', edgecolors='white', s=30, zorder=3)
-            
-        # plot values as text
-        plt.title(title)
-        plt.xticks(np.arange(num_label), label_names)
-        plt.xlim( -0.5, num_label )
-        plt.savefig(save_fn, format='pdf', dpi=300, bbox_inches='tight')
-        plt.clf()
-        
-        #done
-        return
-    
-    def plot_train_history(self, history, prefix, train_color='blue',
-                          val_color='red'):
-        """
-        Plot training history for network.
-
-        This function plots trained network performance metrics as a time-series
-        across training epochs. Typically, it will compare performance between
-        trainiing vs. validation examples.
-
-        Arguments:
-            history (str): Training performance metrics
-            prefix (str): Used to construct filename
-            train_color (str): Color for training example metrics
-            val_color (str): Color for validation example metrics
-        """
-        
-        # get data names/dimensions
-        epochs       = range(1, len(history['loss']) + 1)
-        train_keys   = [ x for x in history.keys() if 'val_' not in x ]
-        #val_keys     = [ 'val_'+x for x in train_keys ]
-        label_names  = [ '_'.join( x.split('_')[0:-1] ) for x in train_keys ]
-        label_names  = sorted( np.unique(label_names) )
-        #num_labels   = len(label_names)
-
-        # get metric names
-        metric_names = [ x.split('_')[-1] for x in train_keys ]
-        metric_names = np.unique(metric_names)
-        metric_names = [ 'loss' ] + [ x for x in metric_names if x != 'loss' ]
-        num_metrics  = len(metric_names)
-
-        # figure dimensions
-        fig_width = 6
-        fig_height = int(np.ceil(2*num_metrics))
-
-        # plot for all parameters
-        for i,v1 in enumerate(label_names):
-            fig, axs = plt.subplots(nrows=num_metrics, ncols=1, sharex=True,
-                                    figsize=(fig_width, fig_height))
-            idx = 0
-            # plot for all metrics
-            for j,v2 in enumerate(metric_names):
-                # get val name from train name 
-                if v1 == '':
-                    k_train = v2
-                else:
-                    k_train = f'{v1}_{v2}'
-                k_val = 'val_' + k_train
-
-                # plot training example metrics
-                legend_handles = []
-                legend_labels = []
-                if k_train in history:
-                    lines_train, = axs[idx].plot(epochs, history[k_train], color=train_color, label = k_train)
-                    axs[idx].scatter(epochs, history[k_train], color=train_color, label = k_train, zorder=3)
-                    axs[idx].set(ylabel=metric_names[j])
-                    legend_handles.append( lines_train )
-                    legend_labels.append( 'Train' )
-
-                # plot validation example metrics
-                if k_val in history:
-                    lines_val, = axs[idx].plot(epochs, history[k_val], color=val_color, label = k_val)
-                    axs[idx].scatter(epochs, history[k_val], color=val_color, label = k_val, zorder=3)
-                    legend_handles.append( lines_val )
-                    legend_labels.append( 'Validation' )
-
-                # plot legend
-                if k_train in history or k_val in history:
-                    if idx == 0:
-                        axs[idx].legend( handles=legend_handles, labels=legend_labels, loc='upper right' )
-                    idx += 1
-
-            # turn off unused rows            
-            for j in range(num_metrics):
-                if j >= idx:
-                    axs[j].axis('off')
-
-            # aesthetics
-            title_metric = label_names[i]
-            if title_metric == '':
-                title_metric = 'entire network'
-            fig.supxlabel('Epochs')
-            fig.supylabel('Metrics')
-            fig.suptitle('Training history: ' + title_metric)
-            fig.tight_layout()
-
-            # save figure
-            save_fn = f'{prefix}'
-            if label_names[i] != '':
-                save_fn += f'_{label_names[i]}'
-            save_fn += '.pdf'
-            plt.savefig(save_fn, format='pdf', dpi=300, bbox_inches='tight')
-            plt.clf()
-        
-        # done
-        return
-#------------------------------------------------------------------------------#
