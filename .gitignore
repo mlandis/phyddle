@@ -1,10 +1,5 @@
 # Ignore phyddle workspace dirs
-workspace/simulate/*/*
-workspace/format/*/*
-workspace/train/*/*
-workspace/estimate/*/*
-workspace/plot/*/*
-workspace/log/*/*
+workspace/**
 
 # ... except workspace `example` project
 !workspace/simulate/example/*
