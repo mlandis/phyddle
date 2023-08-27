@@ -85,50 +85,102 @@ the following code
 
 .. code-block:: r
 
-    # load library
-    library(ape)
-    
-    # gather arguments
-    args = commandArgs(trailingOnly = TRUE)
-    
-    # simulated file names
-    tmp_fn = args[1]
-    phy_fn  = paste0(tmp_fn, ".tre")
-    dat_fn  = paste0(tmp_fn, ".dat.nex")
-    lbl_fn  = paste0(tmp_fn, ".param_row.csv")
-    
-    # simulation parameters
-    birth = rexp(1)
-    death = birth * runif(1)
-    rate = rexp(1)
-    max_time = runif(1,0,10)
-    
-    # simulate training data
-    phy = rbdtree(birth=birth, death=death, Tmax=max_time)
-    dat = rTraitDisc(phy, model="ER", k=2, rate=rate, state_labels=c(0,1))
-    dat = dat - 1  # re-index states from 1/2 to 0/1
-    
-    # collect training labels
-    lbl_vec = c(birth=birth, death=death, rate=rate)
-    lbl = data.frame(t(lbl_vec))
-    
-    # save training example
-    write.tree(phy, file=phy_fn)
-    write.nexus.data(dat, file=dat_fn, format="standard", datablock=T)
-    write.csv(lbl, file=lbl_fn, row.names=F, quote=F)
+	#!/usr/bin/env Rscript
+	library(ape)
 
-    # done!
-    quit()
+	# example command string
+	# cd ~/projects/phyddle/script
+	# ./sim/R/sim_one.R ../workspace/simulate/R_example/sim.0
+
+	# arguments
+	args        = commandArgs(trailingOnly = TRUE)
+	out_path    = args[1]
+	start_idx   = as.numeric(args[2])
+	batch_size  = as.numeric(args[3])
+	rep_idx     = start_idx:(start_idx+batch_size-1)
+	num_rep     = length(rep_idx)
+
+	# filesystem
+	tmp_fn  = paste0(out_path, "/sim.", rep_idx) # sim path prefix
+	phy_fn  = paste0(tmp_fn, ".tre")             # newick string
+	dat_fn  = paste0(tmp_fn, ".dat.nex")         # nexus string
+	lbl_fn  = paste0(tmp_fn, ".param_row.csv")   # csv of params
+    
+	#######################################
+	# You can do whatever you want below. #
+	#######################################
+
+	# birth-death model setup
+	birth           = runif(num_rep,0,1)
+	death           = birth * runif(num_rep)
+	max_time        = runif(num_rep,0,12)
+
+	# character model setup
+	num_char        = 2
+	num_states      = 3
+	state_rate      = runif(num_rep,0,1)
+	state_freqs     = rep(1/num_states, num_states)
+	state_labels    = 0:(num_states-1) #, collapse="")
+	root.value      = sample(x=num_states, size=num_rep,
+													 prob=state_freqs, replace=T)
+
+	# simulate each replicate
+	for (i in 1:num_rep) {
+
+			# simulate tree
+			phy = rbdtree(birth=birth[i],
+										death=death[i],
+										Tmax=max_time[i])
+
+			# simulate states for each character
+			dat = c()
+			for (j in 1:num_char) {
+					dat_new = rTraitDisc(phy,
+															 model="ER",
+															 k=num_states,
+															 rate=state_rate[i],
+															 freq=state_freqs,
+															 root.value=root.value[i],
+															 states=state_labels)
+					dat = cbind(dat, dat_new)
+			}
+
+			# ape::rTraitDisc ignores state_labels??
+			# convert to base-0
+			dat = dat - 1
+
+			# construct training labels (paramaters)
+			labels = c(birth[i], death[i], state_rate[i])
+			names(labels) = c("birth", "death", "state_rate")
+			df <- data.frame(t(labels))
+
+			# save output
+			write.tree(phy, file=phy_fn[i])
+			write.nexus.data(dat, file=dat_fn[i], format="standard", datablock=TRUE)
+			write.csv(df, file=lbl_fn[i], row.names=FALSE, quote=F)
+	}
+
+
+	###################################################
+	# Have phyddle provide useful messages concerning #
+	# files exist and formats are valid.              #
+	###################################################
+
+	# done!
+	quit()
+	
 
 This script has a few important features. First, the simulator is entirely
 reponsible for simulating the dataset. Second, the script assumes it will be
 provided a runtime argument (``args[1]``) to generate filenames for the training
-example. Third, output for the Newick string is stored into a ``.tre`` file,
-for the character matrix data into a ``.dat.nex`` Nexus file, and for the
-training labels into a comma-separated ``.csv`` file.
+example and a batch size argument (``args[2]``) that determines how many
+simulated datasets will be generated when the script is run. Third, output
+for the Newick string is stored into a ``.tre`` file, for the character
+matrix data into a ``.dat.nex`` Nexus file, and for the training labels
+into a comma-separated ``.csv`` file.
 
-Now that we understand thee script, we need to configure phyddle to call it
-properly. This is done by setting the ``sim_command`` argumetn equal to a
+Now that we understand the script, we need to configure phyddle to call it
+properly. This is done by setting the ``sim_command`` argument equal to a
 command string of the form ``MY_COMMAND [MY_COMMAND_ARGUMENTS]``. During
 simulation, phyddle executes the command string against different filepath
 locations. More specifically, phyddle will execute the command
@@ -138,26 +190,28 @@ part of the Simulate step, phyddle will execute the command string against a
 range of values of ``SIM_PREFIX`` generates the complete simulated dataset of
 replicated training examples.
 
-The correct ``sim_command`` is:
+The correct ``sim_command`` to execute the R script ``sim/R/sim_one.R`` is:
 
 .. code-block:: python
 
-    'sim_command' : 'Rscript sim_one.R'
+    'sim_command' : 'Rscript sim/R/sim_one.R'
 
-Assuming ``sim_dir = ../workspace/simulate`` and ``proj = my_project``, phyddle
-will execute the commands during simulation
+Assuming ``sim_dir = ../workspace/simulate``, ``proj = my_project``, and
+``sim_batch_size = 10``, phyddle will execute the commands during simulation
 
 .. code-block:: shell
 
     Rscript sim_one.R ../workspace/simulate/my_project/sim.0
-    Rscript sim_one.R ../workspace/simulate/my_project/sim.1
-    Rscript sim_one.R ../workspace/simulate/my_project/sim.2
+    Rscript sim_one.R ../workspace/simulate/my_project/sim.10
+    Rscript sim_one.R ../workspace/simulate/my_project/sim.20
     ...
 
-for every replication index between ``start_idx`` and ``end_idx``.
-In fact, executing ``Rscript sim_one.R ../workspace/simulate/my_project/sim.0`` from terminal is the perfect way to validate that your custom simulator is compatible with the phyddle requirements.
-
-
+for every replication index between ``start_idx`` and ``end_idx`` in
+increments of ``sim_batch_size``, where the R script itself is responsible
+for generating the ``sim_batch_size`` replicates per batch. In fact,
+executing ``Rscript sim_one.R ../workspace/simulate/my_project/sim 1``
+from terminal is an ideal way to validate that your custom simulator is
+compatible with the phyddle requirements.
 
 
 .. _Format:
@@ -201,23 +255,26 @@ Learn more about the formats of phyddle tensors on the
 :ref:`Tensor Formats <Tensor_Formats>` page.
 
 During tensor-encoding, :ref:`Format` processes the tree, data matrix, and
-model parameters for each replicate. This is done in parallel, when the
-setting ``use_parallel`` is set to ``True``. Simulated data are processed
-using CBLV+S format if ``tree_type`` is set to ``'serial'``. If ``tree_type``
-is set to ``'extant'`` then all non-extant taxa are pruned, saved as
-``pruned.tre``, then encoded using CDV+S. Each tree is then encoded into a
-phylogenetic-state tensor with a maximum of ``tree_width`` sampled taxa. Trees
-that contain more taxa are downsampled to ``tree_width`` taxa. The number of
-taxa in each original dataset is recorded in the summary statistics, regardless
-of its size. The phylogenetc-state tensors and auxiliary data tensors are
-then created. If ``save_phyenc_csv`` is set, then individual csv files are
-saved for each dataset, which is especially useful for formatting new empirical
-datasets into an accepted phyddle format. The ``param_est`` setting identifies
-which parameters in the labels tensor you want to treat as downstream
-estimation targets. The ``param_data`` setting identifies which of those
-parameters you want to treat as "known" auxiliary data. Lastly, Format creates
-a test dataset containing proportion `test_prop` of examples, and a second
-training dataset that contains all remaining examples.
+model parameters for each replicate. This is done in parallel, when the setting
+``use_parallel`` is set to ``True``. Simulated data are processed using CBLV+S
+format if ``tree_encode`` is set to ``'serial'``. If ``tree_encode`` is set to
+``'extant'`` then all non-extant taxa are pruned, saved as ``pruned.tre``, then
+encoded using CDV+S. Standard CBLV+S and CDV+S formats are used when
+``brlen_encode`` is ``'height_only'``, while additional branch length
+information is added as rows when ``brlen_encode`` is set to
+``'height_brlen'``. Each tree is then encoded into a phylogenetic-state tensor
+with a maximum of ``tree_width`` sampled taxa. Trees that contain more taxa are
+downsampled to ``tree_width`` taxa. The number of taxa in each original dataset
+is recorded in the summary statistics, regardless of its size. The
+phylogenetc-state tensors and auxiliary data tensors are then created. If
+``save_phyenc_csv`` is set, then individual csv files are saved for each
+dataset, which is especially useful for formatting new empirical datasets into
+an accepted phyddle format. The ``param_est`` setting identifies which
+parameters in the labels tensor you want to treat as downstream estimation
+targets. The ``param_data`` setting identifies which of those parameters you
+want to treat as "known" auxiliary data. Lastly, Format creates a test dataset
+containing proportion `test_prop` of examples, and a second training dataset
+that contains all remaining examples.
 
 Formatted tensors are then saved to disk either in simple comma-separated
 value format or in a compressed HDF5 format. For example, suppose we set
@@ -242,8 +299,6 @@ or if ``tensor_format == 'csv'``:
 	
 
 These files can then be processed by the :ref:`Train` step.
-
-
 
 
 .. _Train:
@@ -312,7 +367,6 @@ set aside with ``prop_val`` that are not used for minimizing the loss function.
 Training is automatically parallelized using CPUs and GPUs, dependent on
 how Tensorflow was installed and system hardware. Output files are stored
 in the directory assigned to ``trn_dir`` in the subdirectory ``proj``.
-
 
 
 .. _Estimate:
