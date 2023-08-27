@@ -361,7 +361,7 @@ requires larger numbers of calibration examples, determined through
 ``prop_cal``. 
 
 The network is trained iteratively for ``num_epoch`` training cycles using
-batch stochastic gradient descent, with batch sizes given by ``batch_size``.
+batch stochastic gradient descent, with batch sizes given by ``trn_batch_size``.
 Different optimizers can be used to update network weight and bias
 parameters (e.g. ``optimizer == 'adam'``; Tensorflow-supported string
 or function). Network performance is also evaluated against validation data

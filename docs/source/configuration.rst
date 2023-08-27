@@ -45,93 +45,86 @@ if desired.
     #==============================================================================#
 
     args = {
-        #-------------------------------#
-        # Basic                         #
-        #-------------------------------#
-        'cfg'                : 'config.py',          # Config file name
-        'proj'               : 'my_project',         # Project name(s) for pipeline step(s)
-        'step'               : 'SFTEP',              # Pipeline step(s) defined with (S)imulate, (F)ormat,
-                                                     #     (T)rain, (E)stimate, (P)lot, or (A)ll
-        'verbose'            : 'T',                  # Verbose output to screen?
-        'force'              : None,                 # Arguments override config file settings
-        'make_cfg'           : None,                 # Write default config file to 'config_default.py'?'
 
         #-------------------------------#
-        # Analysis                      #
+        # Project organization          #
         #-------------------------------#
-        'use_parallel'       : 'T',                  # Use parallelization? (recommended)
-        'num_proc'           : -2,                   # Number of cores for multiprocessing (-N for all but N)
+        'proj'    : 'R_example',                # project name(s)
+        'step'    : 'SFTEP',                    # step(s) to run
+        'verbose' : 'T',                        # print verbose phyddle output?
+        'sim_dir' : '../workspace/simulate',    # directory for simulated data
+        'fmt_dir' : '../workspace/format',      # directory for tensor-formatted data
+        'trn_dir' : '../workspace/train',       # directory for trained network
+        'plt_dir' : '../workspace/plot',        # directory for plotted figures
+        'est_dir' : '../workspace/estimate',    # directory for predictions on new data
+        'log_dir' : '../workspace/log',         # directory for analysis logs
 
         #-------------------------------#
-        # Workspace                     #
+        # Multiprocessing               #
         #-------------------------------#
-        'sim_dir'            : '../workspace/simulate',  # Directory for raw simulated data
-        'fmt_dir'            : '../workspace/format',    # Directory for tensor-formatted simulated data
-        'trn_dir'            : '../workspace/train',     # Directory for trained networks and training output
-        'est_dir'            : '../workspace/estimate',  # Directory for new datasets and estimates
-        'plt_dir'            : '../workspace/plot',      # Directory for plotted results
-        'log_dir'            : '../workspace/log',       # Directory for logs of analysis metadata
+        'use_parallel'   : 'T',                 # use multiprocessing to speed up jobs?
+        'num_proc'       : 10,                  # how many CPUs to use (-2 means all but 2)
 
         #-------------------------------#
-        # Simulate                      #
+        # Simulate Step settings        #
         #-------------------------------#
-        'sim_command'        : None,                 # Simulation command to run single job (see documentation)
-        'sim_logging'        : 'clean',              # Simulation logging style
-        'start_idx'          : 0,                    # Start replicate index for simulated training dataset
-        'end_idx'            : 1000,                 # End replicate index for simulated training dataset
-        'sim_more'           : 0,                    # Add more simulations with auto-generated indices
-        'sim_batch_size'     : 1,                    # Number of replicates per simulation command
+        'sim_command'       : 'Rscript sim/R/sim_one.R', # exact command string, no args
+        'sim_logging'       : 'verbose',        # verbose, compressed, or clean
+        'start_idx'         : 0,                # first simulation replicate index
+        'end_idx'           : 1000,             # last simulation replicate index
+        'sim_batch_size'    : 1,
 
         #-------------------------------#
-        # Format                        #
+        # Format Step settings          #
         #-------------------------------#
-        'encode_all_sim'     : 'T',                  # Encode all simulated replicates into tensor?
-        'num_char'           : None,                 # Number of characters
-        'num_states'         : None,                 # Number of states per character
-        'min_num_taxa'       : 10,                   # Minimum number of taxa allowed when formatting
-        'max_num_taxa'       : 1000,                 # Maximum number of taxa allowed when formatting
-        'downsample_taxa'    : 'uniform',            # Downsampling strategy taxon count
-        'tree_width'         : 500,                  # Width of phylo-state tensor
-        'tree_encode'        : 'extant',             # Encoding strategy for tree
-        'brlen_encode'       : 'height_brlen',       # Encoding strategy for branch lengths
-        'char_encode'        : 'one_hot',            # Encoding strategy for character data
-        'param_est'          : None,                 # Model parameters to estimate
-        'param_data'         : None,                 # Model parameters treated as data
-        'char_format'        : 'nexus',              # File format for character data
-        'tensor_format'      : 'hdf5',               # File format for training example tensors
-        'save_phyenc_csv'    : 'F',                  # Save encoded phylogenetic tensor encoding to csv?
+        'num_char'          : 2,                # number of evolutionary characters
+        'num_states'        : 3,                # number of states per character
+        'min_num_taxa'      : 10,               # min number of taxa for valid sim
+        'max_num_taxa'      : 500,              # max number of taxa for valid sim
+        'tree_encode'       : 'extant',         # use model with serial or extant tree
+        'brlen_encode'      : 'height_brlen',   # how to encode phylo brlen? height_only or height_brlen
+        'char_encode'       : 'integer',        # how to encode discrete states? one_hot or integer
+        'tree_width_cats'   : [ 200, 500 ],     # tree width categories for phylo-state tensors
+        'param_est'         : [                 # model parameters to predict (labels)
+            'birth', 'death', 'state_rate'
+        ],
+        'param_data'        : [],               # model parameters that are known (aux. data)
+        'tensor_format'     : 'hdf5',           # save as compressed HDF5 or raw csv
+        'char_format'       : 'nexus',
+        'save_phyenc_csv'   : 'F',              # save intermediate phylo-state vectors to file
 
         #-------------------------------#
-        # Train                         #
+        # Train Step settings           #
         #-------------------------------#
-        'trn_objective'      : 'param_est',          # Objective of training procedure
-        'num_epochs'         : 20,                   # Number of training epochs
-        'trn_batch_size'     : 128,                  # Training batch sizes
-        'prop_test'          : 0.05,                 # Proportion of data used as test examples (assess network performance)
-        'prop_val'           : 0.05,                 # Proportion of data used as validation examples (diagnose overtraining)
-        'prop_cal'           : 0.2,                  # Proportion of data used as calibration examples (calibrate CPIs)
-        'cpi_coverage'       : 0.95,                 # Expected coverage percent for calibrated prediction intervals (CPIs)
-        'cpi_asymmetric'     : 'T',                  # Use asymmetric (True) or symmetric (False) adjustments for CPIs?
-        'loss'               : 'mse',                # Loss function for optimization
-        'optimizer'          : 'adam',               # Method used for optimizing neural network
-        'metrics'            : ['mae', 'acc'],       # Recorded training metrics
+        'trn_objective'     : 'param_est',      # what is the learning task? param_est or model_test
+        'tree_width'        : 200,              # tree width category used to train network
+        'num_epochs'        : 20,               # number of training intervals (epochs)
+        'prop_test'         : 0.05,             # proportion of sims in test dataset
+        'prop_val'          : 0.05,             # proportion of sims in validation dataset
+        'prop_cal'          : 0.20,             # proportion of sims in CPI calibration dataset
+        'cpi_coverage'      : 0.95,             # coverage level for CPIs
+        'cpi_asymmetric'    : 'T',              # upper/lower (True) or symmetric (False) CPI adjustments
+        'trn_batch_size'    : 128,              # number of samples in each training batch
+        'loss'              : 'mse',            # loss function for learning
+        'optimizer'         : 'adam',           # optimizer for network weight/bias parameters
+        'metrics'           : ['mae', 'acc'],   # recorded training metrics
 
         #-------------------------------#
-        # Estimate                      #
+        # Estimate Step settings        #
         #-------------------------------#
-        'est_prefix'         : None,                 # Predict results for this dataset
+        'est_prefix'     : 'new.1',             # prefix for new dataset to predict
 
         #-------------------------------#
-        # Plot                          #
+        # Plot Step settings            #
         #-------------------------------#
-        'plot_train_color'   : 'blue',               # Plotting color for training data elements
-        'plot_label_color'   : 'purple',             # Plotting color for training label elements
-        'plot_test_color'    : 'red',                # Plotting color for test data elements
-        'plot_val_color'     : 'green',              # Plotting color for validation data elements
-        'plot_aux_color'     : 'orange',             # Plotting color for auxiliary data elements
-        'plot_est_color'     : 'black',              # Plotting color for new estimation elements
+        'plot_train_color'      : 'blue',       # plot color for training data
+        'plot_test_color'       : 'purple',     # plot color for test data
+        'plot_val_color'        : 'red',        # plot color for validation data
+        'plot_aux_color'        : 'green',      # plot color for input auxiliary data
+        'plot_label_color'      : 'orange',     # plot color for labels (params)
+        'plot_est_color'        : 'black'       # plot color for estimated data/values
 
-        }
+    }
 
 
 .. _config_CLI:
@@ -148,20 +141,16 @@ adjusted with the command line using the ``--help`` option:
 
 .. code-block::
 
-	$ ./run_phyddle.py --help
+	$ phyddle --help
     
-    usage: run_phyddle.py [-h] [-c] [-p] [-s] [-v] [-f] [--make_cfg] [--use_parallel] [--num_proc] [--sim_dir]
-                      [--fmt_dir] [--trn_dir] [--est_dir] [--plt_dir] [--log_dir] [--sim_command] [--sim_logging]
-                      [--start_idx] [--end_idx] [--sim_more] [--sim_batch_size] [--encode_all_sim] [--num_char]
-                      [--num_states] [--min_num_taxa] [--max_num_taxa] [--downsample_taxa] [--tree_width]
-                      [--tree_encode] [--brlen_encode] [--char_encode] [--param_est] [--param_data]
-                      [--char_format] [--tensor_format] [--save_phyenc_csv] [--trn_objective] [--num_epochs]
-                      [--trn_batch_size] [--prop_test] [--prop_val] [--prop_cal] [--cpi_coverage]
-                      [--cpi_asymmetric] [--loss] [--optimizer] [--metrics] [--est_prefix] [--plot_train_color]
-                      [--plot_label_color] [--plot_test_color] [--plot_val_color] [--plot_aux_color]
-                      [--plot_est_color]
+    usage: phyddle [-h] [-c] [-p] [-s] [-v] [-f] [--make_cfg] [--use_parallel] [--num_proc] [--sim_dir] [--fmt_dir] [--trn_dir] [--est_dir] [--plt_dir] [--log_dir]
+               [--sim_command] [--sim_logging] [--start_idx] [--end_idx] [--sim_more] [--sim_batch_size] [--encode_all_sim] [--num_char] [--num_states]
+               [--min_num_taxa] [--max_num_taxa] [--downsample_taxa] [--tree_width] [--tree_encode] [--brlen_encode] [--char_encode] [--param_est] [--param_data]
+               [--char_format] [--tensor_format] [--save_phyenc_csv] [--trn_objective] [--num_epochs] [--trn_batch_size] [--prop_test] [--prop_val] [--prop_cal]
+               [--cpi_coverage] [--cpi_asymmetric] [--loss] [--optimizer] [--metrics] [--est_prefix] [--plot_train_color] [--plot_label_color] [--plot_test_color]
+               [--plot_val_color] [--plot_aux_color] [--plot_est_color]
 
-    phyddle pipeline config
+    Software to fiddle around with deep learning for phylogenetic models
 
     options:
     -h, --help           show this help message and exit
@@ -268,14 +257,14 @@ For example, the following two commands are equivalent
 
 .. code-block:: shell
 
-    ./run_phyddle.py --step A
-    ./run_phyddle.py --step SFTEP
+    phyddle --step A
+    phyddle -s SFTEP
 
 whereas calling
 
 .. code-block:: shell
 
-    ./run_phyddle.py --step SF
+    phyddle -s SF
 
 commands phyddle to perform the Simulate and Format steps, but not the Train,
 Estimate, or Plot steps.
@@ -287,11 +276,12 @@ Estimate, or Plot steps.
 
 The ``proj`` setting controls how project names are assigned to different
 pipeline steps. Typically, ``proj`` is provided a single project name that is
-shared across all pipeline steps. For example, calling
+shared across all pipeline steps. For example, calling either command
 
 .. code-block:: shell
 
-    ./run_phyddle.py --proj my_project
+    phyddle --proj my_project
+    phyddle -p my_project
 
 causes all results from this phyddle analysis to be stored in a subdirectory
 called ``my_project``. The ``proj`` setting can also be used to specify
@@ -299,7 +289,7 @@ different project names for individual pipeline steps. For example, calling
 
 .. code-block:: shell
 
-    ./run_phyddle.py --proj my_project,E:new_estimate,P:new_plot
+    phyddle --proj my_project,E:new_estimate,P:new_plot
 
 would use ``new_estimate`` as the project name for the ``E`` step (Estimate),
 ``new_plot`` for the ``P`` step (Plot), and ``my_project`` for all other steps.
