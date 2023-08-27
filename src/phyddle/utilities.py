@@ -107,8 +107,8 @@ def settings_registry():
         # 'name'             : { 'step':'SFTEP', 'type':str,  'section':'Basic', 'default':'',           'help':'Nickname for file-set within project', 'opt':'n' },
         'step'             : { 'step':'SFTEP', 'type':str,  'section':'Basic', 'default':'SFTEP',      'help':'Pipeline step(s) defined with (S)imulate, (F)ormat, (T)rain, (E)stimate, (P)lot, or (A)ll', 'opt':'s' },
         'verbose'          : { 'step':'SFTEP', 'type':str,  'section':'Basic', 'default':'T',          'help':'Verbose output to screen?', 'bool':True, 'opt':'v' },
-        'force'            : { 'step':'',      'type':None,  'section':'Basic', 'default':None,        'help':'Arguments override config file settings', 'opt':'f' },
-        'make_cfg'         : { 'step':'',      'type':None,  'section':'Basic', 'default':None,        'help':"Write default config file to 'config_default.py'?'" },
+        'force'            : { 'step':'',      'type':None, 'section':'Basic', 'default':None,         'help':'Arguments override config file settings', 'opt':'f' },
+        'make_cfg'         : { 'step':'',      'type':None, 'section':'Basic', 'default':None,         'help':"Write default config file to '__config_default.py'?'" },
 
         # analysis options 
         'use_parallel'     : { 'step':'SF', 'type':str, 'section':'Analysis', 'default':'T', 'help':'Use parallelization? (recommended)', 'bool':True },
@@ -243,14 +243,17 @@ def load_config(config_fn,
     # DEFAULT CONFIG FILE SETTINGS
     # make/overwrite default config, if requested
     if args.make_cfg:
-        make_default_config()
-        print_str(f"Created default config as '{CONFIG_DEFAULT_FN}' ...")
+        make_config_fn = CONFIG_DEFAULT_FN
+        if arg_overwrite and args.cfg is not None:
+            make_config_fn = args.cfg
+        make_default_config(make_config_fn)
+        print_str(f"Created default config as '{make_config_fn}' ...")
         sys.exit()
     if not os.path.exists(CONFIG_DEFAULT_FN):
         msg = f"Default config file '{CONFIG_DEFAULT_FN} not found. Creating "
         msg += "default config file in current directory."
         print_warn(msg)
-        make_default_config()
+        make_default_config(CONFIG_DEFAULT_FN)
     # load config into namespace
     namespace = {}        
     with open(CONFIG_DEFAULT_FN) as file:
@@ -438,7 +441,7 @@ def add_step_proj(args): #steps, proj):
 
     return args
 
-def make_default_config():
+def make_default_config(config_fn):
     """Generate default config file.
 
     Processes all items in the settings_registry to create a formatted
@@ -534,7 +537,7 @@ def make_default_config():
     s_cfg += "}\n"
 
     # write file content
-    f = open(CONFIG_DEFAULT_FN, 'w')
+    f = open(config_fn, 'w')
     f.write(s_cfg)
     f.close()
     

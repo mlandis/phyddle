@@ -614,7 +614,8 @@ class Formatter:
             return
 
         # get tree width from resulting vector
-        tree_width = util.find_tree_width(num_taxa, self.tree_width_cats)
+        tree_width = np.max(self.tree_width_cats)
+        #tree_width = util.find_tree_width(num_taxa, self.tree_width_cats)
 
         # create compact phylo-state vector, CPV+S = {CBLV+S, CDV+S}
         cpvs_data = None

@@ -11,7 +11,7 @@ args = {
   'step'               : 'SFTEP',              # Pipeline step(s) defined with (S)imulate, (F)ormat, (T)rain, (E)stimate, (P)lot, or (A)ll
   'verbose'            : 'T',                  # Verbose output to screen?      
   'force'              : None,                 # Arguments override config file settings
-  'make_cfg'           : None,                 # Write default config file to 'config_default.py'?'
+  'make_cfg'           : None,                 # Write default config file to '__config_default.py'?'
 
   #-------------------------------#
   # Analysis                      #
