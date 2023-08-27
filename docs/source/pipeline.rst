@@ -17,8 +17,8 @@ Pipeline
     how phyddle defines different terms
 
 .. image:: phyddle_pipeline.png
-	:scale: 18%
-	:align: right
+  :scale: 18%
+  :align: right
 
 A phyddle pipeline analysis has five steps: :ref:`Simulate`, :ref:`Format`,
 :ref:`Train`, :ref:`Estimate`, and :ref:`Plot`. Standard analyses run all
@@ -85,90 +85,90 @@ the following code
 
 .. code-block:: r
 
-	#!/usr/bin/env Rscript
-	library(ape)
+  #!/usr/bin/env Rscript
+  library(ape)
 
-	# example command string
-	# cd ~/projects/phyddle/script
-	# ./sim/R/sim_one.R ../workspace/simulate/R_example/sim.0
+  # example command string
+  # cd ~/projects/phyddle/script
+  # ./sim/R/sim_one.R ../workspace/simulate/R_example/sim.0
 
-	# arguments
-	args        = commandArgs(trailingOnly = TRUE)
-	out_path    = args[1]
-	start_idx   = as.numeric(args[2])
-	batch_size  = as.numeric(args[3])
-	rep_idx     = start_idx:(start_idx+batch_size-1)
-	num_rep     = length(rep_idx)
+  # arguments
+  args        = commandArgs(trailingOnly = TRUE)
+  out_path    = args[1]
+  start_idx   = as.numeric(args[2])
+  batch_size  = as.numeric(args[3])
+  rep_idx     = start_idx:(start_idx+batch_size-1)
+  num_rep     = length(rep_idx)
 
-	# filesystem
-	tmp_fn  = paste0(out_path, "/sim.", rep_idx) # sim path prefix
-	phy_fn  = paste0(tmp_fn, ".tre")             # newick string
-	dat_fn  = paste0(tmp_fn, ".dat.nex")         # nexus string
-	lbl_fn  = paste0(tmp_fn, ".param_row.csv")   # csv of params
+  # filesystem
+  tmp_fn  = paste0(out_path, "/sim.", rep_idx) # sim path prefix
+  phy_fn  = paste0(tmp_fn, ".tre")             # newick string
+  dat_fn  = paste0(tmp_fn, ".dat.nex")         # nexus string
+  lbl_fn  = paste0(tmp_fn, ".param_row.csv")   # csv of params
     
-	#######################################
-	# You can do whatever you want below. #
-	#######################################
+  #######################################
+  # You can do whatever you want below. #
+  #######################################
 
-	# birth-death model setup
-	birth           = runif(num_rep,0,1)
-	death           = birth * runif(num_rep)
-	max_time        = runif(num_rep,0,12)
+  # birth-death model setup
+  birth           = runif(num_rep,0,1)
+  death           = birth * runif(num_rep)
+  max_time        = runif(num_rep,0,12)
 
-	# character model setup
-	num_char        = 2
-	num_states      = 3
-	state_rate      = runif(num_rep,0,1)
-	state_freqs     = rep(1/num_states, num_states)
-	state_labels    = 0:(num_states-1) #, collapse="")
-	root.value      = sample(x=num_states, size=num_rep,
-													 prob=state_freqs, replace=T)
+  # character model setup
+  num_char        = 2
+  num_states      = 3
+  state_rate      = runif(num_rep,0,1)
+  state_freqs     = rep(1/num_states, num_states)
+  state_labels    = 0:(num_states-1) #, collapse="")
+  root.value      = sample(x=num_states, size=num_rep,
+                           prob=state_freqs, replace=T)
 
-	# simulate each replicate
-	for (i in 1:num_rep) {
+  # simulate each replicate
+  for (i in 1:num_rep) {
 
-			# simulate tree
-			phy = rbdtree(birth=birth[i],
-										death=death[i],
-										Tmax=max_time[i])
+      # simulate tree
+      phy = rbdtree(birth=birth[i],
+                    death=death[i],
+                    Tmax=max_time[i])
 
-			# simulate states for each character
-			dat = c()
-			for (j in 1:num_char) {
-					dat_new = rTraitDisc(phy,
-															 model="ER",
-															 k=num_states,
-															 rate=state_rate[i],
-															 freq=state_freqs,
-															 root.value=root.value[i],
-															 states=state_labels)
-					dat = cbind(dat, dat_new)
-			}
+      # simulate states for each character
+      dat = c()
+      for (j in 1:num_char) {
+          dat_new = rTraitDisc(phy,
+                               model="ER",
+                               k=num_states,
+                               rate=state_rate[i],
+                               freq=state_freqs,
+                               root.value=root.value[i],
+                               states=state_labels)
+          dat = cbind(dat, dat_new)
+      }
 
-			# ape::rTraitDisc ignores state_labels??
-			# convert to base-0
-			dat = dat - 1
+      # ape::rTraitDisc ignores state_labels??
+      # convert to base-0
+      dat = dat - 1
 
-			# construct training labels (paramaters)
-			labels = c(birth[i], death[i], state_rate[i])
-			names(labels) = c("birth", "death", "state_rate")
-			df <- data.frame(t(labels))
+      # construct training labels (paramaters)
+      labels = c(birth[i], death[i], state_rate[i])
+      names(labels) = c("birth", "death", "state_rate")
+      df <- data.frame(t(labels))
 
-			# save output
-			write.tree(phy, file=phy_fn[i])
-			write.nexus.data(dat, file=dat_fn[i], format="standard", datablock=TRUE)
-			write.csv(df, file=lbl_fn[i], row.names=FALSE, quote=F)
-	}
+      # save output
+      write.tree(phy, file=phy_fn[i])
+      write.nexus.data(dat, file=dat_fn[i], format="standard", datablock=TRUE)
+      write.csv(df, file=lbl_fn[i], row.names=FALSE, quote=F)
+  }
 
 
-	###################################################
-	# Have phyddle provide useful messages concerning #
-	# files exist and formats are valid.              #
-	###################################################
+  ###################################################
+  # Have phyddle provide useful messages concerning #
+  # files exist and formats are valid.              #
+  ###################################################
 
-	# done!
-	quit()
-	
+  # done!
+  quit()
+  
 
 This script has a few important features. First, the simulator is entirely
 reponsible for simulating the dataset. Second, the script assumes it will be
@@ -299,7 +299,7 @@ or if ``tensor_format == 'csv'``:
     workspace/format/example/train.nt200.aux_data.csv
     workspace/format/example/train.nt200.labels.csv
     workspace/format/example/train.nt200.phy_data.csv
-	
+  
 
 These files can then be processed by the :ref:`Train` step.
 
@@ -438,78 +438,78 @@ The output of phyddle pipeline analysis will resemble this:
 
 .. code-block::
 
-	┏━━━━━━━━━━━━━━━━━━━━━━┓
-	┃   phyddle   v0.0.9   ┃
-	┣━━━━━━━━━━━━━━━━━━━━━━┫
-	┃                      ┃
-	┗━┳━▪ Simulating... ▪━━┛
-		┃
-		┗━━━▪ output: ../workspace/simulate/R_example
+  ┏━━━━━━━━━━━━━━━━━━━━━━┓
+  ┃   phyddle   v0.0.9   ┃
+  ┣━━━━━━━━━━━━━━━━━━━━━━┫
+  ┃                      ┃
+  ┗━┳━▪ Simulating... ▪━━┛
+    ┃
+    ┗━━━▪ output: ../workspace/simulate/R_example
 
-	▪ Start time of 10:18:16
-	▪ Simulating raw data
-	Simulating: 100%|██████████████████████| 1000/1000 [03:25<00:00,  4.87it/s]
-	▪ End time of 10:21:41 (+00:03:25)
-	... done!
-	┃                      ┃
-	┗━┳━▪ Formatting... ▪━━┛
-		┃
-		┣━━━▪ input:  ../workspace/simulate/R_example
-		┗━━━▪ output: ../workspace/format/R_example
+  ▪ Start time of 10:18:16
+  ▪ Simulating raw data
+  Simulating: 100%|██████████████████████| 1000/1000 [03:25<00:00,  4.87it/s]
+  ▪ End time of 10:21:41 (+00:03:25)
+  ... done!
+  ┃                      ┃
+  ┗━┳━▪ Formatting... ▪━━┛
+    ┃
+    ┣━━━▪ input:  ../workspace/simulate/R_example
+    ┗━━━▪ output: ../workspace/format/R_example
 
-	▪ Start time of 10:21:41
-	▪ Encoding raw data as tensors
-	Encoding: 100%|████████████████████████| 1000/1000 [02:22<00:00,  7.02it/s]
-	▪ Combining and writing tensors
-	Making train hdf5 dataset: 453 examples for tree width = 200
-	Combining: 100%|███████████████████████| 453/453 [00:00<00:00, 3062.20it/s]
-	Making test hdf5 dataset: 23 examples for tree width = 200
-	Combining: 100%|█████████████████████████| 23/23 [00:00<00:00, 3068.74it/s]
-	▪ End time of 10:24:04 (+00:02:23)
-	... done!
-	┃                      ┃
-	┗━┳━▪ Training...   ▪━━┛
-		┃
-		┣━━━▪ input:  ../workspace/format/R_example
-		┗━━━▪ output: ../workspace/train/R_example
+  ▪ Start time of 10:21:41
+  ▪ Encoding raw data as tensors
+  Encoding: 100%|████████████████████████| 1000/1000 [02:22<00:00,  7.02it/s]
+  ▪ Combining and writing tensors
+  Making train hdf5 dataset: 453 examples for tree width = 200
+  Combining: 100%|███████████████████████| 453/453 [00:00<00:00, 3062.20it/s]
+  Making test hdf5 dataset: 23 examples for tree width = 200
+  Combining: 100%|█████████████████████████| 23/23 [00:00<00:00, 3068.74it/s]
+  ▪ End time of 10:24:04 (+00:02:23)
+  ... done!
+  ┃                      ┃
+  ┗━┳━▪ Training...   ▪━━┛
+    ┃
+    ┣━━━▪ input:  ../workspace/format/R_example
+    ┗━━━▪ output: ../workspace/train/R_example
 
-	▪ Start time of 10:24:04
-	▪ Loading input
-	▪ Building network
-	▪ Training network
-	▪ Processing results
-	11/11 [==============================] - 0s 9ms/step
-	3/3 [==============================] - 0s 7ms/step
-	▪ Saving results
-	▪ End time of 10:24:14 (+00:00:10)
-	▪ ... done!
-	┃                      ┃
-	┗━┳━▪ Estimating... ▪━━┛
-		┃
-		┣━━━▪ input:  ../workspace/format/R_example
-		┃             ../workspace/estimate/R_example
-		┃             ../workspace/train/R_example
-		┗━━━▪ output: ../workspace/estimate/R_example
+  ▪ Start time of 10:24:04
+  ▪ Loading input
+  ▪ Building network
+  ▪ Training network
+  ▪ Processing results
+  11/11 [==============================] - 0s 9ms/step
+  3/3 [==============================] - 0s 7ms/step
+  ▪ Saving results
+  ▪ End time of 10:24:14 (+00:00:10)
+  ▪ ... done!
+  ┃                      ┃
+  ┗━┳━▪ Estimating... ▪━━┛
+    ┃
+    ┣━━━▪ input:  ../workspace/format/R_example
+    ┃             ../workspace/estimate/R_example
+    ┃             ../workspace/train/R_example
+    ┗━━━▪ output: ../workspace/estimate/R_example
 
-	▪ Start time of 10:24:14
-	▪ Loading input
-	▪ Making estimates
-	1/1 [==============================] - 0s 178ms/step
-	1/1 [==============================] - 0s 22ms/step
-	▪ End time of 10:24:14 (+00:00:00)
-	... done!
-	┃                      ┃
-	┗━┳━▪ Plotting...   ▪━━┛
-		┃
-		┣━━━▪ input:  ../workspace/format/R_example
-		┃             ../workspace/train/R_example
-		┃             ../workspace/estimate/R_example
-		┗━━━▪ output: ../workspace/plot/R_example
+  ▪ Start time of 10:24:14
+  ▪ Loading input
+  ▪ Making estimates
+  1/1 [==============================] - 0s 178ms/step
+  1/1 [==============================] - 0s 22ms/step
+  ▪ End time of 10:24:14 (+00:00:00)
+  ... done!
+  ┃                      ┃
+  ┗━┳━▪ Plotting...   ▪━━┛
+    ┃
+    ┣━━━▪ input:  ../workspace/format/R_example
+    ┃             ../workspace/train/R_example
+    ┃             ../workspace/estimate/R_example
+    ┗━━━▪ output: ../workspace/plot/R_example
 
-	▪ Start time of 10:24:14
-	▪ Loading input
-	▪ Generating individual plots
-	▪ Combining plots
-	▪ End time of 10:24:26 (+00:00:12)
-	... done!
+  ▪ Start time of 10:24:14
+  ▪ Loading input
+  ▪ Generating individual plots
+  ▪ Combining plots
+  ▪ End time of 10:24:26 (+00:00:12)
+  ... done!
 
