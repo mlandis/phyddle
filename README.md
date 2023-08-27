@@ -21,32 +21,36 @@ A standard phyddle analysis performs the following tasks for you:
 - **Plot** generates figures that summarize the training data (*Formatting*), the network and its training (*Train*), and any new predictions (*Estimate*). Saves output in the [`plot`](workspace/plot) directory.
 
 
-## Quick installation
+## Installation
 
-A stable version of phyddle can be installed using pip:
+A stable version of phyddle can be installed using conda:
 
 ```shell
-# install pip
-python -m ensurepip --upgrade
-# install phyddle
+conda create -n phyddle_env -c bioconda -c landismj phyddle
+# ... install ...
+conda activate phyddle_env
+phyddle
+```
+
+or using the Python package manager, pip:
+
+
+```shell
 python3 -m pip install --upgrade phyddle
+# ... install ...
+phyddle
 ```
 
 The newest development version of phyddle must be manually installed through a local build:
 ```shell
-# clone phyddle repo
 git clone git@github.com:mlandis/phyddle.git
-# enter phyddle
 cd phyddle
-# switch to development branch
 git checkout development
-# pull to acquire newest changes (not needed after first clone)
 git pull
-# build local phyddle package
 ./build.sh
 ```
 
-phyddle uses third-party simulators to generate training datasets. The standard workflow assumes that [R](https://cran.r-project.org) v4.2.2, [RevBayes](https://revbayes.github.io) v1.2.1, or [BEAST](https://www.beast2.org/) v2.7.3 with [MASTER](https://github.com/tgvaughan/MASTER) v7.0.0 (plugin) is installed on your machine and be executed as a command from terminal. The documentation explains how to configure R for use with phyddle.
+phyddle uses third-party simulators to generate training datasets. Example workflows assume that [R](https://cran.r-project.org) v4.2.2, [RevBayes](https://revbayes.github.io) v1.2.1, or [BEAST](https://www.beast2.org/) v2.7.3 with [MASTER](https://github.com/tgvaughan/MASTER) v7.0.0 (plugin) is installed on your machine and can be executed as a command from terminal. The documentation explains how to configure R for use with phyddle.
 
 ## Quick start
 

@@ -13,11 +13,10 @@ and can be installed with the following commands:
 
 .. code-block:: shell
 
-    conda update conda
-    conda create phyddle
-    conda activate phyddle
+    conda create -n phyddle -c bioconda -c landismj phyddle
     conda install -c bioconda -c landismj phyddle
     # ... install ...
+    conda activate phyddle
     phyddle
 
 Python package
