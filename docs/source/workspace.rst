@@ -193,9 +193,12 @@ by :ref:`Format`, :ref:`Train`, and (when available) :ref:`Estimate`.
 .. code-block:: shell
     
     est_CPI.pdf                       # results from Estimate step
-    density_{label,aux_data}.pdf      # densities from Simulate/Format steps
-    pca_contour_{label,aux_data}.pdf  # PCA of Simulate/Format steps
-    estimate_{test,train}_{param}.pdf # estimation accuracy from Train steps       
+    density_labels.pdf                # label densities from Simulate/Format steps
+    density_aux_data.pdf              # aux. data densities from Simulate/Format steps
+    pca_contour_labels.pdf            # label PCA of Simulate/Format steps
+    pca_contour_aux_data.pdf          # aux. dataPCA of Simulate/Format steps
+    estimate_test_{label}.pdf         # estimation accuracy on train dataset     
+    estimate_train_{label}.pdf        # estimation accuracy on test dataset
     history.pdf                       # training history for entire network
     history_param_{statistic}.pdf     # training history for each estimation target
     network_architecture.pdf          # neural network architecture
