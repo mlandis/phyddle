@@ -248,8 +248,8 @@ analysis steps.
 
 .. _Special_Settings:
 
-Special settings
-----------------
+Details
+-------
 
 This section provides detailed descriptions for several settings that
 are not intuitive to specify, but very powerful when used correctly.
