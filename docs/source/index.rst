@@ -3,9 +3,9 @@ phyddle
 
 .. note::
 
-	**This private beta version of phyddle is still under development.** It is generally tested and stable with respect to a few use standard cases. Much of the documentation and some key features are still missing. Most phyddle development occurs on a 16-core Intel Macbook Pro laptop and a 64-core Ubuntu server, so there are also unknown portability/scalability issues to correct. Any feedback is appreciated! michael.landis@wustl.edu
+	**This private beta version of phyddle is still under development.** Feedback is appreciated! michael.landis@wustl.edu
 
-**phyddle** is a pipeline-based toolkit for fiddling around with phylogenetic models and deep learning. phyddle can be installed as a Python package using pip and used for pipeline analyses using scripts provided through GitHub.
+**phyddle** is software for fiddling around with phylogenetic models and deep learning. As a command-line tool and/or as a Python package, phyddle is designed for simulation-based supervised learning to train neural networks for phylogenetic model estimation tasks.
 
 A standard phyddle analysis performs the following tasks for you:
 

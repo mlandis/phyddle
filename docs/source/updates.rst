@@ -3,6 +3,11 @@ Updates
 
 The complete commit history for phyddle is located here: https://github.com/mlandis/phyddle/commits/main
 
+**phyddle v0.0.10** -- (in progress)
+  
+  * Cleaning and commenting code
+  * Clean and finish sphinx documentation
+
 
 **phyddle v0.0.9** -- 23.08.23
 
