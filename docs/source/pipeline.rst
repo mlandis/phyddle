@@ -265,8 +265,11 @@ information is added as rows when ``brlen_encode`` is set to
 ``'height_brlen'``. Each tree is then encoded into a phylogenetic-state tensor
 with a maximum of ``tree_width`` sampled taxa. Trees that contain more taxa are
 downsampled to ``tree_width`` taxa. The number of taxa in each original dataset
-is recorded in the summary statistics, regardless of its size. The
-phylogenetc-state tensors and auxiliary data tensors are then created. If
+is recorded in the summary statistics, allowing the trained network to 
+make estimates on trees that are larger or smaller than th exact ``tree_width``
+size. 
+
+The phylogenetic-state tensors and auxiliary data tensors are then created. If
 ``save_phyenc_csv`` is set, then individual csv files are saved for each
 dataset, which is especially useful for formatting new empirical datasets into
 an accepted phyddle format. The ``param_est`` setting identifies which

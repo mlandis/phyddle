@@ -5,8 +5,9 @@ Formats
 
 .. note::
 
-    (incomplete) Important: This section assume the project name is 'example' while actual projects will likely use different names. Visit :ref:`Glossary` to learn more about
-    how phyddle defines different terms.
+    (incomplete) Important: This section assume the project name is 'example'
+    while actual projects will likely use different names. Visit
+    :ref:`Glossary` to learn more about how phyddle defines different terms.
 
 This page describes different internal datatype formats and file formats used
 by phyddle.
@@ -93,10 +94,10 @@ bijective ladderized vector + states (CBLV+S) and the compact diversity vector +
 states (CDV+S). CBLV+S is used for trees that contain serially sampled
 (non-ultrametric) taxa whereas CDV+S is used for trees that contain only extant
 (ultrametric) taxa. The `tree_width` of the encoding defines the maximum number
-of taxa the phylogenetic-state tensor may contain. The ``tree_type`` setting
+of taxa the phylogenetic-state tensor may contain. The ``tree_encode`` setting
 determines if the tree is a ``'serial'`` tree encoded with CBLV+S or an
-``'extant'`` tree encoded with CDV+S. Setting ``tree_encode_type`` and
-``char_encode_type`` alter how information is stored into the
+``'extant'`` tree encoded with CDV+S. Setting ``brlen_encode`` and
+``char_encode`` alter how information is stored into the
 phylogenetic-state tensor.
 
 CBLV+S
@@ -128,11 +129,11 @@ This is the Nexus file:
     END;
 
 
-These data can be encoded in different ways, based on the ``char_encode_type``
-setting. When ``char_encode_type == 'integer'`` then the encoding will treat
+These data can be encoded in different ways, based on the ``char_encode``
+setting. When ``char_encode == 'integer'`` then the encoding will treat
 each character as a row in the resulting data matrix, and assign the
 appropriate integer-valued state to that character for each taxon.
-Alternatively, when ``char_encode_type == 'one_hot'`` then the encoding will
+Alternatively, when ``char_encode == 'one_hot'`` then the encoding will
 treat every distinct state-character combination as its own row in the
 resulting data matrix, then mark each species as ``1`` for a cell when a
 species has that character-state and ``0`` if not. One-hot encoding is
@@ -142,7 +143,7 @@ not against the entire character set (more distinct combinations).
 
 Ladderizing clades by maximum root-to-tip distance orders the taxa C, D, A,
 B, then E, which correspond to the first five columns of the CBLV+S tensor.
-When ``tree_encode_type`` is set to ``'height_only'`` the un-rescaled CBLV+S file
+When ``brlen_encode`` is set to ``'height_only'`` the un-rescaled CBLV+S file
 would look like this:
 
 .. code-block:: shell
@@ -154,7 +155,7 @@ would look like this:
       0,0,1,1,1,0,0,0,0,0  # character 2
 
 
-and like this when ``tree_encode_type`` is set to ``'height_brlen'``:
+and like this when ``brlen_encode`` is set to ``'height_brlen'``:
 
 .. code-block:: shell
 
@@ -242,6 +243,14 @@ Currently, phyddle generates the following summary statistics:
 
 
 
-The auxiliary data tensor also contains any parameter values that shape the data-generating process, but can be treated as "known" rather than needing to be estimated. For example, the epidemiologists may assume they know the rate of infection recovery (gamma) based on public health or clinical data. Parameters may be treated as data by providing the labels for those parameters in the ``param_data`` entry of the config file. For example, setting ``'param_data' : [ 'recovery_0', 'S0_0' ]`` could be used to inform phyddle that the recovery rate and susceptible population sizes for location 0 are known for a phylogenetic SIR analysis. 
+The auxiliary data tensor also contains any parameter values that shape the
+data-generating process, but can be treated as "known" rather than needing to
+be estimated. For example, the epidemiologists may assume they know the rate of
+infection recovery (gamma) based on public health or clinical data. Parameters
+may be treated as data by providing the labels for those parameters in the
+``param_data`` entry of the config file. For example, setting ``'param_data' :
+[ 'recovery_0', 'S0_0' ]`` could be used to inform phyddle that the recovery
+rate and susceptible population sizes for location 0 are known for a
+phylogenetic SIR analysis. 
 
 
