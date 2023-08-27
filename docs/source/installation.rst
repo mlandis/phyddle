@@ -28,7 +28,7 @@ and can be installed using ``pip``.
 
 .. code-block:: shell
 
-	python3 -m pip install phyddle
+  python3 -m pip install phyddle
   # ... install ...
   phyddle
 
@@ -57,8 +57,8 @@ Once cloned, you can build phyddle into a local Python package
 
 .. code-block:: shell
 
-	cd ~/projects/phyddle
-	pip install .
+  cd ~/projects/phyddle
+  pip install .
   # ... install ...
   phyddle
 
@@ -77,17 +77,17 @@ Last tested Python package versions are:
 
   dendropy 4.5.2
   graphviz 0.20.1
-	h5py 3.8.0
-	keras 2.12.0
-	matplotlib 3.7.1
-	numpy 1.23.5
-	pandas 2.0.0
-	pydot_ng 2.0.0
-	pypdf 3.12.0
-	scikit-learn 1.2.2
-	scipy 1.10.1
-	tensorflow 2.12.0
-	tqdm 4.65.0
+  h5py 3.8.0
+  keras 2.12.0
+  matplotlib 3.7.1
+  numpy 1.23.5
+  pandas 2.0.0 
+  pydot_ng 2.0.2
+  pypdf 3.12.0
+  scikit-learn 1.2.2
+  scipy 1.10.1
+  tensorflow 2.12.0
+  tqdm 4.65.0
 
 To install these packages:
 
