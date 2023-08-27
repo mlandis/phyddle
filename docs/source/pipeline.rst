@@ -427,3 +427,89 @@ names supported by `Matplotlib <https://matplotlib.org/stable/gallery/color/name
 - ``estimate_new.pdf`` - simple plot of point estimates and calibrated estimation
   intervals for estimation
 - ``network_architecture.pdf`` - visualization of Tensorflow architecture
+
+
+.. _Example:
+
+Example run
+-----------
+
+The output of phyddle pipeline analysis will resemble this:
+
+.. code-block::
+
+	┏━━━━━━━━━━━━━━━━━━━━━━┓
+	┃   phyddle   v0.0.9   ┃
+	┣━━━━━━━━━━━━━━━━━━━━━━┫
+	┃                      ┃
+	┗━┳━▪ Simulating... ▪━━┛
+		┃
+		┗━━━▪ output: ../workspace/simulate/R_example
+
+	▪ Start time of 10:18:16
+	▪ Simulating raw data
+	Simulating: 100%|██████████████████████| 1000/1000 [03:25<00:00,  4.87it/s]
+	▪ End time of 10:21:41 (+00:03:25)
+	... done!
+	┃                      ┃
+	┗━┳━▪ Formatting... ▪━━┛
+		┃
+		┣━━━▪ input:  ../workspace/simulate/R_example
+		┗━━━▪ output: ../workspace/format/R_example
+
+	▪ Start time of 10:21:41
+	▪ Encoding raw data as tensors
+	Encoding: 100%|████████████████████████| 1000/1000 [02:22<00:00,  7.02it/s]
+	▪ Combining and writing tensors
+	Making train hdf5 dataset: 453 examples for tree width = 200
+	Combining: 100%|███████████████████████| 453/453 [00:00<00:00, 3062.20it/s]
+	Making test hdf5 dataset: 23 examples for tree width = 200
+	Combining: 100%|█████████████████████████| 23/23 [00:00<00:00, 3068.74it/s]
+	▪ End time of 10:24:04 (+00:02:23)
+	... done!
+	┃                      ┃
+	┗━┳━▪ Training...   ▪━━┛
+		┃
+		┣━━━▪ input:  ../workspace/format/R_example
+		┗━━━▪ output: ../workspace/train/R_example
+
+	▪ Start time of 10:24:04
+	▪ Loading input
+	▪ Building network
+	▪ Training network
+	▪ Processing results
+	11/11 [==============================] - 0s 9ms/step
+	3/3 [==============================] - 0s 7ms/step
+	▪ Saving results
+	▪ End time of 10:24:14 (+00:00:10)
+	▪ ... done!
+	┃                      ┃
+	┗━┳━▪ Estimating... ▪━━┛
+		┃
+		┣━━━▪ input:  ../workspace/format/R_example
+		┃             ../workspace/estimate/R_example
+		┃             ../workspace/train/R_example
+		┗━━━▪ output: ../workspace/estimate/R_example
+
+	▪ Start time of 10:24:14
+	▪ Loading input
+	▪ Making estimates
+	1/1 [==============================] - 0s 178ms/step
+	1/1 [==============================] - 0s 22ms/step
+	▪ End time of 10:24:14 (+00:00:00)
+	... done!
+	┃                      ┃
+	┗━┳━▪ Plotting...   ▪━━┛
+		┃
+		┣━━━▪ input:  ../workspace/format/R_example
+		┃             ../workspace/train/R_example
+		┃             ../workspace/estimate/R_example
+		┗━━━▪ output: ../workspace/plot/R_example
+
+	▪ Start time of 10:24:14
+	▪ Loading input
+	▪ Generating individual plots
+	▪ Combining plots
+	▪ End time of 10:24:26 (+00:00:12)
+	... done!
+

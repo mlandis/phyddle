@@ -326,7 +326,7 @@ def fix_bool(m):
             m[k] = arg_val_new
     return m
 
-def str2bool(x, arg):
+def str2bool(x):
     """Convert a str value to True/False"""
     if x.lower() in ['true', 'yes', 't', 'y', '1' ]:
         return True
