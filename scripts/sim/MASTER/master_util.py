@@ -24,7 +24,7 @@ NUM_DIGITS = 10
 model_registry = []
 model_registry_names = ['model_name', 'class_name',    'description' ] 
 model_registry.append( ['geosse',     'GeosseModel',   'Geographic State-dependent Speciation Extinction [GeoSSE]'] )
-model_registry.append( ['sirm',       'SirmModel',     'Susceptible-Infected-Recovered-Migration [SIRM]'] )
+model_registry.append( ['sir',        'SirModel',      'Susceptible-Infected-Recovered [SIR]'] )
 model_registry = pd.DataFrame( model_registry, columns = model_registry_names)
 
 def load(args):

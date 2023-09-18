@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-import master_util
+import masterpy
 import scipy as sp
 import sys
 import os
-#import re
 import subprocess
 
 # get arguments
@@ -57,7 +56,7 @@ dat_nex_fn   = tmp_fn + '.dat.nex'
 os.makedirs(sim_proj_dir, exist_ok=True)
 
 # load model
-my_model = master_util.load(args)
+my_model = masterpy.load(args)
 
 # assign index
 my_model.set_model(idx)
@@ -66,12 +65,12 @@ my_model.set_model(idx)
 xml_str = my_model.make_xml(idx)
 
 # get params (labels) from model
-param_mtx_str,param_vec_str = master_util.param_dict_to_str(my_model.params)
+param_mtx_str,param_vec_str = masterpy.param_dict_to_str(my_model.params)
 
 # save output
-master_util.write_to_file(xml_str, xml_fn)
-master_util.write_to_file(param_mtx_str, param_mtx_fn)
-master_util.write_to_file(param_vec_str, param_vec_fn)
+masterpy.write_to_file(xml_str, xml_fn)
+masterpy.write_to_file(param_mtx_str, param_mtx_fn)
+masterpy.write_to_file(param_vec_str, param_vec_fn)
 
 # call BEAST
 x = subprocess.run(['beast', xml_fn], capture_output=True)
@@ -84,11 +83,11 @@ x = subprocess.run(['beast', xml_fn], capture_output=True)
 
 # convert phy.nex to dat.nex
 int2vec = my_model.states.int2vec
-nexus_str = master_util.convert_phy2dat_nex(phy_nex_fn, int2vec)
-master_util.write_to_file(nexus_str, dat_nex_fn)
+nexus_str = masterpy.convert_phy2dat_nex(phy_nex_fn, int2vec)
+masterpy.write_to_file(nexus_str, dat_nex_fn)
 
 # log clean-up
-#master_util.cleanup(prefix=tmp_fn, clean_type)
+#masterpy.cleanup(prefix=tmp_fn, clean_type)
 
 # done!
 quit()

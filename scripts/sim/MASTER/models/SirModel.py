@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-SirmModel
+SirModel
 =========
 Defines a class for a Susceptible-Infectious-Recovered + Migration (SIRM) model.
 Dervies from phyddle.Model.BaseModel.
@@ -13,44 +13,45 @@ License:   MIT
 import itertools
 import scipy as sp
 import numpy as np
-import pandas as pd
+# import pandas as pd
 
 from models.model import BaseModel
 from master_util import States,Event
 
 
-model_type = 'SIRM'
-model_variants = {
-    'free_rates' : {
-        'desc':'all event rates have independent values',
-        'params':['R0','S0','sampling','recovery','migration']
-    },
-    'equal_rates' : {
-        'desc':'all event rates of type share one value',
-        'params':['R0','S0','sampling','recovery','migration']
-    },
-    'vistor' : {
-        'desc':'visitor model',
-        'params':['R0','S0','sampling','recovery','migration','return']
-    }
-}
+# model_type = 'SIR'
+# model_variants = {
+#     'free_rates' : {
+#         'desc':'all event rates have independent values',
+#         'params':['R0','S0','sampling','recovery','migration']
+#     },
+#     'equal_rates' : {
+#         'desc':'all event rates of type share one value',
+#         'params':['R0','S0','sampling','recovery','migration']
+#     },
+#     'vistor' : {
+#         'desc':'visitor model',
+#         'params':['R0','S0','sampling','recovery','migration','return']
+#     }
+# }
 
-variant_registry = []
-variant_registry_names = ['variant_name',      'description'  ] 
-for k,v in model_variants.items():
-    variant_name = k
-    variant_desc = v['desc']
-    variant_registry.append([variant_name, variant_desc])
+# variant_registry = []
+# variant_registry_names = ['variant_name',      'description'  ] 
+# for k,v in model_variants.items():
+#     variant_name = k
+#     variant_desc = v['desc']
+#     variant_registry.append([variant_name, variant_desc])
 
-variant_registry = pd.DataFrame( variant_registry, columns = variant_registry_names)
+# variant_registry = pd.DataFrame( variant_registry, columns = variant_registry_names)
 
-class SirmModel(BaseModel):
+class SirModel(BaseModel):
 
     # initialize model
     def __init__(self, args):
         super().__init__(args)
         self.set_args(args)
         self.set_model(None)
+        self.model_variant_check()
         return
     
     # assign initial arguments
@@ -63,6 +64,11 @@ class SirmModel(BaseModel):
     def set_model(self, idx):
         super().set_model(idx)
         return
+
+    def model_variant_check(self):
+        
+        assert( ('equal_rates' in self.model_variant) or \
+                ('free_rates' in self.model_variant) )
 
     # SIRM state space
     def make_states(self):
@@ -95,68 +101,59 @@ class SirmModel(BaseModel):
 
         return start_state, start_sizes
         
-    def make_params(self, model_variant):
+    def make_params(self):
         params = {}
 
         # get sim RV functions and arguments
         num_states = self.num_states
+        shape_mtx = (num_states,num_states)
         rv_fn = self.rv_fn
         rv_arg = self.rv_arg
 
-        # all rates within an event type are equal, but rate classes are drawn iid
-        if model_variant == 'free_rates':
-            # check to make sure arguments in settings are applied to model variant
-            params = {
-                'S0'        : rv_fn['S0'](size=num_states, random_state=self.rng, **rv_arg['S0']),
-                'R0'        : rv_fn['R0'](size=num_states, random_state=self.rng, **rv_arg['R0']),
-                'sampling'  : rv_fn['sampling'](size=num_states, random_state=self.rng, **rv_arg['sampling']),
-                'recovery'  : rv_fn['recovery'](size=num_states, random_state=self.rng, **rv_arg['recovery']),
-                'migration' : rv_fn['migration'](size=num_states**2, random_state=self.rng, **rv_arg['migration']).reshape((num_states,num_states))
-            }
-            params['S0'] = int( np.round(params['S0']) )
-            params['infection'] = params['R0'] / (params['recovery'] + params['sampling']) * (1. / params['S0'])
-            p_start_sizes = params['S0'] / np.sum(params['S0'])
-            start_state = sp.stats.multinomial.rvs(n=1, p=p_start_sizes, random_state=self.rng)
-            params['start_state'] = np.where( start_state==1 )[0]
-            #monitors = { 'i':rates['i'], 'r':rates['r'], 's':rates['s'], 'm':rates['m'] }
-            
-        # all rates are drawn iid
-        elif model_variant == 'equal_rates':
-            params = {
-                'S0'        : np.full(num_states, rv_fn['S0'](size=1, random_state=self.rng, **rv_arg['S0'])[0]),
-                'R0'        : np.full(num_states, rv_fn['R0'](size=1, random_state=self.rng, **rv_arg['R0'])[0]),
-                'sampling'  : np.full(num_states, rv_fn['sampling'](size=1, random_state=self.rng, **rv_arg['sampling'])[0]),
-                'recovery'  : np.full(num_states, rv_fn['recovery'](size=1, random_state=self.rng, **rv_arg['recovery'])[0]),
-                'migration' : np.full((num_states,num_states),
-                                      rv_fn['migration'](size=1, random_state=self.rng, **rv_arg['migration'])[0])
-            }
-            params['S0'] = np.round(params['S0'])
-            # R0 = infection/(recovery+sampling) so infection = R0*(recovery+sampling)
-            params['infection'] = params['R0'] * (params['recovery'] + params['sampling']) * (1. /  params['S0'])
-            p_start_sizes = params['S0'] / np.sum(params['S0'])
-            start_state = sp.stats.multinomial.rvs(n=1, p=p_start_sizes, random_state=self.rng)
-            params['start_state'] = np.where( start_state==1 )[0]
-            #monitors = { 'i':rates['i'][0],'r':rates['r'][0],'s':rates['s'][0],'m':rates['m'][0][1] }
+        # assume all variables are iid, modify later if required by model variant
+        params = {
+            'S0'        : rv_fn['S0'](size=num_states, random_state=self.rng, **rv_arg['S0']),
+            'R0'        : rv_fn['R0'](size=num_states, random_state=self.rng, **rv_arg['R0']),
+            'sampling'  : rv_fn['sampling'](size=num_states, random_state=self.rng, **rv_arg['sampling']),
+            'recovery'  : rv_fn['recovery'](size=num_states, random_state=self.rng, **rv_arg['recovery']),
+        }
 
-        # e.g. all rates drawn as log-linear functions of features
-        elif model_variant == 'feature_rates':
-            # other parameters checked for effect-strength of feature on rates
-            params = {
-                #'Infect': np.full(num_states, sp.stats.expon.rvs(size=1)[0]),
-                #'Recover': np.full(num_states, sp.stats.expon.rvs(size=1)[0]), 
-                #'Sample': np.full(num_states, sp.stats.expon.rvs(size=1)[0]), 
-                #'Migrate': np.full((num_states,num_states), sp.stats.expon.rvs(size=1)[0])
-            }
-        # return rates
-        #print(rates)
+        if 'visitor' in self.model_variant:
+            params['visit_to'] = rv_fn['visit_to'](size=num_states**2,random_state=self.rng, **rv_arg['visit_to']).reshape(shape_mtx)
+            params['visit_from'] = rv_fn['visit_from'](size=num_states**2,random_state=self.rng, **rv_arg['visit_from']).reshape(shape_mtx)
+
+        if 'exposed' in self.model_variant:
+            params['to_infectious'] = rv_fn['to_infectious'](size=num_states**2,random_state=self.rng, **rv_arg['to_infectious']).reshape(shape_mtx)
+
+        # set up initial compartment sizes
+        params['S0'] = np.array(np.round(params['S0']), dtype='int')
+        params['infection'] = params['R0'] / (params['recovery'] + params['sampling']) * (1. / params['S0'])
+
+        # apply equal rates        
+        if 'equal_rates' in self.model_variant:
+            for k,v in params.items():
+                if len(v.shape) == 1:
+                    params[k] = np.full(v.shape, v[0])
+                elif len(v.shape) == 2:
+                    params[k] = np.full(v.shape, v[0][0])
+                elif len(v.shape) == 3:
+                    params[k] = np.full(v.shape, v[0][0][0])
+                else:
+                    raise NotImplementedError('param has too many dimesions!')
+
+        # set up initial outbreak state
+        p_start_sizes = params['S0'] / np.sum(params['S0'])
+        start_state = sp.stats.multinomial.rvs(n=1, p=p_start_sizes, random_state=self.rng)
+        params['start_state'] = np.where( start_state==1 )[0]
+
         return params
 
     def make_events(self, states, params):
         events_i = self.make_events_i( states, params['infection'] )
         events_r = self.make_events_r( states, params['recovery'] )
         events_s = self.make_events_s( states, params['sampling'] )
-        events_m = self.make_events_m( states, params['migration'] )
-        events = events_i + events_m + events_r + events_s
+        # events_m = self.make_events_m( states, params['migration'] )
+        events = events_i + events_r + events_s # + events_m 
         return events
 
     # SIRM [i]nfection within location

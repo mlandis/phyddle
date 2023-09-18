@@ -59,7 +59,7 @@ class BaseModel:
         # state space
         self.states      = self.make_states() # self.num_locations )
         # params space
-        self.params      = self.make_params( self.model_variant)
+        self.params      = self.make_params()
         # starting population sizes (e.g. SIR models)
         # self.start_sizes = self.make_start_sizes()
         # starting state

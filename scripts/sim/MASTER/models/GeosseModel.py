@@ -106,13 +106,14 @@ class GeosseModel(BaseModel):
         # return {}
 
     # get all model rates
-    def make_params(self, model_variant):
+    def make_params(self):
         params = {}
         
         # get settings
         num_char = self.num_char
         rv_fn = self.rv_fn
         rv_arg = self.rv_arg
+        model_variant = self.model_variant
 
         # build rates
         if model_variant == 'free_rates':

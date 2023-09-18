@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import master_util
+import masterpy
 import scipy as sp
 import sys
 import os
@@ -22,8 +22,10 @@ sim_proj_dir = f'{sim_dir}/{proj}'
 args = {
     'sim_dir'            : sim_dir,         # dir for simulations
     'proj'               : proj,            # project name(s)
-	'model_type'         : 'sirm',          # model type defines states & events
-    'model_variant'      : 'equal_rates',   # model variant defines rates
+	'model_type'         : 'sir',           # model type defines states & events
+    'model_variant'      : ['equal_rates',   # model variant defines rates
+                            'visitor',     
+                            'exposed'],     
     'num_char'           : 1,               # number of evolutionary characters
     'num_states'         : 3,               # number of states per character
     'sample_population'  : ['S'],           # name of population to sample
@@ -34,15 +36,21 @@ args = {
         'R0'             : sp.stats.uniform.rvs,
         'recovery'       : sp.stats.uniform.rvs,
         'sampling'       : sp.stats.uniform.rvs,
-        'migration'      : sp.stats.uniform.rvs,
-        'S0'             : sp.stats.uniform.rvs
+        'to_infectious'  : sp.stats.uniform.rvs,
+        'visit_to'       : sp.stats.uniform.rvs,
+        'visit_from'     : sp.stats.uniform.rvs,
+        'S0'             : sp.stats.uniform.rvs,
+        'V0'             : sp.stats.uniform.rvs
     },
     'rv_arg'             : {                # loc/scale/shape for param dists
-        'R0'             : { 'loc' : 1.,    'scale' : 9.    },
-        'recovery'       : { 'loc' : 0.01,  'scale' : 0.09  },
-        'sampling'       : { 'loc' : 0.1,   'scale' : 0.9   },
-        'migration'      : { 'loc' : 0.1,   'scale' : 0.9   },
-        'S0'             : { 'loc' : 1000., 'scale' : 4000. }
+        'R0'             : { 'loc' : 1.,    'scale' : 9.     }, 
+        'recovery'       : { 'loc' : 0.01,  'scale' : 0.09   }, # 1/14 days
+        'sampling'       : { 'loc' : 0.01,  'scale' : 0.09   }, # 1/14 days
+        'to_infectious'  : { 'loc' : 0.01,  'scale' : 0.09   }, # 1/14 days
+        'visit_to'       : { 'loc' : 0.01,  'scale' : 0.09   }, # 1/14 days
+        'visit_from'     : { 'loc' : 0.1,   'scale' : 0.9    }, # 10/14 days
+        'S0'             : { 'loc' : 1000., 'scale' : 9000.  }, # 1000-10000 ind
+        'V0'             : { 'loc' : 0.001, 'scale' : 0.009  }
     }
 }
 
@@ -57,7 +65,7 @@ dat_nex_fn   = tmp_fn + '.dat.nex'
 os.makedirs(sim_proj_dir, exist_ok=True)
 
 # load model
-my_model = master_util.load(args)
+my_model = masterpy.load(args)
 
 # assign index
 my_model.set_model(idx)
@@ -66,12 +74,12 @@ my_model.set_model(idx)
 xml_str = my_model.make_xml(idx)
 
 # get params (labels) from model
-param_mtx_str,param_vec_str = master_util.param_dict_to_str(my_model.params)
+param_mtx_str,param_vec_str = masterpy.param_dict_to_str(my_model.params)
 
 # save output
-master_util.write_to_file(xml_str, xml_fn)
-master_util.write_to_file(param_mtx_str, param_mtx_fn)
-master_util.write_to_file(param_vec_str, param_vec_fn)
+masterpy.write_to_file(xml_str, xml_fn)
+masterpy.write_to_file(param_mtx_str, param_mtx_fn)
+masterpy.write_to_file(param_vec_str, param_vec_fn)
 
 # call BEAST
 x = subprocess.run(['beast', xml_fn], capture_output=True)
@@ -84,11 +92,11 @@ x = subprocess.run(['beast', xml_fn], capture_output=True)
 
 # convert phy.nex to dat.nex
 int2vec = my_model.states.int2vec
-nexus_str = master_util.convert_phy2dat_nex(phy_nex_fn, int2vec)
-master_util.write_to_file(nexus_str, dat_nex_fn)
+nexus_str = masterpy.convert_phy2dat_nex(phy_nex_fn, int2vec)
+masterpy.write_to_file(nexus_str, dat_nex_fn)
 
 # log clean-up
-#master_util.cleanup(prefix=tmp_fn, clean_type)
+#masterpy.cleanup(prefix=tmp_fn, clean_type)
 
 # done!
 quit()
