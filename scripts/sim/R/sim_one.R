@@ -21,14 +21,13 @@ get_mle     = FALSE
 
 # filesystem
 tmp_fn       = paste0(out_path, "/sim.", rep_idx) # sim path prefix
-phy_fn       = paste0(tmp_fn, ".tre")             # newick string
-dat_fn       = paste0(tmp_fn, ".dat.nex")         # nexus string 
-lbl_true_fn  = paste0(tmp_fn, ".param_row.csv")  # csv of params
-lbl_mle_fn   = paste0(tmp_fn, ".param_mle.csv")   # csv of params
+phy_fn       = paste0(tmp_fn, ".tre")             # newick file
+dat_fn       = paste0(tmp_fn, ".dat.nex")         # csv of data
+lbl_true_fn  = paste0(tmp_fn, ".param_row.csv")   # csv of true params
+lbl_mle_fn   = paste0(tmp_fn, ".param_mle.csv")   # csv of estimated params
 
 # dataset setup
-num_states      = 3
-
+num_states = 3
 
 # simulate each replicate
 for (i in 1:num_rep) {
@@ -45,9 +44,9 @@ for (i in 1:num_rep) {
         birth = runif(num_states, 0, 1)
         death = birth * runif(num_states, 0, 0.5)
         parameters = list(
-            birth_rates = birth,
-            death_rates = death,
-            transition_matrix_A = Q
+            birth_rates=birth,
+            death_rates=death,
+            transition_matrix_A=Q
         )
 
         # simulate tree/data
@@ -70,13 +69,17 @@ for (i in 1:num_rep) {
 
     # save data
     state_sim = res_sim$tip_states - 1
-    write.nexus.data(state_sim, file=dat_fn[i], format="standard", datablock=TRUE)
+    df_state = data.frame(taxa=tree_sim$tip.label, data=state_sim)
+    write.csv(df_state, file=dat_fn[i], row.names=F, quote=F)
+    #write.nexus.data(state_sim, file=dat_fn[i], format="standard", datablock=TRUE)
 
     # save data-generating params
     out_true = c(birth, death, Q[1,2])
-    names(out_true) = c( paste0("birth_",1:3), paste0("death_",1:3), "state_rate" )
+    names(out_true) = c(paste0("birth_",1:num_states),
+                        paste0("death_",1:num_states),
+                        "state_rate")
     df_true = data.frame(t(out_true))
-    write.csv(df_true, file=lbl_true_fn[i], row.names=FALSE, quote=F)
+    write.csv(df_true, file=lbl_true_fn[i], row.names=F, quote=F)
 
     # MLE
     if (get_mle) {

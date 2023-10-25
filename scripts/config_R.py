@@ -43,16 +43,16 @@ args = {
     'num_states'        : 3,                # number of states per character
     'min_num_taxa'      : 10,               # min number of taxa for valid sim
     'max_num_taxa'      : 500,              # max number of taxa for valid sim
-    'tree_width'        : 200,              # tree width category used to train network
+    'tree_width'        : 500,              # tree width category used to train network
     'tree_encode'       : 'extant',         # use model with serial or extant tree
     'brlen_encode'      : 'height_brlen',   # how to encode phylo brlen? height_only or height_brlen
     'char_encode'       : 'integer',        # how to encode discrete states? one_hot or integer
     'param_est'         : [                 # model parameters to predict (labels)
-        'birth_1', 'birth_2', 'birth_3', 'death_1', 'death_2', 'death_3', 'state_rate'
+        'birth_1', 'birth_2', 'death_1', 'death_2', 'state_rate'
     ],
     'param_data'        : [],               # model parameters that are known (aux. data)
     'tensor_format'     : 'hdf5',           # save as compressed HDF5 or raw csv
-    'char_format'       : 'nexus',
+    'char_format'       : 'csv',
     'save_phyenc_csv'   : 'F',              # save intermediate phylo-state vectors to file
 
     #-------------------------------#
