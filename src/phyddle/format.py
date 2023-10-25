@@ -376,6 +376,8 @@ class Formatter:
 
         # store all numerical data into hdf5)
         if len(res) > 0:
+            #for i,x in enumerate(res):
+            #    print(i, x[1].shape, x[1])
             dat_data[:,:] = np.vstack( [ x[0] for x in res ] )
             dat_stat[:,:] = np.vstack( [ x[1] for x in res ] )
             dat_labels[:,:] = np.vstack( [ x[2] for x in res ] )
@@ -637,6 +639,7 @@ class Formatter:
 
         # record summ stat data
         ss = self.make_summ_stat(phy, dat)
+
         # add downsampling info
         ss['num_taxa'] = num_taxa_orig
         ss['prop_taxa'] = num_taxa / num_taxa_orig
@@ -644,7 +647,7 @@ class Formatter:
         # save summ. stats.
         ss_str = self.make_summ_stat_str(ss)
         util.write_to_file(ss_str, ss_fn)
-        
+
         # done!
         return cpvs_data
     
@@ -700,11 +703,18 @@ class Formatter:
         # frequencies of character states
         if self.char_encode == 'integer':
             # integer-encoded states
-            for i in range(self.num_states):
+            states = list(range(self.num_states))
+            for i in states:
                 summ_stats['f_dat_' + str(i)] = 0
             unique, counts = np.unique(dat, return_counts=True)
-            for i,j in zip(unique, counts):
-                summ_stats['f_dat_' + str(i)] = j / num_taxa
+            
+            # initialize state freqs
+            for i in states:
+                summ_stats[f'f_dat_{i}'] = 0.
+
+            # fill-in non-zero state freqs
+            for i,j in zip(states, counts):
+                summ_stats[f'f_dat_{i}'] = j / num_taxa
         
         elif self.char_encode == 'one_hot':
             # one-hot-encoded states
