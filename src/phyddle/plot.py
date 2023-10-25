@@ -114,7 +114,7 @@ class Plotter:
         self.input_hdf5_fn      = f'{fmt_proj_prefix}.hdf5'
 
         # network
-        self.network_fn         = f'{trn_proj_prefix}.hdf5'
+        self.model_arch_fn      = f'{trn_proj_prefix}_trained_model'
         self.history_json_fn    = f'{trn_proj_prefix}.train_history.json'
         self.train_est_fn       = f'{trn_proj_prefix}.train_est.labels.csv'
         self.train_labels_fn    = f'{trn_proj_prefix}.train_true.labels.csv'
@@ -215,7 +215,7 @@ class Plotter:
         self.aux_data_names = self.train_aux_data.columns.to_list()
 
         # trained model
-        self.model = tf.keras.models.load_model(self.network_fn, compile=False)
+        self.model = tf.keras.models.load_model(self.model_arch_fn, compile=False)
         
         # training estimates/labels
         self.train_ests   = pd.read_csv(self.train_est_fn)

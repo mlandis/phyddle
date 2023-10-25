@@ -122,15 +122,14 @@ class Estimator:
         self.fmt_proj_dir           = f'{self.fmt_dir}/{self.fmt_proj}'
 
         # prefixes
-        test_prefix            = f'test.nt{self.tree_width}'
-        network_prefix           = f'network_nt{self.tree_width}'
-        #network_prefix           = f'train_batchsize{self.trn_batch_size}_numepoch{self.num_epochs}_nt{self.tree_width}'
+        test_prefix                 = f'test.nt{self.tree_width}'
+        network_prefix              = f'network_nt{self.tree_width}'
         self.trn_prefix_dir         = f'{self.trn_proj_dir}/{network_prefix}'
         self.est_prefix_dir         = f'{self.est_proj_dir}/{self.est_prefix}'
         self.fmt_prefix_dir         = f'{self.fmt_proj_dir}/{test_prefix}'
 
         # model files
-        self.model_sav_fn           = f'{self.trn_prefix_dir}.hdf5'
+        self.model_arch_fn          = f'{self.trn_prefix_dir}_trained_model'
         self.train_labels_norm_fn   = f'{self.trn_prefix_dir}.train_label_norm.csv'
         self.train_aux_data_norm_fn = f'{self.trn_prefix_dir}.train_aux_data_norm.csv'
         self.model_cpi_fn           = f'{self.trn_prefix_dir}.cpi_adjustments.csv'
@@ -317,7 +316,7 @@ class Estimator:
         """
         
         # load model
-        self.mymodel = tf.keras.models.load_model(self.model_sav_fn, compile=False)
+        self.mymodel = tf.keras.models.load_model(self.model_arch_fn, compile=False)
 
         # empirical dataset (if it exists)
         if self.emp_input_exists:

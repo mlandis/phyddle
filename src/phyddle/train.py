@@ -120,7 +120,8 @@ class Trainer:
         self.input_hdf5_fn          = f'{input_prefix}.hdf5'
 
         # output network model info
-        self.model_sav_fn           = f'{output_prefix}.hdf5'
+        self.model_arch_fn          = f'{output_prefix}_trained_model'
+        self.model_weights_fn       = f'{output_prefix}.train_weights.hdf5'
         self.model_history_fn       = f'{output_prefix}.train_history.json'
         self.model_cpi_fn           = f'{output_prefix}.cpi_adjustments.csv'
 
@@ -129,7 +130,7 @@ class Trainer:
         self.train_aux_data_norm_fn = f'{output_prefix}.train_aux_data_norm.csv'
         
         # output training labels
-        self.train_label_true_fn        = f'{output_prefix}.train_true.labels.csv'
+        self.train_label_true_fn          = f'{output_prefix}.train_true.labels.csv'
         self.train_label_est_calib_fn     = f'{output_prefix}.train_est.labels.csv'
         self.train_label_est_nocalib_fn   = f'{output_prefix}.train_label_est_nocalib.csv'
         
@@ -293,7 +294,7 @@ class CnnTrainer(Trainer):
         if self.tensor_format == 'csv':
             full_phy_data = pd.read_csv(self.input_phy_data_fn, header=None,
                                         on_bad_lines='skip').to_numpy()
-            full_aux_data = pd.read_csv(self.input_stats_fn, header=None,
+            full_aux_data = pd.read_csv(self.input_aux_data_fn, header=None,
                                         on_bad_lines='skip').to_numpy()
             full_labels   = pd.read_csv(self.input_labels_fn, header=None,
                                         on_bad_lines='skip').to_numpy()
@@ -603,7 +604,11 @@ class CnnTrainer(Trainer):
         max_idx = 1000
         
         # save model to file
-        self.mymodel.save(self.model_sav_fn)
+        #self.mymodel.save('my_model.keras')
+        self.mymodel.save(self.model_arch_fn)
+
+        # save weights to file
+        self.mymodel.save_weights(self.model_weights_fn)
 
         # save json history from running MASTER
         json.dump(self.history_dict, open(self.model_history_fn, 'w'))

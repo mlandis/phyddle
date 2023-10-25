@@ -289,7 +289,7 @@ def load_config(config_fn,
         m = reconcile_settings(default_args, file_args, args, k)
 
     # fix convert string-valued bool to true bool
-    m = fix_bool(m)
+    m = fix_arg_bool(m)
 
     # update steps
     if m['step'] == 'A':
@@ -314,11 +314,14 @@ def load_config(config_fn,
     # return new args
     return m
 
-def fix_bool(m):
+def fix_arg_bool(m):
     """Convert bool-str arguments to True/False bool."""
     settings = settings_registry()
     for k,v in settings.items():
-        if 'bool' in v:
+        if 'bool' in v and type(m[k]) != str:
+            print(m[k],type(m[k]))
+            raise Exception(f"Invalid argument: {k} must be a string")
+        elif 'bool' in v and type(m[k]) == str:
             arg_val = m[k]
             arg_val_new = str2bool(arg_val)
             if arg_val_new is None:
