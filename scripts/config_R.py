@@ -12,7 +12,7 @@ args = {
     #-------------------------------#
     'proj'    : 'R_example',                # project name(s)
     'step'    : 'SFTEP',                    # step(s) to run
-    'verbose' : True,                       # print verbose phyddle output?
+    'verbose' : 'T',                        # print verbose phyddle output?
     'sim_dir' : '../workspace/simulate',    # directory for simulated data
     'fmt_dir' : '../workspace/format',      # directory for tensor-formatted data
     'trn_dir' : '../workspace/train',       # directory for trained network
@@ -23,7 +23,7 @@ args = {
     #-------------------------------#
     # Multiprocessing               #
     #-------------------------------#
-    'use_parallel'   : True,                # use multiprocessing to speed up jobs?
+    'use_parallel'   : 'T',                 # use multiprocessing to speed up jobs?
     'num_proc'       : -2,                  # how many CPUs to use (-2 means all but 2)
 
     #-------------------------------#
@@ -32,14 +32,14 @@ args = {
     'sim_command'       : 'Rscript sim/R/sim_one.R', # exact command string, argument is output file prefix
     'sim_logging'       : 'verbose',        # verbose, compressed, or clean
     'start_idx'         : 0,                # first simulation replicate index
-    'end_idx'           : 1000,             # last simulation replicate index
-    'sim_batch_size'    : 5,
+    'end_idx'           : 100,             # last simulation replicate index
+    'sim_batch_size'    : 10,
 
     #-------------------------------#
     # Format Step settings          #
     #-------------------------------#
-    'encode_all_sim'    : True,
-    'num_char'          : 2,                # number of evolutionary characters
+    'encode_all_sim'    : 'T',
+    'num_char'          : 1,                # number of evolutionary characters
     'num_states'        : 3,                # number of states per character
     'min_num_taxa'      : 10,               # min number of taxa for valid sim
     'max_num_taxa'      : 500,              # max number of taxa for valid sim
@@ -48,12 +48,12 @@ args = {
     'brlen_encode'      : 'height_brlen',   # how to encode phylo brlen? height_only or height_brlen
     'char_encode'       : 'integer',        # how to encode discrete states? one_hot or integer
     'param_est'         : [                 # model parameters to predict (labels)
-        'birth', 'death', 'state_rate'
+        'birth_1', 'birth_2', 'birth_3', 'death_1', 'death_2', 'death_3', 'state_rate'
     ],
     'param_data'        : [],               # model parameters that are known (aux. data)
     'tensor_format'     : 'hdf5',           # save as compressed HDF5 or raw csv
     'char_format'       : 'nexus',
-    'save_phyenc_csv'   : False,            # save intermediate phylo-state vectors to file
+    'save_phyenc_csv'   : 'F',              # save intermediate phylo-state vectors to file
 
     #-------------------------------#
     # Train Step settings           #
@@ -63,9 +63,9 @@ args = {
     'prop_test'         : 0.05,             # proportion of sims in test dataset
     'prop_val'          : 0.05,             # proportion of sims in validation dataset
     'prop_cal'          : 0.20,             # proportion of sims in CPI calibration dataset
-    'combine_test_val'  : True,
+    'combine_test_val'  : 'T',
     'cpi_coverage'      : 0.95,             # coverage level for CPIs
-    'cpi_asymmetric'    : True,             # upper/lower (True) or symmetric (False) CPI adjustments
+    'cpi_asymmetric'    : 'T',              # upper/lower ('T') or symmetric ('F') CPI adjustments
     'batch_size'        : 128,              # number of samples in each training batch
     'loss'              : 'mse',            # loss function for learning
     'optimizer'         : 'adam',           # optimizer for network weight/bias parameters
