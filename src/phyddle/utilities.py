@@ -775,7 +775,7 @@ def read_tree(tre_fn):
 
 def convert_csv_to_array(dat_fn, char_encode, num_states=None):
     """Converts CSV to array format."""
-    if char_encode == 'numeric':
+    if char_encode == 'numeric' or char_encode == 'integer':
         dat = convert_csv_to_numeric_array(dat_fn, num_states)
     elif char_encode == 'one_hot':
         dat = convert_csv_to_onehot_array(dat_fn, num_states)
