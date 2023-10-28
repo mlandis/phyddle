@@ -1122,7 +1122,7 @@ def make_prune_phy(phy, prune_fn):
 
     """
     # copy input tree
-    phy_ = copy.deepcopy(phy)
+    phy_ = phy # copy.deepcopy(phy)
     # compute all root-to-node distances
     root_distances = phy_.calc_node_root_distances()
     # find tree height (max root-to-node distance)
@@ -1168,18 +1168,42 @@ def make_downsample_phy(phy, down_fn, max_taxa, strategy):
 def make_uniform_downsample_phy(phy, down_fn, max_taxa):
     """Uniform random subsampling of taxa."""
     # copy input tree
-    phy_ = copy.deepcopy(phy)
+    phy_ = phy #copy.deepcopy(phy)
+    
     # get number of taxa
     leaf_nodes = phy_.leaf_nodes()
     num_taxa = len(leaf_nodes)
+
     # if downsampling is needed
     if num_taxa > max_taxa:
-        drop_taxon_labels = [ str(nd.taxon).strip("'").replace(' ','_') for nd in leaf_nodes ]
-        np.random.shuffle(drop_taxon_labels)
-        drop_taxon_labels = drop_taxon_labels[max_taxa:]
-        phy_.prune_taxa_with_labels( drop_taxon_labels )
+        
+        #drop_taxon_labels = [ str(nd.taxon).strip("'").replace(' ','_') for nd in leaf_nodes ]
+        #np.random.shuffle(drop_taxon_labels)
+        #drop_taxon_labels = drop_taxon_labels[max_taxa:]
+        # MJL: note, Format bottleneck with large trees. It should be possible
+        #      to write faster code when we don't care about taxon labels or
+        #      downstream use of the dendropy object?
+        # https://dendropy.org/_modules/dendropy/datamodel/treemodel/_tree#Tree.prune_taxa_with_labels
+        #phy_.prune_taxa_with_labels( drop_taxon_labels )
+        
+        # shuffle taxa indices
+        rand_idx = list(range(num_taxa))
+        np.random.shuffle(rand_idx)
+        
+        # get all taxa beyond max_taxa threshold
+        drop_taxa = []
+        for i in rand_idx[max_taxa:]:
+            drop_taxa.append(phy.taxon_namespace[i])
+
+        # drop those taxa
+        phy.prune_taxa(drop_taxa)
+
+        # verify resultant tree size
+        assert(len(phy.leaf_nodes()) == max_taxa)
+
     # save downsampled tree
     phy_.write(path=down_fn, schema='newick')
+
     # done
     return phy_
 
@@ -1529,6 +1553,7 @@ class Logger:
 
         """
 
+        assert(step in self.fn_dict.keys())
         fn = self.fn_dict[step]
         with open(fn, 'a') as file:
             file.write( f'{msg}\n' )

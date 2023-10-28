@@ -762,11 +762,11 @@ class CnnTrainer(Trainer):
                 lower_p = (1 - inner_quantile)/2 * (1 + 1/ests.shape[1])
                 upper_p = (1 + inner_quantile)/2 * (1 + 1/ests.shape[1])
                 if lower_p < 0.:
-                    self.logger.write_log('train',
+                    self.logger.write_log('trn',
                                           'get_CQR_constant: lower_p >= 0.')
                     lower_p = 0.
                 if upper_p > 1.:
-                    self.logger.write_log('train',
+                    self.logger.write_log('trn',
                                           'get_CQR_constant: upper_p <= 1.')
                     upper_p = 1.
                 lower_q = np.quantile(lower_s, lower_p)
@@ -777,11 +777,11 @@ class CnnTrainer(Trainer):
                 # get adjustment constant: 1 - alpha/2's quintile of non-comformity scores
                 symm_p = inner_quantile * (1 + 1/ests.shape[1])
                 if symm_p < 0.:
-                    self.logger.write_log('train',
+                    self.logger.write_log('trn',
                                           'get_CQR_constant: symm_p >= 0.')
                     symm_p = 0.
                 elif symm_p > 1.:
-                    self.logger.write_log('train',
+                    self.logger.write_log('trn',
                                           'get_CQR_constant: symm_p <= 1.')
                     symm_p = 1.                    
                 lower_q = np.quantile(s, symm_p)

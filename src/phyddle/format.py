@@ -297,6 +297,7 @@ class Formatter:
         """Split examples into training and test datasets."""
         split_idx = {}
         rep_idx = sorted(list(self.phy_tensors.keys()))
+        rep_idx = np.array(rep_idx)
         num_samples = len(rep_idx)
         # shuffle examples
         np.random.shuffle(rep_idx)
@@ -407,6 +408,9 @@ class Formatter:
         hdf5_file.create_dataset('aux_data', df_aux_data.shape, 'f', df_aux_data, compression='gzip')
         hdf5_file.create_dataset('aux_data_names', (1, len(new_aux_data_names)), 'S64', new_aux_data_names, compression='gzip')
 
+        # add replicate idx
+        hdf5_file.create_dataset('idx', rep_idx.shape, 'i', rep_idx, compression='gzip' )
+
         # close HDF5 files
         hdf5_file.close()
 
@@ -447,6 +451,7 @@ class Formatter:
         out_phys_fn   = f'{out_prefix}.phy_data.csv'
         out_stat_fn   = f'{out_prefix}.aux_data.csv'
         out_labels_fn = f'{out_prefix}.labels.csv'
+        out_idx_fn    = f'{out_prefix}.idx.csv'
 
         # phylogenetic state tensor
         with open(out_phys_fn, 'w') as outfile:
@@ -499,6 +504,10 @@ class Formatter:
         # overwrite original files with new modified versions
         df_summ_stats.to_csv(out_stat_fn, index=False)
         df_labels_keep.to_csv(out_labels_fn, index=False)
+
+        # write rep_idx
+        df_idx = pd.DataFrame(rep_idx, columns=['idx'])
+        df_idx.to_csv(out_idx_fn, index=False)
 
         return
     
@@ -591,13 +600,14 @@ class Formatter:
 
         # prune tree, if needed
         if self.tree_encode == 'extant':
-            phy_prune = util.make_prune_phy(phy, prune_fn)
-            if phy_prune is None:
+            #phy_prune = util.make_prune_phy(phy, prune_fn)
+            phy = util.make_prune_phy(phy, prune_fn)
+            if phy is None:
                 # abort, no valid pruned tree
                 return
-            else:
-                # valid pruned tree
-                phy = copy.deepcopy(phy_prune)
+            #else:
+            #    # valid pruned tree
+            #    phy = copy.deepcopy(phy_prune)
 
         # downsample taxa
         num_taxa_orig = len(phy.leaf_nodes())

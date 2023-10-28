@@ -120,8 +120,13 @@ class Simulator:
             files = os.listdir(f'{self.sim_proj_dir}')
             for f in files:
                 rep_idx.add(int(f.split('.')[1]))
-            max_rep_idx = max(list(rep_idx))
-            self.start_idx = max_rep_idx + 1
+            
+            if len(list(rep_idx)) > 0:
+                max_rep_idx = max(list(rep_idx))
+                self.start_idx = max_rep_idx + 1
+            else:
+                self.start_idx = 0
+            
             self.end_idx = self.start_idx + self.sim_more
 
         # determine rep_idx
