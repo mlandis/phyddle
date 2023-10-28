@@ -27,17 +27,20 @@ lbl_true_fn  = paste0(tmp_fn, ".param_row.csv")   # csv of true params
 lbl_mle_fn   = paste0(tmp_fn, ".param_mle.csv")   # csv of estimated params
 
 # dataset setup
-num_states = 3
+num_states = 2
+param_names = c( paste0("birth_",1:num_states), paste0("death_",1:num_states), "state_rate" )
 
 # simulate each replicate
 for (i in 1:num_rep) {
+
+    set.seed(rep_idx[i])
 
     num_taxa = 0
     while (num_taxa < 50) {
         
         # simulation conditions
-        max_taxa = runif(1, 100, 500)
-        max_time = runif(1, 0, 10)
+        max_taxa = runif(1, 2000, 2000)
+        max_time = runif(1, 1, 100)
 
         # simulate parameters
         Q = get_random_mk_transition_matrix(num_states, rate_model="ER", max_rate=0.1)
@@ -71,41 +74,49 @@ for (i in 1:num_rep) {
     state_sim = res_sim$tip_states - 1
     df_state = data.frame(taxa=tree_sim$tip.label, data=state_sim)
     write.csv(df_state, file=dat_fn[i], row.names=F, quote=F)
-    #write.nexus.data(state_sim, file=dat_fn[i], format="standard", datablock=TRUE)
 
     # save data-generating params
     out_true = c(birth, death, Q[1,2])
-    names(out_true) = c(paste0("birth_",1:num_states),
-                        paste0("death_",1:num_states),
-                        "state_rate")
+    names(out_true) = param_names
     df_true = data.frame(t(out_true))
     write.csv(df_true, file=lbl_true_fn[i], row.names=F, quote=F)
 
     # MLE
     if (get_mle) {
-        #print("MLE")
-        # get MLE
-        #print("first-guess")
-        # generate first guess
-        first_guess = list(
-            birth_rates = birth * exp(2 * runif(2, -0.5, 0.5)),
-            death_rates = death * exp(2 * runif(2, -0.5, 0.5)),
-            transition_matrix = exp(Q * runif(1, -0.5, 0.5))
-        )
 
         res_mle = NULL
         while (is.null(res_mle)) {
+            first_guess = list(
+                birth_rates = birth * exp(2 * runif(2, -0.5, 0.5)),
+                death_rates = death * exp(2 * runif(2, -0.5, 0.5)),
+                transition_matrix = exp(Q * runif(1, -0.5, 0.5))
+            )
+            print(res_sim$tip_states)
+
             res_mle = tryCatch(
             {
                 #print("do-mle")
                 # get MLE
+                lower=list(
+                    birth_rates=0,
+                    death_rates=0,
+                    transition_matrix=0
+                )
+                upper=list(
+                    birth_rates=1,
+                    death_rates=1,
+                    transition_matrix=0.1
+                )
                 ret=fit_musse(
                     tree=tree_sim,
-                    tip_pstates=state_sim,
+                    tip_pstates=state_sim+1,
                     transition_rate_model="ER",
                     first_guess=first_guess,
                     Nstates=num_states,
-                    Ntrials=1,
+                    Ntrials=5,
+                    Nscouts=10,
+                    lower=lower,
+                    upper=upper,
                     verbose=F,
                     diagnostics=F)
 
@@ -116,6 +127,7 @@ for (i in 1:num_rep) {
             error = function(m) {
                 NULL
             })
+            rse_mle = 1
 
             # print res_mle
             #print(res_mle)
@@ -125,11 +137,12 @@ for (i in 1:num_rep) {
         par_mle = res_mle
         names(par_mle)[ names(par_mle)=="transition_matrix" ] = "transition_matrix_A"
         out_mle = c( par_mle$birth_rates, par_mle$death_rates, par_mle$transition_matrix[1,2])
-        names(out_mle) = c( paste0("birth_",1:3), paste0("death_",1:3), "state_rate" )
+        names(out_mle) = param_names
         df_mle = data.frame(t(out_mle))
         write.csv(df_mle, file=lbl_mle_fn[i], row.names=FALSE, quote=F)
     }
 }
+
 
 # done!
 quit()
