@@ -24,8 +24,10 @@ import pandas as pd
 import scipy as sp
 import tensorflow as tf
 from pypdf import PdfMerger
+from sklearn import linear_model
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LinearRegression
 
 # phyddle imports
 from phyddle import utilities as util
@@ -283,8 +285,8 @@ class Plotter:
         # training labels histogram
         self.make_plot_stat_density('labels')
         
-        # PCA of training aux. data
-        # self.make_plot_pca()
+        # # PCA of training aux. data
+        # #### self.make_plot_pca() # remove this?
 
         # PCA-contour of training aux. data
         self.make_plot_pca_contour('aux_data')
@@ -694,7 +696,7 @@ class Plotter:
         return
 
     def plot_scatter_accuracy(self, ests, labels, prefix,
-                              color="blue", axis_labels = ["estimate", "truth"],
+                              color="blue", axis_labels = ["truth", "estimate"],
                               title = '', plot_log=False):
         """Plots accuracy of estimates and CPIs for labels.
 
@@ -733,12 +735,19 @@ class Plotter:
             y_mse = np.mean( np.power(y_value - x_value, 2) )
             y_rmse = np.sqrt( y_mse )
             
+            # linear regression slope
+            reg = LinearRegression().fit( x_value.reshape(-1, 1), y_value.reshape(-1, 1))
+            y_slope = reg.coef_[0][0]
+            y_intercept = reg.intercept_[0]
+
             # convert to strings
             s_mae  = '{:.2E}'.format(y_mae)
             s_mse  = '{:.2E}'.format(y_mse)
             s_rmse = '{:.2E}'.format(y_rmse)
             s_mape = '{:.1f}%'.format(y_mape)
-
+            s_slope = '{:.2E}'.format(y_slope)
+            s_intercept  = '{:.2E}'.format(y_intercept)
+            
             # coverage stats
             y_cover = np.logical_and(y_lower < x_value, x_value < y_upper )
             y_not_cover = np.logical_not(y_cover)
@@ -762,6 +771,9 @@ class Plotter:
                      color='red', alpha=alpha, linestyle="-", marker='_',
                      linewidth=0.5, zorder=4 )
             
+            # regression line
+            plt.axline((0,y_intercept), slope=y_slope, color=color, alpha=1.0, zorder=0, linestyle='dotted')
+            
             # 1:1 line
             plt.axline((0,0), slope=1, color=color, alpha=1.0, zorder=0)
             plt.gca().set_aspect('equal')
@@ -777,33 +789,14 @@ class Plotter:
             # write text
             dx = 0.03
             stat_str = [f'MAE: {s_mae}', f'MAPE: {s_mape}', f'MSE: {s_mse}',
-                        f'RMSE: {s_rmse}', f'Coverage: {s_cover}' ]
+                        f'RMSE: {s_rmse}', f'Intercept: {s_intercept}',
+                        f'Slope: {s_slope}', f'Coverage: {s_cover}' ]
             
             for j,s in enumerate(stat_str):
                 plt.annotate(s, xy=(0.01,0.99-j*dx),
                          xycoords='axes fraction', fontsize=10,
                          horizontalalignment='left', verticalalignment='top',
                          color='black')
-            # plt.annotate(f'MAE: {s_mae}', xy=(0.01,0.99-0*dx),
-            #              xycoords='axes fraction', fontsize=10,
-            #              horizontalalignment='left', verticalalignment='top',
-            #              color='black')
-            # plt.annotate(f'MAPE: {s_mape}', xy=(0.01,0.99-1*dx),
-            #              xycoords='axes fraction', fontsize=10,
-            #              horizontalalignment='left', verticalalignment='top',
-            #              color='black')
-            # plt.annotate(f'MSE: {s_mse}', xy=(0.01,0.99-2*dx),
-            #              xycoords='axes fraction', fontsize=10,
-            #              horizontalalignment='left', verticalalignment='top',
-            #              color='black')
-            # plt.annotate(f'RMSE: {s_rmse}', xy=(0.01,0.99-3*dx),
-            #              xycoords='axes fraction', fontsize=10,
-            #              horizontalalignment='left', verticalalignment='top',
-            #              color='black')
-            # plt.annotate(f'Coverage: {s_cover}', xy=(0.01,0.99-4*dx),
-            #              xycoords='axes fraction', fontsize=10,
-            #              horizontalalignment='left', verticalalignment='top',
-            #              color='black')
 
             # cosmetics
             plt.title(f'{title} estimates: {p}')
