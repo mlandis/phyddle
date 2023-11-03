@@ -9,6 +9,12 @@ workspace/**
 !workspace/plot/example/*
 !workspace/log/example/*
 
+!workspace/simulate/valid/*
+!workspace/format/valid/*
+!workspace/estimate/valid/*
+!workspace/train/valid/*
+!workspace/plot/valid/*
+
 # Ignore extras in tests
 tests/workspace/*
 
