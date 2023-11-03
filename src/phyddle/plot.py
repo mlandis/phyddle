@@ -284,9 +284,6 @@ class Plotter:
         
         # training labels histogram
         self.make_plot_stat_density('labels')
-        
-        # # PCA of training aux. data
-        # #### self.make_plot_pca() # remove this?
 
         # PCA-contour of training aux. data
         self.make_plot_pca_contour('aux_data')
