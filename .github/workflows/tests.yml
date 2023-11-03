@@ -25,7 +25,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install Python dependencies
         run: |
-          Rscript -e "install.packages('ape', repos='http://cran.us.r-project.org')"
+          Rscript -e "install.packages(c('ape', 'castor'), repos='http://cran.us.r-project.org')"
           python -m pip install --upgrade pip
           pip install .
           pip install ruff pytest scipy numpy matplotlib tensorflow keras scikit-learn dendropy pandas pypdf joblib tqdm
