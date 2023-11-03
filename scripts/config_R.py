@@ -32,7 +32,7 @@ args = {
     'sim_command'       : 'Rscript sim/R/sim_one.R', # exact command string, argument is output file prefix
     'sim_logging'       : 'verbose',        # verbose, compressed, or clean
     'start_idx'         : 0,                # first simulation replicate index
-    'end_idx'           : 100,             # last simulation replicate index
+    'end_idx'           : 1000,             # last simulation replicate index
     'sim_batch_size'    : 10,
 
     #-------------------------------#
@@ -48,9 +48,11 @@ args = {
     'brlen_encode'      : 'height_brlen',   # how to encode phylo brlen? height_only or height_brlen
     'char_encode'       : 'integer',        # how to encode discrete states? one_hot or integer
     'param_est'         : [                 # model parameters to predict (labels)
-        'birth_1', 'birth_2', 'death_1', 'death_2', 'state_rate'
+        'birth_1', 'birth_2', 'death', 'state_rate'
     ],
-    'param_data'        : [],               # model parameters that are known (aux. data)
+    'param_data'        : [                 # model parameters that are known (aux. data)
+        'sample_frac'
+    ],
     'tensor_format'     : 'hdf5',           # save as compressed HDF5 or raw csv
     'char_format'       : 'csv',
     'save_phyenc_csv'   : 'F',              # save intermediate phylo-state vectors to file
@@ -59,15 +61,15 @@ args = {
     # Train Step settings           #
     #-------------------------------#
     'trn_objective'     : 'param_est',      # what is the learning task? param_est or model_test
-    'num_epochs'        : 20,               # number of training intervals (epochs)
+    'num_epochs'        : 10,               # number of training intervals (epochs)
     'prop_test'         : 0.05,             # proportion of sims in test dataset
     'prop_val'          : 0.05,             # proportion of sims in validation dataset
     'prop_cal'          : 0.20,             # proportion of sims in CPI calibration dataset
     'combine_test_val'  : 'T',
     'cpi_coverage'      : 0.95,             # coverage level for CPIs
     'cpi_asymmetric'    : 'T',              # upper/lower ('T') or symmetric ('F') CPI adjustments
-    'batch_size'        : 1024,              # number of samples in each training batch
-    'loss'              : 'mae',            # loss function for learning
+    'batch_size'        : 1024,             # number of samples in each training batch
+    'loss'              : 'mse',            # loss function for learning
     'optimizer'         : 'adam',           # optimizer for network weight/bias parameters
     'metrics'           : ['mae', 'acc'],   # recorded training metrics
 
