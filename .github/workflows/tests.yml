@@ -24,7 +24,7 @@ jobs:
         with:
           r-version: ${{ matrix.R-version }}
 
-	  - name: Install R packages
+      - name: Install R packages
         uses: r-lib/actions/setup-r-dependencies@v2
         with:
           extra-packages: |
