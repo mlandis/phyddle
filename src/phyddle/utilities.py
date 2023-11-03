@@ -13,7 +13,7 @@ License:   MIT
 
 # standard packages
 import argparse
-import copy
+#import copy
 import os
 import pkg_resources
 import platform
@@ -1075,7 +1075,8 @@ def convert_phy2dat_nex(phy_nex_fn, int2vec):
     # get tip names and states from NHX tree
     nex_file = open(phy_nex_fn, 'r')
     nex_str  = nex_file.readlines()[3]
-    matches  = re.findall(pattern='([0-9]+)\[\&type="([A-Z]+)",location="([0-9]+)"', string=nex_str)
+    # MJL add regex string qualifier
+    matches  = re.findall(pattern=r'([0-9]+)\[\&type="([A-Z]+)",location="([0-9]+)"', string=nex_str)
     num_taxa = len(matches)
     nex_file.close()
 
@@ -1496,7 +1497,7 @@ class Logger:
 
         # collect other info and set constants
         self.pkg_name    = 'phyddle'
-        self.version     = pkg_resources.get_distribution(self.pkg_name).version
+        self.version     = PHYDDLE_VERSION #pkg_resources.get_distribution(self.pkg_name).version
         self.commit      = '(to be done)'
         self.command     = ' '.join(sys.argv)
         self.max_lines   = 1e5
