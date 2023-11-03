@@ -14,6 +14,8 @@ jobs:
         R: [ '4.2.2' ]
 
     steps:
+      - name: Install graphviz
+        run: sudo apt-get install -y graphviz
       - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
