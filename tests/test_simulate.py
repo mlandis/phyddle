@@ -20,7 +20,9 @@ def test_sim():
     cmd_args = ['--step', 'S',
                 '--proj', 'test',
                 '--sim_dir', './tests/workspace/simulate',
-                '--sim_command', 'Rscript scripts/sim/R/sim_one.R']
+                '--sim_command', 'Rscript scripts/sim/R/sim_one.R',
+                '--end_idx', '10',
+                '--use_parallel', 'F']
 
     # build arguments
     my_args = util.load_config('scripts/config_R.py', arg_overwrite=True, args=cmd_args)

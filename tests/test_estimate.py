@@ -18,11 +18,12 @@ def test_est():
 
 	# command line arguments
 	cmd_args = ['--step', 'E',
-                '--proj', 'test,F:valid,T:valid',
+                '--proj', 'test,S:valid,F:valid,T:valid',
                 '--sim_dir', 'tests/workspace/simulate',
                 '--fmt_dir', 'tests/workspace/format',
                 '--trn_dir', 'tests/workspace/train',
-                '--est_dir', 'tests/workspace/estimate' ]
+                '--est_dir', 'tests/workspace/estimate',
+                '--use_parallel', 'F']
 
 	# phyddle arguments
 	my_args = util.load_config('scripts/config_R.py', arg_overwrite=True, args=cmd_args)

@@ -20,7 +20,8 @@ def test_trn():
     cmd_args = ['--step', 'T',
                 '--proj', 'test,F:valid',
                 '--fmt_dir', 'tests/workspace/format',
-                '--trn_dir', 'tests/workspace/train' ]
+                '--trn_dir', 'tests/workspace/train',
+                '--use_parallel', 'F']
 
     # phyddle arguments
     my_args = util.load_config('scripts/config_R.py', arg_overwrite=True, args=cmd_args)

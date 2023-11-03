@@ -22,7 +22,8 @@ def test_plot():
                 '--fmt_dir', 'tests/workspace/format',
                 '--trn_dir', 'tests/workspace/train',
                 '--est_dir', 'tests/workspace/estimate',
-                '--plt_dir', 'tests/workspace/plot']
+                '--plt_dir', 'tests/workspace/plot',
+                '--use_parallel', 'F']
 
 	# phyddle arguments
 	my_args = util.load_config('scripts/config_R.py', arg_overwrite=True, args=cmd_args)

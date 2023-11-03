@@ -19,7 +19,8 @@ def test_fmt():
     cmd_args = ['--step', 'F',
                 '--proj', 'test,S:valid',
                 '--sim_dir', 'tests/workspace/simulate',
-                '--fmt_dir', 'tests/workspace/format']
+                '--fmt_dir', 'tests/workspace/format',
+                '--use_parallel', 'F']
 
     # phyddle arguments
     my_args = util.load_config('scripts/config_R.py', arg_overwrite=True, args=cmd_args)
