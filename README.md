@@ -34,7 +34,6 @@ phyddle
 
 or using the Python package manager, pip:
 
-
 ```shell
 python3 -m pip install --upgrade phyddle
 # ... install ...
