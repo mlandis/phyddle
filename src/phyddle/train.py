@@ -18,10 +18,11 @@ import os
 import h5py
 import numpy as np
 import pandas as pd
-from keras import Input
-from keras import Model
-from keras import layers
-from keras import backend as K
+from tensorflow.keras import Input
+from tensorflow.keras import Model
+from tensorflow.keras import layers
+from tensorflow.keras import backend as K
+from tensorflow.keras import callbacks
 
 # phyddle imports
 from phyddle import utilities as util
@@ -540,6 +541,10 @@ class CnnTrainer(Trainer):
                              loss=my_loss,
                              metrics=self.metrics)
      
+        # early stopping
+        # es = callbacks.EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=3)
+        #es = callbacks.EarlyStopping(monitor='val_loss', mode='max', min_delta=0.01)
+
         # run training
         self.history = self.mymodel.fit(\
             verbose = 2,
@@ -547,7 +552,8 @@ class CnnTrainer(Trainer):
                  self.train_aux_data_tensor], 
             y = self.norm_train_labels,
             epochs = self.num_epochs,
-            batch_size = self.trn_batch_size, 
+            batch_size = self.trn_batch_size,
+            # callbacks = [es], 
             validation_data = ([self.val_phy_data_tensor,
                                 self.val_aux_data_tensor],
                                 self.norm_val_labels))
