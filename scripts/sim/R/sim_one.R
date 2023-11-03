@@ -28,7 +28,9 @@ lbl_mle_fn   = paste0(tmp_fn, ".param_mle.csv")   # csv of estimated params
 
 # dataset setup
 num_states = 2
-param_names = c( paste0("birth_",1:num_states), paste0("death_",1:num_states), "state_rate" )
+tree_width = 500
+#param_names = c( paste0("birth_",1:num_states), paste0("death_",1:num_states), "state_rate" )
+param_names = c( paste0("birth_",1:num_states), "death", "state_rate", "sample_frac" )
 
 # simulate each replicate
 for (i in 1:num_rep) {
@@ -39,23 +41,33 @@ for (i in 1:num_rep) {
     while (num_taxa < 50) {
         
         # simulation conditions
-        max_taxa = runif(1, 2000, 2000)
+        max_taxa = runif(1, 10, 5000)
         max_time = runif(1, 1, 100)
+        sample_frac = 1.0
+        if (max_taxa > tree_width) {
+            cat(max_taxa,sample_frac,"\n")
+            sample_frac = tree_width / max_taxa
+            #max_taxa = tree_width
+            cat(max_taxa,sample_frac,"\n")
+        }
 
         # simulate parameters
         Q = get_random_mk_transition_matrix(num_states, rate_model="ER", max_rate=0.1)
         birth = runif(num_states, 0, 1)
-        death = birth * runif(num_states, 0, 0.5)
+        death = min(birth) * runif(1, 0, 1.0)
+        death = rep(death, num_states)
         parameters = list(
             birth_rates=birth,
             death_rates=death,
             transition_matrix_A=Q
         )
+        print(parameters)
 
         # simulate tree/data
         res_sim = simulate_dsse(
                 Nstates=num_states,
                 parameters=parameters,
+                sampling_fractions=sample_frac,
                 max_extant_tips=max_taxa,
                 max_time=max_time,
                 include_labels=T,
@@ -76,8 +88,9 @@ for (i in 1:num_rep) {
     write.csv(df_state, file=dat_fn[i], row.names=F, quote=F)
 
     # save data-generating params
-    out_true = c(birth, death, Q[1,2])
+    out_true = c(birth, death[1], Q[1,2], sample_frac)
     names(out_true) = param_names
+    print(out_true)
     df_true = data.frame(t(out_true))
     write.csv(df_true, file=lbl_true_fn[i], row.names=F, quote=F)
 
