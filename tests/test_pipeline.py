@@ -24,6 +24,11 @@ import os
 
 #-----------------------------------------------------------------------------#
 
+# single-thread session
+tf.config.experimental.enable_op_determinism()
+
+#-----------------------------------------------------------------------------#
+
 # Each test function below covers one pipeline step.
 
 def test_sim():
