@@ -15,7 +15,10 @@ import numpy as np
 #-----------------------------------------------------------------------------#
 
 def test_sim():
-
+    
+    # set seed
+    util.set_seed(0)
+    
     # filesystem
     base_dir = './tests/workspace/simulate'
     test_dir = base_dir + '/test'
@@ -26,7 +29,7 @@ def test_sim():
                 '--proj', 'test',
                 '--sim_dir', base_dir,
                 '--sim_command', 'Rscript scripts/sim/R/sim_one.R',
-                '--end_idx', '10',
+                '--end_idx', '100',
                 '--use_parallel', 'F']
 
     # build arguments
@@ -47,10 +50,12 @@ def test_sim():
     # confirm test and valid data match
     dat_valid = util.convert_csv_to_array(valid_dir + '/sim.0.dat.nex', 'integer', 2)
     dat_test = util.convert_csv_to_array(test_dir + '/sim.0.dat.nex', 'integer', 2)
-    assert( dat_test.shape == dat_valid.shape )
-    for i in range(dat_valid.shape[0]):
-        for j in range(dat_valid.shape[1]):
-            assert(dat_test.iloc[i,j] == dat_valid.iloc[i,j])
+    assert(np.array_equal(dat_valid, dat_test))
+
+    # confirm test and valid params match
+    param_valid = util.convert_csv_to_array(valid_dir + '/sim.0.param_row.csv', 'numeric', 2)
+    param_test = util.convert_csv_to_array(test_dir + '/sim.0.param_row.csv', 'numeric', 2)
+    assert(np.array_equal(param_valid, param_test))
 
     # success
     return

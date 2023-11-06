@@ -122,8 +122,8 @@ class Plotter:
         self.train_labels_fn    = f'{trn_proj_prefix}.train_true.labels.csv'
         
         # estimates
-        self.est_summ_stat_fn   = f'{est_proj_prefix}.aux_data.csv'
-        self.est_known_param_fn = f'{est_proj_prefix}.known_param.csv'
+        self.est_aux_data_fn   = f'{est_proj_prefix}.aux_data.csv'
+        #self.est_known_param_fn = f'{est_proj_prefix}.known_param.csv'
         self.est_lbl_fn         = f'{est_proj_prefix}.emp_est.labels.csv'
         self.test_est_fn        = f'{est_proj_prefix}.test_est.labels.csv'
         self.test_labels_fn     = f'{est_proj_prefix}.test_true.labels.csv'
@@ -232,14 +232,14 @@ class Plotter:
 
         # load new aux data from Estimate
         self.est_aux_data = None
-        new_summ_found = os.path.isfile(self.est_summ_stat_fn) 
-        if new_summ_found:
-            self.est_aux_data = pd.read_csv(self.est_summ_stat_fn)
-        new_param_found = os.path.isfile(self.est_known_param_fn)
-        if new_param_found and new_summ_found:
-            self.est_known_params = pd.read_csv(self.est_known_param_fn)
-            self.est_aux_data = pd.concat( [self.est_aux_data, self.est_known_params], axis=1)
-            self.est_aux_data = self.est_aux_data[self.train_aux_data.columns]
+        new_aux_found = os.path.isfile(self.est_aux_data_fn)
+        if new_aux_found:
+            self.est_aux_data = pd.read_csv(self.est_aux_data_fn)
+        # new_param_found = os.path.isfile(self.est_known_param_fn)
+        # if new_param_found and new_summ_stat_found:
+        #     self.est_known_params = pd.read_csv(self.est_known_param_fn)
+        #     self.est_aux_data = pd.concat( [self.est_aux_data, self.est_known_params], axis=1)
+        #     self.est_aux_data = self.est_aux_data[self.train_aux_data.columns]
         
         # load new estimates from Estimate
         self.est_lbl_loaded = os.path.isfile(self.est_lbl_fn)

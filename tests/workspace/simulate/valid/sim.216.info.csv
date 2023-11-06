@@ -1,5 +1,0 @@
-setting,value
-sim_proj_dir,tests/workspace/simulate/valid
-fmt_proj_dir,tests/workspace/format/test
-replicate_index,216
-tree_width,500

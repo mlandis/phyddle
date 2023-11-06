@@ -712,25 +712,22 @@ class Formatter:
 
         # frequencies of character states
         if self.char_encode == 'integer':
-            # integer-encoded states
-            states = list(range(self.num_states))
-            for i in states:
-                summ_stats['f_dat_' + str(i)] = 0
-            unique, counts = np.unique(dat, return_counts=True)
-            
+
             # initialize state freqs
+            states = list(range(self.num_states))
             for i in states:
                 summ_stats[f'f_dat_{i}'] = 0.
 
             # fill-in non-zero state freqs
+            unique, counts = np.unique(dat, return_counts=True)
             for i,j in zip(states, counts):
                 summ_stats[f'f_dat_{i}'] = j / num_taxa
-        
+
         elif self.char_encode == 'one_hot':
             # one-hot-encoded states
             for i in range(dat.shape[0]):
                 summ_stats['f_dat_' + str(i)] = np.sum(dat.iloc[i]) / num_taxa
-        
+
         # done
         return summ_stats
     

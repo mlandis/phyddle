@@ -40,7 +40,7 @@ args = {
     #-------------------------------#
     'encode_all_sim'    : 'T',
     'num_char'          : 1,                # number of evolutionary characters
-    'num_states'        : 3,                # number of states per character
+    'num_states'        : 2,                # number of states per character
     'min_num_taxa'      : 10,               # min number of taxa for valid sim
     'max_num_taxa'      : 500,              # max number of taxa for valid sim
     'tree_width'        : 500,              # tree width category used to train network
@@ -76,7 +76,7 @@ args = {
     #-------------------------------#
     # Estimate Step settings        #
     #-------------------------------#
-    'est_prefix'     : 'new.1',             # prefix for new dataset to predict
+    'est_prefix'     : 'new.0',             # prefix for new dataset to predict
 
     #-------------------------------#
     # Plot Step settings            #

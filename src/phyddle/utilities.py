@@ -608,6 +608,22 @@ def generate_random_hex_string(length):
 # GENERAL HELPERS #
 ###################
 
+def set_seed(seed_value):
+    
+    # see: https://keras.io/getting_started/faq/#how-can-i-obtain-reproducible-results-using-keras-during-development
+    
+    import tensorflow as tf
+    import numpy as np
+    import random
+    import os
+    
+    os.environ['PYTHONHASHSEED']=str(seed_value)
+    random.seed(seed_value)
+    np.random.seed(seed_value)
+    tf.random.set_seed(seed_value)
+
+    return
+
 def get_time():
     """Get current clock time."""
     t = time.localtime()
