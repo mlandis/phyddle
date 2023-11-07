@@ -1,6 +1,6 @@
 # https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
 
-name: Python package
+name: Pipeline
 
 on: [push]
 
@@ -42,9 +42,6 @@ jobs:
           pip install .
           pip install ruff pytest scipy numpy matplotlib tensorflow keras scikit-learn dendropy pandas pypdf joblib tqdm pydot
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          #- name: Install R packages
-          #run: |
-          #Rscript -e "install.packages(c('ape', 'castor'), repos='http://cran.us.r-project.org')"
 #       - name: Lint with ruff
 #         run: |
 #           # stop the build if there are Python syntax errors or undefined names
