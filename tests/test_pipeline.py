@@ -23,6 +23,7 @@ import shutil
 import os
 
 ERROR_TOL = 1E-2
+ENABLE_TEST = True
 
 #-----------------------------------------------------------------------------#
 
@@ -35,18 +36,23 @@ tf.config.experimental.enable_op_determinism()
 
 def test_sim():
     do_sim()
+    check_sim()
 
 def test_fmt():
     do_fmt()
+    check_fmt()
 
 def test_trn():
     do_trn()
+    check_trn()
 
 def test_est():
     do_est()
+    check_est()
 
 def test_plt():
     do_plt()
+    check_plt()
 
 #-----------------------------------------------------------------------------#
 
@@ -59,8 +65,6 @@ def do_sim():
     
     # filesystem
     base_dir = './tests/workspace/simulate'
-    test_dir = base_dir + '/test'
-    valid_dir = base_dir + '/valid'
 
     # command line arguments
     cmd_args = ['--step', 'S',
@@ -78,6 +82,19 @@ def do_sim():
 
     # run simulator
     my_sim.run()
+
+    # success
+    return
+
+def check_sim():
+
+    if not ENABLE_TEST:
+        return
+    
+    # filesystem
+    base_dir = './tests/workspace/simulate'
+    test_dir = base_dir + '/test'
+    valid_dir = base_dir + '/valid'
 
     # confirm test and valid tree match
     phy_test = util.read_tree(test_dir + '/sim.0.tre')
@@ -111,8 +128,6 @@ def do_fmt():
     base_dir = './tests/workspace'
     sim_dir = base_dir + '/simulate'
     fmt_dir = base_dir + '/format'
-    test_dir = fmt_dir + '/test'
-    valid_dir = fmt_dir + '/valid'
 
     # command line arguments
     cmd_args = ['--step', 'F',
@@ -131,6 +146,20 @@ def do_fmt():
 
     # run simulator
     my_fmt.run()
+
+    # success
+    return
+
+def check_fmt():
+
+    if not ENABLE_TEST:
+        return
+
+    # filesystem
+    base_dir = './tests/workspace'
+    fmt_dir = base_dir + '/format'
+    test_dir = fmt_dir + '/test'
+    valid_dir = fmt_dir + '/valid'
 
     # confirm test and valid tree match
     dat_test  = h5py.File(test_dir + '/test.nt500.hdf5', 'r')
@@ -177,8 +206,6 @@ def do_trn():
     base_dir = './tests/workspace'
     fmt_dir = base_dir + '/format'
     trn_dir = base_dir + '/train'
-    test_dir = trn_dir + '/test'
-    valid_dir = trn_dir + '/valid'
 
     # command line arguments
     cmd_args = ['--step', 'T',
@@ -197,6 +224,20 @@ def do_trn():
 
     # run simulator
     my_trn.run()
+
+    # success
+    return
+
+def check_trn():
+
+    if not ENABLE_TEST:
+        return
+
+    # filesystem
+    base_dir = './tests/workspace'
+    trn_dir = base_dir + '/train'
+    test_dir = trn_dir + '/test'
+    valid_dir = trn_dir + '/valid'
 
     # load test output for Train
     model_test_fn = test_dir + '/network_nt500_trained_model'
@@ -295,6 +336,21 @@ def do_est():
     # run simulator
     my_est.run()
 
+    # success
+    return
+    
+def check_est():
+
+    if not ENABLE_TEST:
+        return
+
+    # filesystem
+    base_dir = './tests/workspace'
+    est_dir = base_dir + '/estimate'
+    test_dir = est_dir + '/test'
+    valid_dir = est_dir + '/valid'
+    est_prefix = 'new.0'
+
     # load test output for Estimate
     est_lbl_test_fn = test_dir + f'/{est_prefix}.test_est.labels.csv'
     est_lbl_test = pd.read_csv(est_lbl_test_fn, header=0).to_numpy()
@@ -309,6 +365,7 @@ def do_est():
         print('lbl_error < ERROR_TOL: ', lbl_error)
     assert( lbl_error < ERROR_TOL)
 
+    # success
     return
 
 #-----------------------------------------------------------------------------#
@@ -349,6 +406,20 @@ def do_plt():
     # run simulator
     my_plt.run()
 
+    # success
+    return
+
+def check_plt():
+
+    if not ENABLE_TEST:
+        return
+
+    # filesystem
+    base_dir = './tests/workspace'
+    plt_dir = base_dir + '/plot'
+    test_dir = plt_dir + '/test'
+    valid_dir = plt_dir + '/valid'
+
 	# verify output
     out_files = [
         'fig_nt500.density_aux_data.pdf',
@@ -373,6 +444,7 @@ def do_plt():
         assert( os.path.exists(test_dir + '/' + fn) )
         # compare file size is perfect match
 
+    # success
     return
 
 #-----------------------------------------------------------------------------#
