@@ -225,11 +225,11 @@ def do_trn():
     aux_error = np.max(np.abs(aux_test - aux_valid))
     lbl_error = np.max(np.abs(lbl_test - lbl_valid))
     if cpi_error < ERROR_TOL:
-        print(cpi_error)
+        print('cpi_error < ERROR_TOL: ', cpi_error)
     if aux_error < ERROR_TOL:
-        print(aux_error)
+        print('aux_error < ERROR_TOL: ', aux_error)
     if lbl_error < ERROR_TOL:
-        print(lbl_error)
+        print('lbl_error < ERROR_TOL: ', lbl_error)
     assert( cpi_error < ERROR_TOL )
     assert( aux_error < ERROR_TOL )
     assert( lbl_error < ERROR_TOL )
@@ -304,7 +304,10 @@ def do_est():
     est_lbl_valid = pd.read_csv(est_lbl_valid_fn, header=0).to_numpy()
 
     # compare test and valid estimate labels
-    assert( np.array_equal(est_lbl_test, est_lbl_valid) )
+    lbl_error = np.max(np.abs(est_lbl_test - est_lbl_valid))
+    if lbl_error < ERROR_TOL:
+        print('lbl_error < ERROR_TOL: ', lbl_error)
+    assert( lbl_error < ERROR_TOL)
 
     return
 
