@@ -72,10 +72,11 @@ for (i in 1:length(rep_idx)) {
 }
 
 # MJL: uncomment to debug w/o parallel
-# ret_ind = list()
+# res_ind = list()
 # for (i in 1:length(rep_idx)) {
-#     ret_ind[[i]] = bisse_mle( my_input[[i]] )    
+#     res_ind[[i]] = bisse_mle( my_input[[i]] )    
 # }
+# bisse_mle( my_input[[100]] )    
 
 # gather MLEs
 future::plan("multisession", workers = num_cores)

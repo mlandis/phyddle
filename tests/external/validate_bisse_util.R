@@ -4,8 +4,8 @@ library(nloptr)
 bisse_mle = function(x) {
     
     # defaults
-    num_trials   = 2
-    num_scouts   = 10
+    num_trials   = 10
+    num_scouts   = 30
     num_states   = 2
     max_model_runtime = 5
     
@@ -23,20 +23,22 @@ bisse_mle = function(x) {
     names(dat) = dat_df$taxa
     dat = dat[phy$tip.label]
     
-    
     # generate MLE
     par_mle = NULL
     while (is.null(par_mle)) {
         par_mle = tryCatch(
         {
             # first guess
-            birth = par_true[1:2]
-            death = par_true[3]
-            Q = get_random_mk_transition_matrix(num_states, rate_model="ER", max_rate=par_true[4])
+            birth = par_true[1:2] * exp(runif(2, -1, 1))
+            death = par_true[3] * exp(runif(2, -1, 1))
+            state_rate = par_true[4] * exp(runif(1, -1, 1))
+            Q = matrix(state_rate, ncol=2, nrow=2)
+            diag(Q) = 0; diag(Q) = -rowSums(Q)
+            
             first_guess = list(
-                birth_rates = birth * exp(2 * runif(2, -0.5, 0.5)),
-                death_rates = death * exp(2 * runif(2, -0.5, 0.5)),
-                transition_matrix = exp(Q * runif(1, -0.5, 0.5))
+                birth_rates = birth,
+                death_rates = death,
+                transition_matrix = exp(Q )
             )
             
             # bounds
@@ -45,11 +47,12 @@ bisse_mle = function(x) {
                 death_rates=0,
                 transition_matrix=0
             )
-            # upper=list(
-            #     birth_rates=1,
-            #     death_rates=1,
-            #     transition_matrix=0.1
-            # )
+            
+            upper=list(
+                birth_rates=1,
+                death_rates=1,
+                transition_matrix=0.1
+            )
             
             # get MLE
             ret=fit_musse(
@@ -62,7 +65,7 @@ bisse_mle = function(x) {
                 first_guess=first_guess,
                 #root_conditioning="crown",
                 lower=lower,
-                #upper=upper,
+                upper=upper,
                 #optim_algorithm="nloptr",
                 Nstates=num_states,
                 Ntrials=num_trials,
