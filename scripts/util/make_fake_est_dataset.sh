@@ -1,5 +1,5 @@
 PROJ=$1
-REP_IDX="1"
+REP_IDX="0"
 #REP_IDX=$2
 
 SIM_DIR="../workspace/simulate/${PROJ}"
