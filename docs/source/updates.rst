@@ -3,7 +3,7 @@ Updates
 
 The complete commit history for phyddle is located here: https://github.com/mlandis/phyddle/commits/main
 
-**phyddle v0.0.10** -- (in progress)
+**phyddle v0.0.10** -- 23.11.10
   
   * Basic GitHub Action tests working
   * Format step faster (removed extraneous and costly deepcopy calls)
