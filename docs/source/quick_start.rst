@@ -26,10 +26,10 @@ and then modify it.
 
 .. code-block:: shell
 
-  phyddle --make_cfg -c config.phy 
+  phyddle --make_cfg -c config.py 
   vim config.py
 
-Let's assume ``config.py`` specifies a phyddle analysis with 500 simulated 
+Let's assume ``config.py`` specifies a phyddle analysis with 1000 simulated 
 training examples, using R for simulation. 
 
 .. code-block:: shell
@@ -48,7 +48,7 @@ training set, for example:
 
   # [S]imulate new training examples, stored in
   # workspace/simulate/my_project
-  phyddle -s S -c config.py --sim_more 14500
+  phyddle -s S -c config.py --sim_more 14000
 
   # [F]ormat all raw_data examples as tensors,
   # stored in workspace/format/my_project

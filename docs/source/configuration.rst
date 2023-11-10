@@ -41,7 +41,7 @@ if desired.
     # Config:       Default phyddle config file                                    #
     # Authors:      Michael Landis and Ammon Thompson                              #
     # Date:         230804                                                         #
-    # Description:  Simple birth-death and equal-rates CTMC model in R using ape   #
+    # Description:  Simple BiSSE model                                             #
     #==============================================================================#
 
     args = {
@@ -49,7 +49,7 @@ if desired.
         #-------------------------------#
         # Project organization          #
         #-------------------------------#
-        'proj'    : 'R_example',                # project name(s)
+        'proj'    : 'example',                  # project name(s)
         'step'    : 'SFTEP',                    # step(s) to run
         'verbose' : 'T',                        # print verbose phyddle output?
         'sim_dir' : '../workspace/simulate',    # directory for simulated data
@@ -63,48 +63,51 @@ if desired.
         # Multiprocessing               #
         #-------------------------------#
         'use_parallel'   : 'T',                 # use multiprocessing to speed up jobs?
-        'num_proc'       : 10,                  # how many CPUs to use (-2 means all but 2)
+        'num_proc'       : -2,                  # how many CPUs to use (-2 means all but 2)
 
         #-------------------------------#
         # Simulate Step settings        #
         #-------------------------------#
-        'sim_command'       : 'Rscript sim/R/sim_one.R', # exact command string, no args
+        'sim_command'       : 'Rscript sim/R/sim_one.R',  # exact command string
         'sim_logging'       : 'verbose',        # verbose, compressed, or clean
         'start_idx'         : 0,                # first simulation replicate index
         'end_idx'           : 1000,             # last simulation replicate index
-        'sim_batch_size'    : 1,
+        'sim_batch_size'    : 10,               # number of replicates per simulation
 
         #-------------------------------#
         # Format Step settings          #
         #-------------------------------#
-        'num_char'          : 2,                # number of evolutionary characters
-        'num_states'        : 3,                # number of states per character
+        'encode_all_sim'    : 'T',
+        'num_char'          : 1,                # number of evolutionary characters
+        'num_states'        : 2,                # number of states per character
         'min_num_taxa'      : 10,               # min number of taxa for valid sim
         'max_num_taxa'      : 500,              # max number of taxa for valid sim
+        'tree_width'        : 500,              # tree width category used to train network
         'tree_encode'       : 'extant',         # use model with serial or extant tree
         'brlen_encode'      : 'height_brlen',   # how to encode phylo brlen? height_only or height_brlen
         'char_encode'       : 'integer',        # how to encode discrete states? one_hot or integer
-        'tree_width_cats'   : [ 200, 500 ],     # tree width categories for phylo-state tensors
         'param_est'         : [                 # model parameters to predict (labels)
-            'birth', 'death', 'state_rate'
+            'birth_1', 'birth_2', 'death', 'state_rate'
         ],
-        'param_data'        : [],               # model parameters that are known (aux. data)
+        'param_data'        : [                 # model parameters that are known (aux. data)
+            'sample_frac'
+        ],
         'tensor_format'     : 'hdf5',           # save as compressed HDF5 or raw csv
-        'char_format'       : 'nexus',
+        'char_format'       : 'csv',
         'save_phyenc_csv'   : 'F',              # save intermediate phylo-state vectors to file
 
         #-------------------------------#
         # Train Step settings           #
         #-------------------------------#
         'trn_objective'     : 'param_est',      # what is the learning task? param_est or model_test
-        'tree_width'        : 200,              # tree width category used to train network
-        'num_epochs'        : 20,               # number of training intervals (epochs)
+        'num_epochs'        : 10,               # number of training intervals (epochs)
         'prop_test'         : 0.05,             # proportion of sims in test dataset
         'prop_val'          : 0.05,             # proportion of sims in validation dataset
         'prop_cal'          : 0.20,             # proportion of sims in CPI calibration dataset
+        'combine_test_val'  : 'T',
         'cpi_coverage'      : 0.95,             # coverage level for CPIs
-        'cpi_asymmetric'    : 'T',              # upper/lower (True) or symmetric (False) CPI adjustments
-        'trn_batch_size'    : 128,              # number of samples in each training batch
+        'cpi_asymmetric'    : 'T',              # upper/lower ('T') or symmetric ('F') CPI adjustments
+        'batch_size'        : 1024,             # number of samples in each training batch
         'loss'              : 'mse',            # loss function for learning
         'optimizer'         : 'adam',           # optimizer for network weight/bias parameters
         'metrics'           : ['mae', 'acc'],   # recorded training metrics
@@ -112,7 +115,7 @@ if desired.
         #-------------------------------#
         # Estimate Step settings        #
         #-------------------------------#
-        'est_prefix'     : 'new.1',             # prefix for new dataset to predict
+        'est_prefix'     : 'new.0',             # prefix for new dataset to predict
 
         #-------------------------------#
         # Plot Step settings            #
@@ -143,12 +146,14 @@ adjusted with the command line using the ``--help`` option:
 
 	$ phyddle --help
     
-    usage: phyddle [-h] [-c] [-p] [-s] [-v] [-f] [--make_cfg] [--use_parallel] [--num_proc] [--sim_dir] [--fmt_dir] [--trn_dir] [--est_dir] [--plt_dir] [--log_dir]
-               [--sim_command] [--sim_logging] [--start_idx] [--end_idx] [--sim_more] [--sim_batch_size] [--encode_all_sim] [--num_char] [--num_states]
-               [--min_num_taxa] [--max_num_taxa] [--downsample_taxa] [--tree_width] [--tree_encode] [--brlen_encode] [--char_encode] [--param_est] [--param_data]
-               [--char_format] [--tensor_format] [--save_phyenc_csv] [--trn_objective] [--num_epochs] [--trn_batch_size] [--prop_test] [--prop_val] [--prop_cal]
-               [--cpi_coverage] [--cpi_asymmetric] [--loss] [--optimizer] [--metrics] [--est_prefix] [--plot_train_color] [--plot_label_color] [--plot_test_color]
-               [--plot_val_color] [--plot_aux_color] [--plot_est_color]
+    usage: phyddle [-h] [-c] [-p] [-s] [-v] [-f] [--make_cfg] [--use_parallel] [--num_proc] [--sim_dir] [--fmt_dir] [--trn_dir]
+               [--est_dir] [--plt_dir] [--log_dir] [--sim_command] [--sim_logging] [--start_idx] [--end_idx] [--sim_more]
+               [--sim_batch_size] [--encode_all_sim] [--num_char] [--num_states] [--min_num_taxa] [--max_num_taxa]
+               [--downsample_taxa] [--tree_width] [--tree_encode] [--brlen_encode] [--char_encode] [--param_est] [--param_data]
+               [--char_format] [--tensor_format] [--save_phyenc_csv] [--trn_objective] [--num_epochs] [--trn_batch_size]
+               [--prop_test] [--prop_val] [--prop_cal] [--cpi_coverage] [--cpi_asymmetric] [--loss] [--optimizer] [--metrics]
+               [--est_prefix] [--plot_train_color] [--plot_label_color] [--plot_test_color] [--plot_val_color] [--plot_aux_color]
+               [--plot_est_color]
 
     Software to fiddle around with deep learning for phylogenetic models
 
@@ -159,7 +164,7 @@ adjusted with the command line using the ``--help`` option:
     -s , --step          Pipeline step(s) defined with (S)imulate, (F)ormat, (T)rain, (E)stimate, (P)lot, or (A)ll
     -v , --verbose       Verbose output to screen?
     -f, --force          Arguments override config file settings
-    --make_cfg           Write default config file to 'config_default.py'?'
+    --make_cfg           Write default config file to '__config_default.py'?'
     --use_parallel       Use parallelization? (recommended)
     --num_proc           Number of cores for multiprocessing (-N for all but N)
     --sim_dir            Directory for raw simulated data

@@ -34,16 +34,16 @@ serially sampled viruses or fossils should be analyzed using
 
 .. code-block:: shell
    
-    $ cat workspace/raw_data/example/sim.3.tre
+    $ cat workspace/simulate/example/sim.0.tre
     ((((1:0.35994691486501296,2:0.35994691486501296):1.389952711060852,(3:1.5810568349100933,(4:0.5830569936279364,5:0.5830569936279364):0.9979998412821569):0.1688427910157717):5.655066077200624,6:7.404965703126489):0.3108578683347094,(7:0.7564319839861859,8:0.7564319839861859):6.959391587475013):2.2841764285388018;
 
 
-Character data matrices are encoded as raw data in Nexus format. Here is an
+Character data may be encoded in Nexus format (`char_format = 'nex'`). Here is an
 example of a matrix with N=8 taxa and M=3 binary characters.
 
 .. code-block:: shell
 
-    $ cat workspace/raw_data/example/sim.3.dat.nex
+    $ cat workspace/simulate/example/sim.0.dat.nex
     #NEXUS
     Begin DATA;
     Dimensions NTAX=8 NCHAR=3
@@ -60,16 +60,34 @@ example of a matrix with N=8 taxa and M=3 binary characters.
     ;
     END;
 
+Character data may also be encoded in csv format (`char_format = 'csv'`). For
+example:
+.. code-block:: shell
 
-Some models can make use of auxiliary data. For example, the recovery period
-of a virus may be considered a "known" parameter in epidemiological studies.
-These auxiliary data are encoded as raw data in comma-separated value format
-with column headers.
+    $ cat workspace/simulate/example/sim.0.dat.nex
+    1,0,0,1
+    2,0,1,0
+    3,1,0,0
+    4,1,0,0
+    5,0,0,1
+    6,0,0,1
+    7,1,0,0
+    8,0,1,0
+
+
+Some models will accept "known" data-generating parameters as input. For example,
+if not all taxa were included in the phylogeny, a model might accept a sampling
+fraction label as input. Any labels that are marked under the `param_data`
+setting will be encoded into the auxiliary data tensor during formatting. Example:
 
 .. code-block:: shell
 
-   recovery_0,recovery_1,recovery_2
-   0.113,0.120,0.115
+    $ cat new.0.labels.csv
+    birth_1,birth_2,death,state_rate,sample_frac
+    0.5728,0.9082,0.1155,0.0372,0.1114
+
+where the setting `param_data == ['sample_frac']` would ensure that only the
+`sample_frac` entry is included in auxiliary data.
 
 .. _Tensor_Formats:
 
@@ -249,7 +267,7 @@ be estimated. For example, the epidemiologists may assume they know the rate of
 infection recovery (gamma) based on public health or clinical data. Parameters
 may be treated as data by providing the labels for those parameters in the
 ``param_data`` entry of the config file. For example, setting ``'param_data' :
-[ 'recovery_0', 'S0_0' ]`` could be used to inform phyddle that the recovery
+[ 'sample_frac' ]`` could be used to inform phyddle that the recovery
 rate and susceptible population sizes for location 0 are known for a
 phylogenetic SIR analysis. 
 

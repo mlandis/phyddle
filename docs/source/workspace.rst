@@ -3,11 +3,6 @@
 Workspace
 =========
 
-.. note::
-
-    (incomplete) Important: This section assume the project name is 'example'
-    while actual projects will likely use different names.
-
 This section describes how phyddle organizes files and directories in its
 workspace. Visit :ref:`Formats` to learn more about file formats. Visit
 :ref:`Configuration` to learn more about managing directories and projects
@@ -48,7 +43,8 @@ work into these directories:
 	workspace/plot/example           # output of Plot step
 	workspace/log/example            # analysis logs
 
-Next, we give an overview of the standard files and formats corresponding to each pipeline directory.
+Next, we give an overview of the standard files and formats corresponding to
+each pipeline directory.
 
 
 ``simulate``
@@ -60,11 +56,13 @@ produce the following files
 
 .. code-block:: shell
 
-    workspace/simulate/example/sim.0.tre              # Newick string
-    workspace/simulate/example/sim.0.dat.nex          # Nexus file
-    workspace/simulate/example/sim.0.param_row.csv    # data-generating params
+    workspace/simulate/example/sim.0.tre              # tree file
+    workspace/simulate/example/sim.0.dat.csv          # data file
+    workspace/simulate/example/sim.0.labels.csv       # data-generating params
 
-
+Each tree file contains a simple Newick string. Each data file contains state
+data either in Nexus format (`.dat.nex`) or simple comma-separated value format
+(`.dat.csv`) depending on the setting for `char_format`.
 
 ``format``
 ----------
@@ -116,26 +114,23 @@ over twenty times smaller than equivalent uncompressed CSV formatted tensors.
 ``train``
 ---------
 
-Training a network creates the following files in the ``workspace/train/my_project`` directory:
+Training a network creates the following files in the ``workspace/train/example``
+directory:
 
 .. code-block:: shell
 
-    network_nt200.cpi_adjustments.csv
-    network_nt200.hdf5
-    network_nt200.train_aux_data_norm.csv
-    network_nt200.train_est.csv
-    network_nt200.train_est.labels.csv
-    network_nt200.train_history.json
-    network_nt200.train_label_est_nocalib.csv
-    network_nt200.train_label_norm.csv
-    network_nt200.train_true.labels.csv
+    network_nt500.cpi_adjustments.csv
+    network_nt500.train_aux_data_norm.csv
+    network_nt500.train_est.labels.csv
+    network_nt500.train_history.json
+    network_nt500.train_label_est_nocalib.csv
+    network_nt500.train_label_norm.csv
+    network_nt500.train_true.labels.csv
+    ./network_nt500_trained_model/
 
-For example, the network prefix ``sim_batchsize128_numepoch20_nt500`` indicated
-a network trained with a batch size of 128 samples for 20 epochs on the tree
-width size-category of max. 500 taxa.
-
-Descriptions of the files are as follows, with ``train_prefix`` omitted for brevity:
-* ``network.hdf5``: a saved copy of the trained neural network that can be loaded by Tensorflow
+The prefix ``network_nt500`` indicates the results are appropriate for tensors
+with tree width of 500. Descriptions of the files are as follows, with the prefix omitted for brevity:
+* ``./network_nt500_trained_model/``: a directory with a copy of the trained neural network that can be loaded by Tensorflow
 * ``train_label_norm.csv`` and ``train_aux_data_norm.csv``: the location-scale values from the training dataset to (de)normalize the labels and auxiliary data from any dataset
 * ``train_true.labels.csv``: the true values of labels for the training and test datasets, where columns correspond to estimated labels (e.g. model parameters)
 * ``train_est.labels.csv``: the trained network estimates of labels for the training and test datasets, with calibrated prediction intervals, where columns correspond to point estimates and estimates for lower CPI and upper CPI bounds for each named label (e.g. model parameter)
@@ -154,24 +149,27 @@ estimates in the same directory, located at e.g.
 
 .. code-block:: shell
 
-    new.1.tre               # input:             initial tree
-    new.1.dat.nex           # input:             character data
-    new.1.known_params.csv  # input:             params for aux. data (optional)
-    new.1.extant.tre        # intermediate:      pruned tree                                
-    new.1.phy_data.csv      # intermediate:      CPV+S tensor data 
-    new.1.aux_data.csv      # intermediate:      aux. data tensor data 
-    new.1.info.csv          # intermediate:      formatting info
-    new.1.network_nt200.est_labels.csv  # output: estimates
+    new.0.tre                   # input:             initial tree
+    new.0.dat.csv               # input:             character data
+    new.0.labels.csv            # input:             contains known parameters (optional)
+    new.0.extant.tre            # intermediate:      pruned tree                                
+    new.0.phy_data.csv          # intermediate:      CPV+S tensor data 
+    new.0.aux_data.csv          # intermediate:      aux. data tensor data 
+    new.0.info.csv              # intermediate:      formatting info
+    new.0.emp_est_labels.csv    # output:            empirical label estimates for new.0
+    new.0.test_est.labels.csv   # output:            label estimates for test simulations
+    new.0.test_true.labels.csv  # output:            true label values for test simulations
 
 All files have previously been explained in the ``simulate``, ``format``,
 or ``train`` workspace sections, except for two.
 
-The ``known_params.csv`` file is optional, and is used to provide "known"
+The ``labels.csv`` file is optional, and is used to provide "known"
 data-generating parameter values to the network for training, as part of the
 auxiliary dataset. If provided, it contains a row of names for known parameters
-followed by a row of respective values.
+followed by a row of respective values. Only parameters that match entries in
+the `param_data` setting are used.
 
-The ``est_labels.csv`` file reports the point estimates and lower and upper
+The ``emp_est_labels.csv`` file reports the point estimates and lower and upper
 CPI estimates for all targetted parameters. Estimates for parameters appear
 across columns, where columns are grouped first by label (e.g. parameter) and
 then statistic (e.g. value, lower-bound, upper-bound). For example:
@@ -182,6 +180,9 @@ then statistic (e.g. value, lower-bound, upper-bound). For example:
    w_0_value,w_0_lower,w_0_upper,e_0_value,e_0_lower,e_0_upper,d_0_1_value,d_0_1_lower,d_0_1_upper,b_0_1_value,b_0_1_lower,b_0_1_upper
    0.2867125345651129,0.1937433853918723,0.45733220552078013,0.02445545359384659,0.002880695707341881,0.10404499205878459,0.4502031713887769,0.1966340488593367,0.5147956690178682,0.06199703190510973,0.0015074254823161301,0.27544015163806645
 
+
+The `test_est.labels.csv` and `test_true.labels.csv` contain estimated and true
+label values for the simulated test dataset that was left aside during training.
 
 
 ``plot``

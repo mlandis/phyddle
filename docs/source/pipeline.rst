@@ -85,89 +85,100 @@ the following code
 
 .. code-block:: r
 
-  #!/usr/bin/env Rscript
-  library(ape)
+    #!/usr/bin/env Rscript
+    library(castor)
+    library(ape)
 
-  # example command string
-  # cd ~/projects/phyddle/script
-  # ./sim/R/sim_one.R ../workspace/simulate/R_example/sim.0
+    # disable warnings
+    options(warn = -1)
 
-  # arguments
-  args        = commandArgs(trailingOnly = TRUE)
-  out_path    = args[1]
-  start_idx   = as.numeric(args[2])
-  batch_size  = as.numeric(args[3])
-  rep_idx     = start_idx:(start_idx+batch_size-1)
-  num_rep     = length(rep_idx)
+    # example command string to simulate for "sim.1" through "sim.10"
+    # cd ~/projects/phyddle/scripts
+    # ./sim/R/sim_one.R ../workspace/simulate/example 1 10
 
-  # filesystem
-  tmp_fn  = paste0(out_path, "/sim.", rep_idx) # sim path prefix
-  phy_fn  = paste0(tmp_fn, ".tre")             # newick string
-  dat_fn  = paste0(tmp_fn, ".dat.nex")         # nexus string
-  lbl_fn  = paste0(tmp_fn, ".param_row.csv")   # csv of params
-    
-  #######################################
-  # You can do whatever you want below. #
-  #######################################
+    # arguments
+    args        = commandArgs(trailingOnly = TRUE)
+    out_path    = args[1]
+    start_idx   = as.numeric(args[2])
+    batch_size  = as.numeric(args[3])
+    rep_idx     = start_idx:(start_idx+batch_size-1)
+    num_rep     = length(rep_idx)
+    get_mle     = FALSE
 
-  # birth-death model setup
-  birth           = runif(num_rep,0,1)
-  death           = birth * runif(num_rep)
-  max_time        = runif(num_rep,0,12)
+    # filesystem
+    tmp_fn = paste0(out_path, "/sim.", rep_idx)   # sim path prefix
+    phy_fn = paste0(tmp_fn, ".tre")               # newick file
+    dat_fn = paste0(tmp_fn, ".dat.csv")           # csv of data
+    lbl_fn = paste0(tmp_fn, ".labels.csv")        # csv of labels (e.g. params)
 
-  # character model setup
-  num_char        = 2
-  num_states      = 3
-  state_rate      = runif(num_rep,0,1)
-  state_freqs     = rep(1/num_states, num_states)
-  state_labels    = 0:(num_states-1) #, collapse="")
-  root.value      = sample(x=num_states, size=num_rep,
-                           prob=state_freqs, replace=T)
+    # dataset setup
+    num_states = 2
+    tree_width = 500
+    label_names = c( paste0("birth_",1:num_states), "death", "state_rate", "sample_frac")
 
-  # simulate each replicate
-  for (i in 1:num_rep) {
+    # simulate each replicate
+    for (i in 1:num_rep) {
 
-      # simulate tree
-      phy = rbdtree(birth=birth[i],
-                    death=death[i],
-                    Tmax=max_time[i])
+        # set RNG seed
+        set.seed(rep_idx[i])
 
-      # simulate states for each character
-      dat = c()
-      for (j in 1:num_char) {
-          dat_new = rTraitDisc(phy,
-                               model="ER",
-                               k=num_states,
-                               rate=state_rate[i],
-                               freq=state_freqs,
-                               root.value=root.value[i],
-                               states=state_labels)
-          dat = cbind(dat, dat_new)
-      }
+        # rejection sample
+        num_taxa = 0
+        while (num_taxa < 10) {
 
-      # ape::rTraitDisc ignores state_labels??
-      # convert to base-0
-      dat = dat - 1
+            # simulation conditions
+            max_taxa = runif(1, 10, 5000)
+            max_time = runif(1, 1, 100)
+            sample_frac = 1.0
+            if (max_taxa > tree_width) {
+                sample_frac = tree_width / max_taxa
+            }
 
-      # construct training labels (paramaters)
-      labels = c(birth[i], death[i], state_rate[i])
-      names(labels) = c("birth", "death", "state_rate")
-      df <- data.frame(t(labels))
+            # simulate parameters
+            Q = get_random_mk_transition_matrix(num_states, rate_model="ER", max_rate=0.1)
+            birth = runif(num_states, 0, 1)
+            death = min(birth) * runif(1, 0, 1.0)
+            death = rep(death, num_states)
+            parameters = list(
+                birth_rates=birth,
+                death_rates=death,
+                transition_matrix_A=Q
+            )
 
-      # save output
-      write.tree(phy, file=phy_fn[i])
-      write.nexus.data(dat, file=dat_fn[i], format="standard", datablock=TRUE)
-      write.csv(df, file=lbl_fn[i], row.names=FALSE, quote=F)
-  }
+            # simulate tree/data
+            res_sim = simulate_dsse(
+                    Nstates=num_states,
+                    parameters=parameters,
+                    sampling_fractions=sample_frac,
+                    max_extant_tips=max_taxa,
+                    max_time=max_time,
+                    include_labels=T,
+                    no_full_extinction=T)
+
+            # check if tree is valid
+            num_taxa = length(res_sim$tree$tip.label)
+        }
+
+        # save tree
+        tree_sim = res_sim$tree
+        write.tree(tree_sim, file=phy_fn[i])
+
+        # save data
+        state_sim = res_sim$tip_states - 1
+        df_state = data.frame(taxa=tree_sim$tip.label, data=state_sim)
+        write.csv(df_state, file=dat_fn[i], row.names=F, quote=F)
+
+        # save learned labels (e.g. estimated data-generating parameters)
+        label_sim = c(birth[1], birth[2], death[1], Q[1,2], sample_frac)
+        names(label_sim) = label_names
+        df_label = data.frame(t(label_sim))
+        write.csv(df_label, file=lbl_fn[i], row.names=F, quote=F)
+
+    }
 
 
-  ###################################################
-  # Have phyddle provide useful messages concerning #
-  # files exist and formats are valid.              #
-  ###################################################
-
-  # done!
-  quit()
+    # done!
+    quit()
   
 
 This script has a few important features. First, the simulator is entirely
@@ -176,7 +187,7 @@ provided a runtime argument (``args[1]``) to generate filenames for the training
 example and a batch size argument (``args[2]``) that determines how many
 simulated datasets will be generated when the script is run. Third, output
 for the Newick string is stored into a ``.tre`` file, for the character
-matrix data into a ``.dat.nex`` Nexus file, and for the training labels
+matrix data into a ``.dat.csv`` file, and for the training labels
 into a comma-separated ``.csv`` file.
 
 Now that we understand the script, we need to configure phyddle to call it
@@ -380,7 +391,8 @@ Estimate
 :ref:`Estimate` loads the simulated test dataset saved with the format indicated
 by ``tensor_format`` stored in ``<fmt_dir>/<fmt_proj>``. :ref:`Estimate` also
 loads a new dataset stored in ``<est_dir>/<est_proj>`` with filenames
-``<est_prefix.tre>`` and ``<est_prefix>.dat.nex``, if the new dataset exists.
+``<est_prefix.tre>`` and ``<est_prefix>.dat.nex`` or ``<est_prefix>.dat.csv``,
+if the new dataset exists.
 
 This step then loads a pretrained network for a given ``tree_width`` and
 uses it to estimate parameter values and calibrated prediction intervals
@@ -444,7 +456,7 @@ The output of phyddle pipeline analysis will resemble this:
   ┃                      ┃
   ┗━┳━▪ Simulating... ▪━━┛
     ┃
-    ┗━━━▪ output: ../workspace/simulate/R_example
+    ┗━━━▪ output: ../workspace/simulate/example
 
   ▪ Start time of 10:18:16
   ▪ Simulating raw data
@@ -454,8 +466,8 @@ The output of phyddle pipeline analysis will resemble this:
   ┃                      ┃
   ┗━┳━▪ Formatting... ▪━━┛
     ┃
-    ┣━━━▪ input:  ../workspace/simulate/R_example
-    ┗━━━▪ output: ../workspace/format/R_example
+    ┣━━━▪ input:  ../workspace/simulate/example
+    ┗━━━▪ output: ../workspace/format/example
 
   ▪ Start time of 10:21:41
   ▪ Encoding raw data as tensors
@@ -470,8 +482,8 @@ The output of phyddle pipeline analysis will resemble this:
   ┃                      ┃
   ┗━┳━▪ Training...   ▪━━┛
     ┃
-    ┣━━━▪ input:  ../workspace/format/R_example
-    ┗━━━▪ output: ../workspace/train/R_example
+    ┣━━━▪ input:  ../workspace/format/example
+    ┗━━━▪ output: ../workspace/train/example
 
   ▪ Start time of 10:24:04
   ▪ Loading input
@@ -486,10 +498,10 @@ The output of phyddle pipeline analysis will resemble this:
   ┃                      ┃
   ┗━┳━▪ Estimating... ▪━━┛
     ┃
-    ┣━━━▪ input:  ../workspace/format/R_example
-    ┃             ../workspace/estimate/R_example
-    ┃             ../workspace/train/R_example
-    ┗━━━▪ output: ../workspace/estimate/R_example
+    ┣━━━▪ input:  ../workspace/format/example
+    ┃             ../workspace/estimate/example
+    ┃             ../workspace/train/example
+    ┗━━━▪ output: ../workspace/estimate/example
 
   ▪ Start time of 10:24:14
   ▪ Loading input
@@ -501,10 +513,10 @@ The output of phyddle pipeline analysis will resemble this:
   ┃                      ┃
   ┗━┳━▪ Plotting...   ▪━━┛
     ┃
-    ┣━━━▪ input:  ../workspace/format/R_example
-    ┃             ../workspace/train/R_example
-    ┃             ../workspace/estimate/R_example
-    ┗━━━▪ output: ../workspace/plot/R_example
+    ┣━━━▪ input:  ../workspace/format/example
+    ┃             ../workspace/train/example
+    ┃             ../workspace/estimate/example
+    ┗━━━▪ output: ../workspace/plot/example
 
   ▪ Start time of 10:24:14
   ▪ Loading input
