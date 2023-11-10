@@ -24,7 +24,7 @@ args = {
     # Multiprocessing               #
     #-------------------------------#
     'use_parallel'   : 'T',                 # use multiprocessing to speed up jobs?
-    'num_proc'       : 10,                  # how many CPUs to use (-2 means all but 2)
+    'num_proc'       : -2,                  # how many CPUs to use (-2 means all but 2)
 
     #-------------------------------#
     # Simulate Step settings        #
@@ -33,39 +33,42 @@ args = {
     'sim_logging'       : 'verbose',        # verbose, compressed, or clean
     'start_idx'         : 0,                # first simulation replicate index
     'end_idx'           : 1000,             # last simulation replicate index
-    'sim_batch_size'    : 1,
+    'sim_batch_size'    : 10,
 
     #-------------------------------#
     # Format Step settings          #
     #-------------------------------#
-    'num_char'          : 2,                # number of evolutionary characters
-    'num_states'        : 3,                # number of states per character
+    'encode_all_sim'    : 'T',
+    'num_char'          : 1,                # number of evolutionary characters
+    'num_states'        : 2,                # number of states per character
     'min_num_taxa'      : 10,               # min number of taxa for valid sim
     'max_num_taxa'      : 500,              # max number of taxa for valid sim
+    'tree_width'        : 500,              # tree width category used to train network
     'tree_encode'       : 'extant',         # use model with serial or extant tree
     'brlen_encode'      : 'height_brlen',   # how to encode phylo brlen? height_only or height_brlen
     'char_encode'       : 'integer',        # how to encode discrete states? one_hot or integer
-    'tree_width_cats'   : [ 200, 500 ],     # tree width categories for phylo-state tensors
     'param_est'         : [                 # model parameters to predict (labels)
-        'birth', 'death', 'state_rate'
+        'birth_1', 'birth_2', 'death', 'state_rate'
     ],
-    'param_data'        : [],               # model parameters that are known (aux. data)
+    'param_data'        : [                 # model parameters that are known (aux. data)
+        'sample_frac'
+    ],
     'tensor_format'     : 'hdf5',           # save as compressed HDF5 or raw csv
-    'char_format'       : 'nexus',
+    'char_format'       : 'csv',
     'save_phyenc_csv'   : 'F',              # save intermediate phylo-state vectors to file
 
     #-------------------------------#
     # Train Step settings           #
     #-------------------------------#
     'trn_objective'     : 'param_est',      # what is the learning task? param_est or model_test
-    'tree_width'        : 200,              # tree width category used to train network
-    'num_epochs'        : 20,               # number of training intervals (epochs)
+    'num_epochs'        : 10,               # number of training intervals (epochs)
     'prop_test'         : 0.05,             # proportion of sims in test dataset
     'prop_val'          : 0.05,             # proportion of sims in validation dataset
     'prop_cal'          : 0.20,             # proportion of sims in CPI calibration dataset
+    'combine_test_val'  : 'T',
     'cpi_coverage'      : 0.95,             # coverage level for CPIs
-    'cpi_asymmetric'    : 'T',              # upper/lower (True) or symmetric (False) CPI adjustments
-    'trn_batch_size'    : 128,              # number of samples in each training batch
+    'cpi_asymmetric'    : 'T',              # upper/lower ('T') or symmetric ('F') CPI adjustments
+    'batch_size'        : 1024,             # number of samples in each training batch
     'loss'              : 'mse',            # loss function for learning
     'optimizer'         : 'adam',           # optimizer for network weight/bias parameters
     'metrics'           : ['mae', 'acc'],   # recorded training metrics
@@ -73,7 +76,7 @@ args = {
     #-------------------------------#
     # Estimate Step settings        #
     #-------------------------------#
-    'est_prefix'     : 'new.1',             # prefix for new dataset to predict
+    'est_prefix'     : 'new.0',             # prefix for new dataset to predict
 
     #-------------------------------#
     # Plot Step settings            #
