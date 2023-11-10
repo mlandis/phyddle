@@ -37,22 +37,27 @@ tf.config.experimental.enable_op_determinism()
 def test_sim():
     do_sim()
     check_sim()
+    return
 
 def test_fmt():
     do_fmt()
     check_fmt()
+    return
 
 def test_trn():
     do_trn()
     check_trn()
+    return
 
 def test_est():
     do_est()
     check_est()
+    return
 
 def test_plt():
     do_plt()
     check_plt()
+    return
 
 #-----------------------------------------------------------------------------#
 
@@ -103,13 +108,13 @@ def check_sim():
     assert( str(phy_test) == str(phy_valid) )
 
     # confirm test and valid data match
-    dat_valid = util.convert_csv_to_array(valid_dir + '/sim.0.dat.nex', 'integer', 2)
-    dat_test = util.convert_csv_to_array(test_dir + '/sim.0.dat.nex', 'integer', 2)
+    dat_valid = util.convert_csv_to_array(valid_dir + '/sim.0.dat.csv', 'integer', 2)
+    dat_test = util.convert_csv_to_array(test_dir + '/sim.0.dat.csv', 'integer', 2)
     assert(np.array_equal(dat_valid, dat_test))
 
     # confirm test and valid params match
-    param_valid = util.convert_csv_to_array(valid_dir + '/sim.0.param_row.csv', 'numeric', 2)
-    param_test = util.convert_csv_to_array(test_dir + '/sim.0.param_row.csv', 'numeric', 2)
+    param_valid = util.convert_csv_to_array(valid_dir + '/sim.0.labels.csv', 'numeric', 2)
+    param_test = util.convert_csv_to_array(test_dir + '/sim.0.labels.csv', 'numeric', 2)
     assert(np.array_equal(param_valid, param_test))
 
     # success
@@ -320,10 +325,10 @@ def do_est():
     my_args = util.load_config('scripts/config_R.py', arg_overwrite=True, args=cmd_args)
 
     # copy minimal input fileset from valid into test
-    input_files = [ 'new.0.tre', 'new.0.dat.nex', 'new.0.known_param.csv' ]
+    input_files = [ 'tre', 'dat.csv', 'labels.csv' ]
     os.makedirs(test_dir, exist_ok=True)
     for fn in input_files:
-        shutil.copyfile( f'{valid_dir}/{fn}', f'{test_dir}/{fn}' )
+        shutil.copyfile( f'{sim_dir}/valid/sim.0.{fn}', f'{est_dir}/test/new.0.{fn}' )
 
     # make formatted dataset
     est_prefix_path = f'tests/workspace/estimate/test/{est_prefix}'

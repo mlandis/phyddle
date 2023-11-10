@@ -6,7 +6,7 @@ SIM_DIR="../workspace/simulate/${PROJ}"
 EST_DIR="../workspace/estimate/${PROJ}"
 mkdir -p ${EST_DIR}
 
-EXT=("tre" "dat.nex" "dat.csv")
+EXT=("tre" "dat.nex" "dat.csv" "labels.csv")
 for ext in "${EXT[@]}"; do
     # set source/destination filenames
     SRC="${SIM_DIR}/sim.${REP_IDX}.${ext}"
