@@ -10,7 +10,7 @@ args = {
     #-------------------------------#
     # Project organization          #
     #-------------------------------#
-    'proj'    : 'example',                  # project name(s)
+    'proj'    : 'my_project',               # project name(s)
     'step'    : 'SFTEP',                    # step(s) to run
     'verbose' : 'T',                        # print verbose phyddle output?
     'sim_dir' : '../workspace/simulate',    # directory for simulated data
