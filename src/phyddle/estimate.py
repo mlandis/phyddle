@@ -141,10 +141,11 @@ class Estimator:
         self.test_hdf5_fn          = f'{self.fmt_prefix_dir}.hdf5'
 
         # empirical test dataset
-        self.est_summ_stat_fn       = f'{self.est_prefix_dir}.summ_stat.csv'
-        self.est_known_param_fn     = f'{self.est_prefix_dir}.known_param.csv'
-        self.est_aux_data_fn        = f'{self.est_prefix_dir}.aux_data.csv'
-        self.est_phy_data_fn        = f'{self.est_prefix_dir}.phy_data.csv'    
+        self.emp_summ_stat_fn       = f'{self.est_prefix_dir}.summ_stat.csv'
+        #self.emp_param_data_fn     = f'{self.est_prefix_dir}.known_param.csv'
+        self.emp_labels_fn     = f'{self.est_prefix_dir}.labels.csv'
+        self.emp_aux_data_fn        = f'{self.est_prefix_dir}.aux_data.csv'
+        self.emp_phy_data_fn        = f'{self.est_prefix_dir}.phy_data.csv'    
         
         # test outputs
         self.out_emp_label_est_fn   = f'{self.est_prefix_dir}.emp_est.labels.csv'
@@ -153,8 +154,8 @@ class Estimator:
     
         # check if empirical dataset exists
         self.emp_input_exists = True
-        for fn in [ self.est_summ_stat_fn,
-                    self.est_phy_data_fn ]:
+        for fn in [ self.emp_summ_stat_fn,
+                    self.emp_phy_data_fn ]:
             if not os.path.exists(fn):
                 self.emp_input_exists = False
 
@@ -224,7 +225,7 @@ class Estimator:
         # read & reshape new phylo-state data
         self.emp_phy_data = None
         if self.emp_input_exists:
-            self.emp_phy_data = pd.read_csv(self.est_phy_data_fn,
+            self.emp_phy_data = pd.read_csv(self.emp_phy_data_fn,
                                             header=None, sep=',',
                                             index_col=False).to_numpy()
             self.emp_phy_data = self.emp_phy_data.reshape((1, -1, self.num_data_row))
@@ -249,13 +250,14 @@ class Estimator:
         self.emp_aux_data = None
         
         if self.emp_input_exists:
-            self.est_summ_stat = pd.read_csv(self.est_summ_stat_fn, sep=',',
+            self.est_summ_stat = pd.read_csv(self.emp_summ_stat_fn, sep=',',
                                             index_col=False).to_numpy().flatten()
             try:
-                self.emp_known_params = pd.read_csv(self.est_known_param_fn,
-                                                    sep=',', index_col=False).to_numpy().flatten()
+                self.emp_label_all = pd.read_csv(self.emp_labels_fn,
+                                                  sep=',', index_col=False)
+                self.emp_label_data = self.emp_label_all[self.param_data].to_numpy().flatten()
                 self.emp_aux_data = np.concatenate([self.est_summ_stat,
-                                                    self.emp_known_params])
+                                                    self.emp_label_data])
             except FileNotFoundError:
                 self.emp_aux_data = self.est_summ_stat
 
@@ -346,7 +348,7 @@ class Estimator:
             
             # save empirical auxiliary dataset
             df_emp_aux_data = pd.DataFrame(self.emp_aux_data, columns=self.aux_data_names)
-            df_emp_aux_data.to_csv(self.est_aux_data_fn, index=False, sep=',')
+            df_emp_aux_data.to_csv(self.emp_aux_data_fn, index=False, sep=',')
 
 
         # test dataset

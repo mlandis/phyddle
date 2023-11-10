@@ -287,7 +287,7 @@ class Formatter:
         if len(k_list) > 0 and idx is None:
             idx = k_list[0]
         # read file
-        fn = f'{self.sim_proj_dir}/sim.{idx}.param_row.csv'
+        fn = f'{self.sim_proj_dir}/sim.{idx}.labels.csv'
         df = pd.read_csv(fn,header=0)
         # get headers
         ret = df.columns.to_list()
@@ -477,7 +477,7 @@ class Formatter:
         with open(out_labels_fn, 'w') as outfile:
             is_first = True
             for idx in rep_idx:
-                fname = f'{in_prefix}.{idx}.param_row.csv'
+                fname = f'{in_prefix}.{idx}.labels.csv'
                 with open(fname, 'r') as infile:
                     if is_first:
                         s = infile.read()
@@ -523,7 +523,7 @@ class Formatter:
         
         # file names
         fname_base  = f'{self.sim_proj_dir}/sim.{idx}'
-        fname_param = fname_base + '.param_row.csv'
+        fname_param = fname_base + '.labels.csv'
         fname_stat  = fname_base + '.summ_stat.csv'
         # dataset values
         x1 = self.phy_tensors[idx].flatten()
@@ -562,7 +562,12 @@ class Formatter:
                             precision=NUM_DIGITS)
         
         # make filenames
-        dat_nex_fn = tmp_fn + '.dat.nex'
+        if self.char_format == 'nex':
+            dat_ext = '.nex'
+        elif self.char_format == 'csv':
+            dat_ext = '.csv'
+        
+        dat_fn = tmp_fn + '.dat' + dat_ext
         tre_fn     = tmp_fn + '.tre'
         prune_fn   = tmp_fn + '.extant.tre'
         down_fn    = tmp_fn + '.downsampled.tre'
@@ -572,8 +577,8 @@ class Formatter:
         
         # check if key files exist
         err_msg = None
-        if not os.path.exists(dat_nex_fn):
-            err_msg = f'Formatter.encode_one(): {dat_nex_fn} does not exist'
+        if not os.path.exists(dat_fn):
+            err_msg = f'Formatter.encode_one(): {dat_fn} does not exist'
             print(err_msg)
             self.logger.write_log('fmt', err_msg)
         if not os.path.exists(tre_fn):
@@ -584,12 +589,12 @@ class Formatter:
             return
         
         # read in nexus data file as numpy array
-        if self.char_format == 'nexus':
-            dat = util.convert_nexus_to_array(dat_nex_fn,
+        if self.char_format == 'nex':
+            dat = util.convert_nexus_to_array(dat_fn,
                                                    self.char_encode,
                                                    self.num_states)
         elif self.char_format == 'csv':
-            dat = util.convert_csv_to_array(dat_nex_fn,
+            dat = util.convert_csv_to_array(dat_fn,
                                                  self.char_encode,
                                                  self.num_states)
         
