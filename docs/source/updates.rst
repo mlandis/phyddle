@@ -8,6 +8,7 @@ The complete commit history for phyddle is located here: https://github.com/mlan
   * Basic GitHub Action tests working
   * Format step faster (removed extraneous and costly deepcopy calls)
   * Convert config_R.py to BiSSE example using R + castor
+  * Add external validation for phyddle vs. castor
   * Improve config support
   * Cleaning and commenting code
   * Clean and finish sphinx documentation
