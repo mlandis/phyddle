@@ -80,7 +80,7 @@ def do_sim():
                 '--use_parallel', 'F']
 
     # build arguments
-    my_args = util.load_config('scripts/config_R.py', arg_overwrite=True, args=cmd_args)
+    my_args = util.load_config('scripts/config.py', arg_overwrite=True, args=cmd_args)
 
     # load simulator
     my_sim = sim.load(my_args)
@@ -144,7 +144,7 @@ def do_fmt():
                 '--use_parallel', 'F']
 
     # phyddle arguments
-    my_args = util.load_config('scripts/config_R.py', arg_overwrite=True, args=cmd_args)
+    my_args = util.load_config('scripts/config.py', arg_overwrite=True, args=cmd_args)
 
     # load simulator
     my_fmt = fmt.load(my_args)
@@ -222,7 +222,7 @@ def do_trn():
                 '--use_parallel', 'F']
 
     # phyddle arguments
-    my_args = util.load_config('scripts/config_R.py', arg_overwrite=True, args=cmd_args)
+    my_args = util.load_config('scripts/config.py', arg_overwrite=True, args=cmd_args)
 
     # load trainer
     my_trn = trn.load(my_args)
@@ -322,7 +322,7 @@ def do_est():
                 '--use_parallel', 'F']
 
 	# phyddle arguments
-    my_args = util.load_config('scripts/config_R.py', arg_overwrite=True, args=cmd_args)
+    my_args = util.load_config('scripts/configR.py', arg_overwrite=True, args=cmd_args)
 
     # copy minimal input fileset from valid into test
     input_files = [ 'tre', 'dat.csv', 'labels.csv' ]
@@ -403,7 +403,7 @@ def do_plt():
                 '--use_parallel', 'F']
 
 	# phyddle arguments
-    my_args = util.load_config('scripts/config_R.py', arg_overwrite=True, args=cmd_args)
+    my_args = util.load_config('scripts/config.py', arg_overwrite=True, args=cmd_args)
 
     # load estimator
     my_plt = plt.load(my_args)
