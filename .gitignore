@@ -2,21 +2,21 @@
 workspace/**
 
 # ... except workspace `example` project
-!workspace/simulate/example/*
-!workspace/format/example/*
-!workspace/train/example/*
-!workspace/estimate/example/*
-!workspace/plot/example/*
-!workspace/log/example/*
+!./workspace/simulate/example/*
+!./workspace/format/example/*
+!./workspace/train/example/*
+!./workspace/estimate/example/*
+!./workspace/plot/example/*
+!./workspace/log/example/*
 
-!workspace/simulate/valid/*
-!workspace/format/valid/*
-!workspace/estimate/valid/*
-!workspace/train/valid/*
-!workspace/plot/valid/*
+!./tests/workspace/simulate/valid/*
+!./tests/workspace/format/valid/*
+!./tests/workspace/estimate/valid/*
+!./tests/workspace/train/valid/*
+!./tests/workspace/plot/valid/*
 
 # Ignore extras in tests
-tests/workspace/*
+#tests/workspace/*
 
 # Ignore phyddle accessory dirs
 sandbox/
