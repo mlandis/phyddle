@@ -37,6 +37,7 @@ git commit -am 'preparing for version update'
 # bump versions
 bump2version patch                                
 git commit -am 'apply version update to x.x.x'
+git push
 
 # build pypi
 python3 -m build
@@ -55,7 +56,7 @@ anaconda login
 
 # upload to anaconda
 anaconda upload \
-    /Users/mlandis/anaconda3/conda-bld/osx-64/phyddle-0.0.9-py311_0.tar.bz2
+    /Users/mlandis/anaconda3/conda-bld/osx-64/phyddle-x.x.x-py311_0.tar.bz2
 
 # done!
 
@@ -313,7 +314,7 @@ an account with anaconda.org.
 Build sequence might take 15 minutes.
 
 ```
-cd ~/projects/phyddle
+cd ~/projects/phyddle/conda
 # need -c bioconda for dendropy
 conda build . -c bioconda
 # (optional) using mambabuild, faster
@@ -324,8 +325,9 @@ Create anaconda account and login
 ```
 anaconda login
 # enter user/password
-anaconda upload \
-    /Users/mlandis/opt/miniconda3/conda-bld/osx-64/phyddle-x.x.x-py39_0.conda
+anaconda upload /Users/mlandis/opt/miniconda3/conda-bld/osx-64/phyddle-x.x.x-py39_0.conda
+# or...
+anaconda upload /Users/mlandis/anaconda3/conda-bld/osx-64/phyddle-x.x.x-py39_0.conda
 ```
 
 
