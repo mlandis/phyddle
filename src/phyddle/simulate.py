@@ -295,12 +295,12 @@ class Simulator:
                 # run command
                 cmd_res = subprocess.run(cmd_str_tok, capture_output=True)
                 # save stdout
-                cmd_stdout = cmd_res.stdout.decode('UTF-8')
-                util.write_to_file(cmd_stdout, stdout_fn)
+                #cmd_stdout = cmd_res.stdout.decode('UTF-8')
+                #util.write_to_file(cmd_stdout, stdout_fn)
                 # save stderr
-                cmd_stderr = cmd_res.stderr.decode('UTF-8')
-                if cmd_stderr != '':
-                    util.write_to_file(cmd_stderr, stderr_fn)
+                #cmd_stderr = cmd_res.stderr.decode('UTF-8')
+                #if cmd_stderr != '':
+                #    util.write_to_file(cmd_stderr, stderr_fn)
                 # done simulating
                 valid = True
             except subprocess.CalledProcessError:
