@@ -85,6 +85,9 @@ res = future.apply::future_lapply(my_input, FUN = bisse_mle)
 # format True/CNN/MLE parameter values
 dat = make_input_table(res)
 
+# save tables to file
+save_tables(dat)
+
 # gather test statistics
 stat = make_compare_table(dat)
 

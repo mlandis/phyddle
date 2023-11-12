@@ -649,8 +649,8 @@ class Formatter:
             util.write_to_file(cpsv_str, cpsv_fn)
 
         # record info
-        info_str = self.make_settings_str(idx, tree_width)
-        util.write_to_file(info_str, info_fn)
+        # info_str = self.make_settings_str(idx, tree_width)
+        # util.write_to_file(info_str, info_fn)
 
         # record summ stat data
         ss = self.make_summ_stat(phy, dat)
@@ -696,18 +696,18 @@ class Formatter:
         #tree_height               = np.max( root_distances )
 
         # tree statistics
-        summ_stats['tree_length'] = phy.length()
-        summ_stats['root_age']    = root_age
-        summ_stats['brlen_mean']  = np.mean(branch_lengths)
-        summ_stats['brlen_var']   = np.var(branch_lengths)
-        summ_stats['brlen_skew']  = sp.stats.skew(branch_lengths)
-        summ_stats['age_mean']    = np.mean(node_ages)
-        summ_stats['age_var']     = np.var(node_ages)
-        summ_stats['age_skew']    = sp.stats.skew(node_ages)
-        summ_stats['B1']          = dp.calculate.treemeasure.B1(phy)
-        summ_stats['N_bar']       = dp.calculate.treemeasure.N_bar(phy)
-        summ_stats['colless']     = dp.calculate.treemeasure.colless_tree_imbalance(phy)
-        summ_stats['treeness']    = dp.calculate.treemeasure.treeness(phy)
+        summ_stats['ln_tree_length'] = np.log( phy.length() )
+        summ_stats['ln_root_age']    = np.log( root_age )
+        summ_stats['ln_brlen_mean']  = np.log( np.mean(branch_lengths) )
+        summ_stats['ln_brlen_var']   = np.log( np.var(branch_lengths) )
+        #summ_stats['brlen_skew']  = np.log( sp.stats.skew(branch_lengths) )
+        summ_stats['ln_age_mean']    = np.log( np.mean(node_ages) )
+        summ_stats['ln_age_var']     = np.log( np.var(node_ages) )
+        #summ_stats['age_skew']    = np.log( sp.stats.skew(node_ages) )
+        summ_stats['ln_B1']          = np.log( dp.calculate.treemeasure.B1(phy) )
+        summ_stats['ln_N_bar']       = np.log( dp.calculate.treemeasure.N_bar(phy) )
+        summ_stats['ln_colless']     = np.log( dp.calculate.treemeasure.colless_tree_imbalance(phy) )
+        summ_stats['ln_treeness']    = np.log( dp.calculate.treemeasure.treeness(phy) )
 
         # possible tree statistics, but not computable for arbitrary trees
         #summ_stats['gamma']       = dp.calculate.treemeasure.pybus_harvey_gamma(phy)
@@ -721,17 +721,20 @@ class Formatter:
             # initialize state freqs
             states = list(range(self.num_states))
             for i in states:
-                summ_stats[f'f_dat_{i}'] = 0.
+                #summ_stats[f'f_dat_{i}'] = 0.
+                summ_stats[f'n_dat_{i}'] = 0.
 
             # fill-in non-zero state freqs
             unique, counts = np.unique(dat, return_counts=True)
             for i,j in zip(states, counts):
-                summ_stats[f'f_dat_{i}'] = j / num_taxa
+                # summ_stats[f'f_dat_{i}'] = j / num_taxa
+                summ_stats[f'n_dat_{i}'] = j #/ num_taxa
 
         elif self.char_encode == 'one_hot':
             # one-hot-encoded states
             for i in range(dat.shape[0]):
-                summ_stats['f_dat_' + str(i)] = np.sum(dat.iloc[i]) / num_taxa
+                # summ_stats['f_dat_' + str(i)] = np.sum(dat.iloc[i]) / num_taxa
+                summ_stats['n_dat_' + str(i)] = np.sum(dat.iloc[i]) # / num_taxa
 
         # done
         return summ_stats

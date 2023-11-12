@@ -2,18 +2,24 @@
 workspace/**
 
 # ... except workspace `example` project
-!./workspace/simulate/example/*
-!./workspace/format/example/*
-!./workspace/train/example/*
-!./workspace/estimate/example/*
-!./workspace/plot/example/*
-!./workspace/log/example/*
+!workspace/simulate/example/
+!workspace/format/example/
+!workspace/train/example/
+!workspace/estimate/example/
+!workspace/plot/example/
+!workspace/log/example/
 
-!./tests/workspace/simulate/valid/*
-!./tests/workspace/format/valid/*
-!./tests/workspace/estimate/valid/*
-!./tests/workspace/train/valid/*
-!./tests/workspace/plot/valid/*
+!tests/workspace/simulate/valid/
+!tests/workspace/format/valid/
+!tests/workspace/estimate/valid/
+!tests/workspace/train/valid/
+!tests/workspace/plot/valid/
+
+tests/workspace/simulate/test/
+tests/workspace/format/test/
+tests/workspace/estimate/test/
+tests/workspace/train/test/
+tests/workspace/plot/test/
 
 # Ignore extras in tests
 #tests/workspace/*
