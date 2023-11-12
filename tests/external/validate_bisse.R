@@ -20,7 +20,7 @@ num_rep      = 250
 num_cores    = availableCores() - 2
 
 # directories
-proj_name    = "R_validation2"
+proj_name    = "example"
 sim_path     = paste0("../../workspace/simulate/", proj_name, "/")
 fmt_path     = paste0("../../workspace/format/", proj_name, "/")
 est_path     = paste0("../../workspace/estimate/", proj_name, "/")
