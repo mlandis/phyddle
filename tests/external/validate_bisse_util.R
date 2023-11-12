@@ -200,3 +200,10 @@ plot_comparison = function(dat, stat, out_fn="validate_bisse.pdf") {
     # done!
     dev.off()
 }
+
+save_tables = function(x) {
+    write.csv(x=x$par_true, file="./bisse_par_true.csv", sep=",", quote=F, row.names=F)
+    write.csv(x=x$par_mle, file="./bisse_par_mle.csv", sep=",", quote=F, row.names=F)
+    write.csv(x=x$par_cnn, file="./bisse_par_cnn.csv", sep=",", quote=F, row.names=F)
+    return
+}
