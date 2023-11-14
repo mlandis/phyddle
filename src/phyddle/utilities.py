@@ -131,7 +131,7 @@ def settings_registry():
         'sim_batch_size'   : { 'step':'S',  'type':int, 'section':'Simulate', 'default':1,       'help':'Number of replicates per simulation command' },
 
         # formatting options
-        'encode_all_sim'   : { 'step':'F',    'type':str,  'section':'Format', 'default':'T',             'help':'Encode all simulated replicates into tensor?', 'bool':True },
+        'encode_all_sim'   : { 'step':'F',    'type':str,  'section':'Format', 'default':'T',            'help':'Encode all simulated replicates into tensor?', 'bool':True },
         'num_char'         : { 'step':'FTE',  'type':int,  'section':'Format', 'default':None,           'help':'Number of characters' },
         'num_states'       : { 'step':'FTE',  'type':int,  'section':'Format', 'default':None,           'help':'Number of states per character' },
         'min_num_taxa'     : { 'step':'F',    'type':int,  'section':'Format', 'default':10,             'help':'Minimum number of taxa allowed when formatting' },
@@ -151,7 +151,7 @@ def settings_registry():
         # training options
         'trn_objective'    : { 'step':'T',   'type':str,   'section':'Train', 'default':'param_est',   'help':'Objective of training procedure', 'choices':['param_est'] },
         'num_epochs'       : { 'step':'TEP', 'type':int,   'section':'Train', 'default':20,            'help':'Number of training epochs' },
-        'trn_batch_size'   : { 'step':'TEP', 'type':int,   'section':'Train', 'default':128,           'help':'Training batch sizes' },
+        'trn_batch_size'   : { 'step':'TEP', 'type':int,   'section':'Train', 'default':512,           'help':'Training batch sizes' },
         'prop_test'        : { 'step':'FT',  'type':float, 'section':'Train', 'default':0.05,          'help':'Proportion of data used as test examples (assess trained network performance)' },
         'prop_val'         : { 'step':'T',   'type':float, 'section':'Train', 'default':0.05,          'help':'Proportion of data used as validation examples (diagnose network overtraining)' },
         'prop_cal'         : { 'step':'T',   'type':float, 'section':'Train', 'default':0.20,          'help':'Proportion of data used as calibration examples (calibrate CPIs)' },
@@ -171,7 +171,10 @@ def settings_registry():
         'plot_test_color'  : { 'step':'P',  'type':str, 'section':'Plot', 'default':'red',    'help':'Plotting color for test data elements' },
         'plot_val_color'   : { 'step':'P',  'type':str, 'section':'Plot', 'default':'green',  'help':'Plotting color for validation data elements' },
         'plot_aux_color'   : { 'step':'P',  'type':str, 'section':'Plot', 'default':'orange', 'help':'Plotting color for auxiliary data elements' },
-        'plot_est_color'   : { 'step':'P',  'type':str, 'section':'Plot', 'default':'black',  'help':'Plotting color for new estimation elements' }
+        'plot_est_color'   : { 'step':'P',  'type':str, 'section':'Plot', 'default':'black',  'help':'Plotting color for new estimation elements' },
+        'plot_scatter_log' : { 'step':'P',  'type':str, 'section':'Plot', 'default':'T',      'help':'Use log values for scatter plots when possible?', 'bool':True },
+        'plot_contour_log' : { 'step':'P',  'type':str, 'section':'Plot', 'default':'T',      'help':'Use log values for contour plots when possible?', 'bool':True },
+        'plot_density_log' : { 'step':'P',  'type':str, 'section':'Plot', 'default':'T',      'help':'Use log values for density plots when possible?', 'bool':True },
     }
     return settings
 

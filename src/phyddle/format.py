@@ -562,7 +562,7 @@ class Formatter:
                             precision=NUM_DIGITS)
         
         # make filenames
-        if self.char_format == 'nex':
+        if self.char_format == 'nexus':
             dat_ext = '.nex'
         elif self.char_format == 'csv':
             dat_ext = '.csv'
@@ -589,7 +589,7 @@ class Formatter:
             return
         
         # read in nexus data file as numpy array
-        if self.char_format == 'nex':
+        if self.char_format == 'nexus':
             dat = util.convert_nexus_to_array(dat_fn,
                                                    self.char_encode,
                                                    self.num_states)

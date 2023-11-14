@@ -294,7 +294,7 @@ class Plotter:
         # train scatter accuracy
         self.make_plot_scatter_accuracy('train')
 
-        # test scatter accuracy
+        # # test scatter accuracy
         self.make_plot_scatter_accuracy('test')
 
         # when available, point estimates and CPIs for new dataset
@@ -592,6 +592,7 @@ class Plotter:
         num_comp = min(sim_values.shape[1], num_comp)
 
         # rescale input data
+        # sim_values = np.log(sim_values)
         scaler = StandardScaler()
         x = scaler.fit_transform(sim_values)
         
@@ -604,6 +605,7 @@ class Plotter:
 
         # project est_values on to PCA space
         if est_values is not None:
+            # est_values = np.log(est_values)
             est_values = scaler.transform(est_values)
             pca_est = pca_model.transform(est_values)
         
@@ -641,7 +643,7 @@ class Plotter:
                 values = np.vstack([x, y])
                 kernel = sp.stats.gaussian_kde(values)
                 f = np.reshape(kernel(positions).T, xx.shape)
-                n_levels = 4
+                n_levels = 6
                 extent = (-4,4,-4,4)
                 cfset = axs[i,j].contourf(xx, yy, f, levels=n_levels,
                                           extend='both', cmap=cmap0)
@@ -709,7 +711,6 @@ class Plotter:
             plot_log (bool): Plot y-axis on log scale? Default True.
 
         """
-
         # figure size
         fig_width = 6
         fig_height = 6
@@ -720,11 +721,25 @@ class Plotter:
         # plot parameters
         for i,p in enumerate(self.param_names):
 
+            # labels
+            x_label = f'{p} {axis_labels[0]}'
+            y_label = f'{p} {axis_labels[1]}'
+
             # estimates (x) and true values (y)
             x_value = ests[f'{p}_value'][:].to_numpy()
             x_lower = ests[f'{p}_lower'][:].to_numpy()
             x_upper = ests[f'{p}_upper'][:].to_numpy()
             y_value = labels[p][:].to_numpy()
+
+            only_positive = np.all(y_value >= 0.)
+            if only_positive and plot_log:
+                x_value = np.log(x_value)
+                x_lower = np.log(x_lower)
+                x_upper = np.log(x_upper)
+                y_value = np.log(y_value)
+                x_label = f'ln {p} {axis_labels[0]}'
+                y_label = f'ln {p} {axis_labels[1]}'
+                
 
             # accuracy stats
             stat_mae = np.mean( np.abs(x_value - y_value) )
@@ -733,11 +748,16 @@ class Plotter:
             stat_rmse = np.sqrt( stat_mse )
             
             # coverage stats
-            stat_cover = np.logical_and(x_lower < y_value, y_value < x_upper )
+            stat_cover = np.logical_and(x_lower < y_value, x_upper > y_value )
             stat_not_cover = np.logical_not(stat_cover)
             f_stat_cover = sum(stat_cover) / len(stat_cover) * 100
 
             # linear regression slope
+            # if only_positive:
+            #     reg = LinearRegression().fit( np.log(x_value.reshape(-1, 1)), np.log(y_value.reshape(-1, 1)))
+            #     stat_slope = reg.coef_[0][0]
+            #     stat_intercept = reg.intercept_[0]
+            # else:
             reg = LinearRegression().fit( x_value.reshape(-1, 1), y_value.reshape(-1, 1))
             stat_slope = reg.coef_[0][0]
             stat_intercept = reg.intercept_[0]
@@ -754,20 +774,22 @@ class Plotter:
             alpha = 0.5 # 50. / len(y_cover)
             # covered points
             plt.scatter(x_value[stat_cover], y_value[stat_cover],
-                        alpha=alpha, c=color, zorder=3)
+                        alpha=alpha, c=color, zorder=3, s=3)
             # covered bars
-            plt.plot([x_value[stat_cover], x_value[stat_cover]],
-                     [x_lower[stat_cover], x_upper[stat_cover]],
-                     color=color, alpha=alpha, linestyle="-", marker='_',
+            plt.plot([x_lower[stat_cover], x_upper[stat_cover]],
+                     [y_value[stat_cover], y_value[stat_cover]],
+                     color=color, alpha=alpha, linestyle="-", marker='|',
                      linewidth=0.5, zorder=2 )
+
+
 
             # not covered points
             plt.scatter(x_value[stat_not_cover], y_value[stat_not_cover],
-                        alpha=alpha, c='red', zorder=5)
+                        alpha=alpha, c='red', zorder=5, s=3)
             # not covered bars
-            plt.plot([x_value[stat_not_cover], x_value[stat_not_cover]],
-                     [x_lower[stat_not_cover], x_upper[stat_not_cover]],
-                     color='red', alpha=alpha, linestyle="-", marker='_',
+            plt.plot([x_lower[stat_not_cover], x_upper[stat_not_cover]],
+                     [y_value[stat_not_cover], y_value[stat_not_cover]],
+                     color='red', alpha=alpha, linestyle="-", marker='|',
                      linewidth=0.5, zorder=4 )
             
             # regression line
@@ -800,11 +822,11 @@ class Plotter:
 
             # cosmetics
             plt.title(f'{title} estimates: {p}')
-            plt.xlabel(f'{p} {axis_labels[0]}')
-            plt.ylabel(f'{p} {axis_labels[1]}')
-            if plot_log:
-                plt.xscale('log')         
-                plt.yscale('log')         
+            plt.xlabel(x_label)
+            plt.ylabel(y_label)
+            # if plot_log:
+            #     plt.xscale('log')         
+            #     plt.yscale('log')         
 
             # save
             save_fn = f'{prefix}_{p}.pdf'
