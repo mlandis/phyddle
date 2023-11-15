@@ -806,17 +806,24 @@ def convert_csv_to_array(dat_fn, char_encode, num_states=None):
 
 def convert_csv_to_numeric_array(dat_fn, pca_compress=None):
     """Converts a csv file to an integer-encoded pandas DataFrame."""
-    # read as pandas
-    dat = pd.read_csv(dat_fn, delimiter=',', index_col=0, header=None).T 
 
+    try:
+        # dat is pandas.DataFrame if non-empty
+        dat = pd.read_csv(dat_fn, delimiter=',', index_col=0, header=None).T 
+    except pd.errors.EmptyDataError:
+        # dat is None if empty
+        return None
     # return
     return dat
 
 def convert_csv_to_onehot_array(dat_fn, num_states):
     """Converts a csv file to an integer-encoded pandas DataFrame."""
     
-    # read data
-    dat_raw = pd.read_csv(dat_fn, delimiter=',', index_col=0, header=None).T
+    try:
+        # dat is pandas.DataFrame if non-empty
+        dat_raw = pd.read_csv(dat_fn, delimiter=',', index_col=0, header=None).T
+    except pd.errors.EmptyDataError:
+        return None
 
     # get num taxa (columns)
     num_taxa = dat_raw.shape[1]
@@ -923,6 +930,12 @@ def convert_nexus_to_integer_array(dat_fn):
     lines = f.readlines()
     f.close()
 
+    # check that file is valid
+    if len(lines) == 0:
+        return None
+    if lines[0].upper() != '#NEXUS\n':
+        return None
+
     # process file
     found_matrix = False
     num_taxa    = 0
@@ -1007,6 +1020,12 @@ def convert_nexus_to_onehot_array(dat_fn, num_states):
     f = open(dat_fn, 'r')
     lines = f.readlines()
     f.close()
+
+    # check that file is valid
+    if len(lines) == 0:
+        return None
+    if lines[0].upper() != '#NEXUS\n':
+        return None
 
     # helper variables
     found_matrix = False

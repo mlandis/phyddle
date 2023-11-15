@@ -597,9 +597,12 @@ class Formatter:
             dat = util.convert_csv_to_array(dat_fn,
                                                  self.char_encode,
                                                  self.num_states)
-        
         # get tree file
         phy = util.read_tree(tre_fn)
+
+        # abort if simulation is invalid
+        if dat is None:
+            return
         if phy is None:
             return
 
