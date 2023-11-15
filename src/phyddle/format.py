@@ -250,12 +250,34 @@ class Formatter:
         Returns:
             int[]: List of replicate indices.
         """
-        rep_idx = set()
+
+        # find all rep index
+        all_idx = set()
         files = os.listdir(f'{self.sim_proj_dir}')
         for f in files:
-            rep_idx.add(int(f.split('.')[1]))
-        rep_idx = sorted(list(rep_idx))
-        return rep_idx
+            if f[0:3] == 'sim':
+                all_idx.add(int(f.split('.')[1]))
+        all_idx = sorted(list(all_idx))
+
+        # find only rep index with complete datasets
+        complete_idx = []
+        required_exts = [ '.tre', '.labels.csv' ]
+        if self.char_format == 'nexus':
+            required_exts.append('.dat.nex')
+        elif self.char_format == 'csv':
+            required_exts.append('.dat.csv')
+
+        for idx in all_idx:
+            complete = True
+            prefix_fn = f'{self.sim_proj_dir}/sim.{idx}'
+            for ext in required_exts: 
+                if not os.path.exists(prefix_fn + ext):
+                    complete = False
+            if complete:
+                complete_idx.append(idx)
+
+        # return complete rep idx dataset
+        return complete_idx
 
     def get_summ_stat_names(self):
         """Get names of summary statistics.
