@@ -685,34 +685,56 @@ class Formatter:
         Returns:
             summ_stats (dict): summary statistics
         """
+        # supported summary stat keys
+        tree_summ_stat_keys = [
+            'ln_tree_length',
+            'ln_root_age',
+            'ln_brlen_mean',
+            'ln_brlen_var',
+            'ln_age_mean',
+            'ln_age_var',
+            'ln_B1',
+            'ln_N_bar',
+            'ln_colless',
+            'ln_treeness']
+        
+        # default value
+        TREE_SUMM_STAT_DEFAULT = 1e-12
+
         # new dictionary to return
-        summ_stats = {}
+        summ_stats = dict((k,TREE_SUMM_STAT_DEFAULT) for k in tree_summ_stat_keys)
 
-        # read basic info from phylogenetic tree
-        num_taxa                  = len(phy.leaf_nodes())
-        node_ages                 = phy.internal_node_ages(ultrametricity_precision=False)
-        root_age                  = phy.seed_node.age
-        branch_lengths            = [ nd.edge.length for nd in phy.nodes() if nd != phy.seed_node ]
-        #root_distances            = phy.calc_node_root_distances()
-        #root_distances            = [ nd.root_distance for nd in phy.nodes() if nd.is_leaf]
-        #phy.calc_node_ages(ultrametricity_precision=False)
-        #tree_height               = np.max( root_distances )
+        # return default summ stats if phy not valid
+        if phy is not None:
+            
+            # read basic info from phylogenetic tree
+            num_taxa                  = len(phy.leaf_nodes())
+            node_ages                 = phy.internal_node_ages(ultrametricity_precision=False)
+            root_age                  = phy.seed_node.age
+            branch_lengths            = [ nd.edge.length for nd in phy.nodes() if nd != phy.seed_node ]
+            #root_distances            = phy.calc_node_root_distances()
+            #root_distances            = [ nd.root_distance for nd in phy.nodes() if nd.is_leaf]
+            #phy.calc_node_ages(ultrametricity_precision=False)
+            #tree_height               = np.max( root_distances )
 
-        # tree statistics
-        summ_stats['ln_tree_length'] = np.log( phy.length() )
-        summ_stats['ln_root_age']    = np.log( root_age )
-        summ_stats['ln_brlen_mean']  = np.log( np.mean(branch_lengths) )
-        summ_stats['ln_brlen_var']   = np.log( np.var(branch_lengths) )
-        #summ_stats['brlen_skew']  = np.log( sp.stats.skew(branch_lengths) )
-        summ_stats['ln_age_mean']    = np.log( np.mean(node_ages) )
-        summ_stats['ln_age_var']     = np.log( np.var(node_ages) )
-        #summ_stats['age_skew']    = np.log( sp.stats.skew(node_ages) )
-        summ_stats['ln_B1']          = np.log( dp.calculate.treemeasure.B1(phy) )
-        summ_stats['ln_N_bar']       = np.log( dp.calculate.treemeasure.N_bar(phy) )
-        summ_stats['ln_colless']     = np.log( dp.calculate.treemeasure.colless_tree_imbalance(phy) )
-        summ_stats['ln_treeness']    = np.log( dp.calculate.treemeasure.treeness(phy) )
-
+            # tree statistics
+            summ_stats['ln_tree_length'] = np.log( phy.length() )
+            summ_stats['ln_root_age']    = np.log( root_age )
+            summ_stats['ln_brlen_mean']  = np.log( np.mean(branch_lengths) )
+            summ_stats['ln_age_mean']    = np.log( np.mean(node_ages) )
+            
+            if num_taxa >= 3:
+                summ_stats['ln_B1']          = np.log( dp.calculate.treemeasure.B1(phy) )
+                summ_stats['ln_colless'] = np.log( dp.calculate.treemeasure.colless_tree_imbalance(phy) )
+                summ_stats['ln_age_var']     = np.log( np.var(node_ages) )
+                summ_stats['ln_brlen_var']   = np.log( np.var(branch_lengths) )
+                summ_stats['ln_treeness']    = np.log( dp.calculate.treemeasure.treeness(phy) )
+                summ_stats['ln_N_bar']       = np.log( dp.calculate.treemeasure.N_bar(phy) )
+            
+            
         # possible tree statistics, but not computable for arbitrary trees
+        #summ_stats['brlen_skew']  = np.log( sp.stats.skew(branch_lengths) )
+        #summ_stats['age_skew']    = np.log( sp.stats.skew(node_ages) )
         #summ_stats['gamma']       = dp.calculate.treemeasure.pybus_harvey_gamma(phy)
         #summ_stats['brlen_kurt']  = sp.stats.kurtosis(branch_lengths)
         #summ_stats['age_kurt']    = sp.stats.kurtosis(root_distances)
