@@ -780,9 +780,10 @@ def read_tree(tre_fn):
             phy_tmp = dp.Tree.get(path=tre_fn, schema=schema)
         except:
             phy_tmp = None
-        else:
-            if phy_tmp is not None:
-                phy = phy_tmp
+        
+        if phy is None:
+            phy = phy_tmp
+            
     return phy
 
 
