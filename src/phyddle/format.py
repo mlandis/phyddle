@@ -595,19 +595,14 @@ class Formatter:
         down_fn    = tmp_fn + '.downsampled.tre'
         cpsv_fn    = tmp_fn + '.phy_data.csv'
         ss_fn      = tmp_fn + '.summ_stat.csv'
-        info_fn    = tmp_fn + '.info.csv'
+        #info_fn    = tmp_fn + '.info.csv'
         
         # check if key files exist
-        err_msg = None
         if not os.path.exists(dat_fn):
-            err_msg = f'Formatter.encode_one(): {dat_fn} does not exist'
-            print(err_msg)
-            self.logger.write_log('fmt', err_msg)
+            self.logger.write_log('fmt', f'Cannot find {dat_fn}')
+            return
         if not os.path.exists(tre_fn):
-            err_msg = f'Formatter.encode_one(): {tre_fn} does not exist'
-            print(err_msg)
-            self.logger.write_log('fmt', err_msg)
-        if err_msg is not None:
+            self.logger.write_log('fmt', f'Cannot find {tre_fn}')
             return
         
         # read in nexus data file as numpy array
@@ -624,20 +619,19 @@ class Formatter:
 
         # abort if simulation is invalid
         if dat is None:
+            self.logger.write_log('fmt', f'Cannot process {dat_fn}')
             return
         if phy is None:
+            self.logger.write_log('fmt', f'Cannot process {tre_fn}')
             return
 
         # prune tree, if needed
         if self.tree_encode == 'extant':
-            #phy_prune = util.make_prune_phy(phy, prune_fn)
             phy = util.make_prune_phy(phy, prune_fn)
             if phy is None:
                 # abort, no valid pruned tree
+                self.logger.write_log('fmt', f'Invalid pruned tree for {tre_fn}')
                 return
-            #else:
-            #    # valid pruned tree
-            #    phy = copy.deepcopy(phy_prune)
 
         # downsample taxa
         num_taxa_orig = len(phy.leaf_nodes())
@@ -650,19 +644,20 @@ class Formatter:
         num_taxa = len(phy.leaf_nodes())
         if num_taxa > np.max(self.tree_width_cats):
             # abort, too many taxa
+            self.logger.write_log('fmt', f'{tre_fn} has too many taxa')
             return
         if num_taxa < self.min_num_taxa or num_taxa < 0:
             # abort, too few taxa
+            self.logger.write_log('fmt', f'{tre_fn} has too few taxa')
             return
 
         # get tree width from resulting vector
         tree_width = np.max(self.tree_width_cats)
-        #tree_width = util.find_tree_width(num_taxa, self.tree_width_cats)
 
         # create compact phylo-state vector, CPV+S = {CBLV+S, CDV+S}
         cpvs_data = None
 
-        # encode CBLV+S
+        # encode phylo-state tensor as CPV+S
         cpvs_data = self.encode_cpvs(phy, dat, tree_width=tree_width,
                                      tree_encode_type=self.brlen_encode,
                                      tree_type=self.tree_encode)
@@ -721,10 +716,10 @@ class Formatter:
             'ln_treeness']
         
         # default value
-        TREE_SUMM_STAT_DEFAULT = 1e-12
+        TREE_SUMM_STAT_DEFAULT = -1e12
 
         # new dictionary to return
-        summ_stats = dict((k,TREE_SUMM_STAT_DEFAULT) for k in tree_summ_stat_keys)
+        summ_stats = {} # dict((k,TREE_SUMM_STAT_DEFAULT) for k in tree_summ_stat_keys)
 
         # return default summ stats if phy not valid
         if phy is not None:
@@ -734,33 +729,24 @@ class Formatter:
             node_ages                 = phy.internal_node_ages(ultrametricity_precision=False)
             root_age                  = phy.seed_node.age
             branch_lengths            = [ nd.edge.length for nd in phy.nodes() if nd != phy.seed_node ]
-            #root_distances            = phy.calc_node_root_distances()
-            #root_distances            = [ nd.root_distance for nd in phy.nodes() if nd.is_leaf]
-            #phy.calc_node_ages(ultrametricity_precision=False)
-            #tree_height               = np.max( root_distances )
-
+            
             # tree statistics
             summ_stats['ln_tree_length'] = np.log( phy.length() )
             summ_stats['ln_root_age']    = np.log( root_age )
             summ_stats['ln_brlen_mean']  = np.log( np.mean(branch_lengths) )
             summ_stats['ln_age_mean']    = np.log( np.mean(node_ages) )
-            
-            if num_taxa >= 3:
-                summ_stats['ln_B1']          = np.log( dp.calculate.treemeasure.B1(phy) )
-                summ_stats['ln_colless'] = np.log( dp.calculate.treemeasure.colless_tree_imbalance(phy) )
-                summ_stats['ln_age_var']     = np.log( np.var(node_ages) )
-                summ_stats['ln_brlen_var']   = np.log( np.var(branch_lengths) )
-                summ_stats['ln_treeness']    = np.log( dp.calculate.treemeasure.treeness(phy) )
-                summ_stats['ln_N_bar']       = np.log( dp.calculate.treemeasure.N_bar(phy) )
-            
-            
-        # possible tree statistics, but not computable for arbitrary trees
-        #summ_stats['brlen_skew']  = np.log( sp.stats.skew(branch_lengths) )
-        #summ_stats['age_skew']    = np.log( sp.stats.skew(node_ages) )
-        #summ_stats['gamma']       = dp.calculate.treemeasure.pybus_harvey_gamma(phy)
-        #summ_stats['brlen_kurt']  = sp.stats.kurtosis(branch_lengths)
-        #summ_stats['age_kurt']    = sp.stats.kurtosis(root_distances)
-        #summ_stats['sackin']      = dp.calculate.treemeasure.sackin_index(phy)
+            summ_stats['ln_B1']          = np.log( dp.calculate.treemeasure.B1(phy) )
+            summ_stats['ln_colless']     = np.log( dp.calculate.treemeasure.colless_tree_imbalance(phy) )
+            summ_stats['ln_age_var']     = np.log( np.var(node_ages) )
+            summ_stats['ln_brlen_var']   = np.log( np.var(branch_lengths) )
+            summ_stats['ln_treeness']    = np.log( dp.calculate.treemeasure.treeness(phy) )
+            summ_stats['ln_N_bar']       = np.log( dp.calculate.treemeasure.N_bar(phy) )
+
+            for k,v in tree_summ_stat_keys.items():
+                if v <= 0.:
+                    summ_stats[k] = TREE_SUMM_STAT_DEFAULT
+                else:
+                    summ_stats[k] = np.log(summ_stats[k])
 
         # frequencies of character states
         if self.char_encode == 'integer':
