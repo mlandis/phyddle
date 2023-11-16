@@ -230,9 +230,9 @@ class Formatter:
         # save all phylogenetic-state tensors into the phy_tensors dictionary,
         # while sorting tensors into different tree-width categories
         self.phy_tensors = {}
-        for i in range(len(res)):
-            if res[i] is not None:
-                self.phy_tensors[i] = res[i]
+        for i in res:
+            if i is not None:
+                self.phy_tensors[i[0]] = i[1]
 
         # save names/lengths of summary statistic and label lists
         self.summ_stat_names = self.get_summ_stat_names()
@@ -589,7 +589,7 @@ class Formatter:
         elif self.char_format == 'csv':
             dat_ext = '.csv'
         
-        dat_fn = tmp_fn + '.dat' + dat_ext
+        dat_fn     = tmp_fn + '.dat' + dat_ext
         tre_fn     = tmp_fn + '.tre'
         prune_fn   = tmp_fn + '.extant.tre'
         down_fn    = tmp_fn + '.downsampled.tre'
@@ -644,11 +644,11 @@ class Formatter:
         num_taxa = len(phy.leaf_nodes())
         if num_taxa > np.max(self.tree_width_cats):
             # abort, too many taxa
-            self.logger.write_log('fmt', f'{tre_fn} has too many taxa')
+            self.logger.write_log('fmt', f'Too many taxa {tre_fn} has too many taxa')
             return
         if num_taxa < self.min_num_taxa or num_taxa < 0:
             # abort, too few taxa
-            self.logger.write_log('fmt', f'{tre_fn} has too few taxa')
+            self.logger.write_log('fmt', f'Too few taxa (<{self.min_num_taxa}) for {tre_fn}')
             return
 
         # get tree width from resulting vector
@@ -684,7 +684,7 @@ class Formatter:
         util.write_to_file(ss_str, ss_fn)
 
         # done!
-        return cpvs_data
+        return (idx,cpvs_data)
     
     def make_summ_stat(self, phy, dat):
         """
@@ -703,17 +703,17 @@ class Formatter:
             summ_stats (dict): summary statistics
         """
         # supported summary stat keys
-        tree_summ_stat_keys = [
-            'ln_tree_length',
-            'ln_root_age',
-            'ln_brlen_mean',
-            'ln_brlen_var',
-            'ln_age_mean',
-            'ln_age_var',
-            'ln_B1',
-            'ln_N_bar',
-            'ln_colless',
-            'ln_treeness']
+        # tree_summ_stat_keys = [
+        #     'ln_tree_length',
+        #     'ln_root_age',
+        #     'ln_brlen_mean',
+        #     'ln_brlen_var',
+        #     'ln_age_mean',
+        #     'ln_age_var',
+        #     'ln_B1',
+        #     'ln_N_bar',
+        #     'ln_colless',
+        #     'ln_treeness']
         
         # default value
         TREE_SUMM_STAT_DEFAULT = -1e12
