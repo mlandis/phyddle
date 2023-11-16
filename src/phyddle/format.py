@@ -731,16 +731,19 @@ class Formatter:
             branch_lengths            = [ nd.edge.length for nd in phy.nodes() if nd != phy.seed_node ]
             
             # tree statistics
-            summ_stats['ln_tree_length'] = np.log( phy.length() )
-            summ_stats['ln_root_age']    = np.log( root_age )
-            summ_stats['ln_brlen_mean']  = np.log( np.mean(branch_lengths) )
-            summ_stats['ln_age_mean']    = np.log( np.mean(node_ages) )
-            summ_stats['ln_B1']          = np.log( dp.calculate.treemeasure.B1(phy) )
-            summ_stats['ln_colless']     = np.log( dp.calculate.treemeasure.colless_tree_imbalance(phy) )
-            summ_stats['ln_age_var']     = np.log( np.var(node_ages) )
-            summ_stats['ln_brlen_var']   = np.log( np.var(branch_lengths) )
-            summ_stats['ln_treeness']    = np.log( dp.calculate.treemeasure.treeness(phy) )
-            summ_stats['ln_N_bar']       = np.log( dp.calculate.treemeasure.N_bar(phy) )
+            summ_stats['ln_tree_length'] = phy.length()
+            summ_stats['ln_root_age']    = root_age
+            summ_stats['ln_brlen_mean']  = np.mean(branch_lengths)
+            summ_stats['ln_age_mean']    = np.mean(node_ages)
+            summ_stats['ln_B1']          = dp.calculate.treemeasure.B1(phy)
+            try:
+                summ_stats['ln_colless'] = dp.calculate.treemeasure.colless_tree_imbalance(phy)
+            except ZeroDivisionError:
+                summ_stats['ln_colless'] = 0.0
+            summ_stats['ln_age_var']     = np.var(node_ages)
+            summ_stats['ln_brlen_var']   = np.var(branch_lengths)
+            summ_stats['ln_treeness']    = dp.calculate.treemeasure.treeness(phy)
+            summ_stats['ln_N_bar']       = dp.calculate.treemeasure.N_bar(phy)
 
             for k,v in tree_summ_stat_keys.items():
                 if v <= 0.:
