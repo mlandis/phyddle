@@ -745,7 +745,7 @@ class Formatter:
             summ_stats['ln_treeness']    = dp.calculate.treemeasure.treeness(phy)
             summ_stats['ln_N_bar']       = dp.calculate.treemeasure.N_bar(phy)
 
-            for k,v in tree_summ_stat_keys.items():
+            for k,v in summ_stats.items():
                 if v <= 0.:
                     summ_stats[k] = TREE_SUMM_STAT_DEFAULT
                 else:
