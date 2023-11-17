@@ -85,15 +85,6 @@ class Formatter:
         # set number of processors
         if self.num_proc <= 0:
             self.num_proc = cpu_count() + self.num_proc
-        # run() attempts to generate one simulation per value in rep_idx,
-        # where rep_idx is list of unique ints to identify simulated datasets
-        if self.encode_all_sim:
-            self.rep_idx = self.get_rep_idx()
-        else:
-            self.rep_idx = list(range(self.start_idx, self.end_idx))
-
-        #  split_idx is later assigned a value, after raw data is encoded
-        self.split_idx = {}
 
         # get size of CPV+S tensors
         num_tree_row = util.get_num_tree_row(self.tree_encode,
@@ -140,13 +131,22 @@ class Formatter:
         # print header
         util.print_step_header('fmt', [self.sim_proj_dir],
                                self.fmt_proj_dir, verbose)
-        
         # prepare workspace
         os.makedirs(self.fmt_proj_dir, exist_ok=True)
 
         # start time
         start_time,start_time_str = util.get_time()
         util.print_str(f'▪ Start time of {start_time_str}', verbose)
+
+        # run() attempts to generate one simulation per value in rep_idx,
+        # where rep_idx is list of unique ints to identify simulated datasets
+        util.print_str('▪ Collecting files', verbose)
+        if self.encode_all_sim:
+            self.rep_idx = self.get_rep_idx()
+        else:
+            self.rep_idx = list(range(self.start_idx, self.end_idx))
+        #  split_idx is later assigned a value, after raw data is encoded
+        self.split_idx = {}
 
         # encode each dataset into individual tensors
         util.print_str('▪ Encoding raw data as tensors', verbose)
@@ -254,30 +254,60 @@ class Formatter:
         # find all rep index
         all_idx = set()
         files = os.listdir(f'{self.sim_proj_dir}')
+        #print(len(files))
         for f in files:
             if f[0:3] == 'sim':
                 all_idx.add(int(f.split('.')[1]))
         all_idx = sorted(list(all_idx))
 
-        # find only rep index with complete datasets
-        complete_idx = []
-        required_exts = [ '.tre', '.labels.csv' ]
-        if self.char_format == 'nexus':
-            required_exts.append('.dat.nex')
-        elif self.char_format == 'csv':
-            required_exts.append('.dat.csv')
+        return all_idx
 
-        for idx in all_idx:
-            complete = True
-            prefix_fn = f'{self.sim_proj_dir}/sim.{idx}'
-            for ext in required_exts: 
-                if not os.path.exists(prefix_fn + ext):
-                    complete = False
-            if complete:
-                complete_idx.append(idx)
+        # currently disabled, because it might not be needed in general
+        # and it is expensive for >2M files
+
+        # # find only rep index with complete datasets
+        # complete_idx = []
+        # required_exts = [ '.tre', '.labels.csv' ]
+        # if self.char_format == 'nexus':
+        #     required_exts.append('.dat.nex')
+        # elif self.char_format == 'csv':
+        #     required_exts.append('.dat.csv')
+
+        # for idx in all_idx:
+        #     #complete = True
+        #     prefix_fn = f'{self.sim_proj_dir}/sim.{idx}'
+        #     if os.path.exists(prefix_fn + required_exts[0]) and \
+        #        os.path.exists(prefix_fn + required_exts[1]) and \
+        #        os.path.exists(prefix_fn + required_exts[2]):
+        #     #for ext in required_exts: 
+        #     #   if not os.path.exists(prefix_fn + ext):
+        #     #                    complete = False
+        #     #if complete:
+        #         complete_idx.append(idx)
+
+        # if self.use_parallel:
+        #     # parallel jobs
+        #     with Pool(processes=self.num_proc) as pool:
+        #         # Note, it's critical to call this as list(tqdm(pool.imap(...)))
+        #         # - pool.imap runs the parallelization
+        #         # - tqdm generates progress bar
+        #         # - list acts as a finalizer for the pool.imap work
+        #         # Have not benchmarked imap/imap_unordered, chunksize, etc.
+        #         res = list(tqdm(pool.imap(self.encode_one_star,
+        #                                   args, chunksize=5),
+        #                         total=len(args),
+        #                         desc='Encoding',
+        #                         smoothing=0))
+                
+        # else:
+        #     # serial jobs
+        #     res = [ self.encode_one_star(a) for a in tqdm(args,
+        #                                                   total=len(args),
+        #                                                   desc='Encoding',
+        #                                                   smoothing=0) ]
 
         # return complete rep idx dataset
-        return complete_idx
+        # return complete_idx
 
     def get_summ_stat_names(self):
         """Get names of summary statistics.
@@ -702,24 +732,8 @@ class Formatter:
         Returns:
             summ_stats (dict): summary statistics
         """
-        # supported summary stat keys
-        # tree_summ_stat_keys = [
-        #     'ln_tree_length',
-        #     'ln_root_age',
-        #     'ln_brlen_mean',
-        #     'ln_brlen_var',
-        #     'ln_age_mean',
-        #     'ln_age_var',
-        #     'ln_B1',
-        #     'ln_N_bar',
-        #     'ln_colless',
-        #     'ln_treeness']
-        
-        # default value
-        TREE_SUMM_STAT_DEFAULT = -1e12
-
         # new dictionary to return
-        summ_stats = {} # dict((k,TREE_SUMM_STAT_DEFAULT) for k in tree_summ_stat_keys)
+        summ_stats = {}
 
         # return default summ stats if phy not valid
         if phy is not None:
@@ -731,25 +745,19 @@ class Formatter:
             branch_lengths            = [ nd.edge.length for nd in phy.nodes() if nd != phy.seed_node ]
             
             # tree statistics
-            summ_stats['ln_tree_length'] = phy.length()
-            summ_stats['ln_root_age']    = root_age
-            summ_stats['ln_brlen_mean']  = np.mean(branch_lengths)
-            summ_stats['ln_age_mean']    = np.mean(node_ages)
-            summ_stats['ln_B1']          = dp.calculate.treemeasure.B1(phy)
+            summ_stats['tree_length'] = phy.length()
+            summ_stats['root_age']    = root_age
+            summ_stats['brlen_mean']  = np.mean(branch_lengths)
+            summ_stats['age_mean']    = np.mean(node_ages)
+            summ_stats['B1']          = dp.calculate.treemeasure.B1(phy)
             try:
-                summ_stats['ln_colless'] = dp.calculate.treemeasure.colless_tree_imbalance(phy)
+                summ_stats['colless'] = dp.calculate.treemeasure.colless_tree_imbalance(phy)
             except ZeroDivisionError:
-                summ_stats['ln_colless'] = 0.0
-            summ_stats['ln_age_var']     = np.var(node_ages)
-            summ_stats['ln_brlen_var']   = np.var(branch_lengths)
-            summ_stats['ln_treeness']    = dp.calculate.treemeasure.treeness(phy)
-            summ_stats['ln_N_bar']       = dp.calculate.treemeasure.N_bar(phy)
-
-            for k,v in summ_stats.items():
-                if v <= 0.:
-                    summ_stats[k] = TREE_SUMM_STAT_DEFAULT
-                else:
-                    summ_stats[k] = np.log(summ_stats[k])
+                summ_stats['colless'] = 0.0
+            summ_stats['age_var']     = np.var(node_ages)
+            summ_stats['brlen_var']   = np.var(branch_lengths)
+            summ_stats['treeness']    = dp.calculate.treemeasure.treeness(phy)
+            summ_stats['N_bar']       = dp.calculate.treemeasure.N_bar(phy)
 
         # frequencies of character states
         if self.char_encode == 'integer':
@@ -758,7 +766,7 @@ class Formatter:
             states = list(range(self.num_states))
             for i in states:
                 #summ_stats[f'f_dat_{i}'] = 0.
-                summ_stats[f'n_dat_{i}'] = 0.
+                summ_stats[f'n_dat_{i}'] = 0.0
 
             # fill-in non-zero state freqs
             unique, counts = np.unique(dat, return_counts=True)

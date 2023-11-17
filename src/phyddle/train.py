@@ -320,7 +320,8 @@ class CnnTrainer(Trainer):
 
         # logs of labels (rates) for variance stabilization against
         # heteroskedasticity (variance grows with mean)
-        full_labels = np.log(full_labels)
+        full_labels = np.log(full_labels + self.log_offset)
+        full_aux_data = np.log(full_aux_data + self.log_offset)
 
         # shuffle datasets
         randomized_idx = np.random.permutation(full_phy_data.shape[0])
@@ -341,7 +342,7 @@ class CnnTrainer(Trainer):
             # val_idx = test_idx
 
         # save original training input
-        self.train_label_true = np.exp(full_labels[train_idx,:])
+        self.train_label_true = np.exp(full_labels[train_idx,:]) - self.log_offset
 
         # normalize auxiliary data
         self.norm_train_aux_data, train_aux_data_means, train_aux_data_sd = util.normalize(full_aux_data[train_idx,:])
@@ -576,7 +577,7 @@ class CnnTrainer(Trainer):
         norm_train_label_est = np.array(norm_train_label_est)
         self.train_label_est = util.denormalize(norm_train_label_est,
                                                 self.train_labels_mean_sd,
-                                                exp=True)
+                                                exp=True) - self.log_offset
  
         # calibration label estimates + CPI adjustment
         norm_calib_label_est = self.mymodel.predict([self.calib_phy_data_tensor,
@@ -595,7 +596,7 @@ class CnnTrainer(Trainer):
         norm_train_label_est_calib[2,:,:] = norm_train_label_est_calib[2,:,:] + self.cpi_adjustments[1,:]
         self.train_label_est_calib = util.denormalize(norm_train_label_est_calib,
                                                       self.train_labels_mean_sd,
-                                                      exp=True)
+                                                      exp=True) - self.log_offset
 
         return
     
