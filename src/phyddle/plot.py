@@ -695,7 +695,7 @@ class Plotter:
         return
 
     def plot_scatter_accuracy(self, ests, labels, prefix,
-                              color="blue", axis_labels = ["estimate", "truth"],
+                              color="blue", axis_labels = ["truth", "truth"],
                               title = '', plot_log=False):
         """Plots accuracy of estimates and CPIs for labels.
 
@@ -726,39 +726,39 @@ class Plotter:
             y_label = f'{p} {axis_labels[1]}'
 
             # estimates (x) and true values (y)
-            x_value = ests[f'{p}_value'][:].to_numpy()
-            x_lower = ests[f'{p}_lower'][:].to_numpy()
-            x_upper = ests[f'{p}_upper'][:].to_numpy()
-            y_value = labels[p][:].to_numpy()
+            lbl_est = ests[f'{p}_value'][:].to_numpy()
+            lbl_lower = ests[f'{p}_lower'][:].to_numpy()
+            lbl_upper = ests[f'{p}_upper'][:].to_numpy()
+            lbl_true = labels[p][:].to_numpy()
 
-            only_positive = np.all(y_value >= 0.)
+            only_positive = np.all(lbl_true >= 0.)
             if only_positive and plot_log:
-                x_value = np.log(x_value)
-                x_lower = np.log(x_lower)
-                x_upper = np.log(x_upper)
-                y_value = np.log(y_value)
+                lbl_est = np.log(lbl_est)
+                lbl_lower = np.log(lbl_lower)
+                lbl_upper = np.log(lbl_upper)
+                lbl_true = np.log(lbl_true)
                 x_label = f'ln {p} {axis_labels[0]}'
                 y_label = f'ln {p} {axis_labels[1]}'
                 
 
             # accuracy stats
-            stat_mae = np.mean( np.abs(x_value - y_value) )
-            stat_mape = 100 * np.mean( np.abs(x_value - y_value) / y_value )
-            stat_mse = np.mean( np.power(x_value - y_value, 2) )
+            stat_mae = np.mean( np.abs(lbl_est - lbl_true) )
+            stat_mape = 100 * np.mean( np.abs(lbl_est - lbl_true) / lbl_true )
+            stat_mse = np.mean( np.power(lbl_est - lbl_true, 2) )
             stat_rmse = np.sqrt( stat_mse )
             
             # coverage stats
-            stat_cover = np.logical_and(x_lower < y_value, x_upper > y_value )
+            stat_cover = np.logical_and(lbl_lower < lbl_true, lbl_upper > lbl_true )
             stat_not_cover = np.logical_not(stat_cover)
             f_stat_cover = sum(stat_cover) / len(stat_cover) * 100
 
             # linear regression slope
             # if only_positive:
-            #     reg = LinearRegression().fit( np.log(x_value.reshape(-1, 1)), np.log(y_value.reshape(-1, 1)))
+            #     reg = LinearRegression().fit( np.log(lbl_est.reshape(-1, 1)), np.log(lbl_true.reshape(-1, 1)))
             #     stat_slope = reg.coef_[0][0]
             #     stat_intercept = reg.intercept_[0]
             # else:
-            reg = LinearRegression().fit( x_value.reshape(-1, 1), y_value.reshape(-1, 1))
+            reg = LinearRegression().fit( lbl_est.reshape(-1, 1), lbl_true.reshape(-1, 1))
             stat_slope = reg.coef_[0][0]
             stat_intercept = reg.intercept_[0]
             
@@ -772,30 +772,33 @@ class Plotter:
             s_cover = '{:.1f}%'.format(f_stat_cover)
             
             alpha = 0.5 # 50. / len(y_cover)
+
             # covered points
-            plt.scatter(x_value[stat_cover], y_value[stat_cover],
+            plt.scatter(lbl_true[stat_cover], lbl_est[stat_cover],
                         alpha=alpha, c=color, zorder=3, s=3)
             # covered bars
-            plt.plot([x_lower[stat_cover], x_upper[stat_cover]],
-                     [y_value[stat_cover], y_value[stat_cover]],
-                     color=color, alpha=alpha, linestyle="-", marker='|',
+            plt.plot([lbl_true[stat_cover], lbl_true[stat_cover]],
+                     [lbl_lower[stat_cover], lbl_upper[stat_cover]],
+                     color=color, alpha=alpha, linestyle="-", marker='_',
                      linewidth=0.5, zorder=2 )
 
 
 
             # not covered points
-            plt.scatter(x_value[stat_not_cover], y_value[stat_not_cover],
+            plt.scatter(lbl_true[stat_not_cover], lbl_est[stat_not_cover], 
                         alpha=alpha, c='red', zorder=5, s=3)
             # not covered bars
-            plt.plot([x_lower[stat_not_cover], x_upper[stat_not_cover]],
-                     [y_value[stat_not_cover], y_value[stat_not_cover]],
-                     color='red', alpha=alpha, linestyle="-", marker='|',
+            plt.plot([lbl_true[stat_not_cover], lbl_true[stat_not_cover]],
+                     [lbl_lower[stat_not_cover], lbl_upper[stat_not_cover]],
+                     color='red', alpha=alpha, linestyle="-", marker='_',
                      linewidth=0.5, zorder=4 )
             
             # regression line
-            plt.axline((0,stat_intercept), slope=stat_slope, color=color,
+            # plt.axline((0, stat_intercept), slope=(stat_slope, 0), color=color,
+            #            alpha=1.0, zorder=0, linestyle='dotted')
+            plt.axline((stat_intercept, 0), slope=1./stat_slope, color=color,
                        alpha=1.0, zorder=0, linestyle='dotted')
-            
+
             # 1:1 line
             plt.axline((0,0), slope=1, color=color, alpha=1.0, zorder=0)
             plt.gca().set_aspect('equal')
@@ -835,6 +838,148 @@ class Plotter:
 
         # done    
         return
+
+    # def plot_scatter_accuracy(self, ests, labels, prefix,
+    #                           color="blue", axis_labels = ["estimate", "truth"],
+    #                           title = '', plot_log=False):
+    #     """Plots accuracy of estimates and CPIs for labels.
+
+    #     This function generates a scatterplot for true vs. estimated labels
+    #     from the trained network. Points are point estimates. Bars are
+    #     CPIs.
+
+    #     Args:
+    #         save_fn (str): Filename to save plot.
+    #         est_label (numpy.array): Estimated values from new dataset.
+    #         title (str): Title for the plot.
+    #         color (str): Color of histograms
+    #         plot_log (bool): Plot y-axis on log scale? Default True.
+
+    #     """
+    #     # figure size
+    #     fig_width = 6
+    #     fig_height = 6
+
+    #     # create figure
+    #     plt.figure(figsize=(fig_width,fig_height))
+
+    #     # plot parameters
+    #     for i,p in enumerate(self.param_names):
+
+    #         # labels
+    #         x_label = f'{p} {axis_labels[0]}'
+    #         y_label = f'{p} {axis_labels[1]}'
+
+    #         # estimates (x) and true values (y)
+    #         x_value = ests[f'{p}_value'][:].to_numpy()
+    #         x_lower = ests[f'{p}_lower'][:].to_numpy()
+    #         x_upper = ests[f'{p}_upper'][:].to_numpy()
+    #         y_value = labels[p][:].to_numpy()
+
+    #         only_positive = np.all(y_value >= 0.)
+    #         if only_positive and plot_log:
+    #             x_value = np.log(x_value)
+    #             x_lower = np.log(x_lower)
+    #             x_upper = np.log(x_upper)
+    #             y_value = np.log(y_value)
+    #             x_label = f'ln {p} {axis_labels[0]}'
+    #             y_label = f'ln {p} {axis_labels[1]}'
+                
+
+    #         # accuracy stats
+    #         stat_mae = np.mean( np.abs(x_value - y_value) )
+    #         stat_mape = 100 * np.mean( np.abs(x_value - y_value) / y_value )
+    #         stat_mse = np.mean( np.power(x_value - y_value, 2) )
+    #         stat_rmse = np.sqrt( stat_mse )
+            
+    #         # coverage stats
+    #         stat_cover = np.logical_and(x_lower < y_value, x_upper > y_value )
+    #         stat_not_cover = np.logical_not(stat_cover)
+    #         f_stat_cover = sum(stat_cover) / len(stat_cover) * 100
+
+    #         # linear regression slope
+    #         # if only_positive:
+    #         #     reg = LinearRegression().fit( np.log(x_value.reshape(-1, 1)), np.log(y_value.reshape(-1, 1)))
+    #         #     stat_slope = reg.coef_[0][0]
+    #         #     stat_intercept = reg.intercept_[0]
+    #         # else:
+    #         reg = LinearRegression().fit( x_value.reshape(-1, 1), y_value.reshape(-1, 1))
+    #         stat_slope = reg.coef_[0][0]
+    #         stat_intercept = reg.intercept_[0]
+            
+    #         # convert to strings
+    #         s_mae  = '{:.2E}'.format(stat_mae)
+    #         s_mse  = '{:.2E}'.format(stat_mse)
+    #         s_rmse = '{:.2E}'.format(stat_rmse)
+    #         s_mape = '{:.1f}%'.format(stat_mape)
+    #         s_slope = '{:.2E}'.format(stat_slope)
+    #         s_intercept  = '{:.2E}'.format(stat_intercept)
+    #         s_cover = '{:.1f}%'.format(f_stat_cover)
+            
+    #         alpha = 0.5 # 50. / len(y_cover)
+    #         # covered points
+    #         plt.scatter(x_value[stat_cover], y_value[stat_cover],
+    #                     alpha=alpha, c=color, zorder=3, s=3)
+    #         # covered bars
+    #         plt.plot([x_lower[stat_cover], x_upper[stat_cover]],
+    #                  [y_value[stat_cover], y_value[stat_cover]],
+    #                  color=color, alpha=alpha, linestyle="-", marker='|',
+    #                  linewidth=0.5, zorder=2 )
+
+
+
+    #         # not covered points
+    #         plt.scatter(x_value[stat_not_cover], y_value[stat_not_cover],
+    #                     alpha=alpha, c='red', zorder=5, s=3)
+    #         # not covered bars
+    #         plt.plot([x_lower[stat_not_cover], x_upper[stat_not_cover]],
+    #                  [y_value[stat_not_cover], y_value[stat_not_cover]],
+    #                  color='red', alpha=alpha, linestyle="-", marker='|',
+    #                  linewidth=0.5, zorder=4 )
+            
+    #         # regression line
+    #         plt.axline((0,stat_intercept), slope=stat_slope, color=color,
+    #                    alpha=1.0, zorder=0, linestyle='dotted')
+            
+    #         # 1:1 line
+    #         plt.axline((0,0), slope=1, color=color, alpha=1.0, zorder=0)
+    #         plt.gca().set_aspect('equal')
+
+    #         # set axes
+    #         xlim = plt.xlim()
+    #         ylim = plt.ylim()
+    #         minlim = min(xlim[0], ylim[0])
+    #         maxlim = max(xlim[1], ylim[1])
+    #         plt.xlim([minlim, maxlim])
+    #         plt.ylim([minlim, maxlim])
+            
+    #         # write text
+    #         dx = 0.03
+    #         stat_str = [f'MAE: {s_mae}', f'MAPE: {s_mape}', f'MSE: {s_mse}',
+    #                     f'RMSE: {s_rmse}', f'Intercept: {s_intercept}',
+    #                     f'Slope: {s_slope}', f'Coverage: {s_cover}' ]
+            
+    #         for j,s in enumerate(stat_str):
+    #             plt.annotate(s, xy=(0.01,0.99-j*dx),
+    #                      xycoords='axes fraction', fontsize=10,
+    #                      horizontalalignment='left', verticalalignment='top',
+    #                      color='black')
+
+    #         # cosmetics
+    #         plt.title(f'{title} estimates: {p}')
+    #         plt.xlabel(x_label)
+    #         plt.ylabel(y_label)
+    #         # if plot_log:
+    #         #     plt.xscale('log')         
+    #         #     plt.yscale('log')         
+
+    #         # save
+    #         save_fn = f'{prefix}_{p}.pdf'
+    #         plt.savefig(save_fn, format='pdf', dpi=300, bbox_inches='tight')
+    #         plt.clf()
+
+    #     # done    
+    #     return
     
     def plot_est_CI(self, save_fn, est_label, title='Estimates', color='black',
                     plot_log=True):
