@@ -27,6 +27,22 @@ from tensorflow.keras import callbacks
 # phyddle imports
 from phyddle import utilities as util
 
+# torch
+import torch
+from torch import nn
+from torch.utils.data import DataLoader
+from torchvision import datasets, transforms
+from torch.utils.data import Dataset, DataLoader
+import torch.nn.functional as F
+TORCH_DEVICE_STR = (
+    "cuda"
+    if torch.cuda.is_available()
+    else "mps"
+    if torch.backends.mps.is_available()
+    else "cpu"
+)
+TORCH_DEVICE = torch.device(TORCH_DEVICE_STR)
+
 #------------------------------------------------------------------------------#
 
 def load(args):
@@ -369,6 +385,17 @@ class CnnTrainer(Trainer):
         self.train_aux_data_tensor = self.norm_train_aux_data
         self.val_aux_data_tensor   = self.norm_val_aux_data
         self.calib_aux_data_tensor = self.norm_calib_aux_data
+
+        # torch datasets
+        # self.train_dataset = PhyddleDataset(self.train_phy_data_tensor,
+        #                                     self.norm_train_aux_data,
+        #                                     self.norm_train_labels)
+        # self.calib_dataset = PhyddleDataset(self.calib_phy_data_tensor,
+        #                                     self.norm_val_aux_data,
+        #                                     self.norm_val_labels)
+        # self.val_dataset = PhyddleDataset(self.val_phy_data_tensor,
+        #                                   self.norm_calib_aux_data,
+        #                                   self.norm_calib_labels)
 
         return
     
@@ -798,5 +825,186 @@ class CnnTrainer(Trainer):
             Q[:,i] = np.array([lower_q, upper_q])
                                 
         return Q
+    
+    def train_torch(self):
+        
 
+        # dataset
+        dataset_torch = PhyddleDataset()
+        trainloader = DataLoader(dataset=dataset_torch,
+                                 batch_size=self.trn_batch_size)
+
+        # model stuff
+        model_torch = NeuralNetwork()
+        loss_func_torch = torch.nn.MSELoss()
+        optimizer_torch = torch.optim.Adam(model_torch.parameters(), lr=0.01)
+
+        # test one iteration of training
+        #phy_dat, aux_dat, lbls = list(self.trainloader)[0]
+        #lbls_hat = self.model_torch(phy_dat, aux_dat)
+
+        # training
+        loss_Adam = []
+        running_loss = 0
+        for i in range(self.num_epochs):
+            for phy_dat, aux_dat, lbls in trainloader:
+                # making a prediction in forward pass
+                lbls_hat = model_torch(phy_dat, aux_dat)[0]
+                # calculating the loss between original and predicted data points
+                loss = loss_func_torch(lbls_hat, lbls)
+                # store loss into list
+                loss_Adam.append(loss.item())
+                # zeroing gradients after each iteration
+                optimizer_torch.zero_grad()
+                # backward pass for computing the gradients of the loss w.r.t to learnable parameters
+                loss.backward()
+                # updateing the parameters after each iteration
+                optimizer_torch.step()
+
+        #print(lbls_hat)
+        #print(lbls)
+        return
+    
 #------------------------------------------------------------------------------#
+
+
+class PhyddleDataset(Dataset):    
+    # Constructor
+    def __init__(self, phy_data, aux_data, labels, phy_dat_shape):
+        
+        # self.labels     = pd.read_csv(labels_fn, sep=',').to_numpy(dtype='float32')
+        # self.phy_data   = pd.read_csv(phy_dat_fn, sep=',', header=None).to_numpy(dtype='float32')
+        # self.aux_data   = pd.read_csv(aux_dat_fn, sep=',').to_numpy(dtype='float32')
+        #self.labels = 
+        
+        self.phy_data = phy_data
+        self.aux_data = aux_data
+        self.labels   = labels
+
+        self.phy_data.dtype = 'float32'
+        self.aux_data.dtype = 'float32'
+        self.labels.dtype   = 'float32'
+
+        self.len = self.labels.shape[0]
+        #self.phy_data.shape = (self.len, phy_dat_shape[0], phy_dat_shape[1])
+    
+
+    # Getting the dataq
+    def __getitem__(self, index):    
+        return self.phy_data[index], self.aux_data[index], self.labels[index]
+    
+    # Getting length of the data
+    def __len__(self):
+        return self.len
+
+
+
+
+class NeuralNetwork(nn.Module):
+    def __init__(self):
+        super(NeuralNetwork, self).__init__()
+
+        self.num_tree_rows = 4
+        self.num_data_rows = 6
+        self.num_total_rows = self.num_tree_rows + self.num_data_rows
+        self.num_aux_data_col = 20
+        self.num_labels = 4
+        input_channels = 1
+        input_size = 320 # concat width???
+        
+        
+        # Phylogenetic Tensor layers
+        # Standard convolution layers
+        self.conv_std1 = nn.Conv1d(in_channels=self.num_total_rows, out_channels=64, kernel_size=3, padding='same')
+        self.conv_std2 = nn.Conv1d(in_channels=64, out_channels=96, kernel_size=5, padding='same')
+        self.conv_std3 = nn.Conv1d(in_channels=96, out_channels=128, kernel_size=7, padding='same')
+        self.pool_std = nn.AdaptiveAvgPool1d(1)
+
+        # Stride convolution layers
+        self.conv_stride1 = nn.Conv1d(in_channels=self.num_total_rows, out_channels=64, kernel_size=7, stride=3)
+        self.conv_stride2 = nn.Conv1d(in_channels=64, out_channels=96, kernel_size=9, stride=6)
+        self.pool_stride = nn.AdaptiveAvgPool1d(1)
+
+        # Dilated convolution layers
+        self.conv_dilate1 = nn.Conv1d(in_channels=self.num_total_rows, out_channels=32, kernel_size=3, dilation=2, padding='same')
+        self.conv_dilate2 = nn.Conv1d(in_channels=32, out_channels=64, kernel_size=5, dilation=4, padding='same')
+        self.pool_dilate = nn.AdaptiveAvgPool1d(1)
+
+        # self.conv_std1.float()
+        # self.conv_stride1.float()
+        # self.conv_dilate1.float()
+
+        # Auxiliary Data layers
+        self.aux_ffnn_1 = nn.Linear(self.num_aux_data_col, 128)
+        self.aux_ffnn_2 = nn.Linear(128, 64)
+        self.aux_ffnn_3 = nn.Linear(64, 32)
+
+        # Label Value layers
+        self.point_ffnn1 = nn.Linear(input_size, 128)
+        self.point_ffnn2 = nn.Linear(128, 64)
+        self.point_ffnn3 = nn.Linear(64, 32)
+        self.point_ffnn4 = nn.Linear(32, self.num_labels)
+
+        # Label Lower layers
+        self.lower_ffnn1 = nn.Linear(input_size, 128)
+        self.lower_ffnn2 = nn.Linear(128, 64)
+        self.lower_ffnn3 = nn.Linear(64, 32)
+        self.lower_ffnn4 = nn.Linear(32, self.num_labels)
+        
+        # Label Upper layers
+        self.upper_ffnn1 = nn.Linear(input_size, 128)
+        self.upper_ffnn2 = nn.Linear(128, 64)
+        self.upper_ffnn3 = nn.Linear(64, 32)
+        self.upper_ffnn4 = nn.Linear(32, self.num_labels)
+
+    def forward(self, phy_dat, aux_dat):
+
+        # Phylogenetic Tensor forwarding
+        # Standard convolutions
+        phy_dat = phy_dat.float()
+        aux_dat = aux_dat.float()
+        x_std = nn.ReLU()(self.conv_std1(phy_dat))
+        x_std = nn.ReLU()(self.conv_std2(x_std))
+        x_std = nn.ReLU()(self.conv_std3(x_std))
+        x_std = self.pool_std(x_std)
+
+        # Stride convolutions
+        x_stride = nn.ReLU()(self.conv_stride1(phy_dat))
+        x_stride = nn.ReLU()(self.conv_stride2(x_stride))
+        x_stride = self.pool_stride(x_stride)
+
+        # Dilated convolutions
+        x_dilated = nn.ReLU()(self.conv_dilate1(phy_dat))
+        x_dilated = nn.ReLU()(self.conv_dilate2(x_dilated))
+        x_dilated = self.pool_dilate(x_dilated)
+
+        # Auxiliary Data Tensor forwarding
+        x_aux_ffnn = F.relu(self.aux_ffnn_1(aux_dat))
+        x_aux_ffnn = F.relu(self.aux_ffnn_2(x_aux_ffnn))
+        x_aux_ffnn = F.relu(self.aux_ffnn_3(x_aux_ffnn))
+
+        # Concatenate phylo and aux layers
+        x_cat = torch.cat((x_std, x_stride, x_dilated, x_aux_ffnn.unsqueeze(dim=2)), dim=1).squeeze()
+        
+        # Point estimate path
+        x_point_est = F.relu(self.point_ffnn1(x_cat))
+        x_point_est = F.relu(self.point_ffnn2(x_point_est))
+        x_point_est = F.relu(self.point_ffnn3(x_point_est))
+        x_point_est = self.point_ffnn4(x_point_est)
+
+        # Lower quantile path
+        x_lower_quantile = F.relu(self.lower_ffnn1(x_cat))
+        x_lower_quantile = F.relu(self.lower_ffnn2(x_lower_quantile))
+        x_lower_quantile = F.relu(self.lower_ffnn3(x_lower_quantile))
+        x_lower_quantile = self.lower_ffnn4(x_lower_quantile)
+
+        # Upper quantile path
+        x_upper_quantile = F.relu(self.upper_ffnn1(x_cat))
+        x_upper_quantile = F.relu(self.upper_ffnn2(x_upper_quantile))
+        x_upper_quantile = F.relu(self.upper_ffnn3(x_upper_quantile))
+        x_upper_quantile = self.upper_ffnn4(x_upper_quantile)
+
+        # https://medium.com/the-artificial-impostor/quantile-regression-part-2-6fdbc26b2629
+        # return loss
+        return (x_point_est, x_lower_quantile, x_upper_quantile)
+

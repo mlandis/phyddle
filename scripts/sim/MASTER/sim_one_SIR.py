@@ -55,7 +55,7 @@ args = {
         'ProgressInfected'  : { 'loc' : 0.01,   'scale' : 0.09   }, # 0.1 to 1 day,  rate of 1 to 10
         'VisitDepart'       : { 'loc' : 0.001,  'scale' : 0.099  }, # 1 to 100 days, rate of 0.01 to 1
         'VisitReturn'       : { 'loc' : 0.01,   'scale' : 0.99   }, # 0.1 to 10 days, rate of 0.1 to 10
-        'S0'                : { 'loc' : 10000., 'scale' : 90000. }, # 10000 to 100000 ind. in population
+        'S0'                : { 'loc' : 1000., 'scale' : 9000. }, # 10000 to 100000 ind. in population
         'V0'                : { 'loc' : 0.001,  'scale' : 0.009  }  # 0.1 to 1% of individuals away?
     }
 }

@@ -52,10 +52,11 @@ args = {
         'R0_0', 'Sample_0', 'Infect_0', 'VisitDepart_0_1', 'VisitReturn_0_1', 'ProgressInfected_0'
     ],
     'param_data'        : [                 # model parameters that are known (aux. data)
-        'Recover_0', 'S0_0', 'V0_0'
+        'Recover_0', 'S0_0' #, 'V0_0'
     ],
     'tensor_format'     : 'hdf5',           # save as compressed HDF5 or raw csv
     'save_phyenc_csv'   : 'F',            # save intermediate phylo-state vectors to file
+    'log_offset'        : 1.0,
 
     #-------------------------------#
     # Train Step settings           #
