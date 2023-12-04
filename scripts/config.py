@@ -72,6 +72,7 @@ args = {
     'loss'              : 'mse',            # loss function for learning
     'optimizer'         : 'adam',           # optimizer for network weight/bias parameters
     'metrics'           : ['mae', 'acc'],   # recorded training metrics
+    'log_offset'        : 1.0,
 
     #-------------------------------#
     # Estimate Step settings        #

@@ -85,15 +85,6 @@ class Formatter:
         # set number of processors
         if self.num_proc <= 0:
             self.num_proc = cpu_count() + self.num_proc
-        # run() attempts to generate one simulation per value in rep_idx,
-        # where rep_idx is list of unique ints to identify simulated datasets
-        if self.encode_all_sim:
-            self.rep_idx = self.get_rep_idx()
-        else:
-            self.rep_idx = list(range(self.start_idx, self.end_idx))
-
-        #  split_idx is later assigned a value, after raw data is encoded
-        self.split_idx = {}
 
         # get size of CPV+S tensors
         num_tree_row = util.get_num_tree_row(self.tree_encode,
@@ -140,13 +131,22 @@ class Formatter:
         # print header
         util.print_step_header('fmt', [self.sim_proj_dir],
                                self.fmt_proj_dir, verbose)
-        
         # prepare workspace
         os.makedirs(self.fmt_proj_dir, exist_ok=True)
 
         # start time
         start_time,start_time_str = util.get_time()
         util.print_str(f'▪ Start time of {start_time_str}', verbose)
+
+        # run() attempts to generate one simulation per value in rep_idx,
+        # where rep_idx is list of unique ints to identify simulated datasets
+        util.print_str('▪ Collecting files', verbose)
+        if self.encode_all_sim:
+            self.rep_idx = self.get_rep_idx()
+        else:
+            self.rep_idx = list(range(self.start_idx, self.end_idx))
+        #  split_idx is later assigned a value, after raw data is encoded
+        self.split_idx = {}
 
         # encode each dataset into individual tensors
         util.print_str('▪ Encoding raw data as tensors', verbose)
@@ -230,9 +230,9 @@ class Formatter:
         # save all phylogenetic-state tensors into the phy_tensors dictionary,
         # while sorting tensors into different tree-width categories
         self.phy_tensors = {}
-        for i in range(len(res)):
-            if res[i] is not None:
-                self.phy_tensors[i] = res[i]
+        for i in res:
+            if i is not None:
+                self.phy_tensors[i[0]] = i[1]
 
         # save names/lengths of summary statistic and label lists
         self.summ_stat_names = self.get_summ_stat_names()
@@ -250,12 +250,64 @@ class Formatter:
         Returns:
             int[]: List of replicate indices.
         """
-        rep_idx = set()
+
+        # find all rep index
+        all_idx = set()
         files = os.listdir(f'{self.sim_proj_dir}')
+        #print(len(files))
         for f in files:
-            rep_idx.add(int(f.split('.')[1]))
-        rep_idx = sorted(list(rep_idx))
-        return rep_idx
+            if f[0:3] == 'sim':
+                all_idx.add(int(f.split('.')[1]))
+        all_idx = sorted(list(all_idx))
+
+        return all_idx
+
+        # currently disabled, because it might not be needed in general
+        # and it is expensive for >2M files
+
+        # # find only rep index with complete datasets
+        # complete_idx = []
+        # required_exts = [ '.tre', '.labels.csv' ]
+        # if self.char_format == 'nexus':
+        #     required_exts.append('.dat.nex')
+        # elif self.char_format == 'csv':
+        #     required_exts.append('.dat.csv')
+
+        # for idx in all_idx:
+        #     #complete = True
+        #     prefix_fn = f'{self.sim_proj_dir}/sim.{idx}'
+        #     if os.path.exists(prefix_fn + required_exts[0]) and \
+        #        os.path.exists(prefix_fn + required_exts[1]) and \
+        #        os.path.exists(prefix_fn + required_exts[2]):
+        #     #for ext in required_exts: 
+        #     #   if not os.path.exists(prefix_fn + ext):
+        #     #                    complete = False
+        #     #if complete:
+        #         complete_idx.append(idx)
+
+        # if self.use_parallel:
+        #     # parallel jobs
+        #     with Pool(processes=self.num_proc) as pool:
+        #         # Note, it's critical to call this as list(tqdm(pool.imap(...)))
+        #         # - pool.imap runs the parallelization
+        #         # - tqdm generates progress bar
+        #         # - list acts as a finalizer for the pool.imap work
+        #         # Have not benchmarked imap/imap_unordered, chunksize, etc.
+        #         res = list(tqdm(pool.imap(self.encode_one_star,
+        #                                   args, chunksize=5),
+        #                         total=len(args),
+        #                         desc='Encoding',
+        #                         smoothing=0))
+                
+        # else:
+        #     # serial jobs
+        #     res = [ self.encode_one_star(a) for a in tqdm(args,
+        #                                                   total=len(args),
+        #                                                   desc='Encoding',
+        #                                                   smoothing=0) ]
+
+        # return complete rep idx dataset
+        # return complete_idx
 
     def get_summ_stat_names(self):
         """Get names of summary statistics.
@@ -562,34 +614,29 @@ class Formatter:
                             precision=NUM_DIGITS)
         
         # make filenames
-        if self.char_format == 'nex':
+        if self.char_format == 'nexus':
             dat_ext = '.nex'
         elif self.char_format == 'csv':
             dat_ext = '.csv'
         
-        dat_fn = tmp_fn + '.dat' + dat_ext
+        dat_fn     = tmp_fn + '.dat' + dat_ext
         tre_fn     = tmp_fn + '.tre'
         prune_fn   = tmp_fn + '.extant.tre'
         down_fn    = tmp_fn + '.downsampled.tre'
         cpsv_fn    = tmp_fn + '.phy_data.csv'
         ss_fn      = tmp_fn + '.summ_stat.csv'
-        info_fn    = tmp_fn + '.info.csv'
+        #info_fn    = tmp_fn + '.info.csv'
         
         # check if key files exist
-        err_msg = None
         if not os.path.exists(dat_fn):
-            err_msg = f'Formatter.encode_one(): {dat_fn} does not exist'
-            print(err_msg)
-            self.logger.write_log('fmt', err_msg)
+            self.logger.write_log('fmt', f'Cannot find {dat_fn}')
+            return
         if not os.path.exists(tre_fn):
-            err_msg = f'Formatter.encode_one(): {tre_fn} does not exist'
-            print(err_msg)
-            self.logger.write_log('fmt', err_msg)
-        if err_msg is not None:
+            self.logger.write_log('fmt', f'Cannot find {tre_fn}')
             return
         
         # read in nexus data file as numpy array
-        if self.char_format == 'nex':
+        if self.char_format == 'nexus':
             dat = util.convert_nexus_to_array(dat_fn,
                                                    self.char_encode,
                                                    self.num_states)
@@ -597,22 +644,24 @@ class Formatter:
             dat = util.convert_csv_to_array(dat_fn,
                                                  self.char_encode,
                                                  self.num_states)
-        
         # get tree file
         phy = util.read_tree(tre_fn)
+
+        # abort if simulation is invalid
+        if dat is None:
+            self.logger.write_log('fmt', f'Cannot process {dat_fn}')
+            return
         if phy is None:
+            self.logger.write_log('fmt', f'Cannot process {tre_fn}')
             return
 
         # prune tree, if needed
         if self.tree_encode == 'extant':
-            #phy_prune = util.make_prune_phy(phy, prune_fn)
             phy = util.make_prune_phy(phy, prune_fn)
             if phy is None:
                 # abort, no valid pruned tree
+                self.logger.write_log('fmt', f'Invalid pruned tree for {tre_fn}')
                 return
-            #else:
-            #    # valid pruned tree
-            #    phy = copy.deepcopy(phy_prune)
 
         # downsample taxa
         num_taxa_orig = len(phy.leaf_nodes())
@@ -625,19 +674,20 @@ class Formatter:
         num_taxa = len(phy.leaf_nodes())
         if num_taxa > np.max(self.tree_width_cats):
             # abort, too many taxa
+            self.logger.write_log('fmt', f'Too many taxa {tre_fn} has too many taxa')
             return
         if num_taxa < self.min_num_taxa or num_taxa < 0:
             # abort, too few taxa
+            self.logger.write_log('fmt', f'Too few taxa (<{self.min_num_taxa}) for {tre_fn}')
             return
 
         # get tree width from resulting vector
         tree_width = np.max(self.tree_width_cats)
-        #tree_width = util.find_tree_width(num_taxa, self.tree_width_cats)
 
         # create compact phylo-state vector, CPV+S = {CBLV+S, CDV+S}
         cpvs_data = None
 
-        # encode CBLV+S
+        # encode phylo-state tensor as CPV+S
         cpvs_data = self.encode_cpvs(phy, dat, tree_width=tree_width,
                                      tree_encode_type=self.brlen_encode,
                                      tree_type=self.tree_encode)
@@ -664,7 +714,7 @@ class Formatter:
         util.write_to_file(ss_str, ss_fn)
 
         # done!
-        return cpvs_data
+        return (idx,cpvs_data)
     
     def make_summ_stat(self, phy, dat):
         """
@@ -685,35 +735,29 @@ class Formatter:
         # new dictionary to return
         summ_stats = {}
 
-        # read basic info from phylogenetic tree
-        num_taxa                  = len(phy.leaf_nodes())
-        node_ages                 = phy.internal_node_ages(ultrametricity_precision=False)
-        root_age                  = phy.seed_node.age
-        branch_lengths            = [ nd.edge.length for nd in phy.nodes() if nd != phy.seed_node ]
-        #root_distances            = phy.calc_node_root_distances()
-        #root_distances            = [ nd.root_distance for nd in phy.nodes() if nd.is_leaf]
-        #phy.calc_node_ages(ultrametricity_precision=False)
-        #tree_height               = np.max( root_distances )
-
-        # tree statistics
-        summ_stats['ln_tree_length'] = np.log( phy.length() )
-        summ_stats['ln_root_age']    = np.log( root_age )
-        summ_stats['ln_brlen_mean']  = np.log( np.mean(branch_lengths) )
-        summ_stats['ln_brlen_var']   = np.log( np.var(branch_lengths) )
-        #summ_stats['brlen_skew']  = np.log( sp.stats.skew(branch_lengths) )
-        summ_stats['ln_age_mean']    = np.log( np.mean(node_ages) )
-        summ_stats['ln_age_var']     = np.log( np.var(node_ages) )
-        #summ_stats['age_skew']    = np.log( sp.stats.skew(node_ages) )
-        summ_stats['ln_B1']          = np.log( dp.calculate.treemeasure.B1(phy) )
-        summ_stats['ln_N_bar']       = np.log( dp.calculate.treemeasure.N_bar(phy) )
-        summ_stats['ln_colless']     = np.log( dp.calculate.treemeasure.colless_tree_imbalance(phy) )
-        summ_stats['ln_treeness']    = np.log( dp.calculate.treemeasure.treeness(phy) )
-
-        # possible tree statistics, but not computable for arbitrary trees
-        #summ_stats['gamma']       = dp.calculate.treemeasure.pybus_harvey_gamma(phy)
-        #summ_stats['brlen_kurt']  = sp.stats.kurtosis(branch_lengths)
-        #summ_stats['age_kurt']    = sp.stats.kurtosis(root_distances)
-        #summ_stats['sackin']      = dp.calculate.treemeasure.sackin_index(phy)
+        # return default summ stats if phy not valid
+        if phy is not None:
+            
+            # read basic info from phylogenetic tree
+            num_taxa                  = len(phy.leaf_nodes())
+            node_ages                 = phy.internal_node_ages(ultrametricity_precision=False)
+            root_age                  = phy.seed_node.age
+            branch_lengths            = [ nd.edge.length for nd in phy.nodes() if nd != phy.seed_node ]
+            
+            # tree statistics
+            summ_stats['tree_length'] = phy.length()
+            summ_stats['root_age']    = root_age
+            summ_stats['brlen_mean']  = np.mean(branch_lengths)
+            summ_stats['age_mean']    = np.mean(node_ages)
+            summ_stats['B1']          = dp.calculate.treemeasure.B1(phy)
+            try:
+                summ_stats['colless'] = dp.calculate.treemeasure.colless_tree_imbalance(phy)
+            except ZeroDivisionError:
+                summ_stats['colless'] = 0.0
+            summ_stats['age_var']     = np.var(node_ages)
+            summ_stats['brlen_var']   = np.var(branch_lengths)
+            summ_stats['treeness']    = dp.calculate.treemeasure.treeness(phy)
+            summ_stats['N_bar']       = dp.calculate.treemeasure.N_bar(phy)
 
         # frequencies of character states
         if self.char_encode == 'integer':
@@ -722,7 +766,7 @@ class Formatter:
             states = list(range(self.num_states))
             for i in states:
                 #summ_stats[f'f_dat_{i}'] = 0.
-                summ_stats[f'n_dat_{i}'] = 0.
+                summ_stats[f'n_dat_{i}'] = 0.0
 
             # fill-in non-zero state freqs
             unique, counts = np.unique(dat, return_counts=True)

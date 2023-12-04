@@ -131,27 +131,27 @@ def settings_registry():
         'sim_batch_size'   : { 'step':'S',  'type':int, 'section':'Simulate', 'default':1,       'help':'Number of replicates per simulation command' },
 
         # formatting options
-        'encode_all_sim'   : { 'step':'F',    'type':str,  'section':'Format', 'default':'T',             'help':'Encode all simulated replicates into tensor?', 'bool':True },
-        'num_char'         : { 'step':'FTE',  'type':int,  'section':'Format', 'default':None,           'help':'Number of characters' },
-        'num_states'       : { 'step':'FTE',  'type':int,  'section':'Format', 'default':None,           'help':'Number of states per character' },
-        'min_num_taxa'     : { 'step':'F',    'type':int,  'section':'Format', 'default':10,             'help':'Minimum number of taxa allowed when formatting' },
-        'max_num_taxa'     : { 'step':'F',    'type':int,  'section':'Format', 'default':1000,           'help':'Maximum number of taxa allowed when formatting' },
-        'downsample_taxa'  : { 'step':'FTE',  'type':str,  'section':'Format', 'default':'uniform',      'help':'Downsampling strategy taxon count',            'choices':['uniform'] },
-        'tree_width'       : { 'step':'FTEP', 'type':int,  'section':'Format', 'default':500,            'help':'Width of phylo-state tensor' },
-        #'tree_width_cats'  : { 'step':'F',   'type':int, 'section':'Format', 'default':[200, 500],     'help':'The phylo-state tensor widths for formatting training datasets (space-delimited)' },
-        'tree_encode'      : { 'step':'FTE',  'type':str,  'section':'Format', 'default':'extant',       'help':'Encoding strategy for tree',                   'choices':['extant', 'serial'] },
-        'brlen_encode'     : { 'step':'FTE',  'type':str,  'section':'Format', 'default':'height_brlen', 'help':'Encoding strategy for branch lengths',         'choices':['height_only', 'height_brlen'] },
-        'char_encode'      : { 'step':'FTE',  'type':str,  'section':'Format', 'default':'one_hot',      'help':'Encoding strategy for character data',         'choices':['one_hot', 'integer', 'numeric'] },
-        'param_est'        : { 'step':'FTE',  'type':list, 'section':'Format', 'default':None,           'help':'Model parameters to estimate' },
-        'param_data'       : { 'step':'FTE',  'type':list, 'section':'Format', 'default':None,           'help':'Model parameters treated as data' },
-        'char_format'      : { 'step':'FTE',  'type':str,  'section':'Format', 'default':'nexus',        'help':'File format for character data',               'choices':['csv', 'nexus'] },
-        'tensor_format'    : { 'step':'FTEP', 'type':str,  'section':'Format', 'default':'hdf5',         'help':'File format for training example tensors',     'choices':['csv', 'hdf5'] },
-        'save_phyenc_csv'  : { 'step':'F',    'type':str,  'section':'Format', 'default':'F',            'help':'Save encoded phylogenetic tensor encoding to csv?', 'bool':True },
+        'encode_all_sim'   : { 'step':'F',    'type':str,   'section':'Format', 'default':'T',            'help':'Encode all simulated replicates into tensor?', 'bool':True },
+        'num_char'         : { 'step':'FTE',  'type':int,   'section':'Format', 'default':None,           'help':'Number of characters' },
+        'num_states'       : { 'step':'FTE',  'type':int,   'section':'Format', 'default':None,           'help':'Number of states per character' },
+        'min_num_taxa'     : { 'step':'F',    'type':int,   'section':'Format', 'default':10,             'help':'Minimum number of taxa allowed when formatting' },
+        'max_num_taxa'     : { 'step':'F',    'type':int,   'section':'Format', 'default':1000,           'help':'Maximum number of taxa allowed when formatting' },
+        'downsample_taxa'  : { 'step':'FTE',  'type':str,   'section':'Format', 'default':'uniform',      'help':'Downsampling strategy taxon count',            'choices':['uniform'] },
+        'tree_width'       : { 'step':'FTEP', 'type':int,   'section':'Format', 'default':500,            'help':'Width of phylo-state tensor' },
+        #'tree_width_cats'  : { 'step':'F',   'type':int,   'section':'Format', 'default':[200, 500],     'help':'The phylo-state tensor widths for formatting training datasets (space-delimited)' },
+        'tree_encode'      : { 'step':'FTE',  'type':str,   'section':'Format', 'default':'extant',       'help':'Encoding strategy for tree',                   'choices':['extant', 'serial'] },
+        'brlen_encode'     : { 'step':'FTE',  'type':str,   'section':'Format', 'default':'height_brlen', 'help':'Encoding strategy for branch lengths',         'choices':['height_only', 'height_brlen'] },
+        'char_encode'      : { 'step':'FTE',  'type':str,   'section':'Format', 'default':'one_hot',      'help':'Encoding strategy for character data',         'choices':['one_hot', 'integer', 'numeric'] },
+        'param_est'        : { 'step':'FTE',  'type':list,  'section':'Format', 'default':None,           'help':'Model parameters to estimate' },
+        'param_data'       : { 'step':'FTE',  'type':list,  'section':'Format', 'default':None,           'help':'Model parameters treated as data' },
+        'char_format'      : { 'step':'FTE',  'type':str,   'section':'Format', 'default':'nexus',        'help':'File format for character data',               'choices':['csv', 'nexus'] },
+        'tensor_format'    : { 'step':'FTEP', 'type':str,   'section':'Format', 'default':'hdf5',         'help':'File format for training example tensors',     'choices':['csv', 'hdf5'] },
+        'save_phyenc_csv'  : { 'step':'F',    'type':str,   'section':'Format', 'default':'F',            'help':'Save encoded phylogenetic tensor encoding to csv?', 'bool':True },
         
         # training options
         'trn_objective'    : { 'step':'T',   'type':str,   'section':'Train', 'default':'param_est',   'help':'Objective of training procedure', 'choices':['param_est'] },
         'num_epochs'       : { 'step':'TEP', 'type':int,   'section':'Train', 'default':20,            'help':'Number of training epochs' },
-        'trn_batch_size'   : { 'step':'TEP', 'type':int,   'section':'Train', 'default':128,           'help':'Training batch sizes' },
+        'trn_batch_size'   : { 'step':'TEP', 'type':int,   'section':'Train', 'default':512,           'help':'Training batch sizes' },
         'prop_test'        : { 'step':'FT',  'type':float, 'section':'Train', 'default':0.05,          'help':'Proportion of data used as test examples (assess trained network performance)' },
         'prop_val'         : { 'step':'T',   'type':float, 'section':'Train', 'default':0.05,          'help':'Proportion of data used as validation examples (diagnose network overtraining)' },
         'prop_cal'         : { 'step':'T',   'type':float, 'section':'Train', 'default':0.20,          'help':'Proportion of data used as calibration examples (calibrate CPIs)' },
@@ -161,6 +161,7 @@ def settings_registry():
         'loss'             : { 'step':'T',   'type':str,   'section':'Train', 'default':'mse',         'help':'Loss function for optimization', 'choices':['mse', 'mae']},
         'optimizer'        : { 'step':'T',   'type':str,   'section':'Train', 'default':'adam',        'help':'Method used for optimizing neural network', 'choices':['adam'] },
         'metrics'          : { 'step':'T',   'type':list,  'section':'Train', 'default':['mae','acc'], 'help':'Recorded training metrics' },
+        'log_offset'       : { 'step':'FTEP', 'type':float, 'section':'Train', 'default':1.0,         'help':'Offset size c when taking ln(x+c) for potentially zero-valued variables' },
         
         # estimating options
         'est_prefix'       : { 'step':'EP', 'type':str, 'section':'Estimate', 'default':None, 'help':'Predict results for this dataset' },
@@ -171,7 +172,10 @@ def settings_registry():
         'plot_test_color'  : { 'step':'P',  'type':str, 'section':'Plot', 'default':'red',    'help':'Plotting color for test data elements' },
         'plot_val_color'   : { 'step':'P',  'type':str, 'section':'Plot', 'default':'green',  'help':'Plotting color for validation data elements' },
         'plot_aux_color'   : { 'step':'P',  'type':str, 'section':'Plot', 'default':'orange', 'help':'Plotting color for auxiliary data elements' },
-        'plot_est_color'   : { 'step':'P',  'type':str, 'section':'Plot', 'default':'black',  'help':'Plotting color for new estimation elements' }
+        'plot_est_color'   : { 'step':'P',  'type':str, 'section':'Plot', 'default':'black',  'help':'Plotting color for new estimation elements' },
+        'plot_scatter_log' : { 'step':'P',  'type':str, 'section':'Plot', 'default':'T',      'help':'Use log values for scatter plots when possible?', 'bool':True },
+        'plot_contour_log' : { 'step':'P',  'type':str, 'section':'Plot', 'default':'T',      'help':'Use log values for contour plots when possible?', 'bool':True },
+        'plot_density_log' : { 'step':'P',  'type':str, 'section':'Plot', 'default':'T',      'help':'Use log values for density plots when possible?', 'bool':True },
     }
     return settings
 
@@ -777,9 +781,10 @@ def read_tree(tre_fn):
             phy_tmp = dp.Tree.get(path=tre_fn, schema=schema)
         except:
             phy_tmp = None
-        else:
-            if phy_tmp is not None:
-                phy = phy_tmp
+        
+        if phy is None:
+            phy = phy_tmp
+            
     return phy
 
 
@@ -803,17 +808,24 @@ def convert_csv_to_array(dat_fn, char_encode, num_states=None):
 
 def convert_csv_to_numeric_array(dat_fn, pca_compress=None):
     """Converts a csv file to an integer-encoded pandas DataFrame."""
-    # read as pandas
-    dat = pd.read_csv(dat_fn, delimiter=',', index_col=0, header=None).T 
 
+    try:
+        # dat is pandas.DataFrame if non-empty
+        dat = pd.read_csv(dat_fn, delimiter=',', index_col=0, header=None).T 
+    except pd.errors.EmptyDataError:
+        # dat is None if empty
+        return None
     # return
     return dat
 
 def convert_csv_to_onehot_array(dat_fn, num_states):
     """Converts a csv file to an integer-encoded pandas DataFrame."""
     
-    # read data
-    dat_raw = pd.read_csv(dat_fn, delimiter=',', index_col=0, header=None).T
+    try:
+        # dat is pandas.DataFrame if non-empty
+        dat_raw = pd.read_csv(dat_fn, delimiter=',', index_col=0, header=None).T
+    except pd.errors.EmptyDataError:
+        return None
 
     # get num taxa (columns)
     num_taxa = dat_raw.shape[1]
@@ -920,6 +932,12 @@ def convert_nexus_to_integer_array(dat_fn):
     lines = f.readlines()
     f.close()
 
+    # check that file is valid
+    if len(lines) == 0:
+        return None
+    if lines[0].upper() != '#NEXUS\n':
+        return None
+
     # process file
     found_matrix = False
     num_taxa    = 0
@@ -1004,6 +1022,12 @@ def convert_nexus_to_onehot_array(dat_fn, num_states):
     f = open(dat_fn, 'r')
     lines = f.readlines()
     f.close()
+
+    # check that file is valid
+    if len(lines) == 0:
+        return None
+    if lines[0].upper() != '#NEXUS\n':
+        return None
 
     # helper variables
     found_matrix = False

@@ -2,19 +2,12 @@
 # Default phyddle config file                                                  #
 #==============================================================================#
 
-# external import
-#import scipy as sp
-
-# helper variables
-num_char = 2
-num_states = 3
-
 args = {
     
     #-------------------------------#
     # Project organization          #
     #-------------------------------#
-    'proj'           : 'Rev_example',            # directory name for pipeline project
+    'proj'           : 'Rev_GeoSSE',             # directory name for pipeline project
     'step'           : 'SFTEP',                  # steps to run? all, sim, fmt, trn, est, plt
     'verbose'        : 'T',
     'sim_dir'        : '../workspace/simulate',  # directory for simulated data
@@ -27,33 +20,36 @@ args = {
     #-------------------------------#
     # Multiprocessing               #
     #-------------------------------#
-    'use_parallel'   : 'T',                # use multiprocessing to speed up jobs?
+    'use_parallel'   : 'T',                 # use multiprocessing to speed up jobs?
     'num_proc'       : -2,                  # how many CPUs to use (-2 means all but 2)
     
     #-------------------------------#
     # Simulate settings             #
     #-------------------------------#
-    'sim_command'       : 'rb sim/Rev/sim_one.Rev --args',   # exact command string, argument is output file prefix
+    'sim_command'       : 'rb sim/Rev/sim_geosse.Rev --args',   # exact command string, argument is output file prefix
     'sim_logging'       : 'verbose',        # verbose, compressed, or clean
     'start_idx'         : 0,                # first simulation replicate index
-    'end_idx'           : 1000,             # last simulation replicate index
-    'sim_batch_size'    : 100,              # number of simulations per batch
+    'end_idx'           : 100,              # last simulation replicate index
+    'sim_batch_size'    : 100,               # number of simulations per batch
 
     #-------------------------------#
     # Format settings               #
     #-------------------------------#
-    'num_char'          : 2,                # number of evolutionary characters
-    'num_states'        : 3,                # number of states per discrete character
+    'encode_all_sim'    : 'T',              # encode all simulated datasets
+    'num_char'          : 1,                # number of evolutionary characters
+    'num_states'        : 7,                # number of states per discrete character
     'min_num_taxa'      : 10,
     'max_num_taxa'      : 500,
-    'tree_width_cats'   : 200,              # tree width categories for phylo-state tensors
+    'tree_width'        : 500,              # tree width category used to train network
     'tree_encode'       : 'extant',         # use model with serial or extant tree
     'brlen_encode'      : 'height_brlen',   # how to encode phylo brlen? height_only or height_brlen
     'char_encode'       : 'one_hot',        # how to encode discrete states? one_hot or integer 
     'param_est'        : [                  # model parameters to predict (labels)
-        'birth', 'death', 'state_rate'
+        'rho_w','rho_d','rho_e','rho_b'
     ],
-    'param_data'        : [],               # model parameters that are known (aux. data)
+    'param_data'        : [                 # model parameters that are known (aux. data)
+        'sample_frac'
+    ],               
     'tensor_format'     : 'hdf5',           # save as compressed HDF5 or raw csv
     'char_format'       : 'nexus',          # expect character data is in nexus or csv format
     'save_phyenc_csv'   : 'F',              # save intermediate phylo-state vectors to file
@@ -62,22 +58,23 @@ args = {
     # Train settings                #
     #-------------------------------#
     'trn_objective'     : 'param_est',      # what is the learning task? param_est or model_test
-    'tree_width'        : 500,              # tree width category used to train network
     'num_epochs'        : 20,               # number of training intervals (epochs)
     'prop_test'         : 0.05,             # proportion of sims in test dataset
     'prop_val'          : 0.05,             # proportion of sims in validation dataset
     'prop_cal'          : 0.20,             # proportion of sims in CPI calibration dataset 
+    'combine_test_val'  : 'F',
     'cpi_coverage'      : 0.95,             # coverage level for CPIs
     'cpi_asymmetric'    : 'T',              # two-sided (True) or one-sided (False) CPI adjustments
-    'trn_batch_size'    : 128,              # number of samples in each training batch
+    'trn_batch_size'    : 256,              # number of samples in each training batch
     'loss'              : 'mse',            # loss function for learning
     'optimizer'         : 'adam',           # optimizer for network weight/bias parameters
     'metrics'           : ['mae', 'acc'],   # recorded training metrics
+    'log_offset'        : 1.0,
 
     #-------------------------------#
     # Estimate settings             #
     #-------------------------------#
-    'est_prefix'     : 'new.1',             # prefix for new dataset to predict
+    'est_prefix'     : 'new.0',             # prefix for new dataset to predict
 
     #-------------------------------#
     # Plot settings                 #

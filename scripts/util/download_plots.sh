@@ -1,7 +1,7 @@
 #!/bin/sh
 
 MODEL=$1
-REMOTE=$llserver
+REMOTE=$ll2server
 LOCAL_DIR="../workspace/plot/${MODEL}"
 REMOTE_DIR="${REMOTE}:/home/mlandis/projects/phyddle/workspace/plot"
 #./clean_project.sh ${MODEL}

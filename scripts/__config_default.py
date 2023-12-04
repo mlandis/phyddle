@@ -87,5 +87,8 @@ args = {
   'plot_val_color'     : 'green',              # Plotting color for validation data elements
   'plot_aux_color'     : 'orange',             # Plotting color for auxiliary data elements
   'plot_est_color'     : 'black',              # Plotting color for new estimation elements
+  'plot_scatter_log'   : 'T',                  # Use log values for scatter plots when possible?
+  'plot_contour_log'   : 'T',                  # Use log values for contour plots when possible?
+  'plot_density_log'   : 'T',                  # Use log values for density plots when possible?
 
 }

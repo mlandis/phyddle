@@ -91,21 +91,6 @@ class Estimator:
         for k,v in step_args.items():
             setattr(self, k, v)
 
-        # self.args          = args
-        # self.verbose       = args['verbose']
-        # self.trn_dir       = args['trn_dir']
-        # self.est_dir       = args['est_dir']
-        # self.trn_proj      = args['trn_proj']
-        # self.est_proj      = args['est_proj']
-        # self.est_prefix    = args['est_prefix']
-        # self.batch_size    = args['trn_batch_size']
-        # self.num_char      = args['num_char']
-        # self.num_states    = args['num_states']
-        # self.num_epochs    = args['num_epochs']
-        # self.tree_width    = args['tree_width']
-        # self.tree_encode   = args['tree_encode']
-        # self.char_encode   = args['char_encode']
-        # self.brlen_encode  = args['brlen_encode']
         return
     
     def prepare_filepaths(self):
@@ -142,8 +127,7 @@ class Estimator:
 
         # empirical test dataset
         self.emp_summ_stat_fn       = f'{self.est_prefix_dir}.summ_stat.csv'
-        #self.emp_param_data_fn     = f'{self.est_prefix_dir}.known_param.csv'
-        self.emp_labels_fn     = f'{self.est_prefix_dir}.labels.csv'
+        self.emp_labels_fn          = f'{self.est_prefix_dir}.labels.csv'
         self.emp_aux_data_fn        = f'{self.est_prefix_dir}.aux_data.csv'
         self.emp_phy_data_fn        = f'{self.est_prefix_dir}.phy_data.csv'    
         
@@ -222,14 +206,6 @@ class Estimator:
 
         """
 
-        # read & reshape new phylo-state data
-        self.emp_phy_data = None
-        if self.emp_input_exists:
-            self.emp_phy_data = pd.read_csv(self.emp_phy_data_fn,
-                                            header=None, sep=',',
-                                            index_col=False).to_numpy()
-            self.emp_phy_data = self.emp_phy_data.reshape((1, -1, self.num_data_row))
-
         # denormalization factors for new aux data
         train_aux_data_norm = pd.read_csv(self.train_aux_data_norm_fn, sep=',', index_col=False)
         train_aux_data_means = train_aux_data_norm['mean'].T.to_numpy().flatten()
@@ -246,9 +222,49 @@ class Estimator:
         self.aux_data_names = train_aux_data_norm['name'].to_list()
         self.label_names = train_labels_norm['name'].to_list()
         
+        # read in CQR interval adjustments
+        self.cpi_adjustments = pd.read_csv(self.model_cpi_fn, sep=',', index_col=False).to_numpy()
+        
+
+        # TEST DATA
+        # load all the test dataset
+        if self.tensor_format == 'csv':
+            test_phy_data = pd.read_csv(self.test_phy_data_fn, header=None,
+                                        on_bad_lines='skip').to_numpy()
+            test_aux_data = pd.read_csv(self.test_aux_data_fn, header=None,
+                                        on_bad_lines='skip').to_numpy()
+            test_labels   = pd.read_csv(self.test_labels_fn, header=None,
+                                        on_bad_lines='skip').to_numpy()
+            test_aux_data       = test_aux_data[1:,:].astype('float64')
+            test_labels         = test_labels[1:,:].astype('float64')   
+
+        elif self.tensor_format == 'hdf5':
+            hdf5_file = h5py.File(self.test_hdf5_fn, 'r')
+            test_phy_data       = pd.DataFrame(hdf5_file['phy_data']).to_numpy()
+            test_aux_data       = pd.DataFrame(hdf5_file['aux_data']).to_numpy()
+            test_labels         = pd.DataFrame(hdf5_file['labels']).to_numpy()
+            hdf5_file.close()
+
+        num_sample = test_phy_data.shape[0]
+        test_phy_data.shape = (num_sample, -1, self.num_data_row)
+
+        # create phylogenetic data tensors
+        self.test_phy_data = test_phy_data
+        self.test_aux_data = np.log(test_aux_data + self.log_offset)
+        self.norm_test_aux_data = util.normalize(self.test_aux_data,
+                                                 self.train_aux_data_mean_sd)
+        self.test_label_true = test_labels
+
+        # read & reshape new phylo-state data
+        self.emp_phy_data = None
+        if self.emp_input_exists:
+            self.emp_phy_data = pd.read_csv(self.emp_phy_data_fn,
+                                            header=None, sep=',',
+                                            index_col=False).to_numpy()
+            self.emp_phy_data = self.emp_phy_data.reshape((1, -1, self.num_data_row))
+
         # read & normalize new aux data (when files exist)
         self.emp_aux_data = None
-        
         if self.emp_input_exists:
             self.est_summ_stat = pd.read_csv(self.emp_summ_stat_fn, sep=',',
                                             index_col=False).to_numpy().flatten()
@@ -263,47 +279,9 @@ class Estimator:
 
             # reshape and rescale new aux data
             self.emp_aux_data.shape = (1, -1)
+            self.emp_aux_data = np.log(self.emp_aux_data + self.log_offset)
             self.norm_emp_aux_data = util.normalize(self.emp_aux_data,
                                                     self.train_aux_data_mean_sd)
-        
-        # read in CQR interval adjustments
-        self.cpi_adjustments = pd.read_csv(self.model_cpi_fn, sep=',', index_col=False).to_numpy()
-        
-
-        # TEST DATA
-        # load all the test dataset
-        if self.tensor_format == 'csv':
-            test_phy_data = pd.read_csv(self.test_phy_data_fn, header=None,
-                                        on_bad_lines='skip').to_numpy()
-            test_aux_data = pd.read_csv(self.test_aux_data_fn, header=None,
-                                        on_bad_lines='skip').to_numpy()
-            test_labels   = pd.read_csv(self.test_labels_fn, header=None,
-                                        on_bad_lines='skip').to_numpy()
-            # self.aux_data_names = test_aux_data[0,:]
-            # self.label_names    = test_labels[0,:]
-            test_aux_data       = test_aux_data[1:,:].astype('float64')
-            test_labels         = test_labels[1:,:].astype('float64')   
-
-        elif self.tensor_format == 'hdf5':
-            hdf5_file = h5py.File(self.test_hdf5_fn, 'r')
-            # self.aux_data_names = [ s.decode() for s in hdf5_file['aux_data_names'][0,:] ]
-            # self.label_names    = [ s.decode() for s in hdf5_file['label_names'][0,:] ]
-            test_phy_data       = pd.DataFrame(hdf5_file['phy_data']).to_numpy()
-            test_aux_data       = pd.DataFrame(hdf5_file['aux_data']).to_numpy()
-            test_labels         = pd.DataFrame(hdf5_file['labels']).to_numpy()
-            hdf5_file.close()
-
-        num_sample = test_phy_data.shape[0]
-        test_phy_data.shape = (num_sample, -1, self.num_data_row)
-
-        # create phylogenetic data tensors
-        self.test_phy_data = test_phy_data
-        # self.test_aux_data = test_aux_data
-        self.norm_test_aux_data = util.normalize(test_aux_data,
-                                                 self.train_aux_data_mean_sd)
-        # self.norm_test_labels = util.normalize(test_labels,
-        #                                        self.train_labels_mean_sd)
-        self.test_label_true = test_labels
 
         # done
         return
@@ -333,14 +311,9 @@ class Estimator:
             norm_emp_label_est[2,:,:] = norm_emp_label_est[2,:,:] + self.cpi_adjustments[1,:]
             
             # detransform results
-            # log_emp_label_est = util.denormalize(norm_emp_label_est,
-            #                                      self.train_labels_mean_sd[0],
-            #                                      self.train_labels_mean_sd[1])
-            # log_emp_label_est[log_emp_label_est > 300.] = 300.
-            # emp_label_est = np.exp(log_emp_label_est)
             emp_label_est = util.denormalize(norm_emp_label_est,
                                              self.train_labels_mean_sd,
-                                             exp=True)
+                                             exp=True) - self.log_offset
 
             # save empirial label estimates
             df_emp_label_est = util.make_param_VLU_mtx(emp_label_est, self.label_names)
@@ -348,6 +321,7 @@ class Estimator:
             
             # save empirical auxiliary dataset
             df_emp_aux_data = pd.DataFrame(self.emp_aux_data, columns=self.aux_data_names)
+            df_emp_aux_data = np.exp(df_emp_aux_data) - self.log_offset
             df_emp_aux_data.to_csv(self.emp_aux_data_fn, index=False, sep=',')
 
 
@@ -361,14 +335,9 @@ class Estimator:
         norm_test_label_est[2,:,:] = norm_test_label_est[2,:,:] + self.cpi_adjustments[1,:]
         
         # detransform test label estimates
-        # log_test_label_est = util.denormalize(norm_test_label_est,
-        #                                       self.train_labels_mean_sd[0],
-        #                                       self.train_labels_mean_sd[1])
-        # log_test_label_est[log_test_label_est > 300.] = 300.
-        # test_label_est = np.exp(log_test_label_est)
         test_label_est = util.denormalize(norm_test_label_est,
                                           self.train_labels_mean_sd,
-                                          exp=True)
+                                          exp=True) - self.log_offset
 
         #save test estimates
         df_test_label_est = util.make_param_VLU_mtx(test_label_est, self.label_names)
