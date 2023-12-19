@@ -111,8 +111,8 @@ def settings_registry():
         'make_cfg'         : { 'step':'',      'type':None, 'section':'Basic', 'default':None,         'help':"Write default config file to '__config_default.py'?'" },
 
         # analysis options 
-        'use_parallel'     : { 'step':'SF', 'type':str, 'section':'Analysis', 'default':'T', 'help':'Use parallelization? (recommended)', 'bool':True },
-        'num_proc'         : { 'step':'SF', 'type':int, 'section':'Analysis', 'default':-2, 'help':'Number of cores for multiprocessing (-N for all but N)' },
+        'use_parallel'     : { 'step':'SF',  'type':str, 'section':'Analysis', 'default':'T', 'help':'Use parallelization? (recommended)', 'bool':True },
+        'num_proc'         : { 'step':'SFT', 'type':int, 'section':'Analysis', 'default':-2, 'help':'Number of cores for multiprocessing (-N for all but N)' },
         
         # directories
         'sim_dir'          : { 'step':'SF',    'type':str, 'section':'Workspace', 'default':'../workspace/simulate', 'help':'Directory for raw simulated data' },
