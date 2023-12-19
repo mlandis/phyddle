@@ -65,7 +65,7 @@ args = {
     'combine_test_val'  : 'F',
     'cpi_coverage'      : 0.95,             # coverage level for CPIs
     'cpi_asymmetric'    : 'T',              # two-sided (True) or one-sided (False) CPI adjustments
-    'trn_batch_size'    : 256,              # number of samples in each training batch
+    'trn_batch_size'    : 1024,             # number of samples in each training batch
     'loss'              : 'mse',            # loss function for learning
     'optimizer'         : 'adam',           # optimizer for network weight/bias parameters
     'metrics'           : ['mae', 'acc'],   # recorded training metrics
