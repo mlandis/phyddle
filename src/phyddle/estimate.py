@@ -17,8 +17,15 @@ import os
 # external imports
 import numpy as np
 import pandas as pd
-import tensorflow as tf
+# import tensorflow as tf
 import h5py
+
+import torch
+from torch import nn
+from torch.utils.data import Dataset, DataLoader
+#from neuralforecast.losses.pytorch import QuantileLoss
+import torch.nn.functional as F
+
 
 # phyddle imports
 from phyddle import utilities as util
@@ -114,7 +121,7 @@ class Estimator:
         self.fmt_prefix_dir         = f'{self.fmt_proj_dir}/{test_prefix}'
 
         # model files
-        self.model_arch_fn          = f'{self.trn_prefix_dir}_trained_model'
+        self.model_arch_fn          = f'{self.trn_prefix_dir}.trained_model.pkl'
         self.train_labels_norm_fn   = f'{self.trn_prefix_dir}.train_label_norm.csv'
         self.train_aux_data_norm_fn = f'{self.trn_prefix_dir}.train_aux_data_norm.csv'
         self.model_cpi_fn           = f'{self.trn_prefix_dir}.cpi_adjustments.csv'
@@ -247,6 +254,7 @@ class Estimator:
 
         num_sample = test_phy_data.shape[0]
         test_phy_data.shape = (num_sample, -1, self.num_data_row)
+        test_phy_data = np.transpose(test_phy_data, axes=[0,2,1]).astype('float32')
 
         # create phylogenetic data tensors
         self.test_phy_data = test_phy_data
@@ -262,6 +270,7 @@ class Estimator:
                                             header=None, sep=',',
                                             index_col=False).to_numpy()
             self.emp_phy_data = self.emp_phy_data.reshape((1, -1, self.num_data_row))
+            self.emp_phy_data = np.transpose(self.emp_phy_data, axes=[0,2,1]).astype('float32')
 
         # read & normalize new aux data (when files exist)
         self.emp_aux_data = None
@@ -296,29 +305,42 @@ class Estimator:
         """
         
         # load model
-        self.mymodel = tf.keras.models.load_model(self.model_arch_fn, compile=False)
+        # self.mymodel = tf.keras.models.load_model(self.model_arch_fn, compile=False)
+        self.mymodel = torch.load(self.model_arch_fn) #, compile=False)
 
         # empirical dataset (if it exists)
         if self.emp_input_exists:
 
             # get estimates
-            norm_emp_label_est = self.mymodel.predict([self.emp_phy_data,
-                                                       self.norm_emp_aux_data])
+            
+            norm_emp_label_est = self.mymodel(torch.Tensor(self.emp_phy_data),
+                                              torch.Tensor(self.norm_emp_aux_data))
+            # norm_emp_label_est = self.mymodel.predict([self.emp_phy_data,
+            #                                            self.norm_emp_aux_data])
             
             # point estimates & CPIs for emp. labels
+            norm_emp_label_est        = torch.stack(norm_emp_label_est)[:,None,:]
+            norm_emp_label_est        = norm_emp_label_est.detach().numpy()
             norm_emp_label_est        = np.array(norm_emp_label_est)
+            print(norm_emp_label_est.shape)
+            # norm_emp_label_est[1,:,:] = norm_emp_label_est[1,:,:] - self.cpi_adjustments[0,:]
+            # norm_emp_label_est[2,:,:] = norm_emp_label_est[2,:,:] + self.cpi_adjustments[1,:]
             norm_emp_label_est[1,:,:] = norm_emp_label_est[1,:,:] - self.cpi_adjustments[0,:]
             norm_emp_label_est[2,:,:] = norm_emp_label_est[2,:,:] + self.cpi_adjustments[1,:]
-            
+
             # detransform results
             emp_label_est = util.denormalize(norm_emp_label_est,
                                              self.train_labels_mean_sd,
                                              exp=True) - self.log_offset
+            # print(print(emp_label_est.shape)
+            # print(emp_label_est)
 
             # save empirial label estimates
             df_emp_label_est = util.make_param_VLU_mtx(emp_label_est, self.label_names)
             df_emp_label_est.to_csv(self.out_emp_label_est_fn, index=False, sep=',')
             
+            #print(df_emp_label_est)
+
             # save empirical auxiliary dataset
             df_emp_aux_data = pd.DataFrame(self.emp_aux_data, columns=self.aux_data_names)
             df_emp_aux_data = np.exp(df_emp_aux_data) - self.log_offset
@@ -326,11 +348,13 @@ class Estimator:
 
 
         # test dataset
-        norm_test_label_est = self.mymodel.predict([self.test_phy_data,
-                                                    self.norm_test_aux_data])
-        
+        norm_test_label_est = self.mymodel(torch.Tensor(self.test_phy_data),
+                                           torch.Tensor(self.norm_test_aux_data))
+
         # point estimates & CPIs for test labels
-        norm_test_label_est = np.array(norm_test_label_est)
+        norm_test_label_est        = torch.stack(norm_test_label_est).detach().numpy()
+        # print(norm_test_label_est.shape)
+        norm_test_label_est        = np.array(norm_test_label_est)
         norm_test_label_est[1,:,:] = norm_test_label_est[1,:,:] - self.cpi_adjustments[0,:]
         norm_test_label_est[2,:,:] = norm_test_label_est[2,:,:] + self.cpi_adjustments[1,:]
         
