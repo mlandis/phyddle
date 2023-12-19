@@ -23,6 +23,9 @@ from tensorflow.keras import Model
 from tensorflow.keras import layers
 from tensorflow.keras import backend as K
 from tensorflow.keras import callbacks
+from multiprocessing import cpu_count
+import copy
+
 
 # phyddle imports
 from phyddle import utilities as util
@@ -30,18 +33,285 @@ from phyddle import utilities as util
 # torch
 import torch
 from torch import nn
-from torch.utils.data import DataLoader
-from torchvision import datasets, transforms
 from torch.utils.data import Dataset, DataLoader
+#from neuralforecast.losses.pytorch import QuantileLoss
 import torch.nn.functional as F
-TORCH_DEVICE_STR = (
-    "cuda"
-    if torch.cuda.is_available()
-    else "mps"
-    if torch.backends.mps.is_available()
-    else "cpu"
-)
-TORCH_DEVICE = torch.device(TORCH_DEVICE_STR)
+
+
+#-------------------------#
+
+
+
+
+class PhyddleDataset(Dataset):    
+    # Constructor
+    def __init__(self, phy_data, aux_data, labels): #, phy_dat_shape):
+        
+        # self.labels     = pd.read_csv(labels_fn, sep=',').to_numpy(dtype='float32')
+        # self.phy_data   = pd.read_csv(phy_dat_fn, sep=',', header=None).to_numpy(dtype='float32')
+        # self.aux_data   = pd.read_csv(aux_dat_fn, sep=',').to_numpy(dtype='float32')
+        #self.labels = 
+        # print('PhyddleDataset')
+        self.phy_data = np.transpose(phy_data, axes=[0,2,1]).astype('float32')
+        self.aux_data = aux_data.astype('float32')
+        self.labels   = labels.astype('float32')
+        # print(type(phy_data))
+        # print(phy_data.shape)
+        # #print(np.transpose(phy_data, [0,2,1]))
+        # print(type(aux_data))
+        # print(aux_data.shape)
+
+        # self.phy_data = self.phy_data
+        # self.aux_data = 'float32'
+        # self.labels.dtype   = 'float32'
+
+        self.len = self.labels.shape[0]
+        #self.phy_data.shape = (self.len, phy_dat_shape[0], phy_dat_shape[1])
+    
+
+    # Getting the dataq
+    def __getitem__(self, index):    
+        return self.phy_data[index], self.aux_data[index], self.labels[index]
+    
+    # Getting length of the data
+    def __len__(self):
+        return self.len
+
+
+
+
+class NeuralNetwork(nn.Module):
+    def __init__(self, phy_dat_width, phy_dat_height, aux_dat_width, lbl_width):    
+        # initialize base class
+        super(NeuralNetwork, self).__init__()
+
+        print('phy_dat_width = ', phy_dat_width)
+        print('phy_dat_height = ', phy_dat_height)
+        print('aux_dat_width = ', aux_dat_width)
+        print('lbl_width = ', lbl_width)
+
+        # Standard convolution layers
+        phy_std_channels = [64, 96, 128]
+        self.phy_conv_std1 = nn.Conv1d(in_channels=phy_dat_width,       out_channels=phy_std_channels[0], kernel_size=3, padding='same')
+        self.phy_drop_std1 = nn.Dropout(0.1, inplace=False)
+        self.phy_conv_std2 = nn.Conv1d(in_channels=phy_std_channels[0], out_channels=phy_std_channels[1], kernel_size=5, padding='same')
+        self.phy_drop_std2 = nn.Dropout(0.3, inplace=False)
+        self.phy_conv_std3 = nn.Conv1d(in_channels=phy_std_channels[1], out_channels=phy_std_channels[2], kernel_size=7, padding='same')
+        self.phy_drop_std3 = nn.Dropout(0.5, inplace=False)
+        #self.phy_pool_std = nn.AvgPool1d(kernel_size=phy_dat_height)
+        self.phy_pool_std = nn.AdaptiveAvgPool1d(1)
+        
+        # Stride convolution layers
+        phy_stride_channels    = [64, 96]
+        phy_stride_size        = [3, 6]
+        phy_stride_kernel_size = [7, 9]
+        phy_stride_pad_size    = [3, 4]
+        phy_stride_output_size = phy_dat_height
+        for i in range(len(phy_stride_channels)):
+            #print( phy_stride_output_size / phy_stride_size[i] )
+            phy_stride_output_size = int(np.ceil(phy_stride_output_size / phy_stride_size[i]))
+
+        #print('phy stride output', phy_stride_output_size)
+
+        self.phy_conv_stride1 = nn.Conv1d(in_channels=phy_dat_width,          out_channels=phy_stride_channels[0], kernel_size=phy_stride_kernel_size[0], stride=phy_stride_size[0])#, padding=phy_stride_pad_size[0])
+        self.phy_drop_stride1 = nn.Dropout(0.1, inplace=False)
+        self.phy_conv_stride2 = nn.Conv1d(in_channels=phy_stride_channels[0], out_channels=phy_stride_channels[1], kernel_size=phy_stride_kernel_size[1], stride=phy_stride_size[1])#, padding=phy_stride_pad_size[1]) #, padding='same')
+        self.phy_drop_stride2 = nn.Dropout(0.5, inplace=False)
+        #print('phy stride weight size',self.phy_conv_stride2.weight.size())
+        #self.phy_pool_stride  = nn.AvgPool1d(kernel_size=phy_stride_output_size)
+        self.phy_pool_stride = nn.AdaptiveAvgPool1d(1)
+        
+        # Dilated convolution layers
+        phy_dilate_channels = [32, 64]
+        self.phy_conv_dilate1 = nn.Conv1d(in_channels=phy_dat_width,          out_channels=phy_dilate_channels[0], kernel_size=3, dilation=2, padding='same')
+        self.phy_drop_dilate1 = nn.Dropout(0.1, inplace=False)
+        self.phy_conv_dilate2 = nn.Conv1d(in_channels=phy_dilate_channels[0], out_channels=phy_dilate_channels[1], kernel_size=5, dilation=4, padding='same')
+        self.phy_drop_dilate2 = nn.Dropout(0.5, inplace=False)
+        #self.phy_pool_dilate  = nn.AvgPool1d(kernel_size=phy_dat_height)
+        self.phy_pool_dilate = nn.AdaptiveAvgPool1d(1)
+
+        # Auxiliary Data layers
+        aux_channels = [128, 64, 32]
+        #aux_channels = [64, 48, 32]
+        self.aux_ffnn1 = nn.Linear(aux_dat_width,   aux_channels[0])
+        self.aux_dropout1 = torch.nn.Dropout(p=0.5, inplace=False)
+        self.aux_ffnn2 = nn.Linear(aux_channels[0], aux_channels[1])
+        self.aux_dropout2 = torch.nn.Dropout(p=0.5, inplace=False)
+        self.aux_ffnn3 = nn.Linear(aux_channels[1], aux_channels[2])
+        self.aux_dropout3 = torch.nn.Dropout(p=0.5, inplace=False)
+
+        concat_size = phy_std_channels[-1] + phy_stride_channels[-1] + phy_dilate_channels[-1] + aux_channels[-1]
+        #print(phy_std_channels[-1], phy_stride_channels[-1], phy_dilate_channels[-1], aux_channels[-1])
+        #print('concat size', concat_size)
+
+        # Label Value layers
+        lbl_channels = [128, 64, 32]
+        #lbl_channels = [64, 48, 32]
+        self.point_ffnn1 = nn.Linear(concat_size,     lbl_channels[0])
+        self.point_dropout1 = torch.nn.Dropout(p=0.5, inplace=False)
+        self.point_ffnn2 = nn.Linear(lbl_channels[0], lbl_channels[1])
+        self.point_dropout2 = torch.nn.Dropout(p=0.5, inplace=False)
+        self.point_ffnn3 = nn.Linear(lbl_channels[1], lbl_channels[2])
+        self.point_dropout3 = torch.nn.Dropout(p=0.5, inplace=False)
+        self.point_ffnn4 = nn.Linear(lbl_channels[2], lbl_width)
+
+        # Label Lower layers
+        self.lower_ffnn1 = nn.Linear(concat_size,     lbl_channels[0])
+        self.lower_dropout1 = torch.nn.Dropout(p=0.5, inplace=False)
+        self.lower_ffnn2 = nn.Linear(lbl_channels[0], lbl_channels[1])
+        self.lower_dropout2 = torch.nn.Dropout(p=0.5, inplace=False)
+        self.lower_ffnn3 = nn.Linear(lbl_channels[1], lbl_channels[2])
+        self.lower_dropout3 = torch.nn.Dropout(p=0.5, inplace=False)
+        self.lower_ffnn4 = nn.Linear(lbl_channels[2], lbl_width)
+        
+        # Label Upper layers
+        self.upper_ffnn1 = nn.Linear(concat_size,     lbl_channels[0])
+        self.upper_dropout1 = torch.nn.Dropout(p=0.5, inplace=False)
+        self.upper_ffnn2 = nn.Linear(lbl_channels[0], lbl_channels[1])
+        self.upper_dropout2 = torch.nn.Dropout(p=0.5, inplace=False)
+        self.upper_ffnn3 = nn.Linear(lbl_channels[1], lbl_channels[2])
+        self.upper_dropout3 = torch.nn.Dropout(p=0.5, inplace=False)
+        self.upper_ffnn4 = nn.Linear(lbl_channels[2], lbl_width)
+
+        #self.layers = self._get_layers()
+        self._initialize_weights()
+
+    def _initialize_weights(self):
+        s = 0
+        for m in self.modules():
+            if isinstance(m, torch.nn.Linear):
+            #     # This bit loads weights from numpy arrays
+            #     # The loaded weights have identical forward passes as in TF!
+            #     # m.weight = torch.nn.Parameter(torch.from_numpy(np.load(str(s) + '_trained.npy')).T)
+            #     # s +=1
+            #     # m.bias = torch.nn.Parameter(torch.from_numpy(np.load(str(s) + '_trained.npy')))
+            #     # s +=1
+                #print('init Linear')
+                #torch.nn.init.xavier_uniform_(m.weight, gain=5/3)
+                torch.nn.init.kaiming_uniform_(m.weight, a=0, mode='fan_in', nonlinearity='relu')
+                torch.nn.init.constant_(m.bias, 0)
+                # This saves the weight init
+                # np.save(str(s) + '_torch.npy', m.weight.detach().numpy())
+                # s+=1
+                # np.save(str(s) + '_torch.npy', m.bias.detach().numpy())
+                # s+=1
+            if isinstance(m, torch.nn.Conv1d):
+                #print('init Conv1d')
+            #     # This bit loads weights from numpy arrays
+            #     # The loaded weights have identical forward passes as in TF!
+            #     # m.weight = torch.nn.Parameter(torch.from_numpy(np.load(str(s) + '_trained.npy')).T)
+            #     # s +=1
+            #     # m.bias = torch.nn.Parameter(torch.from_numpy(np.load(str(s) + '_trained.npy')))
+            #     # s +=1
+                #torch.nn.init.xavier_uniform_(m.weight, gain=5/3)
+                torch.nn.init.kaiming_uniform_(m.weight, a=0, mode='fan_in', nonlinearity='relu')
+                torch.nn.init.constant_(m.bias, 0)
+                
+    def forward(self, phy_dat, aux_dat):
+        
+        # Phylogenetic Tensor forwarding
+        phy_dat = phy_dat.float()
+        aux_dat = aux_dat.float()
+
+        # MJL does this need to be set?
+        # phy_dat.requires_grad = True
+        # aux_dat.requires_grad = True
+
+        # Standard convolutions
+        x_std = F.relu(self.phy_conv_std1(phy_dat))
+        #x_std = self.phy_drop_std1(x_std)
+        x_std = F.relu(self.phy_conv_std2(x_std))
+        #x_std = self.phy_drop_std2(x_std)
+        x_std = F.relu(self.phy_conv_std3(x_std))
+        #x_std = self.phy_drop_std3(x_std)
+        x_std = self.phy_pool_std(x_std)
+        #print('std_pool',x_std.shape)
+        
+        # Stride convolutions
+        # for i in range(num_phy_stride):
+        #     if i == 0:
+        #         x_stride = F.relu(self.phy_conv_stride[i](phy_dat))
+        #     else:
+        #         x_stride = F.relu(self.phy_conv_stride[i](x_stride))
+        x_stride = F.relu(self.phy_conv_stride1(phy_dat))
+        #x_stride = self.phy_drop_stride1(x_stride)
+        x_stride = F.relu(self.phy_conv_stride2(x_stride))
+        #x_stride = self.phy_drop_stride2(x_stride)
+        x_stride = self.phy_pool_stride(x_stride)
+        #print('stride_pool',x_stride.shape)
+        
+        # # Dilated convolutions
+        x_dilated = F.relu(self.phy_conv_dilate1(phy_dat))
+        #x_dilated = self.phy_drop_dilate1(x_dilated)
+        x_dilated = F.relu(self.phy_conv_dilate2(x_dilated))
+        #x_dilated = self.phy_drop_dilate2(x_dilated)
+        x_dilated = self.phy_pool_dilate(x_dilated)
+        #print(x_dilated.shape)
+
+        # # Auxiliary Data Tensor forwarding
+        x_aux_ffnn = F.relu(self.aux_ffnn1(aux_dat))
+        #x_aux_ffnn = self.aux_dropout1(x_aux_ffnn)
+        x_aux_ffnn = F.relu(self.aux_ffnn2(x_aux_ffnn))
+        #x_aux_ffnn = self.aux_dropout2(x_aux_ffnn)
+        x_aux_ffnn = F.relu(self.aux_ffnn3(x_aux_ffnn))
+        #x_aux_ffnn = self.aux_dropout3(x_aux_ffnn)
+        #print(x_aux_ffnn.shape)
+
+        # Concatenate phylo and aux layers
+        x_cat = torch.cat((x_std, x_stride, x_dilated, x_aux_ffnn.unsqueeze(dim=2)), dim=1).squeeze()
+        #print('cat', x_cat.shape)
+        
+        # Point estimate path
+        x_point_est = F.relu(self.point_ffnn1(x_cat))
+        #x_point_est = self.point_dropout1(x_point_est)
+        x_point_est = F.relu(self.point_ffnn2(x_point_est))
+        #x_point_est = self.point_dropout2(x_point_est)
+        x_point_est = F.relu(self.point_ffnn3(x_point_est))
+        #x_point_est = self.point_dropout3(x_point_est)
+        x_point_est = self.point_ffnn4(x_point_est)
+
+        # # Lower quantile path
+        x_lower_quantile = F.relu(self.lower_ffnn1(x_cat))
+        #x_lower_quantile = self.lower_dropout1(x_lower_quantile)
+        x_lower_quantile = F.relu(self.lower_ffnn2(x_lower_quantile))
+        #x_lower_quantile = self.lower_dropout2(x_lower_quantile)
+        x_lower_quantile = F.relu(self.lower_ffnn3(x_lower_quantile))
+        #x_lower_quantile = self.lower_dropout3(x_lower_quantile)
+        x_lower_quantile = self.lower_ffnn4(x_lower_quantile)
+
+        # # Upper quantile path
+        x_upper_quantile = F.relu(self.upper_ffnn1(x_cat))
+        #x_upper_quantile = self.lower_dropout1(x_upper_quantile)
+        x_upper_quantile = F.relu(self.upper_ffnn2(x_upper_quantile))
+        #x_upper_quantile = self.lower_dropout2(x_upper_quantile)
+        x_upper_quantile = F.relu(self.upper_ffnn3(x_upper_quantile))
+        #x_upper_quantile = self.lower_dropout3(x_upper_quantile)
+        x_upper_quantile = self.upper_ffnn4(x_upper_quantile)
+
+        # https://medium.com/the-artificial-impostor/quantile-regression-part-2-6fdbc26b2629
+        # return loss
+        return (x_point_est, x_lower_quantile, x_upper_quantile)
+        
+
+
+class QuantileLoss(nn.Module):
+    def __init__(self, alpha):
+        super(QuantileLoss, self).__init__()
+        self.alpha = alpha
+
+    def forward(self, predictions, targets):
+        # err = y_true - y_pred
+        # return K.mean(K.maximum(alpha*err, (alpha-1)*err), axis=-1)
+        err = targets - predictions
+        # max_val = torch.max(self.alpha*err, (self.alpha-1)*err)
+        # print(max_val)
+        # print(max_val.shape)
+        # mean_val = torch.mean(max_val) #, dim=-1)
+        # print(mean_val)
+        # print(mean_val.shape)
+        return torch.mean(torch.max(self.alpha*err, (self.alpha-1)*err))
+        #return mean_val
+
 
 #------------------------------------------------------------------------------#
 
@@ -85,6 +355,9 @@ class Trainer:
         self.set_args(args)
         # construct filepaths
         self.prepare_filepaths()
+        # set CPUs
+        if self.num_proc <= 0:
+            self.num_proc = cpu_count() + self.num_proc
         # get size of CPV+S tensors
         self.num_tree_row = util.get_num_tree_row(self.tree_encode,
                                                   self.brlen_encode)
@@ -94,6 +367,15 @@ class Trainer:
         self.num_data_row = self.num_tree_row + self.num_char_row
         # create logger to track runtime info
         self.logger = util.Logger(args)
+        # torch devic
+        self.TORCH_DEVICE_STR = (    
+            "cuda"
+            if torch.cuda.is_available()
+            else "mps"
+            if torch.backends.mps.is_available()
+            else "cpu"
+        )
+        self.TORCH_DEVICE = torch.device(self.TORCH_DEVICE_STR)
         # done
         return
     
@@ -137,7 +419,7 @@ class Trainer:
         self.input_hdf5_fn          = f'{input_prefix}.hdf5'
 
         # output network model info
-        self.model_arch_fn          = f'{output_prefix}_trained_model'
+        self.model_arch_fn          = f'{output_prefix}.trained_model.pkl'
         self.model_weights_fn       = f'{output_prefix}.train_weights.hdf5'
         self.model_history_fn       = f'{output_prefix}.train_history.json'
         self.model_cpi_fn           = f'{output_prefix}.cpi_adjustments.csv'
@@ -387,21 +669,26 @@ class CnnTrainer(Trainer):
         self.calib_aux_data_tensor = self.norm_calib_aux_data
 
         # torch datasets
-        # self.train_dataset = PhyddleDataset(self.train_phy_data_tensor,
-        #                                     self.norm_train_aux_data,
-        #                                     self.norm_train_labels)
-        # self.calib_dataset = PhyddleDataset(self.calib_phy_data_tensor,
-        #                                     self.norm_val_aux_data,
-        #                                     self.norm_val_labels)
-        # self.val_dataset = PhyddleDataset(self.val_phy_data_tensor,
-        #                                   self.norm_calib_aux_data,
-        #                                   self.norm_calib_labels)
+        self.train_dataset = PhyddleDataset(self.train_phy_data_tensor,
+                                            self.norm_train_aux_data,
+                                            self.norm_train_labels)
+        self.calib_dataset = PhyddleDataset(self.calib_phy_data_tensor,
+                                            self.norm_calib_aux_data,
+                                            self.norm_calib_labels)
+        self.val_dataset = PhyddleDataset(self.val_phy_data_tensor,
+                                          self.norm_val_aux_data,
+                                          self.norm_val_labels)
 
         return
     
 #------------------------------------------------------------------------------#
 
     def build_network(self):
+        #torch.set_num_threads(num_cores)
+        #self.mymodel = NeuralNetwork()
+        return
+
+    def build_network2(self):
         """Builds the network architecture.
 
         This function constructs the network architecture by assembling the
@@ -548,6 +835,132 @@ class CnnTrainer(Trainer):
 #------------------------------------------------------------------------------#
 
     def train(self):
+
+        # dataset
+        trainloader = DataLoader(dataset=self.train_dataset,
+                                 batch_size=self.trn_batch_size)
+
+
+        # torch multiprocessing, eventually need to get working with cuda
+        torch.set_num_threads(self.num_proc)
+
+        # build model architecture
+        self.model = NeuralNetwork(phy_dat_width=self.num_data_row,
+                              phy_dat_height=self.tree_width,
+                              aux_dat_width=self.num_stats,
+                              lbl_width=self.num_params)
+        
+        self.model.phy_dat_shape = (self.num_data_row, self.tree_width)
+        self.model.aux_dat_shape = (self.num_stats,)
+        #print(self.model)
+        #model.to(TORCH_DEVICE)
+
+        # loss functions
+        loss_value_func = torch.nn.MSELoss()
+        q_width = self.cpi_coverage
+        q_tail = (1.0 - q_width) / 2
+        q_lower = q_tail
+        q_upper = 1.0 - q_tail
+        qloss_lower_func = QuantileLoss(alpha=q_lower)
+        qloss_upper_func = QuantileLoss(alpha=q_upper)
+
+        # optimizer
+        optimizer = torch.optim.Adam(self.model.parameters())
+        # optimizer = torch.optim.Adam(self.model.parameters(),
+        #                              lr=0.001,
+        #                              weight_decay = 0.002)
+        # optimizer = torch.optim.AdamW(self.model.parameters(), lr=0.001,
+        #                               betas=(0.9, 0.999), eps=1e-08,
+        #                               weight_decay=0.01, amsgrad=False)
+
+        # lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 
+        #                                             step_size = 50, 
+        #                                             gamma = 0.1)
+
+        # test one iteration of training
+        phy_dat, aux_dat, lbls = list(trainloader)[0]
+        lbls_hat = self.model(phy_dat, aux_dat)
+
+        # training
+        #loss_Adam = []
+        running_loss = 0
+        for i in range(self.num_epochs):
+            print(f'Training epoch {i+1} of {self.num_epochs}')
+            #print('-----')
+            #losses = []
+            for j, (phy_dat, aux_dat, lbls) in enumerate(trainloader):
+                
+                # short cut batches for training
+                # if j > 1:
+                #     break
+                
+                # send labels to device
+                lbls.to(self.TORCH_DEVICE)
+                #phy_dat.to(self.TORCH_DEVICE)
+                #aux_dat.to(self.TORCH_DEVICE)
+                
+                # reset gradients for tensors
+                optimizer.zero_grad()
+                
+                # forward pass to estimate labels
+                lbls_hat = self.model(phy_dat, aux_dat)
+                
+                # calculating the loss between original and predicted data points
+                loss_value = loss_value_func(lbls_hat[0], lbls)
+                loss_lower = qloss_lower_func(lbls_hat[1], lbls)
+                loss_upper = qloss_upper_func(lbls_hat[2], lbls)
+                loss = loss_value + loss_lower + loss_upper
+                # loss = loss_value
+                
+                # backward pass to update gradients
+                loss.backward()
+
+                # update network parameters
+                optimizer.step()
+                #lr_scheduler.step()
+                print(f'  batch {j+1} of {len(trainloader)}')
+                print('   true       = ', lbls[0,:])
+                print('   est_value  = ', lbls_hat[0][0])
+                print('   est_lower  = ', lbls_hat[1][0])
+                print('   est_upper  = ', lbls_hat[2][0])
+                print('   loss_value = ', loss_value)
+                print('   loss_lower = ', loss_lower)
+                print('   loss_upper = ', loss_upper)
+                print('   loss       = ', loss)
+                print('   ---')
+
+            #print('')
+            #print('mean batch loss: ' + np.round(np.mean(losses), decimals=4))
+            print('=====\n')
+        
+        # import matplotlib.pyplot as plt
+        
+        # for idx in range(self.num_params):
+        #     #idx = 0
+        #     y_true  = np.exp( lbls[:,idx].detach().numpy() )
+        #     y_value = np.exp( lbls_hat[0][:,idx].detach().numpy() )
+        #     y_lower = np.exp( lbls_hat[1][:,idx].detach().numpy() )
+        #     y_upper = np.exp( lbls_hat[2][:,idx].detach().numpy() )
+
+        #     print(self.label_names[idx])
+        #     print('y_true = ', y_true)
+        #     print('y_est  = ', y_value)
+
+        #     coverage = sum( np.logical_and(y_lower < y_true, y_upper > y_true) ) / len(y_true)
+
+        #     plt.scatter( y_true, y_value, color='blue', alpha=0.1)
+        #     plt.plot([y_true,y_true],
+        #             [y_lower,y_upper],  
+        #             color='blue', alpha=0.1)
+        #     plt.axline(xy1=[0,0], slope=1, color='black')
+        #     plt.title(self.label_names[idx])
+        #     plt.savefig(f'example_{idx}.pdf', format='pdf', dpi=300, bbox_inches='tight')
+        #     plt.close()
+        #     #plt.show()
+
+        return
+    
+    def train2(self):
         """Trains the neural network model.
 
         This function compiles the network model to prepare it for training. 
@@ -568,7 +981,7 @@ class CnnTrainer(Trainer):
         self.mymodel.compile(optimizer=self.optimizer, 
                              loss=my_loss,
                              metrics=self.metrics)
-     
+        
         # early stopping
         # es = callbacks.EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=3)
         #es = callbacks.EarlyStopping(monitor='val_loss', mode='max', min_delta=0.01)
@@ -592,6 +1005,55 @@ class CnnTrainer(Trainer):
         return
 
     def make_results(self):
+        """Makes all results from the Train step.
+
+        This function undoes all the transformation and rescaling for the 
+        input and output datasets.
+
+        """
+        
+        # training label estimates
+        #norm_train_label_est = self.mymodel.predict([self.train_phy_data_tensor, self.train_aux_data_tensor])
+        trainloader = DataLoader(dataset=self.train_dataset, batch_size = 1000)
+                                 #batch_size=len(self.train_dataset))
+        train_phy_dat, train_aux_dat, train_lbl = next(iter(trainloader))
+        norm_train_label_est = self.model(train_phy_dat, train_aux_dat)
+        #print(norm_train_label_est)
+        #norm_train_label_est = self,
+        # we want an array of 3 outputs [point, lower, upper], N examples, K parameters
+        #norm_train_label_est = np.array(norm_train_label_est)
+        norm_train_label_est = torch.stack(norm_train_label_est).detach().numpy()
+        self.train_label_est = util.denormalize(norm_train_label_est,
+                                                self.train_labels_mean_sd,
+                                                exp=True) - self.log_offset
+ 
+        # calibration label estimates + CPI adjustment
+        # norm_calib_label_est = self.mymodel.predict([self.calib_phy_data_tensor,
+        #                                              self.calib_aux_data_tensor])
+        calibloader = DataLoader(dataset=self.calib_dataset, batch_size = self.calib_phy_data_tensor.shape[0])
+        calib_phy_dat, calib_aux_dat, calib_lbl = next(iter(calibloader))
+        norm_calib_label_est = self.model(calib_phy_dat, calib_aux_dat)
+                                 #batch_size=len(self.train_dataset))
+        norm_calib_label_est = torch.stack(norm_calib_label_est).detach().numpy()
+        #norm_calib_label_est = np.array(norm_calib_label_est)
+        norm_calib_est_quantiles = norm_calib_label_est[1:,:,:]
+        self.cpi_adjustments = self.get_CQR_constant(norm_calib_est_quantiles,
+                                                     self.norm_calib_labels,
+                                                     inner_quantile=self.cpi_coverage,
+                                                     asymmetric=self.cpi_asymmetric)
+        self.cpi_adjustments = np.array(self.cpi_adjustments).reshape((2,-1))
+    
+        # training predictions with calibrated CQR CIs
+        norm_train_label_est_calib = norm_train_label_est
+        norm_train_label_est_calib[1,:,:] = norm_train_label_est_calib[1,:,:] - self.cpi_adjustments[0,:]
+        norm_train_label_est_calib[2,:,:] = norm_train_label_est_calib[2,:,:] + self.cpi_adjustments[1,:]
+        self.train_label_est_calib = util.denormalize(norm_train_label_est_calib,
+                                                      self.train_labels_mean_sd,
+                                                      exp=True) - self.log_offset
+
+        return
+    
+    def make_results2(self):
         """Makes all results from the Train step.
 
         This function undoes all the transformation and rescaling for the 
@@ -626,8 +1088,62 @@ class CnnTrainer(Trainer):
                                                       exp=True) - self.log_offset
 
         return
-    
+
     def save_results(self):
+        """Save training results.
+
+        Saves all results from training procedure. Saved results include the
+        trained network, the normalization parameters for training/calibration,
+        CPI adjustment terms, and the training history.
+
+        """
+        max_idx = 1000
+        
+        # save model to file
+        #self.mymodel.save('my_model.keras')
+        #self.mymodel.save(self.model_arch_fn)
+        torch.save(self.model, self.model_arch_fn)
+
+        # save weights to file
+        # self.mymodel.save_weights(self.model_weights_fn)
+
+        # save json history from running MASTER
+        #json.dump(self.history_dict, open(self.model_history_fn, 'w'))
+
+
+        # save aux_data names, means, sd for new test dataset normalization
+        df_aux_data = pd.DataFrame([self.aux_data_names,
+                                    self.train_aux_data_mean_sd[0],
+                                    self.train_aux_data_mean_sd[1]]).T
+        df_aux_data.columns = ['name', 'mean', 'sd']
+        df_aux_data.to_csv(self.train_aux_data_norm_fn, index=False, sep=',')
+ 
+        # save label names, means, sd for new test dataset normalization
+        df_labels = pd.DataFrame([self.label_names,
+                                  self.train_labels_mean_sd[0],
+                                  self.train_labels_mean_sd[1]]).T
+        df_labels.columns = ['name', 'mean', 'sd']
+        df_labels.to_csv(self.train_labels_norm_fn, index=False, sep=',')
+
+        # save train/test scatterplot results (Value, Lower, Upper)
+        df_train_label_est_nocalib = util.make_param_VLU_mtx(self.train_label_est[0:max_idx,:], self.label_names )
+        df_train_label_est_calib   = util.make_param_VLU_mtx(self.train_label_est_calib[0:max_idx,:], self.label_names )
+        
+        # save train/test labels
+        df_train_label_true = pd.DataFrame(self.train_label_true[0:max_idx,:], columns=self.label_names )
+        
+        # save CPI intervals
+        df_cpi_intervals = pd.DataFrame( self.cpi_adjustments, columns=self.label_names )
+
+        # convert to csv and save
+        df_train_label_est_nocalib.to_csv(self.train_label_est_nocalib_fn, index=False, sep=',')
+        df_train_label_est_calib.to_csv(self.train_label_est_calib_fn, index=False, sep=',')
+        df_train_label_true.to_csv(self.train_label_true_fn, index=False, sep=',')
+        df_cpi_intervals.to_csv(self.model_cpi_fn, index=False, sep=',')
+
+        return
+
+    def save_results2(self):
         """Save training results.
 
         Saves all results from training procedure. Saved results include the
@@ -642,7 +1158,7 @@ class CnnTrainer(Trainer):
         self.mymodel.save(self.model_arch_fn)
 
         # save weights to file
-        self.mymodel.save_weights(self.model_weights_fn)
+        # self.mymodel.save_weights(self.model_weights_fn)
 
         # save json history from running MASTER
         json.dump(self.history_dict, open(self.model_history_fn, 'w'))
@@ -826,185 +1342,46 @@ class CnnTrainer(Trainer):
                                 
         return Q
     
-    def train_torch(self):
+    # def train_torch(self):
         
 
-        # dataset
-        dataset_torch = PhyddleDataset()
-        trainloader = DataLoader(dataset=dataset_torch,
-                                 batch_size=self.trn_batch_size)
+    #     # dataset
+    #     dataset_torch = PhyddleDataset()
+    #     trainloader = DataLoader(dataset=dataset_torch,
+    #                              batch_size=self.trn_batch_size)
 
-        # model stuff
-        model_torch = NeuralNetwork()
-        loss_func_torch = torch.nn.MSELoss()
-        optimizer_torch = torch.optim.Adam(model_torch.parameters(), lr=0.01)
+    #     # model stuff
+    #     model_torch = NeuralNetwork()
+    #     loss_func_torch = torch.nn.MSELoss()
+    #     optimizer_torch = torch.optim.Adam(model_torch.parameters(), lr=0.01)
 
-        # test one iteration of training
-        #phy_dat, aux_dat, lbls = list(self.trainloader)[0]
-        #lbls_hat = self.model_torch(phy_dat, aux_dat)
+    #     # test one iteration of training
+    #     #phy_dat, aux_dat, lbls = list(self.trainloader)[0]
+    #     #lbls_hat = self.model_torch(phy_dat, aux_dat)
 
-        # training
-        loss_Adam = []
-        running_loss = 0
-        for i in range(self.num_epochs):
-            for phy_dat, aux_dat, lbls in trainloader:
-                # making a prediction in forward pass
-                lbls_hat = model_torch(phy_dat, aux_dat)[0]
-                # calculating the loss between original and predicted data points
-                loss = loss_func_torch(lbls_hat, lbls)
-                # store loss into list
-                loss_Adam.append(loss.item())
-                # zeroing gradients after each iteration
-                optimizer_torch.zero_grad()
-                # backward pass for computing the gradients of the loss w.r.t to learnable parameters
-                loss.backward()
-                # updateing the parameters after each iteration
-                optimizer_torch.step()
+    #     # training
+    #     loss_Adam = []
+    #     running_loss = 0
+    #     for i in range(self.num_epochs):
+    #         print(f"Training epoch {i+1} of {self.num_epochs}")
+    #         for phy_dat, aux_dat, lbls in trainloader:
+    #             # making a prediction in forward pass
+    #             lbls_hat = model_torch(phy_dat, aux_dat)[0]
+    #             # calculating the loss between original and predicted data points
+    #             loss = loss_func_torch(lbls_hat, lbls)
+    #             print(f"  {loss}")
+    #             print(lbls_hat)
+    #             # store loss into list
+    #             loss_Adam.append(loss.item())
+    #             # zeroing gradients after each iteration
+    #             optimizer_torch.zero_grad()
+    #             # backward pass for computing the gradients of the loss w.r.t to learnable parameters
+    #             loss.backward()
+    #             # updateing the parameters after each iteration
+    #             optimizer_torch.step()
 
-        #print(lbls_hat)
-        #print(lbls)
-        return
+    #     #print(lbls_hat)
+    #     #print(lbls)
+    #     return
     
 #------------------------------------------------------------------------------#
-
-
-class PhyddleDataset(Dataset):    
-    # Constructor
-    def __init__(self, phy_data, aux_data, labels, phy_dat_shape):
-        
-        # self.labels     = pd.read_csv(labels_fn, sep=',').to_numpy(dtype='float32')
-        # self.phy_data   = pd.read_csv(phy_dat_fn, sep=',', header=None).to_numpy(dtype='float32')
-        # self.aux_data   = pd.read_csv(aux_dat_fn, sep=',').to_numpy(dtype='float32')
-        #self.labels = 
-        
-        self.phy_data = phy_data
-        self.aux_data = aux_data
-        self.labels   = labels
-
-        self.phy_data.dtype = 'float32'
-        self.aux_data.dtype = 'float32'
-        self.labels.dtype   = 'float32'
-
-        self.len = self.labels.shape[0]
-        #self.phy_data.shape = (self.len, phy_dat_shape[0], phy_dat_shape[1])
-    
-
-    # Getting the dataq
-    def __getitem__(self, index):    
-        return self.phy_data[index], self.aux_data[index], self.labels[index]
-    
-    # Getting length of the data
-    def __len__(self):
-        return self.len
-
-
-
-
-class NeuralNetwork(nn.Module):
-    def __init__(self):
-        super(NeuralNetwork, self).__init__()
-
-        self.num_tree_rows = 4
-        self.num_data_rows = 6
-        self.num_total_rows = self.num_tree_rows + self.num_data_rows
-        self.num_aux_data_col = 20
-        self.num_labels = 4
-        input_channels = 1
-        input_size = 320 # concat width???
-        
-        
-        # Phylogenetic Tensor layers
-        # Standard convolution layers
-        self.conv_std1 = nn.Conv1d(in_channels=self.num_total_rows, out_channels=64, kernel_size=3, padding='same')
-        self.conv_std2 = nn.Conv1d(in_channels=64, out_channels=96, kernel_size=5, padding='same')
-        self.conv_std3 = nn.Conv1d(in_channels=96, out_channels=128, kernel_size=7, padding='same')
-        self.pool_std = nn.AdaptiveAvgPool1d(1)
-
-        # Stride convolution layers
-        self.conv_stride1 = nn.Conv1d(in_channels=self.num_total_rows, out_channels=64, kernel_size=7, stride=3)
-        self.conv_stride2 = nn.Conv1d(in_channels=64, out_channels=96, kernel_size=9, stride=6)
-        self.pool_stride = nn.AdaptiveAvgPool1d(1)
-
-        # Dilated convolution layers
-        self.conv_dilate1 = nn.Conv1d(in_channels=self.num_total_rows, out_channels=32, kernel_size=3, dilation=2, padding='same')
-        self.conv_dilate2 = nn.Conv1d(in_channels=32, out_channels=64, kernel_size=5, dilation=4, padding='same')
-        self.pool_dilate = nn.AdaptiveAvgPool1d(1)
-
-        # self.conv_std1.float()
-        # self.conv_stride1.float()
-        # self.conv_dilate1.float()
-
-        # Auxiliary Data layers
-        self.aux_ffnn_1 = nn.Linear(self.num_aux_data_col, 128)
-        self.aux_ffnn_2 = nn.Linear(128, 64)
-        self.aux_ffnn_3 = nn.Linear(64, 32)
-
-        # Label Value layers
-        self.point_ffnn1 = nn.Linear(input_size, 128)
-        self.point_ffnn2 = nn.Linear(128, 64)
-        self.point_ffnn3 = nn.Linear(64, 32)
-        self.point_ffnn4 = nn.Linear(32, self.num_labels)
-
-        # Label Lower layers
-        self.lower_ffnn1 = nn.Linear(input_size, 128)
-        self.lower_ffnn2 = nn.Linear(128, 64)
-        self.lower_ffnn3 = nn.Linear(64, 32)
-        self.lower_ffnn4 = nn.Linear(32, self.num_labels)
-        
-        # Label Upper layers
-        self.upper_ffnn1 = nn.Linear(input_size, 128)
-        self.upper_ffnn2 = nn.Linear(128, 64)
-        self.upper_ffnn3 = nn.Linear(64, 32)
-        self.upper_ffnn4 = nn.Linear(32, self.num_labels)
-
-    def forward(self, phy_dat, aux_dat):
-
-        # Phylogenetic Tensor forwarding
-        # Standard convolutions
-        phy_dat = phy_dat.float()
-        aux_dat = aux_dat.float()
-        x_std = nn.ReLU()(self.conv_std1(phy_dat))
-        x_std = nn.ReLU()(self.conv_std2(x_std))
-        x_std = nn.ReLU()(self.conv_std3(x_std))
-        x_std = self.pool_std(x_std)
-
-        # Stride convolutions
-        x_stride = nn.ReLU()(self.conv_stride1(phy_dat))
-        x_stride = nn.ReLU()(self.conv_stride2(x_stride))
-        x_stride = self.pool_stride(x_stride)
-
-        # Dilated convolutions
-        x_dilated = nn.ReLU()(self.conv_dilate1(phy_dat))
-        x_dilated = nn.ReLU()(self.conv_dilate2(x_dilated))
-        x_dilated = self.pool_dilate(x_dilated)
-
-        # Auxiliary Data Tensor forwarding
-        x_aux_ffnn = F.relu(self.aux_ffnn_1(aux_dat))
-        x_aux_ffnn = F.relu(self.aux_ffnn_2(x_aux_ffnn))
-        x_aux_ffnn = F.relu(self.aux_ffnn_3(x_aux_ffnn))
-
-        # Concatenate phylo and aux layers
-        x_cat = torch.cat((x_std, x_stride, x_dilated, x_aux_ffnn.unsqueeze(dim=2)), dim=1).squeeze()
-        
-        # Point estimate path
-        x_point_est = F.relu(self.point_ffnn1(x_cat))
-        x_point_est = F.relu(self.point_ffnn2(x_point_est))
-        x_point_est = F.relu(self.point_ffnn3(x_point_est))
-        x_point_est = self.point_ffnn4(x_point_est)
-
-        # Lower quantile path
-        x_lower_quantile = F.relu(self.lower_ffnn1(x_cat))
-        x_lower_quantile = F.relu(self.lower_ffnn2(x_lower_quantile))
-        x_lower_quantile = F.relu(self.lower_ffnn3(x_lower_quantile))
-        x_lower_quantile = self.lower_ffnn4(x_lower_quantile)
-
-        # Upper quantile path
-        x_upper_quantile = F.relu(self.upper_ffnn1(x_cat))
-        x_upper_quantile = F.relu(self.upper_ffnn2(x_upper_quantile))
-        x_upper_quantile = F.relu(self.upper_ffnn3(x_upper_quantile))
-        x_upper_quantile = self.upper_ffnn4(x_upper_quantile)
-
-        # https://medium.com/the-artificial-impostor/quantile-regression-part-2-6fdbc26b2629
-        # return loss
-        return (x_point_est, x_lower_quantile, x_upper_quantile)
-
