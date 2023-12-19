@@ -23,6 +23,11 @@ import numpy as np
 import pandas as pd
 import scipy as sp
 import tensorflow as tf
+import torch
+import torchviz
+import torchview
+from PIL import Image
+#import hiddenlayer as hl
 from pypdf import PdfMerger
 from sklearn import linear_model
 from sklearn.decomposition import PCA
@@ -116,7 +121,7 @@ class Plotter:
         self.input_hdf5_fn      = f'{fmt_proj_prefix}.hdf5'
 
         # network
-        self.model_arch_fn      = f'{trn_proj_prefix}_trained_model'
+        self.model_arch_fn      = f'{trn_proj_prefix}.trained_model.pkl'
         self.history_json_fn    = f'{trn_proj_prefix}.train_history.json'
         self.train_est_fn       = f'{trn_proj_prefix}.train_est.labels.csv'
         self.train_labels_fn    = f'{trn_proj_prefix}.train_true.labels.csv'
@@ -217,7 +222,8 @@ class Plotter:
         self.aux_data_names = self.train_aux_data.columns.to_list()
 
         # trained model
-        self.model = tf.keras.models.load_model(self.model_arch_fn, compile=False)
+        # self.model = tf.keras.models.load_model(self.model_arch_fn, compile=False)
+        self.model = torch.load(self.model_arch_fn)
         
         # training estimates/labels
         self.train_ests   = pd.read_csv(self.train_est_fn)
@@ -228,7 +234,8 @@ class Plotter:
         self.test_labels  = pd.read_csv(self.test_labels_fn)
         
         # training history for network
-        self.history_dict = json.load(open(self.history_json_fn, 'r'))
+        # TODO: Need to get training history from torch
+        # self.history_dict = json.load(open(self.history_json_fn, 'r'))
 
         # load new aux data from Estimate
         self.est_aux_data = None
@@ -301,7 +308,8 @@ class Plotter:
         self.make_plot_est_CI()
         
         # training history stats
-        self.make_plot_train_history()
+        # TODO: uncomment once we collect training history data
+        # self.make_plot_train_history()
 
         # network architecture
         self.make_plot_network_architecture()
@@ -455,9 +463,32 @@ class Plotter:
 
     def make_plot_network_architecture(self):
         """Calls tf.keras.utils.plot_model with arguments."""
-        tf.keras.utils.plot_model(self.model,
-                                  to_file=self.save_network_fn,
-                                  show_shapes=True)
+        # tf.keras.utils.plot_model(self.model,
+        #                           to_file=self.save_network_fn,
+        #   
+        #                         show_shapes=True)
+        print(self.model)
+        phy_dat_fake = torch.empty( self.model.phy_dat_shape, dtype=torch.float32 )[None,:,:]
+        aux_dat_fake = torch.empty( self.model.aux_dat_shape, dtype=torch.float32 )[None,:]
+        print(phy_dat_fake.shape)
+        print(aux_dat_fake.shape)
+        lbl_fake = self.model(phy_dat_fake, aux_dat_fake)
+        #hl.build_graph(self.model, torch.zeros([1, 3, 224, 224]))
+
+        #model_params = dict(list(self.model.named_parameters()))
+        # torchviz.make_dot(lbl_fake,
+        #                   params=model_params,
+        #                   show_attrs=True,
+        #                   show_saved=True).render(self.save_network_fn, format="pdf")
+        torchview.draw_graph(self.model,
+                             input_data=[phy_dat_fake, aux_dat_fake],
+                             filename=self.save_network_fn,
+                             save_graph=True)
+        image = Image.open(self.save_network_fn + '.png')
+        image = image.convert('RGB')
+        image.save(self.save_network_fn)
+        # Save the image as PDF
+
         return
     
 #------------------------------------------------------------------------------#        
