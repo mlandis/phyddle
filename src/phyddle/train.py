@@ -85,10 +85,10 @@ class NeuralNetwork(nn.Module):
         # initialize base class
         super(NeuralNetwork, self).__init__()
 
-        print('phy_dat_width = ', phy_dat_width)
-        print('phy_dat_height = ', phy_dat_height)
-        print('aux_dat_width = ', aux_dat_width)
-        print('lbl_width = ', lbl_width)
+        # print('phy_dat_width = ', phy_dat_width)
+        # print('phy_dat_height = ', phy_dat_height)
+        # print('aux_dat_width = ', aux_dat_width)
+        # print('lbl_width = ', lbl_width)
 
         # Standard convolution layers
         phy_std_channels = [64, 96, 128]
@@ -421,7 +421,7 @@ class Trainer:
         # output network model info
         self.model_arch_fn          = f'{output_prefix}.trained_model.pkl'
         self.model_weights_fn       = f'{output_prefix}.train_weights.hdf5'
-        self.model_history_fn       = f'{output_prefix}.train_history.json'
+        self.model_history_fn       = f'{output_prefix}.train_history.csv'
         self.model_cpi_fn           = f'{output_prefix}.cpi_adjustments.csv'
 
         # output scaling terms
@@ -834,6 +834,7 @@ class CnnTrainer(Trainer):
 
 #------------------------------------------------------------------------------#
 
+
     def train(self):
 
         # dataset
@@ -861,8 +862,8 @@ class CnnTrainer(Trainer):
         q_tail = (1.0 - q_width) / 2
         q_lower = q_tail
         q_upper = 1.0 - q_tail
-        qloss_lower_func = QuantileLoss(alpha=q_lower)
-        qloss_upper_func = QuantileLoss(alpha=q_upper)
+        loss_lower_func = QuantileLoss(alpha=q_lower)
+        loss_upper_func = QuantileLoss(alpha=q_upper)
 
         # optimizer
         optimizer = torch.optim.Adam(self.model.parameters())
@@ -878,16 +879,28 @@ class CnnTrainer(Trainer):
         #                                             gamma = 0.1)
 
         # test one iteration of training
-        phy_dat, aux_dat, lbls = list(trainloader)[0]
-        lbls_hat = self.model(phy_dat, aux_dat)
+        #phy_dat, aux_dat, lbls = list(trainloader)[0]
+        #lbls_hat = self.model(phy_dat, aux_dat)
+        val_phy_dat = torch.Tensor(self.val_dataset.phy_data)
+        val_aux_dat = torch.Tensor(self.val_dataset.aux_data)
+        val_lbls    = torch.Tensor(self.val_dataset.labels)
+
+        history_col_names = ['epoch', 'dataset', 'metric', 'value']
+        self.train_history = pd.DataFrame(columns=history_col_names)
 
         # training
-        #loss_Adam = []
-        running_loss = 0
         for i in range(self.num_epochs):
             print(f'Training epoch {i+1} of {self.num_epochs}')
             #print('-----')
-            #losses = []
+            sum_loss_value = 0.
+            sum_loss_lower = 0.
+            sum_loss_upper = 0.
+            sum_loss_combined = 0.
+            sum_mse_value = 0.
+            sum_mape_value = 0.
+            sum_mae_value = 0.
+
+            num_batches = 0
             for j, (phy_dat, aux_dat, lbls) in enumerate(trainloader):
                 
                 # short cut batches for training
@@ -902,62 +915,80 @@ class CnnTrainer(Trainer):
                 # reset gradients for tensors
                 optimizer.zero_grad()
                 
-                # forward pass to estimate labels
+                # forward pass of training data to estimate labels
                 lbls_hat = self.model(phy_dat, aux_dat)
-                
+
                 # calculating the loss between original and predicted data points
-                loss_value = loss_value_func(lbls_hat[0], lbls)
-                loss_lower = qloss_lower_func(lbls_hat[1], lbls)
-                loss_upper = qloss_upper_func(lbls_hat[2], lbls)
-                loss = loss_value + loss_lower + loss_upper
-                # loss = loss_value
+                loss_value     = loss_value_func(lbls_hat[0], lbls)
+                loss_lower     = loss_lower_func(lbls_hat[1], lbls)
+                loss_upper     = loss_upper_func(lbls_hat[2], lbls)
+                loss_combined  = loss_value + loss_lower + loss_upper
+
+                # collect history stats
+                sum_loss_value += loss_value.item()
+                sum_loss_lower += loss_lower.item()
+                sum_loss_upper += loss_upper.item()
+                sum_loss_combined += loss_combined.item()
+                # print(sum_loss_combined)
+                sum_mse_value  += ( torch.mean((lbls - lbls_hat[0])**2) ).item()
+                sum_mape_value += ( torch.mean(torch.abs((lbls - lbls_hat[0]) / lbls)) ).item()
+                sum_mae_value  += ( torch.mean(torch.abs(lbls - lbls_hat[0])) ).item()
+                num_batches    += 1
                 
                 # backward pass to update gradients
-                loss.backward()
+                loss_combined.backward()
 
                 # update network parameters
                 optimizer.step()
                 #lr_scheduler.step()
-                print(f'  batch {j+1} of {len(trainloader)}')
-                print('   true       = ', lbls[0,:])
-                print('   est_value  = ', lbls_hat[0][0])
-                print('   est_lower  = ', lbls_hat[1][0])
-                print('   est_upper  = ', lbls_hat[2][0])
-                print('   loss_value = ', loss_value)
-                print('   loss_lower = ', loss_lower)
-                print('   loss_upper = ', loss_upper)
-                print('   loss       = ', loss)
-                print('   ---')
+                
+                # print(f'  batch {j+1} of {len(trainloader)}')
+                # print('   true       = ', lbls[0,:])
+                # print('   est_value  = ', lbls_hat[0][0])
+                # print('   est_lower  = ', lbls_hat[1][0])
+                # print('   est_upper  = ', lbls_hat[2][0])
+                # print('   loss_value = ', loss_value)
+                # print('   loss_lower = ', loss_lower)
+                # print('   loss_upper = ', loss_upper)
+                # print('   loss       = ', loss)
+                # print('   ---')
 
+            self.train_history.loc[len(self.train_history.index)] = [i, 'train', 'loss_value',     sum_loss_value/num_batches]
+            self.train_history.loc[len(self.train_history.index)] = [i, 'train', 'loss_lower',     sum_loss_lower/num_batches]
+            self.train_history.loc[len(self.train_history.index)] = [i, 'train', 'loss_upper',     sum_loss_upper/num_batches]
+            self.train_history.loc[len(self.train_history.index)] = [i, 'train', 'loss_combined',  sum_loss_combined/num_batches]
+            self.train_history.loc[len(self.train_history.index)] = [i, 'train', 'mse_value',      sum_mse_value/num_batches]
+            self.train_history.loc[len(self.train_history.index)] = [i, 'train', 'mae_value',      sum_mae_value/num_batches]
+            self.train_history.loc[len(self.train_history.index)] = [i, 'train', 'mape_value',     sum_mape_value/num_batches]
+            #print(self.train_history)   
             #print('')
             #print('mean batch loss: ' + np.round(np.mean(losses), decimals=4))
-            print('=====\n')
-        
-        # import matplotlib.pyplot as plt
-        
-        # for idx in range(self.num_params):
-        #     #idx = 0
-        #     y_true  = np.exp( lbls[:,idx].detach().numpy() )
-        #     y_value = np.exp( lbls_hat[0][:,idx].detach().numpy() )
-        #     y_lower = np.exp( lbls_hat[1][:,idx].detach().numpy() )
-        #     y_upper = np.exp( lbls_hat[2][:,idx].detach().numpy() )
+            # print('=====\n')
 
-        #     print(self.label_names[idx])
-        #     print('y_true = ', y_true)
-        #     print('y_est  = ', y_value)
+            # print(self.val_dataset)
+            # print(self.val_dataset.phy_data)
 
-        #     coverage = sum( np.logical_and(y_lower < y_true, y_upper > y_true) ) / len(y_true)
+            # self.val_dataset.phy_data
+            # forward pass of validation to estimate labels
+            val_lbls_hat       = self.model(val_phy_dat, val_aux_dat)
 
-        #     plt.scatter( y_true, y_value, color='blue', alpha=0.1)
-        #     plt.plot([y_true,y_true],
-        #             [y_lower,y_upper],  
-        #             color='blue', alpha=0.1)
-        #     plt.axline(xy1=[0,0], slope=1, color='black')
-        #     plt.title(self.label_names[idx])
-        #     plt.savefig(f'example_{idx}.pdf', format='pdf', dpi=300, bbox_inches='tight')
-        #     plt.close()
-        #     #plt.show()
-
+            # collect validation metrics
+            val_loss_value     = loss_value_func(val_lbls_hat[0], val_lbls).item()
+            val_loss_lower     = loss_lower_func(val_lbls_hat[1], val_lbls).item()
+            val_loss_upper     = loss_upper_func(val_lbls_hat[2], val_lbls).item()
+            val_loss_combined  = val_loss_value + val_loss_lower + val_loss_upper
+            val_mse_value      = ( torch.mean((val_lbls - val_lbls_hat[0])**2) ).item()
+            val_mape_value     = ( torch.mean(torch.abs((val_lbls - val_lbls_hat[0]) / val_lbls)) ).item()
+            val_mae_value      = ( torch.mean(torch.abs(val_lbls - val_lbls_hat[0])) ).item()
+            self.train_history.loc[len(self.train_history.index)] = [i, 'validation', 'loss_value',     val_loss_value]
+            self.train_history.loc[len(self.train_history.index)] = [i, 'validation', 'loss_lower',     val_loss_lower]
+            self.train_history.loc[len(self.train_history.index)] = [i, 'validation', 'loss_upper',     val_loss_upper]
+            self.train_history.loc[len(self.train_history.index)] = [i, 'validation', 'loss_combined',  val_loss_combined ]
+            self.train_history.loc[len(self.train_history.index)] = [i, 'validation', 'mse_value',      val_mse_value]
+            self.train_history.loc[len(self.train_history.index)] = [i, 'validation', 'mae_value',      val_mae_value]
+            self.train_history.loc[len(self.train_history.index)] = [i, 'validation', 'mape_value',     val_mape_value]
+            
+        # print(self.train_history)
         return
     
     def train2(self):
@@ -1018,8 +1049,7 @@ class CnnTrainer(Trainer):
                                  #batch_size=len(self.train_dataset))
         train_phy_dat, train_aux_dat, train_lbl = next(iter(trainloader))
         norm_train_label_est = self.model(train_phy_dat, train_aux_dat)
-        #print(norm_train_label_est)
-        #norm_train_label_est = self,
+        
         # we want an array of 3 outputs [point, lower, upper], N examples, K parameters
         #norm_train_label_est = np.array(norm_train_label_est)
         norm_train_label_est = torch.stack(norm_train_label_est).detach().numpy()
@@ -1109,6 +1139,7 @@ class CnnTrainer(Trainer):
 
         # save json history from running MASTER
         #json.dump(self.history_dict, open(self.model_history_fn, 'w'))
+        self.train_history.to_csv(self.model_history_fn, index=False, sep=',')
 
 
         # save aux_data names, means, sd for new test dataset normalization

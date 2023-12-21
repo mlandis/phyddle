@@ -22,9 +22,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import scipy as sp
-import tensorflow as tf
+# import tensorflow as tf
 import torch
-import torchviz
+# import torchviz
 import torchview
 from PIL import Image
 #import hiddenlayer as hl
@@ -122,7 +122,7 @@ class Plotter:
 
         # network
         self.model_arch_fn      = f'{trn_proj_prefix}.trained_model.pkl'
-        self.history_json_fn    = f'{trn_proj_prefix}.train_history.json'
+        self.history_fn         = f'{trn_proj_prefix}.train_history.csv'
         self.train_est_fn       = f'{trn_proj_prefix}.train_est.labels.csv'
         self.train_labels_fn    = f'{trn_proj_prefix}.train_true.labels.csv'
         
@@ -235,6 +235,7 @@ class Plotter:
         
         # training history for network
         # TODO: Need to get training history from torch
+        self.history_table = pd.read_csv(self.history_fn)
         # self.history_dict = json.load(open(self.history_json_fn, 'r'))
 
         # load new aux data from Estimate
@@ -308,8 +309,7 @@ class Plotter:
         self.make_plot_est_CI()
         
         # training history stats
-        # TODO: uncomment once we collect training history data
-        # self.make_plot_train_history()
+        self.make_plot_train_history()
 
         # network architecture
         self.make_plot_network_architecture()
@@ -455,7 +455,8 @@ class Plotter:
         return
 
     def make_plot_train_history(self):
-        self.plot_train_history(self.history_dict,
+        print(self.save_history_fn)
+        self.plot_train_history(self.history_table,
                                 prefix=self.save_history_fn,
                                 train_color=self.plot_train_color,
                                 val_color=self.plot_val_color)
@@ -467,11 +468,9 @@ class Plotter:
         #                           to_file=self.save_network_fn,
         #   
         #                         show_shapes=True)
-        print(self.model)
+        
         phy_dat_fake = torch.empty( self.model.phy_dat_shape, dtype=torch.float32 )[None,:,:]
         aux_dat_fake = torch.empty( self.model.aux_dat_shape, dtype=torch.float32 )[None,:]
-        print(phy_dat_fake.shape)
-        print(aux_dat_fake.shape)
         lbl_fake = self.model(phy_dat_fake, aux_dat_fake)
         #hl.build_graph(self.model, torch.zeros([1, 3, 224, 224]))
 
@@ -1093,97 +1092,118 @@ class Plotter:
         trainiing vs. validation examples.
 
         Args:
-            history (str): Training performance metrics
+            history (DataFrame): Training performance metrics
             prefix (str): Used to construct filename
             train_color (str): Color for training example metrics
             val_color (str): Color for validation example metrics
 
         """
-        
-        # get data names/dimensions
-        epochs       = range(1, len(history['loss']) + 1)
-        train_keys   = [ x for x in history.keys() if 'val_' not in x ]
-        #val_keys     = [ 'val_'+x for x in train_keys ]
-        label_names  = [ '_'.join( x.split('_')[0:-1] ) for x in train_keys ]
-        label_names  = sorted( np.unique(label_names) )
-        #num_labels   = len(label_names)
 
-        # get metric names
-        metric_names = [ x.split('_')[-1] for x in train_keys ]
-        metric_names = np.unique(metric_names)
-        metric_names = [ 'loss' ] + [ x for x in metric_names if x != 'loss' ]
-        num_metrics  = len(metric_names)
+        #print(history)
+
+        # get data names/dimensions
+        epochs        = sorted(np.unique(history['epoch']))
+        dataset_names = sorted(np.unique(history['dataset']))
+        # label_names   = sorted(np.unique(history['label']))
+        metric_names  = sorted(np.unique(history['metric']))
+    
+        num_datasets  = len(dataset_names)
+        # num_labels    = len(label_names)
+        num_metrics   = len(metric_names)
+ 
+        
+        # print(epochs)
+        # train_keys   = [ x for x in history.keys() if 'val_' not in x ]
+        # #val_keys     = [ 'val_'+x for x in train_keys ]
+        # label_names  = [ '_'.join( x.split('_')[0:-1] ) for x in train_keys ]
+        # label_names  = sorted( np.unique(label_names) )
+        # #num_labels   = len(label_names)
+
+        # # get metric names
+        # metric_names = [ x.split('_')[-1] for x in train_keys ]
+        # metric_names = np.unique(metric_names)
+        # metric_names = [ 'loss' ] + [ x for x in metric_names if x != 'loss' ]
+        # num_metrics  = len(metric_names)
 
         # figure dimensions
         fig_width = 6
-        fig_height = int(np.ceil(2*num_metrics))
+        fig_height = int(np.ceil(1.5*num_metrics))
 
         # plot for all parameters
-        for i,v1 in enumerate(label_names):
-            fig, axs = plt.subplots(nrows=num_metrics, ncols=1, sharex=True,
-                                    figsize=(fig_width, fig_height))
-            idx = 0
-            # plot for all metrics
-            for j,v2 in enumerate(metric_names):
-                # get val name from train name 
-                if v1 == '':
-                    k_train = v2
-                else:
-                    k_train = f'{v1}_{v2}'
-                k_val = 'val_' + k_train
+        # for i,v1 in enumerate(label_names):
+        fig, axs = plt.subplots(nrows=num_metrics, ncols=1, sharex=True,
+                                figsize=(fig_width, fig_height))
+        
+        # print(self.history_table)
 
-                # plot training example metrics
-                legend_handles = []
-                legend_labels = []
-                if k_train in history:
-                    lines_train, = axs[idx].plot(epochs, history[k_train],
-                                                 color=train_color,
-                                                 label = k_train)
-                    axs[idx].scatter(epochs, history[k_train],
-                                     color=train_color, label = k_train,
-                                     zorder=3)
-                    axs[idx].set(ylabel=metric_names[j])
-                    legend_handles.append( lines_train )
-                    legend_labels.append( 'Train' )
+        colors = { 'train': train_color,
+                   'validation': val_color }
+        
+        # plot for all metrics
+        for j,v2 in enumerate(metric_names):
 
-                # plot validation example metrics
-                if k_val in history:
-                    lines_val, = axs[idx].plot(epochs, history[k_val],
-                                               color=val_color, label = k_val)
-                    axs[idx].scatter(epochs, history[k_val], color=val_color,
-                                     label = k_val, zorder=3)
-                    legend_handles.append( lines_val )
-                    legend_labels.append( 'Validation' )
+            # plot training example metrics
+            legend_handles = []
+            legend_labels = []
+            for k,v3 in enumerate(dataset_names):
+                df = history.loc[ (history.metric==v2) & \
+                                  (history.dataset==v3) ]
 
-                # plot legend
-                if k_train in history or k_val in history:
-                    if idx == 0:
-                        axs[idx].legend(handles=legend_handles,
-                                        labels=legend_labels,
-                                        loc='upper right' )
-                    idx += 1
+                lines_train, = axs[j].plot(epochs, df.value,
+                                             color=colors[v3],
+                                             label = v2)
+                axs[j].scatter(epochs, df.value,
+                                 color=colors[v3],
+                                 label = v2,
+                                 zorder=3)
+                
+                axs[j].set(ylabel=metric_names[j])
+                
+                legend_handles.append( lines_train )
+                legend_labels.append( v3.capitalize() )
+
+            # # plot validation example metrics
+            # if k_val in history:
+            #     lines_val, = axs[idx].plot(epochs, history[k_val],
+            #                                color=val_color, label = k_val)
+            #     axs[idx].scatter(epochs, history[k_val], color=val_color,
+            #                      label = k_val, zorder=3)
+            #     legend_handles.append( lines_val )
+            #     legend_labels.append( 'Validation' )
+
+            # plot legend
+            # if k_train in history or k_val in history:
+            if j == 0:
+                axs[j].legend(handles=legend_handles,
+                              labels=legend_labels,
+                              loc='upper right' )
+            # next subplot
+            # idx += 1
 
             # turn off unused rows            
-            for j in range(num_metrics):
-                if j >= idx:
-                    axs[j].axis('off')
+            # for j in range(num_metrics):
+            #     if j >= idx:
+            #         axs[j].axis('off')
 
             # aesthetics
-            title_metric = label_names[i]
-            if title_metric == '':
-                title_metric = 'entire network'
-            fig.supxlabel('Epochs')
-            fig.supylabel('Metrics')
-            fig.suptitle('Training history: ' + title_metric)
-            fig.tight_layout()
+            # title_metric = label_names[i]
+            # if title_metric == 'Training metrics' #:
+                #title_metric = 'entire network'
+        #title_metric = v2
+        fig.supxlabel('Epochs')
+        fig.supylabel('Metrics')
+        fig.suptitle('Training history') #: ' + title_metric)
+        fig.tight_layout()
 
-            # save figure
-            save_fn = f'{prefix}'
-            if label_names[i] != '':
-                save_fn += f'_{label_names[i]}'
-            save_fn += '.pdf'
-            plt.savefig(save_fn, format='pdf', dpi=300, bbox_inches='tight')
-            plt.clf()
+        # save figure
+        save_fn = f'{prefix}'
+        #if label_names[i] != '':
+#                save_fn += f'_{label_names[i]}'
+        #save_fn += '_' + v2
+        save_fn += '.pdf'
+        # print(save_fn)
+        plt.savefig(save_fn, format='pdf', dpi=300, bbox_inches='tight')
+        plt.clf()
         
         # done
         return

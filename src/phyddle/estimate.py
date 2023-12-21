@@ -21,10 +21,10 @@ import pandas as pd
 import h5py
 
 import torch
-from torch import nn
-from torch.utils.data import Dataset, DataLoader
-#from neuralforecast.losses.pytorch import QuantileLoss
-import torch.nn.functional as F
+# from torch import nn
+# from torch.utils.data import Dataset, DataLoader
+# #from neuralforecast.losses.pytorch import QuantileLoss
+# import torch.nn.functional as F
 
 
 # phyddle imports
@@ -322,7 +322,7 @@ class Estimator:
             norm_emp_label_est        = torch.stack(norm_emp_label_est)[:,None,:]
             norm_emp_label_est        = norm_emp_label_est.detach().numpy()
             norm_emp_label_est        = np.array(norm_emp_label_est)
-            print(norm_emp_label_est.shape)
+            
             # norm_emp_label_est[1,:,:] = norm_emp_label_est[1,:,:] - self.cpi_adjustments[0,:]
             # norm_emp_label_est[2,:,:] = norm_emp_label_est[2,:,:] + self.cpi_adjustments[1,:]
             norm_emp_label_est[1,:,:] = norm_emp_label_est[1,:,:] - self.cpi_adjustments[0,:]
