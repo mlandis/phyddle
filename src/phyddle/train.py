@@ -858,8 +858,9 @@ class CnnTrainer(Trainer):
             self.train_history.loc[len(self.train_history.index)] = [i, 'validation', 'mae_value',      val_mae_value]
             self.train_history.loc[len(self.train_history.index)] = [i, 'validation', 'mape_value',     val_mape_value]
 
-            trn_loss_str = f'    Train loss:        {"{0:.4f}".format(trn_loss_combined)}'
-            val_loss_str = f'    Validation loss:   {"{0:.4f}".format(val_loss_combined)}'
+            trn_loss_str = f'    Train        --  loss: {"{0:.4f}".format(trn_loss_combined)}'
+            val_loss_str = f'    Validation   --  loss: {"{0:.4f}".format(val_loss_combined)}'
+            
             if i > 0:
                 diff_trn_loss = trn_loss_combined - prev_trn_loss_combined
                 diff_val_loss = val_loss_combined - prev_val_loss_combined
@@ -881,14 +882,15 @@ class CnnTrainer(Trainer):
                 #     diff_val_loss_str = '+' + diff_val_loss_str
                 #     rat_val_loss_str  = '+' + rat_val_loss_str
             
-                trn_loss_str += f'   --   abs: {diff_trn_loss_str}  rel: {rat_trn_loss_str}%'
-                val_loss_str += f'   --   abs: {diff_val_loss_str}  rel: {rat_val_loss_str}%'
+                trn_loss_str += f'  abs: {diff_trn_loss_str}  rel: {rat_trn_loss_str}%'
+                val_loss_str += f'  abs: {diff_val_loss_str}  rel: {rat_val_loss_str}%'
 
             prev_trn_loss_combined = trn_loss_combined
             prev_val_loss_combined = val_loss_combined
 
             print(trn_loss_str)
             print(val_loss_str)
+            print('')
 
         # print(self.train_history)
         return
