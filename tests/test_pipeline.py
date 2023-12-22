@@ -17,15 +17,23 @@ import phyddle.plot as plt
 
 import pandas as pd
 import numpy as np
-import tensorflow as tf
+# import tensorflow as tf
 import torch
 import h5py
 import shutil
 import os
-import random
+# import random
 
-ERROR_TOL = 1E-2
+
+# NOTE: Set ENABLE_TEST = False to bypass the check_foo() validation tests
 ENABLE_TEST = True
+
+# NOTE: Set ERROR_TOL to an acceptable amount of difference in results between
+#       the test and validation examples. Even though RNG seeds are set
+#       as equal across steps, the large number of layer-by-layer computations
+#       can be executed in different orders due to resource allocation, which
+#       which can cause minor numerical errors to accumulate in different ways.
+ERROR_TOL = 1E-2
 
 #-----------------------------------------------------------------------------#
 
@@ -256,9 +264,9 @@ def check_trn():
 
     #model_test = tf.keras.models.load_model(model_test_fn, compile=False)
     #model_load = torch.load(model_test_fn)
-    cpi_test = torch.Tensor(pd.read_csv(cpi_test_fn, header=0).to_numpy())
-    aux_test = torch.Tensor(pd.read_csv(aux_test_fn, header=0).iloc[:,1:].to_numpy())
-    lbl_test = torch.Tensor(pd.read_csv(lbl_test_fn, header=0).iloc[:,1:].to_numpy())
+    cpi_test = pd.read_csv(cpi_test_fn, header=0).to_numpy()
+    aux_test = pd.read_csv(aux_test_fn, header=0).iloc[:,1:].to_numpy()
+    lbl_test = pd.read_csv(lbl_test_fn, header=0).iloc[:,1:].to_numpy()
     
     # load valid output for Train
     model_valid_fn = valid_dir + '/network_nt500.trained_model.pkl'
@@ -268,9 +276,9 @@ def check_trn():
 
     #model_valid = tf.keras.models.load_model(model_valid_fn, compile=False)
     #model_valid = torch.load(model_valid_fn)
-    cpi_valid = torch.Tensor(pd.read_csv(cpi_valid_fn, header=0).to_numpy())
-    aux_valid = torch.Tensor(pd.read_csv(aux_valid_fn, header=0).iloc[:,1:].to_numpy())
-    lbl_valid = torch.Tensor(pd.read_csv(lbl_valid_fn, header=0).iloc[:,1:].to_numpy())
+    cpi_valid = pd.read_csv(cpi_valid_fn, header=0).to_numpy()
+    aux_valid = pd.read_csv(aux_valid_fn, header=0).iloc[:,1:].to_numpy()
+    lbl_valid = pd.read_csv(lbl_valid_fn, header=0).iloc[:,1:].to_numpy()
 
     # compare aux data, labels, and CPIs
     cpi_error = np.max(np.abs(cpi_test - cpi_valid))
@@ -328,13 +336,17 @@ def do_est():
                 '--use_parallel', 'F']
 
 	# phyddle arguments
-    my_args = util.load_config('scripts/configR.py', arg_overwrite=True, args=cmd_args)
+    my_args = util.load_config('scripts/config.py', arg_overwrite=True, args=cmd_args)
 
     # copy minimal input fileset from valid into test
     input_files = [ 'tre', 'dat.csv', 'labels.csv' ]
     os.makedirs(test_dir, exist_ok=True)
-    for fn in input_files:
-        shutil.copyfile( f'{sim_dir}/valid/sim.0.{fn}', f'{est_dir}/test/new.0.{fn}' )
+    if ENABLE_TEST:
+        for fn in input_files:
+            shutil.copyfile( f'{sim_dir}/valid/sim.0.{fn}', f'{est_dir}/test/new.0.{fn}' )
+    else:
+        for fn in input_files:
+            shutil.copyfile( f'{sim_dir}/test/sim.0.{fn}', f'{est_dir}/test/new.0.{fn}' )
 
     # make formatted dataset
     est_prefix_path = f'tests/workspace/estimate/test/{est_prefix}'
