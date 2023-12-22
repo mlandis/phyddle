@@ -614,9 +614,10 @@ def generate_random_hex_string(length):
 
 def set_seed(seed_value):
     
-    # see: https://keras.io/getting_started/faq/#how-can-i-obtain-reproducible-results-using-keras-during-development
-    
-    import tensorflow as tf
+    # Tensorflow (old): https://keras.io/getting_started/faq/#how-can-i-obtain-reproducible-results-using-keras-during-development
+    # PyTorch (current): https://pytorch.org/docs/stable/notes/randomness.html#reproducibility
+
+    import torch
     import numpy as np
     import random
     import os
@@ -624,7 +625,7 @@ def set_seed(seed_value):
     os.environ['PYTHONHASHSEED']=str(seed_value)
     random.seed(seed_value)
     np.random.seed(seed_value)
-    tf.random.set_seed(seed_value)
+    torch.manual_seed(seed_value)
 
     return
 

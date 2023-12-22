@@ -432,6 +432,7 @@ class Plotter:
         return
     
     def make_plot_pca_contour(self, type):
+        """Calls plot_pca_contour with arguments."""
         if type == 'aux_data':
             self.plot_pca_contour(save_fn=self.save_pca_aux_data_fn,
                                   sim_values=self.train_aux_data,
@@ -455,7 +456,7 @@ class Plotter:
         return
 
     def make_plot_train_history(self):
-        print(self.save_history_fn)
+        """Calls plot_train_history with arguments."""
         self.plot_train_history(self.history_table,
                                 prefix=self.save_history_fn,
                                 train_color=self.plot_train_color,
@@ -955,7 +956,7 @@ class Plotter:
         epochs        = sorted(np.unique(history['epoch']))
         dataset_names = sorted(np.unique(history['dataset']))
         metric_names  = sorted(np.unique(history['metric']))
-        num_datasets  = len(dataset_names)
+        # num_datasets  = len(dataset_names)
         num_metrics   = len(metric_names)
  
         # figure dimensions

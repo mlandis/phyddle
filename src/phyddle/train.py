@@ -11,64 +11,34 @@ License:   MIT
 """
 
 # standard imports
-# import json
 import os
 
 # external imports
 import h5py
 import numpy as np
 import pandas as pd
-# from tensorflow.keras import Input
-# from tensorflow.keras import Model
-# from tensorflow.keras import layers
-# from tensorflow.keras import backend as K
-# from tensorflow.keras import callbacks
 from multiprocessing import cpu_count
-# import copy
 from tqdm import tqdm
-
+import torch
+from torch import nn
+from torch.utils.data import Dataset, DataLoader
+import torch.nn.functional as F
 
 # phyddle imports
 from phyddle import utilities as util
 
-# torch
-import torch
-from torch import nn
-from torch.utils.data import Dataset, DataLoader
-#from neuralforecast.losses.pytorch import QuantileLoss
-import torch.nn.functional as F
-
 
 #-------------------------#
 
-
-
-
 class PhyddleDataset(Dataset):    
+    '''Derived Dataset class to feed into DataLoader'''
     # Constructor
-    def __init__(self, phy_data, aux_data, labels): #, phy_dat_shape):
+    def __init__(self, phy_data, aux_data, labels):
         
-        # self.labels     = pd.read_csv(labels_fn, sep=',').to_numpy(dtype='float32')
-        # self.phy_data   = pd.read_csv(phy_dat_fn, sep=',', header=None).to_numpy(dtype='float32')
-        # self.aux_data   = pd.read_csv(aux_dat_fn, sep=',').to_numpy(dtype='float32')
-        #self.labels = 
-        # print('PhyddleDataset')
         self.phy_data = np.transpose(phy_data, axes=[0,2,1]).astype('float32')
         self.aux_data = aux_data.astype('float32')
         self.labels   = labels.astype('float32')
-        # print(type(phy_data))
-        # print(phy_data.shape)
-        # #print(np.transpose(phy_data, [0,2,1]))
-        # print(type(aux_data))
-        # print(aux_data.shape)
-
-        # self.phy_data = self.phy_data
-        # self.aux_data = 'float32'
-        # self.labels.dtype   = 'float32'
-
         self.len = self.labels.shape[0]
-        #self.phy_data.shape = (self.len, phy_dat_shape[0], phy_dat_shape[1])
-    
 
     # Getting the dataq
     def __getitem__(self, index):    
@@ -79,17 +49,13 @@ class PhyddleDataset(Dataset):
         return self.len
 
 
-
-
 class NeuralNetwork(nn.Module):
+    '''Derived network (nn.Module) that defines network structure, activation
+    functions, and forward pass of input to produce labels.'''
     def __init__(self, phy_dat_width, phy_dat_height, aux_dat_width, lbl_width):    
+        
         # initialize base class
         super(NeuralNetwork, self).__init__()
-
-        # print('phy_dat_width = ', phy_dat_width)
-        # print('phy_dat_height = ', phy_dat_height)
-        # print('aux_dat_width = ', aux_dat_width)
-        # print('lbl_width = ', lbl_width)
 
         # Standard convolution layers
         phy_std_channels = [64, 96, 128]
@@ -178,43 +144,23 @@ class NeuralNetwork(nn.Module):
         self._initialize_weights()
 
     def _initialize_weights(self):
-        s = 0
+        '''Initializes weights for network.'''
         for m in self.modules():
             if isinstance(m, torch.nn.Linear):
-            #     # This bit loads weights from numpy arrays
-            #     # The loaded weights have identical forward passes as in TF!
-            #     # m.weight = torch.nn.Parameter(torch.from_numpy(np.load(str(s) + '_trained.npy')).T)
-            #     # s +=1
-            #     # m.bias = torch.nn.Parameter(torch.from_numpy(np.load(str(s) + '_trained.npy')))
-            #     # s +=1
-                #print('init Linear')
-                #torch.nn.init.xavier_uniform_(m.weight, gain=5/3)
                 torch.nn.init.kaiming_uniform_(m.weight, a=0, mode='fan_in', nonlinearity='relu')
                 torch.nn.init.constant_(m.bias, 0)
-                # This saves the weight init
-                # np.save(str(s) + '_torch.npy', m.weight.detach().numpy())
-                # s+=1
-                # np.save(str(s) + '_torch.npy', m.bias.detach().numpy())
-                # s+=1
             if isinstance(m, torch.nn.Conv1d):
-                #print('init Conv1d')
-            #     # This bit loads weights from numpy arrays
-            #     # The loaded weights have identical forward passes as in TF!
-            #     # m.weight = torch.nn.Parameter(torch.from_numpy(np.load(str(s) + '_trained.npy')).T)
-            #     # s +=1
-            #     # m.bias = torch.nn.Parameter(torch.from_numpy(np.load(str(s) + '_trained.npy')))
-            #     # s +=1
-                #torch.nn.init.xavier_uniform_(m.weight, gain=5/3)
                 torch.nn.init.kaiming_uniform_(m.weight, a=0, mode='fan_in', nonlinearity='relu')
                 torch.nn.init.constant_(m.bias, 0)
                 
     def forward(self, phy_dat, aux_dat):
+        '''Forward-pass function of input through network to output labels.'''
         
         # Phylogenetic Tensor forwarding
         phy_dat = phy_dat.float()
         aux_dat = aux_dat.float()
 
-        # MJL does this need to be set?
+        # MJL: Does this need to be set? Seems like no.
         # phy_dat.requires_grad = True
         # aux_dat.requires_grad = True
 
@@ -297,21 +243,15 @@ class NeuralNetwork(nn.Module):
 
 class QuantileLoss(nn.Module):
     def __init__(self, alpha):
+        '''Defines quantile loss function to predict interval that captures
+        alpha-% of output predictions.'''
         super(QuantileLoss, self).__init__()
         self.alpha = alpha
 
     def forward(self, predictions, targets):
-        # err = y_true - y_pred
-        # return K.mean(K.maximum(alpha*err, (alpha-1)*err), axis=-1)
+        '''Simple quantile loss function for prediction intervals.'''
         err = targets - predictions
-        # max_val = torch.max(self.alpha*err, (self.alpha-1)*err)
-        # print(max_val)
-        # print(max_val.shape)
-        # mean_val = torch.mean(max_val) #, dim=-1)
-        # print(mean_val)
-        # print(mean_val.shape)
         return torch.mean(torch.max(self.alpha*err, (self.alpha-1)*err))
-        #return mean_val
 
 
 #------------------------------------------------------------------------------#
@@ -646,18 +586,18 @@ class CnnTrainer(Trainer):
         # normalize auxiliary data
         self.norm_train_aux_data, train_aux_data_means, train_aux_data_sd = util.normalize(full_aux_data[train_idx,:])
         self.train_aux_data_mean_sd = (train_aux_data_means, train_aux_data_sd)
-        self.norm_val_aux_data = util.normalize(full_aux_data[val_idx,:],
-                                                self.train_aux_data_mean_sd)
-        self.norm_calib_aux_data = util.normalize(full_aux_data[calib_idx,:],
-                                                  self.train_aux_data_mean_sd)
+        self.norm_val_aux_data      = util.normalize(full_aux_data[val_idx,:],
+                                                     self.train_aux_data_mean_sd)
+        self.norm_calib_aux_data    = util.normalize(full_aux_data[calib_idx,:],
+                                                     self.train_aux_data_mean_sd)
 
         # normalize labels
         self.norm_train_labels, train_label_means, train_label_sd = util.normalize(full_labels[train_idx,:])
         self.train_labels_mean_sd = (train_label_means, train_label_sd)
-        self.norm_val_labels     = util.normalize(full_labels[val_idx,:],
-                                                  self.train_labels_mean_sd)
-        self.norm_calib_labels   = util.normalize(full_labels[calib_idx,:],
-                                                  self.train_labels_mean_sd)
+        self.norm_val_labels      = util.normalize(full_labels[val_idx,:],
+                                                   self.train_labels_mean_sd)
+        self.norm_calib_labels    = util.normalize(full_labels[calib_idx,:],
+                                                   self.train_labels_mean_sd)
 
         # create phylogenetic data tensors
         self.train_phy_data_tensor = full_phy_data[train_idx,:]
@@ -803,14 +743,14 @@ class CnnTrainer(Trainer):
                 loss_combined  = loss_value + loss_lower + loss_upper
 
                 # collect history stats
-                trn_loss_value += loss_value.item() / num_batches
-                trn_loss_lower += loss_lower.item() / num_batches
-                trn_loss_upper += loss_upper.item() / num_batches
+                trn_loss_value    += loss_value.item() / num_batches
+                trn_loss_lower    += loss_lower.item() / num_batches
+                trn_loss_upper    += loss_upper.item() / num_batches
                 trn_loss_combined += loss_combined.item() / num_batches
                 # print(sum_loss_combined)
-                trn_mse_value  += ( torch.mean((lbls - lbls_hat[0])**2) ).item() / num_batches
-                trn_mae_value  += ( torch.mean(torch.abs(lbls - lbls_hat[0])) ).item() / num_batches
-                trn_mape_value += ( torch.mean(torch.abs((lbls - lbls_hat[0]) / lbls)) ).item() / num_batches
+                trn_mse_value     += ( torch.mean((lbls - lbls_hat[0])**2) ).item() / num_batches
+                trn_mae_value     += ( torch.mean(torch.abs(lbls - lbls_hat[0])) ).item() / num_batches
+                trn_mape_value    += ( torch.mean(torch.abs((lbls - lbls_hat[0]) / lbls)) ).item() / num_batches
                 # num_batches    += 1
                 
                 # backward pass to update gradients
@@ -858,29 +798,20 @@ class CnnTrainer(Trainer):
             self.train_history.loc[len(self.train_history.index)] = [i, 'validation', 'mae_value',      val_mae_value]
             self.train_history.loc[len(self.train_history.index)] = [i, 'validation', 'mape_value',     val_mape_value]
 
-            trn_loss_str = f'    Train        --  loss: {"{0:.4f}".format(trn_loss_combined)}'
-            val_loss_str = f'    Validation   --  loss: {"{0:.4f}".format(val_loss_combined)}'
+            trn_loss_str = f'    Train        --   loss: {"{0:.4f}".format(trn_loss_combined)}'
+            val_loss_str = f'    Validation   --   loss: {"{0:.4f}".format(val_loss_combined)}'
             
+            # compute change in training stats
             if i > 0:
                 diff_trn_loss = trn_loss_combined - prev_trn_loss_combined
                 diff_val_loss = val_loss_combined - prev_val_loss_combined
                 rat_trn_loss  = 100 * round(trn_loss_combined / prev_trn_loss_combined - 1.0, ndigits=3)
                 rat_val_loss  = 100 * round(val_loss_combined / prev_val_loss_combined - 1.0, ndigits=3)
-                # diff_trn_loss_str = str(np.round(diff_trn_loss, decimals=4)).rjust(5, ' ')
-                # diff_val_loss_str = str(np.round(diff_val_loss, decimals=4)).rjust(5, ' ')
-                # rat_trn_loss_str  = str(np.round(rat_trn_loss, decimals=1)).rjust(5, ' ')
-                # rat_val_loss_str  = str(np.round(rat_val_loss, decimals=1)).rjust(5, ' ')
+                
                 diff_trn_loss_str = '{0:+.4f}'.format(diff_trn_loss)
                 diff_val_loss_str = '{0:+.4f}'.format(diff_val_loss)
                 rat_trn_loss_str  = '{0:+.2f}'.format(rat_trn_loss).rjust(4, ' ')
                 rat_val_loss_str  = '{0:+.2f}'.format(rat_val_loss).rjust(4, ' ')
-                
-                # if trn_loss_combined > prev_trn_loss_combined:
-                #     diff_trn_loss_str = '+' + diff_trn_loss_str
-                #     rat_trn_loss_str  = '+' + rat_trn_loss_str
-                # if val_loss_combined > prev_val_loss_combined:
-                #     diff_val_loss_str = '+' + diff_val_loss_str
-                #     rat_val_loss_str  = '+' + rat_val_loss_str
             
                 trn_loss_str += f'  abs: {diff_trn_loss_str}  rel: {rat_trn_loss_str}%'
                 val_loss_str += f'  abs: {diff_val_loss_str}  rel: {rat_val_loss_str}%'

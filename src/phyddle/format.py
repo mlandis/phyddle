@@ -10,7 +10,7 @@ Copyright: (c) 2022-2023, Michael Landis and Ammon Thompson
 License:   MIT
 """
 # standard imports
-import copy
+# import copy
 import os
 import sys
 
@@ -18,7 +18,7 @@ import sys
 import dendropy as dp
 import h5py
 import numpy as np
-import scipy as sp
+# import scipy as sp
 import pandas as pd
 from multiprocessing import Pool, set_start_method, cpu_count
 from tqdm import tqdm

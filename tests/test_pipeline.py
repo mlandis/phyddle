@@ -18,9 +18,11 @@ import phyddle.plot as plt
 import pandas as pd
 import numpy as np
 import tensorflow as tf
+import torch
 import h5py
 import shutil
 import os
+import random
 
 ERROR_TOL = 1E-2
 ENABLE_TEST = True
@@ -28,7 +30,9 @@ ENABLE_TEST = True
 #-----------------------------------------------------------------------------#
 
 # single-thread session
-tf.config.experimental.enable_op_determinism()
+#tf.config.experimental.enable_op_determinism()
+torch.set_deterministic_debug_mode(debug_mode='warn')
+#torch.use_deterministic_algorithms(mode=True)
 
 #-----------------------------------------------------------------------------#
 
@@ -245,26 +249,28 @@ def check_trn():
     valid_dir = trn_dir + '/valid'
 
     # load test output for Train
-    model_test_fn = test_dir + '/network_nt500_trained_model'
+    model_test_fn = test_dir + '/network_nt500.trained_model.pkl'
     cpi_test_fn = test_dir + '/network_nt500.cpi_adjustments.csv'
     aux_test_fn = test_dir + '/network_nt500.train_aux_data_norm.csv'
     lbl_test_fn = test_dir + '/network_nt500.train_label_norm.csv'
 
-    model_test = tf.keras.models.load_model(model_test_fn, compile=False)
-    cpi_test = pd.read_csv(cpi_test_fn, header=0).to_numpy()
-    aux_test = pd.read_csv(aux_test_fn, header=0).iloc[:,1:].to_numpy()
-    lbl_test = pd.read_csv(lbl_test_fn, header=0).iloc[:,1:].to_numpy()
+    #model_test = tf.keras.models.load_model(model_test_fn, compile=False)
+    #model_load = torch.load(model_test_fn)
+    cpi_test = torch.Tensor(pd.read_csv(cpi_test_fn, header=0).to_numpy())
+    aux_test = torch.Tensor(pd.read_csv(aux_test_fn, header=0).iloc[:,1:].to_numpy())
+    lbl_test = torch.Tensor(pd.read_csv(lbl_test_fn, header=0).iloc[:,1:].to_numpy())
     
     # load valid output for Train
-    model_valid_fn = valid_dir + '/network_nt500_trained_model'
+    model_valid_fn = valid_dir + '/network_nt500.trained_model.pkl'
     cpi_valid_fn = valid_dir + '/network_nt500.cpi_adjustments.csv'
     aux_valid_fn = valid_dir + '/network_nt500.train_aux_data_norm.csv'
     lbl_valid_fn = valid_dir + '/network_nt500.train_label_norm.csv'
 
-    model_valid = tf.keras.models.load_model(model_valid_fn, compile=False)
-    cpi_valid = pd.read_csv(cpi_valid_fn, header=0).to_numpy()
-    aux_valid = pd.read_csv(aux_valid_fn, header=0).iloc[:,1:].to_numpy()
-    lbl_valid = pd.read_csv(lbl_valid_fn, header=0).iloc[:,1:].to_numpy()
+    #model_valid = tf.keras.models.load_model(model_valid_fn, compile=False)
+    #model_valid = torch.load(model_valid_fn)
+    cpi_valid = torch.Tensor(pd.read_csv(cpi_valid_fn, header=0).to_numpy())
+    aux_valid = torch.Tensor(pd.read_csv(aux_valid_fn, header=0).iloc[:,1:].to_numpy())
+    lbl_valid = torch.Tensor(pd.read_csv(lbl_valid_fn, header=0).iloc[:,1:].to_numpy())
 
     # compare aux data, labels, and CPIs
     cpi_error = np.max(np.abs(cpi_test - cpi_valid))
