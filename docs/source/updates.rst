@@ -3,6 +3,20 @@ Updates
 
 The complete commit history for phyddle is located here: https://github.com/mlandis/phyddle/commits/main
 
+**phyddle v0.1.0** -- 23.12.22
+  * Update minor version from v0.0 to v0.1
+  * Convert from Tensorflow to PyTorch on backend
+  * Better training text output
+  * Streamlined layout for training plot
+  * Better network architecture plot
+  * Fix bug with non-sequential indices among simulated training examples
+  * Fix bug with Format for-loop to process summary statistics
+  * Switch summary statistics to log-scale
+  * Handle cases where tree size causes tree statistics to return 0/undefined/etc.
+  * (tbd) Update documentation
+  * (tbd) Simplify arrays where possible (pandas, numpy, torch, etc.)
+
+
 **phyddle v0.0.10** -- 23.11.10
   
   * Basic GitHub Action tests working
