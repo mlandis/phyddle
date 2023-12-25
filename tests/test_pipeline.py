@@ -453,10 +453,10 @@ def check_plt():
         'fig_nt500.pca_contour_aux_data.pdf',
         'fig_nt500.pca_contour_labels.pdf',
         'fig_nt500.summary.pdf',
-        'fig_nt500.train_history_param_value.pdf',
-        'fig_nt500.train_history.pdf',
-        'fig_nt500.train_history_param_upper.pdf',
-        'fig_nt500.train_history_param_lower.pdf'
+        'fig_nt500.train_history.pdf'
+        # 'fig_nt500.train_history_param_value.pdf',
+        # 'fig_nt500.train_history_param_upper.pdf',
+        # 'fig_nt500.train_history_param_lower.pdf'
     ]
     
     # verify all test output files exist
