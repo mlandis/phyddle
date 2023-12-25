@@ -299,9 +299,9 @@ class Trainer:
         # set CPUs
         if self.num_proc <= 0:
             self.num_proc = cpu_count() + self.num_proc
-        if self.num_proc < 0:
+        if self.num_proc <= 0:
             self.num_proc = 1
-            
+
         # get size of CPV+S tensors
         self.num_tree_row = util.get_num_tree_row(self.tree_encode,
                                                   self.brlen_encode)
