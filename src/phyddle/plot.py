@@ -12,7 +12,6 @@ License:   MIT
 """
 
 # standard imports
-import json
 import os
 
 # external imports
@@ -22,14 +21,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import scipy as sp
-# import tensorflow as tf
 import torch
-# import torchviz
 import torchview
 from PIL import Image
-#import hiddenlayer as hl
 from pypdf import PdfMerger
-# from sklearn import linear_model
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LinearRegression

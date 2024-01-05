@@ -87,12 +87,12 @@ class Formatter:
             self.num_proc = cpu_count() + self.num_proc
 
         # get size of CPV+S tensors
-        num_tree_row = util.get_num_tree_row(self.tree_encode,
+        num_tree_col = util.get_num_tree_col(self.tree_encode,
                                              self.brlen_encode)
-        num_char_row = util.get_num_char_row(self.char_encode,
+        num_char_col = util.get_num_char_col(self.char_encode,
                                              self.num_char,
                                              self.num_states)
-        self.num_data_row = num_tree_row + num_char_row
+        self.num_data_col = num_tree_col + num_char_col
 
         # create logger to track runtime info
         self.logger = util.Logger(args)
@@ -111,9 +111,6 @@ class Formatter:
         step_args = util.make_step_args('F', args)
         for k,v in step_args.items():
             setattr(self, k, v)
-
-        # special case
-        self.tree_width_cats = [ self.tree_width ] # will be removed
 
         return
 
@@ -401,7 +398,7 @@ class Formatter:
         # dimensions
         rep_idx = self.split_idx[data_str]
         num_samples = len(rep_idx)
-        num_data_length = tree_width * self.num_data_row
+        num_data_length = tree_width * self.num_data_col
 
         # print info
         print(f'Making {data_str} hdf5 dataset: {num_samples} examples for tree width = {tree_width}')
@@ -667,12 +664,12 @@ class Formatter:
         num_taxa_orig = len(phy.leaf_nodes())
         phy = util.make_downsample_phy(
             phy, down_fn,
-            max_taxa=max(self.tree_width_cats),
+            max_taxa=self.tree_width,
             strategy=self.downsample_taxa)
 
         # get tree size
         num_taxa = len(phy.leaf_nodes())
-        if num_taxa > np.max(self.tree_width_cats):
+        if num_taxa > self.tree_width:
             # abort, too many taxa
             self.logger.write_log('fmt', f'Too many taxa {tre_fn} has too many taxa')
             return
@@ -681,14 +678,11 @@ class Formatter:
             self.logger.write_log('fmt', f'Too few taxa (<{self.min_num_taxa}) for {tre_fn}')
             return
 
-        # get tree width from resulting vector
-        tree_width = np.max(self.tree_width_cats)
-
         # create compact phylo-state vector, CPV+S = {CBLV+S, CDV+S}
         cpvs_data = None
 
         # encode phylo-state tensor as CPV+S
-        cpvs_data = self.encode_cpvs(phy, dat, tree_width=tree_width,
+        cpvs_data = self.encode_cpvs(phy, dat, tree_width=self.tree_width,
                                      tree_encode_type=self.brlen_encode,
                                      tree_type=self.tree_encode)
 
@@ -853,20 +847,20 @@ class Formatter:
             rescale:                 set tree height to 1 then encode, if True
 
         Returns:
-            numpy.ndarray: The encoded CDVs tensor.
+            numpy.ndarray: The encoded CDV+S tensor.
         """
         
         # data dimensions
-        num_char_row = dat.shape[0]
+        num_char_col = dat.shape[0]
         if tree_encode_type == 'height_only':
-            num_tree_row = 1
+            num_tree_col = 1
         elif tree_encode_type == 'height_brlen':
-            num_tree_row = 3
+            num_tree_col = 3
 
         # initialize workspace
         root_distances = phy.calc_node_root_distances(return_leaf_distances_only=False)
-        heights    = np.zeros( (num_tree_row, tree_width) )
-        states     = np.zeros( (num_char_row, tree_width) )
+        heights    = np.zeros( (tree_width, num_tree_col) )
+        states     = np.zeros( (tree_width, num_char_col) )
         state_idx  = 0
         height_idx = 0
 
@@ -887,18 +881,18 @@ class Formatter:
         for nd in phy.inorder_node_iter():
             
             if nd.is_leaf():
-                heights[1,height_idx] = nd.edge.length
-                states[:,state_idx]   = dat[nd.taxon.label].to_list()
+                heights[height_idx,1] = nd.edge.length
+                states[state_idx,:]   = dat[nd.taxon.label].to_list()
                 state_idx += 1
             else:
-                heights[0,height_idx] = nd.root_distance
-                heights[2,height_idx] = nd.edge.length
+                heights[height_idx,0] = nd.root_distance
+                heights[height_idx,2] = nd.edge.length
                 height_idx += 1
 
         # stack the phylo and states tensors
         if rescale:
             heights = heights / np.max(heights)
-        phylo_tensor = np.vstack( [heights, states] )
+        phylo_tensor = np.hstack( [heights, states] )
 
         return phylo_tensor
 
@@ -924,21 +918,21 @@ class Formatter:
             rescale:                 set tree height to 1 then encode, if True
 
         Returns:
-            numpy.ndarray: The encoded CDVs tensor.
+            numpy.ndarray: The encoded CBLV+S tensor.
         """
 
         # data dimensions
-        num_char_row = dat.shape[0]
+        num_char_col = dat.shape[0]
         if tree_encode_type == 'height_only':
-            num_tree_row = 2
+            num_tree_col = 2
         elif tree_encode_type == 'height_brlen':
-            num_tree_row = 4
+            num_tree_col = 4
 
 
         # initialize workspace
         null       = phy.calc_node_root_distances(return_leaf_distances_only=False)
-        heights    = np.zeros( (num_tree_row, tree_width) ) 
-        states     = np.zeros( (num_char_row, tree_width) )
+        heights    = np.zeros( (tree_width, num_tree_col) ) 
+        states     = np.zeros( (tree_width, num_char_col) )
         state_idx  = 0
         height_idx = 0
 
@@ -959,21 +953,21 @@ class Formatter:
         last_int_node.edge.length = 0
         for nd in phy.inorder_node_iter():
             if nd.is_leaf():
-                heights[0,height_idx] = nd.root_distance - last_int_node.root_distance
-                heights[2,height_idx] = nd.edge.length
-                states[:,state_idx]   = dat[nd.taxon.label].to_list()
+                heights[height_idx,0] = nd.root_distance - last_int_node.root_distance
+                heights[height_idx,2] = nd.edge.length
+                states[state_idx,:]   = dat[nd.taxon.label].to_list()
                 state_idx += 1
             else:
                 #print(last_int_node.edge.length)
-                heights[1,height_idx+1] = nd.root_distance
-                heights[3,height_idx+1] = nd.edge.length
+                heights[height_idx+1,1] = nd.root_distance
+                heights[height_idx+1,3] = nd.edge.length
                 last_int_node = nd
                 height_idx += 1
 
         # stack the phylo and states tensors
         if rescale:
             heights = heights / np.max(heights)
-        phylo_tensor = np.vstack( [heights, states] )
+        phylo_tensor = np.hstack( [heights, states] )
 
         return phylo_tensor
 

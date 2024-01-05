@@ -675,65 +675,65 @@ def make_symm(m):
     np.fill_diagonal(m, d)  # Restores the original diagonal elements
     return m
 
-def get_num_tree_row(tree_encode, brlen_encode):
-    """Gets number of tree rows.
+def get_num_tree_col(tree_encode, brlen_encode):
+    """Gets number of tree columns (tree width).
     
-    Computes number of rows for encoding tree information using a compact
+    Computes number of columns for encoding tree information using a compact
     phylogenetic vector + states (CPV+S) format.
 
-    CBLV (2 rows) is used if tree_encode == 'serial'. CDV (1 row) is used if
-    tree_encode == 'extant'.
+    CBLV (2 columns) is used if tree_encode == 'serial'. CDV (1 column) is used
+    if tree_encode == 'extant'.
 
-    No extra rows are used if brlen_encode == 'height_only'. Two extra rows
-    are used if brlen_encode == 'height_brlen'.
+    No extra columns are used if brlen_encode == 'height_only'. Two extra
+    columns are used if brlen_encode == 'height_brlen'.
 
     Args:
         tree_encode (str): Use CBLV (serial) or CDV (extant) for tree encoding.
         brlen_encode (str): Use height-only or height + brlen encoding.
 
     Returns:
-        int: The number of rows for the CPV encoding.
+        int: The number of columns for the CPV encoding.
 
     """
 
     if tree_encode == 'serial':
-        num_tree_row = 2
+        num_tree_col = 2
     elif tree_encode == 'extant':
-        num_tree_row = 1
+        num_tree_col = 1
 
     if brlen_encode == 'height_only':
-        num_tree_row += 0
+        num_tree_col += 0
     elif brlen_encode == 'height_brlen':
-        num_tree_row += 2
+        num_tree_col += 2
 
-    return num_tree_row
+    return num_tree_col
 
-def get_num_char_row(state_encode_type, num_char, num_states):
-    """Gets number of character rows.
+def get_num_char_col(state_encode_type, num_char, num_states):
+    """Gets number of character columns.
     
-    Computes number of rows for encoding state information using a compact
+    Computes number of columns for encoding state information using a compact
     phylogenetic vector + states (CPV+S) format.
 
-    Integer encoding uses one row per character, with any number of states
+    Integer encoding uses 1 column per character, with any number of states
     per character.
 
-    One-hot encoding uses k rows per character, where k is the number of
+    One-hot encoding uses k columns per character, where k is the number of
     states.
 
     Args:
         char_encode (str): Use integer or one_hot encoding
         
     Returns:
-        int: The number of rows for the +S encoding.
+        int: The number of columns for the +S encoding.
     
     """
     
     if state_encode_type == 'integer':
-        num_char_row = num_char
+        num_char_col = num_char
     elif state_encode_type == 'one_hot':
-        num_char_row = num_char * num_states
+        num_char_col = num_char * num_states
 
-    return num_char_row
+    return num_char_col
 
 
 #------------------------------------------------------------------------------#
