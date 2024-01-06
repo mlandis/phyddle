@@ -476,7 +476,7 @@ class Plotter:
         image = image.convert('RGB')
         
         # save as pdf
-        image.save(self.save_network_fn)
+        image.save(self.save_network_fn, dpi=(300, 300), size=(3000,2100))
         
         return
     
@@ -900,6 +900,12 @@ class Plotter:
             y_value = col_data.loc['value']
             y_lower = col_data.loc['lower']
             y_upper = col_data.loc['upper']
+
+            if plot_log:
+                y_value = np.max([1e-4, y_value])
+                y_lower = np.max([1e-4, y_lower])
+                y_upper = np.max([1e-4, y_upper])
+
             s_value = '{:.2E}'.format(y_value)
             s_lower = '{:.2E}'.format(y_lower)
             s_upper = '{:.2E}'.format(y_upper)
@@ -925,6 +931,7 @@ class Plotter:
         plt.title(title)
         plt.xticks(np.arange(num_label), label_names)
         plt.xlim( -0.5, num_label )
+        plt.ylim( )
         plt.savefig(save_fn, format='pdf', dpi=300, bbox_inches='tight')
         plt.clf()
         

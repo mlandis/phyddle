@@ -309,17 +309,18 @@ class Estimator:
             # point estimates & CPIs for emp. labels
             norm_emp_label_est        = torch.stack(norm_emp_label_est)[:,None,:]
             norm_emp_label_est        = norm_emp_label_est.detach().numpy()
+            #norm_emp_label_est        = torch.stack(norm_emp_label_est).detach().numpy()
             norm_emp_label_est        = np.array(norm_emp_label_est)
-            
-            norm_emp_label_est[1,:,:] = norm_emp_label_est[1,:,:] - self.cpi_adjustments[0,:]
-            norm_emp_label_est[2,:,:] = norm_emp_label_est[2,:,:] + self.cpi_adjustments[1,:]
+            norm_emp_label_est[1,:] = norm_emp_label_est[1,:] - self.cpi_adjustments[0,:]
+            norm_emp_label_est[2,:] = norm_emp_label_est[2,:] + self.cpi_adjustments[1,:]
 
             # detransform results
             emp_label_est = util.denormalize(norm_emp_label_est,
                                              self.train_labels_mean_sd,
                                              exp=True) - self.log_offset
-            
-            # save empirial label estimates
+            #print(emp_label_est)
+
+            # save empirical label estimates
             df_emp_label_est = util.make_param_VLU_mtx(emp_label_est, self.label_names)
             df_emp_label_est.to_csv(self.out_emp_label_est_fn, index=False, sep=',')
 
@@ -335,7 +336,6 @@ class Estimator:
 
         # point estimates & CPIs for test labels
         norm_test_label_est        = torch.stack(norm_test_label_est).detach().numpy()
-        # print(norm_test_label_est.shape)
         norm_test_label_est        = np.array(norm_test_label_est)
         norm_test_label_est[1,:,:] = norm_test_label_est[1,:,:] - self.cpi_adjustments[0,:]
         norm_test_label_est[2,:,:] = norm_test_label_est[2,:,:] + self.cpi_adjustments[1,:]
