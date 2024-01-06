@@ -19,7 +19,7 @@ import torch.nn.functional as F
 from torch import nn
 
 # phyddle imports
-#   none
+from phyddle import utilities as util
 
 #-------------------------#
 
@@ -52,16 +52,19 @@ class ParameterEstimationNetwork(nn.Module):
     structure, activation functions, and forward pass behavior for of input
     to predict labels.
     """
-    def __init__(self, phy_dat_width, phy_dat_height, aux_dat_width, lbl_width):    
+    def __init__(self, phy_dat_width, phy_dat_height, aux_dat_width, lbl_width, args):    
         
         # initialize base class
         super(ParameterEstimationNetwork, self).__init__()
 
+        # set basic arguments
+        self.set_args(args)
+
         # input/output
-        self.phy_dat_width = phy_dat_width
+        self.phy_dat_width  = phy_dat_width
         self.phy_dat_height = phy_dat_height
-        self.aux_dat_width = aux_dat_width
-        self.lbl_width = lbl_width
+        self.aux_dat_width  = aux_dat_width
+        self.lbl_width      = lbl_width
 
         # compute layer settigns
         self.make_layer_settings()
@@ -71,18 +74,36 @@ class ParameterEstimationNetwork(nn.Module):
 
         return
 
+    def set_args(self, args):
+        """Assigns phyddle settings as Network attributes.
+
+        Args:
+            args (dict): Contains phyddle settings.
+
+        """
+        self.args = args
+        step_args = util.make_step_args('T', args)
+        for k,v in step_args.items():
+            setattr(self, k, v)
+
+        return
+
     def make_layer_settings(self):
+        """
+        Assigns neural network layer settings.
+        """
+        print()
 
         # standard convolution and pooling layers for CPV+S
-        self.phy_std_out_size       = [64, 96, 128]
-        self.phy_std_kernel_size    = [3, 5, 7]
+        self.phy_std_out_size       = self.phy_channel_plain # [64, 96, 128]
+        self.phy_std_kernel_size    = self.phy_kernel_plain # [3, 5, 7]
         self.phy_std_in_size        = [ self.phy_dat_width ] + self.phy_std_out_size[:-1]
         assert(len(self.phy_std_out_size) == len(self.phy_std_kernel_size))
 
         # stride convolution and pooling layers for CPV+S
-        self.phy_stride_out_size    = [64, 96]
-        self.phy_stride_kernel_size = [7, 9]
-        self.phy_stride_stride_size = [3, 6]
+        self.phy_stride_out_size    = self.phy_channel_stride # [64, 96]
+        self.phy_stride_kernel_size = self.phy_kernel_stride # [7, 9]
+        self.phy_stride_stride_size = self.phy_stride_stride # [3, 6]
         self.phy_stride_in_size     = [ self.phy_dat_width ] + self.phy_stride_out_size[:-1]
         # for i in range(len(self.phy_stride_out_size)):
         #     phy_stride_output_size = int(np.ceil(phy_stride_output_size / phy_stride_size[i]))
@@ -90,15 +111,15 @@ class ParameterEstimationNetwork(nn.Module):
         assert(len(self.phy_stride_out_size) == len(self.phy_stride_stride_size))
         
         # dilate convolution and pooling layers for CPV+S
-        self.phy_dilate_out_size    = [32, 64]
-        self.phy_dilate_kernel_size = [3, 5]
-        self.phy_dilate_dilate_size = [2, 4]
+        self.phy_dilate_out_size    = self.phy_channel_dilate # [32, 64]
+        self.phy_dilate_kernel_size = self.phy_kernel_dilate # [3, 5]
+        self.phy_dilate_dilate_size = self.phy_dilate_dilate # [2, 4]
         self.phy_dilate_in_size     = [ self.phy_dat_width ] + self.phy_dilate_out_size[:-1]
         assert(len(self.phy_dilate_out_size) == len(self.phy_dilate_kernel_size))
         assert(len(self.phy_dilate_out_size) == len(self.phy_dilate_dilate_size))
 
         # dense feed-forward layers for aux. data
-        self.aux_out_size           = [128, 64, 32]
+        self.aux_out_size           = self.aux_channel # [128, 64, 32]
         self.aux_in_size            = [ self.aux_dat_width ] + self.aux_out_size[:-1]
 
         # concat layer size??
@@ -108,7 +129,8 @@ class ParameterEstimationNetwork(nn.Module):
                            self.aux_out_size[-1]
 
         # dense layers for output predictions
-        self.label_out_size         = [128, 64, 32] + [self.lbl_width]
+        # self.label_out_size         = [128, 64, 32] + [self.lbl_width]
+        self.label_out_size         = self.lbl_channel + [ self.lbl_width ]
         self.label_in_size          = [ self.concat_size ] + self.label_out_size
 
         return
@@ -185,7 +207,6 @@ class ParameterEstimationNetwork(nn.Module):
     def _initialize_weights(self):
         '''Initializes weights for network.'''
         for m in self.modules():
-            print(m)
             if isinstance(m, torch.nn.Linear):
                 torch.nn.init.kaiming_uniform_(m.weight, a=0, mode='fan_in', nonlinearity='relu')
                 torch.nn.init.constant_(m.bias, 0)

@@ -66,11 +66,14 @@ class Trainer:
         """
         # initialize with phyddle settings
         self.set_args(args)
+        
         # construct filepaths
         self.prepare_filepaths()
+        
         # set CPUs
         if self.num_proc <= 0:
             self.num_proc = cpu_count() + self.num_proc
+        
         # get size of CPV+S tensors
         self.num_tree_col = util.get_num_tree_col(self.tree_encode,
                                                   self.brlen_encode)
@@ -408,7 +411,8 @@ class CnnTrainer(Trainer):
         self.model = network.ParameterEstimationNetwork(phy_dat_width=self.num_data_col,
                                                         phy_dat_height=self.tree_width,
                                                         aux_dat_width=self.num_aux_data,
-                                                        lbl_width=self.num_params)
+                                                        lbl_width=self.num_params,
+                                                        args=self.args)
         
         self.model.phy_dat_shape = (self.num_data_col, self.tree_width)
         self.model.aux_dat_shape = (self.num_aux_data,)
