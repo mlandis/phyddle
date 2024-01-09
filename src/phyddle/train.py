@@ -643,26 +643,33 @@ class CnnTrainer(Trainer):
         """
         max_idx = 1000
         
+        # format str
+        float_fmt_str = '%.4e' #'{{:0.{:d}e}}'.format(util.OUTPUT_PRECISION)
+
         # save model to file
         torch.save(self.model, self.model_arch_fn)
 
         # save json history from running MASTER
-        self.train_history.to_csv(self.model_history_fn, index=False, sep=',')
+        self.train_history.to_csv(self.model_history_fn, index=False, sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
 
 
         # save aux_data names, means, sd for new test dataset normalization
-        df_aux_data = pd.DataFrame([self.aux_data_names,
-                                    self.train_aux_data_mean_sd[0],
-                                    self.train_aux_data_mean_sd[1]]).T
-        df_aux_data.columns = ['name', 'mean', 'sd']
-        df_aux_data.to_csv(self.train_aux_data_norm_fn, index=False, sep=',')
+        df_aux_data = pd.DataFrame({'name':self.aux_data_names,
+                                    'mean':self.train_aux_data_mean_sd[0],
+                                    'sd':self.train_aux_data_mean_sd[1]})
+        #df_aux_data.columns = ['name', 'mean', 'sd']
+        #df_aux_data.dtypes = ['object', 'float32', 'float32']
+        #print(df_aux_data.dtypes)
+        df_aux_data.to_csv(self.train_aux_data_norm_fn, index=False, sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
+        #print(util.PANDAS_FLOAT_FMT_STR)
+        #xxxx
  
         # save label names, means, sd for new test dataset normalization
-        df_labels = pd.DataFrame([self.label_names,
-                                  self.train_labels_mean_sd[0],
-                                  self.train_labels_mean_sd[1]]).T
-        df_labels.columns = ['name', 'mean', 'sd']
-        df_labels.to_csv(self.train_labels_norm_fn, index=False, sep=',')
+        df_labels = pd.DataFrame({'name':self.label_names,
+                                  'mean':self.train_labels_mean_sd[0],
+                                  'sd':self.train_labels_mean_sd[1]})
+        #df_labels.columns = ['name', 'mean', 'sd']
+        df_labels.to_csv(self.train_labels_norm_fn, index=False, sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
 
         # save train/test scatterplot results (Value, Lower, Upper)
         df_train_label_est_nocalib = util.make_param_VLU_mtx(self.train_label_est[0:max_idx,:], self.label_names )
@@ -675,10 +682,10 @@ class CnnTrainer(Trainer):
         df_cpi_intervals = pd.DataFrame( self.cpi_adjustments, columns=self.label_names )
 
         # convert to csv and save
-        df_train_label_est_nocalib.to_csv(self.train_label_est_nocalib_fn, index=False, sep=',')
-        df_train_label_est_calib.to_csv(self.train_label_est_calib_fn, index=False, sep=',')
-        df_train_label_true.to_csv(self.train_label_true_fn, index=False, sep=',')
-        df_cpi_intervals.to_csv(self.model_cpi_fn, index=False, sep=',')
+        df_train_label_est_nocalib.to_csv(self.train_label_est_nocalib_fn, index=False, sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
+        df_train_label_est_calib.to_csv(self.train_label_est_calib_fn, index=False, sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
+        df_train_label_true.to_csv(self.train_label_true_fn, index=False, sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
+        df_cpi_intervals.to_csv(self.model_cpi_fn, index=False, sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
 
         return
 

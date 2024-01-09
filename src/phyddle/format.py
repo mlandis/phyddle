@@ -494,7 +494,6 @@ class Formatter:
         print(f'Making {data_str} csv dataset: {num_samples} examples for tree width = {tree_width}')
         
         # output csv filepaths
-        #out_hdf5_fn = f'{self.fmt_proj_dir}/{data_str}.nt{tree_width}.hdf5'
         out_prefix    = f'{self.fmt_proj_dir}/{data_str}.nt{tree_width}'
         in_prefix     = f'{self.sim_proj_dir}/sim'
         out_phys_fn   = f'{out_prefix}.phy_data.csv'
@@ -505,8 +504,14 @@ class Formatter:
         # phylogenetic state tensor
         with open(out_phys_fn, 'w') as outfile:
             for idx in rep_idx:
-                pt = phy_tensor[idx] 
-                s = ','.join(map(str, pt.flatten())) + '\n'
+                pt = phy_tensor[idx]
+                s = util.ndarray_to_flat_str(pt)
+                #print(s)
+                # xx
+                #print(pt.flatten())
+                #s = ','.join(map(str, pt.flatten())) + '\n'
+                #print(s)
+                #xxxx
                 outfile.write(s)
 
         # summary stats tensor
@@ -520,6 +525,7 @@ class Formatter:
                         is_first = False
                     else:
                         s = ''.join(infile.readlines()[1:])
+                        # print(s)
                     outfile.write(s)
                     
         # labels input tensor
@@ -606,9 +612,8 @@ class Formatter:
         Returns:
             cpvs (numpy.array): compact phylo vector + states (CPVS)
         """
-        NUM_DIGITS = 10
         np.set_printoptions(formatter={'float': lambda x: format(x, '8.6E')},
-                            precision=NUM_DIGITS)
+                            precision=util.OUTPUT_PRECISION)
         
         # make filenames
         if self.char_format == 'nexus':
@@ -689,7 +694,7 @@ class Formatter:
         # save CPVS
         save_phyenc_csv_ = self.save_phyenc_csv or save_phyenc_csv
         if save_phyenc_csv_ and cpvs_data is not None:
-            cpsv_str = util.make_clean_phyloenc_str(cpvs_data.flatten())
+            cpsv_str = util.make_clean_phyenc_str(cpvs_data.flatten())
             util.write_to_file(cpsv_str, cpsv_fn)
 
         # record info
@@ -791,7 +796,10 @@ class Formatter:
 
         """
         keys_str = ','.join( list(ss.keys()) ) + '\n'
-        vals_str = ','.join( [ str(x) for x in ss.values() ] ) + '\n'
+        # vals_str = ','.join( [ str(x) for x in ss.values() ] ) + '\n'
+        vals = np.array([ float(x) for x in ss.values() ])
+        vals_str = util.ndarray_to_flat_str(vals)
+        
         return keys_str + vals_str
     
     def encode_cpvs(self, phy, dat, tree_width, tree_type,
@@ -927,7 +935,6 @@ class Formatter:
             num_tree_col = 2
         elif tree_encode_type == 'height_brlen':
             num_tree_col = 4
-
 
         # initialize workspace
         null       = phy.calc_node_root_distances(return_leaf_distances_only=False)

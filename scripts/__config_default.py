@@ -12,6 +12,7 @@ args = {
   'verbose'            : 'T',                  # Verbose output to screen?      
   'force'              : None,                 # Arguments override config file settings
   'make_cfg'           : None,                 # Write default config file to '__config_default.py'?'
+  'output_precision'   : 8,                    # Number of digits (precision) for numbers in output files
 
   #-------------------------------#
   # Analysis                      #

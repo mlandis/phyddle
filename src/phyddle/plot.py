@@ -168,13 +168,13 @@ class Plotter:
         util.print_str('▪ Loading input', verbose)
         self.load_input()
 
-        # # generate individual plots
-        # util.print_str('▪ Generating individual plots', verbose)
-        # self.generate_plots()
+        # generate individual plots
+        util.print_str('▪ Generating individual plots', verbose)
+        self.generate_plots()
 
-        # # combining all plots
-        # util.print_str('▪ Combining plots', verbose)
-        # self.combine_plots()
+        # combining all plots
+        util.print_str('▪ Combining plots', verbose)
+        self.combine_plots()
 
         # generating output summary
         util.print_str('▪ Making csv report', verbose)
@@ -419,7 +419,7 @@ class Plotter:
                 
         # save results
         self.df_report = df
-        self.df_report.to_csv(self.save_report_fn, index=False)
+        self.df_report.to_csv(self.save_report_fn, index=False, float_format=util.PANDAS_FLOAT_FMT_STR)
 
         return
 

@@ -322,12 +322,12 @@ class Estimator:
 
             # save empirical label estimates
             df_emp_label_est = util.make_param_VLU_mtx(emp_label_est, self.label_names)
-            df_emp_label_est.to_csv(self.out_emp_label_est_fn, index=False, sep=',')
+            df_emp_label_est.to_csv(self.out_emp_label_est_fn, index=False, sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
 
             # save empirical auxiliary dataset
             df_emp_aux_data = pd.DataFrame(self.emp_aux_data, columns=self.aux_data_names)
             df_emp_aux_data = np.exp(df_emp_aux_data) - self.log_offset
-            df_emp_aux_data.to_csv(self.emp_aux_data_fn, index=False, sep=',')
+            df_emp_aux_data.to_csv(self.emp_aux_data_fn, index=False, sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
 
 
         # test dataset
@@ -347,9 +347,9 @@ class Estimator:
 
         #save test estimates
         df_test_label_est = util.make_param_VLU_mtx(test_label_est, self.label_names)
-        df_test_label_est.to_csv(self.out_test_label_est_fn, index=False, sep=',')
+        df_test_label_est.to_csv(self.out_test_label_est_fn, index=False, sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
         df_test_label_true = pd.DataFrame(self.test_label_true, columns=self.label_names)
-        df_test_label_true.to_csv(self.out_test_label_true_fn, index=False, sep=',')
+        df_test_label_true.to_csv(self.out_test_label_true_fn, index=False, sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
         
         # done
         return

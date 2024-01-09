@@ -32,9 +32,11 @@ import __main__ as main
 from . import PHYDDLE_VERSION, CONFIG_DEFAULT_FN
 
 # Precision settings
-NUM_DIGITS = 10
-np.set_printoptions(floatmode='maxprec', precision=NUM_DIGITS)
-pd.set_option('display.precision', NUM_DIGITS)
+OUTPUT_PRECISION = 8
+PANDAS_FLOAT_FMT_STR = f'%.{OUTPUT_PRECISION}e'
+NUMPY_FLOAT_FMT_STR  = '{{:0.{:d}e}}'.format(OUTPUT_PRECISION)
+np.set_printoptions(floatmode='maxprec', precision=OUTPUT_PRECISION)
+pd.set_option('display.precision', OUTPUT_PRECISION)
 pd.set_option('display.float_format', lambda x: f'{x:,.3f}')
 
 # Tensorflow info messages
@@ -109,6 +111,7 @@ def settings_registry():
         'verbose'          : { 'step':'SFTEP', 'type':str,  'section':'Basic', 'default':'T',          'help':'Verbose output to screen?', 'bool':True, 'opt':'v' },
         'force'            : { 'step':'',      'type':None, 'section':'Basic', 'default':None,         'help':'Arguments override config file settings', 'opt':'f' },
         'make_cfg'         : { 'step':'',      'type':None, 'section':'Basic', 'default':None,         'help':"Write default config file to '__config_default.py'?'" },
+        'output_precision' : { 'step':'SFTEP', 'type':int,  'section':'Basic', 'default':8,            'help':'Number of digits (precision) for numbers in output files' },
 
         # analysis options 
         'use_parallel'     : { 'step':'SF',  'type':str, 'section':'Analysis', 'default':'T', 'help':'Use parallelization? (recommended)', 'bool':True },
@@ -320,6 +323,15 @@ def load_config(config_fn,
     m['date'] = date_obj.strftime("%y%m%d_%H%M%S")
     m['job_id'] = generate_random_hex_string(7)
     
+    # update output precision
+    global OUTPUT_PRECISION, PANDAS_FLOAT_FMT_STR, NUMPY_FLOAT_FMT_STR
+    OUTPUT_PRECISION     = m['output_precision']
+    PANDAS_FLOAT_FMT_STR = f'%.{OUTPUT_PRECISION}e'
+    NUMPY_FLOAT_FMT_STR  = '{{:0.{:d}e}}'.format(OUTPUT_PRECISION)
+    np.set_printoptions(floatmode='maxprec', precision=OUTPUT_PRECISION)
+    pd.set_option('display.precision', OUTPUT_PRECISION)
+    pd.set_option('display.float_format', lambda x: f'{x:,.3f}')
+
     # print header?
     verbose = m['verbose']
     if verbose:
@@ -1297,7 +1309,7 @@ def make_param_VLU_mtx(A, param_names):
 
     return df
 
-def make_clean_phyloenc_str(x):
+def make_clean_phyenc_str(x):
     """Convert a numpy array to a clean string representation.
 
     This function takes a numpy array `x` and converts it to a clean string
@@ -1313,12 +1325,37 @@ def make_clean_phyloenc_str(x):
         str: The clean string representation of the numpy array.
     """
     s = np.array2string(x, separator=',', max_line_width=1e200,
-                        threshold=1e200, edgeitems=1e200, precision=10,
+                        threshold=1e200, edgeitems=1e200, precision=OUTPUT_PRECISION,
                         floatmode='maxprec')
+
     s = re.sub(r'[\[\]]', '', string=s)
     s = re.sub(r',\n ', '\n', string=s)
     s = s + '\n'
+
     return s
+
+
+def ndarray_to_flat_str(x):
+    """Converts a numpy.ndarray into flattend csv vector."""
+    # numpy formatter for floats & ints
+    def numpy_formatter(x):
+        if x % 1 == 0:
+            return "{:d}".format(int(x))
+        else:
+            return NUMPY_FLOAT_FMT_STR.format(x)
+
+    # convert ndarray to formatted string
+    s = np.array2string(x, separator=',', formatter={ 'float_kind' : numpy_formatter }, max_line_width=1e200,
+                        threshold=1e200, edgeitems=1e200, floatmode='maxprec')
+    # remove brackets, whitespace
+    s = re.sub(r'[\[\]\n ]', '', string=s)
+    # endline
+    s = s + '\n'
+    return s
+
+    
+
+
 
 #------------------------------------------------------------------------------#
 
