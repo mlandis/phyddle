@@ -32,7 +32,7 @@ import __main__ as main
 from . import PHYDDLE_VERSION, CONFIG_DEFAULT_FN
 
 # Precision settings
-OUTPUT_PRECISION = 8
+OUTPUT_PRECISION = 16
 PANDAS_FLOAT_FMT_STR = f'%.{OUTPUT_PRECISION}e'
 NUMPY_FLOAT_FMT_STR  = '{{:0.{:d}e}}'.format(OUTPUT_PRECISION)
 np.set_printoptions(floatmode='maxprec', precision=OUTPUT_PRECISION)
@@ -111,7 +111,7 @@ def settings_registry():
         'verbose'          : { 'step':'SFTEP', 'type':str,  'section':'Basic', 'default':'T',          'help':'Verbose output to screen?', 'bool':True, 'opt':'v' },
         'force'            : { 'step':'',      'type':None, 'section':'Basic', 'default':None,         'help':'Arguments override config file settings', 'opt':'f' },
         'make_cfg'         : { 'step':'',      'type':None, 'section':'Basic', 'default':None,         'help':"Write default config file to '__config_default.py'?'" },
-        'output_precision' : { 'step':'SFTEP', 'type':int,  'section':'Basic', 'default':8,            'help':'Number of digits (precision) for numbers in output files' },
+        'output_precision' : { 'step':'SFTEP', 'type':int,  'section':'Basic', 'default':16,           'help':'Number of digits (precision) for numbers in output files' },
 
         # analysis options 
         'use_parallel'     : { 'step':'SF',  'type':str, 'section':'Analysis', 'default':'T', 'help':'Use parallelization? (recommended)', 'bool':True },
@@ -330,7 +330,7 @@ def load_config(config_fn,
     NUMPY_FLOAT_FMT_STR  = '{{:0.{:d}e}}'.format(OUTPUT_PRECISION)
     np.set_printoptions(floatmode='maxprec', precision=OUTPUT_PRECISION)
     pd.set_option('display.precision', OUTPUT_PRECISION)
-    pd.set_option('display.float_format', lambda x: f'{x:,.3f}')
+    pd.set_option('display.float_format', lambda x: f'{x:,.6f}')
 
     # print header?
     verbose = m['verbose']
@@ -345,7 +345,6 @@ def fix_arg_bool(m):
     settings = settings_registry()
     for k,v in settings.items():
         if 'bool' in v and type(m[k]) != str:
-            print(m[k],type(m[k]))
             raise Exception(f"Invalid argument: {k} must be a string")
         elif 'bool' in v and type(m[k]) == str:
             arg_val = m[k]
@@ -854,7 +853,6 @@ def convert_csv_to_onehot_array(dat_fn, num_states):
     num_taxa = dat_raw.shape[1]
 
     # check/unify number of state per row
-    print(type(num_states))
     if type(num_states) is int:
         num_states = [ num_states ] * dat_raw.shape[0]
 
@@ -997,7 +995,6 @@ def convert_nexus_to_integer_array(dat_fn):
                 found_matrix = False
                 break
             elif len(tok) == 2:
-                #print(tok)
                 name = tok[0]
                 state = tok[1]
                 taxon_names.append(name)
@@ -1324,13 +1321,18 @@ def make_clean_phyenc_str(x):
     Returns:
         str: The clean string representation of the numpy array.
     """
-    s = np.array2string(x, separator=',', max_line_width=1e200,
-                        threshold=1e200, edgeitems=1e200, precision=OUTPUT_PRECISION,
-                        floatmode='maxprec')
+    def numpy_formatter(x):
+        if x % 1 == 0:
+            return "{:d}".format(int(x))
+        else:
+            return NUMPY_FLOAT_FMT_STR.format(x)
+
+    s = np.array2string(x, separator=',', max_line_width=1e200, threshold=1e200,
+                        edgeitems=1e200, floatmode='maxprec',
+                        formatter={ 'float_kind' : numpy_formatter })
 
     s = re.sub(r'[\[\]]', '', string=s)
     s = re.sub(r',\n ', '\n', string=s)
-    s = s + '\n'
 
     return s
 
@@ -1345,12 +1347,13 @@ def ndarray_to_flat_str(x):
             return NUMPY_FLOAT_FMT_STR.format(x)
 
     # convert ndarray to formatted string
-    s = np.array2string(x, separator=',', formatter={ 'float_kind' : numpy_formatter }, max_line_width=1e200,
-                        threshold=1e200, edgeitems=1e200, floatmode='maxprec')
+    s = np.array2string(x, separator=',', max_line_width=1e200, threshold=1e200,
+                        edgeitems=1e200, floatmode='maxprec',
+                        formatter={ 'float_kind' : numpy_formatter })
     # remove brackets, whitespace
     s = re.sub(r'[\[\]\n ]', '', string=s)
     # endline
-    s = s + '\n'
+    # s = s + '\n'
     return s
 
     

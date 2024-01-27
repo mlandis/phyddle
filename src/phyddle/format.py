@@ -251,7 +251,6 @@ class Formatter:
         # find all rep index
         all_idx = set()
         files = os.listdir(f'{self.sim_proj_dir}')
-        #print(len(files))
         for f in files:
             if f[0:3] == 'sim':
                 all_idx.add(int(f.split('.')[1]))
@@ -443,6 +442,8 @@ class Formatter:
         # concatenate new data parameters as column to existing summ_stats dataframe
         df_aux_data = df_summ_stats.join( df_labels_move )
 
+
+        
         # get new label/stat names
         new_label_names = self.param_est
         new_aux_data_names = self.summ_stat_names + self.param_data
@@ -505,13 +506,7 @@ class Formatter:
         with open(out_phys_fn, 'w') as outfile:
             for idx in rep_idx:
                 pt = phy_tensor[idx]
-                s = util.ndarray_to_flat_str(pt)
-                #print(s)
-                # xx
-                #print(pt.flatten())
-                #s = ','.join(map(str, pt.flatten())) + '\n'
-                #print(s)
-                #xxxx
+                s = util.ndarray_to_flat_str(pt.flatten()) + '\n'
                 outfile.write(s)
 
         # summary stats tensor
@@ -525,7 +520,6 @@ class Formatter:
                         is_first = False
                     else:
                         s = ''.join(infile.readlines()[1:])
-                        # print(s)
                     outfile.write(s)
                     
         # labels input tensor
@@ -557,8 +551,9 @@ class Formatter:
         df_summ_stats = df_summ_stats.join( df_labels_move )
 
         # overwrite original files with new modified versions
-        df_summ_stats.to_csv(out_stat_fn, index=False)
-        df_labels_keep.to_csv(out_labels_fn, index=False)
+        df_summ_stats.to_csv(out_stat_fn, index=False, float_format=util.PANDAS_FLOAT_FMT_STR)
+        df_labels_keep.to_csv(out_labels_fn, index=False, float_format=util.PANDAS_FLOAT_FMT_STR)
+
 
         # write rep_idx
         df_idx = pd.DataFrame(rep_idx, columns=['idx'])
@@ -694,7 +689,7 @@ class Formatter:
         # save CPVS
         save_phyenc_csv_ = self.save_phyenc_csv or save_phyenc_csv
         if save_phyenc_csv_ and cpvs_data is not None:
-            cpsv_str = util.make_clean_phyenc_str(cpvs_data.flatten())
+            cpsv_str = util.ndarray_to_flat_str(cpvs_data.flatten()) + '\n'
             util.write_to_file(cpsv_str, cpsv_fn)
 
         # record info
@@ -798,8 +793,7 @@ class Formatter:
         keys_str = ','.join( list(ss.keys()) ) + '\n'
         # vals_str = ','.join( [ str(x) for x in ss.values() ] ) + '\n'
         vals = np.array([ float(x) for x in ss.values() ])
-        vals_str = util.ndarray_to_flat_str(vals)
-        
+        vals_str = util.ndarray_to_flat_str(vals) + '\n'
         return keys_str + vals_str
     
     def encode_cpvs(self, phy, dat, tree_width, tree_type,

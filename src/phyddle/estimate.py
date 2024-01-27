@@ -124,6 +124,11 @@ class Estimator:
         self.test_aux_data_fn      = f'{self.fmt_prefix_dir}.aux_data.csv'
         self.test_labels_fn        = f'{self.fmt_prefix_dir}.labels.csv'
         self.test_hdf5_fn          = f'{self.fmt_prefix_dir}.hdf5'
+        # self.train_phy_data_fn      = f'{self.fmt_proj_dir}/train.nt{self.tree_width}.phy_data.csv'
+        # self.train_aux_data_fn      = f'{self.fmt_proj_dir}/train.nt{self.tree_width}.aux_data.csv'
+        # self.train_labels_fn        = f'{self.fmt_proj_dir}/train.nt{self.tree_width}.labels.csv'
+        # self.train_hdf5_fn          = f'{self.fmt_proj_dir}/train.nt{self.tree_width}.hdf5'
+
 
         # empirical test dataset
         self.emp_summ_stat_fn       = f'{self.est_prefix_dir}.summ_stat.csv'
@@ -135,6 +140,8 @@ class Estimator:
         self.out_emp_label_est_fn   = f'{self.est_prefix_dir}.emp_est.labels.csv'
         self.out_test_label_est_fn   = f'{self.est_prefix_dir}.test_est.labels.csv'
         self.out_test_label_true_fn  = f'{self.est_prefix_dir}.test_true.labels.csv'
+        self.out_train_label_est_fn   = f'{self.est_prefix_dir}.train_est.labels.csv'
+        self.out_train_label_true_fn  = f'{self.est_prefix_dir}.train_true.labels.csv'
     
         # check if empirical dataset exists
         self.emp_input_exists = True
@@ -235,25 +242,51 @@ class Estimator:
             test_labels   = pd.read_csv(self.test_labels_fn, header=None,
                                         on_bad_lines='skip').to_numpy()
             test_aux_data       = test_aux_data[1:,:].astype('float64')
-            test_labels         = test_labels[1:,:].astype('float64')   
+            test_labels         = test_labels[1:,:].astype('float64') 
+            
+            # train_phy_data = pd.read_csv(self.train_phy_data_fn, header=None,
+            #                             on_bad_lines='skip').to_numpy()
+            # train_aux_data = pd.read_csv(self.train_aux_data_fn, header=None,
+            #                             on_bad_lines='skip').to_numpy()
+            # train_labels   = pd.read_csv(self.train_labels_fn, header=None,
+            #                             on_bad_lines='skip').to_numpy()
+            # train_aux_data       = train_aux_data[1:,:].astype('float64')
+            # train_labels         = train_labels[1:,:].astype('float64')     
 
         elif self.tensor_format == 'hdf5':
             hdf5_file = h5py.File(self.test_hdf5_fn, 'r')
             test_phy_data       = pd.DataFrame(hdf5_file['phy_data']).to_numpy()
             test_aux_data       = pd.DataFrame(hdf5_file['aux_data']).to_numpy()
             test_labels         = pd.DataFrame(hdf5_file['labels']).to_numpy()
+
+            # train_hdf5_file = h5py.File(self.train_hdf5_fn, 'r')
+            # train_phy_data       = pd.DataFrame(train_hdf5_file['phy_data']).to_numpy()
+            # train_aux_data       = pd.DataFrame(train_hdf5_file['aux_data']).to_numpy()
+            # train_labels         = pd.DataFrame(train_hdf5_file['labels']).to_numpy()
             hdf5_file.close()
 
         num_sample = test_phy_data.shape[0]
         test_phy_data.shape = (num_sample, -1, self.num_data_col)
         test_phy_data = np.transpose(test_phy_data, axes=[0,2,1]).astype('float32')
-
-        # create phylogenetic data tensors
         self.test_phy_data = test_phy_data
+
+        # train_num_sample = train_phy_data.shape[0]
+        # train_phy_data.shape = (train_num_sample, -1, self.num_data_col)
+        # train_phy_data = np.transpose(train_phy_data, axes=[0,2,1]).astype('float32')
+        # self.train_phy_data = train_phy_data
+
+
+        # test dataset normalization
         self.test_aux_data = np.log(test_aux_data + self.log_offset)
         self.norm_test_aux_data = util.normalize(self.test_aux_data,
                                                  self.train_aux_data_mean_sd)
         self.test_label_true = test_labels
+
+        # # training dataset normalization
+        # self.train_aux_data = np.log(train_aux_data + self.log_offset)
+        # self.norm_train_aux_data = util.normalize(self.train_aux_data,
+        #                                           self.train_aux_data_mean_sd)
+        # self.train_label_true = train_labels
 
         # read & reshape new phylo-state data
         self.emp_phy_data = None
@@ -283,7 +316,7 @@ class Estimator:
             self.emp_aux_data = np.log(self.emp_aux_data + self.log_offset)
             self.norm_emp_aux_data = util.normalize(self.emp_aux_data,
                                                     self.train_aux_data_mean_sd)
-
+            
         # done
         return
 
@@ -311,8 +344,8 @@ class Estimator:
             norm_emp_label_est        = norm_emp_label_est.detach().numpy()
             #norm_emp_label_est        = torch.stack(norm_emp_label_est).detach().numpy()
             norm_emp_label_est        = np.array(norm_emp_label_est)
-            norm_emp_label_est[1,:] = norm_emp_label_est[1,:] - self.cpi_adjustments[0,:]
-            norm_emp_label_est[2,:] = norm_emp_label_est[2,:] + self.cpi_adjustments[1,:]
+            norm_emp_label_est[1,:]   = norm_emp_label_est[1,:] - self.cpi_adjustments[0,:]
+            norm_emp_label_est[2,:]   = norm_emp_label_est[2,:] + self.cpi_adjustments[1,:]
 
             # detransform results
             emp_label_est = util.denormalize(norm_emp_label_est,
@@ -329,22 +362,22 @@ class Estimator:
             df_emp_aux_data = np.exp(df_emp_aux_data) - self.log_offset
             df_emp_aux_data.to_csv(self.emp_aux_data_fn, index=False, sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
 
-
         # test dataset
         norm_test_label_est = self.mymodel(torch.Tensor(self.test_phy_data),
                                            torch.Tensor(self.norm_test_aux_data))
 
         # point estimates & CPIs for test labels
         norm_test_label_est        = torch.stack(norm_test_label_est).detach().numpy()
-        norm_test_label_est        = np.array(norm_test_label_est)
+        #norm_test_label_est        = np.array(norm_test_label_est)
         norm_test_label_est[1,:,:] = norm_test_label_est[1,:,:] - self.cpi_adjustments[0,:]
         norm_test_label_est[2,:,:] = norm_test_label_est[2,:,:] + self.cpi_adjustments[1,:]
         
-        # detransform test label estimates
+        # denormalize test label estimates
         test_label_est = util.denormalize(norm_test_label_est,
                                           self.train_labels_mean_sd,
                                           exp=True) - self.log_offset
 
+      
         #save test estimates
         df_test_label_est = util.make_param_VLU_mtx(test_label_est, self.label_names)
         df_test_label_est.to_csv(self.out_test_label_est_fn, index=False, sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)

@@ -338,6 +338,8 @@ class CnnTrainer(Trainer):
         full_labels = np.log(full_labels + self.log_offset)
         full_aux_data = np.log(full_aux_data + self.log_offset)
 
+        
+
         # shuffle datasets
         randomized_idx = np.random.permutation(full_phy_data.shape[0])
         full_phy_data  = full_phy_data[randomized_idx,:]
@@ -658,11 +660,7 @@ class CnnTrainer(Trainer):
                                     'mean':self.train_aux_data_mean_sd[0],
                                     'sd':self.train_aux_data_mean_sd[1]})
         #df_aux_data.columns = ['name', 'mean', 'sd']
-        #df_aux_data.dtypes = ['object', 'float32', 'float32']
-        #print(df_aux_data.dtypes)
         df_aux_data.to_csv(self.train_aux_data_norm_fn, index=False, sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
-        #print(util.PANDAS_FLOAT_FMT_STR)
-        #xxxx
  
         # save label names, means, sd for new test dataset normalization
         df_labels = pd.DataFrame({'name':self.label_names,

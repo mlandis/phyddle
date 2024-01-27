@@ -19,6 +19,7 @@ args = {
     'plt_dir' : '../workspace/plot',        # directory for plotted figures
     'est_dir' : '../workspace/estimate',    # directory for predictions on new data
     'log_dir' : '../workspace/log',         # directory for analysis logs
+    'output_precision'   : 12,                    # Number of digits (precision) for numbers in output files
 
     #-------------------------------#
     # Multiprocessing               #
