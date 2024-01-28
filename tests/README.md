@@ -21,9 +21,8 @@ with previously computed results stored in e.g. `tests/workspace/simulate/valid`
 To regenerate `valid` output:
 (1) Set `ENABLE_TEST = False` in `test_pipeline.py`
 (2) Run `pytest tests` and verify all tests pass
-(3) Change directory to `./tests`
-(4) Run `regenerate.py`
-(5) Revert `ENABLE_TEST = True` in `test_pipeline.py`
-(6) Run `pytest tests` and verify all tests pass
+(3) Run `regenerate.py` from inside `./tests`
+(4) Revert `ENABLE_TEST = True` in `test_pipeline.py`
+(5) Run `pytest tests` and verify all tests pass
 
 

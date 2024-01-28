@@ -32,9 +32,11 @@ import __main__ as main
 from . import PHYDDLE_VERSION, CONFIG_DEFAULT_FN
 
 # Precision settings
-NUM_DIGITS = 10
-np.set_printoptions(floatmode='maxprec', precision=NUM_DIGITS)
-pd.set_option('display.precision', NUM_DIGITS)
+OUTPUT_PRECISION = 16
+PANDAS_FLOAT_FMT_STR = f'%.{OUTPUT_PRECISION}e'
+NUMPY_FLOAT_FMT_STR  = '{{:0.{:d}e}}'.format(OUTPUT_PRECISION)
+np.set_printoptions(floatmode='maxprec', precision=OUTPUT_PRECISION)
+pd.set_option('display.precision', OUTPUT_PRECISION)
 pd.set_option('display.float_format', lambda x: f'{x:,.3f}')
 
 # Tensorflow info messages
@@ -109,6 +111,7 @@ def settings_registry():
         'verbose'          : { 'step':'SFTEP', 'type':str,  'section':'Basic', 'default':'T',          'help':'Verbose output to screen?', 'bool':True, 'opt':'v' },
         'force'            : { 'step':'',      'type':None, 'section':'Basic', 'default':None,         'help':'Arguments override config file settings', 'opt':'f' },
         'make_cfg'         : { 'step':'',      'type':None, 'section':'Basic', 'default':None,         'help':"Write default config file to '__config_default.py'?'" },
+        'output_precision' : { 'step':'SFTEP', 'type':int,  'section':'Basic', 'default':16,           'help':'Number of digits (precision) for numbers in output files' },
 
         # analysis options 
         'use_parallel'     : { 'step':'SF',  'type':str, 'section':'Analysis', 'default':'T', 'help':'Use parallelization? (recommended)', 'bool':True },
@@ -161,7 +164,17 @@ def settings_registry():
         'loss'             : { 'step':'T',   'type':str,   'section':'Train', 'default':'mse',         'help':'Loss function for optimization', 'choices':['mse', 'mae']},
         'optimizer'        : { 'step':'T',   'type':str,   'section':'Train', 'default':'adam',        'help':'Method used for optimizing neural network', 'choices':['adam'] },
         'metrics'          : { 'step':'T',   'type':list,  'section':'Train', 'default':['mae','acc'], 'help':'Recorded training metrics' },
-        'log_offset'       : { 'step':'FTEP', 'type':float, 'section':'Train', 'default':1.0,         'help':'Offset size c when taking ln(x+c) for potentially zero-valued variables' },
+        'log_offset'       : { 'step':'FTEP', 'type':float, 'section':'Train', 'default':1.0,          'help':'Offset size c when taking ln(x+c) for potentially zero-valued variables' },
+        'phy_channel_plain'  : { 'step':'T',   'type':list,  'section':'Train', 'default':[64,96,128],   'help':'Output channel sizes for plain convolutional layers for phylogenetic state input' },
+        'phy_channel_stride' : { 'step':'T',   'type':list,  'section':'Train', 'default':[64,96],       'help':'Output channel sizes for stride convolutional layers for phylogenetic state input' },
+        'phy_channel_dilate' : { 'step':'T',   'type':list,  'section':'Train', 'default':[32,64],       'help':'Output channel sizes for dilate convolutional layers for phylogenetic state input' },
+        'aux_channel'        : { 'step':'T',   'type':list,  'section':'Train', 'default':[128,64,32],   'help':'Output channel sizes for dense layers for auxiliary data input' },
+        'lbl_channel'        : { 'step':'T',   'type':list,  'section':'Train', 'default':[128,64,32],   'help':'Output channel sizes for dense layers for label outputs' },
+        'phy_kernel_plain'   : { 'step':'T',   'type':list,  'section':'Train', 'default':[3,5,7],       'help':'Kernel sizes for plain convolutional layers for phylogenetic state input' },
+        'phy_kernel_stride'  : { 'step':'T',   'type':list,  'section':'Train', 'default':[7,9],         'help':'Kernel sizes for stride convolutional layers for phylogenetic state input' },
+        'phy_kernel_dilate'  : { 'step':'T',   'type':list,  'section':'Train', 'default':[3,5],         'help':'Kernel sizes for dilate convolutional layers for phylogenetic state input' },
+        'phy_stride_stride'  : { 'step':'T',   'type':list,  'section':'Train', 'default':[3,6],         'help':'Stride sizes for stride convolutional layers for phylogenetic state input' },
+        'phy_dilate_dilate'  : { 'step':'T',   'type':list,  'section':'Train', 'default':[3,5],         'help':'Dilation sizes for dilate convolutional layers for phylogenetic state input' },
         
         # estimating options
         'est_prefix'       : { 'step':'EP', 'type':str, 'section':'Estimate', 'default':None, 'help':'Predict results for this dataset' },
@@ -310,6 +323,15 @@ def load_config(config_fn,
     m['date'] = date_obj.strftime("%y%m%d_%H%M%S")
     m['job_id'] = generate_random_hex_string(7)
     
+    # update output precision
+    global OUTPUT_PRECISION, PANDAS_FLOAT_FMT_STR, NUMPY_FLOAT_FMT_STR
+    OUTPUT_PRECISION     = m['output_precision']
+    PANDAS_FLOAT_FMT_STR = f'%.{OUTPUT_PRECISION}e'
+    NUMPY_FLOAT_FMT_STR  = '{{:0.{:d}e}}'.format(OUTPUT_PRECISION)
+    np.set_printoptions(floatmode='maxprec', precision=OUTPUT_PRECISION)
+    pd.set_option('display.precision', OUTPUT_PRECISION)
+    pd.set_option('display.float_format', lambda x: f'{x:,.6f}')
+
     # print header?
     verbose = m['verbose']
     if verbose:
@@ -323,7 +345,6 @@ def fix_arg_bool(m):
     settings = settings_registry()
     for k,v in settings.items():
         if 'bool' in v and type(m[k]) != str:
-            print(m[k],type(m[k]))
             raise Exception(f"Invalid argument: {k} must be a string")
         elif 'bool' in v and type(m[k]) == str:
             arg_val = m[k]
@@ -675,65 +696,65 @@ def make_symm(m):
     np.fill_diagonal(m, d)  # Restores the original diagonal elements
     return m
 
-def get_num_tree_row(tree_encode, brlen_encode):
-    """Gets number of tree rows.
+def get_num_tree_col(tree_encode, brlen_encode):
+    """Gets number of tree columns (tree width).
     
-    Computes number of rows for encoding tree information using a compact
+    Computes number of columns for encoding tree information using a compact
     phylogenetic vector + states (CPV+S) format.
 
-    CBLV (2 rows) is used if tree_encode == 'serial'. CDV (1 row) is used if
-    tree_encode == 'extant'.
+    CBLV (2 columns) is used if tree_encode == 'serial'. CDV (1 column) is used
+    if tree_encode == 'extant'.
 
-    No extra rows are used if brlen_encode == 'height_only'. Two extra rows
-    are used if brlen_encode == 'height_brlen'.
+    No extra columns are used if brlen_encode == 'height_only'. Two extra
+    columns are used if brlen_encode == 'height_brlen'.
 
     Args:
         tree_encode (str): Use CBLV (serial) or CDV (extant) for tree encoding.
         brlen_encode (str): Use height-only or height + brlen encoding.
 
     Returns:
-        int: The number of rows for the CPV encoding.
+        int: The number of columns for the CPV encoding.
 
     """
 
     if tree_encode == 'serial':
-        num_tree_row = 2
+        num_tree_col = 2
     elif tree_encode == 'extant':
-        num_tree_row = 1
+        num_tree_col = 1
 
     if brlen_encode == 'height_only':
-        num_tree_row += 0
+        num_tree_col += 0
     elif brlen_encode == 'height_brlen':
-        num_tree_row += 2
+        num_tree_col += 2
 
-    return num_tree_row
+    return num_tree_col
 
-def get_num_char_row(state_encode_type, num_char, num_states):
-    """Gets number of character rows.
+def get_num_char_col(state_encode_type, num_char, num_states):
+    """Gets number of character columns.
     
-    Computes number of rows for encoding state information using a compact
+    Computes number of columns for encoding state information using a compact
     phylogenetic vector + states (CPV+S) format.
 
-    Integer encoding uses one row per character, with any number of states
+    Integer encoding uses 1 column per character, with any number of states
     per character.
 
-    One-hot encoding uses k rows per character, where k is the number of
+    One-hot encoding uses k columns per character, where k is the number of
     states.
 
     Args:
         char_encode (str): Use integer or one_hot encoding
         
     Returns:
-        int: The number of rows for the +S encoding.
+        int: The number of columns for the +S encoding.
     
     """
     
     if state_encode_type == 'integer':
-        num_char_row = num_char
+        num_char_col = num_char
     elif state_encode_type == 'one_hot':
-        num_char_row = num_char * num_states
+        num_char_col = num_char * num_states
 
-    return num_char_row
+    return num_char_col
 
 
 #------------------------------------------------------------------------------#
@@ -832,7 +853,6 @@ def convert_csv_to_onehot_array(dat_fn, num_states):
     num_taxa = dat_raw.shape[1]
 
     # check/unify number of state per row
-    print(type(num_states))
     if type(num_states) is int:
         num_states = [ num_states ] * dat_raw.shape[0]
 
@@ -975,7 +995,6 @@ def convert_nexus_to_integer_array(dat_fn):
                 found_matrix = False
                 break
             elif len(tok) == 2:
-                #print(tok)
                 name = tok[0]
                 state = tok[1]
                 taxon_names.append(name)
@@ -1287,7 +1306,7 @@ def make_param_VLU_mtx(A, param_names):
 
     return df
 
-def make_clean_phyloenc_str(x):
+def make_clean_phyenc_str(x):
     """Convert a numpy array to a clean string representation.
 
     This function takes a numpy array `x` and converts it to a clean string
@@ -1302,13 +1321,44 @@ def make_clean_phyloenc_str(x):
     Returns:
         str: The clean string representation of the numpy array.
     """
-    s = np.array2string(x, separator=',', max_line_width=1e200,
-                        threshold=1e200, edgeitems=1e200, precision=10,
-                        floatmode='maxprec')
+    def numpy_formatter(x):
+        if x % 1 == 0:
+            return "{:d}".format(int(x))
+        else:
+            return NUMPY_FLOAT_FMT_STR.format(x)
+
+    s = np.array2string(x, separator=',', max_line_width=1e200, threshold=1e200,
+                        edgeitems=1e200, floatmode='maxprec',
+                        formatter={ 'float_kind' : numpy_formatter })
+
     s = re.sub(r'[\[\]]', '', string=s)
     s = re.sub(r',\n ', '\n', string=s)
-    s = s + '\n'
+
     return s
+
+
+def ndarray_to_flat_str(x):
+    """Converts a numpy.ndarray into flattend csv vector."""
+    # numpy formatter for floats & ints
+    def numpy_formatter(x):
+        if x % 1 == 0:
+            return "{:d}".format(int(x))
+        else:
+            return NUMPY_FLOAT_FMT_STR.format(x)
+
+    # convert ndarray to formatted string
+    s = np.array2string(x, separator=',', max_line_width=1e200, threshold=1e200,
+                        edgeitems=1e200, floatmode='maxprec',
+                        formatter={ 'float_kind' : numpy_formatter })
+    # remove brackets, whitespace
+    s = re.sub(r'[\[\]\n ]', '', string=s)
+    # endline
+    # s = s + '\n'
+    return s
+
+    
+
+
 
 #------------------------------------------------------------------------------#
 

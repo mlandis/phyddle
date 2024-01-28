@@ -17,7 +17,6 @@ import phyddle.plot as plt
 
 import pandas as pd
 import numpy as np
-# import tensorflow as tf
 import torch
 import h5py
 import shutil
@@ -260,41 +259,49 @@ def check_trn():
 
     # load test output for Train
     model_test_fn = test_dir + '/network_nt500.trained_model.pkl'
+    lbl_test_fn = test_dir + '/network_nt500.train_est.labels.csv'
     cpi_test_fn = test_dir + '/network_nt500.cpi_adjustments.csv'
-    aux_test_fn = test_dir + '/network_nt500.train_aux_data_norm.csv'
-    lbl_test_fn = test_dir + '/network_nt500.train_label_norm.csv'
+    aux_norm_test_fn = test_dir + '/network_nt500.train_aux_data_norm.csv'
+    lbl_norm_test_fn = test_dir + '/network_nt500.train_label_norm.csv'
 
     #model_test = tf.keras.models.load_model(model_test_fn, compile=False)
     #model_load = torch.load(model_test_fn)
-    cpi_test = pd.read_csv(cpi_test_fn, header=0).to_numpy()
-    aux_test = pd.read_csv(aux_test_fn, header=0).iloc[:,1:].to_numpy()
     lbl_test = pd.read_csv(lbl_test_fn, header=0).iloc[:,1:].to_numpy()
+    cpi_test = pd.read_csv(cpi_test_fn, header=0).to_numpy()
+    aux_norm_test = pd.read_csv(aux_norm_test_fn, header=0).iloc[:,1:].to_numpy()
+    lbl_norm_test = pd.read_csv(lbl_norm_test_fn, header=0).iloc[:,1:].to_numpy()
     
     # load valid output for Train
     model_valid_fn = valid_dir + '/network_nt500.trained_model.pkl'
+    lbl_valid_fn = valid_dir + '/network_nt500.train_est.labels.csv'
     cpi_valid_fn = valid_dir + '/network_nt500.cpi_adjustments.csv'
-    aux_valid_fn = valid_dir + '/network_nt500.train_aux_data_norm.csv'
-    lbl_valid_fn = valid_dir + '/network_nt500.train_label_norm.csv'
+    aux_norm_valid_fn = valid_dir + '/network_nt500.train_aux_data_norm.csv'
+    lbl_norm_valid_fn = valid_dir + '/network_nt500.train_label_norm.csv'
 
     #model_valid = tf.keras.models.load_model(model_valid_fn, compile=False)
     #model_valid = torch.load(model_valid_fn)
-    cpi_valid = pd.read_csv(cpi_valid_fn, header=0).to_numpy()
-    aux_valid = pd.read_csv(aux_valid_fn, header=0).iloc[:,1:].to_numpy()
     lbl_valid = pd.read_csv(lbl_valid_fn, header=0).iloc[:,1:].to_numpy()
+    cpi_valid = pd.read_csv(cpi_valid_fn, header=0).to_numpy()
+    aux_norm_valid = pd.read_csv(aux_norm_valid_fn, header=0).iloc[:,1:].to_numpy()
+    lbl_norm_valid = pd.read_csv(lbl_norm_valid_fn, header=0).iloc[:,1:].to_numpy()
 
     # compare aux data, labels, and CPIs
-    cpi_error = np.max(np.abs(cpi_test - cpi_valid))
-    aux_error = np.max(np.abs(aux_test - aux_valid))
     lbl_error = np.max(np.abs(lbl_test - lbl_valid))
-    if cpi_error < ERROR_TOL:
-        print('cpi_error < ERROR_TOL: ', cpi_error)
-    if aux_error < ERROR_TOL:
-        print('aux_error < ERROR_TOL: ', aux_error)
+    cpi_error = np.max(np.abs(cpi_test - cpi_valid))
+    aux_norm_error = np.max(np.abs(aux_norm_test - aux_norm_valid))
+    lbl_norm_error = np.max(np.abs(lbl_norm_test - lbl_norm_valid))
     if lbl_error < ERROR_TOL:
         print('lbl_error < ERROR_TOL: ', lbl_error)
-    assert( cpi_error < ERROR_TOL )
-    assert( aux_error < ERROR_TOL )
+    if cpi_error < ERROR_TOL:
+        print('cpi_error < ERROR_TOL: ', cpi_error)
+    if aux_norm_error < ERROR_TOL:
+        print('aux_norm_error < ERROR_TOL: ', aux_norm_error)
+    if lbl_norm_error < ERROR_TOL:
+        print('lbl_norm_error < ERROR_TOL: ', lbl_norm_error)
     assert( lbl_error < ERROR_TOL )
+    assert( cpi_error < ERROR_TOL )
+    assert( aux_norm_error < ERROR_TOL )
+    assert( lbl_norm_error < ERROR_TOL )
 
     # compare model weights
     # weights_test = [layer.get_weights() for layer in model_test.layers]
@@ -454,9 +461,6 @@ def check_plt():
         'fig_nt500.pca_contour_labels.pdf',
         'fig_nt500.summary.pdf',
         'fig_nt500.train_history.pdf'
-        # 'fig_nt500.train_history_param_value.pdf',
-        # 'fig_nt500.train_history_param_upper.pdf',
-        # 'fig_nt500.train_history_param_lower.pdf'
     ]
     
     # verify all test output files exist

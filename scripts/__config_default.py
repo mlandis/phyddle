@@ -12,6 +12,7 @@ args = {
   'verbose'            : 'T',                  # Verbose output to screen?      
   'force'              : None,                 # Arguments override config file settings
   'make_cfg'           : None,                 # Write default config file to '__config_default.py'?'
+  'output_precision'   : 12,                    # Number of digits (precision) for numbers in output files
 
   #-------------------------------#
   # Analysis                      #
@@ -63,7 +64,7 @@ args = {
   #-------------------------------#
   'trn_objective'      : 'param_est',          # Objective of training procedure
   'num_epochs'         : 20,                   # Number of training epochs      
-  'trn_batch_size'     : 128,                  # Training batch sizes           
+  'trn_batch_size'     : 512,                  # Training batch sizes           
   'prop_test'          : 0.05,                 # Proportion of data used as test examples (assess trained network performance)
   'prop_val'           : 0.05,                 # Proportion of data used as validation examples (diagnose network overtraining)
   'prop_cal'           : 0.2,                  # Proportion of data used as calibration examples (calibrate CPIs)
@@ -72,6 +73,17 @@ args = {
   'loss'               : 'mse',                # Loss function for optimization 
   'optimizer'          : 'adam',               # Method used for optimizing neural network
   'metrics'            : ['mae', 'acc'],       # Recorded training metrics      
+  'log_offset'         : 1.0,                  # Offset size c when taking ln(x+c) for potentially zero-valued variables
+  'phy_channel_plain'  : [64, 96, 128],        # Output channel sizes for plain convolutional layers for phylogenetic state input
+  'phy_channel_stride' : [64, 96],             # Output channel sizes for stride convolutional layers for phylogenetic state input
+  'phy_channel_dilate' : [32, 64],             # Output channel sizes for dilate convolutional layers for phylogenetic state input
+  'aux_channel'        : [128, 64, 32],        # Output channel sizes for dense layers for auxiliary data input
+  'lbl_channel'        : [128, 64, 32],        # Output channel sizes for dense layers for label outputs
+  'phy_kernel_plain'   : [3, 5, 7],            # Kernel sizes for plain convolutional layers for phylogenetic state input
+  'phy_kernel_stride'  : [7, 9],               # Kernel sizes for stride convolutional layers for phylogenetic state input
+  'phy_kernel_dilate'  : [3, 5],               # Kernel sizes for dilate convolutional layers for phylogenetic state input
+  'phy_stride_stride'  : [3, 6],               # Stride sizes for stride convolutional layers for phylogenetic state input
+  'phy_dilate_dilate'  : [3, 5],               # Dilation sizes for dilate convolutional layers for phylogenetic state input
 
   #-------------------------------#
   # Estimate                      #

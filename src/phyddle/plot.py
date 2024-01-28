@@ -12,7 +12,6 @@ License:   MIT
 """
 
 # standard imports
-import json
 import os
 
 # external imports
@@ -22,14 +21,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import scipy as sp
-# import tensorflow as tf
 import torch
-# import torchviz
 import torchview
 from PIL import Image
-#import hiddenlayer as hl
 from pypdf import PdfMerger
-# from sklearn import linear_model
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LinearRegression
@@ -144,6 +139,7 @@ class Plotter:
         self.save_network_fn       = f'{plt_proj_prefix}.network_architecture.pdf'
         self.save_history_fn       = f'{plt_proj_prefix}.train_history'
         self.save_summary_fn       = f'{plt_proj_prefix}.summary.pdf'
+        self.save_report_fn       = f'{plt_proj_prefix}.summary.csv'
 
         return
 
@@ -181,8 +177,8 @@ class Plotter:
         self.combine_plots()
 
         # generating output summary
-        # util.print_str('▪ Making csv report', verbose)
-        # self.make_report()
+        util.print_str('▪ Making csv report', verbose)
+        self.make_report()
 
         # end time
         end_time,end_time_str = util.get_time()
@@ -370,13 +366,61 @@ class Plotter:
 
     def make_report(self):
         """Makes CSV of main results."""
-        # dataset sizes
-        # get train estimation stats
-        # get test estimation stats
-        # get emp estimation stats
-        # get train aux data stats
-        # get emp aux data stats
         
+        df = pd.DataFrame(columns=['id1','id2','metric','variable','value'])
+        
+        # TODO: dataset sizes
+        # - num examples in train/test/val/cal
+        # - tree width
+        # - num char col
+        # - num brlen col
+        # - num total col
+
+        # prediction stats
+        test_train = [ ('train', self.train_labels, self.train_ests),
+              ('test', self.test_labels, self.test_ests) ]
+        
+        for name, lbl, est in test_train:
+            for col in lbl:
+                # get stats
+                mae = np.mean(np.abs(lbl[col] - est[col+'_value']))
+                mse = np.mean((lbl[col] - est[col+'_value'])**2)
+                mape = np.mean(np.abs((lbl[col] - est[col+'_value']) / lbl[col]))
+                cov = np.mean(np.logical_and(est[col+'_lower'] < lbl[col],
+                                             est[col+'_upper'] > lbl[col]))
+                CI_width = est[col+'_upper'] - est[col+'_lower']
+                rel_CI_width = np.divide(CI_width, est[col+'_value'])
+                # store stats
+                df.loc[len(df)] = [ name, 'true', 'mean', col, np.mean(lbl[col]) ]
+                df.loc[len(df)] = [ name, 'true', 'var', col, np.var(lbl[col]) ]
+                df.loc[len(df)] = [ name, 'true', 'lower95', col, np.quantile(lbl[col], 0.025) ]
+                df.loc[len(df)] = [ name, 'true', 'upper95', col, np.quantile(lbl[col], 0.975) ]
+                df.loc[len(df)] = [ name, 'est', 'mean', col, np.mean(est[col+'_value']) ]
+                df.loc[len(df)] = [ name, 'est', 'var', col, np.var(est[col+'_value']) ]
+                df.loc[len(df)] = [ name, 'est', 'lower95', col, np.quantile(est[col+'_value'], 0.025) ]
+                df.loc[len(df)] = [ name, 'est', 'upper95', col, np.quantile(est[col+'_value'], 0.975) ]
+                df.loc[len(df)] = [ name, 'est', 'mae', col, mae ]
+                df.loc[len(df)] = [ name, 'est', 'mse', col, mse ]
+                df.loc[len(df)] = [ name, 'est', 'mape', col, mape ]
+                df.loc[len(df)] = [ name, 'est', 'coverage', col, cov ]
+                df.loc[len(df)] = [ name, 'est', 'mean_CI_width', col, np.mean(CI_width) ]
+                df.loc[len(df)] = [ name, 'est', 'mean_rel_CI_width', col, np.mean(rel_CI_width) ]
+
+        # TODO: auxiliary data
+        # - similar stuff as prediction for aux data
+
+        # TODO: empirical estimate
+        # - values against empirical datasets
+        # - quantile against training/test datasets
+
+        # TODO: training stats
+        # - best epoch
+        # - 
+                
+        # save results
+        self.df_report = df
+        self.df_report.to_csv(self.save_report_fn, index=False, float_format=util.PANDAS_FLOAT_FMT_STR)
+
         return
 
 #------------------------------------------------------------------------------#
@@ -481,7 +525,7 @@ class Plotter:
         image = image.convert('RGB')
         
         # save as pdf
-        image.save(self.save_network_fn)
+        image.save(self.save_network_fn, dpi=(300, 300), size=(3000,2100))
         
         return
     
@@ -905,6 +949,12 @@ class Plotter:
             y_value = col_data.loc['value']
             y_lower = col_data.loc['lower']
             y_upper = col_data.loc['upper']
+
+            if plot_log:
+                y_value = np.max([1e-4, y_value])
+                y_lower = np.max([1e-4, y_lower])
+                y_upper = np.max([1e-4, y_upper])
+
             s_value = '{:.2E}'.format(y_value)
             s_lower = '{:.2E}'.format(y_lower)
             s_upper = '{:.2E}'.format(y_upper)
@@ -930,6 +980,7 @@ class Plotter:
         plt.title(title)
         plt.xticks(np.arange(num_label), label_names)
         plt.xlim( -0.5, num_label )
+        plt.ylim( )
         plt.savefig(save_fn, format='pdf', dpi=300, bbox_inches='tight')
         plt.clf()
         
