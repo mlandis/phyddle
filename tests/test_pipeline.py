@@ -258,7 +258,7 @@ def check_trn():
     valid_dir = trn_dir + '/valid'
 
     # load test output for Train
-    model_test_fn = test_dir + '/network_nt500.trained_model.pkl'
+    #model_test_fn = test_dir + '/network_nt500.trained_model.pkl'
     lbl_test_fn = test_dir + '/network_nt500.train_est.labels.csv'
     cpi_test_fn = test_dir + '/network_nt500.cpi_adjustments.csv'
     aux_norm_test_fn = test_dir + '/network_nt500.train_aux_data_norm.csv'
@@ -272,7 +272,7 @@ def check_trn():
     lbl_norm_test = pd.read_csv(lbl_norm_test_fn, header=0).iloc[:,1:].to_numpy()
     
     # load valid output for Train
-    model_valid_fn = valid_dir + '/network_nt500.trained_model.pkl'
+    #model_valid_fn = valid_dir + '/network_nt500.trained_model.pkl'
     lbl_valid_fn = valid_dir + '/network_nt500.train_est.labels.csv'
     cpi_valid_fn = valid_dir + '/network_nt500.cpi_adjustments.csv'
     aux_norm_valid_fn = valid_dir + '/network_nt500.train_aux_data_norm.csv'
