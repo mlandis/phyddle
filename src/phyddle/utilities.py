@@ -110,7 +110,7 @@ def settings_registry():
         'step'             : { 'step':'SFTEP', 'type':str,  'section':'Basic', 'default':'SFTEP',      'help':'Pipeline step(s) defined with (S)imulate, (F)ormat, (T)rain, (E)stimate, (P)lot, or (A)ll', 'opt':'s' },
         'verbose'          : { 'step':'SFTEP', 'type':str,  'section':'Basic', 'default':'T',          'help':'Verbose output to screen?', 'bool':True, 'opt':'v' },
         'force'            : { 'step':'',      'type':None, 'section':'Basic', 'default':None,         'help':'Arguments override config file settings', 'opt':'f' },
-        'make_cfg'         : { 'step':'',      'type':None, 'section':'Basic', 'default':None,         'help':"Write default config file to '__config_default.py'?'" },
+        'make_cfg'         : { 'step':'',      'type':None, 'section':'Basic', 'default':None,         'help':"Write default config file to '__config_default.py'?" },
         'output_precision' : { 'step':'SFTEP', 'type':int,  'section':'Basic', 'default':16,           'help':'Number of digits (precision) for numbers in output files' },
 
         # analysis options 
@@ -145,8 +145,8 @@ def settings_registry():
         'tree_encode'      : { 'step':'FTE',  'type':str,   'section':'Format', 'default':'extant',       'help':'Encoding strategy for tree',                   'choices':['extant', 'serial'] },
         'brlen_encode'     : { 'step':'FTE',  'type':str,   'section':'Format', 'default':'height_brlen', 'help':'Encoding strategy for branch lengths',         'choices':['height_only', 'height_brlen'] },
         'char_encode'      : { 'step':'FTE',  'type':str,   'section':'Format', 'default':'one_hot',      'help':'Encoding strategy for character data',         'choices':['one_hot', 'integer', 'numeric'] },
-        'param_est'        : { 'step':'FTE',  'type':list,  'section':'Format', 'default':None,           'help':'Model parameters to estimate' },
-        'param_data'       : { 'step':'FTE',  'type':list,  'section':'Format', 'default':None,           'help':'Model parameters treated as data' },
+        'param_est'        : { 'step':'FTE',  'type':list,  'section':'Format', 'default':['my_rate'],    'help':'Model parameters to estimate' },
+        'param_data'       : { 'step':'FTE',  'type':list,  'section':'Format', 'default':['my_stat'],    'help':'Model parameters treated as data' },
         'char_format'      : { 'step':'FTE',  'type':str,   'section':'Format', 'default':'nexus',        'help':'File format for character data',               'choices':['csv', 'nexus'] },
         'tensor_format'    : { 'step':'FTEP', 'type':str,   'section':'Format', 'default':'hdf5',         'help':'File format for training example tensors',     'choices':['csv', 'hdf5'] },
         'save_phyenc_csv'  : { 'step':'F',    'type':str,   'section':'Format', 'default':'F',            'help':'Save encoded phylogenetic tensor encoding to csv?', 'bool':True },
@@ -181,16 +181,63 @@ def settings_registry():
 
         # plotting options
         'plot_train_color' : { 'step':'P',  'type':str, 'section':'Plot', 'default':'blue',   'help':'Plotting color for training data elements' },
-        'plot_label_color' : { 'step':'P',  'type':str, 'section':'Plot', 'default':'purple', 'help':'Plotting color for training label elements' },
-        'plot_test_color'  : { 'step':'P',  'type':str, 'section':'Plot', 'default':'red',    'help':'Plotting color for test data elements' },
-        'plot_val_color'   : { 'step':'P',  'type':str, 'section':'Plot', 'default':'green',  'help':'Plotting color for validation data elements' },
-        'plot_aux_color'   : { 'step':'P',  'type':str, 'section':'Plot', 'default':'orange', 'help':'Plotting color for auxiliary data elements' },
+        'plot_label_color' : { 'step':'P',  'type':str, 'section':'Plot', 'default':'orange', 'help':'Plotting color for training label elements' },
+        'plot_test_color'  : { 'step':'P',  'type':str, 'section':'Plot', 'default':'purple', 'help':'Plotting color for test data elements' },
+        'plot_val_color'   : { 'step':'P',  'type':str, 'section':'Plot', 'default':'red',    'help':'Plotting color for validation data elements' },
+        'plot_aux_color'   : { 'step':'P',  'type':str, 'section':'Plot', 'default':'green',  'help':'Plotting color for auxiliary data elements' },
         'plot_est_color'   : { 'step':'P',  'type':str, 'section':'Plot', 'default':'black',  'help':'Plotting color for new estimation elements' },
         'plot_scatter_log' : { 'step':'P',  'type':str, 'section':'Plot', 'default':'T',      'help':'Use log values for scatter plots when possible?', 'bool':True },
         'plot_contour_log' : { 'step':'P',  'type':str, 'section':'Plot', 'default':'T',      'help':'Use log values for contour plots when possible?', 'bool':True },
         'plot_density_log' : { 'step':'P',  'type':str, 'section':'Plot', 'default':'T',      'help':'Use log values for density plots when possible?', 'bool':True },
     }
+
+    # Developer note: uncomment to export settings to file
+    # export_settings_to_sphinx_table(settings)
+    
     return settings
+
+
+def export_settings_to_sphinx_table(settings, csv_fn='phyddle_settings.csv'):
+    """Writes all phyddle settings to file as Sphinx-formatted table """
+
+    # setting header
+    s = 'Setting|Step(s)|Type|Description\n'
+    for k,v in settings.items():
+    
+        # setting name
+        s_name = f'``{k}``'
+        
+        # setting step
+        s_step = 'SFTEP'
+        if v['step'] is None:
+            s_step = '––'
+        for i,this_step in enumerate(s_step):
+            if this_step not in v['step']:
+                s_step = s_step.replace(this_step, '–')
+        
+        # setting type
+        if v['type'] is None:
+            s_type = '––'
+        elif v['type'].__name__ == 'list':
+            s_elt_type = type(v['default'][0]).__name__
+            s_type = f'*{s_elt_type}[]*'
+        else:
+            s_type = f'*{v["type"].__name__}*'
+        
+        # setting desc
+        s_desc = v['help']
+        if s_name == 'proj':
+            s_desc += ', *see detailed description* [:ref:`link <setting_description_proj>`]'
+        elif s_name == 'step':
+            s_desc += ', *see detailed description* [:ref:`link <setting_description_step>`]'
+            
+        # setting row
+        s += f'{s_name}|{s_step}|{s_type}|{s_desc}\n'
+    
+    f = open(csv_fn, 'w')
+    f.write(s)
+    f.close()
+    return
 
 
 def load_config(config_fn,
@@ -755,6 +802,21 @@ def get_num_char_col(state_encode_type, num_char, num_states):
         num_char_col = num_char * num_states
 
     return num_char_col
+
+
+def append_row(df, row):
+    """Appends row to Pandas DataFrame
+    
+    Args:
+        df (pd.DataFrame): Dataframe to be updated with K columns
+        row (list): Row of length K to append to df
+
+    Returns
+        pd.DataFrame: The original dataframe with row appended to the end
+    """
+    assert( len(row) == len(df.columns) )
+    df.loc[len(df)] = row
+    return df
 
 
 #------------------------------------------------------------------------------#

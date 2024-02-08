@@ -12,7 +12,7 @@ args = {
   'verbose'            : 'T',                  # Verbose output to screen?      
   'force'              : None,                 # Arguments override config file settings
   'make_cfg'           : None,                 # Write default config file to '__config_default.py'?'
-  'output_precision'   : 12,                    # Number of digits (precision) for numbers in output files
+  'output_precision'   : 16,                   # Number of digits (precision) for numbers in output files
 
   #-------------------------------#
   # Analysis                      #
@@ -94,10 +94,10 @@ args = {
   # Plot                          #
   #-------------------------------#
   'plot_train_color'   : 'blue',               # Plotting color for training data elements
-  'plot_label_color'   : 'purple',             # Plotting color for training label elements
-  'plot_test_color'    : 'red',                # Plotting color for test data elements
-  'plot_val_color'     : 'green',              # Plotting color for validation data elements
-  'plot_aux_color'     : 'orange',             # Plotting color for auxiliary data elements
+  'plot_label_color'   : 'orange',             # Plotting color for training label elements
+  'plot_test_color'    : 'purple',             # Plotting color for test data elements
+  'plot_val_color'     : 'red',                # Plotting color for validation data elements
+  'plot_aux_color'     : 'green',              # Plotting color for auxiliary data elements
   'plot_est_color'     : 'black',              # Plotting color for new estimation elements
   'plot_scatter_log'   : 'T',                  # Use log values for scatter plots when possible?
   'plot_contour_log'   : 'T',                  # Use log values for contour plots when possible?

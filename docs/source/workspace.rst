@@ -62,7 +62,7 @@ produce the following files
 
 Each tree file contains a simple Newick string. Each data file contains state
 data either in Nexus format (`.dat.nex`) or simple comma-separated value format
-(`.dat.csv`) depending on the setting for `char_format`.
+(`.dat.csv`) depending on the setting for ``char_format``.
 
 ``format``
 ----------
@@ -122,20 +122,20 @@ directory:
     network_nt500.cpi_adjustments.csv
     network_nt500.train_aux_data_norm.csv
     network_nt500.train_est.labels.csv
-    network_nt500.train_history.json
+    network_nt500.train_history.csv
     network_nt500.train_label_est_nocalib.csv
     network_nt500.train_label_norm.csv
     network_nt500.train_true.labels.csv
-    ./network_nt500_trained_model/
+    network_nt500.trained_model.pkl
 
 The prefix ``network_nt500`` indicates the results are appropriate for tensors
 with tree width of 500. Descriptions of the files are as follows, with the prefix omitted for brevity:
-* ``./network_nt500_trained_model/``: a directory with a copy of the trained neural network that can be loaded by Tensorflow
+* ``network_nt500.trained_model.pkl``: a saved file containing the trained PyTorch model
 * ``train_label_norm.csv`` and ``train_aux_data_norm.csv``: the location-scale values from the training dataset to (de)normalize the labels and auxiliary data from any dataset
 * ``train_true.labels.csv``: the true values of labels for the training and test datasets, where columns correspond to estimated labels (e.g. model parameters)
 * ``train_est.labels.csv``: the trained network estimates of labels for the training and test datasets, with calibrated prediction intervals, where columns correspond to point estimates and estimates for lower CPI and upper CPI bounds for each named label (e.g. model parameter)
 * ``train_label_est_nocalib.csv``: the trained network estimates of labels for the training and test datasets, with uncalibrated prediction intervals
-* ``train_history.json``: the metrics across training epochs monitored during network training
+* ``train_history.csv``: the metrics across training epochs monitored during network training
 * ``cpi_adjustments.csv``: calibrated prediction interval adjustments, where columns correspond to parameters, the first row contains lower bound adjustments, and the second row contains upper bound adjustments
 
 
@@ -167,7 +167,7 @@ The ``labels.csv`` file is optional, and is used to provide "known"
 data-generating parameter values to the network for training, as part of the
 auxiliary dataset. If provided, it contains a row of names for known parameters
 followed by a row of respective values. Only parameters that match entries in
-the `param_data` setting are used.
+the ``param_data`` setting are used.
 
 The ``emp_est_labels.csv`` file reports the point estimates and lower and upper
 CPI estimates for all targetted parameters. Estimates for parameters appear
@@ -176,13 +176,14 @@ then statistic (e.g. value, lower-bound, upper-bound). For example:
 
 .. code-block:: shell
 
-   $ cat new.1.sim_batchsize128_numepoch20_nt500.pred_labels.csv
+   $ cat new.1.sim_batchsize128_numepoch20_nt500.est_labels.csv
    w_0_value,w_0_lower,w_0_upper,e_0_value,e_0_lower,e_0_upper,d_0_1_value,d_0_1_lower,d_0_1_upper,b_0_1_value,b_0_1_lower,b_0_1_upper
    0.2867125345651129,0.1937433853918723,0.45733220552078013,0.02445545359384659,0.002880695707341881,0.10404499205878459,0.4502031713887769,0.1966340488593367,0.5147956690178682,0.06199703190510973,0.0015074254823161301,0.27544015163806645
 
 
-The `test_est.labels.csv` and `test_true.labels.csv` contain estimated and true
-label values for the simulated test dataset that was left aside during training.
+The `test_est.labels.csv` and `test_true.labels.csv` files contain estimated
+and true label values for the simulated test dataset that were left aside
+during training.
 
 
 ``plot``
@@ -201,9 +202,9 @@ by :ref:`Format`, :ref:`Train`, and (when available) :ref:`Estimate`.
     estimate_test_{label}.pdf         # estimation accuracy on train dataset     
     estimate_train_{label}.pdf        # estimation accuracy on test dataset
     history.pdf                       # training history for entire network
-    history_param_{statistic}.pdf     # training history for each estimation target
     network_architecture.pdf          # neural network architecture
-    summary.pdf                       # compiled report of all figures
+    summary.pdf                       # compiled report with all figures
+    summary.csv                       # compiled text file with numerical results
 
 Visit :ref:`pipeline` to learn more about the files.
     

@@ -478,6 +478,8 @@ class CnnTrainer(Trainer):
         self.train_history = pd.DataFrame(columns=history_col_names)
 
         # training
+        metric_names = ['loss_lower', 'loss_upper', 'loss_value',
+                       'loss_combined', 'mse_value', 'mae_value', 'mape_value']
         prev_trn_loss_combined = None
         prev_val_loss_combined = None
         for i in range(self.num_epochs):
@@ -526,7 +528,6 @@ class CnnTrainer(Trainer):
                 trn_mse_value     += ( torch.mean((lbls - lbls_hat[0])**2) ).item() / num_batches
                 trn_mae_value     += ( torch.mean(torch.abs(lbls - lbls_hat[0])) ).item() / num_batches
                 trn_mape_value    += ( torch.mean(torch.abs((lbls - lbls_hat[0]) / lbls)) ).item() / num_batches
-                # num_batches    += 1
                 
                 # backward pass to update gradients
                 loss_combined.backward()
@@ -534,14 +535,10 @@ class CnnTrainer(Trainer):
                 # update network parameters
                 optimizer.step()
                 #lr_scheduler.step()
-                
-            self.train_history.loc[len(self.train_history.index)] = [i, 'train', 'loss_value',     trn_loss_value]
-            self.train_history.loc[len(self.train_history.index)] = [i, 'train', 'loss_lower',     trn_loss_lower]
-            self.train_history.loc[len(self.train_history.index)] = [i, 'train', 'loss_upper',     trn_loss_upper]
-            self.train_history.loc[len(self.train_history.index)] = [i, 'train', 'loss_combined',  trn_loss_combined]
-            self.train_history.loc[len(self.train_history.index)] = [i, 'train', 'mse_value',      trn_mse_value]
-            self.train_history.loc[len(self.train_history.index)] = [i, 'train', 'mae_value',      trn_mae_value]
-            self.train_history.loc[len(self.train_history.index)] = [i, 'train', 'mape_value',     trn_mape_value]
+            
+            train_metric_vals = [ trn_loss_lower, trn_loss_upper, trn_loss_value,
+                                  trn_loss_combined, trn_mse_value,
+                                  trn_mae_value, trn_mape_value ]
 
             # forward pass of validation to estimate labels
             val_lbls_hat       = self.model(val_phy_dat, val_aux_dat)
@@ -554,18 +551,30 @@ class CnnTrainer(Trainer):
             val_mse_value      = ( torch.mean((val_lbls - val_lbls_hat[0])**2) ).item()
             val_mae_value      = ( torch.mean(torch.abs(val_lbls - val_lbls_hat[0])) ).item()
             val_mape_value     = ( torch.mean(torch.abs((val_lbls - val_lbls_hat[0]) / val_lbls)) ).item()
-            self.train_history.loc[len(self.train_history.index)] = [i, 'validation', 'loss_value',     val_loss_value]
-            self.train_history.loc[len(self.train_history.index)] = [i, 'validation', 'loss_lower',     val_loss_lower]
-            self.train_history.loc[len(self.train_history.index)] = [i, 'validation', 'loss_upper',     val_loss_upper]
-            self.train_history.loc[len(self.train_history.index)] = [i, 'validation', 'loss_combined',  val_loss_combined ]
-            self.train_history.loc[len(self.train_history.index)] = [i, 'validation', 'mse_value',      val_mse_value]
-            self.train_history.loc[len(self.train_history.index)] = [i, 'validation', 'mae_value',      val_mae_value]
-            self.train_history.loc[len(self.train_history.index)] = [i, 'validation', 'mape_value',     val_mape_value]
+            val_metric_vals = [ val_loss_value, val_loss_lower, val_loss_upper,
+                                val_loss_combined, val_mse_value, val_mae_value,
+                                val_mape_value ]
 
+            # self.train_history.loc[len(self.train_history.index)] = [i, 'train', 'loss_lower',     trn_loss_lower]
+            # self.train_history.loc[len(self.train_history.index)] = [i, 'train', 'loss_upper',     trn_loss_upper]
+            # self.train_history.loc[len(self.train_history.index)] = [i, 'train', 'loss_value',     trn_loss_value]
+            # self.train_history.loc[len(self.train_history.index)] = [i, 'train', 'loss_combined',  trn_loss_combined]
+            # self.train_history.loc[len(self.train_history.index)] = [i, 'train', 'mse_value',      trn_mse_value]
+            # self.train_history.loc[len(self.train_history.index)] = [i, 'train', 'mae_value',      trn_mae_value]
+            # self.train_history.loc[len(self.train_history.index)] = [i, 'train', 'mape_value',     trn_mape_value]            
+            # self.train_history.loc[len(self.train_history.index)] = [i, 'validation', 'loss_value',     val_loss_value]
+            # self.train_history.loc[len(self.train_history.index)] = [i, 'validation', 'loss_lower',     val_loss_lower]
+            # self.train_history.loc[len(self.train_history.index)] = [i, 'validation', 'loss_upper',     val_loss_upper]
+            # self.train_history.loc[len(self.train_history.index)] = [i, 'validation', 'loss_combined',  val_loss_combined ]
+            # self.train_history.loc[len(self.train_history.index)] = [i, 'validation', 'mse_value',      val_mse_value]
+            # self.train_history.loc[len(self.train_history.index)] = [i, 'validation', 'mae_value',      val_mae_value]
+            # self.train_history.loc[len(self.train_history.index)] = [i, 'validation', 'mape_value',     val_mape_value]
+
+            # raw training metrics for epoch
             trn_loss_str = f'    Train        --   loss: {"{0:.4f}".format(trn_loss_combined)}'
             val_loss_str = f'    Validation   --   loss: {"{0:.4f}".format(val_loss_combined)}'
             
-            # compute change in training stats
+            # changes in training metrics between epochs
             if i > 0:
                 diff_trn_loss = trn_loss_combined - prev_trn_loss_combined
                 diff_val_loss = val_loss_combined - prev_val_loss_combined
@@ -583,13 +592,36 @@ class CnnTrainer(Trainer):
             prev_trn_loss_combined = trn_loss_combined
             prev_val_loss_combined = val_loss_combined
 
+            # display training metric progress
             print(trn_loss_str)
             print(val_loss_str)
             print('')
 
+            # update train history log
+            self.update_train_history(metric_names, train_metric_vals, 'train')
+            self.update_train_history(metric_names, val_metric_vals, 'validation')
+
         # print(self.train_history)
         return
 
+    def update_train_history(self, metric_names, metric_vals, dataset_name='train',):
+        """Updates train history dataframe.
+        
+        This function appends new rows to the train history dataframe.
+        
+        Args:
+            metric_names (list): names for metrics to be logged
+            metric_vals (list): values for metrics to be logged
+            dataset_name (str): name of dataset that is logged (e.g. train or validation)
+
+        """
+
+        assert(len(metric_names) == len(metric_vals))
+        
+        for i,(j,k) in enumerate(zip(metric_names, metric_vals)):
+            self.train_history.loc[len(self.train_history.index)] = [ i, dataset_name, j, k ]
+        
+        return
 
     def make_results(self):
         """Makes all results from the Train step.
