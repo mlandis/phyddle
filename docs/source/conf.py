@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.abspath('../phyddle/src'))
 # -- Project information
 
 project = 'phyddle'
-copyright = '2023'
+copyright = '2024'
 author = 'Michael Landis, Ammon Thompson'
 
 release = '0.1.0'
