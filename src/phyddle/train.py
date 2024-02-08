@@ -598,13 +598,13 @@ class CnnTrainer(Trainer):
             print('')
 
             # update train history log
-            self.update_train_history(metric_names, train_metric_vals, 'train')
-            self.update_train_history(metric_names, val_metric_vals, 'validation')
+            self.update_train_history(i, metric_names, train_metric_vals, 'train')
+            self.update_train_history(i, metric_names, val_metric_vals, 'validation')
 
         # print(self.train_history)
         return
 
-    def update_train_history(self, metric_names, metric_vals, dataset_name='train',):
+    def update_train_history(self, epoch, metric_names, metric_vals, dataset_name='train',):
         """Updates train history dataframe.
         
         This function appends new rows to the train history dataframe.
@@ -619,7 +619,7 @@ class CnnTrainer(Trainer):
         assert(len(metric_names) == len(metric_vals))
         
         for i,(j,k) in enumerate(zip(metric_names, metric_vals)):
-            self.train_history.loc[len(self.train_history.index)] = [ i, dataset_name, j, k ]
+            self.train_history.loc[len(self.train_history.index)] = [ epoch, dataset_name, j, k ]
         
         return
 
