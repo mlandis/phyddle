@@ -13,12 +13,13 @@ args = {
     'proj'    : 'my_project',               # project name(s)
     'step'    : 'SFTEP',                    # step(s) to run
     'verbose' : 'T',                        # print verbose phyddle output?
-    'sim_dir' : '../workspace/simulate',    # directory for simulated data
-    'fmt_dir' : '../workspace/format',      # directory for tensor-formatted data
-    'trn_dir' : '../workspace/train',       # directory for trained network
-    'plt_dir' : '../workspace/plot',        # directory for plotted figures
-    'est_dir' : '../workspace/estimate',    # directory for predictions on new data
-    'log_dir' : '../workspace/log',         # directory for analysis logs
+    'workspace_dir' : '../workspace',
+    'sim_dir' : 'simulate',    # directory for simulated data
+    'fmt_dir' : 'format',      # directory for tensor-formatted data
+    'trn_dir' : 'train',       # directory for trained network
+    'plt_dir' : 'plot',        # directory for plotted figures
+    'est_dir' : 'estimate',    # directory for predictions on new data
+    'log_dir' : 'log',         # directory for analysis logs
     'output_precision'   : 12,                    # Number of digits (precision) for numbers in output files
 
     #-------------------------------#
