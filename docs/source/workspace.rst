@@ -28,7 +28,7 @@ bundled with phyddle was generated using the command
     ./scripts/run_phyddle.sh --cfg config --proj example --end_idx 25000
     
 This corresponds to a 3-region equal-rates GeoSSE model. All directories have
-the complete file set, except ``./workspace/simulate/example`` contains only
+the complete file set, except ``./workspace/example/simulate`` contains only
 20 original examples.
 
 A standard configuration for a project named ``example`` would store pipeline
@@ -36,12 +36,12 @@ work into these directories:
 
 .. code-block:: shell
 
-	workspace/simulate/example       # output of Simulate step
-	workspace/format/example         # output of Format step
-	workspace/train/example          # output of Train step
-	workspace/estimate/example       # output of Estimate step
-	workspace/plot/example           # output of Plot step
-	workspace/log/example            # analysis logs
+	workspace/example/simulate       # output of Simulate step
+	workspace/example/format         # output of Format step
+	workspace/example/train          # output of Train step
+	workspace/example/estimate       # output of Estimate step
+	workspace/example/plot           # output of Plot step
+	workspace/example/log            # analysis logs
 
 Next, we give an overview of the standard files and formats corresponding to
 each pipeline directory.
@@ -56,9 +56,9 @@ produce the following files
 
 .. code-block:: shell
 
-    workspace/simulate/example/sim.0.tre              # tree file
-    workspace/simulate/example/sim.0.dat.csv          # data file
-    workspace/simulate/example/sim.0.labels.csv       # data-generating params
+    workspace/example/simulate/sim.0.tre              # tree file
+    workspace/example/simulate/sim.0.dat.csv          # data file
+    workspace/example/simulate/sim.0.labels.csv       # data-generating params
 
 Each tree file contains a simple Newick string. Each data file contains state
 data either in Nexus format (`.dat.nex`) or simple comma-separated value format
@@ -69,7 +69,7 @@ data either in Nexus format (`.dat.nex`) or simple comma-separated value format
 
 Applying :ref:`Format` to a directory of simulated datasets will output
 tensors containing the entire set of training examples, stored to, e.g.
-``workspace/format/example``. What formatted files are created depends on
+``workspace/example/format``. What formatted files are created depends on
 the value of ``tensor_format`` and ``tree_width``.
 
 When ``tree_width`` is set to ``200``, :ref:`Format` will yield two simulated
@@ -114,7 +114,7 @@ over twenty times smaller than equivalent uncompressed CSV formatted tensors.
 ``train``
 ---------
 
-Training a network creates the following files in the ``workspace/train/example``
+Training a network creates the following files in the ``workspace/example/train``
 directory:
 
 .. code-block:: shell
@@ -145,7 +145,7 @@ with tree width of 500. Descriptions of the files are as follows, with the prefi
 The :ref:`Estimate` step will both read new (biological) datasets from the
 project directory, and save new intermediate files, and store outputted
 estimates in the same directory, located at e.g. 
-``workspace/estimate/example``:
+``workspace/example/estimate``:
 
 .. code-block:: shell
 
