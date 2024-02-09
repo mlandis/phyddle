@@ -97,10 +97,10 @@ class Plotter:
         """
 
         # directories
-        self.trn_proj_dir       = f'{self.trn_dir}/{self.trn_proj}'
-        self.fmt_proj_dir       = f'{self.fmt_dir}/{self.fmt_proj}'
-        self.est_proj_dir       = f'{self.est_dir}/{self.est_proj}'
-        self.plt_proj_dir       = f'{self.plt_dir}/{self.plt_proj}'
+        self.fmt_proj_dir = f'{self.work_dir}/{self.fmt_proj}/{self.fmt_dir}'
+        self.trn_proj_dir = f'{self.work_dir}/{self.trn_proj}/{self.trn_dir}'
+        self.est_proj_dir = f'{self.work_dir}/{self.est_proj}/{self.est_dir}'
+        self.plt_proj_dir = f'{self.work_dir}/{self.plt_proj}/{self.plt_dir}'
 
         # prefixes
         network_prefix          = f'network_nt{self.tree_width}'
@@ -122,7 +122,7 @@ class Plotter:
         self.train_labels_fn    = f'{trn_proj_prefix}.train_true.labels.csv'
         
         # estimates
-        self.est_aux_data_fn   = f'{est_proj_prefix}.aux_data.csv'
+        self.est_aux_data_fn    = f'{est_proj_prefix}.aux_data.csv'
         #self.est_known_param_fn = f'{est_proj_prefix}.known_param.csv'
         self.est_lbl_fn         = f'{est_proj_prefix}.emp_est.labels.csv'
         self.test_est_fn        = f'{est_proj_prefix}.test_est.labels.csv'
@@ -139,7 +139,7 @@ class Plotter:
         self.save_network_fn       = f'{plt_proj_prefix}.network_architecture.pdf'
         self.save_history_fn       = f'{plt_proj_prefix}.train_history'
         self.save_summary_fn       = f'{plt_proj_prefix}.summary.pdf'
-        self.save_report_fn       = f'{plt_proj_prefix}.summary.csv'
+        self.save_report_fn        = f'{plt_proj_prefix}.summary.csv'
 
         return
 

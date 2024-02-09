@@ -123,8 +123,8 @@ class Trainer:
 
         """
         # main directories
-        self.fmt_proj_dir = f'{self.fmt_dir}/{self.fmt_proj}'
-        self.trn_proj_dir = f'{self.trn_dir}/{self.trn_proj}'
+        self.fmt_proj_dir = f'{self.work_dir}/{self.fmt_proj}/{self.fmt_dir}'
+        self.trn_proj_dir = f'{self.work_dir}/{self.trn_proj}/{self.trn_dir}'
 
         # input prefix
         input_prefix      = f'{self.fmt_proj_dir}/train.nt{self.tree_width}'

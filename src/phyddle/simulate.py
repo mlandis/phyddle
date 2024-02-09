@@ -78,7 +78,7 @@ class Simulator:
         # validate sim_command
         self.validate_sim_command()
         # directory to store simulations
-        self.sim_proj_dir = f'{self.sim_dir}/{self.sim_proj}'
+        self.sim_proj_dir = f'{self.work_dir}/{self.sim_proj}/{self.sim_dir}'
         # set number of processors
         if self.num_proc <= 0:
             self.num_proc = cpu_count() + self.num_proc
@@ -280,7 +280,8 @@ class Simulator:
             idx (int): The index of the simulation iteration.
         """
         # get filesystem info for generic job
-        out_path   = f'{self.sim_dir}/{self.sim_proj}'
+        #out_path   = f'{self.sim_dir}/{self.sim_proj}'
+        out_path   = f'{self.sim_proj_dir}'
         tmp_fn     = f'{out_path}/sim.{idx}'
         cmd_str    = f'{self.sim_command} {out_path} {idx} {self.sim_batch_size}'
         stdout_fn  = f'{tmp_fn}.stdout.log'

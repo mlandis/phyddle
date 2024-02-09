@@ -79,9 +79,9 @@ class Formatter:
         # initialize with phyddle settings
         self.set_args(args)
         # directory for simulations (input)
-        self.sim_proj_dir = f'{self.sim_dir}/{self.sim_proj}'
+        self.sim_proj_dir = f'{self.work_dir}/{self.sim_proj}/{self.sim_dir}'
         # directory for formatted tensors (output)
-        self.fmt_proj_dir = f'{self.fmt_dir}/{self.fmt_proj}'
+        self.fmt_proj_dir = f'{self.work_dir}/{self.fmt_proj}/{self.fmt_dir}'
         # set number of processors
         if self.num_proc <= 0:
             self.num_proc = cpu_count() + self.num_proc

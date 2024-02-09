@@ -118,12 +118,13 @@ def settings_registry():
         'num_proc'         : { 'step':'SFT', 'type':int, 'section':'Analysis', 'default':-2, 'help':'Number of cores for multiprocessing (-N for all but N)' },
         
         # directories
-        'sim_dir'          : { 'step':'SF',    'type':str, 'section':'Workspace', 'default':'../workspace/simulate', 'help':'Directory for raw simulated data' },
-        'fmt_dir'          : { 'step':'FTEP',  'type':str, 'section':'Workspace', 'default':'../workspace/format',   'help':'Directory for tensor-formatted simulated data' },
-        'trn_dir'          : { 'step':'FTEP',  'type':str, 'section':'Workspace', 'default':'../workspace/train',    'help':'Directory for trained networks and training output' },
-        'est_dir'          : { 'step':'TEP',   'type':str, 'section':'Workspace', 'default':'../workspace/estimate', 'help':'Directory for new datasets and estimates' },
-        'plt_dir'          : { 'step':'P',     'type':str, 'section':'Workspace', 'default':'../workspace/plot',     'help':'Directory for plotted results' },
-        'log_dir'          : { 'step':'SFTEP', 'type':str, 'section':'Workspace', 'default':'../workspace/log',      'help':'Directory for logs of analysis metadata' },
+        'work_dir'         : { 'step':'SFTEP', 'type':str, 'section':'Workspace', 'default':'../workspace/',  'help':'Directory where projects are stored (workspace)' },
+        'sim_dir'          : { 'step':'SF',    'type':str, 'section':'Workspace', 'default':'simulate',       'help':'Directory for raw simulated data' },
+        'fmt_dir'          : { 'step':'FTEP',  'type':str, 'section':'Workspace', 'default':'format',         'help':'Directory for tensor-formatted simulated data' },
+        'trn_dir'          : { 'step':'FTEP',  'type':str, 'section':'Workspace', 'default':'train',          'help':'Directory for trained networks and training output' },
+        'est_dir'          : { 'step':'TEP',   'type':str, 'section':'Workspace', 'default':'estimate',       'help':'Directory for new datasets and estimates' },
+        'plt_dir'          : { 'step':'P',     'type':str, 'section':'Workspace', 'default':'plot',           'help':'Directory for plotted results' },
+        'log_dir'          : { 'step':'SFTEP', 'type':str, 'section':'Workspace', 'default':'log',            'help':'Directory for logs of analysis metadata' },
 
         # simulation options
         'sim_command'      : { 'step':'S',  'type':str, 'section':'Simulate', 'default':None,    'help':'Simulation command to run single job (see documentation)' },

@@ -102,9 +102,9 @@ class Estimator:
 
         """
         # main directories
-        self.trn_proj_dir           = f'{self.trn_dir}/{self.trn_proj}'
-        self.est_proj_dir           = f'{self.est_dir}/{self.est_proj}'
-        self.fmt_proj_dir           = f'{self.fmt_dir}/{self.fmt_proj}'
+        self.trn_proj_dir = f'{self.work_dir}/{self.trn_proj}/{self.trn_dir}'
+        self.est_proj_dir = f'{self.work_dir}/{self.est_proj}/{self.est_dir}'
+        self.fmt_proj_dir = f'{self.work_dir}/{self.fmt_proj}/{self.fmt_dir}'
 
         # prefixes
         test_prefix                 = f'test.nt{self.tree_width}'
@@ -124,11 +124,6 @@ class Estimator:
         self.test_aux_data_fn      = f'{self.fmt_prefix_dir}.aux_data.csv'
         self.test_labels_fn        = f'{self.fmt_prefix_dir}.labels.csv'
         self.test_hdf5_fn          = f'{self.fmt_prefix_dir}.hdf5'
-        # self.train_phy_data_fn      = f'{self.fmt_proj_dir}/train.nt{self.tree_width}.phy_data.csv'
-        # self.train_aux_data_fn      = f'{self.fmt_proj_dir}/train.nt{self.tree_width}.aux_data.csv'
-        # self.train_labels_fn        = f'{self.fmt_proj_dir}/train.nt{self.tree_width}.labels.csv'
-        # self.train_hdf5_fn          = f'{self.fmt_proj_dir}/train.nt{self.tree_width}.hdf5'
-
 
         # empirical test dataset
         self.emp_summ_stat_fn       = f'{self.est_prefix_dir}.summ_stat.csv'
@@ -173,7 +168,7 @@ class Estimator:
         util.print_step_header('est',
                                [self.fmt_proj_dir, self.est_proj_dir,
                                 self.trn_proj_dir],
-                               self.est_proj_dir, verbose)
+                                self.est_proj_dir, verbose)
         
         # prepare workspace
         os.makedirs(self.est_proj_dir, exist_ok=True)
