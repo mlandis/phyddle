@@ -2,7 +2,7 @@
 
 #### Software to fiddle around with deep learning for phylogenetic models
 
-> *NOTE: This private beta version of phyddle is still under development.*
+> *NOTE: This beta version of phyddle is still under development.*
 
 ## User guide
 Visit https://mlandis.github.io/phyddle to learn more about phyddle.
