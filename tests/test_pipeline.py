@@ -82,12 +82,12 @@ def do_sim():
     util.set_seed(0)
     
     # filesystem
-    base_dir = './tests/workspace/simulate'
+    work_dir = './tests/workspace'
 
     # command line arguments
     cmd_args = ['--step', 'S',
                 '--proj', 'test',
-                '--sim_dir', base_dir,
+                '--work_dir', work_dir,
                 '--sim_command', 'Rscript scripts/sim/R/sim_one.R',
                 '--end_idx', '100',
                 '--use_parallel', 'F']
@@ -110,9 +110,9 @@ def check_sim():
         return
     
     # filesystem
-    base_dir = './tests/workspace/simulate'
-    test_dir = base_dir + '/test'
-    valid_dir = base_dir + '/valid'
+    work_dir  = './tests/workspace'
+    test_dir  = work_dir + '/test/simulate'
+    valid_dir = work_dir + '/valid/simulate'
 
     # confirm test and valid tree match
     phy_test = util.read_tree(test_dir + '/sim.0.tre')
@@ -143,15 +143,12 @@ def do_fmt():
     util.set_seed(0)
 
     # filesystem
-    base_dir = './tests/workspace'
-    sim_dir = base_dir + '/simulate'
-    fmt_dir = base_dir + '/format'
+    work_dir = './tests/workspace'
 
     # command line arguments
     cmd_args = ['--step', 'F',
                 '--proj', 'test,S:valid',
-                '--sim_dir', sim_dir,
-                '--fmt_dir', fmt_dir,
+                '--work_dir', work_dir,
                 '--prop_test','0.10',
                 '--prop_val','0.10',
                 '--use_parallel', 'F']
@@ -174,10 +171,9 @@ def check_fmt():
         return
 
     # filesystem
-    base_dir = './tests/workspace'
-    fmt_dir = base_dir + '/format'
-    test_dir = fmt_dir + '/test'
-    valid_dir = fmt_dir + '/valid'
+    work_dir  = './tests/workspace'
+    test_dir  = work_dir + '/test/format'
+    valid_dir = work_dir + '/valid/format'
 
     # confirm test and valid tree match
     dat_test  = h5py.File(test_dir + '/test.nt500.hdf5', 'r')
@@ -221,15 +217,12 @@ def do_trn():
     util.set_seed(0)
 
     # filesystem
-    base_dir = './tests/workspace'
-    fmt_dir = base_dir + '/format'
-    trn_dir = base_dir + '/train'
+    work_dir = './tests/workspace'
 
     # command line arguments
     cmd_args = ['--step', 'T',
                 '--proj', 'test,F:valid',
-                '--fmt_dir', fmt_dir,
-                '--trn_dir', trn_dir,
+                '--work_dir', work_dir,
                 '--prop_test', '0.1',
                 '--prop_val', '0.1',
                 '--use_parallel', 'F']
@@ -252,10 +245,9 @@ def check_trn():
         return
 
     # filesystem
-    base_dir = './tests/workspace'
-    trn_dir = base_dir + '/train'
-    test_dir = trn_dir + '/test'
-    valid_dir = trn_dir + '/valid'
+    work_dir  = './tests/workspace'
+    test_dir  = work_dir + '/test/train'
+    valid_dir = work_dir + '/valid/train'
 
     # load test output for Train
     #model_test_fn = test_dir + '/network_nt500.trained_model.pkl'
@@ -325,22 +317,16 @@ def do_est():
     util.set_seed(0)
 
     # filesystem
-    base_dir = './tests/workspace'
-    sim_dir = base_dir + '/simulate'
-    fmt_dir = base_dir + '/format'
-    trn_dir = base_dir + '/train'
-    est_dir = base_dir + '/estimate'
-    test_dir = est_dir + '/test'
-    valid_dir = est_dir + '/valid'
+    # FIX THIS
+    work_dir   = './tests/workspace'
+    test_dir   = work_dir + '/test/estimate'
+    valid_dir  = work_dir + '/valid/estimate'
     est_prefix = 'new.0'
 
 	# command line arguments
     cmd_args = ['--step', 'E',
                 '--proj', 'test,S:valid,F:valid,T:valid',
-                '--sim_dir', sim_dir,
-                '--fmt_dir', fmt_dir,
-                '--trn_dir', trn_dir,
-                '--est_dir', est_dir,
+                '--work_dir', work_dir,
                 '--est_prefix', est_prefix,
                 '--use_parallel', 'F']
 
@@ -352,13 +338,13 @@ def do_est():
     os.makedirs(test_dir, exist_ok=True)
     if ENABLE_TEST:
         for fn in input_files:
-            shutil.copyfile( f'{sim_dir}/valid/sim.0.{fn}', f'{est_dir}/test/new.0.{fn}' )
+            shutil.copyfile( f'{work_dir}/valid/simulate/sim.0.{fn}', f'{work_dir}/test/estimate/new.0.{fn}' )
     else:
         for fn in input_files:
-            shutil.copyfile( f'{sim_dir}/test/sim.0.{fn}', f'{est_dir}/test/new.0.{fn}' )
+            shutil.copyfile( f'{work_dir}/test/simulate/sim.0.{fn}', f'{work_dir}/test/estimate/new.0.{fn}' )
 
     # make formatted dataset
-    est_prefix_path = f'tests/workspace/estimate/test/{est_prefix}'
+    est_prefix_path = f'{test_dir}/{est_prefix}'
     my_fmt = fmt.load(my_args)
     my_fmt.encode_one(tmp_fn=est_prefix_path, idx=-1, save_phyenc_csv=True)
 
@@ -377,10 +363,9 @@ def check_est():
         return
 
     # filesystem
-    base_dir = './tests/workspace'
-    est_dir = base_dir + '/estimate'
-    test_dir = est_dir + '/test'
-    valid_dir = est_dir + '/valid'
+    work_dir  = './tests/workspace'
+    test_dir  = work_dir + '/test/estimate'
+    valid_dir = work_dir + '/valid/estimate'
     est_prefix = 'new.0'
 
     # load test output for Estimate
@@ -410,23 +395,12 @@ def do_plt():
     util.set_seed(0)
 
     # filesystem
-    base_dir = './tests/workspace'
-    sim_dir = base_dir + '/simulate'
-    fmt_dir = base_dir + '/format'
-    trn_dir = base_dir + '/train'
-    est_dir = base_dir + '/estimate'
-    plt_dir = base_dir + '/plot'
-    test_dir = plt_dir + '/test'
-    valid_dir = plt_dir + '/valid'
+    work_dir = './tests/workspace'
 
 	# command line arguments
     cmd_args = ['--step', 'P',
                 '--proj', 'test,S:valid,F:valid,T:valid,E:valid',
-                '--sim_dir', sim_dir,
-                '--fmt_dir', fmt_dir,
-                '--trn_dir', trn_dir,
-                '--est_dir', est_dir,
-                '--plt_dir', plt_dir,
+                '--work_dir', work_dir,
                 '--use_parallel', 'F']
 
 	# phyddle arguments
@@ -447,10 +421,9 @@ def check_plt():
         return
 
     # filesystem
-    base_dir = './tests/workspace'
-    plt_dir = base_dir + '/plot'
-    test_dir = plt_dir + '/test'
-    valid_dir = plt_dir + '/valid'
+    work_dir  = './tests/workspace'
+    test_dir  = work_dir + '/test/plot'
+    valid_dir = work_dir + '/valid/plot'
 
 	# verify output
     out_files = [

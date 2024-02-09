@@ -5,8 +5,8 @@ import shutil
 
 dirs = ['simulate','format','train','estimate','plot']
 for d in dirs:
-    test_dir = f'./workspace/{d}/test'
-    valid_dir = f'./workspace/{d}/valid'
+    test_dir = f'./workspace/test/{d}'
+    valid_dir = f'./workspace/valid/{d}'
     if os.path.exists(valid_dir):
         print(f'Remove {valid_dir}')
         shutil.rmtree(valid_dir)
