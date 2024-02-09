@@ -69,5 +69,5 @@ On Mac OS X, you can press the Option key and click a directory path to open
 a Finder window to that directory.
 
 .. image:: click_directory.png
-	:scale: 50%
+	:scale: 30%
 	:align: center
