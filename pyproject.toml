@@ -26,7 +26,8 @@ dependencies = [
   "pypdf",
   "scikit-learn",
   "scipy",
-  "tensorflow",
+  "torch",
+  "torchvision",
   "tqdm"
 ]
 
