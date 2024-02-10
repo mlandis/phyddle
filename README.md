@@ -14,29 +14,29 @@ Visit https://mlandis.github.io/phyddle to learn more about phyddle.
 A standard phyddle analysis performs the following tasks for you:
 
 - **Pipeline configuration** applies analysis settings provided through a config file and/or command line arguments.
-- **Simulate** simulates a large training dataset under the model to be *Formatted* (parallelized, partly compressed). Saves output in the [`simulate`](workspace/simulate) directory.
-- **Format** encodes the raw simulated data into tensor format for *Train*. Saves output in the [`format`](workspace/format) directory.
-- **Train** loads and splits training data, builds a network, then trains and saves the network with the data for *Estimate*. Saves output in the [`train`](workspace/train) directory.
-- **Estimate** estimates model parameters for a new dataset with the trained network. Saves output in the [`train`](workspace/train) directory.
-- **Plot** generates figures that summarize the training data (*Formatting*), the network and its training (*Train*), and any new predictions (*Estimate*). Saves output in the [`plot`](workspace/plot) directory.
+- **Simulate** simulates a large training dataset under the model to be *Formatted* (parallelized, partly compressed). Saves output in the `simulate` directory.
+- **Format** encodes the raw simulated data into tensor format for *Train*. Saves output in the `format` directory.
+- **Train** loads and splits training data, builds a network, then trains and saves the network with the data for *Estimate*. Saves output in the `train` directory.
+- **Estimate** estimates model parameters for a new dataset with the trained network. Saves output in the `estimate` directory.
+- **Plot** generates figures that summarize the training data (*Formatting*), the network and its training (*Train*), and any new predictions (*Estimate*). Saves output in the `plot` directory.
 
 
 ## Installation
 
-A stable version of phyddle can be installed using conda:
+A stable version of phyddle can be installed using the Python package manager, pip:
+
+```shell
+python3 -m pip install --upgrade phyddle
+# ... install ...
+phyddle
+```
+
+...or using conda:
 
 ```shell
 conda create -n phyddle_env -c bioconda -c landismj phyddle
 # ... install ...
 conda activate phyddle_env
-phyddle
-```
-
-or using the Python package manager, pip:
-
-```shell
-python3 -m pip install --upgrade phyddle
-# ... install ...
 phyddle
 ```
 
@@ -60,21 +60,21 @@ cd ~/projects/phyddle/scripts
 
 Then create and run a pipeline under the settings you've specified in `my_config.py`:
 ```shell
-./run_phyddle.py --cfg config
+./run_phyddle.py --cfg config.py
 ```
 
 This will run a phyddle analysis with 1000 simulations from R and the ape package for a simple birth-death model with two 3-state characters. In practice, you'll want to generate a larger training dataset with anywhere from 10k to 1M examples, depending on the model.
 
 To add new examples to your training set
 ```shell
-# simulate new training examples and store in simulate/my_project
+# simulate new training examples and store in simulate
 ./run_phyddle.py -s S -c config --sim_more 14000
 
-# encode all raw_data examples as tensors in format/my_project
+# encode all raw_data examples as tensors in format
 ./run_phyddle.py -s F -c config
 
-# train network with tensor_data, but override batch size, then store in train/my_project
-./run_phyddle.py -s T -c config --batch_size 256
+# train network with tensor data, but override batch size, then store in train
+./run_phyddle.py -s T -c config --trn_batch_size 256
 
 # make prediction with example dataset
 ./run_phyddle.py -s E -c config
