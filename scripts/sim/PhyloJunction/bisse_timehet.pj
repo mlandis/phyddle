@@ -1,6 +1,9 @@
+# number of samples
+n_batches <- 1
+
 # constant-node variable ('birth_rate0_t0') assignment
 # first epoch (old)
-birth_rate0_t0 ~ exponential(n=10, rate=1.333)
+birth_rate0_t0 ~ exponential(n=n_batches, rate=1.333)
 death_rate0_t0 <- 0.5
 death_rate1_t0 <- 1.0
 birth_rate1_t0 <- 1.5
@@ -8,7 +11,7 @@ trans_rate01_t0 <- 0.5
 trans_rate10_t0 <- 0.4
 
 # second epoch (young)
-birth_rate0_t1 ~ exponential(n=10, rate=2)
+birth_rate0_t1 ~ exponential(n=n_batches, rate=2)
 death_rate0_t1 <- 0.25
 birth_rate1_t1 <- 1.0
 death_rate1_t1 <- 0.5
@@ -37,4 +40,4 @@ stash := sse_stash(flat_rate_mat=[det_birth_rate0_t0, det_death_rate0_t0, det_bi
 
 # stochastic-node variable ('trs') assignment
 ori <- 3.0
-trs ~ discrete_sse(n=10, nr=1, stash=stash, start_state=[0], stop="age", stop_value=ori, origin="true")
+trs ~ discrete_sse(n=n_batches, nr=1, stash=stash, start_state=[0], stop="age", stop_value=ori, origin="true")
