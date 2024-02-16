@@ -1661,7 +1661,6 @@ class Logger:
         self.base_fn     = f'{self.pkg_name}_{self.version}_{self.date_str}'
         self.base_dir    = f'{self.work_dir}/{self.proj}/{self.log_dir}'
         self.base_fp     = f'{self.base_dir}/{self.base_fn}' 
-        print(self.base_fp)
         self.fn_dict    = {
             'run' : f'{self.base_fp}.run.log',
             'sim' : f'{self.base_fp}.simulate.log',
