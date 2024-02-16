@@ -1,0 +1,70 @@
+Setting|Step(s)|Type|Description
+``cfg``|–––––|*str*|Config file name
+``proj``|SFTEP|*str*|Project name(s) for pipeline step(s)
+``step``|SFTEP|*str*|Pipeline step(s) defined with (S)imulate, (F)ormat, (T)rain, (E)stimate, (P)lot, or (A)ll
+``verbose``|SFTEP|*str*|Verbose output to screen?
+``force``|–––––|––|Arguments override config file settings
+``make_cfg``|–––––|––|Write default config file to '__config_default.py'?
+``output_precision``|SFTEP|*int*|Number of digits (precision) for numbers in output files
+``use_parallel``|SF–––|*str*|Use parallelization? (recommended)
+``num_proc``|SFT––|*int*|Number of cores for multiprocessing (-N for all but N)
+``work_dir``|SFTEP|*str*|Directory where projects are stored (workspace)
+``sim_dir``|SF–––|*str*|Directory for raw simulated data
+``fmt_dir``|–FTEP|*str*|Directory for tensor-formatted simulated data
+``trn_dir``|–FTEP|*str*|Directory for trained networks and training output
+``est_dir``|––TEP|*str*|Directory for new datasets and estimates
+``plt_dir``|––––P|*str*|Directory for plotted results
+``log_dir``|SFTEP|*str*|Directory for logs of analysis metadata
+``sim_command``|S––––|*str*|Simulation command to run single job (see documentation)
+``sim_logging``|S––––|*str*|Simulation logging style
+``start_idx``|SF–––|*int*|Start replicate index for simulated training dataset
+``end_idx``|SF–––|*int*|End replicate index for simulated training dataset
+``sim_more``|S––––|*int*|Add more simulations with auto-generated indices
+``sim_batch_size``|S––––|*int*|Number of replicates per simulation command
+``encode_all_sim``|–F–––|*str*|Encode all simulated replicates into tensor?
+``num_char``|–FTE–|*int*|Number of characters
+``num_states``|–FTE–|*int*|Number of states per character
+``min_num_taxa``|–F–––|*int*|Minimum number of taxa allowed when formatting
+``max_num_taxa``|–F–––|*int*|Maximum number of taxa allowed when formatting
+``downsample_taxa``|–FTE–|*str*|Downsampling strategy taxon count
+``tree_width``|–FTEP|*int*|Width of phylo-state tensor
+``tree_encode``|–FTE–|*str*|Encoding strategy for tree
+``brlen_encode``|–FTE–|*str*|Encoding strategy for branch lengths
+``char_encode``|–FTE–|*str*|Encoding strategy for character data
+``param_est``|–FTE–|*str[]*|Model parameters to estimate
+``param_data``|–FTE–|*str[]*|Model parameters treated as data
+``char_format``|–FTE–|*str*|File format for character data
+``tensor_format``|–FTEP|*str*|File format for training example tensors
+``save_phyenc_csv``|–F–––|*str*|Save encoded phylogenetic tensor encoding to csv?
+``trn_objective``|––T––|*str*|Objective of training procedure
+``num_epochs``|––TEP|*int*|Number of training epochs
+``trn_batch_size``|––TEP|*int*|Training batch sizes
+``prop_test``|–FT––|*float*|Proportion of data used as test examples (assess trained network performance)
+``prop_val``|––T––|*float*|Proportion of data used as validation examples (diagnose network overtraining)
+``prop_cal``|––T––|*float*|Proportion of data used as calibration examples (calibrate CPIs)
+``cpi_coverage``|––T––|*float*|Expected coverage percent for calibrated prediction intervals (CPIs)
+``cpi_asymmetric``|––T––|*str*|Use asymmetric (True) or symmetric (False) adjustments for CPIs?
+``loss``|––T––|*str*|Loss function for optimization
+``optimizer``|––T––|*str*|Method used for optimizing neural network
+``metrics``|––T––|*str[]*|Recorded training metrics
+``log_offset``|–FTEP|*float*|Offset size c when taking ln(x+c) for potentially zero-valued variables
+``phy_channel_plain``|––T––|*int[]*|Output channel sizes for plain convolutional layers for phylogenetic state input
+``phy_channel_stride``|––T––|*int[]*|Output channel sizes for stride convolutional layers for phylogenetic state input
+``phy_channel_dilate``|––T––|*int[]*|Output channel sizes for dilate convolutional layers for phylogenetic state input
+``aux_channel``|––T––|*int[]*|Output channel sizes for dense layers for auxiliary data input
+``lbl_channel``|––T––|*int[]*|Output channel sizes for dense layers for label outputs
+``phy_kernel_plain``|––T––|*int[]*|Kernel sizes for plain convolutional layers for phylogenetic state input
+``phy_kernel_stride``|––T––|*int[]*|Kernel sizes for stride convolutional layers for phylogenetic state input
+``phy_kernel_dilate``|––T––|*int[]*|Kernel sizes for dilate convolutional layers for phylogenetic state input
+``phy_stride_stride``|––T––|*int[]*|Stride sizes for stride convolutional layers for phylogenetic state input
+``phy_dilate_dilate``|––T––|*int[]*|Dilation sizes for dilate convolutional layers for phylogenetic state input
+``est_prefix``|–––EP|*str*|Predict results for this dataset
+``plot_train_color``|––––P|*str*|Plotting color for training data elements
+``plot_label_color``|––––P|*str*|Plotting color for training label elements
+``plot_test_color``|––––P|*str*|Plotting color for test data elements
+``plot_val_color``|––––P|*str*|Plotting color for validation data elements
+``plot_aux_color``|––––P|*str*|Plotting color for auxiliary data elements
+``plot_est_color``|––––P|*str*|Plotting color for new estimation elements
+``plot_scatter_log``|––––P|*str*|Use log values for scatter plots when possible?
+``plot_contour_log``|––––P|*str*|Use log values for contour plots when possible?
+``plot_density_log``|––––P|*str*|Use log values for density plots when possible?
