@@ -21,6 +21,9 @@ tests/workspace/estimate/test/
 tests/workspace/train/test/
 tests/workspace/plot/test/
 
+# Ignore simulation tmp files
+scripts/sim/PhyloJunction/bisse_timehet_*_parsed.pj
+
 # Ignore extras in tests
 #tests/workspace/*
 

@@ -66,13 +66,15 @@ if __name__ == "__main__":
     if not os.path.isfile(pj_script_path):
         exit("Could not find " + pj_script_path + ". Exiting.")
 
-    tree_node_name = sys.argv[2]
+    # e.g. trs_1
+    tree_node_name = sys.argv[2] # + '_' + sys.argv[4]
 
     pj_out_path = sys.argv[3]
     if not pj_out_path.endswith("/"):
         pj_out_path += "/"
 
     idx = int(sys.argv[4]) # used to name files
+    sim_prefix = "sim" + str(idx)
 
     n_batches = sys.argv[5] # PJ's number of samples
 
@@ -81,7 +83,7 @@ if __name__ == "__main__":
     ##################
 
     # output of this script
-    out_path = pj_out_path + "parsed_sim_output/"
+    out_path = pj_out_path # + "parsed_sim_output/"
     if not os.path.isdir(out_path):
         os.mkdir(out_path)
         print("Created", out_path)
@@ -94,7 +96,7 @@ if __name__ == "__main__":
     if not head.endswith("/"):
         head += "/"
         
-    parsed_pj_script_path = head + tail.replace(".pj", "_parsed.pj")
+    parsed_pj_script_path = head + tail.replace(".pj", "_" + str(idx) + "_parsed.pj")
     with open(parsed_pj_script_path, "w") as outfile:
         with open(pj_script_path, "r") as infile:
             for line in infile:
@@ -102,7 +104,9 @@ if __name__ == "__main__":
 
                 if line.startswith("n_batches <-"):
                     print("n_batches <- " + n_batches, file=outfile)
-
+                #elif line.startswith("trs ~"):
+                #    line = line.replace("trs ~", tree_node_name + " ~")
+                #    print(line, file=outfile)
                 else:
                     print(line, file=outfile)
 
@@ -114,7 +118,7 @@ if __name__ == "__main__":
 
     call_pj = True
     if call_pj:
-        pj_args = ["pjcli", parsed_pj_script_path, "-d", "-o", pj_out_path]
+        pj_args = ["pjcli", parsed_pj_script_path, "-d", "-r", str(idx), "-o", pj_out_path, "-p", sim_prefix ]
         p = subprocess.Popen(pj_args, stdout=subprocess.PIPE)
         pj_bytes = p.communicate()[0]
         pj_msg = pj_bytes.decode('utf-8')
@@ -125,18 +129,18 @@ if __name__ == "__main__":
     #####################
 
     # get tree tsv path
-    tree_tsv_path = pj_out_path + tree_node_name + "_reconstructed.tsv"
+    tree_tsv_path = pj_out_path + sim_prefix + "_" + tree_node_name + "_reconstructed.tsv"
     if not os.path.isfile(tree_tsv_path):
         exit("Could not find " + tree_tsv_path + ". Exiting.")
 
     # get tree state csv paths
     tree_state_csv_paths = natsorted([pj_out_path + f for f in os.listdir(pj_out_path) \
-                            if f.endswith("repl1.tsv") and f.startswith(tree_node_name)])
+                            if f.endswith("repl1.tsv") and f.startswith(sim_prefix + "_" + tree_node_name + "_")])
     if len(tree_state_csv_paths) == 0:
         exit("Could not find any .tsv file containing tip states. Exiting.")
 
     # get scalar csv path
-    scalar_csv_path = pj_out_path + "scalar_rvs_repl1.csv"
+    scalar_csv_path = pj_out_path + sim_prefix + "_scalar_rvs_repl1.csv"
     if not os.path.isfile(scalar_csv_path):
         exit("Could not find " + scalar_csv_path + ". Exiting.")
     

@@ -248,6 +248,9 @@ class Formatter:
             int[]: List of replicate indices.
         """
 
+        # this assumes the simulate directory only contains the target set of
+        # files which is an unsafe assumption
+
         # find all rep index
         all_idx = set()
         files = os.listdir(f'{self.sim_proj_dir}')
@@ -818,6 +821,11 @@ class Formatter:
         Returns:
             cpvs (numpy.array):      CPV+S encoded tensor
         """
+        # TODO: write assert statement to match labels
+        # 
+        # phy_labels = [ n.taxon.label for n in phy.leaf_nodes() ]
+        # dat_labels = [ ]
+
         if tree_type == 'serial':
             cpvs = self.encode_cblvs(phy, dat, tree_width,
                                      tree_encode_type, rescale)
