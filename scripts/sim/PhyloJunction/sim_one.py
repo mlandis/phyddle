@@ -9,7 +9,7 @@ __email__ = "f.mendes@wustl.edu"
 
 
 # from scripts/
-# $ sudo python3 sim/PhyloJunction/sim_one.py sim/PhyloJunction/ 1 sim/PhyloJunction/bisse_timehet.pj trs
+# $ sudo python3 sim/PhyloJunction/sim_one.py sim/PhyloJunction/bisse_timehet.pj trs sim/PhyloJunction/ 1 10
 
 def parse_PJ_tree_tsv(out_path,
                       tree_tsv_path,
@@ -61,17 +61,24 @@ if __name__ == "__main__":
     ###########################
     # get and parse arguments #
     ###########################
-    pj_out_path = sys.argv[1]
-    if not pj_out_path.endswith("/"):
-        pj_out_path += "/"
-
-    idx = int(sys.argv[2]) # used to name files
-
-    pj_script_path = sys.argv[3]
+    
+    pj_script_path = sys.argv[1]
     if not os.path.isfile(pj_script_path):
         exit("Could not find " + pj_script_path + ". Exiting.")
 
-    tree_node_name = sys.argv[4]
+    tree_node_name = sys.argv[2]
+
+    pj_out_path = sys.argv[3]
+    if not pj_out_path.endswith("/"):
+        pj_out_path += "/"
+
+    idx = int(sys.argv[4]) # used to name files
+
+    n_batches = sys.argv[5] # PJ's number of samples
+
+    ##################
+    # preparing dirs #
+    ##################
 
     # output of this script
     out_path = pj_out_path + "parsed_sim_output/"
@@ -79,13 +86,35 @@ if __name__ == "__main__":
         os.mkdir(out_path)
         print("Created", out_path)
 
+    #####################
+    # editing PJ script #
+    #####################
+
+    head, tail = os.path.split(pj_script_path)
+    if not head.endswith("/"):
+        head += "/"
+        
+    parsed_pj_script_path = head + tail.replace(".pj", "_parsed.pj")
+    with open(parsed_pj_script_path, "w") as outfile:
+        with open(pj_script_path, "r") as infile:
+            for line in infile:
+                line = line.rstrip()
+
+                if line.startswith("n_batches <-"):
+                    print("n_batches <- " + n_batches, file=outfile)
+
+                else:
+                    print(line, file=outfile)
+
+    print("Successfully updated PhyloJunction script (in", parsed_pj_script_path + ")")
+            
     ###########
     # call PJ #
     ###########
 
     call_pj = True
     if call_pj:
-        pj_args = ["pjcli", pj_script_path, "-d", "-o", pj_out_path]
+        pj_args = ["pjcli", parsed_pj_script_path, "-d", "-o", pj_out_path]
         p = subprocess.Popen(pj_args, stdout=subprocess.PIPE)
         pj_bytes = p.communicate()[0]
         pj_msg = pj_bytes.decode('utf-8')
