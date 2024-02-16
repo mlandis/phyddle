@@ -47,10 +47,10 @@ args = {
   'min_num_taxa'       : 10,                   # Minimum number of taxa allowed when formatting
   'max_num_taxa'       : 1000,                 # Maximum number of taxa allowed when formatting
   'downsample_taxa'    : 'uniform',            # Downsampling strategy taxon count
-  'tree_width'         : 500,                  # Width of phylo-state tensor    
+  'tree_width'         : 200,                  # Width of phylo-state tensor    
   'tree_encode'        : 'extant',             # Encoding strategy for tree     
   'brlen_encode'       : 'height_brlen',       # Encoding strategy for branch lengths
-  'char_encode'        : 'one_hot',            # Encoding strategy for character data
+  'char_encode'        : 'integer',            # Encoding strategy for character data
   'param_est'          : ['BirthConstant_0',
                           'DeathConstant_0',
                           'DeathDensity_0'],          # Model parameters to estimate   
