@@ -47,20 +47,20 @@ training set, for example:
 .. code-block:: shell
 
   # [S]imulate new training examples, stored in
-  # workspace/simulate/my_project
+  # workspace/my_project/simulate
   phyddle -s S -c config.py --sim_more 14000
 
   # [F]ormat all raw_data examples as tensors,
-  # stored in workspace/format/my_project
+  # stored in workspace/my_project/format
   phyddle -s F -c config.py
 
   # [T]rain network with tensor_data, but override batch size,
-  # stored in workspace/train/my_project
+  # stored in workspace/my_project/train
   phyddle -s T -c config.py --trn_batch_size 256
 
   # [E]stimate parameters for biological dataset, with results
-  # stored in workspace/estimate/my_project; and then [P]lot
-  # figures, storing them in workspace/plot/my_project
+  # stored in workspace/my_project/estimate; and then [P]lot
+  # figures, storing them in workspace/my_project/plot
   phyddle -s EP -c config.py
 
 

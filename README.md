@@ -1,8 +1,8 @@
-# phyddle 0.0.10
+# phyddle 0.1.0
 
 #### Software to fiddle around with deep learning for phylogenetic models
 
-> *NOTE: This private beta version of phyddle is still under development.*
+> *NOTE: This beta version of phyddle is still under development.*
 
 ## User guide
 Visit https://mlandis.github.io/phyddle to learn more about phyddle.
@@ -90,7 +90,7 @@ Pipeline options are applied to all pipeline stages. See the full list of curren
 
 ## Note on code stability
 
-Code on the [main](https://github.com/mlandis/phyddle/tree/main) branch is tested and stable with respect to the standard use cases. Code on the [development](https://github.com/mlandis/phyddle/tree/development) branch contains new features, but is not as rigorously tested. Most phyddle development occurs on a 16-core Intel Macbook Pro laptop and a 64-core Intel Ubuntu server, so there are also unknown portability/scalability issues to correct. Any feedback is appreciated! michael.landis@wustl.edu*
+Code on the [main](https://github.com/mlandis/phyddle/tree/main) branch is tested and stable with respect to the standard use cases. Code on the [development](https://github.com/mlandis/phyddle/tree/development) branch contains new features, but is not as rigorously tested. Most phyddle development occurs on a 16-core Intel Macbook Pro laptop and a 64-core Intel Ubuntu server, so there are also unknown portability/scalability issues to correct. Any feedback is appreciated! [michael.landis@wustl.edu](mailto:michael.landis@wustl.edu)
 
 ## About
 Thanks for your interest in phyddle. The phyddle project emerged from a phylogenetic deep learning study led by Ammon Thompson ([paper](https://www.biorxiv.org/content/10.1101/2023.02.08.527714v2)). The goal of phyddle is to provide its users with a generalizable pipeline workflow for phylogenetic modeling and deep learning. This hopefully will make it easier for phylogenetic model enthusiasts and developers to explore and apply models that do not have tractable likelihood functions. It's also intended for use by methods developers who want to characterize how deep learning methods perform under different conditions for standard phylogenetic estimation tasks.

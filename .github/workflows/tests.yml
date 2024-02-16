@@ -40,7 +40,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install .
-          pip install ruff pytest scipy numpy matplotlib tensorflow keras scikit-learn dendropy pandas pypdf joblib tqdm pydot
+          pip install ruff pytest scipy numpy matplotlib tensorflow keras scikit-learn dendropy pandas pypdf joblib tqdm pydot torch torchview
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 #       - name: Lint with ruff
 #         run: |

@@ -11,37 +11,20 @@ License:   MIT
 """
 
 # standard imports
-import json
 import os
 
 # external imports
 import h5py
 import numpy as np
 import pandas as pd
-from tensorflow.keras import Input
-from tensorflow.keras import Model
-from tensorflow.keras import layers
-from tensorflow.keras import backend as K
-from tensorflow.keras import callbacks
+import torch
+from multiprocessing import cpu_count
+from tqdm import tqdm
 
 # phyddle imports
 from phyddle import utilities as util
+from phyddle import network
 
-# torch
-import torch
-from torch import nn
-from torch.utils.data import DataLoader
-from torchvision import datasets, transforms
-from torch.utils.data import Dataset, DataLoader
-import torch.nn.functional as F
-TORCH_DEVICE_STR = (
-    "cuda"
-    if torch.cuda.is_available()
-    else "mps"
-    if torch.backends.mps.is_available()
-    else "cpu"
-)
-TORCH_DEVICE = torch.device(TORCH_DEVICE_STR)
 
 #------------------------------------------------------------------------------#
 
@@ -83,17 +66,38 @@ class Trainer:
         """
         # initialize with phyddle settings
         self.set_args(args)
+        
         # construct filepaths
         self.prepare_filepaths()
+        
+        # set CPUs
+        if self.num_proc <= 0:
+            self.num_proc = cpu_count() + self.num_proc
+        if self.num_proc <= 0:
+            self.num_proc = 1
+
         # get size of CPV+S tensors
-        self.num_tree_row = util.get_num_tree_row(self.tree_encode,
+        self.num_tree_col = util.get_num_tree_col(self.tree_encode,
                                                   self.brlen_encode)
-        self.num_char_row = util.get_num_char_row(self.char_encode,
+        self.num_char_col = util.get_num_char_col(self.char_encode,
                                                   self.num_char,
                                                   self.num_states)
-        self.num_data_row = self.num_tree_row + self.num_char_row
+        self.num_data_col = self.num_tree_col + self.num_char_col
+
         # create logger to track runtime info
         self.logger = util.Logger(args)
+        
+        # set torch device
+        # NOTE: need to test against cuda
+        self.TORCH_DEVICE_STR = (    
+            "cuda"
+            if torch.cuda.is_available()
+            else "mps"
+            if torch.backends.mps.is_available()
+            else "cpu"
+        )
+        self.TORCH_DEVICE = torch.device(self.TORCH_DEVICE_STR)
+        
         # done
         return
     
@@ -109,9 +113,6 @@ class Trainer:
         for k,v in step_args.items():
             setattr(self, k, v)
 
-        # special case
-        self.kernel_init       = 'glorot_uniform'
-
         return
     
     def prepare_filepaths(self):
@@ -122,8 +123,8 @@ class Trainer:
 
         """
         # main directories
-        self.fmt_proj_dir = f'{self.fmt_dir}/{self.fmt_proj}'
-        self.trn_proj_dir = f'{self.trn_dir}/{self.trn_proj}'
+        self.fmt_proj_dir = f'{self.work_dir}/{self.fmt_proj}/{self.fmt_dir}'
+        self.trn_proj_dir = f'{self.work_dir}/{self.trn_proj}/{self.trn_dir}'
 
         # input prefix
         input_prefix      = f'{self.fmt_proj_dir}/train.nt{self.tree_width}'
@@ -137,9 +138,9 @@ class Trainer:
         self.input_hdf5_fn          = f'{input_prefix}.hdf5'
 
         # output network model info
-        self.model_arch_fn          = f'{output_prefix}_trained_model'
+        self.model_arch_fn          = f'{output_prefix}.trained_model.pkl'
         self.model_weights_fn       = f'{output_prefix}.train_weights.hdf5'
-        self.model_history_fn       = f'{output_prefix}.train_history.json'
+        self.model_history_fn       = f'{output_prefix}.train_history.csv'
         self.model_cpi_fn           = f'{output_prefix}.cpi_adjustments.csv'
 
         # output scaling terms
@@ -164,6 +165,7 @@ class Trainer:
 
         # print header
         util.print_step_header('trn', [self.fmt_proj_dir], self.trn_proj_dir, verbose)
+        
         # prepare workspace
         os.makedirs(self.trn_proj_dir, exist_ok=True)
 
@@ -190,7 +192,6 @@ class Trainer:
         # end time
         end_time,end_time_str = util.get_time()
         run_time = util.get_time_diff(start_time, end_time)
-        # util.print_str(f'▪ End time:     {end_time_str}', verbose)
         util.print_str(f'▪ End time of {end_time_str} (+{run_time})', verbose)
 
         util.print_str('▪ ... done!', verbose)
@@ -330,14 +331,16 @@ class CnnTrainer(Trainer):
             hdf5_file.close()
 
         # data dimensions
-        num_sample = full_phy_data.shape[0]
-        self.num_params = full_labels.shape[1]
-        self.num_stats = full_aux_data.shape[1]
+        num_sample        = full_phy_data.shape[0]
+        self.num_params   = full_labels.shape[1]
+        self.num_aux_data = full_aux_data.shape[1]
 
         # logs of labels (rates) for variance stabilization against
         # heteroskedasticity (variance grows with mean)
         full_labels = np.log(full_labels + self.log_offset)
         full_aux_data = np.log(full_aux_data + self.log_offset)
+
+        
 
         # shuffle datasets
         randomized_idx = np.random.permutation(full_phy_data.shape[0])
@@ -346,7 +349,9 @@ class CnnTrainer(Trainer):
         full_labels    = full_labels[randomized_idx,:]
 
         # reshape phylogenetic tensor data based on CPV+S
-        full_phy_data.shape = (num_sample, -1, self.num_data_row)
+        # TODO: probably not, but does this need to be (see below) ... ?
+        # full_phy_data.shape = (num_sample, self.num_data_col, -1)
+        full_phy_data.shape = (num_sample, -1, self.num_data_col)
 
         # split dataset into training, test, validation, and calibration parts
         train_idx, val_idx, calib_idx = self.split_tensor_idx(num_sample)
@@ -363,23 +368,23 @@ class CnnTrainer(Trainer):
         # normalize auxiliary data
         self.norm_train_aux_data, train_aux_data_means, train_aux_data_sd = util.normalize(full_aux_data[train_idx,:])
         self.train_aux_data_mean_sd = (train_aux_data_means, train_aux_data_sd)
-        self.norm_val_aux_data = util.normalize(full_aux_data[val_idx,:],
-                                                self.train_aux_data_mean_sd)
-        self.norm_calib_aux_data = util.normalize(full_aux_data[calib_idx,:],
-                                                  self.train_aux_data_mean_sd)
+        self.norm_val_aux_data      = util.normalize(full_aux_data[val_idx,:],
+                                                     self.train_aux_data_mean_sd)
+        self.norm_calib_aux_data    = util.normalize(full_aux_data[calib_idx,:],
+                                                     self.train_aux_data_mean_sd)
 
         # normalize labels
         self.norm_train_labels, train_label_means, train_label_sd = util.normalize(full_labels[train_idx,:])
         self.train_labels_mean_sd = (train_label_means, train_label_sd)
-        self.norm_val_labels     = util.normalize(full_labels[val_idx,:],
-                                                  self.train_labels_mean_sd)
-        self.norm_calib_labels   = util.normalize(full_labels[calib_idx,:],
-                                                  self.train_labels_mean_sd)
+        self.norm_val_labels      = util.normalize(full_labels[val_idx,:],
+                                                   self.train_labels_mean_sd)
+        self.norm_calib_labels    = util.normalize(full_labels[calib_idx,:],
+                                                   self.train_labels_mean_sd)
 
         # create phylogenetic data tensors
-        self.train_phy_data_tensor = full_phy_data[train_idx,:]
-        self.val_phy_data_tensor   = full_phy_data[val_idx,:]
-        self.calib_phy_data_tensor = full_phy_data[calib_idx,:]
+        self.train_phy_data_tensor = full_phy_data[train_idx,:,:]
+        self.val_phy_data_tensor   = full_phy_data[val_idx,:,:]
+        self.calib_phy_data_tensor = full_phy_data[calib_idx,:,:]
 
         # create auxiliary data tensors (with scaling)
         self.train_aux_data_tensor = self.norm_train_aux_data
@@ -387,165 +392,41 @@ class CnnTrainer(Trainer):
         self.calib_aux_data_tensor = self.norm_calib_aux_data
 
         # torch datasets
-        # self.train_dataset = PhyddleDataset(self.train_phy_data_tensor,
-        #                                     self.norm_train_aux_data,
-        #                                     self.norm_train_labels)
-        # self.calib_dataset = PhyddleDataset(self.calib_phy_data_tensor,
-        #                                     self.norm_val_aux_data,
-        #                                     self.norm_val_labels)
-        # self.val_dataset = PhyddleDataset(self.val_phy_data_tensor,
-        #                                   self.norm_calib_aux_data,
-        #                                   self.norm_calib_labels)
+        self.train_dataset = network.Dataset(self.train_phy_data_tensor,
+                                             self.norm_train_aux_data,
+                                             self.norm_train_labels)
+        self.calib_dataset = network.Dataset(self.calib_phy_data_tensor,
+                                             self.norm_calib_aux_data,
+                                             self.norm_calib_labels)
+        self.val_dataset   = network.Dataset(self.val_phy_data_tensor,
+                                             self.norm_val_aux_data,
+                                             self.norm_val_labels)
 
         return
     
 #------------------------------------------------------------------------------#
 
     def build_network(self):
-        """Builds the network architecture.
-
-        This function constructs the network architecture by assembling the
-        input layers, phylo. data layers, aux. data layers, and output layers.
-        It then instantiates the model using the assembled layers.
-
-        Simplified network architecture:
         
-                              ,--> Conv1D-normal + Pool --. 
-        Phylo. Data Tensor --+---> Conv1D-stride + Pool ---\\                         ,--> Point estimate
-                              '--> Conv1D-dilate + Pool ----+--> Concat + Output(s)--+---> Lower quantile
-                                                           /                          '--> Upper quantile
-        Aux. Data Tensor   ------> Dense -----------------'
+        # torch multiprocessing, eventually need to get working with cuda
+        torch.set_num_threads(self.num_proc)
 
-        Returns:
-            None
-        """
-
-        #input layers
-        input_layers    = self.build_network_input_layers()
-        phylo_layers    = self.build_network_phylo_layers(input_layers['phylo'])
-        aux_layers      = self.build_network_aux_layers(input_layers['aux'])
-        output_layers   = self.build_network_output_layers(phylo_layers, aux_layers)
-    
-        # instantiate model
-        self.mymodel = Model(inputs = [input_layers['phylo'],
-                                       input_layers['aux']], 
-                             outputs = output_layers)
+        # build model architecture
+        self.model = network.ParameterEstimationNetwork(phy_dat_width=self.num_data_col,
+                                                        phy_dat_height=self.tree_width,
+                                                        aux_dat_width=self.num_aux_data,
+                                                        lbl_width=self.num_params,
+                                                        args=self.args)
         
-    def build_network_input_layers(self):
-        """Build the input layers for the network.
+        self.model.phy_dat_shape = (self.num_data_col, self.tree_width)
+        self.model.aux_dat_shape = (self.num_aux_data,)
 
-        Returns:
-            dict: A dictionary containing the input layers for phylogenetic
-                  state data and auxiliary data tensors.
+        #print(self.model)
+        #model.to(TORCH_DEVICE)
 
-        """
-
-        input_phylo_tensor = Input(shape=self.train_phy_data_tensor.shape[1:3], name='input_phylo')
-        input_aux_tensor   = Input(shape=self.train_aux_data_tensor.shape[1:2], name='input_aux')
-
-        return {'phylo': input_phylo_tensor, 'aux': input_aux_tensor }
-
-    
-    def build_network_aux_layers(self, input_aux_tensor):
-        """Build the auxiliary data layers for the network.
-
-        This function assumes a densely connected feed-forward neural network
-        design for the layers. This is later concatenated with the CNN arms.
-
-        Args:
-            input_aux_tensor: The input layer for the auxiliary data input.
-
-        Returns:
-            list: A list of auxiliary data FFNN layers.
-
-        """
-
-        w_aux_ffnn = layers.Dense(128, activation = 'relu', kernel_initializer = self.kernel_init, name='ff_aux1')(input_aux_tensor)
-        w_aux_ffnn = layers.Dense(64, activation = 'relu', kernel_initializer = self.kernel_init, name='ff_aux2')(w_aux_ffnn)
-        w_aux_ffnn = layers.Dense(32, activation = 'relu', kernel_initializer = self.kernel_init, name='ff_aux3')(w_aux_ffnn)
-        
-        return [ w_aux_ffnn ]
-
-    def build_network_phylo_layers(self, input_data_tensor):
-        """Build the phylogenetic state data layers for the network.
-
-        This function assumes a convolutional neural network design, composed
-        of three 1D-convolution + pool layer seqeuences ("arms"). The three
-        arms vary in terms of node count, number of layers, width, stride,
-        and dilation. This is later concatenated with the FFNN arm.
-
-        Args:
-            input_data_tensor: The input data tensor.
-
-        Returns:
-            list: A list of phylo layers.
-
-        """
-
-        # convolutional layers
-        # e.g. you expect to see 64 patterns, width of 3,
-        # stride (skip-size) of 1, padding zeroes so all windows are 'same'
-        w_conv = layers.Conv1D(64, 3, activation = 'relu', padding = 'same', name='conv_std1')(input_data_tensor)
-        w_conv = layers.Conv1D(96, 5, activation = 'relu', padding = 'same', name='conv_std2')(w_conv)
-        w_conv = layers.Conv1D(128, 7, activation = 'relu', padding = 'same', name='conv_std3')(w_conv)
-        w_conv_gavg = layers.GlobalAveragePooling1D(name='pool_std')(w_conv)
-
-        # stride layers (skip sizes during slide)
-        w_stride = layers.Conv1D(64, 7, strides = 3, activation = 'relu',padding = 'same', name='conv_stride1')(input_data_tensor)
-        w_stride = layers.Conv1D(96, 9, strides = 6, activation = 'relu', padding = 'same', name='conv_stride2')(w_stride)
-        w_stride_gavg = layers.GlobalAveragePooling1D(name = 'pool_stride')(w_stride)
-
-        # dilation layers (spacing among grid elements)
-        w_dilated = layers.Conv1D(32, 3, dilation_rate = 2, activation = 'relu', padding = 'same', name='conv_dilate1')(input_data_tensor)
-        w_dilated = layers.Conv1D(64, 5, dilation_rate = 4, activation = 'relu', padding = 'same', name='conv_dilate2')(w_dilated)
-        w_dilated_gavg = layers.GlobalAveragePooling1D(name = 'pool_dilate')(w_dilated)
-
-        return [ w_conv_gavg, w_stride_gavg, w_dilated_gavg ]
-
-    def build_network_output_layers(self, phylo_layers, aux_layers):
-        """Build the output layers for the network.
-
-        This function concatenates the output from the CNN and FFNN arms of the
-        network, and then constructs three new FFNN arms that lead towards
-        output layers for estimating parameter (label) values and upper and
-        lower CPI bounds.
-
-        Args:
-            phylo_layers: The phylo layers.
-            aux_layers: The auxiliary layers.
-
-        Returns:
-            list: A list of output layers.
-
-        """
-
-        # combine phylo and aux layers lists
-        all_layers = phylo_layers + aux_layers
-
-        # concatenate all above -> deep fully connected network
-        w_concat = layers.Concatenate(axis = 1, name = 'concat_out')(all_layers)
-
-        # point estimate for parameters
-        w_point_est = layers.Dense(128, activation = 'relu',kernel_initializer = self.kernel_init, name='ff_value1')(w_concat)
-        w_point_est = layers.Dense( 64, activation = 'relu', kernel_initializer = self.kernel_init, name='ff_value2')(w_point_est)
-        w_point_est = layers.Dense( 32, activation = 'relu', kernel_initializer = self.kernel_init, name='ff_value3')(w_point_est)
-        w_point_est = layers.Dense(self.num_params, activation = 'linear', name = 'param_value')(w_point_est)
-
-        # lower quantile for parameters
-        w_lower_quantile = layers.Dense(128, activation = 'relu', kernel_initializer = self.kernel_init, name='ff_lower1')(w_concat)
-        w_lower_quantile = layers.Dense( 64, activation = 'relu', kernel_initializer = self.kernel_init, name='ff_lower2')(w_lower_quantile)
-        w_lower_quantile = layers.Dense( 32, activation = 'relu', kernel_initializer = self.kernel_init, name='ff_lower3')(w_lower_quantile)
-        w_lower_quantile = layers.Dense(self.num_params, activation = 'linear', name = 'param_lower')(w_lower_quantile)
-
-        # upper quantile for parameters
-        w_upper_quantile = layers.Dense(128, activation = 'relu', kernel_initializer = self.kernel_init, name='ff_upper1')(w_concat)
-        w_upper_quantile = layers.Dense( 64, activation = 'relu', kernel_initializer = self.kernel_init, name='ff_upper2')(w_upper_quantile)
-        w_upper_quantile = layers.Dense( 32, activation = 'relu', kernel_initializer = self.kernel_init, name='ff_upper3')(w_upper_quantile)
-        w_upper_quantile = layers.Dense(self.num_params, activation = 'linear', name = 'param_upper')(w_upper_quantile)
-
-        return [ w_point_est, w_lower_quantile, w_upper_quantile ]
-
+        return
 #------------------------------------------------------------------------------#
+
 
     def train(self):
         """Trains the neural network model.
@@ -559,36 +440,187 @@ class CnnTrainer(Trainer):
             None
 
         """
-        # gather loss functions
-        my_loss = [self.loss,
-                   self.pinball_loss_q_0_025,
-                   self.pinball_loss_q_0_975]
+        # training dataset
+        trainloader = torch.utils.data.DataLoader(dataset = self.train_dataset,
+                                                  batch_size = self.trn_batch_size)
+        num_batches = int(np.ceil(self.train_dataset.phy_data.shape[0] / self.trn_batch_size))
 
-        # compile model        
-        self.mymodel.compile(optimizer=self.optimizer, 
-                             loss=my_loss,
-                             metrics=self.metrics)
-     
-        # early stopping
-        # es = callbacks.EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=3)
-        #es = callbacks.EarlyStopping(monitor='val_loss', mode='max', min_delta=0.01)
+        # validation dataset
+        val_phy_dat = torch.Tensor(self.val_dataset.phy_data)
+        val_aux_dat = torch.Tensor(self.val_dataset.aux_data)
+        val_lbls    = torch.Tensor(self.val_dataset.labels)
 
-        # run training
-        self.history = self.mymodel.fit(\
-            verbose = 2,
-            x = [self.train_phy_data_tensor,
-                 self.train_aux_data_tensor], 
-            y = self.norm_train_labels,
-            epochs = self.num_epochs,
-            batch_size = self.trn_batch_size,
-            # callbacks = [es], 
-            validation_data = ([self.val_phy_data_tensor,
-                                self.val_aux_data_tensor],
-                                self.norm_val_labels))
+        # loss functions
+        q_width = self.cpi_coverage
+        q_tail  = (1.0 - q_width) / 2
+        q_lower = q_tail
+        q_upper = 1.0 - q_tail
+        loss_value_func = torch.nn.MSELoss()
+        loss_lower_func = network.QuantileLoss(alpha=q_lower)
+        loss_upper_func = network.QuantileLoss(alpha=q_upper)
+
+        # optimizer
+        optimizer = torch.optim.Adam(self.model.parameters())
+        # optimizer = torch.optim.Adam(self.model.parameters(),
+        #                              lr=0.001,
+        #                              weight_decay = 0.002)
+        # optimizer = torch.optim.AdamW(self.model.parameters(), lr=0.001,
+        #                               betas=(0.9, 0.999), eps=1e-08,
+        #                               weight_decay=0.01, amsgrad=False)
+
+        # lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 
+        #                                             step_size = 50, 
+        #                                             gamma = 0.1)
         
-        # store training history
-        self.history_dict = self.history.history
-        # done
+        # TODO: simplify training logging!!
+        # gather training history
+        history_col_names = ['epoch', 'dataset', 'metric', 'value']
+        self.train_history = pd.DataFrame(columns=history_col_names)
+
+        # training
+        metric_names = ['loss_lower', 'loss_upper', 'loss_value',
+                       'loss_combined', 'mse_value', 'mae_value', 'mape_value']
+        prev_trn_loss_combined = None
+        prev_val_loss_combined = None
+        for i in range(self.num_epochs):
+            
+            #print('-----')
+            trn_loss_value = 0.
+            trn_loss_lower = 0.
+            trn_loss_upper = 0.
+            trn_loss_combined = 0.
+            trn_mse_value = 0.
+            trn_mape_value = 0.
+            trn_mae_value = 0.
+
+            train_msg = f'Training epoch {i+1} of {self.num_epochs}'
+            for j, (phy_dat, aux_dat, lbls) in tqdm(enumerate(trainloader),
+                                                    total=num_batches,
+                                                    desc=train_msg,
+                                                    smoothing=0):
+                
+                # short cut batches for training
+                # if j > 1:
+                #     break
+                
+                # send labels to device
+                lbls.to(self.TORCH_DEVICE)
+                #phy_dat.to(self.TORCH_DEVICE)
+                #aux_dat.to(self.TORCH_DEVICE)
+                
+                # reset gradients for tensors
+                optimizer.zero_grad()
+                
+                # forward pass of training data to estimate labels
+                lbls_hat = self.model(phy_dat, aux_dat)
+
+                # calculating the loss between original and predicted data points
+                loss_value     = loss_value_func(lbls_hat[0], lbls)
+                loss_lower     = loss_lower_func(lbls_hat[1], lbls)
+                loss_upper     = loss_upper_func(lbls_hat[2], lbls)
+                loss_combined  = loss_value + loss_lower + loss_upper
+
+                # collect history stats
+                trn_loss_value    += loss_value.item() / num_batches
+                trn_loss_lower    += loss_lower.item() / num_batches
+                trn_loss_upper    += loss_upper.item() / num_batches
+                trn_loss_combined += loss_combined.item() / num_batches
+                trn_mse_value     += ( torch.mean((lbls - lbls_hat[0])**2) ).item() / num_batches
+                trn_mae_value     += ( torch.mean(torch.abs(lbls - lbls_hat[0])) ).item() / num_batches
+                trn_mape_value    += ( torch.mean(torch.abs((lbls - lbls_hat[0]) / lbls)) ).item() / num_batches
+                
+                # backward pass to update gradients
+                loss_combined.backward()
+
+                # update network parameters
+                optimizer.step()
+                #lr_scheduler.step()
+            
+            train_metric_vals = [ trn_loss_lower, trn_loss_upper, trn_loss_value,
+                                  trn_loss_combined, trn_mse_value,
+                                  trn_mae_value, trn_mape_value ]
+
+            # forward pass of validation to estimate labels
+            val_lbls_hat       = self.model(val_phy_dat, val_aux_dat)
+
+            # collect validation metrics
+            val_loss_value     = loss_value_func(val_lbls_hat[0], val_lbls).item()
+            val_loss_lower     = loss_lower_func(val_lbls_hat[1], val_lbls).item()
+            val_loss_upper     = loss_upper_func(val_lbls_hat[2], val_lbls).item()
+            val_loss_combined  = val_loss_value + val_loss_lower + val_loss_upper
+            val_mse_value      = ( torch.mean((val_lbls - val_lbls_hat[0])**2) ).item()
+            val_mae_value      = ( torch.mean(torch.abs(val_lbls - val_lbls_hat[0])) ).item()
+            val_mape_value     = ( torch.mean(torch.abs((val_lbls - val_lbls_hat[0]) / val_lbls)) ).item()
+            val_metric_vals = [ val_loss_value, val_loss_lower, val_loss_upper,
+                                val_loss_combined, val_mse_value, val_mae_value,
+                                val_mape_value ]
+
+            # self.train_history.loc[len(self.train_history.index)] = [i, 'train', 'loss_lower',     trn_loss_lower]
+            # self.train_history.loc[len(self.train_history.index)] = [i, 'train', 'loss_upper',     trn_loss_upper]
+            # self.train_history.loc[len(self.train_history.index)] = [i, 'train', 'loss_value',     trn_loss_value]
+            # self.train_history.loc[len(self.train_history.index)] = [i, 'train', 'loss_combined',  trn_loss_combined]
+            # self.train_history.loc[len(self.train_history.index)] = [i, 'train', 'mse_value',      trn_mse_value]
+            # self.train_history.loc[len(self.train_history.index)] = [i, 'train', 'mae_value',      trn_mae_value]
+            # self.train_history.loc[len(self.train_history.index)] = [i, 'train', 'mape_value',     trn_mape_value]            
+            # self.train_history.loc[len(self.train_history.index)] = [i, 'validation', 'loss_value',     val_loss_value]
+            # self.train_history.loc[len(self.train_history.index)] = [i, 'validation', 'loss_lower',     val_loss_lower]
+            # self.train_history.loc[len(self.train_history.index)] = [i, 'validation', 'loss_upper',     val_loss_upper]
+            # self.train_history.loc[len(self.train_history.index)] = [i, 'validation', 'loss_combined',  val_loss_combined ]
+            # self.train_history.loc[len(self.train_history.index)] = [i, 'validation', 'mse_value',      val_mse_value]
+            # self.train_history.loc[len(self.train_history.index)] = [i, 'validation', 'mae_value',      val_mae_value]
+            # self.train_history.loc[len(self.train_history.index)] = [i, 'validation', 'mape_value',     val_mape_value]
+
+            # raw training metrics for epoch
+            trn_loss_str = f'    Train        --   loss: {"{0:.4f}".format(trn_loss_combined)}'
+            val_loss_str = f'    Validation   --   loss: {"{0:.4f}".format(val_loss_combined)}'
+            
+            # changes in training metrics between epochs
+            if i > 0:
+                diff_trn_loss = trn_loss_combined - prev_trn_loss_combined
+                diff_val_loss = val_loss_combined - prev_val_loss_combined
+                rat_trn_loss  = 100 * round(trn_loss_combined / prev_trn_loss_combined - 1.0, ndigits=3)
+                rat_val_loss  = 100 * round(val_loss_combined / prev_val_loss_combined - 1.0, ndigits=3)
+                
+                diff_trn_loss_str = '{0:+.4f}'.format(diff_trn_loss)
+                diff_val_loss_str = '{0:+.4f}'.format(diff_val_loss)
+                rat_trn_loss_str  = '{0:+.2f}'.format(rat_trn_loss).rjust(4, ' ')
+                rat_val_loss_str  = '{0:+.2f}'.format(rat_val_loss).rjust(4, ' ')
+            
+                trn_loss_str += f'  abs: {diff_trn_loss_str}  rel: {rat_trn_loss_str}%'
+                val_loss_str += f'  abs: {diff_val_loss_str}  rel: {rat_val_loss_str}%'
+
+            prev_trn_loss_combined = trn_loss_combined
+            prev_val_loss_combined = val_loss_combined
+
+            # display training metric progress
+            print(trn_loss_str)
+            print(val_loss_str)
+            print('')
+
+            # update train history log
+            self.update_train_history(i, metric_names, train_metric_vals, 'train')
+            self.update_train_history(i, metric_names, val_metric_vals, 'validation')
+
+        # print(self.train_history)
+        return
+
+    def update_train_history(self, epoch, metric_names, metric_vals, dataset_name='train',):
+        """Updates train history dataframe.
+        
+        This function appends new rows to the train history dataframe.
+        
+        Args:
+            metric_names (list): names for metrics to be logged
+            metric_vals (list): values for metrics to be logged
+            dataset_name (str): name of dataset that is logged (e.g. train or validation)
+
+        """
+
+        assert(len(metric_names) == len(metric_vals))
+        
+        for i,(j,k) in enumerate(zip(metric_names, metric_vals)):
+            self.train_history.loc[len(self.train_history.index)] = [ epoch, dataset_name, j, k ]
+        
         return
 
     def make_results(self):
@@ -600,16 +632,25 @@ class CnnTrainer(Trainer):
         """
         
         # training label estimates
-        norm_train_label_est = self.mymodel.predict([self.train_phy_data_tensor, self.train_aux_data_tensor])
-        norm_train_label_est = np.array(norm_train_label_est)
+        trainloader = torch.utils.data.DataLoader(dataset=self.train_dataset,
+                                                  batch_size = 1000)
+        train_phy_dat, train_aux_dat, train_lbl = next(iter(trainloader))
+        norm_train_label_est = self.model(train_phy_dat, train_aux_dat)
+        
+        # we want an array of 3 outputs [point, lower, upper], N examples, K parameters
+        norm_train_label_est = torch.stack(norm_train_label_est).detach().numpy()
         self.train_label_est = util.denormalize(norm_train_label_est,
                                                 self.train_labels_mean_sd,
                                                 exp=True) - self.log_offset
  
-        # calibration label estimates + CPI adjustment
-        norm_calib_label_est = self.mymodel.predict([self.calib_phy_data_tensor,
-                                                     self.calib_aux_data_tensor])
-        norm_calib_label_est = np.array(norm_calib_label_est)
+        # make initial CPI estimates
+        calibloader = torch.utils.data.DataLoader(dataset = self.calib_dataset,
+                                                  batch_size = self.calib_phy_data_tensor.shape[0])
+        calib_phy_dat, calib_aux_dat, calib_lbl = next(iter(calibloader))
+        norm_calib_label_est = self.model(calib_phy_dat, calib_aux_dat)
+
+        # make CPI adjustments
+        norm_calib_label_est = torch.stack(norm_calib_label_est).detach().numpy()
         norm_calib_est_quantiles = norm_calib_label_est[1:,:,:]
         self.cpi_adjustments = self.get_CQR_constant(norm_calib_est_quantiles,
                                                      self.norm_calib_labels,
@@ -617,7 +658,7 @@ class CnnTrainer(Trainer):
                                                      asymmetric=self.cpi_asymmetric)
         self.cpi_adjustments = np.array(self.cpi_adjustments).reshape((2,-1))
     
-        # training predictions with calibrated CQR CIs
+        # make final CPI estimates
         norm_train_label_est_calib = norm_train_label_est
         norm_train_label_est_calib[1,:,:] = norm_train_label_est_calib[1,:,:] - self.cpi_adjustments[0,:]
         norm_train_label_est_calib[2,:,:] = norm_train_label_est_calib[2,:,:] + self.cpi_adjustments[1,:]
@@ -626,7 +667,8 @@ class CnnTrainer(Trainer):
                                                       exp=True) - self.log_offset
 
         return
-    
+
+
     def save_results(self):
         """Save training results.
 
@@ -637,30 +679,29 @@ class CnnTrainer(Trainer):
         """
         max_idx = 1000
         
-        # save model to file
-        #self.mymodel.save('my_model.keras')
-        self.mymodel.save(self.model_arch_fn)
+        # format str
+        float_fmt_str = '%.4e' #'{{:0.{:d}e}}'.format(util.OUTPUT_PRECISION)
 
-        # save weights to file
-        self.mymodel.save_weights(self.model_weights_fn)
+        # save model to file
+        torch.save(self.model, self.model_arch_fn)
 
         # save json history from running MASTER
-        json.dump(self.history_dict, open(self.model_history_fn, 'w'))
+        self.train_history.to_csv(self.model_history_fn, index=False, sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
 
 
         # save aux_data names, means, sd for new test dataset normalization
-        df_aux_data = pd.DataFrame([self.aux_data_names,
-                                    self.train_aux_data_mean_sd[0],
-                                    self.train_aux_data_mean_sd[1]]).T
-        df_aux_data.columns = ['name', 'mean', 'sd']
-        df_aux_data.to_csv(self.train_aux_data_norm_fn, index=False, sep=',')
+        df_aux_data = pd.DataFrame({'name':self.aux_data_names,
+                                    'mean':self.train_aux_data_mean_sd[0],
+                                    'sd':self.train_aux_data_mean_sd[1]})
+        #df_aux_data.columns = ['name', 'mean', 'sd']
+        df_aux_data.to_csv(self.train_aux_data_norm_fn, index=False, sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
  
         # save label names, means, sd for new test dataset normalization
-        df_labels = pd.DataFrame([self.label_names,
-                                  self.train_labels_mean_sd[0],
-                                  self.train_labels_mean_sd[1]]).T
-        df_labels.columns = ['name', 'mean', 'sd']
-        df_labels.to_csv(self.train_labels_norm_fn, index=False, sep=',')
+        df_labels = pd.DataFrame({'name':self.label_names,
+                                  'mean':self.train_labels_mean_sd[0],
+                                  'sd':self.train_labels_mean_sd[1]})
+        #df_labels.columns = ['name', 'mean', 'sd']
+        df_labels.to_csv(self.train_labels_norm_fn, index=False, sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
 
         # save train/test scatterplot results (Value, Lower, Upper)
         df_train_label_est_nocalib = util.make_param_VLU_mtx(self.train_label_est[0:max_idx,:], self.label_names )
@@ -673,96 +714,14 @@ class CnnTrainer(Trainer):
         df_cpi_intervals = pd.DataFrame( self.cpi_adjustments, columns=self.label_names )
 
         # convert to csv and save
-        df_train_label_est_nocalib.to_csv(self.train_label_est_nocalib_fn, index=False, sep=',')
-        df_train_label_est_calib.to_csv(self.train_label_est_calib_fn, index=False, sep=',')
-        df_train_label_true.to_csv(self.train_label_true_fn, index=False, sep=',')
-        df_cpi_intervals.to_csv(self.model_cpi_fn, index=False, sep=',')
+        df_train_label_est_nocalib.to_csv(self.train_label_est_nocalib_fn, index=False, sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
+        df_train_label_est_calib.to_csv(self.train_label_est_calib_fn, index=False, sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
+        df_train_label_true.to_csv(self.train_label_true_fn, index=False, sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
+        df_cpi_intervals.to_csv(self.model_cpi_fn, index=False, sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
 
         return
 
 #------------------------------------------------------------------------------#
-
-    def pinball_loss(self, y_true, y_pred, alpha):
-        """Calculate the pinball loss.
-
-        This function calculates the pinball Loss, which measures the
-        difference between the true target values (`y_true`) and the predicted
-        target values (`y_pred`) for a quantile regression model. Used for
-        quantile regression.
-
-        The Pinball Loss is calculated using the following formula:
-            mean(maximum(alpha * err, (alpha - 1) * err))
-
-        Arguments:
-            y_true (numpy.ndarray): Array of true target values.
-            y_pred (numpy.ndarray): Array of predicted target values.
-            alpha (float): Quantile level.
-
-        Returns:
-            float: Value of pinball loss
-
-        """
-
-        err = y_true - y_pred
-        return K.mean(K.maximum(alpha*err, (alpha-1)*err), axis=-1)
-
-    
-    def pinball_loss_q_0_025(self, y_true, y_pred):
-        """Pinball loss for lower 95% quantile"""
-        return self.pinball_loss(y_true, y_pred, alpha=0.025)
-    
-    def pinball_loss_q_0_975(self, y_true, y_pred):
-        """Pinball loss for upper 95% quantile"""
-        return self.pinball_loss(y_true, y_pred, alpha=0.975)
-    
-    def pinball_loss_q_0_05(self, y_true, y_pred):
-        """Pinball loss for lower 90% quantile"""
-        return self.pinball_loss(y_true, y_pred, alpha=0.05)
-    
-    def pinball_loss_q_0_95(self, y_true, y_pred):
-        """Pinball loss for upper 90% quantile"""
-        return self.pinball_loss(y_true, y_pred, alpha=0.95)
-    
-    def pinball_loss_q_0_10(self, y_true, y_pred):
-        """Pinball loss for lower 80% quantile"""
-        return self.pinball_loss(y_true, y_pred, alpha=0.10)
-    
-    def pinball_loss_q_0_90(self, y_true, y_pred):
-        """Pinball loss for upper 80% quantile"""
-        return self.pinball_loss(y_true, y_pred, alpha=0.90)
-    
-    def pinball_loss_q_0_15(self, y_true, y_pred):
-        """Pinball loss for lower 70% quantile"""
-        return self.pinball_loss(y_true, y_pred, alpha=0.15)
-    
-    def pinball_loss_q_0_85(self, y_true, y_pred):
-        """Pinball loss for upper 70% quantile"""
-        return self.pinball_loss(y_true, y_pred, alpha=0.85)
-
-    def get_pinball_loss_fns(self, coverage):
-        """Gets correct pinball loss functions.
-
-        The CnnTrainer class currently implements lower and upper quantiles for
-        70%, 80%, 90%, 95%.
-
-        Arguments:
-            coverage (float): The desired coverage level.
-
-        Returns:
-            tuple: Two pinball loss functions for the specified coverage level.
-
-        """
-
-        if coverage == 0.95:
-            return self.pinball_loss_q_0_025, self.pinball_loss_q_0_975
-        elif coverage == 0.90:
-            return self.pinball_loss_q_0_05, self.pinball_loss_q_0_95
-        elif coverage == 0.80:
-            return self.pinball_loss_q_0_10, self.pinball_loss_q_0_90
-        elif coverage == 0.70:
-            return self.pinball_loss_q_0_15, self.pinball_loss_q_0_85
-        else:
-            raise NotImplementedError
         
     def get_CQR_constant(self, ests, true, inner_quantile=0.95, asymmetric = True):
         """Computes the conformalized quantile regression (CQR) constants.
@@ -826,185 +785,4 @@ class CnnTrainer(Trainer):
                                 
         return Q
     
-    def train_torch(self):
-        
-
-        # dataset
-        dataset_torch = PhyddleDataset()
-        trainloader = DataLoader(dataset=dataset_torch,
-                                 batch_size=self.trn_batch_size)
-
-        # model stuff
-        model_torch = NeuralNetwork()
-        loss_func_torch = torch.nn.MSELoss()
-        optimizer_torch = torch.optim.Adam(model_torch.parameters(), lr=0.01)
-
-        # test one iteration of training
-        #phy_dat, aux_dat, lbls = list(self.trainloader)[0]
-        #lbls_hat = self.model_torch(phy_dat, aux_dat)
-
-        # training
-        loss_Adam = []
-        running_loss = 0
-        for i in range(self.num_epochs):
-            for phy_dat, aux_dat, lbls in trainloader:
-                # making a prediction in forward pass
-                lbls_hat = model_torch(phy_dat, aux_dat)[0]
-                # calculating the loss between original and predicted data points
-                loss = loss_func_torch(lbls_hat, lbls)
-                # store loss into list
-                loss_Adam.append(loss.item())
-                # zeroing gradients after each iteration
-                optimizer_torch.zero_grad()
-                # backward pass for computing the gradients of the loss w.r.t to learnable parameters
-                loss.backward()
-                # updateing the parameters after each iteration
-                optimizer_torch.step()
-
-        #print(lbls_hat)
-        #print(lbls)
-        return
-    
 #------------------------------------------------------------------------------#
-
-
-class PhyddleDataset(Dataset):    
-    # Constructor
-    def __init__(self, phy_data, aux_data, labels, phy_dat_shape):
-        
-        # self.labels     = pd.read_csv(labels_fn, sep=',').to_numpy(dtype='float32')
-        # self.phy_data   = pd.read_csv(phy_dat_fn, sep=',', header=None).to_numpy(dtype='float32')
-        # self.aux_data   = pd.read_csv(aux_dat_fn, sep=',').to_numpy(dtype='float32')
-        #self.labels = 
-        
-        self.phy_data = phy_data
-        self.aux_data = aux_data
-        self.labels   = labels
-
-        self.phy_data.dtype = 'float32'
-        self.aux_data.dtype = 'float32'
-        self.labels.dtype   = 'float32'
-
-        self.len = self.labels.shape[0]
-        #self.phy_data.shape = (self.len, phy_dat_shape[0], phy_dat_shape[1])
-    
-
-    # Getting the dataq
-    def __getitem__(self, index):    
-        return self.phy_data[index], self.aux_data[index], self.labels[index]
-    
-    # Getting length of the data
-    def __len__(self):
-        return self.len
-
-
-
-
-class NeuralNetwork(nn.Module):
-    def __init__(self):
-        super(NeuralNetwork, self).__init__()
-
-        self.num_tree_rows = 4
-        self.num_data_rows = 6
-        self.num_total_rows = self.num_tree_rows + self.num_data_rows
-        self.num_aux_data_col = 20
-        self.num_labels = 4
-        input_channels = 1
-        input_size = 320 # concat width???
-        
-        
-        # Phylogenetic Tensor layers
-        # Standard convolution layers
-        self.conv_std1 = nn.Conv1d(in_channels=self.num_total_rows, out_channels=64, kernel_size=3, padding='same')
-        self.conv_std2 = nn.Conv1d(in_channels=64, out_channels=96, kernel_size=5, padding='same')
-        self.conv_std3 = nn.Conv1d(in_channels=96, out_channels=128, kernel_size=7, padding='same')
-        self.pool_std = nn.AdaptiveAvgPool1d(1)
-
-        # Stride convolution layers
-        self.conv_stride1 = nn.Conv1d(in_channels=self.num_total_rows, out_channels=64, kernel_size=7, stride=3)
-        self.conv_stride2 = nn.Conv1d(in_channels=64, out_channels=96, kernel_size=9, stride=6)
-        self.pool_stride = nn.AdaptiveAvgPool1d(1)
-
-        # Dilated convolution layers
-        self.conv_dilate1 = nn.Conv1d(in_channels=self.num_total_rows, out_channels=32, kernel_size=3, dilation=2, padding='same')
-        self.conv_dilate2 = nn.Conv1d(in_channels=32, out_channels=64, kernel_size=5, dilation=4, padding='same')
-        self.pool_dilate = nn.AdaptiveAvgPool1d(1)
-
-        # self.conv_std1.float()
-        # self.conv_stride1.float()
-        # self.conv_dilate1.float()
-
-        # Auxiliary Data layers
-        self.aux_ffnn_1 = nn.Linear(self.num_aux_data_col, 128)
-        self.aux_ffnn_2 = nn.Linear(128, 64)
-        self.aux_ffnn_3 = nn.Linear(64, 32)
-
-        # Label Value layers
-        self.point_ffnn1 = nn.Linear(input_size, 128)
-        self.point_ffnn2 = nn.Linear(128, 64)
-        self.point_ffnn3 = nn.Linear(64, 32)
-        self.point_ffnn4 = nn.Linear(32, self.num_labels)
-
-        # Label Lower layers
-        self.lower_ffnn1 = nn.Linear(input_size, 128)
-        self.lower_ffnn2 = nn.Linear(128, 64)
-        self.lower_ffnn3 = nn.Linear(64, 32)
-        self.lower_ffnn4 = nn.Linear(32, self.num_labels)
-        
-        # Label Upper layers
-        self.upper_ffnn1 = nn.Linear(input_size, 128)
-        self.upper_ffnn2 = nn.Linear(128, 64)
-        self.upper_ffnn3 = nn.Linear(64, 32)
-        self.upper_ffnn4 = nn.Linear(32, self.num_labels)
-
-    def forward(self, phy_dat, aux_dat):
-
-        # Phylogenetic Tensor forwarding
-        # Standard convolutions
-        phy_dat = phy_dat.float()
-        aux_dat = aux_dat.float()
-        x_std = nn.ReLU()(self.conv_std1(phy_dat))
-        x_std = nn.ReLU()(self.conv_std2(x_std))
-        x_std = nn.ReLU()(self.conv_std3(x_std))
-        x_std = self.pool_std(x_std)
-
-        # Stride convolutions
-        x_stride = nn.ReLU()(self.conv_stride1(phy_dat))
-        x_stride = nn.ReLU()(self.conv_stride2(x_stride))
-        x_stride = self.pool_stride(x_stride)
-
-        # Dilated convolutions
-        x_dilated = nn.ReLU()(self.conv_dilate1(phy_dat))
-        x_dilated = nn.ReLU()(self.conv_dilate2(x_dilated))
-        x_dilated = self.pool_dilate(x_dilated)
-
-        # Auxiliary Data Tensor forwarding
-        x_aux_ffnn = F.relu(self.aux_ffnn_1(aux_dat))
-        x_aux_ffnn = F.relu(self.aux_ffnn_2(x_aux_ffnn))
-        x_aux_ffnn = F.relu(self.aux_ffnn_3(x_aux_ffnn))
-
-        # Concatenate phylo and aux layers
-        x_cat = torch.cat((x_std, x_stride, x_dilated, x_aux_ffnn.unsqueeze(dim=2)), dim=1).squeeze()
-        
-        # Point estimate path
-        x_point_est = F.relu(self.point_ffnn1(x_cat))
-        x_point_est = F.relu(self.point_ffnn2(x_point_est))
-        x_point_est = F.relu(self.point_ffnn3(x_point_est))
-        x_point_est = self.point_ffnn4(x_point_est)
-
-        # Lower quantile path
-        x_lower_quantile = F.relu(self.lower_ffnn1(x_cat))
-        x_lower_quantile = F.relu(self.lower_ffnn2(x_lower_quantile))
-        x_lower_quantile = F.relu(self.lower_ffnn3(x_lower_quantile))
-        x_lower_quantile = self.lower_ffnn4(x_lower_quantile)
-
-        # Upper quantile path
-        x_upper_quantile = F.relu(self.upper_ffnn1(x_cat))
-        x_upper_quantile = F.relu(self.upper_ffnn2(x_upper_quantile))
-        x_upper_quantile = F.relu(self.upper_ffnn3(x_upper_quantile))
-        x_upper_quantile = self.upper_ffnn4(x_upper_quantile)
-
-        # https://medium.com/the-artificial-impostor/quantile-regression-part-2-6fdbc26b2629
-        # return loss
-        return (x_point_est, x_lower_quantile, x_upper_quantile)
-

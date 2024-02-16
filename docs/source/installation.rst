@@ -65,12 +65,20 @@ Once cloned, you can build phyddle into a local Python package
 System configuration
 --------------------
 
-phyddle is regularly tested on Mac OS X 11.6.4 (Intel CPU) and Python
-3.11.3 (installed with homebrew). phyddle is also intermittently tested 
+phyddle is regularly tested on Mac OS X 14.2.1 (Intel CPU) and Python
+3.11.7 (installed with homebrew). phyddle is also intermittently tested 
 on a 64-core Ubuntu LTS 22.04 server using Python 3.xx.xx (aptitude) and 
 similar package versions. 
 
-Last tested Python package versions are:
+To install required Python packages
+
+.. code-block:: shell
+
+    python3 -m ensurepip --upgrade
+    python3 -m pip install --upgrade pip
+    python3 -m pip install dendropy graphviz h5py keras matplotlib numpy pandas Pillow pydot_ng pypdf scikit-learn scipy torch torchview tqdm
+
+Last tested Python package versions are
 
 .. code-block:: shell
 
@@ -81,18 +89,12 @@ Last tested Python package versions are:
   matplotlib 3.7.1
   numpy 1.23.5
   pandas 2.0.0 
+  Pillow 10.1.0
   pydot_ng 2.0.2
   pypdf 3.12.0
   scikit-learn 1.2.2
-  scipy 1.10.1
-  tensorflow 2.12.0
+  scipy 1.11.4
+  torch 2.0.0
+  torchview 0.2.6
   tqdm 4.65.0
-
-To install these packages:
-
-.. code-block:: shell
-
-    python3 -m ensurepip --upgrade
-    python3 -m pip install --upgrade pip
-    python3 -m pip install dendropy graphviz h5py keras matplotlib numpy pandas pydot_ng pypdf scikit-learn scipy tensorflow tqdm
 

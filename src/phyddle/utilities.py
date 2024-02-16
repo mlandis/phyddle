@@ -32,9 +32,11 @@ import __main__ as main
 from . import PHYDDLE_VERSION, CONFIG_DEFAULT_FN
 
 # Precision settings
-NUM_DIGITS = 10
-np.set_printoptions(floatmode='maxprec', precision=NUM_DIGITS)
-pd.set_option('display.precision', NUM_DIGITS)
+OUTPUT_PRECISION = 16
+PANDAS_FLOAT_FMT_STR = f'%.{OUTPUT_PRECISION}e'
+NUMPY_FLOAT_FMT_STR  = '{{:0.{:d}e}}'.format(OUTPUT_PRECISION)
+np.set_printoptions(floatmode='maxprec', precision=OUTPUT_PRECISION)
+pd.set_option('display.precision', OUTPUT_PRECISION)
 pd.set_option('display.float_format', lambda x: f'{x:,.3f}')
 
 # Tensorflow info messages
@@ -108,19 +110,21 @@ def settings_registry():
         'step'             : { 'step':'SFTEP', 'type':str,  'section':'Basic', 'default':'SFTEP',      'help':'Pipeline step(s) defined with (S)imulate, (F)ormat, (T)rain, (E)stimate, (P)lot, or (A)ll', 'opt':'s' },
         'verbose'          : { 'step':'SFTEP', 'type':str,  'section':'Basic', 'default':'T',          'help':'Verbose output to screen?', 'bool':True, 'opt':'v' },
         'force'            : { 'step':'',      'type':None, 'section':'Basic', 'default':None,         'help':'Arguments override config file settings', 'opt':'f' },
-        'make_cfg'         : { 'step':'',      'type':None, 'section':'Basic', 'default':None,         'help':"Write default config file to '__config_default.py'?'" },
+        'make_cfg'         : { 'step':'',      'type':None, 'section':'Basic', 'default':None,         'help':"Write default config file to '__config_default.py'?" },
+        'output_precision' : { 'step':'SFTEP', 'type':int,  'section':'Basic', 'default':16,           'help':'Number of digits (precision) for numbers in output files' },
 
         # analysis options 
-        'use_parallel'     : { 'step':'SF', 'type':str, 'section':'Analysis', 'default':'T', 'help':'Use parallelization? (recommended)', 'bool':True },
-        'num_proc'         : { 'step':'SF', 'type':int, 'section':'Analysis', 'default':-2, 'help':'Number of cores for multiprocessing (-N for all but N)' },
+        'use_parallel'     : { 'step':'SF',  'type':str, 'section':'Analysis', 'default':'T', 'help':'Use parallelization? (recommended)', 'bool':True },
+        'num_proc'         : { 'step':'SFT', 'type':int, 'section':'Analysis', 'default':-2, 'help':'Number of cores for multiprocessing (-N for all but N)' },
         
         # directories
-        'sim_dir'          : { 'step':'SF',    'type':str, 'section':'Workspace', 'default':'../workspace/simulate', 'help':'Directory for raw simulated data' },
-        'fmt_dir'          : { 'step':'FTEP',  'type':str, 'section':'Workspace', 'default':'../workspace/format',   'help':'Directory for tensor-formatted simulated data' },
-        'trn_dir'          : { 'step':'FTEP',  'type':str, 'section':'Workspace', 'default':'../workspace/train',    'help':'Directory for trained networks and training output' },
-        'est_dir'          : { 'step':'TEP',   'type':str, 'section':'Workspace', 'default':'../workspace/estimate', 'help':'Directory for new datasets and estimates' },
-        'plt_dir'          : { 'step':'P',     'type':str, 'section':'Workspace', 'default':'../workspace/plot',     'help':'Directory for plotted results' },
-        'log_dir'          : { 'step':'SFTEP', 'type':str, 'section':'Workspace', 'default':'../workspace/log',      'help':'Directory for logs of analysis metadata' },
+        'work_dir'         : { 'step':'SFTEP', 'type':str, 'section':'Workspace', 'default':'../workspace/',  'help':'Directory where projects are stored (workspace)' },
+        'sim_dir'          : { 'step':'SF',    'type':str, 'section':'Workspace', 'default':'simulate',       'help':'Directory for raw simulated data' },
+        'fmt_dir'          : { 'step':'FTEP',  'type':str, 'section':'Workspace', 'default':'format',         'help':'Directory for tensor-formatted simulated data' },
+        'trn_dir'          : { 'step':'FTEP',  'type':str, 'section':'Workspace', 'default':'train',          'help':'Directory for trained networks and training output' },
+        'est_dir'          : { 'step':'TEP',   'type':str, 'section':'Workspace', 'default':'estimate',       'help':'Directory for new datasets and estimates' },
+        'plt_dir'          : { 'step':'P',     'type':str, 'section':'Workspace', 'default':'plot',           'help':'Directory for plotted results' },
+        'log_dir'          : { 'step':'SFTEP', 'type':str, 'section':'Workspace', 'default':'log',            'help':'Directory for logs of analysis metadata' },
 
         # simulation options
         'sim_command'      : { 'step':'S',  'type':str, 'section':'Simulate', 'default':None,    'help':'Simulation command to run single job (see documentation)' },
@@ -142,8 +146,8 @@ def settings_registry():
         'tree_encode'      : { 'step':'FTE',  'type':str,   'section':'Format', 'default':'extant',       'help':'Encoding strategy for tree',                   'choices':['extant', 'serial'] },
         'brlen_encode'     : { 'step':'FTE',  'type':str,   'section':'Format', 'default':'height_brlen', 'help':'Encoding strategy for branch lengths',         'choices':['height_only', 'height_brlen'] },
         'char_encode'      : { 'step':'FTE',  'type':str,   'section':'Format', 'default':'one_hot',      'help':'Encoding strategy for character data',         'choices':['one_hot', 'integer', 'numeric'] },
-        'param_est'        : { 'step':'FTE',  'type':list,  'section':'Format', 'default':None,           'help':'Model parameters to estimate' },
-        'param_data'       : { 'step':'FTE',  'type':list,  'section':'Format', 'default':None,           'help':'Model parameters treated as data' },
+        'param_est'        : { 'step':'FTE',  'type':list,  'section':'Format', 'default':['my_rate'],    'help':'Model parameters to estimate' },
+        'param_data'       : { 'step':'FTE',  'type':list,  'section':'Format', 'default':['my_stat'],    'help':'Model parameters treated as data' },
         'char_format'      : { 'step':'FTE',  'type':str,   'section':'Format', 'default':'nexus',        'help':'File format for character data',               'choices':['csv', 'nexus'] },
         'tensor_format'    : { 'step':'FTEP', 'type':str,   'section':'Format', 'default':'hdf5',         'help':'File format for training example tensors',     'choices':['csv', 'hdf5'] },
         'save_phyenc_csv'  : { 'step':'F',    'type':str,   'section':'Format', 'default':'F',            'help':'Save encoded phylogenetic tensor encoding to csv?', 'bool':True },
@@ -161,23 +165,80 @@ def settings_registry():
         'loss'             : { 'step':'T',   'type':str,   'section':'Train', 'default':'mse',         'help':'Loss function for optimization', 'choices':['mse', 'mae']},
         'optimizer'        : { 'step':'T',   'type':str,   'section':'Train', 'default':'adam',        'help':'Method used for optimizing neural network', 'choices':['adam'] },
         'metrics'          : { 'step':'T',   'type':list,  'section':'Train', 'default':['mae','acc'], 'help':'Recorded training metrics' },
-        'log_offset'       : { 'step':'FTEP', 'type':float, 'section':'Train', 'default':1.0,         'help':'Offset size c when taking ln(x+c) for potentially zero-valued variables' },
+        'log_offset'       : { 'step':'FTEP', 'type':float, 'section':'Train', 'default':1.0,          'help':'Offset size c when taking ln(x+c) for potentially zero-valued variables' },
+        'phy_channel_plain'  : { 'step':'T',   'type':list,  'section':'Train', 'default':[64,96,128],   'help':'Output channel sizes for plain convolutional layers for phylogenetic state input' },
+        'phy_channel_stride' : { 'step':'T',   'type':list,  'section':'Train', 'default':[64,96],       'help':'Output channel sizes for stride convolutional layers for phylogenetic state input' },
+        'phy_channel_dilate' : { 'step':'T',   'type':list,  'section':'Train', 'default':[32,64],       'help':'Output channel sizes for dilate convolutional layers for phylogenetic state input' },
+        'aux_channel'        : { 'step':'T',   'type':list,  'section':'Train', 'default':[128,64,32],   'help':'Output channel sizes for dense layers for auxiliary data input' },
+        'lbl_channel'        : { 'step':'T',   'type':list,  'section':'Train', 'default':[128,64,32],   'help':'Output channel sizes for dense layers for label outputs' },
+        'phy_kernel_plain'   : { 'step':'T',   'type':list,  'section':'Train', 'default':[3,5,7],       'help':'Kernel sizes for plain convolutional layers for phylogenetic state input' },
+        'phy_kernel_stride'  : { 'step':'T',   'type':list,  'section':'Train', 'default':[7,9],         'help':'Kernel sizes for stride convolutional layers for phylogenetic state input' },
+        'phy_kernel_dilate'  : { 'step':'T',   'type':list,  'section':'Train', 'default':[3,5],         'help':'Kernel sizes for dilate convolutional layers for phylogenetic state input' },
+        'phy_stride_stride'  : { 'step':'T',   'type':list,  'section':'Train', 'default':[3,6],         'help':'Stride sizes for stride convolutional layers for phylogenetic state input' },
+        'phy_dilate_dilate'  : { 'step':'T',   'type':list,  'section':'Train', 'default':[3,5],         'help':'Dilation sizes for dilate convolutional layers for phylogenetic state input' },
         
         # estimating options
         'est_prefix'       : { 'step':'EP', 'type':str, 'section':'Estimate', 'default':None, 'help':'Predict results for this dataset' },
 
         # plotting options
         'plot_train_color' : { 'step':'P',  'type':str, 'section':'Plot', 'default':'blue',   'help':'Plotting color for training data elements' },
-        'plot_label_color' : { 'step':'P',  'type':str, 'section':'Plot', 'default':'purple', 'help':'Plotting color for training label elements' },
-        'plot_test_color'  : { 'step':'P',  'type':str, 'section':'Plot', 'default':'red',    'help':'Plotting color for test data elements' },
-        'plot_val_color'   : { 'step':'P',  'type':str, 'section':'Plot', 'default':'green',  'help':'Plotting color for validation data elements' },
-        'plot_aux_color'   : { 'step':'P',  'type':str, 'section':'Plot', 'default':'orange', 'help':'Plotting color for auxiliary data elements' },
+        'plot_label_color' : { 'step':'P',  'type':str, 'section':'Plot', 'default':'orange', 'help':'Plotting color for training label elements' },
+        'plot_test_color'  : { 'step':'P',  'type':str, 'section':'Plot', 'default':'purple', 'help':'Plotting color for test data elements' },
+        'plot_val_color'   : { 'step':'P',  'type':str, 'section':'Plot', 'default':'red',    'help':'Plotting color for validation data elements' },
+        'plot_aux_color'   : { 'step':'P',  'type':str, 'section':'Plot', 'default':'green',  'help':'Plotting color for auxiliary data elements' },
         'plot_est_color'   : { 'step':'P',  'type':str, 'section':'Plot', 'default':'black',  'help':'Plotting color for new estimation elements' },
         'plot_scatter_log' : { 'step':'P',  'type':str, 'section':'Plot', 'default':'T',      'help':'Use log values for scatter plots when possible?', 'bool':True },
         'plot_contour_log' : { 'step':'P',  'type':str, 'section':'Plot', 'default':'T',      'help':'Use log values for contour plots when possible?', 'bool':True },
         'plot_density_log' : { 'step':'P',  'type':str, 'section':'Plot', 'default':'T',      'help':'Use log values for density plots when possible?', 'bool':True },
     }
+
+    # Developer note: uncomment to export settings to file
+    # export_settings_to_sphinx_table(settings)
+    
     return settings
+
+
+def export_settings_to_sphinx_table(settings, csv_fn='phyddle_settings.csv'):
+    """Writes all phyddle settings to file as Sphinx-formatted table """
+
+    # setting header
+    s = 'Setting|Step(s)|Type|Description\n'
+    for k,v in settings.items():
+    
+        # setting name
+        s_name = f'``{k}``'
+        
+        # setting step
+        s_step = 'SFTEP'
+        if v['step'] is None:
+            s_step = '––'
+        for i,this_step in enumerate(s_step):
+            if this_step not in v['step']:
+                s_step = s_step.replace(this_step, '–')
+        
+        # setting type
+        if v['type'] is None:
+            s_type = '––'
+        elif v['type'].__name__ == 'list':
+            s_elt_type = type(v['default'][0]).__name__
+            s_type = f'*{s_elt_type}[]*'
+        else:
+            s_type = f'*{v["type"].__name__}*'
+        
+        # setting desc
+        s_desc = v['help']
+        if s_name == 'proj':
+            s_desc += ', *see detailed description* [:ref:`link <setting_description_proj>`]'
+        elif s_name == 'step':
+            s_desc += ', *see detailed description* [:ref:`link <setting_description_step>`]'
+            
+        # setting row
+        s += f'{s_name}|{s_step}|{s_type}|{s_desc}\n'
+    
+    f = open(csv_fn, 'w')
+    f.write(s)
+    f.close()
+    return
 
 
 def load_config(config_fn,
@@ -310,6 +371,15 @@ def load_config(config_fn,
     m['date'] = date_obj.strftime("%y%m%d_%H%M%S")
     m['job_id'] = generate_random_hex_string(7)
     
+    # update output precision
+    global OUTPUT_PRECISION, PANDAS_FLOAT_FMT_STR, NUMPY_FLOAT_FMT_STR
+    OUTPUT_PRECISION     = m['output_precision']
+    PANDAS_FLOAT_FMT_STR = f'%.{OUTPUT_PRECISION}e'
+    NUMPY_FLOAT_FMT_STR  = '{{:0.{:d}e}}'.format(OUTPUT_PRECISION)
+    np.set_printoptions(floatmode='maxprec', precision=OUTPUT_PRECISION)
+    pd.set_option('display.precision', OUTPUT_PRECISION)
+    pd.set_option('display.float_format', lambda x: f'{x:,.6f}')
+
     # print header?
     verbose = m['verbose']
     if verbose:
@@ -323,7 +393,6 @@ def fix_arg_bool(m):
     settings = settings_registry()
     for k,v in settings.items():
         if 'bool' in v and type(m[k]) != str:
-            print(m[k],type(m[k]))
             raise Exception(f"Invalid argument: {k} must be a string")
         elif 'bool' in v and type(m[k]) == str:
             arg_val = m[k]
@@ -614,9 +683,10 @@ def generate_random_hex_string(length):
 
 def set_seed(seed_value):
     
-    # see: https://keras.io/getting_started/faq/#how-can-i-obtain-reproducible-results-using-keras-during-development
-    
-    import tensorflow as tf
+    # Tensorflow (old): https://keras.io/getting_started/faq/#how-can-i-obtain-reproducible-results-using-keras-during-development
+    # PyTorch (current): https://pytorch.org/docs/stable/notes/randomness.html#reproducibility
+
+    import torch
     import numpy as np
     import random
     import os
@@ -624,7 +694,7 @@ def set_seed(seed_value):
     os.environ['PYTHONHASHSEED']=str(seed_value)
     random.seed(seed_value)
     np.random.seed(seed_value)
-    tf.random.set_seed(seed_value)
+    torch.manual_seed(seed_value)
 
     return
 
@@ -674,65 +744,80 @@ def make_symm(m):
     np.fill_diagonal(m, d)  # Restores the original diagonal elements
     return m
 
-def get_num_tree_row(tree_encode, brlen_encode):
-    """Gets number of tree rows.
+def get_num_tree_col(tree_encode, brlen_encode):
+    """Gets number of tree columns (tree width).
     
-    Computes number of rows for encoding tree information using a compact
+    Computes number of columns for encoding tree information using a compact
     phylogenetic vector + states (CPV+S) format.
 
-    CBLV (2 rows) is used if tree_encode == 'serial'. CDV (1 row) is used if
-    tree_encode == 'extant'.
+    CBLV (2 columns) is used if tree_encode == 'serial'. CDV (1 column) is used
+    if tree_encode == 'extant'.
 
-    No extra rows are used if brlen_encode == 'height_only'. Two extra rows
-    are used if brlen_encode == 'height_brlen'.
+    No extra columns are used if brlen_encode == 'height_only'. Two extra
+    columns are used if brlen_encode == 'height_brlen'.
 
     Args:
         tree_encode (str): Use CBLV (serial) or CDV (extant) for tree encoding.
         brlen_encode (str): Use height-only or height + brlen encoding.
 
     Returns:
-        int: The number of rows for the CPV encoding.
+        int: The number of columns for the CPV encoding.
 
     """
 
     if tree_encode == 'serial':
-        num_tree_row = 2
+        num_tree_col = 2
     elif tree_encode == 'extant':
-        num_tree_row = 1
+        num_tree_col = 1
 
     if brlen_encode == 'height_only':
-        num_tree_row += 0
+        num_tree_col += 0
     elif brlen_encode == 'height_brlen':
-        num_tree_row += 2
+        num_tree_col += 2
 
-    return num_tree_row
+    return num_tree_col
 
-def get_num_char_row(state_encode_type, num_char, num_states):
-    """Gets number of character rows.
+def get_num_char_col(state_encode_type, num_char, num_states):
+    """Gets number of character columns.
     
-    Computes number of rows for encoding state information using a compact
+    Computes number of columns for encoding state information using a compact
     phylogenetic vector + states (CPV+S) format.
 
-    Integer encoding uses one row per character, with any number of states
+    Integer encoding uses 1 column per character, with any number of states
     per character.
 
-    One-hot encoding uses k rows per character, where k is the number of
+    One-hot encoding uses k columns per character, where k is the number of
     states.
 
     Args:
         char_encode (str): Use integer or one_hot encoding
         
     Returns:
-        int: The number of rows for the +S encoding.
+        int: The number of columns for the +S encoding.
     
     """
     
     if state_encode_type == 'integer':
-        num_char_row = num_char
+        num_char_col = num_char
     elif state_encode_type == 'one_hot':
-        num_char_row = num_char * num_states
+        num_char_col = num_char * num_states
 
-    return num_char_row
+    return num_char_col
+
+
+def append_row(df, row):
+    """Appends row to Pandas DataFrame
+    
+    Args:
+        df (pd.DataFrame): Dataframe to be updated with K columns
+        row (list): Row of length K to append to df
+
+    Returns
+        pd.DataFrame: The original dataframe with row appended to the end
+    """
+    assert( len(row) == len(df.columns) )
+    df.loc[len(df)] = row
+    return df
 
 
 #------------------------------------------------------------------------------#
@@ -831,7 +916,6 @@ def convert_csv_to_onehot_array(dat_fn, num_states):
     num_taxa = dat_raw.shape[1]
 
     # check/unify number of state per row
-    print(type(num_states))
     if type(num_states) is int:
         num_states = [ num_states ] * dat_raw.shape[0]
 
@@ -974,7 +1058,6 @@ def convert_nexus_to_integer_array(dat_fn):
                 found_matrix = False
                 break
             elif len(tok) == 2:
-                #print(tok)
                 name = tok[0]
                 state = tok[1]
                 taxon_names.append(name)
@@ -1286,7 +1369,7 @@ def make_param_VLU_mtx(A, param_names):
 
     return df
 
-def make_clean_phyloenc_str(x):
+def make_clean_phyenc_str(x):
     """Convert a numpy array to a clean string representation.
 
     This function takes a numpy array `x` and converts it to a clean string
@@ -1301,13 +1384,44 @@ def make_clean_phyloenc_str(x):
     Returns:
         str: The clean string representation of the numpy array.
     """
-    s = np.array2string(x, separator=',', max_line_width=1e200,
-                        threshold=1e200, edgeitems=1e200, precision=10,
-                        floatmode='maxprec')
+    def numpy_formatter(x):
+        if x % 1 == 0:
+            return "{:d}".format(int(x))
+        else:
+            return NUMPY_FLOAT_FMT_STR.format(x)
+
+    s = np.array2string(x, separator=',', max_line_width=1e200, threshold=1e200,
+                        edgeitems=1e200, floatmode='maxprec',
+                        formatter={ 'float_kind' : numpy_formatter })
+
     s = re.sub(r'[\[\]]', '', string=s)
     s = re.sub(r',\n ', '\n', string=s)
-    s = s + '\n'
+
     return s
+
+
+def ndarray_to_flat_str(x):
+    """Converts a numpy.ndarray into flattend csv vector."""
+    # numpy formatter for floats & ints
+    def numpy_formatter(x):
+        if x % 1 == 0:
+            return "{:d}".format(int(x))
+        else:
+            return NUMPY_FLOAT_FMT_STR.format(x)
+
+    # convert ndarray to formatted string
+    s = np.array2string(x, separator=',', max_line_width=1e200, threshold=1e200,
+                        edgeitems=1e200, floatmode='maxprec',
+                        formatter={ 'float_kind' : numpy_formatter })
+    # remove brackets, whitespace
+    s = re.sub(r'[\[\]\n ]', '', string=s)
+    # endline
+    # s = s + '\n'
+    return s
+
+    
+
+
 
 #------------------------------------------------------------------------------#
 

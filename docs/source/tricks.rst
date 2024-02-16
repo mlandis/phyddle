@@ -63,3 +63,11 @@ commands assume a standard phyddle workspace directory structure.
   # ...or, to Simulate more and re-run all steps
   phyddle -c config.py -p my_project --sim_more 4000
 
+**Quick access to workspace directories from console via GUI**
+
+On Mac OS X, you can press the Option key and click a directory path to open
+a Finder window to that directory.
+
+.. image:: click_directory.png
+	:scale: 30%
+	:align: center

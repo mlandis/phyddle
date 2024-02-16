@@ -12,7 +12,6 @@ License:   MIT
 """
 
 # standard imports
-import json
 import os
 
 # external imports
@@ -22,9 +21,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import scipy as sp
-import tensorflow as tf
+import torch
+import torchview
+from PIL import Image
 from pypdf import PdfMerger
-from sklearn import linear_model
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LinearRegression
@@ -97,10 +97,10 @@ class Plotter:
         """
 
         # directories
-        self.trn_proj_dir       = f'{self.trn_dir}/{self.trn_proj}'
-        self.fmt_proj_dir       = f'{self.fmt_dir}/{self.fmt_proj}'
-        self.est_proj_dir       = f'{self.est_dir}/{self.est_proj}'
-        self.plt_proj_dir       = f'{self.plt_dir}/{self.plt_proj}'
+        self.fmt_proj_dir = f'{self.work_dir}/{self.fmt_proj}/{self.fmt_dir}'
+        self.trn_proj_dir = f'{self.work_dir}/{self.trn_proj}/{self.trn_dir}'
+        self.est_proj_dir = f'{self.work_dir}/{self.est_proj}/{self.est_dir}'
+        self.plt_proj_dir = f'{self.work_dir}/{self.plt_proj}/{self.plt_dir}'
 
         # prefixes
         network_prefix          = f'network_nt{self.tree_width}'
@@ -116,13 +116,13 @@ class Plotter:
         self.input_hdf5_fn      = f'{fmt_proj_prefix}.hdf5'
 
         # network
-        self.model_arch_fn      = f'{trn_proj_prefix}_trained_model'
-        self.history_json_fn    = f'{trn_proj_prefix}.train_history.json'
+        self.model_arch_fn      = f'{trn_proj_prefix}.trained_model.pkl'
+        self.history_fn         = f'{trn_proj_prefix}.train_history.csv'
         self.train_est_fn       = f'{trn_proj_prefix}.train_est.labels.csv'
         self.train_labels_fn    = f'{trn_proj_prefix}.train_true.labels.csv'
         
         # estimates
-        self.est_aux_data_fn   = f'{est_proj_prefix}.aux_data.csv'
+        self.est_aux_data_fn    = f'{est_proj_prefix}.aux_data.csv'
         #self.est_known_param_fn = f'{est_proj_prefix}.known_param.csv'
         self.est_lbl_fn         = f'{est_proj_prefix}.emp_est.labels.csv'
         self.test_est_fn        = f'{est_proj_prefix}.test_est.labels.csv'
@@ -139,6 +139,7 @@ class Plotter:
         self.save_network_fn       = f'{plt_proj_prefix}.network_architecture.pdf'
         self.save_history_fn       = f'{plt_proj_prefix}.train_history'
         self.save_summary_fn       = f'{plt_proj_prefix}.summary.pdf'
+        self.save_report_fn        = f'{plt_proj_prefix}.summary.csv'
 
         return
 
@@ -176,8 +177,8 @@ class Plotter:
         self.combine_plots()
 
         # generating output summary
-        # util.print_str('▪ Making csv report', verbose)
-        # self.make_report()
+        util.print_str('▪ Making csv report', verbose)
+        self.make_report()
 
         # end time
         end_time,end_time_str = util.get_time()
@@ -217,7 +218,8 @@ class Plotter:
         self.aux_data_names = self.train_aux_data.columns.to_list()
 
         # trained model
-        self.model = tf.keras.models.load_model(self.model_arch_fn, compile=False)
+        # self.model = tf.keras.models.load_model(self.model_arch_fn, compile=False)
+        self.model = torch.load(self.model_arch_fn)
         
         # training estimates/labels
         self.train_ests   = pd.read_csv(self.train_est_fn)
@@ -228,7 +230,9 @@ class Plotter:
         self.test_labels  = pd.read_csv(self.test_labels_fn)
         
         # training history for network
-        self.history_dict = json.load(open(self.history_json_fn, 'r'))
+        # TODO: Need to get training history from torch
+        self.history_table = pd.read_csv(self.history_fn)
+        # self.history_dict = json.load(open(self.history_json_fn, 'r'))
 
         # load new aux data from Estimate
         self.est_aux_data = None
@@ -362,13 +366,61 @@ class Plotter:
 
     def make_report(self):
         """Makes CSV of main results."""
-        # dataset sizes
-        # get train estimation stats
-        # get test estimation stats
-        # get emp estimation stats
-        # get train aux data stats
-        # get emp aux data stats
         
+        df = pd.DataFrame(columns=['id1','id2','metric','variable','value'])
+        
+        # TODO: dataset sizes
+        # - num examples in train/test/val/cal
+        # - tree width
+        # - num char col
+        # - num brlen col
+        # - num total col
+
+        # prediction stats
+        test_train = [ ('train', self.train_labels, self.train_ests),
+              ('test', self.test_labels, self.test_ests) ]
+        
+        for name, lbl, est in test_train:
+            for col in lbl:
+                # get stats
+                mae = np.mean(np.abs(lbl[col] - est[col+'_value']))
+                mse = np.mean((lbl[col] - est[col+'_value'])**2)
+                mape = np.mean(np.abs((lbl[col] - est[col+'_value']) / lbl[col]))
+                cov = np.mean(np.logical_and(est[col+'_lower'] < lbl[col],
+                                             est[col+'_upper'] > lbl[col]))
+                CI_width = est[col+'_upper'] - est[col+'_lower']
+                rel_CI_width = np.divide(CI_width, est[col+'_value'])
+                # store stats
+                df.loc[len(df)] = [ name, 'true', 'mean', col, np.mean(lbl[col]) ]
+                df.loc[len(df)] = [ name, 'true', 'var', col, np.var(lbl[col]) ]
+                df.loc[len(df)] = [ name, 'true', 'lower95', col, np.quantile(lbl[col], 0.025) ]
+                df.loc[len(df)] = [ name, 'true', 'upper95', col, np.quantile(lbl[col], 0.975) ]
+                df.loc[len(df)] = [ name, 'est', 'mean', col, np.mean(est[col+'_value']) ]
+                df.loc[len(df)] = [ name, 'est', 'var', col, np.var(est[col+'_value']) ]
+                df.loc[len(df)] = [ name, 'est', 'lower95', col, np.quantile(est[col+'_value'], 0.025) ]
+                df.loc[len(df)] = [ name, 'est', 'upper95', col, np.quantile(est[col+'_value'], 0.975) ]
+                df.loc[len(df)] = [ name, 'est', 'mae', col, mae ]
+                df.loc[len(df)] = [ name, 'est', 'mse', col, mse ]
+                df.loc[len(df)] = [ name, 'est', 'mape', col, mape ]
+                df.loc[len(df)] = [ name, 'est', 'coverage', col, cov ]
+                df.loc[len(df)] = [ name, 'est', 'mean_CI_width', col, np.mean(CI_width) ]
+                df.loc[len(df)] = [ name, 'est', 'mean_rel_CI_width', col, np.mean(rel_CI_width) ]
+
+        # TODO: auxiliary data
+        # - similar stuff as prediction for aux data
+
+        # TODO: empirical estimate
+        # - values against empirical datasets
+        # - quantile against training/test datasets
+
+        # TODO: training stats
+        # - best epoch
+        # - 
+                
+        # save results
+        self.df_report = df
+        self.df_report.to_csv(self.save_report_fn, index=False, float_format=util.PANDAS_FLOAT_FMT_STR)
+
         return
 
 #------------------------------------------------------------------------------#
@@ -424,6 +476,7 @@ class Plotter:
         return
     
     def make_plot_pca_contour(self, type):
+        """Calls plot_pca_contour with arguments."""
         if type == 'aux_data':
             self.plot_pca_contour(save_fn=self.save_pca_aux_data_fn,
                                   sim_values=self.train_aux_data,
@@ -447,17 +500,33 @@ class Plotter:
         return
 
     def make_plot_train_history(self):
-        self.plot_train_history(self.history_dict,
+        """Calls plot_train_history with arguments."""
+        self.plot_train_history(self.history_table,
                                 prefix=self.save_history_fn,
                                 train_color=self.plot_train_color,
                                 val_color=self.plot_val_color)
         return
 
     def make_plot_network_architecture(self):
-        """Calls tf.keras.utils.plot_model with arguments."""
-        tf.keras.utils.plot_model(self.model,
-                                  to_file=self.save_network_fn,
-                                  show_shapes=True)
+        """Calls torchview.draw_graph with arguments."""
+        
+        phy_dat_fake = torch.empty( self.model.phy_dat_shape, dtype=torch.float32 )[None,:,:]
+        aux_dat_fake = torch.empty( self.model.aux_dat_shape, dtype=torch.float32 )[None,:]
+        lbl_fake = self.model(phy_dat_fake, aux_dat_fake)
+        
+        # save as png
+        torchview.draw_graph(self.model,
+                             input_data=[phy_dat_fake, aux_dat_fake],
+                             filename=self.save_network_fn,
+                             save_graph=True)
+        
+        # convert from png to pdf
+        image = Image.open(self.save_network_fn + '.png')
+        image = image.convert('RGB')
+        
+        # save as pdf
+        image.save(self.save_network_fn, dpi=(300, 300), size=(3000,2100))
+        
         return
     
 #------------------------------------------------------------------------------#        
@@ -838,148 +907,6 @@ class Plotter:
 
         # done    
         return
-
-    # def plot_scatter_accuracy(self, ests, labels, prefix,
-    #                           color="blue", axis_labels = ["estimate", "truth"],
-    #                           title = '', plot_log=False):
-    #     """Plots accuracy of estimates and CPIs for labels.
-
-    #     This function generates a scatterplot for true vs. estimated labels
-    #     from the trained network. Points are point estimates. Bars are
-    #     CPIs.
-
-    #     Args:
-    #         save_fn (str): Filename to save plot.
-    #         est_label (numpy.array): Estimated values from new dataset.
-    #         title (str): Title for the plot.
-    #         color (str): Color of histograms
-    #         plot_log (bool): Plot y-axis on log scale? Default True.
-
-    #     """
-    #     # figure size
-    #     fig_width = 6
-    #     fig_height = 6
-
-    #     # create figure
-    #     plt.figure(figsize=(fig_width,fig_height))
-
-    #     # plot parameters
-    #     for i,p in enumerate(self.param_names):
-
-    #         # labels
-    #         x_label = f'{p} {axis_labels[0]}'
-    #         y_label = f'{p} {axis_labels[1]}'
-
-    #         # estimates (x) and true values (y)
-    #         x_value = ests[f'{p}_value'][:].to_numpy()
-    #         x_lower = ests[f'{p}_lower'][:].to_numpy()
-    #         x_upper = ests[f'{p}_upper'][:].to_numpy()
-    #         y_value = labels[p][:].to_numpy()
-
-    #         only_positive = np.all(y_value >= 0.)
-    #         if only_positive and plot_log:
-    #             x_value = np.log(x_value)
-    #             x_lower = np.log(x_lower)
-    #             x_upper = np.log(x_upper)
-    #             y_value = np.log(y_value)
-    #             x_label = f'ln {p} {axis_labels[0]}'
-    #             y_label = f'ln {p} {axis_labels[1]}'
-                
-
-    #         # accuracy stats
-    #         stat_mae = np.mean( np.abs(x_value - y_value) )
-    #         stat_mape = 100 * np.mean( np.abs(x_value - y_value) / y_value )
-    #         stat_mse = np.mean( np.power(x_value - y_value, 2) )
-    #         stat_rmse = np.sqrt( stat_mse )
-            
-    #         # coverage stats
-    #         stat_cover = np.logical_and(x_lower < y_value, x_upper > y_value )
-    #         stat_not_cover = np.logical_not(stat_cover)
-    #         f_stat_cover = sum(stat_cover) / len(stat_cover) * 100
-
-    #         # linear regression slope
-    #         # if only_positive:
-    #         #     reg = LinearRegression().fit( np.log(x_value.reshape(-1, 1)), np.log(y_value.reshape(-1, 1)))
-    #         #     stat_slope = reg.coef_[0][0]
-    #         #     stat_intercept = reg.intercept_[0]
-    #         # else:
-    #         reg = LinearRegression().fit( x_value.reshape(-1, 1), y_value.reshape(-1, 1))
-    #         stat_slope = reg.coef_[0][0]
-    #         stat_intercept = reg.intercept_[0]
-            
-    #         # convert to strings
-    #         s_mae  = '{:.2E}'.format(stat_mae)
-    #         s_mse  = '{:.2E}'.format(stat_mse)
-    #         s_rmse = '{:.2E}'.format(stat_rmse)
-    #         s_mape = '{:.1f}%'.format(stat_mape)
-    #         s_slope = '{:.2E}'.format(stat_slope)
-    #         s_intercept  = '{:.2E}'.format(stat_intercept)
-    #         s_cover = '{:.1f}%'.format(f_stat_cover)
-            
-    #         alpha = 0.5 # 50. / len(y_cover)
-    #         # covered points
-    #         plt.scatter(x_value[stat_cover], y_value[stat_cover],
-    #                     alpha=alpha, c=color, zorder=3, s=3)
-    #         # covered bars
-    #         plt.plot([x_lower[stat_cover], x_upper[stat_cover]],
-    #                  [y_value[stat_cover], y_value[stat_cover]],
-    #                  color=color, alpha=alpha, linestyle="-", marker='|',
-    #                  linewidth=0.5, zorder=2 )
-
-
-
-    #         # not covered points
-    #         plt.scatter(x_value[stat_not_cover], y_value[stat_not_cover],
-    #                     alpha=alpha, c='red', zorder=5, s=3)
-    #         # not covered bars
-    #         plt.plot([x_lower[stat_not_cover], x_upper[stat_not_cover]],
-    #                  [y_value[stat_not_cover], y_value[stat_not_cover]],
-    #                  color='red', alpha=alpha, linestyle="-", marker='|',
-    #                  linewidth=0.5, zorder=4 )
-            
-    #         # regression line
-    #         plt.axline((0,stat_intercept), slope=stat_slope, color=color,
-    #                    alpha=1.0, zorder=0, linestyle='dotted')
-            
-    #         # 1:1 line
-    #         plt.axline((0,0), slope=1, color=color, alpha=1.0, zorder=0)
-    #         plt.gca().set_aspect('equal')
-
-    #         # set axes
-    #         xlim = plt.xlim()
-    #         ylim = plt.ylim()
-    #         minlim = min(xlim[0], ylim[0])
-    #         maxlim = max(xlim[1], ylim[1])
-    #         plt.xlim([minlim, maxlim])
-    #         plt.ylim([minlim, maxlim])
-            
-    #         # write text
-    #         dx = 0.03
-    #         stat_str = [f'MAE: {s_mae}', f'MAPE: {s_mape}', f'MSE: {s_mse}',
-    #                     f'RMSE: {s_rmse}', f'Intercept: {s_intercept}',
-    #                     f'Slope: {s_slope}', f'Coverage: {s_cover}' ]
-            
-    #         for j,s in enumerate(stat_str):
-    #             plt.annotate(s, xy=(0.01,0.99-j*dx),
-    #                      xycoords='axes fraction', fontsize=10,
-    #                      horizontalalignment='left', verticalalignment='top',
-    #                      color='black')
-
-    #         # cosmetics
-    #         plt.title(f'{title} estimates: {p}')
-    #         plt.xlabel(x_label)
-    #         plt.ylabel(y_label)
-    #         # if plot_log:
-    #         #     plt.xscale('log')         
-    #         #     plt.yscale('log')         
-
-    #         # save
-    #         save_fn = f'{prefix}_{p}.pdf'
-    #         plt.savefig(save_fn, format='pdf', dpi=300, bbox_inches='tight')
-    #         plt.clf()
-
-    #     # done    
-    #     return
     
     def plot_est_CI(self, save_fn, est_label, title='Estimates', color='black',
                     plot_log=True):
@@ -1022,6 +949,12 @@ class Plotter:
             y_value = col_data.loc['value']
             y_lower = col_data.loc['lower']
             y_upper = col_data.loc['upper']
+
+            if plot_log:
+                y_value = np.max([1e-4, y_value])
+                y_lower = np.max([1e-4, y_lower])
+                y_upper = np.max([1e-4, y_upper])
+
             s_value = '{:.2E}'.format(y_value)
             s_lower = '{:.2E}'.format(y_lower)
             s_upper = '{:.2E}'.format(y_upper)
@@ -1047,6 +980,7 @@ class Plotter:
         plt.title(title)
         plt.xticks(np.arange(num_label), label_names)
         plt.xlim( -0.5, num_label )
+        plt.ylim( )
         plt.savefig(save_fn, format='pdf', dpi=300, bbox_inches='tight')
         plt.clf()
         
@@ -1062,97 +996,73 @@ class Plotter:
         trainiing vs. validation examples.
 
         Args:
-            history (str): Training performance metrics
+            history (DataFrame): Training performance metrics
             prefix (str): Used to construct filename
             train_color (str): Color for training example metrics
             val_color (str): Color for validation example metrics
 
         """
-        
+
         # get data names/dimensions
-        epochs       = range(1, len(history['loss']) + 1)
-        train_keys   = [ x for x in history.keys() if 'val_' not in x ]
-        #val_keys     = [ 'val_'+x for x in train_keys ]
-        label_names  = [ '_'.join( x.split('_')[0:-1] ) for x in train_keys ]
-        label_names  = sorted( np.unique(label_names) )
-        #num_labels   = len(label_names)
-
-        # get metric names
-        metric_names = [ x.split('_')[-1] for x in train_keys ]
-        metric_names = np.unique(metric_names)
-        metric_names = [ 'loss' ] + [ x for x in metric_names if x != 'loss' ]
-        num_metrics  = len(metric_names)
-
+        epochs        = sorted(np.unique(history['epoch']))
+        dataset_names = sorted(np.unique(history['dataset']))
+        metric_names  = sorted(np.unique(history['metric']))
+        # num_datasets  = len(dataset_names)
+        num_metrics   = len(metric_names)
+ 
         # figure dimensions
         fig_width = 6
-        fig_height = int(np.ceil(2*num_metrics))
+        fig_height = int(np.ceil(1.5*num_metrics))
+
+        # figure colors
+        colors = { 'train': train_color,
+                   'validation': val_color }
 
         # plot for all parameters
-        for i,v1 in enumerate(label_names):
-            fig, axs = plt.subplots(nrows=num_metrics, ncols=1, sharex=True,
-                                    figsize=(fig_width, fig_height))
-            idx = 0
-            # plot for all metrics
-            for j,v2 in enumerate(metric_names):
-                # get val name from train name 
-                if v1 == '':
-                    k_train = v2
-                else:
-                    k_train = f'{v1}_{v2}'
-                k_val = 'val_' + k_train
+        fig, axs = plt.subplots(nrows=num_metrics, ncols=1, sharex=True,
+                                figsize=(fig_width, fig_height))
+        
+        # plot for all metrics
+        for j,v2 in enumerate(metric_names):
 
-                # plot training example metrics
-                legend_handles = []
-                legend_labels = []
-                if k_train in history:
-                    lines_train, = axs[idx].plot(epochs, history[k_train],
-                                                 color=train_color,
-                                                 label = k_train)
-                    axs[idx].scatter(epochs, history[k_train],
-                                     color=train_color, label = k_train,
-                                     zorder=3)
-                    axs[idx].set(ylabel=metric_names[j])
-                    legend_handles.append( lines_train )
-                    legend_labels.append( 'Train' )
+            # plot training example metrics
+            legend_handles = []
+            legend_labels = []
+            for k,v3 in enumerate(dataset_names):
+                df = history.loc[ (history.metric==v2) & \
+                                  (history.dataset==v3) ]
 
-                # plot validation example metrics
-                if k_val in history:
-                    lines_val, = axs[idx].plot(epochs, history[k_val],
-                                               color=val_color, label = k_val)
-                    axs[idx].scatter(epochs, history[k_val], color=val_color,
-                                     label = k_val, zorder=3)
-                    legend_handles.append( lines_val )
-                    legend_labels.append( 'Validation' )
+                lines_train, = axs[j].plot(epochs, df.value,
+                                             color=colors[v3],
+                                             label = v2)
+                axs[j].scatter(epochs, df.value,
+                                 color=colors[v3],
+                                 label = v2,
+                                 zorder=3)
+                
+                axs[j].set(ylabel=metric_names[j])
+                
+                legend_handles.append( lines_train )
+                legend_labels.append( v3.capitalize() )
 
-                # plot legend
-                if k_train in history or k_val in history:
-                    if idx == 0:
-                        axs[idx].legend(handles=legend_handles,
-                                        labels=legend_labels,
-                                        loc='upper right' )
-                    idx += 1
+            # plot legend
+            if j == 0:
+                axs[j].legend(handles=legend_handles,
+                              labels=legend_labels,
+                              loc='upper right' )
+            
+        
+        fig.supxlabel('Epochs')
+        fig.supylabel('Metrics')
+        fig.suptitle('Training history')
+        fig.tight_layout()
 
-            # turn off unused rows            
-            for j in range(num_metrics):
-                if j >= idx:
-                    axs[j].axis('off')
+        # save figure
+        save_fn = f'{prefix}.pdf'
 
-            # aesthetics
-            title_metric = label_names[i]
-            if title_metric == '':
-                title_metric = 'entire network'
-            fig.supxlabel('Epochs')
-            fig.supylabel('Metrics')
-            fig.suptitle('Training history: ' + title_metric)
-            fig.tight_layout()
-
-            # save figure
-            save_fn = f'{prefix}'
-            if label_names[i] != '':
-                save_fn += f'_{label_names[i]}'
-            save_fn += '.pdf'
-            plt.savefig(save_fn, format='pdf', dpi=300, bbox_inches='tight')
-            plt.clf()
+        # print(save_fn)
+        plt.savefig(save_fn, format='pdf', dpi=300, bbox_inches='tight')
+        plt.clf()
         
         # done
         return

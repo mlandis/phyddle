@@ -62,6 +62,7 @@ example of a matrix with N=8 taxa and M=3 binary characters.
 
 Character data may also be encoded in csv format (`char_format = 'csv'`). For
 example:
+
 .. code-block:: shell
 
     $ cat workspace/simulate/example/sim.0.dat.nex
@@ -77,7 +78,7 @@ example:
 
 Some models will accept "known" data-generating parameters as input. For example,
 if not all taxa were included in the phylogeny, a model might accept a sampling
-fraction label as input. Any labels that are marked under the `param_data`
+fraction label as input. Any labels that are marked under the ``param_data``
 setting will be encoded into the auxiliary data tensor during formatting. Example:
 
 .. code-block:: shell
@@ -86,8 +87,8 @@ setting will be encoded into the auxiliary data tensor during formatting. Exampl
     birth_1,birth_2,death,state_rate,sample_frac
     0.5728,0.9082,0.1155,0.0372,0.1114
 
-where the setting `param_data == ['sample_frac']` would ensure that only the
-`sample_frac` entry is included in auxiliary data.
+where the setting ``param_data == ['sample_frac']`` would ensure that only the
+``sample_frac`` entry is included in auxiliary data.
 
 .. _Tensor_Formats:
 
@@ -96,9 +97,9 @@ Tensor formats
 
 Phylogenetic data (e.g. from a Newick file) and character matrix data (e.g.
 from a Nexus file) are encoded into compact phylogenetic state tensors.
-Internally, phyddle uses `dendropy.Tree` to represent phylogenies,
-`pandas.DataFrame` to represent character matrices (verify), and
-`numpy.ndarray` to store phylogenetic-state tensors.
+Internally, phyddle uses ```dendropy.Tree``` to represent phylogenies,
+``pandas.DataFrame`` to represent character matrices (verify), and
+``numpy.ndarray`` to store phylogenetic-state tensors.
 
 ..
     CBLV encodes a phylogenetic tree with $n \leq N$ taxa in to a matrix of with 2 rows that contains branch length sorted across $N$ columns that contain topological information for a tree with taxa serially sampled over time (e.g. epidemiological data). The matrix is then flattened into vector format. Ammon et al. (2022) introduced the CBLV+S format, which allows for multiple characters to be associated with each taxon in a CBLV, constructing a matrix with $2+M$ rows and $N$ columns for a dataset of $n \leq N$ taxa with $M$ characters. Another important tensor type developed by Lambert et al. (2022) is the compact diversified vector (CDV). CDV is a matrix with 2 rows and $N$ columns, with the first row corresponding to node ages and the other recording state values for a single binary character.
@@ -111,7 +112,7 @@ There are two types of phylogenetic-state tensors in phyddle: the compact
 bijective ladderized vector + states (CBLV+S) and the compact diversity vector +
 states (CDV+S). CBLV+S is used for trees that contain serially sampled
 (non-ultrametric) taxa whereas CDV+S is used for trees that contain only extant
-(ultrametric) taxa. The `tree_width` of the encoding defines the maximum number
+(ultrametric) taxa. The ``tree_width`` of the encoding defines the maximum number
 of taxa the phylogenetic-state tensor may contain. The ``tree_encode`` setting
 determines if the tree is a ``'serial'`` tree encoded with CBLV+S or an
 ``'extant'`` tree encoded with CDV+S. Setting ``brlen_encode`` and
@@ -158,13 +159,17 @@ species has that character-state and ``0`` if not. One-hot encoding is
 applied individually to each homologous character (fewer distinct combinations)
 not against the entire character set (more distinct combinations).
 
-
 Ladderizing clades by maximum root-to-tip distance orders the taxa C, D, A,
-B, then E, which correspond to the first five columns of the CBLV+S tensor.
+B, then E, which correspond to the first five entries of the CBLV+S tensor.
 When ``brlen_encode`` is set to ``'height_only'`` the un-rescaled CBLV+S file
 would look like this:
 
 .. code-block:: shell
+
+    # NOTE: The CBLV+S tensor is shown in this orientation for readability.
+    #       phyddle stores the tensor as the transpose of this in memory,
+    #       meaning rows correspond to taxa, and columns correspond to branch
+    #       length information.
 
     # C,D,A,B,E,-,-,-,-,-  
       7,2,3,1,2,0,0,0,0,0  # tip-to-node distance
@@ -224,6 +229,11 @@ and associating the same character data as above with taxa A through E
 yields the following CDV+S tensor:
 
 .. code-block:: shell
+
+    # NOTE: The CDV+S tensor is shown in this orientation for readability.
+    #       phyddle stores the tensor as the transpose of this in memory,
+    #       meaning rows correspond to taxa, and columns correspond to branch
+    #       length information.
 
     # C,D,A,B,E,-,-,-,-,-  
       0,4,1,2,0,0,0,0,0,0  # node-to-root distance

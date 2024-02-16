@@ -243,8 +243,8 @@ For each simulated example, :ref:`Format` encodes the raw data into two input
 tensors and one output tensor:
 
 - One input tensor is the **phylogenetic-state tensor**. Loosely speaking,
-  these tensors contain information about terminal taxa across columns and
-  information about relevant branch lengths and states per taxon across rows.
+  these tensors contain information associated with clades across rows and
+  information about relevant branch lengths and states per taxon across columns.
   The phylogenetic-state tensors used by phyddle are based on the compact
   bijective ladderized vector (**CBLV**) format of Voznica et al. (2022) and
   the compact diversity-reordered vector (**CDV**) format of
@@ -287,7 +287,7 @@ an accepted phyddle format. The ``param_est`` setting identifies which
 parameters in the labels tensor you want to treat as downstream estimation
 targets. The ``param_data`` setting identifies which of those parameters you
 want to treat as "known" auxiliary data. Lastly, Format creates a test dataset
-containing proportion `test_prop` of examples, and a second training dataset
+containing proportion ``test_prop`` of examples, and a second training dataset
 that contains all remaining examples.
 
 Formatted tensors are then saved to disk either in simple comma-separated
@@ -339,9 +339,8 @@ examples were already set aside for the training dataset during the
 Format step (``prop_test``). All remaining examples are used for training.
 A network must be trained against a particular ``tree_width`` size (see above). 
 
-phyddle uses `TensorFlow <https://www.tensorflow.org/>`__ and
-`Keras <https://keras.io/>`__ to build and train the network. The
-phylogenetic-state tensor is processed by convolutional and pooling layers,
+phyddle uses `PyTorch <https://pytorch.org/>` to build and train the network.
+The phylogenetic-state tensor is processed by convolutional and pooling layers,
 while the auxiliary data is processed by dense layers. All input layers are
 concatenated then pushed into three branches terminating in output layers
 to produce point estimates and upper and lower estimation intervals. Here
@@ -351,7 +350,7 @@ is a simplified schematic of the network architecture:
 
     Simplified network architecture:
 
-                              ,--> Conv1D-normal + Pool --.
+                              ,--> Conv1D-plain  + Pool --.
         Phylo. Data Tensor --+---> Conv1D-stride + Pool ---\                          ,--> Point estimate
                               `--> Conv1D-dilate + Pool ----+--> Concat + Output(s)--+---> Lower quantile
                                                            /                          `--> Upper quantile
@@ -377,6 +376,11 @@ Different optimizers can be used to update network weight and bias
 parameters (e.g. ``optimizer == 'adam'``; Tensorflow-supported string
 or function). Network performance is also evaluated against validation data
 set aside with ``prop_val`` that are not used for minimizing the loss function.
+
+Number of layers and numbers of nodes per layer can be adjusted using
+configuration settings. For example, setting ``phy_channel_plain`` to
+``[64,96,128]`` will construct three convolutional layers with 64, 96, and 128
+output channels, respectively.
 
 Training is automatically parallelized using CPUs and GPUs, dependent on
 how Tensorflow was installed and system hardware. Output files are stored
@@ -419,6 +423,7 @@ Colors for plot elements can be modified with ``plot_train_color``,
 names supported by `Matplotlib <https://matplotlib.org/stable/gallery/color/named_colors.html>`__.
 
 - ``summary.pdf`` contains all figures in a single plot
+- ``summary.csv`` records important results in plain text format
 - ``density_aux_data.pdf`` - densities of all values in the auxiliary dataset;
   red line for estimateed dataset
 - ``density_label.pdf`` - densities of all values in the auxiliary dataset;
@@ -429,9 +434,6 @@ names supported by `Matplotlib <https://matplotlib.org/stable/gallery/color/name
   red dot for estimateed dataset
 - ``train_history.pdf`` - loss performance across epochs for test/validation
   datasets for entire network
-- ``train_history_<stat_name>.pdf`` - loss, accuracy, error performance across
-  epochs for test/validation datasets for particular statistics (point est.,
-  lower CPI, upper CPI)
 - ``estimate_train_<label_name>.pdf`` - point estimates and calibrated estimation
   intervals for training dataset
 - ``estimate_test_<label_name>.pdf`` - point estimates and calibrated estimation
@@ -450,78 +452,116 @@ The output of phyddle pipeline analysis will resemble this:
 
 .. code-block::
 
-  ┏━━━━━━━━━━━━━━━━━━━━━━┓
-  ┃   phyddle   v0.0.9   ┃
-  ┣━━━━━━━━━━━━━━━━━━━━━━┫
-  ┃                      ┃
-  ┗━┳━▪ Simulating... ▪━━┛
+    ┏━━━━━━━━━━━━━━━━━━━━━━┓
+    ┃   phyddle   v0.1.0   ┃
+    ┣━━━━━━━━━━━━━━━━━━━━━━┫
+    ┃                      ┃
+    ┗━┳━▪ Simulating... ▪━━┛
     ┃
     ┗━━━▪ output: ../workspace/simulate/example
 
-  ▪ Start time of 10:18:16
-  ▪ Simulating raw data
-  Simulating: 100%|██████████████████████| 1000/1000 [03:25<00:00,  4.87it/s]
-  ▪ End time of 10:21:41 (+00:03:25)
-  ... done!
-  ┃                      ┃
-  ┗━┳━▪ Formatting... ▪━━┛
+    ▪ Start time of 09:34:35
+    ▪ Simulating raw data
+    Simulating: 100%|███████████████████| 100/100 [00:20<00:00,  4.90it/s]
+    ▪ End time of 09:34:56 (+00:00:21)
+    ... done!
+    ┃                      ┃
+    ┗━┳━▪ Formatting... ▪━━┛
     ┃
     ┣━━━▪ input:  ../workspace/simulate/example
     ┗━━━▪ output: ../workspace/format/example
 
-  ▪ Start time of 10:21:41
-  ▪ Encoding raw data as tensors
-  Encoding: 100%|████████████████████████| 1000/1000 [02:22<00:00,  7.02it/s]
-  ▪ Combining and writing tensors
-  Making train hdf5 dataset: 453 examples for tree width = 200
-  Combining: 100%|███████████████████████| 453/453 [00:00<00:00, 3062.20it/s]
-  Making test hdf5 dataset: 23 examples for tree width = 200
-  Combining: 100%|█████████████████████████| 23/23 [00:00<00:00, 3068.74it/s]
-  ▪ End time of 10:24:04 (+00:02:23)
-  ... done!
-  ┃                      ┃
-  ┗━┳━▪ Training...   ▪━━┛
+    ▪ Start time of 09:34:56
+    ▪ Collecting files
+    ▪ Encoding raw data as tensors
+    Encoding: 100%|███████████████████| 1000/1000 [00:10<00:00, 98.22it/s]
+    ▪ Combining and writing tensors
+    Making train hdf5 dataset: 950 examples for tree width = 500
+    Combining: 100%|██████████████████| 950/950 [00:00<00:00, 2664.89it/s]
+    Making test hdf5 dataset: 50 examples for tree width = 500
+    Combining: 100%|████████████████████| 50/50 [00:00<00:00, 2376.43it/s]
+    ▪ End time of 09:35:07 (+00:00:11)
+    ... done!
+    ┃                      ┃
+    ┗━┳━▪ Training...   ▪━━┛
     ┃
     ┣━━━▪ input:  ../workspace/format/example
     ┗━━━▪ output: ../workspace/train/example
 
-  ▪ Start time of 10:24:04
-  ▪ Loading input
-  ▪ Building network
-  ▪ Training network
-  ▪ Processing results
-  11/11 [==============================] - 0s 9ms/step
-  3/3 [==============================] - 0s 7ms/step
-  ▪ Saving results
-  ▪ End time of 10:24:14 (+00:00:10)
-  ▪ ... done!
-  ┃                      ┃
-  ┗━┳━▪ Estimating... ▪━━┛
+    ▪ Start time of 09:35:10
+    ▪ Loading input
+    ▪ Building network
+
+    ▪ Training network
+    Training epoch 1 of 10: 100%|███████████| 2/2 [00:05<00:00,  2.65s/it]
+        Train        --   loss: 2.7907
+        Validation   --   loss: 1.6169
+
+    Training epoch 2 of 10: 100%|███████████| 2/2 [00:04<00:00,  2.34s/it]
+        Train        --   loss: 1.6322  abs: -1.1584  rel: -41.50%
+        Validation   --   loss: 1.1854  abs: -0.4315  rel: -26.70%
+
+    Training epoch 3 of 10: 100%|███████████| 2/2 [00:04<00:00,  2.31s/it]
+        Train        --   loss: 1.1911  abs: -0.4411  rel: -27.00%
+        Validation   --   loss: 1.0017  abs: -0.1837  rel: -15.50%
+
+    Training epoch 4 of 10: 100%|███████████| 2/2 [00:04<00:00,  2.30s/it]
+        Train        --   loss: 1.0178  abs: -0.1733  rel: -14.60%
+        Validation   --   loss: 0.8788  abs: -0.1229  rel: -12.30%
+
+    Training epoch 5 of 10: 100%|███████████| 2/2 [00:04<00:00,  2.28s/it]
+        Train        --   loss: 0.9175  abs: -0.1003  rel: -9.90%
+        Validation   --   loss: 0.8573  abs: -0.0215  rel: -2.50%
+
+    Training epoch 6 of 10: 100%|███████████| 2/2 [00:04<00:00,  2.06s/it]
+        Train        --   loss: 0.8751  abs: -0.0424  rel: -4.60%
+        Validation   --   loss: 0.8544  abs: -0.0029  rel: -0.30%
+
+    Training epoch 7 of 10: 100%|███████████| 2/2 [00:04<00:00,  2.04s/it]
+        Train        --   loss: 0.8583  abs: -0.0168  rel: -1.90%
+        Validation   --   loss: 0.8439  abs: -0.0104  rel: -1.20%
+
+    Training epoch 8 of 10: 100%|███████████| 2/2 [00:04<00:00,  2.12s/it]
+        Train        --   loss: 0.8230  abs: -0.0352  rel: -4.10%
+        Validation   --   loss: 0.8108  abs: -0.0331  rel: -3.90%
+
+    Training epoch 9 of 10: 100%|███████████| 2/2 [00:04<00:00,  2.11s/it]
+        Train        --   loss: 0.8058  abs: -0.0172  rel: -2.10%
+        Validation   --   loss: 0.7899  abs: -0.0210  rel: -2.60%
+
+    Training epoch 10 of 10: 100%|███████████| 2/2 [00:04<00:00,  2.02s/it]
+        Train        --   loss: 0.7835  abs: -0.0223  rel: -2.80%
+        Validation   --   loss: 0.7963  abs: +0.0064  rel: +0.80%
+
+    ▪ Processing results
+    ▪ Saving results
+    ▪ End time of 09:35:58 (+00:00:48)
+    ▪ ... done!
+    ┃                      ┃
+    ┗━┳━▪ Estimating... ▪━━┛
     ┃
     ┣━━━▪ input:  ../workspace/format/example
     ┃             ../workspace/estimate/example
     ┃             ../workspace/train/example
     ┗━━━▪ output: ../workspace/estimate/example
 
-  ▪ Start time of 10:24:14
-  ▪ Loading input
-  ▪ Making estimates
-  1/1 [==============================] - 0s 178ms/step
-  1/1 [==============================] - 0s 22ms/step
-  ▪ End time of 10:24:14 (+00:00:00)
-  ... done!
-  ┃                      ┃
-  ┗━┳━▪ Plotting...   ▪━━┛
+    ▪ Start time of 09:35:58
+    ▪ Loading input
+    ▪ Making estimates
+    ▪ End time of 09:35:58 (+00:00:00)
+    ... done!
+    ┃                      ┃
+    ┗━┳━▪ Plotting...   ▪━━┛
     ┃
     ┣━━━▪ input:  ../workspace/format/example
     ┃             ../workspace/train/example
     ┃             ../workspace/estimate/example
     ┗━━━▪ output: ../workspace/plot/example
 
-  ▪ Start time of 10:24:14
-  ▪ Loading input
-  ▪ Generating individual plots
-  ▪ Combining plots
-  ▪ End time of 10:24:26 (+00:00:12)
-  ... done!
+    ▪ Start time of 09:36:00
+    ▪ Loading input
+    ▪ Generating individual plots
+    ▪ Combining plots
+    ▪ End time of 09:36:12 (+00:00:12)
+    ... done!
 

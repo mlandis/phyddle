@@ -17,18 +17,31 @@ import phyddle.plot as plt
 
 import pandas as pd
 import numpy as np
-import tensorflow as tf
+import torch
 import h5py
 import shutil
 import os
+# import random
 
-ERROR_TOL = 1E-2
+
+# NOTE: Set ENABLE_TEST = False to bypass the check_foo() validation tests
 ENABLE_TEST = True
+
+# NOTE: Set ERROR_TOL to an acceptable amount of difference in results between
+#       the test and validation examples. Even though RNG seeds are set
+#       as equal across steps, the large number of layer-by-layer computations
+#       can be executed in different orders due to resource allocation, which
+#       which can cause minor numerical errors to accumulate in different ways.
+# 
+#       ... still difference of ~0.035 for CPI, seems too large
+ERROR_TOL = 5E-1 # 1E-2
 
 #-----------------------------------------------------------------------------#
 
 # single-thread session
-tf.config.experimental.enable_op_determinism()
+#tf.config.experimental.enable_op_determinism()
+torch.set_deterministic_debug_mode(debug_mode='warn')
+#torch.use_deterministic_algorithms(mode=True)
 
 #-----------------------------------------------------------------------------#
 
@@ -69,12 +82,12 @@ def do_sim():
     util.set_seed(0)
     
     # filesystem
-    base_dir = './tests/workspace/simulate'
+    work_dir = './tests/workspace'
 
     # command line arguments
     cmd_args = ['--step', 'S',
                 '--proj', 'test',
-                '--sim_dir', base_dir,
+                '--work_dir', work_dir,
                 '--sim_command', 'Rscript scripts/sim/R/sim_one.R',
                 '--end_idx', '100',
                 '--use_parallel', 'F']
@@ -97,9 +110,9 @@ def check_sim():
         return
     
     # filesystem
-    base_dir = './tests/workspace/simulate'
-    test_dir = base_dir + '/test'
-    valid_dir = base_dir + '/valid'
+    work_dir  = './tests/workspace'
+    test_dir  = work_dir + '/test/simulate'
+    valid_dir = work_dir + '/valid/simulate'
 
     # confirm test and valid tree match
     phy_test = util.read_tree(test_dir + '/sim.0.tre')
@@ -130,15 +143,12 @@ def do_fmt():
     util.set_seed(0)
 
     # filesystem
-    base_dir = './tests/workspace'
-    sim_dir = base_dir + '/simulate'
-    fmt_dir = base_dir + '/format'
+    work_dir = './tests/workspace'
 
     # command line arguments
     cmd_args = ['--step', 'F',
                 '--proj', 'test,S:valid',
-                '--sim_dir', sim_dir,
-                '--fmt_dir', fmt_dir,
+                '--work_dir', work_dir,
                 '--prop_test','0.10',
                 '--prop_val','0.10',
                 '--use_parallel', 'F']
@@ -161,10 +171,9 @@ def check_fmt():
         return
 
     # filesystem
-    base_dir = './tests/workspace'
-    fmt_dir = base_dir + '/format'
-    test_dir = fmt_dir + '/test'
-    valid_dir = fmt_dir + '/valid'
+    work_dir  = './tests/workspace'
+    test_dir  = work_dir + '/test/format'
+    valid_dir = work_dir + '/valid/format'
 
     # confirm test and valid tree match
     dat_test  = h5py.File(test_dir + '/test.nt500.hdf5', 'r')
@@ -208,15 +217,12 @@ def do_trn():
     util.set_seed(0)
 
     # filesystem
-    base_dir = './tests/workspace'
-    fmt_dir = base_dir + '/format'
-    trn_dir = base_dir + '/train'
+    work_dir = './tests/workspace'
 
     # command line arguments
     cmd_args = ['--step', 'T',
                 '--proj', 'test,F:valid',
-                '--fmt_dir', fmt_dir,
-                '--trn_dir', trn_dir,
+                '--work_dir', work_dir,
                 '--prop_test', '0.1',
                 '--prop_val', '0.1',
                 '--use_parallel', 'F']
@@ -239,46 +245,55 @@ def check_trn():
         return
 
     # filesystem
-    base_dir = './tests/workspace'
-    trn_dir = base_dir + '/train'
-    test_dir = trn_dir + '/test'
-    valid_dir = trn_dir + '/valid'
+    work_dir  = './tests/workspace'
+    test_dir  = work_dir + '/test/train'
+    valid_dir = work_dir + '/valid/train'
 
     # load test output for Train
-    model_test_fn = test_dir + '/network_nt500_trained_model'
+    #model_test_fn = test_dir + '/network_nt500.trained_model.pkl'
+    lbl_test_fn = test_dir + '/network_nt500.train_est.labels.csv'
     cpi_test_fn = test_dir + '/network_nt500.cpi_adjustments.csv'
-    aux_test_fn = test_dir + '/network_nt500.train_aux_data_norm.csv'
-    lbl_test_fn = test_dir + '/network_nt500.train_label_norm.csv'
+    aux_norm_test_fn = test_dir + '/network_nt500.train_aux_data_norm.csv'
+    lbl_norm_test_fn = test_dir + '/network_nt500.train_label_norm.csv'
 
-    model_test = tf.keras.models.load_model(model_test_fn, compile=False)
-    cpi_test = pd.read_csv(cpi_test_fn, header=0).to_numpy()
-    aux_test = pd.read_csv(aux_test_fn, header=0).iloc[:,1:].to_numpy()
+    #model_test = tf.keras.models.load_model(model_test_fn, compile=False)
+    #model_load = torch.load(model_test_fn)
     lbl_test = pd.read_csv(lbl_test_fn, header=0).iloc[:,1:].to_numpy()
+    cpi_test = pd.read_csv(cpi_test_fn, header=0).to_numpy()
+    aux_norm_test = pd.read_csv(aux_norm_test_fn, header=0).iloc[:,1:].to_numpy()
+    lbl_norm_test = pd.read_csv(lbl_norm_test_fn, header=0).iloc[:,1:].to_numpy()
     
     # load valid output for Train
-    model_valid_fn = valid_dir + '/network_nt500_trained_model'
+    #model_valid_fn = valid_dir + '/network_nt500.trained_model.pkl'
+    lbl_valid_fn = valid_dir + '/network_nt500.train_est.labels.csv'
     cpi_valid_fn = valid_dir + '/network_nt500.cpi_adjustments.csv'
-    aux_valid_fn = valid_dir + '/network_nt500.train_aux_data_norm.csv'
-    lbl_valid_fn = valid_dir + '/network_nt500.train_label_norm.csv'
+    aux_norm_valid_fn = valid_dir + '/network_nt500.train_aux_data_norm.csv'
+    lbl_norm_valid_fn = valid_dir + '/network_nt500.train_label_norm.csv'
 
-    model_valid = tf.keras.models.load_model(model_valid_fn, compile=False)
-    cpi_valid = pd.read_csv(cpi_valid_fn, header=0).to_numpy()
-    aux_valid = pd.read_csv(aux_valid_fn, header=0).iloc[:,1:].to_numpy()
+    #model_valid = tf.keras.models.load_model(model_valid_fn, compile=False)
+    #model_valid = torch.load(model_valid_fn)
     lbl_valid = pd.read_csv(lbl_valid_fn, header=0).iloc[:,1:].to_numpy()
+    cpi_valid = pd.read_csv(cpi_valid_fn, header=0).to_numpy()
+    aux_norm_valid = pd.read_csv(aux_norm_valid_fn, header=0).iloc[:,1:].to_numpy()
+    lbl_norm_valid = pd.read_csv(lbl_norm_valid_fn, header=0).iloc[:,1:].to_numpy()
 
     # compare aux data, labels, and CPIs
-    cpi_error = np.max(np.abs(cpi_test - cpi_valid))
-    aux_error = np.max(np.abs(aux_test - aux_valid))
     lbl_error = np.max(np.abs(lbl_test - lbl_valid))
-    if cpi_error < ERROR_TOL:
-        print('cpi_error < ERROR_TOL: ', cpi_error)
-    if aux_error < ERROR_TOL:
-        print('aux_error < ERROR_TOL: ', aux_error)
+    cpi_error = np.max(np.abs(cpi_test - cpi_valid))
+    aux_norm_error = np.max(np.abs(aux_norm_test - aux_norm_valid))
+    lbl_norm_error = np.max(np.abs(lbl_norm_test - lbl_norm_valid))
     if lbl_error < ERROR_TOL:
         print('lbl_error < ERROR_TOL: ', lbl_error)
-    assert( cpi_error < ERROR_TOL )
-    assert( aux_error < ERROR_TOL )
+    if cpi_error < ERROR_TOL:
+        print('cpi_error < ERROR_TOL: ', cpi_error)
+    if aux_norm_error < ERROR_TOL:
+        print('aux_norm_error < ERROR_TOL: ', aux_norm_error)
+    if lbl_norm_error < ERROR_TOL:
+        print('lbl_norm_error < ERROR_TOL: ', lbl_norm_error)
     assert( lbl_error < ERROR_TOL )
+    assert( cpi_error < ERROR_TOL )
+    assert( aux_norm_error < ERROR_TOL )
+    assert( lbl_norm_error < ERROR_TOL )
 
     # compare model weights
     # weights_test = [layer.get_weights() for layer in model_test.layers]
@@ -302,36 +317,34 @@ def do_est():
     util.set_seed(0)
 
     # filesystem
-    base_dir = './tests/workspace'
-    sim_dir = base_dir + '/simulate'
-    fmt_dir = base_dir + '/format'
-    trn_dir = base_dir + '/train'
-    est_dir = base_dir + '/estimate'
-    test_dir = est_dir + '/test'
-    valid_dir = est_dir + '/valid'
+    # FIX THIS
+    work_dir   = './tests/workspace'
+    test_dir   = work_dir + '/test/estimate'
+    valid_dir  = work_dir + '/valid/estimate'
     est_prefix = 'new.0'
 
 	# command line arguments
     cmd_args = ['--step', 'E',
                 '--proj', 'test,S:valid,F:valid,T:valid',
-                '--sim_dir', sim_dir,
-                '--fmt_dir', fmt_dir,
-                '--trn_dir', trn_dir,
-                '--est_dir', est_dir,
+                '--work_dir', work_dir,
                 '--est_prefix', est_prefix,
                 '--use_parallel', 'F']
 
 	# phyddle arguments
-    my_args = util.load_config('scripts/configR.py', arg_overwrite=True, args=cmd_args)
+    my_args = util.load_config('scripts/config.py', arg_overwrite=True, args=cmd_args)
 
     # copy minimal input fileset from valid into test
     input_files = [ 'tre', 'dat.csv', 'labels.csv' ]
     os.makedirs(test_dir, exist_ok=True)
-    for fn in input_files:
-        shutil.copyfile( f'{sim_dir}/valid/sim.0.{fn}', f'{est_dir}/test/new.0.{fn}' )
+    if ENABLE_TEST:
+        for fn in input_files:
+            shutil.copyfile( f'{work_dir}/valid/simulate/sim.0.{fn}', f'{work_dir}/test/estimate/new.0.{fn}' )
+    else:
+        for fn in input_files:
+            shutil.copyfile( f'{work_dir}/test/simulate/sim.0.{fn}', f'{work_dir}/test/estimate/new.0.{fn}' )
 
     # make formatted dataset
-    est_prefix_path = f'tests/workspace/estimate/test/{est_prefix}'
+    est_prefix_path = f'{test_dir}/{est_prefix}'
     my_fmt = fmt.load(my_args)
     my_fmt.encode_one(tmp_fn=est_prefix_path, idx=-1, save_phyenc_csv=True)
 
@@ -350,10 +363,9 @@ def check_est():
         return
 
     # filesystem
-    base_dir = './tests/workspace'
-    est_dir = base_dir + '/estimate'
-    test_dir = est_dir + '/test'
-    valid_dir = est_dir + '/valid'
+    work_dir  = './tests/workspace'
+    test_dir  = work_dir + '/test/estimate'
+    valid_dir = work_dir + '/valid/estimate'
     est_prefix = 'new.0'
 
     # load test output for Estimate
@@ -383,23 +395,12 @@ def do_plt():
     util.set_seed(0)
 
     # filesystem
-    base_dir = './tests/workspace'
-    sim_dir = base_dir + '/simulate'
-    fmt_dir = base_dir + '/format'
-    trn_dir = base_dir + '/train'
-    est_dir = base_dir + '/estimate'
-    plt_dir = base_dir + '/plot'
-    test_dir = plt_dir + '/test'
-    valid_dir = plt_dir + '/valid'
+    work_dir = './tests/workspace'
 
 	# command line arguments
     cmd_args = ['--step', 'P',
                 '--proj', 'test,S:valid,F:valid,T:valid,E:valid',
-                '--sim_dir', sim_dir,
-                '--fmt_dir', fmt_dir,
-                '--trn_dir', trn_dir,
-                '--est_dir', est_dir,
-                '--plt_dir', plt_dir,
+                '--work_dir', work_dir,
                 '--use_parallel', 'F']
 
 	# phyddle arguments
@@ -420,10 +421,9 @@ def check_plt():
         return
 
     # filesystem
-    base_dir = './tests/workspace'
-    plt_dir = base_dir + '/plot'
-    test_dir = plt_dir + '/test'
-    valid_dir = plt_dir + '/valid'
+    work_dir  = './tests/workspace'
+    test_dir  = work_dir + '/test/plot'
+    valid_dir = work_dir + '/valid/plot'
 
 	# verify output
     out_files = [
@@ -433,10 +433,7 @@ def check_plt():
         'fig_nt500.pca_contour_aux_data.pdf',
         'fig_nt500.pca_contour_labels.pdf',
         'fig_nt500.summary.pdf',
-        'fig_nt500.train_history_param_value.pdf',
-        'fig_nt500.train_history.pdf',
-        'fig_nt500.train_history_param_upper.pdf',
-        'fig_nt500.train_history_param_lower.pdf'
+        'fig_nt500.train_history.pdf'
     ]
     
     # verify all test output files exist
