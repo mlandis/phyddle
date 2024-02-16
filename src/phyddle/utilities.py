@@ -1645,6 +1645,7 @@ class Logger:
         self.args        = args
         self.arg_str     = self.make_arg_str()
         self.job_id      = self.args['job_id']
+        self.work_dir    = self.args['work_dir']
         self.log_dir     = self.args['log_dir']
         self.date_str    = self.args['date']
         self.proj        = self.args['proj']
@@ -1658,7 +1659,7 @@ class Logger:
 
         # filesystem
         self.base_fn     = f'{self.pkg_name}_{self.version}_{self.date_str}'
-        self.base_dir    = f'{self.log_dir}/{self.proj}'
+        self.base_dir    = f'{self.work_dir}/{self.proj}/{self.log_dir}'
         self.base_fp     = f'{self.base_dir}/{self.base_fn}' 
         self.fn_dict    = {
             'run' : f'{self.base_fp}.run.log',
