@@ -248,6 +248,9 @@ class Formatter:
             int[]: List of replicate indices.
         """
 
+        # this assumes the simulate directory only contains the target set of
+        # files which is an unsafe assumption
+
         # find all rep index
         all_idx = set()
         files = os.listdir(f'{self.sim_proj_dir}')
@@ -684,7 +687,7 @@ class Formatter:
         # encode phylo-state tensor as CPV+S
         cpvs_data = self.encode_cpvs(phy, dat, tree_width=self.tree_width,
                                      tree_encode_type=self.brlen_encode,
-                                     tree_type=self.tree_encode)
+                                     tree_type=self.tree_encode, idx=idx)
 
         # save CPVS
         save_phyenc_csv_ = self.save_phyenc_csv or save_phyenc_csv
@@ -797,7 +800,7 @@ class Formatter:
         return keys_str + vals_str
     
     def encode_cpvs(self, phy, dat, tree_width, tree_type,
-                    tree_encode_type, rescale=True):
+                    tree_encode_type, idx, rescale=True):
         """
         Encode Compact Phylogenetic Vector + States (CPV+S) array
         
@@ -813,11 +816,26 @@ class Formatter:
             tree_type (str):         type of the tree ('serial' or 'extant')
             tree_encode_type (str):  type of tree encoding ('height_only' or
                                      'height_brlen')
-            rescale:                 set tree height to 1 then encode, if True
+            idx (int):               replicate index
+            rescale (bool):          set tree height to 1 then encode, if True
 
         Returns:
             cpvs (numpy.array):      CPV+S encoded tensor
         """
+        # taxon labels must match for each phy and dat replicate
+        phy_labels = set([ n.taxon.label for n in phy.leaf_nodes() ])
+        dat_labels = set(dat.columns.to_list())
+        phy_missing = phy_labels.difference(dat_labels)
+        if len(phy_missing) != 0:
+            phy_missing = sorted(list(phy_missing))
+            #dat_missing = sorted(list(set(dat_labels).difference(set(phy_labels))))
+            err_msg = f'Missing taxon labels in dat but not in phy for replicate {idx}: '
+            # if len(phy_missing) > 0:
+            err_msg += ' '.join(phy_missing)
+            #if len(dat_missing) > 0:
+            #    err_msg += f' Missing from dat: {' '.join(dat_missing)}.'
+            raise ValueError(err_msg)
+        
         if tree_type == 'serial':
             cpvs = self.encode_cblvs(phy, dat, tree_width,
                                      tree_encode_type, rescale)

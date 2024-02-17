@@ -433,6 +433,7 @@ def check_args(args):
     assert args['tensor_format']     in ['csv', 'hdf5']
     assert args['char_format']       in ['csv', 'nexus']
     assert args['trn_objective']     in ['param_est', 'model_test']
+    assert args['downsample_taxa']   in ['uniform']
     
     # numerical values
     assert args['start_idx'] >= 0
@@ -797,10 +798,12 @@ def get_num_char_col(state_encode_type, num_char, num_states):
     
     """
     
-    if state_encode_type == 'integer':
+    if state_encode_type == 'integer' or state_encode_type == 'numeric':
         num_char_col = num_char
     elif state_encode_type == 'one_hot':
         num_char_col = num_char * num_states
+    else:
+        raise ValueError(f'"{state_encode_type}" is not recognized char_encode type')
 
     return num_char_col
 
