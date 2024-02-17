@@ -48,7 +48,7 @@ args = {
   'max_num_taxa'       : 1000,                 # Maximum number of taxa allowed when formatting
   'downsample_taxa'    : 'uniform',            # Downsampling strategy taxon count
   'tree_width'         : 200,                  # Width of phylo-state tensor    
-  'tree_encode'        : 'extant',             # Encoding strategy for tree     
+  'tree_encode'        : 'serial',             # Encoding strategy for tree     
   'brlen_encode'       : 'height_brlen',       # Encoding strategy for branch lengths
   'char_encode'        : 'integer',            # Encoding strategy for character data
   'param_est'          : ['BirthConstant_0',
@@ -74,12 +74,12 @@ args = {
   'optimizer'          : 'adam',               # Method used for optimizing neural network
   'metrics'            : ['mae', 'acc'],       # Recorded training metrics      
   'log_offset'         : 1.0,                  # Offset size c when taking ln(x+c) for potentially zero-valued variables
-  'phy_channel_plain'  : [64, 96, 128],        # Output channel sizes for plain convolutional layers for phylogenetic state input
-  'phy_channel_stride' : [64, 96],             # Output channel sizes for stride convolutional layers for phylogenetic state input
+  'phy_channel_plain'  : [32, 64],        # Output channel sizes for plain convolutional layers for phylogenetic state input
+  'phy_channel_stride' : [32, 64],             # Output channel sizes for stride convolutional layers for phylogenetic state input
   'phy_channel_dilate' : [32, 64],             # Output channel sizes for dilate convolutional layers for phylogenetic state input
-  'aux_channel'        : [128, 64, 32],        # Output channel sizes for dense layers for auxiliary data input
-  'lbl_channel'        : [128, 64, 32],        # Output channel sizes for dense layers for label outputs
-  'phy_kernel_plain'   : [3, 5, 7],            # Kernel sizes for plain convolutional layers for phylogenetic state input
+  'aux_channel'        : [64, 32],        # Output channel sizes for dense layers for auxiliary data input
+  'lbl_channel'        : [64, 32],        # Output channel sizes for dense layers for label outputs
+  'phy_kernel_plain'   : [3, 5],            # Kernel sizes for plain convolutional layers for phylogenetic state input
   'phy_kernel_stride'  : [7, 9],               # Kernel sizes for stride convolutional layers for phylogenetic state input
   'phy_kernel_dilate'  : [3, 5],               # Kernel sizes for dilate convolutional layers for phylogenetic state input
   'phy_stride_stride'  : [3, 6],               # Stride sizes for stride convolutional layers for phylogenetic state input
