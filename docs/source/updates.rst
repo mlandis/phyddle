@@ -10,6 +10,7 @@ The complete commit history for phyddle is located here: https://github.com/mlan
   * Simpler settings application hierarchy
   * Removed requirement for __config_default.py
   * Repo directory restructuring, with clearer distinction between scripts and configs
+  * Added example simulation script for PhyloJunction
 
 
 **phyddle v0.1.0** -- 24.02.08

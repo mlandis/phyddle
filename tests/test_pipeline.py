@@ -338,13 +338,13 @@ def do_est():
 
     # copy minimal input fileset from valid into test
     input_files = [ 'tre', 'dat.csv', 'labels.csv' ]
-    os.makedirs(test_dir, exist_ok=True)
+    os.makedirs(f'{test_dir}/estimate', exist_ok=True)
     if ENABLE_TEST:
         for fn in input_files:
-            shutil.copyfile( f'{work_dir}/valid/simulate/sim.0.{fn}', f'{work_dir}/test/estimate/new.0.{fn}' )
+            shutil.copyfile( f'{valid_dir}/simulate/sim.0.{fn}', f'{test_dir}/estimate/new.0.{fn}' )
     else:
         for fn in input_files:
-            shutil.copyfile( f'{work_dir}/test/simulate/sim.0.{fn}', f'{work_dir}/test/estimate/new.0.{fn}' )
+            shutil.copyfile( f'{test_dir}/simulate/sim.0.{fn}', f'{test_dir}/estimate/new.0.{fn}' )
 
     # make formatted dataset
     est_prefix_path = f'{test_dir}/{est_prefix}'
