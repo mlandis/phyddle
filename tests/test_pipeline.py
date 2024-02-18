@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 test_pipeline
 =============
@@ -39,7 +40,6 @@ ERROR_TOL = 5E-1 # 1E-2
 #-----------------------------------------------------------------------------#
 
 # single-thread session
-#tf.config.experimental.enable_op_determinism()
 torch.set_deterministic_debug_mode(debug_mode='warn')
 #torch.use_deterministic_algorithms(mode=True)
 
@@ -80,20 +80,20 @@ def do_sim():
     
     # set seed
     util.set_seed(0)
-    
+  
     # filesystem
     work_dir = './tests/workspace'
+    sim_dir = work_dir + '/test/simulate'
 
     # command line arguments
     cmd_args = ['--step', 'S',
-                '--proj', 'test',
-                '--work_dir', work_dir,
+                '--sim_dir', sim_dir,
                 '--sim_command', 'Rscript scripts/sim/R/sim_one.R',
                 '--end_idx', '100',
                 '--use_parallel', 'F']
 
     # build arguments
-    my_args = util.load_config('scripts/config.py', arg_overwrite=True, args=cmd_args)
+    my_args = util.load_config('configs/config_R.py', arg_overwrite=True, args=cmd_args)
 
     # load simulator
     my_sim = sim.load(my_args)
@@ -144,17 +144,19 @@ def do_fmt():
 
     # filesystem
     work_dir = './tests/workspace'
+    sim_dir = work_dir + '/test/simulate'
+    fmt_dir = work_dir + '/test/format'
 
     # command line arguments
     cmd_args = ['--step', 'F',
-                '--proj', 'test,S:valid',
-                '--work_dir', work_dir,
+                '--sim_dir', sim_dir,
+                '--fmt_dir', fmt_dir,
                 '--prop_test','0.10',
                 '--prop_val','0.10',
                 '--use_parallel', 'F']
 
     # phyddle arguments
-    my_args = util.load_config('scripts/config.py', arg_overwrite=True, args=cmd_args)
+    my_args = util.load_config('configs/config_R.py', arg_overwrite=True, args=cmd_args)
 
     # load simulator
     my_fmt = fmt.load(my_args)
@@ -218,17 +220,19 @@ def do_trn():
 
     # filesystem
     work_dir = './tests/workspace'
+    fmt_dir = work_dir + '/test/format'
+    trn_dir = work_dir + '/test/train'
 
     # command line arguments
     cmd_args = ['--step', 'T',
-                '--proj', 'test,F:valid',
-                '--work_dir', work_dir,
+                '--fmt_dir', fmt_dir,
+                '--trn_dir', trn_dir,
                 '--prop_test', '0.1',
                 '--prop_val', '0.1',
                 '--use_parallel', 'F']
 
     # phyddle arguments
-    my_args = util.load_config('scripts/config.py', arg_overwrite=True, args=cmd_args)
+    my_args = util.load_config('configs/config_R.py', arg_overwrite=True, args=cmd_args)
 
     # load trainer
     my_trn = trn.load(my_args)
@@ -250,28 +254,22 @@ def check_trn():
     valid_dir = work_dir + '/valid/train'
 
     # load test output for Train
-    #model_test_fn = test_dir + '/network_nt500.trained_model.pkl'
     lbl_test_fn = test_dir + '/network_nt500.train_est.labels.csv'
     cpi_test_fn = test_dir + '/network_nt500.cpi_adjustments.csv'
     aux_norm_test_fn = test_dir + '/network_nt500.train_aux_data_norm.csv'
     lbl_norm_test_fn = test_dir + '/network_nt500.train_label_norm.csv'
 
-    #model_test = tf.keras.models.load_model(model_test_fn, compile=False)
-    #model_load = torch.load(model_test_fn)
     lbl_test = pd.read_csv(lbl_test_fn, header=0).iloc[:,1:].to_numpy()
     cpi_test = pd.read_csv(cpi_test_fn, header=0).to_numpy()
     aux_norm_test = pd.read_csv(aux_norm_test_fn, header=0).iloc[:,1:].to_numpy()
     lbl_norm_test = pd.read_csv(lbl_norm_test_fn, header=0).iloc[:,1:].to_numpy()
     
     # load valid output for Train
-    #model_valid_fn = valid_dir + '/network_nt500.trained_model.pkl'
     lbl_valid_fn = valid_dir + '/network_nt500.train_est.labels.csv'
     cpi_valid_fn = valid_dir + '/network_nt500.cpi_adjustments.csv'
     aux_norm_valid_fn = valid_dir + '/network_nt500.train_aux_data_norm.csv'
     lbl_norm_valid_fn = valid_dir + '/network_nt500.train_label_norm.csv'
 
-    #model_valid = tf.keras.models.load_model(model_valid_fn, compile=False)
-    #model_valid = torch.load(model_valid_fn)
     lbl_valid = pd.read_csv(lbl_valid_fn, header=0).iloc[:,1:].to_numpy()
     cpi_valid = pd.read_csv(cpi_valid_fn, header=0).to_numpy()
     aux_norm_valid = pd.read_csv(aux_norm_valid_fn, header=0).iloc[:,1:].to_numpy()
@@ -317,21 +315,26 @@ def do_est():
     util.set_seed(0)
 
     # filesystem
-    # FIX THIS
-    work_dir   = './tests/workspace'
-    test_dir   = work_dir + '/test/estimate'
-    valid_dir  = work_dir + '/valid/estimate'
+    work_dir = './tests/workspace'
+    test_dir = work_dir + '/test'
+    valid_dir = work_dir + '/valid'
+    sim_dir = work_dir + '/valid/simulate'
+    fmt_dir = work_dir + '/valid/format'
+    trn_dir = work_dir + '/valid/train'
+    est_dir = work_dir + '/test/estimate'
     est_prefix = 'new.0'
 
 	# command line arguments
     cmd_args = ['--step', 'E',
-                '--proj', 'test,S:valid,F:valid,T:valid',
-                '--work_dir', work_dir,
+                '--sim_dir', sim_dir,
+                '--fmt_dir', fmt_dir,
+                '--trn_dir', trn_dir,
+                '--est_dir', est_dir,
                 '--est_prefix', est_prefix,
                 '--use_parallel', 'F']
 
-	# phyddle arguments
-    my_args = util.load_config('scripts/config.py', arg_overwrite=True, args=cmd_args)
+    # phyddle arguments
+    my_args = util.load_config('configs/config_R.py', arg_overwrite=True, args=cmd_args)
 
     # copy minimal input fileset from valid into test
     input_files = [ 'tre', 'dat.csv', 'labels.csv' ]
@@ -396,15 +399,23 @@ def do_plt():
 
     # filesystem
     work_dir = './tests/workspace'
+    sim_dir = work_dir + '/valid/simulate'
+    fmt_dir = work_dir + '/valid/format'
+    trn_dir = work_dir + '/valid/train'
+    est_dir = work_dir + '/valid/estimate'
+    plt_dir = work_dir + '/test/estimate'
 
 	# command line arguments
     cmd_args = ['--step', 'P',
-                '--proj', 'test,S:valid,F:valid,T:valid,E:valid',
-                '--work_dir', work_dir,
+                '--sim_dir', sim_dir,
+                '--fmt_dir', fmt_dir,
+                '--trn_dir', trn_dir,
+                '--est_dir', est_dir,
+                '--plt_dir', est_dir,
                 '--use_parallel', 'F']
 
 	# phyddle arguments
-    my_args = util.load_config('scripts/config.py', arg_overwrite=True, args=cmd_args)
+    my_args = util.load_config('configs/config_R.py', arg_overwrite=True, args=cmd_args)
 
     # load estimator
     my_plt = plt.load(my_args)
