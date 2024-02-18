@@ -78,7 +78,8 @@ class Simulator:
         # validate sim_command
         self.validate_sim_command()
         # directory to store simulations
-        self.sim_proj_dir = f'{self.work_dir}/{self.sim_proj}/{self.sim_dir}'
+        # self.sim_proj_dir = f'{self.work_dir}/{self.sim_proj}/{self.sim_dir}'
+        self.sim_proj_dir = f'{self.sim_dir}'
         # set number of processors
         if self.num_proc <= 0:
             self.num_proc = cpu_count() + self.num_proc

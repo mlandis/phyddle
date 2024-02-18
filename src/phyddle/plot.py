@@ -97,10 +97,14 @@ class Plotter:
         """
 
         # directories
-        self.fmt_proj_dir = f'{self.work_dir}/{self.fmt_proj}/{self.fmt_dir}'
-        self.trn_proj_dir = f'{self.work_dir}/{self.trn_proj}/{self.trn_dir}'
-        self.est_proj_dir = f'{self.work_dir}/{self.est_proj}/{self.est_dir}'
-        self.plt_proj_dir = f'{self.work_dir}/{self.plt_proj}/{self.plt_dir}'
+        # self.fmt_proj_dir = f'{self.work_dir}/{self.fmt_proj}/{self.fmt_dir}'
+        # self.trn_proj_dir = f'{self.work_dir}/{self.trn_proj}/{self.trn_dir}'
+        # self.est_proj_dir = f'{self.work_dir}/{self.est_proj}/{self.est_dir}'
+        # self.plt_proj_dir = f'{self.work_dir}/{self.plt_proj}/{self.plt_dir}'
+        self.fmt_proj_dir = f'{self.fmt_dir}'
+        self.trn_proj_dir = f'{self.trn_dir}'
+        self.est_proj_dir = f'{self.est_dir}'
+        self.plt_proj_dir = f'{self.plt_dir}'
 
         # prefixes
         network_prefix          = f'network_nt{self.tree_width}'
