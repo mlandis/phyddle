@@ -403,7 +403,7 @@ def do_plt():
     fmt_dir = work_dir + '/valid/format'
     trn_dir = work_dir + '/valid/train'
     est_dir = work_dir + '/valid/estimate'
-    plt_dir = work_dir + '/test/estimate'
+    plt_dir = work_dir + '/test/plot'
 
 	# command line arguments
     cmd_args = ['--step', 'P',
@@ -411,7 +411,7 @@ def do_plt():
                 '--fmt_dir', fmt_dir,
                 '--trn_dir', trn_dir,
                 '--est_dir', est_dir,
-                '--plt_dir', est_dir,
+                '--plt_dir', plt_dir,
                 '--use_parallel', 'F']
 
 	# phyddle arguments

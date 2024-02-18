@@ -9,7 +9,7 @@ phyddle
 
 A standard phyddle analysis performs the following tasks for you:
 
-.. image:: phyddle_pipeline.png
+.. image:: images/phyddle_pipeline.png
 	:scale: 13%
 	:align: right
 

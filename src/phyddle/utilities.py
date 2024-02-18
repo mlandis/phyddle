@@ -109,7 +109,7 @@ def settings_registry():
         # 'name'             : { 'step':'SFTEP', 'type':str,  'section':'Basic', 'default':'',           'help':'Nickname for file-set within project', 'opt':'n' },
         'step'             : { 'step':'SFTEP', 'type':str,  'section':'Basic', 'default':'SFTEP',      'help':'Pipeline step(s) defined with (S)imulate, (F)ormat, (T)rain, (E)stimate, (P)lot, or (A)ll', 'opt':'s' },
         'verbose'          : { 'step':'SFTEP', 'type':str,  'section':'Basic', 'default':'T',          'help':'Verbose output to screen?', 'bool':True, 'opt':'v' },
-        'force'            : { 'step':'',      'type':None, 'section':'Basic', 'default':None,         'help':'Arguments override config file settings', 'opt':'f' },
+        # 'force'            : { 'step':'',      'type':None, 'section':'Basic', 'default':None,         'help':'Arguments override config file settings', 'opt':'f' },
         'make_cfg'         : { 'step':'',      'type':None, 'section':'Basic', 'default':None,         'help':"Write default config file to '__config_default.py'?" },
         'output_precision' : { 'step':'SFTEP', 'type':int,  'section':'Basic', 'default':16,           'help':'Number of digits (precision) for numbers in output files' },
 

@@ -1,6 +1,5 @@
 Setting|Step(s)|Type|Description
 ``cfg``|–––––|*str*|Config file name
-``proj``|SFTEP|*str*|Project name(s) for pipeline step(s)
 ``step``|SFTEP|*str*|Pipeline step(s) defined with (S)imulate, (F)ormat, (T)rain, (E)stimate, (P)lot, or (A)ll
 ``verbose``|SFTEP|*str*|Verbose output to screen?
 ``force``|–––––|––|Arguments override config file settings
@@ -8,7 +7,6 @@ Setting|Step(s)|Type|Description
 ``output_precision``|SFTEP|*int*|Number of digits (precision) for numbers in output files
 ``use_parallel``|SF–––|*str*|Use parallelization? (recommended)
 ``num_proc``|SFT––|*int*|Number of cores for multiprocessing (-N for all but N)
-``work_dir``|SFTEP|*str*|Directory where projects are stored (workspace)
 ``sim_dir``|SF–––|*str*|Directory for raw simulated data
 ``fmt_dir``|–FTEP|*str*|Directory for tensor-formatted simulated data
 ``trn_dir``|–FTEP|*str*|Directory for trained networks and training output
