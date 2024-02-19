@@ -2,12 +2,12 @@
 # Default phyddle config file                                                  #
 #==============================================================================#
 
+work_dir = './workspace/BDD_example'
+
 args = {
   #-------------------------------#
   # Basic                         #
   #-------------------------------#
-  'cfg'                : 'config.py',          # Config file name               
-  'proj'               : 'BDD_example',        # Project name(s) for pipeline step(s)
   'step'               : 'SFTEP',              # Pipeline step(s) defined with (S)imulate, (F)ormat, (T)rain, (E)stimate, (P)lot, or (A)ll
   'verbose'            : 'T',                  # Verbose output to screen?      
   'output_precision'   : 16,                   # Number of digits (precision) for numbers in output files
@@ -21,18 +21,17 @@ args = {
   #-------------------------------#
   # Workspace                     #
   #-------------------------------#
-  'work_dir'           : '../workspace',       # Directory where projects are stored (workspace)
-  'sim_dir'            : 'simulate',           # Directory for raw simulated data
-  'fmt_dir'            : 'format',             # Directory for tensor-formatted simulated data
-  'trn_dir'            : 'train',              # Directory for trained networks and training output
-  'est_dir'            : 'estimate',           # Directory for new datasets and estimates
-  'plt_dir'            : 'plot',               # Directory for plotted results  
-  'log_dir'            : 'log',                # Directory for logs of analysis metadata
+  'sim_dir'            : f'{work_dir}/simulate',           # Directory for raw simulated data
+  'fmt_dir'            : f'{work_dir}/format',             # Directory for tensor-formatted simulated data
+  'trn_dir'            : f'{work_dir}/train',              # Directory for trained networks and training output
+  'est_dir'            : f'{work_dir}/estimate',           # Directory for new datasets and estimates
+  'plt_dir'            : f'{work_dir}/plot',               # Directory for plotted results  
+  'log_dir'            : f'{work_dir}/log',                # Directory for logs of analysis metadata
 
   #-------------------------------#
   # Simulate                      #
   #-------------------------------#
-  'sim_command'        : 'python3 sim/MASTER/sim_one_BDD.py', # Simulation command to run single job (see documentation)
+  'sim_command'        : 'python3 scripts/sim/MASTER/sim_one_BDD.py', # Simulation command to run single job (see documentation)
   'sim_logging'        : 'clean',              # Simulation logging style       
   'start_idx'          : 0,                    # Start replicate index for simulated training dataset
   'end_idx'            : 1000,                 # End replicate index for simulated training dataset
@@ -51,8 +50,8 @@ args = {
   'tree_encode'        : 'serial',             # Encoding strategy for tree     
   'brlen_encode'       : 'height_brlen',       # Encoding strategy for branch lengths
   'char_encode'        : 'integer',            # Encoding strategy for character data
-  'param_est'          : ['BirthConstant_0',
-                          'DeathConstant_0',
+  'param_est'          : ['BirthConst_0',
+                          'DeathConst_0',
                           'DeathDensity_0'],          # Model parameters to estimate   
   'param_data'         : ['nSampled_tips_0'],          # Model parameters treated as data
   'char_format'        : 'nexus',              # File format for character data 

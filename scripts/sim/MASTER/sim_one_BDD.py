@@ -32,20 +32,20 @@ args = {
     'num_hidden_char'    : 1,               # number of hidden states
     'stop_time'          : None,            # time to stop simulation 
     'min_num_taxa'       : 1,               # min number of taxa for valid sim
-    'max_num_taxa'       : 1000,             # max number of taxa for valid sim
+    'max_num_taxa'       : 500,             # max number of taxa for valid sim
     'rv_fn'              : {                # distributions for model params
-        'BirthConstant'  : sp.stats.uniform.rvs,
-        'DeathConstant'  : sp.stats.uniform.rvs,
-        'DeathDensity'   : sp.stats.uniform.rvs,
+        'DivConst'       : sp.stats.expon.rvs,
+        'Turnover'       : sp.stats.beta.rvs,
+        'DeathCarryK'    : sp.stats.uniform.rvs,
         'Stop_time'      : sp.stats.uniform.rvs,
         'nSampled_tips'  : sp.stats.randint.rvs
     },
     'rv_arg'                : {                # loc/scale/shape for param dists
-        'BirthConstant'     : { 'loc' : 0.1,     'scale' : 0.90     }, 
-        'DeathConstant'     : { 'loc' : 0.0,     'scale' : 0.10     }, 
-        'DeathDensity'      : { 'loc' : 0.0,     'scale' : 0.01     }, 
-        'Stop_time'         : { 'loc' : 0.0,     'scale' : 10.0     }, 
-        'nSampled_tips'     : { 'low' : 100,      'high' : 500      }  
+        'DivConst'          : { 'loc'   : 0.0,     'scale' : 1.00     }, 
+        'Turnover'          : { 'a'     : 1.0,     'b'     : 1.0      }, 
+        'DeathCarryK'       : { 'scale' : 10,      'scale' : 1980     }, 
+        'Stop_time'         : { 'loc'   : 0.0,     'scale' : 20.0     }, 
+        'nSampled_tips'     : { 'low'   : 499,     'high'  : 500      }  
     }
 }
 
@@ -79,8 +79,8 @@ x = subprocess.run(['beast', xml_fn], capture_output=True)
 
 # create dat.phy.nex file if stochastic sim
 #if my_model.model_stochastic:
-phy_state_dat = masterpy.blank_phy2dat_nex(phy_nwk_fn)
-masterpy.write_to_file(phy_state_dat, dat_nex_fn)
+#    phy_state_dat = masterpy.convert_phy2dat_nex(phy_nex_fn, my_model.num_states)
+#    masterpy.write_to_file(phy_state_dat, dat_nex_fn)
 
 # include sim stats such as prevalence at time pt of interest and 
 # cumulative number of samples
