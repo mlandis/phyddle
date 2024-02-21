@@ -3,10 +3,8 @@ SRC_REP_IDX="1"
 DST_REP_IDX="0"
 #REP_IDX=$2
 
-#SIM_DIR="../workspace/simulate/${PROJ}"
-#EST_DIR="../workspace/estimate/${PROJ}"
-SIM_DIR="../workspace/${PROJ}/simulate"
-EST_DIR="../workspace/${PROJ}/estimate"
+SIM_DIR="./workspace/${PROJ}/simulate"
+EST_DIR="./workspace/${PROJ}/estimate"
 mkdir -p ${EST_DIR}
 
 EXT=("tre" "dat.nex" "dat.csv" "labels.csv")

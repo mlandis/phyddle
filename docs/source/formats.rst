@@ -34,7 +34,7 @@ serially sampled viruses or fossils should be analyzed using
 
 .. code-block:: shell
    
-    $ cat workspace/simulate/example/sim.0.tre
+    $ cat workspace/example/simulate/sim.0.tre
     ((((1:0.35994691486501296,2:0.35994691486501296):1.389952711060852,(3:1.5810568349100933,(4:0.5830569936279364,5:0.5830569936279364):0.9979998412821569):0.1688427910157717):5.655066077200624,6:7.404965703126489):0.3108578683347094,(7:0.7564319839861859,8:0.7564319839861859):6.959391587475013):2.2841764285388018;
 
 
@@ -43,7 +43,7 @@ example of a matrix with N=8 taxa and M=3 binary characters.
 
 .. code-block:: shell
 
-    $ cat workspace/simulate/example/sim.0.dat.nex
+    $ cat workspace/example/simulate/sim.0.dat.nex
     #NEXUS
     Begin DATA;
     Dimensions NTAX=8 NCHAR=3
@@ -65,7 +65,7 @@ example:
 
 .. code-block:: shell
 
-    $ cat workspace/simulate/example/sim.0.dat.nex
+    $ cat workspace/example/simulate/sim.0.dat.nex
     1,0,0,1
     2,0,1,0
     3,1,0,0

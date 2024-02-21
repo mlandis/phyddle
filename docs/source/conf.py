@@ -38,7 +38,7 @@ templates_path = ['_templates']
 # -- Options for HTML output
 
 html_theme = 'sphinx_rtd_theme'
-html_logo  = 'phyddle_logo.png'
+html_logo  = 'images/phyddle_logo.png'
 html_theme_options = {
     'logo_only': True,
     'display_version': True,

@@ -80,7 +80,7 @@ def make_step_args(step, args):
     
     # project directories
     for p in ['sim','fmt','trn','est','plt']:
-        k = f'{p}_proj'
+        k = f'{p}_dir'
         ret[k] = args[k]
     
     # return args the match settings for step
@@ -105,11 +105,11 @@ def settings_registry():
     settings = {
         # basic phyddle options
         'cfg'              : { 'step':'',      'type':str,  'section':'Basic', 'default':'config.py',  'help':'Config file name', 'opt':'c' },
-        'proj'             : { 'step':'SFTEP', 'type':str,  'section':'Basic', 'default':'my_project', 'help':'Project name(s) for pipeline step(s)', 'opt':'p' },
+        # 'proj'             : { 'step':'SFTEP', 'type':str,  'section':'Basic', 'default':'my_project', 'help':'Project name(s) for pipeline step(s)', 'opt':'p' },
         # 'name'             : { 'step':'SFTEP', 'type':str,  'section':'Basic', 'default':'',           'help':'Nickname for file-set within project', 'opt':'n' },
         'step'             : { 'step':'SFTEP', 'type':str,  'section':'Basic', 'default':'SFTEP',      'help':'Pipeline step(s) defined with (S)imulate, (F)ormat, (T)rain, (E)stimate, (P)lot, or (A)ll', 'opt':'s' },
         'verbose'          : { 'step':'SFTEP', 'type':str,  'section':'Basic', 'default':'T',          'help':'Verbose output to screen?', 'bool':True, 'opt':'v' },
-        'force'            : { 'step':'',      'type':None, 'section':'Basic', 'default':None,         'help':'Arguments override config file settings', 'opt':'f' },
+        # 'force'            : { 'step':'',      'type':None, 'section':'Basic', 'default':None,         'help':'Arguments override config file settings', 'opt':'f' },
         'make_cfg'         : { 'step':'',      'type':None, 'section':'Basic', 'default':None,         'help':"Write default config file to '__config_default.py'?" },
         'output_precision' : { 'step':'SFTEP', 'type':int,  'section':'Basic', 'default':16,           'help':'Number of digits (precision) for numbers in output files' },
 
@@ -118,13 +118,13 @@ def settings_registry():
         'num_proc'         : { 'step':'SFT', 'type':int, 'section':'Analysis', 'default':-2, 'help':'Number of cores for multiprocessing (-N for all but N)' },
         
         # directories
-        'work_dir'         : { 'step':'SFTEP', 'type':str, 'section':'Workspace', 'default':'../workspace/',  'help':'Directory where projects are stored (workspace)' },
-        'sim_dir'          : { 'step':'SF',    'type':str, 'section':'Workspace', 'default':'simulate',       'help':'Directory for raw simulated data' },
-        'fmt_dir'          : { 'step':'FTEP',  'type':str, 'section':'Workspace', 'default':'format',         'help':'Directory for tensor-formatted simulated data' },
-        'trn_dir'          : { 'step':'FTEP',  'type':str, 'section':'Workspace', 'default':'train',          'help':'Directory for trained networks and training output' },
-        'est_dir'          : { 'step':'TEP',   'type':str, 'section':'Workspace', 'default':'estimate',       'help':'Directory for new datasets and estimates' },
-        'plt_dir'          : { 'step':'P',     'type':str, 'section':'Workspace', 'default':'plot',           'help':'Directory for plotted results' },
-        'log_dir'          : { 'step':'SFTEP', 'type':str, 'section':'Workspace', 'default':'log',            'help':'Directory for logs of analysis metadata' },
+        # 'work_dir'         : { 'step':'SFTEP', 'type':str, 'section':'Workspace', 'default':'../workspace/',  'help':'Directory where projects are stored (workspace)' },
+        'sim_dir'          : { 'step':'SF',    'type':str, 'section':'Workspace', 'default':'./my_project/simulate',       'help':'Directory for raw simulated data' },
+        'fmt_dir'          : { 'step':'FTEP',  'type':str, 'section':'Workspace', 'default':'./my_project/format',         'help':'Directory for tensor-formatted simulated data' },
+        'trn_dir'          : { 'step':'FTEP',  'type':str, 'section':'Workspace', 'default':'./my_project/train',          'help':'Directory for trained networks and training output' },
+        'est_dir'          : { 'step':'TEP',   'type':str, 'section':'Workspace', 'default':'./my_project/estimate',       'help':'Directory for new datasets and estimates' },
+        'plt_dir'          : { 'step':'P',     'type':str, 'section':'Workspace', 'default':'./my_project/plot',           'help':'Directory for plotted results' },
+        'log_dir'          : { 'step':'SFTEP', 'type':str, 'section':'Workspace', 'default':'./my_project/log',            'help':'Directory for logs of analysis metadata' },
 
         # simulation options
         'sim_command'      : { 'step':'S',  'type':str, 'section':'Simulate', 'default':None,    'help':'Simulation command to run single job (see documentation)' },
@@ -314,18 +314,22 @@ def load_config(config_fn,
         make_default_config(make_config_fn)
         print_str(f"Created default config as '{make_config_fn}' ...")
         sys.exit()
-    if not os.path.exists(CONFIG_DEFAULT_FN):
-        msg = f"Default config file '{CONFIG_DEFAULT_FN} not found. Creating "
-        msg += "default config file in current directory."
-        print_warn(msg)
-        make_default_config(CONFIG_DEFAULT_FN)
+        
+    # if not os.path.exists(CONFIG_DEFAULT_FN):
+        # msg = f"Default config file '{CONFIG_DEFAULT_FN} not found. Creating "
+        # msg += "default config file in current directory."
+        # print_warn(msg)
+        # make_default_config(CONFIG_DEFAULT_FN)
+    
     # load config into namespace
-    namespace = {}        
-    with open(CONFIG_DEFAULT_FN) as file:
-        code = file.read()
-        exec(code, namespace)
-    # move imported args into local variable
-    default_args = namespace['args']
+    default_args = {}
+    if os.path.exists(CONFIG_DEFAULT_FN):
+        namespace = {}
+        with open(CONFIG_DEFAULT_FN) as file:
+            code = file.read()
+            exec(code, namespace)
+        # move imported args into local variable
+        default_args = namespace['args']
     
     # PROJECT CONFIG FILE SETTINGS
     if arg_overwrite and args.cfg is not None:
@@ -350,8 +354,7 @@ def load_config(config_fn,
     
     # MERGE SETTINGS
     # merge default, user_file, and user_cmd settings
-    for k in settings.keys():
-        m = reconcile_settings(default_args, file_args, args, k)
+    m = reconcile_settings(settings, default_args, file_args, args, k)
 
     # fix convert string-valued bool to true bool
     m = fix_arg_bool(m)
@@ -364,7 +367,7 @@ def load_config(config_fn,
     check_args(m)
 
     # set steps & projects
-    m = add_step_proj(m)
+    # m = add_step_proj(m)
     
     # add session info
     date_obj = datetime.now()
@@ -384,7 +387,7 @@ def load_config(config_fn,
     verbose = m['verbose']
     if verbose:
         print(phyddle_header('title'))
-
+    
     # return new args
     return m
 
@@ -622,18 +625,20 @@ def make_default_config(config_fn):
     return
 
 # update arguments from defaults, when provided
-def reconcile_settings(default_args, file_args, cmd_args, var):
+def reconcile_settings(settings_args, default_args, file_args, cmd_args, var):
         """Reconciles settings from all sources.
 
         Settings are applied and overwritten in this order:
-        1. default settings
-        2. config file settings
-        3. command line settings
+        1. default settings from phyddle source
+        2. default settings from file (config_default.py)
+        2. analysis settings from file (e.g. config_<example>.py)
+        3. command line settings (e.g. --sim_more 200)
 
         Settings are applied to default settings before being returned.
 
         Args:
-            default_args (dict): Default settings
+            settings_args (dict): Default settings from phyddle
+            default_args (dict): Default settings from file
             file_args (dict): Config file settings
             cmd_args (dict): Command line settings
             var (str): Key for setting to be updated
@@ -643,18 +648,31 @@ def reconcile_settings(default_args, file_args, cmd_args, var):
 
         """
         
-        # first apply file args
-        if var in file_args.keys():
-            x_file = file_args[var]
-            if x_file is not None:
-                default_args[var] = x_file
+        args = {}
+        
+        # (1) start with hard-coded phyddle default settings
+        for k,v in settings_args.items():
+            if v['default'] is not None:
+                args[k] = v['default']
+        
+        # (2) overwrite with default file args
+        for k,v in default_args.items():
+            if v is not None:
+                args[k] = v
 
-        # then apply command args
-        x_cmd = getattr(cmd_args, var)
-        if x_cmd is not None:
-            default_args[var] = x_cmd
+        # (3) overwrite with specific file args
+        for k,v in file_args.items():
+            if v is not None:
+                args[k] = v
 
-        return default_args
+        # (4) overwrite with command line args
+        for k in args.keys():
+            if k in cmd_args:
+                v = getattr(cmd_args, k)
+                if v is not None:
+                    args[k] = v
+
+        return args
 
 
 def strip_py(s):
@@ -1648,10 +1666,10 @@ class Logger:
         self.args        = args
         self.arg_str     = self.make_arg_str()
         self.job_id      = self.args['job_id']
-        self.work_dir    = self.args['work_dir']
+        # self.work_dir    = self.args['work_dir']
         self.log_dir     = self.args['log_dir']
         self.date_str    = self.args['date']
-        self.proj        = self.args['proj']
+        # self.proj        = self.args['proj']
 
         # collect other info and set constants
         self.pkg_name    = 'phyddle'
@@ -1662,7 +1680,8 @@ class Logger:
 
         # filesystem
         self.base_fn     = f'{self.pkg_name}_{self.version}_{self.date_str}'
-        self.base_dir    = f'{self.work_dir}/{self.proj}/{self.log_dir}'
+        # self.base_dir    = f'{self.work_dir}/{self.proj}/{self.log_dir}'
+        self.base_dir    = f'{self.log_dir}'
         self.base_fp     = f'{self.base_dir}/{self.base_fn}' 
         self.fn_dict    = {
             'run' : f'{self.base_fp}.run.log',

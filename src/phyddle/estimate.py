@@ -102,9 +102,12 @@ class Estimator:
 
         """
         # main directories
-        self.trn_proj_dir = f'{self.work_dir}/{self.trn_proj}/{self.trn_dir}'
-        self.est_proj_dir = f'{self.work_dir}/{self.est_proj}/{self.est_dir}'
-        self.fmt_proj_dir = f'{self.work_dir}/{self.fmt_proj}/{self.fmt_dir}'
+        # self.trn_proj_dir = f'{self.work_dir}/{self.trn_proj}/{self.trn_dir}'
+        # self.est_proj_dir = f'{self.work_dir}/{self.est_proj}/{self.est_dir}'
+        # self.fmt_proj_dir = f'{self.work_dir}/{self.fmt_proj}/{self.fmt_dir}'
+        self.trn_proj_dir = f'{self.trn_dir}'
+        self.est_proj_dir = f'{self.est_dir}'
+        self.fmt_proj_dir = f'{self.fmt_dir}'
 
         # prefixes
         test_prefix                 = f'test.nt{self.tree_width}'

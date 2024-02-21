@@ -5,22 +5,22 @@
 # Description:  Simple birth-death and equal-rates CTMC model in R using ape   #
 #==============================================================================#
 
+project_dir = './workspace/R_example'
+
 args = {
 
     #-------------------------------#
     # Project organization          #
     #-------------------------------#
-    'proj'    : 'my_project',               # project name(s)
-    'step'    : 'SFTEP',                    # step(s) to run
-    'verbose' : 'T',                        # print verbose phyddle output?
-    'workspace_dir' : '../workspace',
-    'sim_dir' : 'simulate',    # directory for simulated data
-    'fmt_dir' : 'format',      # directory for tensor-formatted data
-    'trn_dir' : 'train',       # directory for trained network
-    'plt_dir' : 'plot',        # directory for plotted figures
-    'est_dir' : 'estimate',    # directory for predictions on new data
-    'log_dir' : 'log',         # directory for analysis logs
-    'output_precision'   : 12,                    # Number of digits (precision) for numbers in output files
+    'step'    : 'SFTEP',                      # step(s) to run
+    'verbose' : 'T',                          # print verbose phyddle output?
+    'sim_dir' : f'{project_dir}/simulate',    # directory for simulated data
+    'fmt_dir' : f'{project_dir}/format',      # directory for tensor-formatted data
+    'trn_dir' : f'{project_dir}/train',       # directory for trained network
+    'plt_dir' : f'{project_dir}/plot',        # directory for plotted figures
+    'est_dir' : f'{project_dir}/estimate',    # directory for predictions on new data
+    'log_dir' : f'{project_dir}/log',         # directory for analysis logs
+    'output_precision'   : 12,                # Number of digits (precision) for numbers in output files
 
     #-------------------------------#
     # Multiprocessing               #
@@ -31,7 +31,7 @@ args = {
     #-------------------------------#
     # Simulate Step settings        #
     #-------------------------------#
-    'sim_command'       : 'Rscript sim/R/sim_one.R', # exact command string, argument is output file prefix
+    'sim_command'       : 'Rscript scripts/sim/R/sim_one.R', # exact command string, argument is output file prefix
     'sim_logging'       : 'verbose',        # verbose, compressed, or clean
     'start_idx'         : 0,                # first simulation replicate index
     'end_idx'           : 1000,             # last simulation replicate index
@@ -89,6 +89,8 @@ args = {
     'plot_val_color'        : 'red',        # plot color for validation data
     'plot_aux_color'        : 'green',      # plot color for input auxiliary data
     'plot_label_color'      : 'orange',     # plot color for labels (params)
-    'plot_est_color'        : 'black'       # plot color for estimated data/values
-
+    'plot_est_color'        : 'black',      # plot color for estimated data/values
+    'plot_scatter_log'      : 'T',          # Use log values for scatter plots when possible?
+    'plot_contour_log'      : 'T',          # Use log values for scatter plots when possible?
+    'plot_density_log'      : 'T'           # Use log values for scatter plots when possible?
 }

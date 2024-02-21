@@ -16,7 +16,7 @@ Pipeline
     analysis. Visit :ref:`Glossary` to learn more about
     how phyddle defines different terms
 
-.. image:: phyddle_pipeline.png
+.. image:: images/phyddle_pipeline.png
   :scale: 18%
   :align: right
 
@@ -41,33 +41,33 @@ These simulated files can either be generated through phyddle with
 the :ref:`Simulate` step or outside of phyddle entirely.
 
 Below is the project directory structure that a standard phyddle analysis
-would use. In general, we assume the project name is ``example``:
+would use. In this section, we assume the project name is ``example``:
 
 .. code-block:: shell
 
     Simulate 
     - input:   None
-    - output:  workspace/simulate/example  # simulated datasets
+    - output:  ./workspace/example/simulate  # simulated datasets
 
     Format
-    - input:   workspace/simulate/example  # simulated datasets
-    - output:  workspace/format/example    # formatted datasets
+    - input:   ./workspace/example/simulate  # simulated datasets
+    - output:  ./workspace/example/format    # formatted datasets
   
     Train
-    - input:   workspace/format/example    # simulated training dataset
-    - output:  workspace/train/example     # trained network + results
+    - input:   ./workspace/example/format    # simulated training dataset
+    - output:  ./workspace/example/train     # trained network + results
   
     Estimate
-    - input:   workspace/format/example    # simulated test dataset
-               workspace/train/example     # trained network
-               workspace/estimate/example  # new (emprical) dataset
-    - output:  workspace/estimate/example  # new (empirical) estimates
+    - input:   ./workspace/example/format    # simulated test dataset
+               ./workspace/example/train     # trained network
+               ./workspace/example/estimate  # new (empirical) dataset
+    - output:  ./workspace/example/estimate  # new (empirical) estimates
 
     Plot
-    - input:   workspace/format/example    # simulated training dataset
-               workspace/train/example     # trained network and output
-               workspace/estimate/example  # new (empirical) dataset & estimates
-    - output:  workspace/plot/example      # analysis figures
+    - input:   ./workspace/example/format    # simulated training dataset
+               ./workspace/example/train     # trained network and output
+               ./workspace/example/estimate  # new (empirical) dataset & estimates
+    - output:  ./workspace/example/plot      # analysis figures
 
 
 .. _Simulate:
@@ -201,26 +201,28 @@ part of the Simulate step, phyddle will execute the command string against a
 range of values of ``SIM_PREFIX`` generates the complete simulated dataset of
 replicated training examples.
 
-The correct ``sim_command`` to execute the R script ``sim/R/sim_one.R`` is:
+In this case, we assume that `sim_one.R` is an R script that is located in
+the subdirectory `./scripts/sim/R` and can be executed using the `Rscript` 
+command. The correct `sim_command` value to run this script is:
 
 .. code-block:: python
 
-    'sim_command' : 'Rscript sim/R/sim_one.R'
+    'sim_command' : 'Rscript scripts/sim/R/sim_one.R'
 
-Assuming ``sim_dir = ../workspace/simulate``, ``proj = my_project``, and
+Assuming ``sim_dir = ./workspace/example/simulate`` and
 ``sim_batch_size = 10``, phyddle will execute the commands during simulation
 
 .. code-block:: shell
 
-    Rscript sim_one.R ../workspace/simulate/my_project/sim.0
-    Rscript sim_one.R ../workspace/simulate/my_project/sim.10
-    Rscript sim_one.R ../workspace/simulate/my_project/sim.20
+    Rscript sim_one.R ../workspace/example/simulate/sim 0 10
+    Rscript sim_one.R ../workspace/example/simulate/sim 10 10
+    Rscript sim_one.R ../workspace/example/simulate/sim 20 10
     ...
 
 for every replication index between ``start_idx`` and ``end_idx`` in
 increments of ``sim_batch_size``, where the R script itself is responsible
 for generating the ``sim_batch_size`` replicates per batch. In fact,
-executing ``Rscript sim_one.R ../workspace/simulate/my_project/sim 1``
+executing ``Rscript sim_one.R ./workspace/example/simulate/sim 1 10``
 from terminal is an ideal way to validate that your custom simulator is
 compatible with the phyddle requirements.
 
@@ -297,20 +299,20 @@ to ``'serial'``. If we set ``tensor_format`` to ``'hdf5'`` it produces:
 
 .. code-block:: shell
 
-    workspace/format/example/test.nt200.hdf5
-    workspace/format/example/train.nt200.hdf5
+    workspace/example/format/test.nt200.hdf5
+    workspace/example/format/train.nt200.hdf5
 
 or if ``tensor_format == 'csv'``:
 
 .. code-block:: shell
 
-    workspace/format/example/test.nt200.aux_data.csv
-    workspace/format/example/test.nt200.labels.csv
-    workspace/format/example/test.nt200.phy_data.csv
-    workspace/format/example/train.nt200.aux_data.csv
-    workspace/format/example/train.nt200.labels.csv
-    workspace/format/example/train.nt200.phy_data.csv
-  
+    workspace/example/format/test.nt200.aux_data.csv
+    workspace/example/format/test.nt200.labels.csv
+    workspace/example/format/test.nt200.phy_data.csv
+    workspace/example/format/train.nt200.aux_data.csv
+    workspace/example/format/train.nt200.labels.csv
+    workspace/example/format/train.nt200.phy_data.csv
+
 
 These files can then be processed by the :ref:`Train` step.
 
@@ -393,8 +395,8 @@ Estimate
 --------
 
 :ref:`Estimate` loads the simulated test dataset saved with the format indicated
-by ``tensor_format`` stored in ``<fmt_dir>/<fmt_proj>``. :ref:`Estimate` also
-loads a new dataset stored in ``<est_dir>/<est_proj>`` with filenames
+by ``tensor_format`` stored in ``fmt_dir``. :ref:`Estimate` also
+loads a new dataset stored in ``est_dir`` with filenames
 ``<est_prefix.tre>`` and ``<est_prefix>.dat.nex`` or ``<est_prefix>.dat.csv``,
 if the new dataset exists.
 
@@ -402,7 +404,7 @@ This step then loads a pretrained network for a given ``tree_width`` and
 uses it to estimate parameter values and calibrated prediction intervals
 (CPIs) for both the new (empirical) dataset and the test (simulated) dataset.
 Estimates are then stored as separated datasets into the original
-``<est_dir>/<est_proj>`` directory.
+``est_dir`` directory.
 
 
 .. _Plot:
@@ -416,7 +418,7 @@ results from :ref:`Estimate` are available, the step will integrate it into
 other figures to contextualize where that input dataset and estimateed
 labels fall with respect to the training dataset.
 
-Plots are stored within ``<plot_dir>`` in the ``<plot_proj>`` subdirectory.
+Plots are stored within ``plot_dir``.
 Colors for plot elements can be modified with ``plot_train_color``,
 ``plot_label_color``, ``plot_test_color``, ``plot_val_color``,
 ``plot_aux_color``, and ``plot_est_color`` using hex codes or common color
@@ -458,7 +460,7 @@ The output of phyddle pipeline analysis will resemble this:
     ┃                      ┃
     ┗━┳━▪ Simulating... ▪━━┛
     ┃
-    ┗━━━▪ output: ../workspace/simulate/example
+    ┗━━━▪ output: ./workspace/example/simulate
 
     ▪ Start time of 09:34:35
     ▪ Simulating raw data
@@ -468,8 +470,8 @@ The output of phyddle pipeline analysis will resemble this:
     ┃                      ┃
     ┗━┳━▪ Formatting... ▪━━┛
     ┃
-    ┣━━━▪ input:  ../workspace/simulate/example
-    ┗━━━▪ output: ../workspace/format/example
+    ┣━━━▪ input:  ./workspace/example/simulate
+    ┗━━━▪ output: ./workspace/example/format
 
     ▪ Start time of 09:34:56
     ▪ Collecting files
@@ -485,8 +487,8 @@ The output of phyddle pipeline analysis will resemble this:
     ┃                      ┃
     ┗━┳━▪ Training...   ▪━━┛
     ┃
-    ┣━━━▪ input:  ../workspace/format/example
-    ┗━━━▪ output: ../workspace/train/example
+    ┣━━━▪ input:  ./workspace/example/format
+    ┗━━━▪ output: ./workspace/example/train
 
     ▪ Start time of 09:35:10
     ▪ Loading input
@@ -540,10 +542,10 @@ The output of phyddle pipeline analysis will resemble this:
     ┃                      ┃
     ┗━┳━▪ Estimating... ▪━━┛
     ┃
-    ┣━━━▪ input:  ../workspace/format/example
-    ┃             ../workspace/estimate/example
-    ┃             ../workspace/train/example
-    ┗━━━▪ output: ../workspace/estimate/example
+    ┣━━━▪ input:  ./workspace/example/format
+    ┃             ./workspace/example/estimate
+    ┃             ./workspace/example/train
+    ┗━━━▪ output: ./workspace/example/estimate
 
     ▪ Start time of 09:35:58
     ▪ Loading input
@@ -553,10 +555,10 @@ The output of phyddle pipeline analysis will resemble this:
     ┃                      ┃
     ┗━┳━▪ Plotting...   ▪━━┛
     ┃
-    ┣━━━▪ input:  ../workspace/format/example
-    ┃             ../workspace/train/example
-    ┃             ../workspace/estimate/example
-    ┗━━━▪ output: ../workspace/plot/example
+    ┣━━━▪ input:  ./workspace/example/format
+    ┃             ./workspace/example/train
+    ┃             ./workspace/example/estimate
+    ┗━━━▪ output: ./workspace/example/plot
 
     ▪ Start time of 09:36:00
     ▪ Loading input
@@ -564,4 +566,3 @@ The output of phyddle pipeline analysis will resemble this:
     ▪ Combining plots
     ▪ End time of 09:36:12 (+00:00:12)
     ... done!
-

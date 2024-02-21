@@ -21,13 +21,14 @@ Then create and run a pipeline under the settings you've specified in
 There are two easy ways to create your own config file. One option is to 
 download and modify a script from the `GitHub repository
 <https://github.com/mlandis/phyddle/tree/main/scripts>`_ for phyddle. Another
-option is to create a new blank config with ``phyddle --make_cfg config.py``
+option is to create a new blank config with ``phyddle --make_cfg``
 and then modify it.
 
 .. code-block:: shell
 
-  phyddle --make_cfg -c config.py 
-  vim config.py
+  phyddle --make_cfg
+  mv config_default.py config.py
+  edit config.py
 
 Let's assume ``config.py`` specifies a phyddle analysis with 1000 simulated 
 training examples, using R for simulation. 

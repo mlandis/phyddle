@@ -3,6 +3,16 @@ Updates
 
 The complete commit history for phyddle is located here: https://github.com/mlandis/phyddle/commits/main
 
+**phyddle v0.1.1** -- 24.02.18
+
+  * Simpler directory settings for analyses
+  * Removed workspace and proj arguments
+  * Simpler settings application hierarchy
+  * Removed requirement for __config_default.py
+  * Repo directory restructuring, with clearer distinction between scripts and configs
+  * Added example simulation script for PhyloJunction
+
+
 **phyddle v0.1.0** -- 24.02.08
 
   * Update minor version from v0.0.10 to v0.1.0 |:partying_face:|

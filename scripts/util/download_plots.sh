@@ -1,10 +1,9 @@
 #!/bin/sh
 
-MODEL=$1
-REMOTE=$ll2server
-LOCAL_DIR="../workspace/plot/${MODEL}"
-REMOTE_DIR="${REMOTE}:/home/mlandis/projects/phyddle/workspace/plot"
-#./clean_project.sh ${MODEL}
+PROJ=$1
+REMOTE=$llbh
+LOCAL_DIR="./workspace/${PROJ}/plot"
+REMOTE_DIR="${REMOTE}:/home/mlandis/projects/phyddle/workspace"
 mkdir -p ${LOCAL_DIR}
-scp "${REMOTE_DIR}/${MODEL}/*.pdf" ${LOCAL_DIR}
+scp "${REMOTE_DIR}/${PROJ}/plot/*.pdf" ${LOCAL_DIR}
 
