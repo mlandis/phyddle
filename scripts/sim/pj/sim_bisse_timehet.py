@@ -157,3 +157,10 @@ if __name__ == "__main__":
     parse_PJ_scalar_tsv(out_path,
                         scalar_csv_path,
                         idx)
+
+
+    ###########
+    # cleanup #
+    ###########
+    
+    os.remove(parsed_pj_script_path)

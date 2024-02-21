@@ -35,21 +35,25 @@ args = {
         'w': sp.stats.expon.rvs,
         'e': sp.stats.expon.rvs,
         'd': sp.stats.expon.rvs,
-        'b': sp.stats.expon.rvs
+        'b': sp.stats.expon.rvs,
+        'Stop_time': sp.stats.uniform.rvs,
+        'nSampled_tips': sp.stats.randint.rvs
     },
     'rv_arg'             : {                # loc/scale for model param dists
         'w': { 'scale' : 0.2 },
         'e': { 'scale' : 0.1 },
         'd': { 'scale' : 0.1 },
-        'b': { 'scale' : 0.5 }
+        'b': { 'scale' : 0.5 },
+        'Stop_time': { 'scale' : 10. },
+        'nSampled_tips': { 'low': 10, 'high': 500 }
     }
 }
 
 # filesystem paths
 xml_fn       = tmp_fn + '.xml'
 param_mtx_fn = tmp_fn + '.param_col.csv'
-param_vec_fn = tmp_fn + '.param_row.csv'
-phy_nex_fn   = tmp_fn + '.phy.nex'
+param_vec_fn = tmp_fn + '.labels.csv'
+phy_nex_fn   = tmp_fn + '.nex.tre'
 dat_nex_fn   = tmp_fn + '.dat.nex'
 
 # make sim dir for output
@@ -63,14 +67,7 @@ my_model.set_model(idx)
 
 # make XML
 xml_str = my_model.make_xml(idx)
-
-# get params (labels) from model
-param_mtx_str,param_vec_str = masterpy.param_dict_to_str(my_model.params)
-
-# save output
 masterpy.write_to_file(xml_str, xml_fn)
-masterpy.write_to_file(param_mtx_str, param_mtx_fn)
-masterpy.write_to_file(param_vec_str, param_vec_fn)
 
 # call BEAST
 x = subprocess.run(['beast', xml_fn], capture_output=True)
@@ -81,9 +78,16 @@ x = subprocess.run(['beast', xml_fn], capture_output=True)
 #sys.stdout.write(x_stdout)
 #sys.stderr.write(x_stderr)
 
+# get params (labels) from model
+param_mtx_str,param_vec_str = masterpy.param_dict_to_str(my_model.params)
+
+# save output
+masterpy.write_to_file(param_mtx_str, param_mtx_fn)
+masterpy.write_to_file(param_vec_str, param_vec_fn)
+
 # convert phy.nex to dat.nex
-int2vec = my_model.states.int2vec
-nexus_str = masterpy.convert_phy2dat_nex(phy_nex_fn, int2vec)
+int2vec = my_model.statespace.int2vec
+nexus_str = masterpy.convert_phy2dat_nex_geosse(phy_nex_fn, int2vec)
 masterpy.write_to_file(nexus_str, dat_nex_fn)
 
 # log clean-up

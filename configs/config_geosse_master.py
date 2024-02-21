@@ -1,24 +1,24 @@
 #==============================================================================#
-# MASTER phyddle config file                                                   #
+# GeoSSE phyddle config file                                                   #
 #==============================================================================#
 
 
 # helper variables
+work_dir = './workspace/geosse_master'
 
 args = {
     
     #-------------------------------#
     # Project organization          #
     #-------------------------------#
-    'proj'    : 'MASTER_example',           # project name(s)
     'step'    : 'SFTEP',                    # step(s) to run
     'verbose' : 'True',                     # print verbose phyddle output?
-    'sim_dir' : '../workspace/simulate',    # directory for simulated data
-    'fmt_dir' : '../workspace/format',      # directory for tensor-formatted data
-    'trn_dir' : '../workspace/train',       # directory for trained network
-    'plt_dir' : '../workspace/plot',        # directory for plotted figures
-    'est_dir' : '../workspace/estimate',    # directory for predictions on new data
-    'log_dir' : '../workspace/log',         # directory for analysis logs
+    'sim_dir' : f'{work_dir}/simulate',    # directory for simulated data
+    'fmt_dir' : f'{work_dir}/format',      # directory for tensor-formatted data
+    'trn_dir' : f'{work_dir}/train',       # directory for trained network
+    'plt_dir' : f'{work_dir}/plot',        # directory for plotted figures
+    'est_dir' : f'{work_dir}/estimate',    # directory for predictions on new data
+    'log_dir' : f'{work_dir}/log',         # directory for analysis logs
     
     #-------------------------------#
     # Multiprocessing               #
@@ -29,7 +29,7 @@ args = {
     #-------------------------------#
     # Simulate Step settings        #
     #-------------------------------#
-    'sim_command'       : 'python3 sim/MASTER/sim_one.py', # exact command string, argument is output file prefix
+    'sim_command'       : 'python3 scripts/sim/master/sim_geosse.py', # exact command string, argument is output file prefix
     'sim_logging'       : 'verbose',        # verbose, compressed, or clean
     'start_idx'         : 0,                # first simulation replicate index
     'end_idx'           : 1000,             # last simulation replicate index

@@ -2,7 +2,7 @@
 # Default phyddle config file                                                  #
 #==============================================================================#
 
-work_dir = './workspace/BDD_example'
+work_dir = './workspace/bdk_master'
 
 args = {
   #-------------------------------#
@@ -31,7 +31,7 @@ args = {
   #-------------------------------#
   # Simulate                      #
   #-------------------------------#
-  'sim_command'        : 'python3 scripts/sim/MASTER/sim_one_BDD.py', # Simulation command to run single job (see documentation)
+  'sim_command'        : 'python3 scripts/sim/master/sim_bdk.py', # Simulation command to run single job (see documentation)
   'sim_logging'        : 'clean',              # Simulation logging style       
   'start_idx'          : 0,                    # Start replicate index for simulated training dataset
   'end_idx'            : 1000,                 # End replicate index for simulated training dataset
@@ -47,7 +47,7 @@ args = {
   'max_num_taxa'       : 1000,                 # Maximum number of taxa allowed when formatting
   'downsample_taxa'    : 'uniform',            # Downsampling strategy taxon count
   'tree_width'         : 200,                  # Width of phylo-state tensor    
-  'tree_encode'        : 'serial',             # Encoding strategy for tree     
+  'tree_encode'        : 'extant',             # Encoding strategy for tree     
   'brlen_encode'       : 'height_brlen',       # Encoding strategy for branch lengths
   'char_encode'        : 'integer',            # Encoding strategy for character data
   'param_est'          : ['BirthConst_0',
