@@ -53,7 +53,7 @@ args = {
   'param_est'          : ['BirthConst_0',
                           'DeathConst_0',
                           'DeathDensity_0'],          # Model parameters to estimate   
-  'param_data'         : ['nSampled_tips_0'],          # Model parameters treated as data
+  'param_data'         : [ ],          # Model parameters treated as data
   'char_format'        : 'nexus',              # File format for character data 
   'tensor_format'      : 'hdf5',               # File format for training example tensors
   'save_phyenc_csv'    : 'F',                  # Save encoded phylogenetic tensor encoding to csv?

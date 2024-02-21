@@ -6,6 +6,7 @@ import os
 import subprocess
 import json
 import numpy as np
+import dendropy as dp
 
 # get arguments
 out_path     = sys.argv[1]
@@ -26,12 +27,13 @@ args = {
 	'model_type'         : 'birthdeath',           # model type defines states & events
     # model variant defines rates
     'model_variant'      : ['FreeRates',            # [FreeRates, EqualRates]
-                            'DensityDependentDeath'],
+                            'DensityDependentDeath'
+                            ],
     'num_char'           : 0,               # number of evolutionary characters 
     'num_states'         : 1,               # number of states per character
     'num_hidden_char'    : 1,               # number of hidden states
     'stop_time'          : None,            # time to stop simulation 
-    'min_num_taxa'       : 1,               # min number of taxa for valid sim
+    'min_num_taxa'       : 5,               # min number of taxa for valid sim
     'max_num_taxa'       : 500,             # max number of taxa for valid sim
     'rv_fn'              : {                # distributions for model params
         'DivConst'       : sp.stats.expon.rvs,
@@ -41,11 +43,11 @@ args = {
         'nSampled_tips'  : sp.stats.randint.rvs
     },
     'rv_arg'                : {                # loc/scale/shape for param dists
-        'DivConst'          : { 'loc'   : 0.0,     'scale' : 1.00     }, 
+        'DivConst'          : { 'loc'   : 0.0,     'scale' : 5.00     }, 
         'Turnover'          : { 'a'     : 1.0,     'b'     : 1.0      }, 
-        'DeathCarryK'       : { 'scale' : 10,      'scale' : 1980     }, 
-        'Stop_time'         : { 'loc'   : 0.0,     'scale' : 20.0     }, 
-        'nSampled_tips'     : { 'low'   : 499,     'high'  : 500      }  
+        'DeathCarryK'       : { 'scale' : 10,      'scale' : 1990     }, 
+        'Stop_time'         : { 'loc'   : 5.0,     'scale' : 0.0     }, 
+        'nSampled_tips'     : { 'low'   : 49999,     'high'  : 50000      }  
     }
 }
 
@@ -76,6 +78,8 @@ masterpy.write_to_file(xml_str, xml_fn)
 
 # call BEAST
 x = subprocess.run(['beast', xml_fn], capture_output=True)
+
+#masterpy.make_extant_phy(phy_nwk_fn)
 
 # create dat.phy.nex file if stochastic sim
 #if my_model.model_stochastic:
