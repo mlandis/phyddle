@@ -50,16 +50,16 @@ commands assume a standard phyddle workspace directory structure.
 
   # Simulate training examples 0 to 999, storing results 
   # workspace/simulate/my_project
-  phyddle -s S -c config.py --start_idx 0 --end_idx 1000
+  phyddle -s S -c configs/config.py --start_idx 0 --end_idx 1000
 
   # Simulate 4000 more training examples, 0 to 4999
-  phyddle -s S -c config.py --sim_more 4000
+  phyddle -s S -c configs/config.py --sim_more 4000
 
   # Perform remaining Format, Train, Estimate, Plot steps
-  phyddle -s FTEP -c config.py
+  phyddle -s FTEP -c configs/config.py
 
   # ...or, to Simulate more and re-run all steps
-  phyddle -c config.py --sim_more 4000
+  phyddle -c configs/config.py --sim_more 4000
 
 **Quick access to workspace directories from console via GUI**
 

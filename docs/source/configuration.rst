@@ -33,7 +33,14 @@ if desired.
 
     By default, phyddle assumes you want to use the config file called
     ``config.py``. Use a different config file by calling, e.g.
-    ``./run_pipeline --cfg my_other_config.py``
+    ``./run_pipeline --cfg configs/my_other_config.py``
+
+.. note::
+
+    phyddle maintains a number of example config files for different models
+    and simulation methods in the ``./configs`` subdirectory of the
+    repository. For example, ``./configs/config_bisse_r.py`` simulates under a BiSSE model
+    with the R simulation script ``./scripts/sim/r/sim_bisse.r``.
 
 .. code-block:: python
 
@@ -44,6 +51,7 @@ if desired.
     # Description:  Simple BiSSE model                                             #
     #==============================================================================#
 
+    work_dir = './workspace/my_project'
     args = {
         #-------------------------------#
         # Basic                         #
@@ -61,17 +69,17 @@ if desired.
         #-------------------------------#
         # Workspace                     #
         #-------------------------------#
-        'log_dir'            : './workspace/my_project/log',      # Directory for logs of analysis metadata
-        'sim_dir'            : './workspace/my_project/simulate', # Directory for raw simulated data
-        'fmt_dir'            : './workspace/my_project/format',   # Directory for tensor-formatted simulated data
-        'trn_dir'            : './workspace/my_project/train',    # Directory for trained networks and training output
-        'est_dir'            : './workspace/my_project/estimate', # Directory for new datasets and estimates
-        'plt_dir'            : './workspace/my_project/plot',     # Directory for plotted results
+        'log_dir'            : f'{work_dir}/log',      # Directory for logs of analysis metadata
+        'sim_dir'            : f'{work_dir}/simulate', # Directory for raw simulated data
+        'fmt_dir'            : f'{work_dir}/format',   # Directory for tensor-formatted simulated data
+        'trn_dir'            : f'{work_dir}/train',    # Directory for trained networks and training output
+        'est_dir'            : f'{work_dir}/estimate', # Directory for new datasets and estimates
+        'plt_dir'            : f'{work_dir}/plot',     # Directory for plotted results
 
         #-------------------------------#
         # Simulate                      #
         #-------------------------------#
-        'sim_command'        : 'Rscript scripts/sim/R/sim_one.R', # Simulation command to run single job (see documentation)
+        'sim_command'        : 'Rscript scripts/sim/r/sim_bisse.R', # Simulation command to run single job (see documentation)
         'sim_logging'        : 'verbose',                 # Simulation logging style
         'start_idx'          : 0,                         # Start replicate index for simulated training dataset
         'end_idx'            : 1000,                      # End replicate index for simulated training dataset
