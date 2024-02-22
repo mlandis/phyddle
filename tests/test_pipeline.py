@@ -88,12 +88,12 @@ def do_sim():
     # command line arguments
     cmd_args = ['--step', 'S',
                 '--sim_dir', sim_dir,
-                '--sim_command', 'Rscript scripts/sim/R/sim_one.R',
+                '--sim_command', 'Rscript scripts/sim/r/sim_bisse.R',
                 '--end_idx', '100',
                 '--use_parallel', 'F']
 
     # build arguments
-    my_args = util.load_config('configs/config_R.py', arg_overwrite=True, args=cmd_args)
+    my_args = util.load_config('configs/config_bisse_r.py', arg_overwrite=True, args=cmd_args)
 
     # load simulator
     my_sim = sim.load(my_args)
@@ -156,7 +156,7 @@ def do_fmt():
                 '--use_parallel', 'F']
 
     # phyddle arguments
-    my_args = util.load_config('configs/config_R.py', arg_overwrite=True, args=cmd_args)
+    my_args = util.load_config('configs/config_bisse_r.py', arg_overwrite=True, args=cmd_args)
 
     # load simulator
     my_fmt = fmt.load(my_args)
@@ -232,7 +232,7 @@ def do_trn():
                 '--use_parallel', 'F']
 
     # phyddle arguments
-    my_args = util.load_config('configs/config_R.py', arg_overwrite=True, args=cmd_args)
+    my_args = util.load_config('configs/config_bisse_r.py', arg_overwrite=True, args=cmd_args)
 
     # load trainer
     my_trn = trn.load(my_args)
@@ -334,7 +334,7 @@ def do_est():
                 '--use_parallel', 'F']
 
     # phyddle arguments
-    my_args = util.load_config('configs/config_R.py', arg_overwrite=True, args=cmd_args)
+    my_args = util.load_config('configs/config_bisse_r.py', arg_overwrite=True, args=cmd_args)
 
     # copy minimal input fileset from valid into test
     input_files = [ 'tre', 'dat.csv', 'labels.csv' ]
@@ -415,7 +415,7 @@ def do_plt():
                 '--use_parallel', 'F']
 
 	# phyddle arguments
-    my_args = util.load_config('configs/config_R.py', arg_overwrite=True, args=cmd_args)
+    my_args = util.load_config('configs/config_bisse_r.py', arg_overwrite=True, args=cmd_args)
 
     # load estimator
     my_plt = plt.load(my_args)

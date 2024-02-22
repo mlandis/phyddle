@@ -6,8 +6,8 @@ The complete commit history for phyddle is located here: https://github.com/mlan
 **phyddle v0.1.1** -- 24.02.18
 
   * Simpler directory settings for analyses
-  * Removed workspace and proj arguments
   * Simpler settings application hierarchy
+  * Removed workspace and proj arguments
   * Removed requirement for __config_default.py
   * Repo directory restructuring, with clearer distinction between scripts and configs
   * Added example simulation script for PhyloJunction
