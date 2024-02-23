@@ -80,7 +80,7 @@ simulator that can be called from command-line can be used to generate training
 datasets with phyddle. This allows researchers to use their favorite simulator
 with phyddle for phylogenetic modeling tasks.
 
-As a worked example, suppose we have an R script called ``sim_one.R`` containing
+As a worked example, suppose we have an R script called ``sim_bisse.R`` containing
 the following code
 
 .. code-block:: r
@@ -93,8 +93,8 @@ the following code
     options(warn = -1)
 
     # example command string to simulate for "sim.1" through "sim.10"
-    # cd ~/projects/phyddle/scripts
-    # ./sim/R/sim_one.R ../workspace/simulate/example 1 10
+    # cd ~/projects/phyddle/workspace/example
+    # Rscript sim_bisse.R ./simulate example 1 10
 
     # arguments
     args        = commandArgs(trailingOnly = TRUE)
@@ -182,7 +182,7 @@ the following code
   
 
 This script has a few important features. First, the simulator is entirely
-reponsible for simulating the dataset. Second, the script assumes it will be
+responsible for simulating the dataset. Second, the script assumes it will be
 provided a runtime argument (``args[1]``) to generate filenames for the training
 example and a batch size argument (``args[2]``) that determines how many
 simulated datasets will be generated when the script is run. Third, output
@@ -201,13 +201,13 @@ part of the Simulate step, phyddle will execute the command string against a
 range of values of ``SIM_PREFIX`` generates the complete simulated dataset of
 replicated training examples.
 
-In this case, we assume that `sim_one.R` is an R script that is located in
-the subdirectory `./scripts/sim/R` and can be executed using the `Rscript` 
+In this case, we assume that `sim_bisse.R` is an R script that is located in
+the subdirectory `./workspace/example` and can be executed using the `Rscript` 
 command. The correct `sim_command` value to run this script is:
 
 .. code-block:: python
 
-    'sim_command' : 'Rscript scripts/sim/R/sim_one.R'
+    'sim_command' : 'Rscript ./workspace/example/sim_bisse.R'
 
 Assuming ``sim_dir = ./workspace/example/simulate`` and
 ``sim_batch_size = 10``, phyddle will execute the commands during simulation
@@ -222,7 +222,7 @@ Assuming ``sim_dir = ./workspace/example/simulate`` and
 for every replication index between ``start_idx`` and ``end_idx`` in
 increments of ``sim_batch_size``, where the R script itself is responsible
 for generating the ``sim_batch_size`` replicates per batch. In fact,
-executing ``Rscript sim_one.R ./workspace/example/simulate/sim 1 10``
+executing ``Rscript sim_bisse.R ./workspace/example/simulate/sim 1 10``
 from terminal is an ideal way to validate that your custom simulator is
 compatible with the phyddle requirements.
 

@@ -3,6 +3,12 @@ Updates
 
 The complete commit history for phyddle is located here: https://github.com/mlandis/phyddle/commits/main
 
+**phyddle v0.1.2** -- in progress
+
+  * Even simpler default directory structure. Default phyddle configs, scripts, and outputs now share a proj directory in ./workspace.
+  * Better error checking and helpful messages for Simulate-Format config mismatches.
+
+
 **phyddle v0.1.1** -- 24.02.18
 
   * Simpler directory settings for analyses

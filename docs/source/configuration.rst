@@ -33,14 +33,15 @@ if desired.
 
     By default, phyddle assumes you want to use the config file called
     ``config.py``. Use a different config file by calling, e.g.
-    ``./run_pipeline --cfg configs/my_other_config.py``
+    ``phyddle --cfg workspace/my_project/my_other_config.py``
 
 .. note::
 
     phyddle maintains a number of example config files for different models
-    and simulation methods in the ``./configs`` subdirectory of the
-    repository. For example, ``./configs/config_bisse_r.py`` simulates under a BiSSE model
-    with the R simulation script ``./scripts/sim/r/sim_bisse.r``.
+    and simulation methods. These are organized as project subdirectories
+    within the ``./workspace`` directory. For example,
+    ``./workspace/bisse_r/config/.py`` simulates under a BiSSE model
+    with the R simulation script ``./workspace/bisse_r/sim_bisse.R``.
 
 .. code-block:: python
 
@@ -51,7 +52,7 @@ if desired.
     # Description:  Simple BiSSE model                                             #
     #==============================================================================#
 
-    work_dir = './workspace/my_project'
+    work_dir = './workspace/bisse_r'
     args = {
         #-------------------------------#
         # Basic                         #
@@ -79,7 +80,7 @@ if desired.
         #-------------------------------#
         # Simulate                      #
         #-------------------------------#
-        'sim_command'        : 'Rscript scripts/sim/r/sim_bisse.R', # Simulation command to run single job (see documentation)
+        'sim_command'        : f'Rscript {work_dir}/sim_bisse.R', # Simulation command to run single job (see documentation)
         'sim_logging'        : 'verbose',                 # Simulation logging style
         'start_idx'          : 0,                         # Start replicate index for simulated training dataset
         'end_idx'            : 1000,                      # End replicate index for simulated training dataset
