@@ -233,7 +233,8 @@ class Formatter:
             # exits
             util.print_err('Format cannot proceed without valid examples. '
                            'Verify the simulation script generates '
-                           'valid examples when run manually.')
+                           'valid examples that are compatible with '
+                           'the configuration (e.g. min_taxa_size setting).')
             sys.exit()
             
         

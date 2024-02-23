@@ -768,7 +768,7 @@ class Plotter:
         return
 
     def plot_scatter_accuracy(self, ests, labels, prefix,
-                              color="blue", axis_labels = ["truth", "truth"],
+                              color="blue", axis_labels = ["truth", "estimate"],
                               title = '', plot_log=False):
         """Plots accuracy of estimates and CPIs for labels.
 
@@ -824,6 +824,7 @@ class Plotter:
             stat_cover = np.logical_and(lbl_lower < lbl_true, lbl_upper > lbl_true )
             stat_not_cover = np.logical_not(stat_cover)
             f_stat_cover = sum(stat_cover) / len(stat_cover) * 100
+            f_stat_cover_target = self.args['cpi_coverage']
 
             # linear regression slope
             # if only_positive:
@@ -843,6 +844,7 @@ class Plotter:
             s_slope = '{:.2E}'.format(stat_slope)
             s_intercept  = '{:.2E}'.format(stat_intercept)
             s_cover = '{:.1f}%'.format(f_stat_cover)
+            s_cover_target = '{:.1f}%'.format(f_stat_cover_target)
             
             alpha = 0.5 # 50. / len(y_cover)
 
@@ -888,7 +890,8 @@ class Plotter:
             dx = 0.03
             stat_str = [f'MAE: {s_mae}', f'MAPE: {s_mape}', f'MSE: {s_mse}',
                         f'RMSE: {s_rmse}', f'Intercept: {s_intercept}',
-                        f'Slope: {s_slope}', f'Coverage: {s_cover}' ]
+                        f'Slope: {s_slope}', f'Coverage: {s_cover}',
+                        f'Coverage target: {s_cover_target}']
             
             for j,s in enumerate(stat_str):
                 plt.annotate(s, xy=(0.01,0.99-j*dx),

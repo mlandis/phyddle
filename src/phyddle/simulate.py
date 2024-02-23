@@ -241,6 +241,8 @@ class Simulator:
                                                       desc='Simulating',
                                                       smoothing=0) ]
 
+        # verify Simulate produced appropriate output for Format
+        self.check_valid_output()
 
         # end time
         end_time,end_time_str = util.get_time()
@@ -311,6 +313,52 @@ class Simulator:
                 num_attempt -= 1
                 valid = False
 
+        return
+    
+    
+    def check_valid_output(self):
+        """Checks that at least one sim_one call has valid output."""
+        
+        # get set of unique training example replicate indices 
+        sim_files = os.listdir(self.sim_proj_dir)
+        sim_prefix = [ x.split('.')[1] for x in sim_files ]
+        sim_idx = set(sim_prefix)
+        
+        # collect all valid indices
+        valid_phy = []
+        valid_lbl = []
+        valid_dat = []
+        valid_all = []
+        for idx in sim_idx:
+            # check if replicate has tree, labels, and data files
+            has_phy = os.path.exists(f'{self.sim_proj_dir}/sim.{idx}.tre')
+            if has_phy:
+                valid_phy.append(idx)
+                
+            has_lbl = os.path.exists(f'{self.sim_proj_dir}/sim.{idx}.labels.csv')
+            if has_lbl:
+                valid_lbl.append(idx)
+                
+            has_dat = os.path.exists(f'{self.sim_proj_dir}/sim.{idx}.dat.csv') or \
+                      os.path.exists(f'{self.sim_proj_dir}/sim.{idx}.dat.nex')
+            if has_dat:
+                valid_dat.append(idx)
+            
+            # replicate is valid if it has all three files
+            if has_phy and has_lbl and has_dat:
+                valid_all.append(int(idx))
+        
+        if len(valid_all) == 0:
+            n_phy = len(valid_phy)
+            n_lbl = len(valid_lbl)
+            n_dat = len(valid_dat)
+            util.print_warn(f'{self.sim_proj_dir} contains no valid simulations.'
+                            f' File counts: {n_phy} trees, {n_lbl} labels,'
+                            f' {n_dat} data matrices. Verify that simulation '
+                            f'command:\n\n'
+                            f'\t{self.sim_command} {self.sim_proj_dir} 0 1\n\n'
+                            f'works as intended with the provided configuration.')
+            
         return
     
 #------------------------------------------------------------------------------#
