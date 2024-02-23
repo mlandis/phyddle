@@ -1,0 +1,118 @@
+#!/usr/bin/env python3
+import masterpy
+import scipy as sp
+import sys
+import os
+import subprocess
+import json
+import numpy as np
+
+# get arguments
+out_path     = sys.argv[1]
+idx          = int(sys.argv[2])
+batch_size   = int(sys.argv[3])
+
+# process arguments
+tmp_fn       = sys.argv[1] + f'/sim.{idx}'
+sim_tok      = tmp_fn.split('/')
+sim_dir      = '/'.join(sim_tok[:-2])
+proj         = sim_tok[-2]
+sim_proj_dir = f'{sim_dir}/{proj}'
+
+# model setup
+args = {
+    'sim_dir'            : sim_dir,         # dir for simulations
+    'proj'               : proj,            # project name(s)
+	'model_type'         : 'sir',           # model type defines states & events
+    # model variant defines rates
+    'model_variant'      : ['EqualRates',            # [FreeRates, EqualRates]
+                            'Stochastic'],           # [Stochastic, Deterministic]
+    'num_char'           : 2,               # number of evolutionary characters 
+    'num_states'         : 5,               # number of states per character
+    'num_hidden_char'    : 1,               # number of hidden states
+    'num_exposed_cat'    : 1,               # number of infected Exposed stages (>1)
+    'stop_time'          : None,            # time to stop simulation 
+    'min_num_taxa'       : 1,               # min number of taxa for valid sim
+    'max_num_taxa'       : 500,             # max number of taxa for valid sim
+    'rv_fn'              : {                # distributions for model params
+        'R0'             : sp.stats.uniform.rvs,
+        'Recover'        : sp.stats.uniform.rvs,
+        'Sample'         : sp.stats.uniform.rvs,
+        'ProgressInfected' : sp.stats.uniform.rvs,
+        'VisitDepart'    : sp.stats.uniform.rvs,
+        'VisitReturn'    : sp.stats.uniform.rvs,
+        'S0'             : sp.stats.uniform.rvs,
+        'R2S'            : sp.stats.uniform.rvs,
+        'Stop_time'      : sp.stats.uniform.rvs,
+        'nSampled_tips'  : sp.stats.randint.rvs,
+        'Time_before_present' : sp.stats.expon.rvs
+    },
+    'rv_arg'                : {                # loc/scale/shape for param dists
+        'R0'                : { 'loc' : 1.0,      'scale' : 7.0     }, 
+        'Recover'           : { 'loc' : 0.1,      'scale' : 0.9    }, # 1 to 10 days, rate of 0.1 to 1
+        'Sample'            : { 'loc' : 0.01,     'scale' : 0.99    }, # 1 to 100 days, rate of 0.1 to 1
+        'ProgressInfected'  : { 'loc' : 0.1,      'scale' : 0.9   }, # 1 to 10 day,  rate of 0.01 to 0.1
+        'VisitDepart'       : { 'loc' : 0.0001,   'scale' : 0.0009  }, # 100 to 1000 days, rate of 0.0001 to 0.001
+        'VisitReturn'       : { 'loc' : 0.1,      'scale' : 0.9   }, # 1 to 10 days, rate of 0.1 to 1
+        'S0'                : { 'loc' : 1000.,   'scale' : 9000.  }, # 1000 to 10000 ind. in population
+        'R2S'               : { 'loc' : 0.0001,   'scale' : 0.0099 }, # rare waining 
+        'Stop_time'         : { 'loc' : 0,        'scale' : 100    },  # between 10 days and 1 year
+        'nSampled_tips'     : { 'low' : 50.0,    'high' : 450.   },   # subsample samples
+        'Time_before_present' : { 'loc' : 0,      'scale' : 30}
+    }
+}
+
+# filesystem paths
+xml_fn       = tmp_fn + '.xml'
+param_mtx_fn = tmp_fn + '.param_col.csv'
+param_vec_fn = tmp_fn + '.labels.csv'
+phy_nex_fn   = tmp_fn + '.nex.tre'
+phy_nwk_fn   = tmp_fn + '.tre'
+dat_nex_fn   = tmp_fn + '.dat.nex'
+dat_json_fn  = tmp_fn + '.json'
+
+# make sim dir for output
+os.makedirs(sim_proj_dir, exist_ok=True)
+
+# load model
+my_model = masterpy.load(args)
+
+# NOTE: .set_model is called in the constructor.
+# only using here to set the seed for validation:
+# my_model.set_model(idx)
+
+# make XML
+xml_str = my_model.make_xml(idx)
+
+# save xml output
+masterpy.write_to_file(xml_str, xml_fn)
+
+# call BEAST
+x = subprocess.run(['beast', xml_fn], capture_output=True)
+
+# include sim stats such as prevalence at time pt of interest and 
+# cumulative number of samples up to present
+sim_stats = my_model.get_json_stats(dat_json_fn)
+
+# make stochastic files and gather more stats for labels
+if my_model.model_stochastic:
+    with open(phy_nex_fn) as file:
+        nexus_tree_str = file.read()
+    phy_state_dat = masterpy.convert_phy2dat_nex(nexus_tree_str, my_model.num_states)
+    masterpy.write_to_file(phy_state_dat, dat_nex_fn)
+    masterpy.remove_stem_branch(phy_nwk_fn)
+    most_recent_tip_age = masterpy.get_age_most_recent_tip(nexus_tree_str, sim_stats['actual_sim_time'])
+    # os.remove(phy_nex_fn)
+
+# gather all data for labels files
+params_and_popstats = {**my_model.params, **sim_stats, 'most_recent_tip_age':most_recent_tip_age}
+param_mtx_str, param_vec_str = masterpy.param_dict_to_str(params_and_popstats)
+
+# make label file
+masterpy.write_to_file(param_mtx_str, param_mtx_fn)
+masterpy.write_to_file(param_vec_str, param_vec_fn)
+
+# delete json file
+# os.remove(dat_json_fn)
+
+quit()

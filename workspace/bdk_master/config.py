@@ -31,7 +31,7 @@ args = {
   #-------------------------------#
   # Simulate                      #
   #-------------------------------#
-  'sim_command'        : 'python3 scripts/sim/master/sim_bdk.py', # Simulation command to run single job (see documentation)
+  'sim_command'        : f'python3 {work_dir}/sim_bdk.py', # Simulation command to run single job (see documentation)
   'sim_logging'        : 'clean',              # Simulation logging style       
   'start_idx'          : 0,                    # Start replicate index for simulated training dataset
   'end_idx'            : 1000,                 # End replicate index for simulated training dataset
