@@ -642,10 +642,25 @@ class Formatter:
             dat = util.convert_nexus_to_array(dat_fn,
                                                    self.char_encode,
                                                    self.num_states)
+            
         elif self.char_format == 'csv':
             dat = util.convert_csv_to_array(dat_fn,
                                                  self.char_encode,
                                                  self.num_states)
+        
+        # verify data dimensions match what phyddle expects
+        expected_char_dim = util.get_num_char_col(self.char_encode,
+                                                  self.num_char,
+                                                  self.num_states)
+        
+        if dat.shape[0] != expected_char_dim:
+            # improve message with more details later
+            msg = (f'The numbers of characters and states in the character data'
+                   f' file {dat_fn} do not match the config file settings for'
+                   f' num_char, num_states, and char_encode.')
+            util.print_err(msg)
+            # program quits
+            
         # get tree file
         phy = util.read_tree(tre_fn)
 

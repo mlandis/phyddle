@@ -1099,8 +1099,7 @@ def convert_nexus_to_onehot_array(dat_fn, num_states):
 
     Args:
         dat_fn (str): The file name or path of the NEXUS file.
-        num_states (int, optional): Number of states to one-hot encode. Learned
-            from length of symbols when None. Defaults to None.
+        num_states (int): Number of states to one-hot encode.
 
     Returns:
         pd.DataFrame: The pandas DataFrame representing the data matrix.
