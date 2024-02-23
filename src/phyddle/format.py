@@ -226,6 +226,17 @@ class Formatter:
                                                           desc='Encoding',
                                                           smoothing=0) ]
 
+        num_total = len(res)
+        num_valid = len([x for x in res if x is not None])
+        util.print_str(f'Encoding found {num_valid} of {num_total} examples valid.')
+        if num_valid == 0:
+            # exits
+            util.print_err('Format cannot proceed without valid examples. '
+                           'Verify the simulation script generates '
+                           'valid examples when run manually.')
+            sys.exit()
+            
+        
         # save all phylogenetic-state tensors into the phy_tensors dictionary,
         # while sorting tensors into different tree-width categories
         self.phy_tensors = {}
@@ -327,6 +338,7 @@ class Formatter:
             util.print_err(f'Cannot find {self.sim_proj_dir}/sim.*.summ_stat.csv.'
                            f' Verify that your simulator created output that is'
                            f' detectable based on your config settings.')
+            sys.exit()
         df = pd.read_csv(fn,header=0)
         ret = df.columns.to_list()
         return ret
@@ -348,6 +360,7 @@ class Formatter:
             util.print_err(f'Cannot find {self.sim_proj_dir}/sim.*.labels.csv.'
                            f'Verify that your simulator created output that is'
                            f' detectable based on your config settings.')
+            sys.exit()
             # exits
         df = pd.read_csv(fn,header=0)
         ret = df.columns.to_list()
