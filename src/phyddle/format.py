@@ -321,10 +321,13 @@ class Formatter:
         k_list = list(self.phy_tensors.keys())
         if len(k_list) > 0 and idx is None:
             idx = k_list[0]
-        # read file
+        # get headers from file
         fn = f'{self.sim_proj_dir}/sim.{idx}.summ_stat.csv'
+        if not os.path.exists(fn):
+            util.print_err(f'Cannot find {self.sim_proj_dir}/sim.*.summ_stat.csv.'
+                           f' Verify that your simulator created output that is'
+                           f' detectable based on your config settings.')
         df = pd.read_csv(fn,header=0)
-        # get headers
         ret = df.columns.to_list()
         return ret
     
@@ -339,10 +342,14 @@ class Formatter:
         k_list = list(self.phy_tensors.keys())
         if len(k_list) > 0 and idx is None:
             idx = k_list[0]
-        # read file
+        # get headers from file
         fn = f'{self.sim_proj_dir}/sim.{idx}.labels.csv'
+        if not os.path.exists(fn):
+            util.print_err(f'Cannot find {self.sim_proj_dir}/sim.*.labels.csv.'
+                           f'Verify that your simulator created output that is'
+                           f' detectable based on your config settings.')
+            # exits
         df = pd.read_csv(fn,header=0)
-        # get headers
         ret = df.columns.to_list()
         return ret
 
