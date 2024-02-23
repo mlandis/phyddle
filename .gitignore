@@ -1,28 +1,27 @@
 # Ignore phyddle workspace dirs
-workspace/**
+workspace/*/simulate
+workspace/*/format
+workspace/*/train
+workspace/*/estimate
+workspace/*/plot
+workspace/*/log
 
-# ... except workspace `example` project
-!workspace/simulate/example/
-!workspace/format/example/
-!workspace/train/example/
-!workspace/estimate/example/
-!workspace/plot/example/
-!workspace/log/example/
+!tests/workspace/valid/simulate/
+!tests/workspace/valid/format/
+!tests/workspace/valid/estimate/
+!tests/workspace/valid/train/
+!tests/workspace/valid/plot/
+!tests/workspace/valid/log/
 
-!tests/workspace/simulate/valid/
-!tests/workspace/format/valid/
-!tests/workspace/estimate/valid/
-!tests/workspace/train/valid/
-!tests/workspace/plot/valid/
-
-tests/workspace/simulate/test/
-tests/workspace/format/test/
-tests/workspace/estimate/test/
-tests/workspace/train/test/
-tests/workspace/plot/test/
+tests/workspace/test/simulate/
+tests/workspace/test/format/
+tests/workspace/test/estimate/
+tests/workspace/test/train/
+tests/workspace/test/plot/
+tests/workspace/test/log/
 
 # Ignore simulation tmp files
-scripts/sim/PhyloJunction/bisse_timehet_*_parsed.pj
+workspace/bisse_timehet_pj/bisse_timehet_*_parsed.pj
 
 # Ignore extras in tests
 #tests/workspace/*
