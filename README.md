@@ -1,4 +1,4 @@
-# phyddle 0.1.0
+# phyddle 0.1.1
 
 #### Software to fiddle around with deep learning for phylogenetic models
 
