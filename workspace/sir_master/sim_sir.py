@@ -27,8 +27,8 @@ args = {
     # model variant defines rates
     'model_variant'      : ['EqualRates',            # [FreeRates, EqualRates]
                             'Stochastic'],           # [Stochastic, Deterministic]
-    'num_char'           : 2,               # number of evolutionary characters 
-    'num_states'         : 5,               # number of states per character
+    'num_char'           : 1,               # number of evolutionary characters 
+    'num_states'         : 1,               # number of states per character
     'num_hidden_char'    : 1,               # number of hidden states
     'num_exposed_cat'    : 1,               # number of infected Exposed stages (>1)
     'stop_time'          : None,            # time to stop simulation 
@@ -56,7 +56,7 @@ args = {
         'VisitReturn'       : { 'loc' : 0.1,      'scale' : 0.9   }, # 1 to 10 days, rate of 0.1 to 1
         'S0'                : { 'loc' : 1000.,   'scale' : 9000.  }, # 1000 to 10000 ind. in population
         'R2S'               : { 'loc' : 0.0001,   'scale' : 0.0099 }, # rare waining 
-        'Stop_time'         : { 'loc' : 0,        'scale' : 100    },  # between 10 days and 1 year
+        'Stop_time'         : { 'loc' : 20,        'scale' : 200    },  # between 10 days and 1 year
         'nSampled_tips'     : { 'low' : 50.0,    'high' : 450.   },   # subsample samples
         'Time_before_present' : { 'loc' : 0,      'scale' : 30}
     }
@@ -98,7 +98,7 @@ sim_stats = my_model.get_json_stats(dat_json_fn)
 if my_model.model_stochastic:
     with open(phy_nex_fn) as file:
         nexus_tree_str = file.read()
-    phy_state_dat = masterpy.convert_phy2dat_nex(nexus_tree_str, my_model.num_states)
+    phy_state_dat = masterpy.blank_phy2dat_nex(nexus_tree_str)
     masterpy.write_to_file(phy_state_dat, dat_nex_fn)
     masterpy.remove_stem_branch(phy_nwk_fn)
     most_recent_tip_age = masterpy.get_age_most_recent_tip(nexus_tree_str, sim_stats['actual_sim_time'])

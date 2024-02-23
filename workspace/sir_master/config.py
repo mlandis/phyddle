@@ -39,7 +39,7 @@ args = {
     # Format Step settings          #
     #-------------------------------#
     'num_char'          : 1,                # number of evolutionary characters
-    'num_states'        : 2,                # number of states per character
+    'num_states'        : 1,                # number of states per character
     'min_num_taxa'      : 10,               # min number of taxa for valid sim
     'max_num_taxa'      : 1000,             # max number of taxa for valid sim
     'prop_test'         : 0.05,             # proportion of sims in test dataset
@@ -49,7 +49,7 @@ args = {
     'brlen_encode'      : 'height_brlen',   # how to encode phylo brlen? height_only or height_brlen
     'char_encode'       : 'one_hot',        # how to encode discrete states? one_hot or integer
     'param_est'         : [                 # model parameters to estimate (labels)
-        'R0_0', 'Sample_0', 'Infect_0', 'VisitDepart_0_1', 'VisitReturn_0_1', 'ProgressInfected_0'
+        'R0_0', 'Sample_0', 'Infect_0'
     ],
     'param_data'        : [                 # model parameters that are known (aux. data)
         'Recover_0', 'S0_0' #, 'V0_0'
