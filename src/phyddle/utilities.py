@@ -105,26 +105,24 @@ def settings_registry():
     settings = {
         # basic phyddle options
         'cfg'              : { 'step':'',      'type':str,  'section':'Basic', 'default':'config.py',  'help':'Config file name', 'opt':'c' },
-        # 'proj'             : { 'step':'SFTEP', 'type':str,  'section':'Basic', 'default':'my_project', 'help':'Project name(s) for pipeline step(s)', 'opt':'p' },
-        # 'name'             : { 'step':'SFTEP', 'type':str,  'section':'Basic', 'default':'',           'help':'Nickname for file-set within project', 'opt':'n' },
         'step'             : { 'step':'SFTEP', 'type':str,  'section':'Basic', 'default':'SFTEP',      'help':'Pipeline step(s) defined with (S)imulate, (F)ormat, (T)rain, (E)stimate, (P)lot, or (A)ll', 'opt':'s' },
         'verbose'          : { 'step':'SFTEP', 'type':str,  'section':'Basic', 'default':'T',          'help':'Verbose output to screen?', 'bool':True, 'opt':'v' },
-        # 'force'            : { 'step':'',      'type':None, 'section':'Basic', 'default':None,         'help':'Arguments override config file settings', 'opt':'f' },
         'make_cfg'         : { 'step':'',      'type':None, 'section':'Basic', 'default':None,         'help':"Write default config file to '__config_default.py'?" },
         'output_precision' : { 'step':'SFTEP', 'type':int,  'section':'Basic', 'default':16,           'help':'Number of digits (precision) for numbers in output files' },
-
-        # analysis options 
+        
+        # analysis options
         'use_parallel'     : { 'step':'SF',  'type':str, 'section':'Analysis', 'default':'T', 'help':'Use parallelization? (recommended)', 'bool':True },
         'num_proc'         : { 'step':'SFT', 'type':int, 'section':'Analysis', 'default':-2, 'help':'Number of cores for multiprocessing (-N for all but N)' },
         
         # directories
         # 'work_dir'         : { 'step':'SFTEP', 'type':str, 'section':'Workspace', 'default':'../workspace/',  'help':'Directory where projects are stored (workspace)' },
-        'sim_dir'          : { 'step':'SF',    'type':str, 'section':'Workspace', 'default':'./my_project/simulate',       'help':'Directory for raw simulated data' },
-        'fmt_dir'          : { 'step':'FTEP',  'type':str, 'section':'Workspace', 'default':'./my_project/format',         'help':'Directory for tensor-formatted simulated data' },
-        'trn_dir'          : { 'step':'FTEP',  'type':str, 'section':'Workspace', 'default':'./my_project/train',          'help':'Directory for trained networks and training output' },
-        'est_dir'          : { 'step':'TEP',   'type':str, 'section':'Workspace', 'default':'./my_project/estimate',       'help':'Directory for new datasets and estimates' },
-        'plt_dir'          : { 'step':'P',     'type':str, 'section':'Workspace', 'default':'./my_project/plot',           'help':'Directory for plotted results' },
-        'log_dir'          : { 'step':'SFTEP', 'type':str, 'section':'Workspace', 'default':'./my_project/log',            'help':'Directory for logs of analysis metadata' },
+        'sim_dir'          : { 'step':'SF',    'type':str, 'section':'Workspace', 'default':'./workspace/my_project/simulate',       'help':'Directory for raw simulated data' },
+        'emp_dir'          : { 'step':'SF',    'type':str, 'section':'Workspace', 'default':'./workspace/my_project/empirical',      'help':'Directory for raw empirical data' },
+        'fmt_dir'          : { 'step':'FTEP',  'type':str, 'section':'Workspace', 'default':'./workspace/my_project/format',         'help':'Directory for tensor-formatted simulated data' },
+        'trn_dir'          : { 'step':'FTEP',  'type':str, 'section':'Workspace', 'default':'./workspace/my_project/train',          'help':'Directory for trained networks and training output' },
+        'est_dir'          : { 'step':'TEP',   'type':str, 'section':'Workspace', 'default':'./workspace/my_project/estimate',       'help':'Directory for new datasets and estimates' },
+        'plt_dir'          : { 'step':'P',     'type':str, 'section':'Workspace', 'default':'./workspace/my_project/plot',           'help':'Directory for plotted results' },
+        'log_dir'          : { 'step':'SFTEP', 'type':str, 'section':'Workspace', 'default':'./workspace/my_project/log',            'help':'Directory for logs of analysis metadata' },
 
         # simulation options
         'sim_command'      : { 'step':'S',  'type':str, 'section':'Simulate', 'default':None,    'help':'Simulation command to run single job (see documentation)' },
@@ -142,7 +140,6 @@ def settings_registry():
         'max_num_taxa'     : { 'step':'F',    'type':int,   'section':'Format', 'default':1000,           'help':'Maximum number of taxa allowed when formatting' },
         'downsample_taxa'  : { 'step':'FTE',  'type':str,   'section':'Format', 'default':'uniform',      'help':'Downsampling strategy taxon count',            'choices':['uniform'] },
         'tree_width'       : { 'step':'FTEP', 'type':int,   'section':'Format', 'default':500,            'help':'Width of phylo-state tensor' },
-        #'tree_width_cats'  : { 'step':'F',   'type':int,   'section':'Format', 'default':[200, 500],     'help':'The phylo-state tensor widths for formatting training datasets (space-delimited)' },
         'tree_encode'      : { 'step':'FTE',  'type':str,   'section':'Format', 'default':'extant',       'help':'Encoding strategy for tree',                   'choices':['extant', 'serial'] },
         'brlen_encode'     : { 'step':'FTE',  'type':str,   'section':'Format', 'default':'height_brlen', 'help':'Encoding strategy for branch lengths',         'choices':['height_only', 'height_brlen'] },
         'char_encode'      : { 'step':'FTE',  'type':str,   'section':'Format', 'default':'one_hot',      'help':'Encoding strategy for character data',         'choices':['one_hot', 'integer', 'numeric'] },
@@ -151,6 +148,8 @@ def settings_registry():
         'char_format'      : { 'step':'FTE',  'type':str,   'section':'Format', 'default':'nexus',        'help':'File format for character data',               'choices':['csv', 'nexus'] },
         'tensor_format'    : { 'step':'FTEP', 'type':str,   'section':'Format', 'default':'hdf5',         'help':'File format for training example tensors',     'choices':['csv', 'hdf5'] },
         'save_phyenc_csv'  : { 'step':'F',    'type':str,   'section':'Format', 'default':'F',            'help':'Save encoded phylogenetic tensor encoding to csv?', 'bool':True },
+        'emp_analysis'     : { 'step':'FE',   'type':str,   'section':'Format', 'default':'F',            'help':'Run using empirical data instead of test data?', 'bool':True },
+        'emp_prefix'       : { 'step':'FEP',  'type':str,   'section':'Format', 'default':'test', 'help':'Prefix for empirical dataset used by Format, Estimate, and Plot' },
         
         # training options
         'trn_objective'    : { 'step':'T',   'type':str,   'section':'Train', 'default':'param_est',   'help':'Objective of training procedure', 'choices':['param_est'] },
@@ -178,8 +177,7 @@ def settings_registry():
         'phy_dilate_dilate'  : { 'step':'T',   'type':list,  'section':'Train', 'default':[3,5],         'help':'Dilation sizes for dilate convolutional layers for phylogenetic state input' },
         
         # estimating options
-        'est_prefix'       : { 'step':'EP', 'type':str, 'section':'Estimate', 'default':None, 'help':'Predict results for this dataset' },
-
+        
         # plotting options
         'plot_train_color' : { 'step':'P',  'type':str, 'section':'Plot', 'default':'blue',   'help':'Plotting color for training data elements' },
         'plot_label_color' : { 'step':'P',  'type':str, 'section':'Plot', 'default':'orange', 'help':'Plotting color for training label elements' },
@@ -278,7 +276,6 @@ def load_config(config_fn,
     # argument parsing
     desc = 'Software to fiddle around with deep learning for phylogenetic models'
     parser = argparse.ArgumentParser(description=desc)
-    #, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     # read settings registry and populate argument parser
     settings = settings_registry()
@@ -286,6 +283,7 @@ def load_config(config_fn,
         arg_opt = []
         if 'opt' in v:
             arg_opt.append(f'-{v["opt"]}')
+        arg_dest = k
         arg_opt.append(f'--{k}')
         arg_help = v['help']
         arg_type = v['type']
@@ -293,12 +291,12 @@ def load_config(config_fn,
         if arg_type is not None:
             if 'choices' in v:
                 arg_choices = v['choices']
-                parser.add_argument(*arg_opt, dest=k, type=arg_type,
-                                    choices=arg_choices, help=arg_help,
-                                    metavar='')
-            else:
-                parser.add_argument(*arg_opt, dest=k, type=arg_type,
+                parser.add_argument(*arg_opt, dest=arg_dest,
+                                    type=arg_type, choices=arg_choices,
                                     help=arg_help, metavar='')
+            else:
+                parser.add_argument(*arg_opt, dest=arg_dest,
+                                    type=arg_type, help=arg_help, metavar='')
         else:
              parser.add_argument(*arg_opt, action='store_true', help=arg_help)
    
@@ -459,67 +457,67 @@ def check_args(args):
     # done
     return
 
-def add_step_proj(args): #steps, proj):
-    """Manages project directories for steps.
-
-    This function determines which step will be used from args. Next it
-    processes the project string to determine the project(s) name(s) across
-    all steps. Last, it creates step-specific project directories and stores
-    them back into args.
-
-    Args:
-        args (dict): Un-updated phyddle settings dictionary
-    
-    Returns:
-        dict: Updated the phyddle settings dictionary.
-
-    """
-    # get relevant args
-    steps = args['step']
-    proj = args['proj']
-    
-    # different ways of naming steps
-    d_map = { 'S': ('sim', 'simulate'),
-              'F': ('fmt', 'format'),
-              'T': ('trn', 'train'),
-              'E': ('est', 'estimate'),
-              'P': ('plt', 'plot'),
-              'L': ('log', 'log') }
-    
-    # parse input string
-    d_toks = {}
-    proj_toks = proj.split(',')
-    for p in proj_toks:
-        if ':' not in p:
-            d_toks['A'] = p
-        else:
-            k,v = p.split(':')
-            d_toks[k] = v
-
-    # handle all-step ('A') first
-    d_arg = {}
-    if 'A' in d_toks.keys():
-        steps = 'SFTEPL'
-        for i in ['S', 'F', 'T', 'E', 'P', 'L']:
-            k = d_map[i][0]
-            d_arg[k] = d_toks['A']
-        
-    # overwrite with named steps
-    k_change = [ k for k in d_toks.keys() if k in 'SFTEPL' ]
-    for k in k_change:
-        d_arg[ d_map[k][0] ] = d_toks[k]
-    
-    # verify all steps are covered
-    for s in steps:
-        if d_map[s][0] not in d_arg.keys():
-            msg = f"Step {s} ({d_map[s][1]}) has no assigned project name"
-            raise ValueError(msg)
-
-    for k in d_arg.keys():
-        k_str = k + '_proj'
-        args[k_str] = d_arg[k]
-
-    return args
+# def add_step_proj(args): #steps, proj):
+#     """Manages project directories for steps.
+# 
+#     This function determines which step will be used from args. Next it
+#     processes the project string to determine the project(s) name(s) across
+#     all steps. Last, it creates step-specific project directories and stores
+#     them back into args.
+# 
+#     Args:
+#         args (dict): Un-updated phyddle settings dictionary
+#     
+#     Returns:
+#         dict: Updated the phyddle settings dictionary.
+# 
+#     """
+#     # get relevant args
+#     steps = args['step']
+#     proj = args['proj']
+#     
+#     # different ways of naming steps
+#     d_map = { 'S': ('sim', 'simulate'),
+#               'F': ('fmt', 'format'),
+#               'T': ('trn', 'train'),
+#               'E': ('est', 'estimate'),
+#               'P': ('plt', 'plot'),
+#               'L': ('log', 'log') }
+#     
+#     # parse input string
+#     d_toks = {}
+#     proj_toks = proj.split(',')
+#     for p in proj_toks:
+#         if ':' not in p:
+#             d_toks['A'] = p
+#         else:
+#             k,v = p.split(':')
+#             d_toks[k] = v
+# 
+#     # handle all-step ('A') first
+#     d_arg = {}
+#     if 'A' in d_toks.keys():
+#         steps = 'SFTEPL'
+#         for i in ['S', 'F', 'T', 'E', 'P', 'L']:
+#             k = d_map[i][0]
+#             d_arg[k] = d_toks['A']
+#         
+#     # overwrite with named steps
+#     k_change = [ k for k in d_toks.keys() if k in 'SFTEPL' ]
+#     for k in k_change:
+#         d_arg[ d_map[k][0] ] = d_toks[k]
+#     
+#     # verify all steps are covered
+#     for s in steps:
+#         if d_map[s][0] not in d_arg.keys():
+#             msg = f"Step {s} ({d_map[s][1]}) has no assigned project name"
+#             raise ValueError(msg)
+# 
+#     for k in d_arg.keys():
+#         k_str = k + '_proj'
+#         args[k_str] = d_arg[k]
+# 
+#     return args
 
 def make_default_config(config_fn):
     """Generate default config file.

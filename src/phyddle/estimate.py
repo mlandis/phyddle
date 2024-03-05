@@ -209,6 +209,10 @@ class Estimator:
         used for simulated training examples to train the network.
 
         """
+        
+        # INPUT FROM TRAIN STEP
+        # Load factors for aux. data and label standardization;
+        # Load factors for calibration step for prediction intervals
 
         # denormalization factors for new aux data
         train_aux_data_norm = pd.read_csv(self.train_aux_data_norm_fn, sep=',', index_col=False)
@@ -230,7 +234,7 @@ class Estimator:
         self.cpi_adjustments = pd.read_csv(self.model_cpi_fn, sep=',', index_col=False).to_numpy()
         
 
-        # TEST DATA
+        # INPUT TEST DATA FROM FORMAT STEP
         # load all the test dataset
         if self.tensor_format == 'csv':
             test_phy_data = pd.read_csv(self.test_phy_data_fn, header=None,
@@ -239,40 +243,26 @@ class Estimator:
                                         on_bad_lines='skip').to_numpy()
             test_labels   = pd.read_csv(self.test_labels_fn, header=None,
                                         on_bad_lines='skip').to_numpy()
-            test_aux_data       = test_aux_data[1:,:].astype('float64')
-            test_labels         = test_labels[1:,:].astype('float64') 
-            
-            # train_phy_data = pd.read_csv(self.train_phy_data_fn, header=None,
-            #                             on_bad_lines='skip').to_numpy()
-            # train_aux_data = pd.read_csv(self.train_aux_data_fn, header=None,
-            #                             on_bad_lines='skip').to_numpy()
-            # train_labels   = pd.read_csv(self.train_labels_fn, header=None,
-            #                             on_bad_lines='skip').to_numpy()
-            # train_aux_data       = train_aux_data[1:,:].astype('float64')
-            # train_labels         = train_labels[1:,:].astype('float64')     
+            test_aux_data = test_aux_data[1:,:].astype('float64')
+            test_labels   = test_labels[1:,:].astype('float64')
 
         elif self.tensor_format == 'hdf5':
-            hdf5_file = h5py.File(self.test_hdf5_fn, 'r')
+            hdf5_file           = h5py.File(self.test_hdf5_fn, 'r')
             test_phy_data       = pd.DataFrame(hdf5_file['phy_data']).to_numpy()
             test_aux_data       = pd.DataFrame(hdf5_file['aux_data']).to_numpy()
             test_labels         = pd.DataFrame(hdf5_file['labels']).to_numpy()
-
-            # train_hdf5_file = h5py.File(self.train_hdf5_fn, 'r')
-            # train_phy_data       = pd.DataFrame(train_hdf5_file['phy_data']).to_numpy()
-            # train_aux_data       = pd.DataFrame(train_hdf5_file['aux_data']).to_numpy()
-            # train_labels         = pd.DataFrame(train_hdf5_file['labels']).to_numpy()
             hdf5_file.close()
 
+        # add assert statement to guarantee that num examples matches across
+        # different test dataset components: phy. data, aux. data, labels
+        assert test_phy_data.shape[0] == test_aux_data.shape[0]
+        assert test_phy_data.shape[0] == test_labels.shape[0]
+        
+        # reshape phylogenetic state tensor
         num_sample = test_phy_data.shape[0]
         test_phy_data.shape = (num_sample, -1, self.num_data_col)
         test_phy_data = np.transpose(test_phy_data, axes=[0,2,1]).astype('float32')
         self.test_phy_data = test_phy_data
-
-        # train_num_sample = train_phy_data.shape[0]
-        # train_phy_data.shape = (train_num_sample, -1, self.num_data_col)
-        # train_phy_data = np.transpose(train_phy_data, axes=[0,2,1]).astype('float32')
-        # self.train_phy_data = train_phy_data
-
 
         # test dataset normalization
         self.test_aux_data = np.log(test_aux_data + self.log_offset)
@@ -285,6 +275,9 @@ class Estimator:
         # self.norm_train_aux_data = util.normalize(self.train_aux_data,
         #                                           self.train_aux_data_mean_sd)
         # self.train_label_true = train_labels
+
+
+        # NEW EMPIRICAL TEST EXAMPLE
 
         # read & reshape new phylo-state data
         self.emp_phy_data = None

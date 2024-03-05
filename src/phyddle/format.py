@@ -70,7 +70,7 @@ class Formatter:
     Class for formatting phylogenetic datasets and converting them into
     tensors to be used by the Train step.
     """
-    def __init__(self, args): #, mdl):
+    def __init__(self, args):
         """Initializes a new Formatter object.
 
         Args:
@@ -78,12 +78,20 @@ class Formatter:
         """
         # initialize with phyddle settings
         self.set_args(args)
-        # directory for simulations (input)
-        # self.sim_proj_dir = f'{self.work_dir}/{self.sim_proj}/{self.sim_dir}'
+        
+        # directory for simulated data (input)
         self.sim_proj_dir = f'{self.sim_dir}'
+        
+        # directory for empirical data (alt input)
+        if self.emp_analysis:
+            # use sim_proj_dir path for empirical data directory
+            self.sim_proj_dir = f'{self.emp_dir}'
+            # do not split data into train/test
+            self.prop_test = 0.0
+        
         # directory for formatted tensors (output)
-        # self.fmt_proj_dir = f'{self.work_dir}/{self.fmt_proj}/{self.fmt_dir}'
         self.fmt_proj_dir = f'{self.fmt_dir}'
+        
         # set number of processors
         if self.num_proc <= 0:
             self.num_proc = cpu_count() + self.num_proc
@@ -98,8 +106,9 @@ class Formatter:
 
         # create logger to track runtime info
         self.logger = util.Logger(args)
+        
         # done
-        return        
+        return
 
     def set_args(self, args):
         """Assigns phyddle settings as Formatter attributes.
@@ -150,6 +159,9 @@ class Formatter:
         # encode each dataset into individual tensors
         util.print_str('▪ Encoding raw data as tensors', verbose)
         self.encode_all()
+
+        # split examples into training and test datasets
+        self.split_idx = self.split_examples()
 
         # write tensors across all examples to file
         util.print_str('▪ Combining and writing tensors', verbose)
@@ -202,7 +214,7 @@ class Formatter:
         args = []
 
         for idx in self.rep_idx:
-            args.append((f'{self.sim_proj_dir}/sim.{idx}', idx))
+            args.append((f'{self.sim_proj_dir}/{self.sim_prefix}.{idx}', idx))
 
         # visit each replicate, encode it, and return result
         if self.use_parallel:
@@ -237,7 +249,6 @@ class Formatter:
                            'the configuration (e.g. min_taxa_size setting).')
             sys.exit()
             
-        
         # save all phylogenetic-state tensors into the phy_tensors dictionary,
         # while sorting tensors into different tree-width categories
         self.phy_tensors = {}
@@ -268,59 +279,23 @@ class Formatter:
         # find all rep index
         all_idx = set()
         files = os.listdir(f'{self.sim_proj_dir}')
+        files = [ f for f in files if '.dat.' in f ]
+        
+        self.sim_prefix = 'sim'
+        if self.emp_analysis:
+            self.sim_prefix = files[0].split('.')[0]
+        
         for f in files:
-            if f[0:3] == 'sim':
-                all_idx.add(int(f.split('.')[1]))
+            s_idx = f.split('.')[1]
+            try:
+                all_idx.add(int(s_idx))
+            except ValueError:
+                print(f'Skipping invalid filename {f}.')
+                pass
+            
         all_idx = sorted(list(all_idx))
 
         return all_idx
-
-        # currently disabled, because it might not be needed in general
-        # and it is expensive for >2M files
-
-        # # find only rep index with complete datasets
-        # complete_idx = []
-        # required_exts = [ '.tre', '.labels.csv' ]
-        # if self.char_format == 'nexus':
-        #     required_exts.append('.dat.nex')
-        # elif self.char_format == 'csv':
-        #     required_exts.append('.dat.csv')
-
-        # for idx in all_idx:
-        #     #complete = True
-        #     prefix_fn = f'{self.sim_proj_dir}/sim.{idx}'
-        #     if os.path.exists(prefix_fn + required_exts[0]) and \
-        #        os.path.exists(prefix_fn + required_exts[1]) and \
-        #        os.path.exists(prefix_fn + required_exts[2]):
-        #     #for ext in required_exts: 
-        #     #   if not os.path.exists(prefix_fn + ext):
-        #     #                    complete = False
-        #     #if complete:
-        #         complete_idx.append(idx)
-
-        # if self.use_parallel:
-        #     # parallel jobs
-        #     with Pool(processes=self.num_proc) as pool:
-        #         # Note, it's critical to call this as list(tqdm(pool.imap(...)))
-        #         # - pool.imap runs the parallelization
-        #         # - tqdm generates progress bar
-        #         # - list acts as a finalizer for the pool.imap work
-        #         # Have not benchmarked imap/imap_unordered, chunksize, etc.
-        #         res = list(tqdm(pool.imap(self.encode_one_star,
-        #                                   args, chunksize=5),
-        #                         total=len(args),
-        #                         desc='Encoding',
-        #                         smoothing=0))
-                
-        # else:
-        #     # serial jobs
-        #     res = [ self.encode_one_star(a) for a in tqdm(args,
-        #                                                   total=len(args),
-        #                                                   desc='Encoding',
-        #                                                   smoothing=0) ]
-
-        # return complete rep idx dataset
-        # return complete_idx
 
     def get_summ_stat_names(self):
         """Get names of summary statistics.
@@ -334,11 +309,12 @@ class Formatter:
         if len(k_list) > 0 and idx is None:
             idx = k_list[0]
         # get headers from file
-        fn = f'{self.sim_proj_dir}/sim.{idx}.summ_stat.csv'
+        fn = f'{self.sim_proj_dir}/{self.sim_prefix}.{idx}.summ_stat.csv'
         if not os.path.exists(fn):
-            util.print_err(f'Cannot find {self.sim_proj_dir}/sim.*.summ_stat.csv.'
-                           f' Verify that your simulator created output that is'
-                           f' detectable based on your config settings.')
+            util.print_err(f'Cannot find {self.sim_proj_dir}/{self.sim_prefix}.'
+                           f'*.summ_stat.csv. Verify that your simulator '
+                           f'created output that is detectable based on your '
+                           f'config settings.')
             sys.exit()
         df = pd.read_csv(fn,header=0)
         ret = df.columns.to_list()
@@ -356,11 +332,12 @@ class Formatter:
         if len(k_list) > 0 and idx is None:
             idx = k_list[0]
         # get headers from file
-        fn = f'{self.sim_proj_dir}/sim.{idx}.labels.csv'
+        fn = f'{self.sim_proj_dir}/{self.sim_prefix}.{idx}.labels.csv'
         if not os.path.exists(fn):
-            util.print_err(f'Cannot find {self.sim_proj_dir}/sim.*.labels.csv.'
-                           f'Verify that your simulator created output that is'
-                           f' detectable based on your config settings.')
+            util.print_err(f'Cannot find {self.sim_proj_dir}/{self.sim_prefix}.'
+                           f'*.labels.csv. Verify that your simulator created '
+                           f'output that is detectable based on your config '
+                           f'settings.')
             sys.exit()
             # exits
         df = pd.read_csv(fn,header=0)
@@ -373,12 +350,18 @@ class Formatter:
         rep_idx = sorted(list(self.phy_tensors.keys()))
         rep_idx = np.array(rep_idx)
         num_samples = len(rep_idx)
-        # shuffle examples
-        np.random.shuffle(rep_idx)
-        # split examples
-        num_test = int(num_samples * self.prop_test)
-        split_idx['test'] = rep_idx[:num_test]
-        split_idx['train'] = rep_idx[num_test:]    
+        
+        if self.emp_analysis:
+            # all empirical examples used
+            split_idx['empirical'] = rep_idx
+        else:
+            # shuffle examples
+            np.random.shuffle(rep_idx)
+            # split examples
+            num_test = int(num_samples * self.prop_test)
+            split_idx['test'] = rep_idx[:num_test]
+            split_idx['train'] = rep_idx[num_test:]
+            
         # return split indices
         return split_idx
 
@@ -389,13 +372,18 @@ class Formatter:
         or hdf5 format based on the tensor_format setting. Actual writing
         is delegated to write_tensor_csv() and write_tensor_hdf5() functions.
         """
-        self.split_idx = self.split_examples()
-        if self.tensor_format == 'csv':
-            self.write_tensor_csv('train')
-            self.write_tensor_csv('test')
-        elif self.tensor_format == 'hdf5':
-            self.write_tensor_hdf5('train')
-            self.write_tensor_hdf5('test')
+        if self.emp_analysis:
+            if self.tensor_format == 'csv':
+                self.write_tensor_csv('empirical')
+            elif self.tensor_format == 'hdf5':
+                self.write_tensor_hdf5('empirical')
+        else:
+            if self.tensor_format == 'csv':
+                self.write_tensor_csv('train')
+                self.write_tensor_csv('test')
+            elif self.tensor_format == 'hdf5':
+                self.write_tensor_hdf5('train')
+                self.write_tensor_hdf5('test')
         return
 
 
@@ -415,7 +403,7 @@ class Formatter:
         
         """
 
-        assert(data_str in ['test', 'train'])
+        assert data_str in ['test', 'train', 'empirical']
         
         # build files
         tree_width = self.tree_width
@@ -507,11 +495,11 @@ class Formatter:
             data_str (str): specifies 'test' or 'train' dataset
 
         """
-        assert(data_str in ['test', 'train'])
+        assert data_str in ['test', 'train', 'empirical']
         
         # build files
-        tree_width = self.tree_width #_cats[0]
-        phy_tensor = self.phy_tensors #[tree_width]
+        tree_width = self.tree_width
+        phy_tensor = self.phy_tensors
 
         # dimensions
         rep_idx = self.split_idx[data_str]
@@ -522,7 +510,7 @@ class Formatter:
         
         # output csv filepaths
         out_prefix    = f'{self.fmt_proj_dir}/{data_str}.nt{tree_width}'
-        in_prefix     = f'{self.sim_proj_dir}/sim'
+        in_prefix     = f'{self.sim_proj_dir}/{self.sim_prefix}'
         out_phys_fn   = f'{out_prefix}.phy_data.csv'
         out_stat_fn   = f'{out_prefix}.aux_data.csv'
         out_labels_fn = f'{out_prefix}.labels.csv'
@@ -598,7 +586,7 @@ class Formatter:
         """
         
         # file names
-        fname_base  = f'{self.sim_proj_dir}/sim.{idx}'
+        fname_base  = f'{self.sim_proj_dir}/{self.sim_prefix}.{idx}'
         fname_param = fname_base + '.labels.csv'
         fname_stat  = fname_base + '.summ_stat.csv'
         # dataset values

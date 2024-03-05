@@ -341,9 +341,7 @@ class CnnTrainer(Trainer):
         # heteroskedasticity (variance grows with mean)
         full_labels = np.log(full_labels + self.log_offset)
         full_aux_data = np.log(full_aux_data + self.log_offset)
-
         
-
         # shuffle datasets
         randomized_idx = np.random.permutation(full_phy_data.shape[0])
         full_phy_data  = full_phy_data[randomized_idx,:]

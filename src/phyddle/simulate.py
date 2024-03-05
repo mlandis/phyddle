@@ -78,13 +78,10 @@ class Simulator:
         # validate sim_command
         self.validate_sim_command()
         # directory to store simulations
-        # self.sim_proj_dir = f'{self.work_dir}/{self.sim_proj}/{self.sim_dir}'
         self.sim_proj_dir = f'{self.sim_dir}'
         # set number of processors
         if self.num_proc <= 0:
             self.num_proc = cpu_count() + self.num_proc
-        # simulate replicate IDs to generate
-        self.rep_idx = self.get_rep_idx()
         # create logger to track runtime info
         self.logger = util.Logger(args)
         #done
@@ -213,6 +210,9 @@ class Simulator:
         start_time,start_time_str = util.get_time()
         util.print_str(f'▪ Start time of {start_time_str}', verbose)
 
+        # simulate replicate IDs to generate
+        self.rep_idx = self.get_rep_idx()
+        
         # dispatch jobs
         util.print_str('▪ Simulating raw data', verbose)
         if self.use_parallel:

@@ -15,6 +15,7 @@ args = {
     'step'    : 'SFTEP',                      # step(s) to run
     'verbose' : 'T',                          # print verbose phyddle output?
     'sim_dir' : f'{work_dir}/simulate',    # directory for simulated data
+    'emp_dir' : f'{work_dir}/empirical',    # directory for simulated data
     'fmt_dir' : f'{work_dir}/format',      # directory for tensor-formatted data
     'trn_dir' : f'{work_dir}/train',       # directory for trained network
     'plt_dir' : f'{work_dir}/plot',        # directory for plotted figures
