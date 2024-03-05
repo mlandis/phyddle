@@ -110,12 +110,15 @@ class Estimator:
         self.fmt_proj_dir = f'{self.fmt_dir}'
 
         # prefixes
-        test_prefix                 = f'test.nt{self.tree_width}'
+        est_prefix                  = f'test.nt{self.tree_width}'
+        if self.emp_analysis:
+            est_prefix              = f'empirical.nt{self.tree_width}'
+        
         network_prefix              = f'network_nt{self.tree_width}'
+        self.fmt_prefix_dir         = f'{self.fmt_proj_dir}/{est_prefix}'
         self.trn_prefix_dir         = f'{self.trn_proj_dir}/{network_prefix}'
-        self.est_prefix_dir         = f'{self.est_proj_dir}/{self.est_prefix}'
-        self.fmt_prefix_dir         = f'{self.fmt_proj_dir}/{test_prefix}'
-
+        self.est_prefix_dir         = f'{self.est_proj_dir}/{est_prefix}'
+        
         # model files
         self.model_arch_fn          = f'{self.trn_prefix_dir}.trained_model.pkl'
         self.train_labels_norm_fn   = f'{self.trn_prefix_dir}.train_label_norm.csv'
@@ -129,24 +132,24 @@ class Estimator:
         self.test_hdf5_fn          = f'{self.fmt_prefix_dir}.hdf5'
 
         # empirical test dataset
-        self.emp_summ_stat_fn       = f'{self.est_prefix_dir}.summ_stat.csv'
-        self.emp_labels_fn          = f'{self.est_prefix_dir}.labels.csv'
-        self.emp_aux_data_fn        = f'{self.est_prefix_dir}.aux_data.csv'
-        self.emp_phy_data_fn        = f'{self.est_prefix_dir}.phy_data.csv'    
+        # self.emp_summ_stat_fn       = f'{self.est_prefix_dir}.summ_stat.csv'
+        # self.emp_labels_fn          = f'{self.est_prefix_dir}.labels.csv'
+        # self.emp_aux_data_fn        = f'{self.est_prefix_dir}.aux_data.csv'
+        # self.emp_phy_data_fn        = f'{self.est_prefix_dir}.phy_data.csv'    
         
         # test outputs
-        self.out_emp_label_est_fn   = f'{self.est_prefix_dir}.emp_est.labels.csv'
-        self.out_test_label_est_fn   = f'{self.est_prefix_dir}.test_est.labels.csv'
-        self.out_test_label_true_fn  = f'{self.est_prefix_dir}.test_true.labels.csv'
-        self.out_train_label_est_fn   = f'{self.est_prefix_dir}.train_est.labels.csv'
-        self.out_train_label_true_fn  = f'{self.est_prefix_dir}.train_true.labels.csv'
+        #self.out_emp_label_est_fn   = f'{self.est_prefix_dir}.emp_est.labels.csv'
+        self.out_label_est_fn   = f'{self.est_prefix_dir}.est.labels.csv'
+        self.out_label_true_fn  = f'{self.est_prefix_dir}.true.labels.csv'
+        # self.out_train_label_est_fn   = f'{self.est_prefix_dir}.train_est.labels.csv'
+        # self.out_train_label_true_fn  = f'{self.est_prefix_dir}.train_true.labels.csv'
     
-        # check if empirical dataset exists
-        self.emp_input_exists = True
-        for fn in [ self.emp_summ_stat_fn,
-                    self.emp_phy_data_fn ]:
-            if not os.path.exists(fn):
-                self.emp_input_exists = False
+        # # check if empirical dataset exists
+        # self.emp_input_exists = True
+        # for fn in [ self.emp_summ_stat_fn,
+        #             self.emp_phy_data_fn ]:
+        #     if not os.path.exists(fn):
+        #         self.emp_input_exists = False
 
         # done
         return
@@ -169,8 +172,7 @@ class Estimator:
 
         # print header
         util.print_step_header('est',
-                               [self.fmt_proj_dir, self.est_proj_dir,
-                                self.trn_proj_dir],
+                               [self.fmt_proj_dir, self.trn_proj_dir],
                                 self.est_proj_dir, verbose)
         
         # prepare workspace
@@ -241,8 +243,9 @@ class Estimator:
                                         on_bad_lines='skip').to_numpy()
             test_aux_data = pd.read_csv(self.test_aux_data_fn, header=None,
                                         on_bad_lines='skip').to_numpy()
-            test_labels   = pd.read_csv(self.test_labels_fn, header=None,
-                                        on_bad_lines='skip').to_numpy()
+            if not self.emp_analysis:
+                test_labels   = pd.read_csv(self.test_labels_fn, header=None,
+                                            on_bad_lines='skip').to_numpy()
             test_aux_data = test_aux_data[1:,:].astype('float64')
             test_labels   = test_labels[1:,:].astype('float64')
 
@@ -250,13 +253,15 @@ class Estimator:
             hdf5_file           = h5py.File(self.test_hdf5_fn, 'r')
             test_phy_data       = pd.DataFrame(hdf5_file['phy_data']).to_numpy()
             test_aux_data       = pd.DataFrame(hdf5_file['aux_data']).to_numpy()
-            test_labels         = pd.DataFrame(hdf5_file['labels']).to_numpy()
+            if not self.emp_analysis:
+                test_labels         = pd.DataFrame(hdf5_file['labels']).to_numpy()
             hdf5_file.close()
 
         # add assert statement to guarantee that num examples matches across
         # different test dataset components: phy. data, aux. data, labels
         assert test_phy_data.shape[0] == test_aux_data.shape[0]
-        assert test_phy_data.shape[0] == test_labels.shape[0]
+        if not self.emp_analysis:
+            assert test_phy_data.shape[0] == test_labels.shape[0]
         
         # reshape phylogenetic state tensor
         num_sample = test_phy_data.shape[0]
@@ -268,7 +273,9 @@ class Estimator:
         self.test_aux_data = np.log(test_aux_data + self.log_offset)
         self.norm_test_aux_data = util.normalize(self.test_aux_data,
                                                  self.train_aux_data_mean_sd)
-        self.test_label_true = test_labels
+        
+        if not self.emp_analysis:
+            self.test_label_true = test_labels
 
         # # training dataset normalization
         # self.train_aux_data = np.log(train_aux_data + self.log_offset)
@@ -276,37 +283,37 @@ class Estimator:
         #                                           self.train_aux_data_mean_sd)
         # self.train_label_true = train_labels
 
-
-        # NEW EMPIRICAL TEST EXAMPLE
-
-        # read & reshape new phylo-state data
-        self.emp_phy_data = None
-        if self.emp_input_exists:
-            self.emp_phy_data = pd.read_csv(self.emp_phy_data_fn,
-                                            header=None, sep=',',
-                                            index_col=False).to_numpy()
-            self.emp_phy_data = self.emp_phy_data.reshape((1, -1, self.num_data_col))
-            self.emp_phy_data = np.transpose(self.emp_phy_data, axes=[0,2,1]).astype('float32')
-
-        # read & normalize new aux data (when files exist)
-        self.emp_aux_data = None
-        if self.emp_input_exists:
-            self.est_summ_stat = pd.read_csv(self.emp_summ_stat_fn, sep=',',
-                                            index_col=False).to_numpy().flatten()
-            try:
-                self.emp_label_all = pd.read_csv(self.emp_labels_fn,
-                                                  sep=',', index_col=False)
-                self.emp_label_data = self.emp_label_all[self.param_data].to_numpy().flatten()
-                self.emp_aux_data = np.concatenate([self.est_summ_stat,
-                                                    self.emp_label_data])
-            except FileNotFoundError:
-                self.emp_aux_data = self.est_summ_stat
-
-            # reshape and rescale new aux data
-            self.emp_aux_data.shape = (1, -1)
-            self.emp_aux_data = np.log(self.emp_aux_data + self.log_offset)
-            self.norm_emp_aux_data = util.normalize(self.emp_aux_data,
-                                                    self.train_aux_data_mean_sd)
+        # 
+        # # NEW EMPIRICAL TEST EXAMPLE
+        # 
+        # # read & reshape new phylo-state data
+        # self.emp_phy_data = None
+        # if self.emp_input_exists:
+        #     self.emp_phy_data = pd.read_csv(self.emp_phy_data_fn,
+        #                                     header=None, sep=',',
+        #                                     index_col=False).to_numpy()
+        #     self.emp_phy_data = self.emp_phy_data.reshape((1, -1, self.num_data_col))
+        #     self.emp_phy_data = np.transpose(self.emp_phy_data, axes=[0,2,1]).astype('float32')
+        # 
+        # # read & normalize new aux data (when files exist)
+        # self.emp_aux_data = None
+        # if self.emp_input_exists:
+        #     self.est_summ_stat = pd.read_csv(self.emp_summ_stat_fn, sep=',',
+        #                                     index_col=False).to_numpy().flatten()
+        #     try:
+        #         self.emp_label_all = pd.read_csv(self.emp_labels_fn,
+        #                                           sep=',', index_col=False)
+        #         self.emp_label_data = self.emp_label_all[self.param_data].to_numpy().flatten()
+        #         self.emp_aux_data = np.concatenate([self.est_summ_stat,
+        #                                             self.emp_label_data])
+        #     except FileNotFoundError:
+        #         self.emp_aux_data = self.est_summ_stat
+        # 
+        #     # reshape and rescale new aux data
+        #     self.emp_aux_data.shape = (1, -1)
+        #     self.emp_aux_data = np.log(self.emp_aux_data + self.log_offset)
+        #     self.norm_emp_aux_data = util.normalize(self.emp_aux_data,
+        #                                             self.train_aux_data_mean_sd)
             
         # done
         return
@@ -323,35 +330,35 @@ class Estimator:
         # load model
         self.mymodel = torch.load(self.model_arch_fn)
 
-        # empirical dataset (if it exists)
-        if self.emp_input_exists:
-
-            # get estimates            
-            norm_emp_label_est = self.mymodel(torch.Tensor(self.emp_phy_data),
-                                              torch.Tensor(self.norm_emp_aux_data))
-            
-            # point estimates & CPIs for emp. labels
-            norm_emp_label_est        = torch.stack(norm_emp_label_est)[:,None,:]
-            norm_emp_label_est        = norm_emp_label_est.detach().numpy()
-            #norm_emp_label_est        = torch.stack(norm_emp_label_est).detach().numpy()
-            norm_emp_label_est        = np.array(norm_emp_label_est)
-            norm_emp_label_est[1,:]   = norm_emp_label_est[1,:] - self.cpi_adjustments[0,:]
-            norm_emp_label_est[2,:]   = norm_emp_label_est[2,:] + self.cpi_adjustments[1,:]
-
-            # detransform results
-            emp_label_est = util.denormalize(norm_emp_label_est,
-                                             self.train_labels_mean_sd,
-                                             exp=True) - self.log_offset
-            #print(emp_label_est)
-
-            # save empirical label estimates
-            df_emp_label_est = util.make_param_VLU_mtx(emp_label_est, self.label_names)
-            df_emp_label_est.to_csv(self.out_emp_label_est_fn, index=False, sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
-
-            # save empirical auxiliary dataset
-            df_emp_aux_data = pd.DataFrame(self.emp_aux_data, columns=self.aux_data_names)
-            df_emp_aux_data = np.exp(df_emp_aux_data) - self.log_offset
-            df_emp_aux_data.to_csv(self.emp_aux_data_fn, index=False, sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
+        # # empirical dataset (if it exists)
+        # if self.emp_input_exists:
+        # 
+        #     # get estimates            
+        #     norm_emp_label_est = self.mymodel(torch.Tensor(self.emp_phy_data),
+        #                                       torch.Tensor(self.norm_emp_aux_data))
+        #     
+        #     # point estimates & CPIs for emp. labels
+        #     norm_emp_label_est        = torch.stack(norm_emp_label_est)[:,None,:]
+        #     norm_emp_label_est        = norm_emp_label_est.detach().numpy()
+        #     #norm_emp_label_est        = torch.stack(norm_emp_label_est).detach().numpy()
+        #     norm_emp_label_est        = np.array(norm_emp_label_est)
+        #     norm_emp_label_est[1,:]   = norm_emp_label_est[1,:] - self.cpi_adjustments[0,:]
+        #     norm_emp_label_est[2,:]   = norm_emp_label_est[2,:] + self.cpi_adjustments[1,:]
+        # 
+        #     # detransform results
+        #     emp_label_est = util.denormalize(norm_emp_label_est,
+        #                                      self.train_labels_mean_sd,
+        #                                      exp=True) - self.log_offset
+        #     #print(emp_label_est)
+        # 
+        #     # save empirical label estimates
+        #     df_emp_label_est = util.make_param_VLU_mtx(emp_label_est, self.label_names)
+        #     df_emp_label_est.to_csv(self.out_emp_label_est_fn, index=False, sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
+        # 
+        #     # save empirical auxiliary dataset
+        #     df_emp_aux_data = pd.DataFrame(self.emp_aux_data, columns=self.aux_data_names)
+        #     df_emp_aux_data = np.exp(df_emp_aux_data) - self.log_offset
+        #     df_emp_aux_data.to_csv(self.emp_aux_data_fn, index=False, sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
 
         # test dataset
         norm_test_label_est = self.mymodel(torch.Tensor(self.test_phy_data),
@@ -371,9 +378,10 @@ class Estimator:
       
         #save test estimates
         df_test_label_est = util.make_param_VLU_mtx(test_label_est, self.label_names)
-        df_test_label_est.to_csv(self.out_test_label_est_fn, index=False, sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
-        df_test_label_true = pd.DataFrame(self.test_label_true, columns=self.label_names)
-        df_test_label_true.to_csv(self.out_test_label_true_fn, index=False, sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
+        df_test_label_est.to_csv(self.out_label_est_fn, index=False, sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
+        if not self.emp_analysis:
+            df_test_label_true = pd.DataFrame(self.test_label_true, columns=self.label_names)
+            df_test_label_true.to_csv(self.out_label_true_fn, index=False, sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
         
         # done
         return
