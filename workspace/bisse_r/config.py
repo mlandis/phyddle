@@ -12,16 +12,22 @@ args = {
     #-------------------------------#
     # Project organization          #
     #-------------------------------#
-    'step'    : 'SFTEP',                      # step(s) to run
-    'verbose' : 'T',                          # print verbose phyddle output?
+    'step'    : 'SFTEP',                   # step(s) to run
+    'verbose' : 'T',                       # print verbose phyddle output?
+  	'sim_prefix'         : 'out',          # Prefix for raw simulated data
+  	'emp_prefix'         : 'out',          # Prefix for raw empirical data
+  	'fmt_prefix'         : 'out',          # Prefix for tensor-formatted data
+  	'trn_prefix'         : 'out',          # Prefix for trained networks and training output
+  	'est_prefix'         : 'out',          # Prefix for new datasets and estimates
+  	'plt_prefix'         : 'out',          # Prefix for plotted results
     'sim_dir' : f'{work_dir}/simulate',    # directory for simulated data
-    'emp_dir' : f'{work_dir}/empirical',    # directory for simulated data
+    'emp_dir' : f'{work_dir}/empirical',   # directory for simulated data
     'fmt_dir' : f'{work_dir}/format',      # directory for tensor-formatted data
     'trn_dir' : f'{work_dir}/train',       # directory for trained network
     'plt_dir' : f'{work_dir}/plot',        # directory for plotted figures
     'est_dir' : f'{work_dir}/estimate',    # directory for predictions on new data
     'log_dir' : f'{work_dir}/log',         # directory for analysis logs
-    'output_precision'   : 12,                # Number of digits (precision) for numbers in output files
+    'output_precision'   : 12,             # Number of digits (precision) for numbers in output files
 
     #-------------------------------#
     # Multiprocessing               #
@@ -80,7 +86,6 @@ args = {
     #-------------------------------#
     # Estimate Step settings        #
     #-------------------------------#
-    'est_prefix'     : 'new.0',             # prefix for new dataset to predict
 
     #-------------------------------#
     # Plot Step settings            #

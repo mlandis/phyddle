@@ -285,8 +285,8 @@ class Simulator:
         # get filesystem info for generic job
         #out_path   = f'{self.sim_dir}/{self.sim_proj}'
         out_path   = f'{self.sim_proj_dir}'
-        tmp_fn     = f'{out_path}/sim.{idx}'
-        cmd_str    = f'{self.sim_command} {out_path} {idx} {self.sim_batch_size}'
+        tmp_fn     = f'{out_path}/{self.sim_prefix}.{idx}'
+        cmd_str    = f'{self.sim_command} {out_path} {self.sim_prefix} {idx} {self.sim_batch_size}'
         stdout_fn  = f'{tmp_fn}.stdout.log'
         stderr_fn  = f'{tmp_fn}.stderr.log'
         # run generic job
@@ -331,16 +331,17 @@ class Simulator:
         valid_all = []
         for idx in sim_idx:
             # check if replicate has tree, labels, and data files
-            has_phy = os.path.exists(f'{self.sim_proj_dir}/sim.{idx}.tre')
+            tmp_fn = f'{self.sim_proj_dir}/{self.sim_prefix}.{idx}'
+            has_phy = os.path.exists(f'{tmp_fn}.tre')
             if has_phy:
                 valid_phy.append(idx)
                 
-            has_lbl = os.path.exists(f'{self.sim_proj_dir}/sim.{idx}.labels.csv')
+            has_lbl = os.path.exists(f'{tmp_fn}.labels.csv')
             if has_lbl:
                 valid_lbl.append(idx)
                 
-            has_dat = os.path.exists(f'{self.sim_proj_dir}/sim.{idx}.dat.csv') or \
-                      os.path.exists(f'{self.sim_proj_dir}/sim.{idx}.dat.nex')
+            has_dat = os.path.exists(f'{tmp_fn}.dat.csv') or \
+                      os.path.exists(f'{tmp_fn}.dat.nex')
             if has_dat:
                 valid_dat.append(idx)
             
@@ -356,7 +357,7 @@ class Simulator:
                             f' File counts: {n_phy} trees, {n_lbl} labels,'
                             f' {n_dat} data matrices. Verify that simulation '
                             f'command:\n\n'
-                            f'\t{self.sim_command} {self.sim_proj_dir} 0 1\n\n'
+                            f'\t{self.sim_command} {self.sim_proj_dir} {self.sim_prefix} 0 1\n\n'
                             f'works as intended with the provided configuration.')
             
         return

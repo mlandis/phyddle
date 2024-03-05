@@ -129,9 +129,8 @@ class Trainer:
         self.trn_proj_dir = f'{self.trn_dir}'
 
         # input prefix
-        input_prefix      = f'{self.fmt_proj_dir}/train.nt{self.tree_width}'
-        network_prefix    = f'network_nt{self.tree_width}'
-        output_prefix     = f'{self.trn_proj_dir}/{network_prefix}'
+        input_prefix      = f'{self.fmt_proj_dir}/{self.fmt_prefix}.train'
+        output_prefix     = f'{self.trn_proj_dir}/{self.trn_prefix}'
 
         # input dataset filenames for csv or hdf5
         self.input_phy_data_fn      = f'{input_prefix}.phy_data.csv'
@@ -152,7 +151,7 @@ class Trainer:
         # output training labels
         self.train_label_true_fn          = f'{output_prefix}.train_true.labels.csv'
         self.train_label_est_calib_fn     = f'{output_prefix}.train_est.labels.csv'
-        self.train_label_est_nocalib_fn   = f'{output_prefix}.train_label_est_nocalib.csv'
+        self.train_label_est_nocalib_fn   = f'{output_prefix}.train_est_nocalib.labels.csv'
         
         return
 
@@ -243,7 +242,7 @@ class CnnTrainer(Trainer):
         Split tensor into parts.
 
         This function splits the indexes for training examples into training,
-        validation, and calibration sets. 
+        validation, and calibration sets.
 
         Args:
             num_sample (int): The total number of samples in the dataset.
@@ -257,7 +256,7 @@ class CnnTrainer(Trainer):
         """
 
         # get number of training, validation, and calibration datapoints
-        num_calib = int(np.floor(num_sample * self.prop_cal)) 
+        num_calib = int(np.floor(num_sample * self.prop_cal))
         num_val   = int(np.floor(num_sample * self.prop_val))
         num_train = num_sample - (num_val + num_calib)
         assert(num_train > 0)
@@ -293,7 +292,7 @@ class CnnTrainer(Trainer):
         elif len(val_idx) == 0:
             msg = 'Validation dataset is empty: len(val_idx) == 0'
         elif len(calib_idx) == 0:
-            msg = 'Calibration dataset is empty: len(calib_idx) == 0'           
+            msg = 'Calibration dataset is empty: len(calib_idx) == 0'
         if msg != '':
             self.logger.write_log('trn', msg)
             raise ValueError(msg)
@@ -321,7 +320,7 @@ class CnnTrainer(Trainer):
             self.aux_data_names = full_aux_data[0,:]
             self.label_names    = full_labels[0,:]
             full_aux_data       = full_aux_data[1:,:].astype('float64')
-            full_labels         = full_labels[1:,:].astype('float64')   
+            full_labels         = full_labels[1:,:].astype('float64')
 
         elif self.tensor_format == 'hdf5':
             hdf5_file = h5py.File(self.input_hdf5_fn, 'r')

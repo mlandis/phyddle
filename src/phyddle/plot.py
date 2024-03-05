@@ -32,7 +32,7 @@ from sklearn.linear_model import LinearRegression
 # phyddle imports
 from phyddle import utilities as util
 
-#------------------------------------------------------------------------------#
+# ---------------------------------------------------------------------------- #
 
 def load(args):
     """Load a Plotter object.
@@ -52,7 +52,7 @@ def load(args):
     else:
         return NotImplementedError
 
-#------------------------------------------------------------------------------#
+# ---------------------------------------------------------------------------- #
 
 class Plotter:
     """
@@ -126,11 +126,12 @@ class Plotter:
         self.train_labels_fn    = f'{trn_proj_prefix}.train_true.labels.csv'
         
         # estimates
-        self.est_aux_data_fn    = f'{est_proj_prefix}.aux_data.csv'
+        # self.est_aux_data_fn    = f'{est_proj_prefix}.aux_data.csv'
         #self.est_known_param_fn = f'{est_proj_prefix}.known_param.csv'
-        self.est_lbl_fn         = f'{est_proj_prefix}.emp_est.labels.csv'
-        self.test_est_fn        = f'{est_proj_prefix}.test_est.labels.csv'
-        self.test_labels_fn     = f'{est_proj_prefix}.test_true.labels.csv'
+        # self.est_lbl_fn         = f'{est_proj_prefix}.emp_est.labels.csv'
+        self.test_est_fn        = f'test.est.labels.csv'
+        self.test_true_fn       = f'test.true.labels.csv'
+        self.emp_est_fn         = f'empirical.est.labels.csv'
         
         # plotting output
         self.save_density_aux_fn   = f'{plt_proj_prefix}.density_aux_data.pdf'
@@ -269,7 +270,7 @@ class Plotter:
         # done
         return
     
-#------------------------------------------------------------------------------#
+# ---------------------------------------------------------------------------- #
 
     def generate_plots(self):
         """Generates all plots.
@@ -366,7 +367,7 @@ class Plotter:
             if filter in '.'.join(f.split('.')[-2:]):
                 ret.append(f)
         return ret
-#------------------------------------------------------------------------------#
+# ---------------------------------------------------------------------------- #
 
     def make_report(self):
         """Makes CSV of main results."""
@@ -427,7 +428,7 @@ class Plotter:
 
         return
 
-#------------------------------------------------------------------------------#
+# ---------------------------------------------------------------------------- #
 
     def make_plot_stat_density(self, type):
         """Calls plot_stat_density with arguments."""
@@ -533,7 +534,7 @@ class Plotter:
         
         return
     
-#------------------------------------------------------------------------------#        
+# ---------------------------------------------------------------------------- #        
 
     def plot_stat_density(self, save_fn, sim_values, est_values=None,
                            title='', ncol_plot=3, color='blue'):
@@ -1074,4 +1075,4 @@ class Plotter:
         # done
         return
 
-#------------------------------------------------------------------------------#
+# ---------------------------------------------------------------------------- #

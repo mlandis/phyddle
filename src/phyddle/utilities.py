@@ -116,9 +116,15 @@ def settings_registry():
         
         # directories
         # 'work_dir'         : { 'step':'SFTEP', 'type':str, 'section':'Workspace', 'default':'../workspace/',  'help':'Directory where projects are stored (workspace)' },
+        'sim_prefix'       : { 'step':'SF',    'type':str, 'section':'Workspace', 'default':'sim',                                   'help':'Prefix for raw simulated data' },
+        'emp_prefix'       : { 'step':'SF',    'type':str, 'section':'Workspace', 'default':'emp',                                   'help':'Prefix for raw empirical data' },
+        'fmt_prefix'       : { 'step':'FTEP',  'type':str, 'section':'Workspace', 'default':'out',                                   'help':'Prefix for tensor-formatted data' },
+        'trn_prefix'       : { 'step':'FTEP',  'type':str, 'section':'Workspace', 'default':'out',                                   'help':'Prefix for trained networks and training output' },
+        'est_prefix'       : { 'step':'TEP',   'type':str, 'section':'Workspace', 'default':'out',                                   'help':'Prefix for new datasets and estimates' },
+        'plt_prefix'       : { 'step':'P',     'type':str, 'section':'Workspace', 'default':'out',                                   'help':'Prefix for plotted results' },
         'sim_dir'          : { 'step':'SF',    'type':str, 'section':'Workspace', 'default':'./workspace/my_project/simulate',       'help':'Directory for raw simulated data' },
         'emp_dir'          : { 'step':'SF',    'type':str, 'section':'Workspace', 'default':'./workspace/my_project/empirical',      'help':'Directory for raw empirical data' },
-        'fmt_dir'          : { 'step':'FTEP',  'type':str, 'section':'Workspace', 'default':'./workspace/my_project/format',         'help':'Directory for tensor-formatted simulated data' },
+        'fmt_dir'          : { 'step':'FTEP',  'type':str, 'section':'Workspace', 'default':'./workspace/my_project/format',         'help':'Directory for tensor-formatted data' },
         'trn_dir'          : { 'step':'FTEP',  'type':str, 'section':'Workspace', 'default':'./workspace/my_project/train',          'help':'Directory for trained networks and training output' },
         'est_dir'          : { 'step':'TEP',   'type':str, 'section':'Workspace', 'default':'./workspace/my_project/estimate',       'help':'Directory for new datasets and estimates' },
         'plt_dir'          : { 'step':'P',     'type':str, 'section':'Workspace', 'default':'./workspace/my_project/plot',           'help':'Directory for plotted results' },
@@ -149,7 +155,6 @@ def settings_registry():
         'tensor_format'    : { 'step':'FTEP', 'type':str,   'section':'Format', 'default':'hdf5',         'help':'File format for training example tensors',     'choices':['csv', 'hdf5'] },
         'save_phyenc_csv'  : { 'step':'F',    'type':str,   'section':'Format', 'default':'F',            'help':'Save encoded phylogenetic tensor encoding to csv?', 'bool':True },
         'emp_analysis'     : { 'step':'FE',   'type':str,   'section':'Format', 'default':'F',            'help':'Run using empirical data instead of test data?', 'bool':True },
-        'emp_prefix'       : { 'step':'FEP',  'type':str,   'section':'Format', 'default':'test', 'help':'Prefix for empirical dataset used by Format, Estimate, and Plot' },
         
         # training options
         'trn_objective'    : { 'step':'T',   'type':str,   'section':'Train', 'default':'param_est',   'help':'Objective of training procedure', 'choices':['param_est'] },

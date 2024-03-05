@@ -103,6 +103,10 @@ class Formatter:
                                              self.num_char,
                                              self.num_states)
         self.num_data_col = num_tree_col + num_char_col
+    
+        # get self.sim_prefix from args
+        if self.emp_analysis:
+            self.sim_prefix = self.emp_prefix
 
         # create logger to track runtime info
         self.logger = util.Logger(args)
@@ -117,6 +121,7 @@ class Formatter:
             args (dict): Contains phyddle settings.
 
         """
+        
         # formatter arguments
         self.args = args
         step_args = util.make_step_args('F', args)
@@ -174,24 +179,6 @@ class Formatter:
 
         # done
         util.print_str('... done!', verbose)
-
-    
-    def make_settings_str(self, idx, tree_width):
-        """Construct a string of settings for a single replicate.
-
-        Args:
-            idx (int): The replicate index.
-            tree_width (int): The tree width.
-
-        Returns:
-            str: The settings string.
-        """
-        s =  'setting,value\n'
-        s += f'sim_proj_dir,{self.sim_proj_dir}\n'
-        s += f'fmt_proj_dir,{self.fmt_proj_dir}\n'
-        s += f'replicate_index,{idx}\n'
-        s += f'tree_width,{tree_width}\n'
-        return s
     
     def encode_all(self):
         """Encode all simulated replicates.
@@ -280,10 +267,6 @@ class Formatter:
         all_idx = set()
         files = os.listdir(f'{self.sim_proj_dir}')
         files = [ f for f in files if '.dat.' in f ]
-        
-        self.sim_prefix = 'sim'
-        if self.emp_analysis:
-            self.sim_prefix = files[0].split('.')[0]
         
         for f in files:
             s_idx = f.split('.')[1]
@@ -417,7 +400,7 @@ class Formatter:
         print(f'Making {data_str} hdf5 dataset: {num_samples} examples for tree width = {tree_width}')
 
         # HDF5 file
-        out_hdf5_fn = f'{self.fmt_proj_dir}/{data_str}.nt{tree_width}.hdf5'
+        out_hdf5_fn = f'{self.fmt_proj_dir}/{self.fmt_prefix}.{data_str}.hdf5'
         hdf5_file = h5py.File(out_hdf5_fn, 'w')
 
         # create datasets for numerical data
@@ -509,7 +492,7 @@ class Formatter:
         print(f'Making {data_str} csv dataset: {num_samples} examples for tree width = {tree_width}')
         
         # output csv filepaths
-        out_prefix    = f'{self.fmt_proj_dir}/{data_str}.nt{tree_width}'
+        out_prefix    = f'{self.fmt_proj_dir}/{self.fmt_prefix}.{data_str}'
         in_prefix     = f'{self.sim_proj_dir}/{self.sim_prefix}'
         out_phys_fn   = f'{out_prefix}.phy_data.csv'
         out_stat_fn   = f'{out_prefix}.aux_data.csv'

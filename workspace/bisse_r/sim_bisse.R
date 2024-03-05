@@ -13,14 +13,15 @@ options(warn = -1)
 # arguments
 args        = commandArgs(trailingOnly = TRUE)
 out_path    = args[1]
-start_idx   = as.numeric(args[2])
-batch_size  = as.numeric(args[3])
+out_prefix  = args[2]
+start_idx   = as.numeric(args[3])
+batch_size  = as.numeric(args[4])
 rep_idx     = start_idx:(start_idx+batch_size-1)
 num_rep     = length(rep_idx)
 get_mle     = FALSE
 
 # filesystem
-tmp_fn = paste0(out_path, "/sim.", rep_idx)   # sim path prefix
+tmp_fn = paste0(out_path, "/", out_prefix, ".", rep_idx)   # sim path prefix
 phy_fn = paste0(tmp_fn, ".tre")               # newick file
 dat_fn = paste0(tmp_fn, ".dat.csv")           # csv of data
 lbl_fn = paste0(tmp_fn, ".labels.csv")        # csv of labels (e.g. params)
