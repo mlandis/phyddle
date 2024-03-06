@@ -26,7 +26,7 @@ from phyddle import utilities as util
 from phyddle import network
 
 
-# ---------------------------------------------------------------------------- #
+##################################################
 
 def load(args):
     """Load a Trainer object.
@@ -48,7 +48,7 @@ def load(args):
     else:
         return NotImplementedError
 
-# ---------------------------------------------------------------------------- #
+##################################################
 
 
 class Trainer:
@@ -433,7 +433,7 @@ class CnnTrainer(Trainer):
 
         return
     
-# ---------------------------------------------------------------------------- #
+##################################################
 
     def build_network(self):
         
@@ -454,7 +454,7 @@ class CnnTrainer(Trainer):
         # model.to(TORCH_DEVICE)
 
         return
-# ---------------------------------------------------------------------------- #
+##################################################
 
     def train(self):
         """Trains the neural network model.
@@ -469,8 +469,8 @@ class CnnTrainer(Trainer):
 
         """
         # training dataset
-        trainloader = torch.utils.data.DataLoader(dataset=self.train_dataset,
-                                                  batch_size=self.trn_batch_size)
+        train_loader = torch.utils.data.DataLoader(dataset=self.train_dataset,
+                                                   batch_size=self.trn_batch_size)
         num_batches = int(np.ceil(self.train_dataset.phy_data.shape[0] / self.trn_batch_size))
 
         # validation dataset
@@ -494,7 +494,7 @@ class CnnTrainer(Trainer):
         #                              weight_decay = 0.002)
         # optimizer = torch.optim.AdamW(self.model.parameters(), lr=0.001,
         #                               betas=(0.9, 0.999), eps=1e-08,
-        #                               weight_decay=0.01, amsgrad=False)
+        #                               weight_decay=0.01, ams_grad=False)
 
         # lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer,
         #                                             step_size = 50,
@@ -521,7 +521,7 @@ class CnnTrainer(Trainer):
             trn_mae_value = 0.
 
             train_msg = f'Training epoch {i+1} of {self.num_epochs}'
-            for j, (phy_dat, aux_dat, lbls) in tqdm(enumerate(trainloader),
+            for j, (phy_dat, aux_dat, lbls) in tqdm(enumerate(train_loader),
                                                     total=num_batches,
                                                     desc=train_msg,
                                                     smoothing=0):
@@ -646,9 +646,9 @@ class CnnTrainer(Trainer):
         
         # training label estimates
         num_train_examples = 1000
-        trainloader = torch.utils.data.DataLoader(dataset=self.train_dataset,
-                                                  batch_size=num_train_examples)
-        train_phy_dat, train_aux_dat, train_lbl = next(iter(trainloader))
+        train_loader = torch.utils.data.DataLoader(dataset=self.train_dataset,
+                                                   batch_size=num_train_examples)
+        train_phy_dat, train_aux_dat, train_lbl = next(iter(train_loader))
         norm_train_label_est = self.model(train_phy_dat, train_aux_dat)
         
         # we want an array of 3 outputs [point, lower, upper], N examples, K parameters
@@ -733,7 +733,7 @@ class CnnTrainer(Trainer):
 
         return
 
-# ---------------------------------------------------------------------------- #
+##################################################
         
     def get_cqr_constant(self, ests, true, inner_quantile=0.95, asymmetric=True):
         """Computes the conformalized quantile regression (CQR) constants.
@@ -779,7 +779,7 @@ class CnnTrainer(Trainer):
             else:
                 # Symmetric non-comformity score
                 s = np.amax(np.array((ests[0][:,i]-true[:,i], true[:,i]-ests[1][:,i])), axis=0)
-                # get adjustment constant: 1 - alpha/2's quintile of non-comformity scores
+                # get adjustment constant: 1 - alpha/2's quantile of non-comformity scores
                 symm_p = inner_quantile * (1 + 1/ests.shape[1])
                 if symm_p < 0.:
                     self.logger.write_log('trn',
@@ -797,4 +797,4 @@ class CnnTrainer(Trainer):
                                 
         return q_score
     
-# ---------------------------------------------------------------------------- #
+##################################################

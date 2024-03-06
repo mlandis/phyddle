@@ -39,7 +39,7 @@ try:
 except RuntimeError:
     pass
 
-# ---------------------------------------------------------------------------- #
+##################################################
 
 
 def load(args):
@@ -64,7 +64,7 @@ def load(args):
     else:
         return NotImplementedError
 
-# ---------------------------------------------------------------------------- #
+##################################################
 
 
 class Formatter:
@@ -113,13 +113,6 @@ class Formatter:
         self.prop_test          = float(args['prop_test'])
         self.log_offset         = float(args['log_offset'])
         self.save_phyenc_csv    = bool(args['save_phyenc_csv'])
-        # initialized later
-        self.phy_tensors        = dict()   # init with encode_all()
-        self.summ_stat_names    = list()   # init with encode_all()
-        self.label_names        = list()   # init with encode_all()
-        self.split_idx          = dict()   # init with split_examples()
-        self.rep_idx            = list()   # init with get_rep_idx()
-        
         
         # directory for empirical data (alt input)
         if self.emp_analysis:
@@ -143,7 +136,14 @@ class Formatter:
         
         # create logger to track runtime info
         self.logger = util.Logger(args)
-        
+
+        # initialized later
+        self.phy_tensors        = dict()   # init with encode_all()
+        self.summ_stat_names    = list()   # init with encode_all()
+        self.label_names        = list()   # init with encode_all()
+        self.split_idx          = dict()   # init with split_examples()
+        self.rep_idx            = list()   # init with get_rep_idx()
+
         # done
         return
 
@@ -1007,4 +1007,4 @@ class Formatter:
 
         return phylo_tensor
 
-# ---------------------------------------------------------------------------- #
+##################################################

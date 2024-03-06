@@ -38,7 +38,7 @@ try:
 except RuntimeError:
     pass
 
-# ---------------------------------------------------------------------------- #
+##################################################
 
 
 def load(args):
@@ -61,7 +61,7 @@ def load(args):
     else:
         return NotImplementedError
 
-# ---------------------------------------------------------------------------- #
+##################################################
 
 
 class Simulator:
@@ -81,9 +81,11 @@ class Simulator:
         self.sim_prefix         = str(args['sim_prefix'])
         self.sim_dir            = str(args['sim_dir'])
         self.log_dir            = str(args['log_dir'])
+        
         # resources
         self.num_proc           = int(args['num_proc'])
         self.use_parallel       = bool(args['use_parallel'])
+        
         # simulate step config
         self.sim_command        = str(args['sim_command'])
         self.start_idx          = int(args['start_idx'])
@@ -91,7 +93,6 @@ class Simulator:
         self.sim_more           = int(args['sim_more'])
         self.sim_batch_size     = int(args['sim_batch_size'])
         self.verbose            = bool(args['verbose'])
-        self.rep_idx            = []  # init with get_rep_idx
         
         # validate sim_command
         self.validate_sim_command()
@@ -102,6 +103,9 @@ class Simulator:
 
         # create logger to track runtime info
         self.logger = util.Logger(args)
+
+        # initialized later
+        self.rep_idx = []  # init with get_rep_idx
 
         # done
         return
@@ -365,4 +369,4 @@ class Simulator:
             
         return
     
-# ---------------------------------------------------------------------------- #
+##################################################

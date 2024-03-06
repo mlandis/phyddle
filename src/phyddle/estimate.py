@@ -23,7 +23,8 @@ import torch
 # phyddle imports
 from phyddle import utilities as util
 
-# ---------------------------------------------------------------------------- #
+##################################################
+
 
 def load(args):
     """Load an Estimator object.
@@ -43,7 +44,8 @@ def load(args):
     else:
         return NotImplementedError
 
-# ---------------------------------------------------------------------------- #
+##################################################
+
 
 class Estimator:
     """
@@ -60,60 +62,37 @@ class Estimator:
             args (dict): Contains phyddle settings.
             
         """
-
-        # initialize with phyddle settings
-        self.set_args(args)
-        # construct filepaths
-        self.prepare_filepaths()
-        # get size of CPV+S tensors
-        self.num_tree_col = util.get_num_tree_col(self.tree_encode,
-                                                  self.brlen_encode)
-        self.num_char_col = util.get_num_char_col(self.char_encode,
-                                                  self.num_char,
-                                                  self.num_states)
-        self.num_data_col = self.num_tree_col + self.num_char_col
-        # create logger to track runtime info
-        self.logger = util.Logger(args)
-        # done
-        return
-    
-
-    def set_args(self, args):
-        """Assigns phyddle settings as Estimator attributes.
-
-        Args:
-            args (dict): Contains phyddle settings.
-
-        """
-        # estimator arguments
-        self.args = args
-        step_args = util.make_step_args('E', args)
-        for k,v in step_args.items():
-            setattr(self, k, v)
-
-        return
-    
-    def prepare_filepaths(self):
-        """Prepare filepaths for the project.
-
-        This script generates all the filepaths for input and output based off
-        of Trainer attributes. The Format and Train directories are input and
-        the Estimate directory is used for both input and output.
-
-        """
-        # main directories
-        self.trn_proj_dir = f'{self.trn_dir}'
-        self.est_proj_dir = f'{self.est_dir}'
-        self.fmt_proj_dir = f'{self.fmt_dir}'
-
-        # prefixes
-        self.fmt_prefix_dir         = f'{self.fmt_proj_dir}/{self.fmt_prefix}.test'
-        self.est_prefix_dir         = f'{self.est_proj_dir}/{self.est_prefix}.test'
-        if self.emp_analysis:
-            self.fmt_prefix_dir         = f'{self.fmt_proj_dir}/{self.fmt_prefix}.empirical'
-            self.est_prefix_dir         = f'{self.est_proj_dir}/{self.est_prefix}.empirical'
-        self.trn_prefix_dir         = f'{self.trn_proj_dir}/{self.trn_prefix}'
         
+        # settings
+        self.verbose            = bool(args['verbose'])
+        self.emp_analysis       = bool(args['emp_analysis'])
+        
+        # filesystem
+        self.trn_prefix         = str(args['trn_prefix'])
+        self.fmt_prefix         = str(args['fmt_prefix'])
+        self.est_prefix         = str(args['est_prefix'])
+        self.trn_dir            = str(args['trn_dir'])
+        self.fmt_dir            = str(args['fmt_dir'])
+        self.est_dir            = str(args['est_dir'])
+        self.log_dir            = str(args['log_dir'])
+        
+        # prefixes
+        self.fmt_prefix_dir         = f'{self.fmt_dir}/{self.fmt_prefix}.test'
+        self.est_prefix_dir         = f'{self.est_dir}/{self.est_prefix}.test'
+        if self.emp_analysis:
+            self.fmt_prefix_dir         = f'{self.fmt_dir}/{self.fmt_prefix}.empirical'
+            self.est_prefix_dir         = f'{self.est_dir}/{self.est_prefix}.empirical'
+        self.trn_prefix_dir         = f'{self.trn_dir}/{self.trn_prefix}'
+        
+        # dimensions
+        self.tree_encode        = str(args['tree_encode'])
+        self.char_encode        = str(args['char_encode'])
+        self.brlen_encode       = str(args['brlen_encode'])
+        self.tensor_format      = str(args['tensor_format'])
+        self.num_char           = int(args['num_char'])
+        self.num_states         = int(args['num_states'])
+        self.log_offset         = float(args['log_offset'])
+
         # model files
         self.model_arch_fn          = f'{self.trn_prefix_dir}.trained_model.pkl'
         self.train_labels_norm_fn   = f'{self.trn_prefix_dir}.train_label_norm.csv'
@@ -121,18 +100,38 @@ class Estimator:
         self.model_cpi_fn           = f'{self.trn_prefix_dir}.cpi_adjustments.csv'
 
         # simulated test datasets for csv or hdf5
-        self.test_phy_data_fn      = f'{self.fmt_prefix_dir}.phy_data.csv'
-        self.test_aux_data_fn      = f'{self.fmt_prefix_dir}.aux_data.csv'
-        self.test_labels_fn        = f'{self.fmt_prefix_dir}.labels.csv'
-        self.test_hdf5_fn          = f'{self.fmt_prefix_dir}.hdf5'
+        self.test_phy_data_fn       = f'{self.fmt_prefix_dir}.phy_data.csv'
+        self.test_aux_data_fn       = f'{self.fmt_prefix_dir}.aux_data.csv'
+        self.test_labels_fn         = f'{self.fmt_prefix_dir}.labels.csv'
+        self.test_hdf5_fn           = f'{self.fmt_prefix_dir}.hdf5'
 
         # test outputs
-        self.out_label_est_fn   = f'{self.est_prefix_dir}_est.labels.csv'
-        self.out_label_true_fn  = f'{self.est_prefix_dir}_true.labels.csv'
+        self.out_label_est_fn       = f'{self.est_prefix_dir}_est.labels.csv'
+        self.out_label_true_fn      = f'{self.est_prefix_dir}_true.labels.csv'
+        
+        # get size of CPV+S tensors
+        self.num_tree_col = util.get_num_tree_col(self.tree_encode,
+                                                  self.brlen_encode)
+        self.num_char_col = util.get_num_char_col(self.char_encode,
+                                                  self.num_char,
+                                                  self.num_states)
+        self.num_data_col = self.num_tree_col + self.num_char_col
+        
+        # create logger to track runtime info
+        self.logger = util.Logger(args)
+
+        # initialized later
+        self.train_labels_mean_sd = None       # init in load_input()
+        self.label_names          = None       # init in load_input()
+        self.test_phy_data        = None       # init in load_input()
+        self.norm_test_aux_data   = None       # init in load_input()
+        self.test_label_true      = None       # init in load_input()
+        self.cpi_adjustments      = None       # init in load_input()
+        self.mymodel              = None       # init in make_results()
         
         # done
         return
-
+    
     def run(self):
         """Executes all estimation tasks.
 
@@ -151,11 +150,11 @@ class Estimator:
 
         # print header
         util.print_step_header('est',
-                               [self.fmt_proj_dir, self.trn_proj_dir],
-                                self.est_proj_dir, verbose)
+                               [self.fmt_dir, self.trn_dir],
+                                self.est_dir, verbose)
         
         # prepare workspace
-        os.makedirs(self.est_proj_dir, exist_ok=True)
+        os.makedirs(self.est_dir, exist_ok=True)
 
         # start time
         start_time,start_time_str = util.get_time()
@@ -199,7 +198,7 @@ class Estimator:
         train_aux_data_norm = pd.read_csv(self.train_aux_data_norm_fn, sep=',', index_col=False)
         train_aux_data_means = train_aux_data_norm['mean'].T.to_numpy().flatten()
         train_aux_data_sd = train_aux_data_norm['sd'].T.to_numpy().flatten()
-        self.train_aux_data_mean_sd = (train_aux_data_means, train_aux_data_sd)
+        train_aux_data_mean_sd = (train_aux_data_means, train_aux_data_sd)
 
         # denormalization factors for labels
         train_labels_norm = pd.read_csv(self.train_labels_norm_fn, sep=',', index_col=False)
@@ -208,15 +207,17 @@ class Estimator:
         self.train_labels_mean_sd = (train_labels_means, train_labels_sd)
 
         # get param_names from training labels
-        self.aux_data_names = train_aux_data_norm['name'].to_list()
+        # self.aux_data_names = train_aux_data_norm['name'].to_list()
         self.label_names = train_labels_norm['name'].to_list()
         
         # read in CQR interval adjustments
         self.cpi_adjustments = pd.read_csv(self.model_cpi_fn, sep=',', index_col=False).to_numpy()
         
-
         # INPUT TEST DATA FROM FORMAT STEP
         # load all the test dataset
+        test_phy_data = None
+        test_aux_data = None
+        test_labels = None
         if self.tensor_format == 'csv':
             test_phy_data = pd.read_csv(self.test_phy_data_fn, header=None,
                                         on_bad_lines='skip').to_numpy()
@@ -249,9 +250,9 @@ class Estimator:
         self.test_phy_data = test_phy_data
 
         # test dataset normalization
-        self.test_aux_data = np.log(test_aux_data + self.log_offset)
-        self.norm_test_aux_data = util.normalize(self.test_aux_data,
-                                                 self.train_aux_data_mean_sd)
+        test_aux_data = np.log(test_aux_data + self.log_offset)
+        self.norm_test_aux_data = util.normalize(test_aux_data,
+                                                 train_aux_data_mean_sd)
         
         if not self.emp_analysis:
             self.test_label_true = test_labels
@@ -264,7 +265,7 @@ class Estimator:
 
         This function loads a trained model from the Train stem, then uses it
         to perform the estimation task. For example, the step might estimate all
-        model parameter values and adjusted lower and upper CPI bounds. This step 
+        model parameter values and adjusted lower and upper CPI bounds.
 
         """
         
@@ -286,7 +287,6 @@ class Estimator:
                                           self.train_labels_mean_sd,
                                           exp=True) - self.log_offset
 
-      
         # save test estimates
         df_test_label_est = util.make_param_VLU_mtx(test_label_est, self.label_names)
         df_test_label_est.to_csv(self.out_label_est_fn, index=False, sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
@@ -297,4 +297,4 @@ class Estimator:
         # done
         return
     
-# ---------------------------------------------------------------------------- #
+##################################################
