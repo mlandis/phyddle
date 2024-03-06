@@ -39,7 +39,8 @@ try:
 except RuntimeError:
     pass
 
-#------------------------------------------------------------------------------#
+# ---------------------------------------------------------------------------- #
+
 
 def load(args):
     """Load a Formatter object.
@@ -63,7 +64,8 @@ def load(args):
     else:
         return NotImplementedError
 
-#------------------------------------------------------------------------------#
+# ---------------------------------------------------------------------------- #
+
 
 class Formatter:
     """
@@ -76,21 +78,56 @@ class Formatter:
         Args:
             args (dict): Contains phyddle settings.
         """
-        # initialize with phyddle settings
-        self.set_args(args)
         
-        # directory for simulated data (input)
-        self.sim_proj_dir = f'{self.sim_dir}'
+        # filesystem
+        self.sim_prefix         = str(args['sim_prefix'])
+        self.emp_prefix         = str(args['emp_prefix'])
+        self.fmt_prefix         = str(args['fmt_prefix'])
+        self.sim_dir            = str(args['sim_dir'])
+        self.emp_dir            = str(args['emp_dir'])
+        self.fmt_dir            = str(args['fmt_dir'])
+        self.log_dir            = str(args['log_dir'])
+        # analysis settings
+        self.verbose            = bool(args['verbose'])
+        self.emp_analysis       = bool(args['emp_analysis'])
+        self.num_proc           = int(args['num_proc'])
+        self.use_parallel       = bool(args['use_parallel'])
+        # dataset dimensions
+        self.num_char           = int(args['num_char'])
+        self.num_states         = int(args['num_states'])
+        self.min_num_taxa       = int(args['min_num_taxa'])
+        self.max_num_taxa       = int(args['max_num_taxa'])
+        self.tree_width         = int(args['tree_width'])
+        # dataset processing
+        self.encode_all_sim     = bool(args['encode_all_sim'])
+        self.start_idx          = int(args['start_idx'])
+        self.end_idx            = int(args['end_idx'])
+        self.downsample_taxa    = str(args['downsample_taxa'])
+        self.tree_encode        = str(args['tree_encode'])
+        self.char_encode        = str(args['char_encode'])
+        self.brlen_encode       = str(args['brlen_encode'])
+        self.char_format        = str(args['char_format'])
+        self.tensor_format      = str(args['tensor_format'])
+        self.param_est          = list(args['param_est'])
+        self.param_data         = list(args['param_data'])
+        self.prop_test          = float(args['prop_test'])
+        self.log_offset         = float(args['log_offset'])
+        self.save_phyenc_csv    = bool(args['save_phyenc_csv'])
+        # initialized later
+        self.phy_tensors        = dict()   # init with encode_all()
+        self.summ_stat_names    = list()   # init with encode_all()
+        self.label_names        = list()   # init with encode_all()
+        self.split_idx          = dict()   # init with split_examples()
+        self.rep_idx            = list()   # init with get_rep_idx()
+        
         
         # directory for empirical data (alt input)
         if self.emp_analysis:
-            # use sim_proj_dir path for empirical data directory
-            self.sim_proj_dir = f'{self.emp_dir}'
+            # use sim_proj_dir path for empirical data prefix/dir
+            self.sim_prefix = self.emp_prefix
+            self.sim_dir = self.emp_dir
             # do not split data into train/test
             self.prop_test = 0.0
-        
-        # directory for formatted tensors (output)
-        self.fmt_proj_dir = f'{self.fmt_dir}'
         
         # set number of processors
         if self.num_proc <= 0:
@@ -103,31 +140,11 @@ class Formatter:
                                              self.num_char,
                                              self.num_states)
         self.num_data_col = num_tree_col + num_char_col
-    
-        # get self.sim_prefix from args
-        if self.emp_analysis:
-            self.sim_prefix = self.emp_prefix
-
+        
         # create logger to track runtime info
         self.logger = util.Logger(args)
         
         # done
-        return
-
-    def set_args(self, args):
-        """Assigns phyddle settings as Formatter attributes.
-
-        Args:
-            args (dict): Contains phyddle settings.
-
-        """
-        
-        # formatter arguments
-        self.args = args
-        step_args = util.make_step_args('F', args)
-        for k,v in step_args.items():
-            setattr(self, k, v)
-
         return
 
     def run(self):
@@ -142,10 +159,10 @@ class Formatter:
         verbose = self.verbose
 
         # print header
-        util.print_step_header('fmt', [self.sim_proj_dir],
-                               self.fmt_proj_dir, verbose)
+        util.print_step_header('fmt', [self.sim_dir],
+                               self.fmt_dir, verbose)
         # prepare workspace
-        os.makedirs(self.fmt_proj_dir, exist_ok=True)
+        os.makedirs(self.fmt_dir, exist_ok=True)
 
         # start time
         start_time,start_time_str = util.get_time()
@@ -154,18 +171,14 @@ class Formatter:
         # run() attempts to generate one simulation per value in rep_idx,
         # where rep_idx is list of unique ints to identify simulated datasets
         util.print_str('▪ Collecting files', verbose)
-        if self.encode_all_sim:
-            self.rep_idx = self.get_rep_idx()
-        else:
-            self.rep_idx = list(range(self.start_idx, self.end_idx))
-        #  split_idx is later assigned a value, after raw data is encoded
-        self.split_idx = {}
+        self.rep_idx = self.get_rep_idx()
 
         # encode each dataset into individual tensors
         util.print_str('▪ Encoding raw data as tensors', verbose)
         self.encode_all()
 
         # split examples into training and test datasets
+        util.print_str('▪ Splitting into train and text examples', verbose)
         self.split_idx = self.split_examples()
 
         # write tensors across all examples to file
@@ -201,8 +214,8 @@ class Formatter:
         args = []
 
         for idx in self.rep_idx:
-            args.append((f'{self.sim_proj_dir}/{self.sim_prefix}.{idx}', idx))
-
+            args.append((f'{self.sim_dir}/{self.sim_prefix}.{idx}', idx))
+        
         # visit each replicate, encode it, and return result
         if self.use_parallel:
             # parallel jobs
@@ -246,8 +259,6 @@ class Formatter:
         # save names/lengths of summary statistic and label lists
         self.summ_stat_names = self.get_summ_stat_names()
         self.label_names     = self.get_label_names()
-        self.num_summ_stat   = len(self.summ_stat_names)
-        self.num_labels      = len(self.label_names)
 
         return
     
@@ -264,20 +275,23 @@ class Formatter:
         # files which is an unsafe assumption
 
         # find all rep index
-        all_idx = set()
-        files = os.listdir(f'{self.sim_proj_dir}')
-        files = [ f for f in files if '.dat.' in f ]
-        
-        for f in files:
-            s_idx = f.split('.')[1]
-            try:
-                all_idx.add(int(s_idx))
-            except ValueError:
-                print(f'Skipping invalid filename {f}.')
-                pass
+        if self.encode_all_sim:
+            all_idx = set()
+            files = os.listdir(f'{self.sim_dir}')
+            files = [ f for f in files if '.dat.' in f ]
             
-        all_idx = sorted(list(all_idx))
-
+            for f in files:
+                s_idx = f.split('.')[1]
+                try:
+                    all_idx.add(int(s_idx))
+                except ValueError:
+                    print(f'Skipping invalid filename {f}.')
+                    pass
+                
+            all_idx = sorted(list(all_idx))
+        else:
+            all_idx = list(range(self.start_idx, self.end_idx))
+            
         return all_idx
 
     def get_summ_stat_names(self):
@@ -292,9 +306,9 @@ class Formatter:
         if len(k_list) > 0 and idx is None:
             idx = k_list[0]
         # get headers from file
-        fn = f'{self.sim_proj_dir}/{self.sim_prefix}.{idx}.summ_stat.csv'
+        fn = f'{self.sim_dir}/{self.sim_prefix}.{idx}.summ_stat.csv'
         if not os.path.exists(fn):
-            util.print_err(f'Cannot find {self.sim_proj_dir}/{self.sim_prefix}.'
+            util.print_err(f'Cannot find {self.sim_dir}/{self.sim_prefix}.'
                            f'*.summ_stat.csv. Verify that your simulator '
                            f'created output that is detectable based on your '
                            f'config settings.')
@@ -315,9 +329,9 @@ class Formatter:
         if len(k_list) > 0 and idx is None:
             idx = k_list[0]
         # get headers from file
-        fn = f'{self.sim_proj_dir}/{self.sim_prefix}.{idx}.labels.csv'
+        fn = f'{self.sim_dir}/{self.sim_prefix}.{idx}.labels.csv'
         if not os.path.exists(fn):
-            util.print_err(f'Cannot find {self.sim_proj_dir}/{self.sim_prefix}.'
+            util.print_err(f'Cannot find {self.sim_dir}/{self.sim_prefix}.'
                            f'*.labels.csv. Verify that your simulator created '
                            f'output that is detectable based on your config '
                            f'settings.')
@@ -369,7 +383,6 @@ class Formatter:
                 self.write_tensor_hdf5('test')
         return
 
-
     def write_tensor_hdf5(self, data_str):
         """Writes formatted tensors to HDF5 file.
 
@@ -400,7 +413,7 @@ class Formatter:
         print(f'Making {data_str} hdf5 dataset: {num_samples} examples for tree width = {tree_width}')
 
         # HDF5 file
-        out_hdf5_fn = f'{self.fmt_proj_dir}/{self.fmt_prefix}.{data_str}.hdf5'
+        out_hdf5_fn = f'{self.fmt_dir}/{self.fmt_prefix}.{data_str}.hdf5'
         hdf5_file = h5py.File(out_hdf5_fn, 'w')
 
         # create datasets for numerical data
@@ -408,22 +421,20 @@ class Formatter:
                                             (num_samples, num_data_length),
                                             dtype='f', compression='gzip')
         dat_stat = hdf5_file.create_dataset('summ_stat',
-                                            (num_samples, self.num_summ_stat),
+                                            (num_samples, len(self.summ_stat_names)),
                                             dtype='f', compression='gzip')
         dat_labels = hdf5_file.create_dataset('labels',
-                                              (num_samples, self.num_labels),
+                                              (num_samples, len(self.label_names)),
                                               dtype='f', compression='gzip')
         
         # load all the info
         res = [ self.load_one_sim(idx=idx) for idx in tqdm(rep_idx,
-                            total=len(rep_idx),
-                            desc='Combining',
-                            smoothing=0) ]
+                                                           total=len(rep_idx),
+                                                           desc='Combining',
+                                                           smoothing=0) ]
 
         # store all numerical data into hdf5)
         if len(res) > 0:
-            #for i,x in enumerate(res):
-            #    print(i, x[1].shape, x[1])
             dat_data[:,:] = np.vstack( [ x[0] for x in res ] )
             dat_stat[:,:] = np.vstack( [ x[1] for x in res ] )
             dat_labels[:,:] = np.vstack( [ x[2] for x in res ] )
@@ -439,13 +450,11 @@ class Formatter:
         # concatenate new data parameters as column to existing summ_stats dataframe
         df_aux_data = df_summ_stats.join( df_labels_move )
 
-
-        
         # get new label/stat names
         new_label_names = self.param_est
         new_aux_data_names = self.summ_stat_names + self.param_data
 
-        # delete original datasets 
+        # delete original datasets
         del hdf5_file['summ_stat']
         del hdf5_file['labels']
         
@@ -492,8 +501,8 @@ class Formatter:
         print(f'Making {data_str} csv dataset: {num_samples} examples for tree width = {tree_width}')
         
         # output csv filepaths
-        out_prefix    = f'{self.fmt_proj_dir}/{self.fmt_prefix}.{data_str}'
-        in_prefix     = f'{self.sim_proj_dir}/{self.sim_prefix}'
+        out_prefix    = f'{self.fmt_dir}/{self.fmt_prefix}.{data_str}'
+        in_prefix     = f'{self.sim_dir}/{self.sim_prefix}'
         out_phys_fn   = f'{out_prefix}.phy_data.csv'
         out_stat_fn   = f'{out_prefix}.aux_data.csv'
         out_labels_fn = f'{out_prefix}.labels.csv'
@@ -551,7 +560,6 @@ class Formatter:
         df_summ_stats.to_csv(out_stat_fn, index=False, float_format=util.PANDAS_FLOAT_FMT_STR)
         df_labels_keep.to_csv(out_labels_fn, index=False, float_format=util.PANDAS_FLOAT_FMT_STR)
 
-
         # write rep_idx
         df_idx = pd.DataFrame(rep_idx, columns=['idx'])
         df_idx.to_csv(out_idx_fn, index=False)
@@ -569,7 +577,7 @@ class Formatter:
         """
         
         # file names
-        fname_base  = f'{self.sim_proj_dir}/{self.sim_prefix}.{idx}'
+        fname_base  = f'{self.sim_dir}/{self.sim_prefix}.{idx}'
         fname_param = fname_base + '.labels.csv'
         fname_stat  = fname_base + '.summ_stat.csv'
         # dataset values
@@ -577,7 +585,7 @@ class Formatter:
         x2 = np.loadtxt(fname_stat, delimiter=',', skiprows=1)
         x3 = np.loadtxt(fname_param, delimiter=',', skiprows=1)
         # return
-        return (x1,x2,x3)
+        return x1, x2, x3
 
     def encode_one_star(self, args):
         """Wrapper for encode_one w/ unpacked args"""
@@ -608,6 +616,7 @@ class Formatter:
                             precision=util.OUTPUT_PRECISION)
         
         # make filenames
+        dat_ext = ''
         if self.char_format == 'nexus':
             dat_ext = '.nex'
         elif self.char_format == 'csv':
@@ -619,7 +628,6 @@ class Formatter:
         down_fn    = tmp_fn + '.downsampled.tre'
         cpsv_fn    = tmp_fn + '.phy_data.csv'
         ss_fn      = tmp_fn + '.summ_stat.csv'
-        #info_fn    = tmp_fn + '.info.csv'
         
         # check if key files exist
         if not os.path.exists(dat_fn):
@@ -630,6 +638,7 @@ class Formatter:
             return
         
         # read in nexus data file as numpy array
+        dat = None
         if self.char_format == 'nexus':
             dat = util.convert_nexus_to_array(dat_fn,
                                                    self.char_encode,
@@ -691,9 +700,6 @@ class Formatter:
             return
 
         # create compact phylo-state vector, CPV+S = {CBLV+S, CDV+S}
-        cpvs_data = None
-
-        # encode phylo-state tensor as CPV+S
         cpvs_data = self.encode_cpvs(phy, dat, tree_width=self.tree_width,
                                      tree_encode_type=self.brlen_encode,
                                      tree_type=self.tree_encode, idx=idx)
@@ -720,7 +726,7 @@ class Formatter:
         util.write_to_file(ss_str, ss_fn)
 
         # done!
-        return (idx,cpvs_data)
+        return idx, cpvs_data
     
     def make_summ_stat(self, phy, dat):
         """
@@ -745,7 +751,7 @@ class Formatter:
         if phy is not None:
             
             # read basic info from phylogenetic tree
-            num_taxa                  = len(phy.leaf_nodes())
+            # num_taxa                  = len(phy.leaf_nodes())
             node_ages                 = phy.internal_node_ages(ultrametricity_precision=False)
             root_age                  = phy.seed_node.age
             branch_lengths            = [ nd.edge.length for nd in phy.nodes() if nd != phy.seed_node ]
@@ -771,20 +777,20 @@ class Formatter:
             # initialize state freqs
             states = list(range(self.num_states))
             for i in states:
-                #summ_stats[f'f_dat_{i}'] = 0.
+                # summ_stats[f'f_dat_{i}'] = 0.
                 summ_stats[f'n_dat_{i}'] = 0.0
 
             # fill-in non-zero state freqs
             unique, counts = np.unique(dat, return_counts=True)
             for i,j in zip(states, counts):
                 # summ_stats[f'f_dat_{i}'] = j / num_taxa
-                summ_stats[f'n_dat_{i}'] = j #/ num_taxa
+                summ_stats[f'n_dat_{i}'] = j
 
         elif self.char_encode == 'one_hot':
             # one-hot-encoded states
             for i in range(dat.shape[0]):
                 # summ_stats['f_dat_' + str(i)] = np.sum(dat.iloc[i]) / num_taxa
-                summ_stats['n_dat_' + str(i)] = np.sum(dat.iloc[i]) # / num_taxa
+                summ_stats['n_dat_' + str(i)] = np.sum(dat.iloc[i])
 
         # done
         return summ_stats
@@ -837,14 +843,15 @@ class Formatter:
         phy_missing = phy_labels.difference(dat_labels)
         if len(phy_missing) != 0:
             phy_missing = sorted(list(phy_missing))
-            #dat_missing = sorted(list(set(dat_labels).difference(set(phy_labels))))
+            # dat_missing = sorted(list(set(dat_labels).difference(set(phy_labels))))
             err_msg = f'Missing taxon labels in dat but not in phy for replicate {idx}: '
             # if len(phy_missing) > 0:
             err_msg += ' '.join(phy_missing)
-            #if len(dat_missing) > 0:
+            # if len(dat_missing) > 0:
             #    err_msg += f' Missing from dat: {' '.join(dat_missing)}.'
             raise ValueError(err_msg)
         
+        cpvs = None
         if tree_type == 'serial':
             cpvs = self.encode_cblvs(phy, dat, tree_width,
                                      tree_encode_type, rescale)
@@ -863,7 +870,7 @@ class Formatter:
         # returns tensor with following rows
         # 0:  internal node root-distance
         # 1:  leaf node branch length
-        # 2:  internal node branch ength
+        # 2:  internal node branch length
         # 3+: state encoding
         
         Arguments:
@@ -880,6 +887,7 @@ class Formatter:
         """
         
         # data dimensions
+        num_tree_col = 0
         num_char_col = dat.shape[0]
         if tree_encode_type == 'height_only':
             num_tree_col = 1
@@ -887,7 +895,7 @@ class Formatter:
             num_tree_col = 3
 
         # initialize workspace
-        root_distances = phy.calc_node_root_distances(return_leaf_distances_only=False)
+        phy.calc_node_root_distances(return_leaf_distances_only=False)
         heights    = np.zeros( (tree_width, num_tree_col) )
         states     = np.zeros( (tree_width, num_char_col) )
         state_idx  = 0
@@ -901,7 +909,7 @@ class Formatter:
                 children           = nd.child_nodes()
                 ch_treelen         = [ (ch.edge.length + ch.treelen) for ch in children ]
                 nd.treelen         = sum(ch_treelen)
-                ch_treelen_rank    = np.argsort( ch_treelen )[::-1] 
+                ch_treelen_rank    = np.argsort( ch_treelen )[::-1]
                 children_reordered = [ children[i] for i in ch_treelen_rank ]
                 nd.set_children(children_reordered)
 
@@ -934,7 +942,7 @@ class Formatter:
         # 0:  leaf node-to-last internal node distance
         # 1:  internal node root-distance
         # 2:  leaf node branch length
-        # 3:  internal node branch ength
+        # 3:  internal node branch length
         # 4+: state encoding
 
         Arguments:
@@ -951,6 +959,7 @@ class Formatter:
         """
 
         # data dimensions
+        num_tree_col = 0
         num_char_col = dat.shape[0]
         if tree_encode_type == 'height_only':
             num_tree_col = 2
@@ -958,8 +967,8 @@ class Formatter:
             num_tree_col = 4
 
         # initialize workspace
-        null       = phy.calc_node_root_distances(return_leaf_distances_only=False)
-        heights    = np.zeros( (tree_width, num_tree_col) ) 
+        phy.calc_node_root_distances(return_leaf_distances_only=False)
+        heights    = np.zeros( (tree_width, num_tree_col) )
         states     = np.zeros( (tree_width, num_char_col) )
         state_idx  = 0
         height_idx = 0
@@ -971,7 +980,7 @@ class Formatter:
             else:
                 children                  = nd.child_nodes()
                 ch_max_root_distance      = [ ch.max_root_distance for ch in children ]
-                ch_max_root_distance_rank = np.argsort( ch_max_root_distance )[::-1] # [0,1] or [1,0]
+                ch_max_root_distance_rank = np.argsort( ch_max_root_distance )[::-1]  # [0,1] or [1,0]
                 children_reordered        = [ children[i] for i in ch_max_root_distance_rank ]
                 nd.max_root_distance      = max(ch_max_root_distance)
                 nd.set_children(children_reordered)
@@ -986,7 +995,6 @@ class Formatter:
                 states[state_idx,:]   = dat[nd.taxon.label].to_list()
                 state_idx += 1
             else:
-                #print(last_int_node.edge.length)
                 heights[height_idx+1,1] = nd.root_distance
                 heights[height_idx+1,3] = nd.edge.length
                 last_int_node = nd
@@ -999,4 +1007,4 @@ class Formatter:
 
         return phylo_tensor
 
-#------------------------------------------------------------------------------#
+# ---------------------------------------------------------------------------- #

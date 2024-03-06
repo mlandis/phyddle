@@ -38,7 +38,8 @@ try:
 except RuntimeError:
     pass
 
-#------------------------------------------------------------------------------#
+# ---------------------------------------------------------------------------- #
+
 
 def load(args):
     """Load a Simulator object.
@@ -60,9 +61,11 @@ def load(args):
     else:
         return NotImplementedError
 
-#------------------------------------------------------------------------------#
+# ---------------------------------------------------------------------------- #
+
 
 class Simulator:
+    
     """
     Class for simulating phylogenetic datasets that can be converted into
     tensors with the Format step.
@@ -73,31 +76,34 @@ class Simulator:
         Args:
             args (dict): Contains phyddle settings.
         """
-        # initialize with phyddle settings
-        self.set_args(args)
+        
+        # filesystem
+        self.sim_prefix         = str(args['sim_prefix'])
+        self.sim_dir            = str(args['sim_dir'])
+        self.log_dir            = str(args['log_dir'])
+        # resources
+        self.num_proc           = int(args['num_proc'])
+        self.use_parallel       = bool(args['use_parallel'])
+        # simulate step config
+        self.sim_command        = str(args['sim_command'])
+        self.start_idx          = int(args['start_idx'])
+        self.end_idx            = int(args['end_idx'])
+        self.sim_more           = int(args['sim_more'])
+        self.sim_batch_size     = int(args['sim_batch_size'])
+        self.verbose            = bool(args['verbose'])
+        self.rep_idx            = []  # init with get_rep_idx
+        
         # validate sim_command
         self.validate_sim_command()
-        # directory to store simulations
-        self.sim_proj_dir = f'{self.sim_dir}'
+
         # set number of processors
         if self.num_proc <= 0:
             self.num_proc = cpu_count() + self.num_proc
+
         # create logger to track runtime info
         self.logger = util.Logger(args)
-        #done
-        return
 
-    def set_args(self, args):
-        """Assigns phyddle settings as Simulator attributes.
-
-        Args:
-            args (dict): Contains phyddle settings.
-        """
-        # simulator arguments
-        self.args = args
-        step_args = util.make_step_args('S', args)
-        for k,v in step_args.items():
-            setattr(self, k, v)
+        # done
         return
 
     def get_rep_idx(self):
@@ -105,7 +111,7 @@ class Simulator:
 
         This function will use the provided start and end index for new
         replicates, unless sim_more > 0. In that case, the function finds
-        the largest replicate index, k, in sim_proj_dir and then uses
+        the largest replicate index, k, in sim_dir and then uses
         [k+1:k+sim_more] as replicate indices.
 
         Returns:
@@ -115,7 +121,7 @@ class Simulator:
         # if sim_more arg is defined, use it to overwrite rep_idx
         if self.sim_more > 0:
             rep_idx = set()
-            files = os.listdir(f'{self.sim_proj_dir}')
+            files = os.listdir(f'{self.sim_dir}')
             for f in files:
                 rep_idx.add(int(f.split('.')[1]))
             
@@ -148,7 +154,7 @@ class Simulator:
         
         if len(tok) < 2:
             msg = ( "Invalid sim_command setting. Command string "
-                   f"'{self.sim_command}' is incomplete. A valid command "
+                    f"'{self.sim_command}' is incomplete. A valid command "
                     "string is the command, then a space, then the relative "
                     "path to the simulation script: '[command] [sim_script]'.")
             util.print_err(msg)
@@ -187,11 +193,11 @@ class Simulator:
         This creates the target directory for new simulations then runs all
         simulation jobs.
         
-        Simulation jobs are numbered by the replicate-index list (self.rep_idx). 
+        Simulation jobs are numbered by the replicate-index list (self.rep_idx).
         Each job is executed by calling self.sim_one(idx) where idx is a unique
         value in self.rep_idx.
 
-        Each dispatched simulation task is expected to produce n=chunksize 
+        Each dispatched simulation task is expected to produce n=chunksize
         sequentially numbered new simulated datasets.
  
         When self.use_parallel is True then all jobs are run in parallel via
@@ -201,10 +207,10 @@ class Simulator:
         verbose = self.verbose
 
         # print header
-        util.print_step_header('sim', None, self.sim_proj_dir, verbose)
+        util.print_step_header('sim', None, self.sim_dir, verbose)
 
         # prepare workspace
-        os.makedirs(self.sim_proj_dir, exist_ok=True)
+        os.makedirs(self.sim_dir, exist_ok=True)
     
         # start time
         start_time,start_time_str = util.get_time()
@@ -226,13 +232,13 @@ class Simulator:
             # - chunksize=1 vs chunksize=5
             # - worth testing more, though
             with Pool(processes=self.num_proc) as pool:
-                 res = list(
+                res = list(
                      tqdm(
                         pool.imap(self.sim_one, self.rep_idx, chunksize=1),
                         total=len(self.rep_idx),
                         desc='Simulating',
                         smoothing=0)
-                    )
+                     )
             
         else:
             # serial jobs
@@ -283,12 +289,10 @@ class Simulator:
             idx (int): The index of the simulation iteration.
         """
         # get filesystem info for generic job
-        #out_path   = f'{self.sim_dir}/{self.sim_proj}'
-        out_path   = f'{self.sim_proj_dir}'
-        tmp_fn     = f'{out_path}/{self.sim_prefix}.{idx}'
-        cmd_str    = f'{self.sim_command} {out_path} {self.sim_prefix} {idx} {self.sim_batch_size}'
-        stdout_fn  = f'{tmp_fn}.stdout.log'
-        stderr_fn  = f'{tmp_fn}.stderr.log'
+        # tmp_fn     = f'{self.sim_dir}/{self.sim_prefix}.{idx}'
+        cmd_str    = f'{self.sim_command} {self.sim_dir} {self.sim_prefix} {idx} {self.sim_batch_size}'
+        # stdout_fn  = f'{tmp_fn}.stdout.log'
+        # stderr_fn  = f'{tmp_fn}.stderr.log'
         # run generic job
         num_attempt = 10
         valid = False
@@ -299,11 +303,11 @@ class Simulator:
                 # run command
                 cmd_res = subprocess.run(cmd_str_tok, capture_output=True)
                 # save stdout
-                #cmd_stdout = cmd_res.stdout.decode('UTF-8')
-                #util.write_to_file(cmd_stdout, stdout_fn)
+                # cmd_stdout = cmd_res.stdout.decode('UTF-8')
+                # util.write_to_file(cmd_stdout, stdout_fn)
                 # save stderr
-                #cmd_stderr = cmd_res.stderr.decode('UTF-8')
-                #if cmd_stderr != '':
+                # cmd_stderr = cmd_res.stderr.decode('UTF-8')
+                # if cmd_stderr != '':
                 #    util.write_to_file(cmd_stderr, stderr_fn)
                 # done simulating
                 valid = True
@@ -315,12 +319,11 @@ class Simulator:
 
         return
     
-    
     def check_valid_output(self):
         """Checks that at least one sim_one call has valid output."""
         
-        # get set of unique training example replicate indices 
-        sim_files = os.listdir(self.sim_proj_dir)
+        # get set of unique training example replicate indices
+        sim_files = os.listdir(self.sim_dir)
         sim_prefix = [ x.split('.')[1] for x in sim_files ]
         sim_idx = set(sim_prefix)
         
@@ -331,7 +334,7 @@ class Simulator:
         valid_all = []
         for idx in sim_idx:
             # check if replicate has tree, labels, and data files
-            tmp_fn = f'{self.sim_proj_dir}/{self.sim_prefix}.{idx}'
+            tmp_fn = f'{self.sim_dir}/{self.sim_prefix}.{idx}'
             has_phy = os.path.exists(f'{tmp_fn}.tre')
             if has_phy:
                 valid_phy.append(idx)
@@ -353,13 +356,13 @@ class Simulator:
             n_phy = len(valid_phy)
             n_lbl = len(valid_lbl)
             n_dat = len(valid_dat)
-            util.print_warn(f'{self.sim_proj_dir} contains no valid simulations.'
+            util.print_warn(f'{self.sim_dir} contains no valid simulations.'
                             f' File counts: {n_phy} trees, {n_lbl} labels,'
                             f' {n_dat} data matrices. Verify that simulation '
                             f'command:\n\n'
-                            f'\t{self.sim_command} {self.sim_proj_dir} {self.sim_prefix} 0 1\n\n'
+                            f'\t{self.sim_command} {self.sim_dir} {self.sim_prefix} 0 1\n\n'
                             f'works as intended with the provided configuration.')
             
         return
     
-#------------------------------------------------------------------------------#
+# ---------------------------------------------------------------------------- #

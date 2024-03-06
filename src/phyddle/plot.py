@@ -875,7 +875,7 @@ class Plotter:
             stat_cover = np.logical_and(lbl_lower < lbl_true, lbl_upper > lbl_true )
             stat_not_cover = np.logical_not(stat_cover)
             f_stat_cover = sum(stat_cover) / len(stat_cover) * 100
-            f_stat_cover_target = self.args['cpi_coverage']
+            f_stat_cover_target = self.args['cpi_coverage'] * 100
 
             # linear regression slope
             # if only_positive:

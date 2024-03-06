@@ -26,7 +26,7 @@ from phyddle import utilities as util
 from phyddle import network
 
 
-#------------------------------------------------------------------------------#
+# ---------------------------------------------------------------------------- #
 
 def load(args):
     """Load a Trainer object.
@@ -48,7 +48,8 @@ def load(args):
     else:
         return NotImplementedError
 
-#------------------------------------------------------------------------------#
+# ---------------------------------------------------------------------------- #
+
 
 class Trainer:
     """
@@ -64,11 +65,74 @@ class Trainer:
             args (dict): Contains phyddle settings.
 
         """
-        # initialize with phyddle settings
-        self.set_args(args)
         
-        # construct filepaths
-        self.prepare_filepaths()
+        # args
+        self.args                   = args
+
+        # filesystem
+        self.fmt_prefix             = str(args['fmt_prefix'])
+        self.trn_prefix             = str(args['sim_prefix'])
+        self.fmt_dir                = str(args['fmt_dir'])
+        self.trn_dir                = str(args['trn_dir'])
+        self.log_dir                = str(args['log_dir'])
+
+        # input prefix
+        input_prefix                = f'{self.fmt_dir}/{self.fmt_prefix}.train'
+        output_prefix               = f'{self.trn_dir}/{self.trn_prefix}'
+
+        # input dataset filenames for csv or hdf5
+        self.input_phy_data_fn      = f'{input_prefix}.phy_data.csv'
+        self.input_aux_data_fn      = f'{input_prefix}.aux_data.csv'
+        self.input_labels_fn        = f'{input_prefix}.labels.csv'
+        self.input_hdf5_fn          = f'{input_prefix}.hdf5'
+
+        # output network model info
+        self.model_arch_fn          = f'{output_prefix}.trained_model.pkl'
+        self.model_weights_fn       = f'{output_prefix}.train_weights.hdf5'
+        self.model_history_fn       = f'{output_prefix}.train_history.csv'
+        self.model_cpi_fn           = f'{output_prefix}.cpi_adjustments.csv'
+
+        # output scaling terms
+        self.train_labels_norm_fn   = f'{output_prefix}.train_label_norm.csv'
+        self.train_aux_data_norm_fn = f'{output_prefix}.train_aux_data_norm.csv'
+
+        # output training labels
+        self.train_label_true_fn          = f'{output_prefix}.train_true.labels.csv'
+        self.train_label_est_calib_fn     = f'{output_prefix}.train_est.labels.csv'
+        self.train_label_est_nocalib_fn   = f'{output_prefix}.train_est_nocalib.labels.csv'
+        
+        # analysis settings
+        self.verbose            = bool(args['verbose'])
+        self.num_proc           = int(args['num_proc'])
+        self.use_parallel       = bool(args['use_parallel'])
+        
+        # dataset dimensions
+        self.num_char           = int(args['num_char'])
+        self.num_states         = int(args['num_states'])
+        self.tree_width         = int(args['tree_width'])
+        
+        # dataset processing
+        self.tree_encode        = str(args['tree_encode'])
+        self.char_encode        = str(args['char_encode'])
+        self.brlen_encode       = str(args['brlen_encode'])
+        self.char_format        = str(args['char_format'])
+        self.tensor_format      = str(args['tensor_format'])
+        self.param_est          = list(args['param_est'])
+        self.param_data         = list(args['param_data'])
+        self.prop_test          = float(args['prop_test'])
+        self.log_offset         = float(args['log_offset'])
+        self.save_phyenc_csv    = bool(args['save_phyenc_csv'])
+        
+        # train settings
+        self.prop_cal           = float(args['prop_cal'])
+        self.prop_val           = float(args['prop_val'])
+        self.num_epochs         = int(args['num_epochs'])
+        self.trn_batch_size     = int(args['trn_batch_size'])
+        self.cpi_coverage       = float(args['cpi_coverage'])
+        self.cpi_asymmetric     = bool(args['cpi_asymmetric'])
+        
+        # initialized later
+        self.phy_tensors        = dict()   # init with encode_all()
         
         # set CPUs
         if self.num_proc <= 0:
@@ -89,7 +153,7 @@ class Trainer:
         
         # set torch device
         # NOTE: need to test against cuda
-        self.TORCH_DEVICE_STR = (    
+        self.TORCH_DEVICE_STR = (
             "cuda"
             if torch.cuda.is_available()
             else "mps"
@@ -99,60 +163,6 @@ class Trainer:
         self.TORCH_DEVICE = torch.device(self.TORCH_DEVICE_STR)
         
         # done
-        return
-    
-    def set_args(self, args):
-        """Assigns phyddle settings as Trainer attributes.
-
-        Args:
-            args (dict): Contains phyddle settings.
-
-        """
-        self.args = args
-        step_args = util.make_step_args('T', args)
-        for k,v in step_args.items():
-            setattr(self, k, v)
-
-        return
-    
-    def prepare_filepaths(self):
-        """Prepare filepaths for the project.
-
-        This script generates all the filepaths for input and output based off
-        of Trainer attributes.
-
-        """
-        # main directories
-        # self.fmt_proj_dir = f'{self.work_dir}/{self.fmt_proj}/{self.fmt_dir}'
-        # self.trn_proj_dir = f'{self.work_dir}/{self.trn_proj}/{self.trn_dir}'
-        self.fmt_proj_dir = f'{self.fmt_dir}'
-        self.trn_proj_dir = f'{self.trn_dir}'
-
-        # input prefix
-        input_prefix      = f'{self.fmt_proj_dir}/{self.fmt_prefix}.train'
-        output_prefix     = f'{self.trn_proj_dir}/{self.trn_prefix}'
-
-        # input dataset filenames for csv or hdf5
-        self.input_phy_data_fn      = f'{input_prefix}.phy_data.csv'
-        self.input_aux_data_fn      = f'{input_prefix}.aux_data.csv'
-        self.input_labels_fn        = f'{input_prefix}.labels.csv'
-        self.input_hdf5_fn          = f'{input_prefix}.hdf5'
-
-        # output network model info
-        self.model_arch_fn          = f'{output_prefix}.trained_model.pkl'
-        self.model_weights_fn       = f'{output_prefix}.train_weights.hdf5'
-        self.model_history_fn       = f'{output_prefix}.train_history.csv'
-        self.model_cpi_fn           = f'{output_prefix}.cpi_adjustments.csv'
-
-        # output scaling terms
-        self.train_labels_norm_fn   = f'{output_prefix}.train_label_norm.csv'
-        self.train_aux_data_norm_fn = f'{output_prefix}.train_aux_data_norm.csv'
-        
-        # output training labels
-        self.train_label_true_fn          = f'{output_prefix}.train_true.labels.csv'
-        self.train_label_est_calib_fn     = f'{output_prefix}.train_est.labels.csv'
-        self.train_label_est_nocalib_fn   = f'{output_prefix}.train_est_nocalib.labels.csv'
-        
         return
 
     def run(self):
@@ -165,10 +175,10 @@ class Trainer:
         verbose = self.verbose
 
         # print header
-        util.print_step_header('trn', [self.fmt_proj_dir], self.trn_proj_dir, verbose)
+        util.print_step_header('trn', [self.fmt_dir], self.trn_dir, verbose)
         
         # prepare workspace
-        os.makedirs(self.trn_proj_dir, exist_ok=True)
+        os.makedirs(self.trn_dir, exist_ok=True)
 
         # start time
         start_time,start_time_str = util.get_time()
@@ -220,6 +230,7 @@ class Trainer:
 
 ################################################################################
 
+
 class CnnTrainer(Trainer):
     """
     Class for Convolutional Neural Network (CNN) Trainer.
@@ -234,6 +245,28 @@ class CnnTrainer(Trainer):
         """
         # initialize base class
         super().__init__(args)
+        
+        self.aux_data_names = list()    # init with load_input()
+        self.label_names    = list()    # init with load_input()
+        self.num_aux_data   = int()     # init with load_input()
+        self.num_params     = int()     # init with load_input()
+
+        # todo: revisit and simplify, provide types
+        self.train_dataset = None       # init with load_input()
+        self.val_dataset   = None       # init with load_input()
+        self.calib_dataset = None       # init with load_input()
+        self.model = None               # init with build_network()
+        self.train_label_est = None
+        self.train_label_est_calib = None
+        self.calib_phy_data_tensor = None
+        self.train_history = None
+        
+        self.train_label_true = None    # init with load_input()
+        self.train_aux_data_mean_sd = (0,0)
+        self.train_labels_mean_sd = (0,0)
+        self.cpi_adjustments = np.array([0,0])
+        self.norm_calib_labels = None
+        
         return
     
     # splits input into training, test, validation, and calibration
@@ -246,7 +279,6 @@ class CnnTrainer(Trainer):
 
         Args:
             num_sample (int): The total number of samples in the dataset.
-            combine_test_val (bool): Combine the test and validation indices.
 
         Returns:
             train_idx (numpy.ndarray): The indices for the training subset.
@@ -259,12 +291,12 @@ class CnnTrainer(Trainer):
         num_calib = int(np.floor(num_sample * self.prop_cal))
         num_val   = int(np.floor(num_sample * self.prop_val))
         num_train = num_sample - (num_val + num_calib)
-        assert(num_train > 0)
+        assert num_train > 0
 
         # create input subsets
         train_idx = np.arange(num_train, dtype='int')
-        val_idx   = np.arange(num_val,   dtype='int') + num_train
-        calib_idx = np.arange(num_calib,  dtype='int') + num_train + num_val
+        val_idx   = np.arange(num_val, dtype='int') + num_train
+        calib_idx = np.arange(num_calib, dtype='int') + num_train + num_val
 
         # return
         return train_idx, val_idx, calib_idx
@@ -310,6 +342,9 @@ class CnnTrainer(Trainer):
 
         """
         # read phy. data, aux. data, and labels
+        full_phy_data = None
+        full_aux_data = None
+        full_labels   = None
         if self.tensor_format == 'csv':
             full_phy_data = pd.read_csv(self.input_phy_data_fn, header=None,
                                         on_bad_lines='skip').to_numpy()
@@ -356,54 +391,49 @@ class CnnTrainer(Trainer):
         train_idx, val_idx, calib_idx = self.split_tensor_idx(num_sample)
         self.validate_tensor_idx(train_idx, val_idx, calib_idx)
         
-        # merge test and validation datasets
-        # if self.combine_test_val:
-            # test_idx = np.concatenate([, val_idx])
-            # val_idx = test_idx
-
         # save original training input
         self.train_label_true = np.exp(full_labels[train_idx,:]) - self.log_offset
 
         # normalize auxiliary data
-        self.norm_train_aux_data, train_aux_data_means, train_aux_data_sd = util.normalize(full_aux_data[train_idx,:])
+        norm_train_aux_data, train_aux_data_means, train_aux_data_sd = util.normalize(full_aux_data[train_idx,:])
         self.train_aux_data_mean_sd = (train_aux_data_means, train_aux_data_sd)
-        self.norm_val_aux_data      = util.normalize(full_aux_data[val_idx,:],
-                                                     self.train_aux_data_mean_sd)
-        self.norm_calib_aux_data    = util.normalize(full_aux_data[calib_idx,:],
-                                                     self.train_aux_data_mean_sd)
+        norm_val_aux_data = util.normalize(full_aux_data[val_idx,:],
+                                           self.train_aux_data_mean_sd)
+        norm_calib_aux_data = util.normalize(full_aux_data[calib_idx,:],
+                                             self.train_aux_data_mean_sd)
 
         # normalize labels
-        self.norm_train_labels, train_label_means, train_label_sd = util.normalize(full_labels[train_idx,:])
+        norm_train_labels, train_label_means, train_label_sd = util.normalize(full_labels[train_idx,:])
         self.train_labels_mean_sd = (train_label_means, train_label_sd)
-        self.norm_val_labels      = util.normalize(full_labels[val_idx,:],
-                                                   self.train_labels_mean_sd)
-        self.norm_calib_labels    = util.normalize(full_labels[calib_idx,:],
-                                                   self.train_labels_mean_sd)
+        norm_val_labels = util.normalize(full_labels[val_idx,:],
+                                         self.train_labels_mean_sd)
+        self.norm_calib_labels = util.normalize(full_labels[calib_idx,:],
+                                                self.train_labels_mean_sd)
 
         # create phylogenetic data tensors
-        self.train_phy_data_tensor = full_phy_data[train_idx,:,:]
-        self.val_phy_data_tensor   = full_phy_data[val_idx,:,:]
+        train_phy_data_tensor = full_phy_data[train_idx,:,:]
+        val_phy_data_tensor = full_phy_data[val_idx,:,:]
         self.calib_phy_data_tensor = full_phy_data[calib_idx,:,:]
 
         # create auxiliary data tensors (with scaling)
-        self.train_aux_data_tensor = self.norm_train_aux_data
-        self.val_aux_data_tensor   = self.norm_val_aux_data
-        self.calib_aux_data_tensor = self.norm_calib_aux_data
+        # self.train_aux_data_tensor = norm_train_aux_data
+        # self.val_aux_data_tensor   = self.norm_val_aux_data
+        # self.calib_aux_data_tensor = self.norm_calib_aux_data
 
         # torch datasets
-        self.train_dataset = network.Dataset(self.train_phy_data_tensor,
-                                             self.norm_train_aux_data,
-                                             self.norm_train_labels)
+        self.train_dataset = network.Dataset(train_phy_data_tensor,
+                                             norm_train_aux_data,
+                                             norm_train_labels)
         self.calib_dataset = network.Dataset(self.calib_phy_data_tensor,
-                                             self.norm_calib_aux_data,
+                                             norm_calib_aux_data,
                                              self.norm_calib_labels)
-        self.val_dataset   = network.Dataset(self.val_phy_data_tensor,
-                                             self.norm_val_aux_data,
-                                             self.norm_val_labels)
+        self.val_dataset   = network.Dataset(val_phy_data_tensor,
+                                             norm_val_aux_data,
+                                             norm_val_labels)
 
         return
     
-#------------------------------------------------------------------------------#
+# ---------------------------------------------------------------------------- #
 
     def build_network(self):
         
@@ -420,17 +450,16 @@ class CnnTrainer(Trainer):
         self.model.phy_dat_shape = (self.num_data_col, self.tree_width)
         self.model.aux_dat_shape = (self.num_aux_data,)
 
-        #print(self.model)
-        #model.to(TORCH_DEVICE)
+        # print(self.model)
+        # model.to(TORCH_DEVICE)
 
         return
-#------------------------------------------------------------------------------#
-
+# ---------------------------------------------------------------------------- #
 
     def train(self):
         """Trains the neural network model.
 
-        This function compiles the network model to prepare it for training. 
+        This function compiles the network model to prepare it for training.
         Perform training by compiling the model with appropriate loss functions
         and metrics, and then fitting the model to the training data. Training
         produces a history dictionary, which is saved.
@@ -440,8 +469,8 @@ class CnnTrainer(Trainer):
 
         """
         # training dataset
-        trainloader = torch.utils.data.DataLoader(dataset = self.train_dataset,
-                                                  batch_size = self.trn_batch_size)
+        trainloader = torch.utils.data.DataLoader(dataset=self.train_dataset,
+                                                  batch_size=self.trn_batch_size)
         num_batches = int(np.ceil(self.train_dataset.phy_data.shape[0] / self.trn_batch_size))
 
         # validation dataset
@@ -467,8 +496,8 @@ class CnnTrainer(Trainer):
         #                               betas=(0.9, 0.999), eps=1e-08,
         #                               weight_decay=0.01, amsgrad=False)
 
-        # lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 
-        #                                             step_size = 50, 
+        # lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer,
+        #                                             step_size = 50,
         #                                             gamma = 0.1)
         
         # TODO: simplify training logging!!
@@ -478,12 +507,11 @@ class CnnTrainer(Trainer):
 
         # training
         metric_names = ['loss_lower', 'loss_upper', 'loss_value',
-                       'loss_combined', 'mse_value', 'mae_value', 'mape_value']
+                        'loss_combined', 'mse_value', 'mae_value', 'mape_value']
         prev_trn_loss_combined = None
         prev_val_loss_combined = None
         for i in range(self.num_epochs):
-            
-            #print('-----')
+            # print('-----')
             trn_loss_value = 0.
             trn_loss_lower = 0.
             trn_loss_upper = 0.
@@ -504,8 +532,8 @@ class CnnTrainer(Trainer):
                 
                 # send labels to device
                 lbls.to(self.TORCH_DEVICE)
-                #phy_dat.to(self.TORCH_DEVICE)
-                #aux_dat.to(self.TORCH_DEVICE)
+                # phy_dat.to(self.TORCH_DEVICE)
+                # aux_dat.to(self.TORCH_DEVICE)
                 
                 # reset gradients for tensors
                 optimizer.zero_grad()
@@ -533,14 +561,14 @@ class CnnTrainer(Trainer):
 
                 # update network parameters
                 optimizer.step()
-                #lr_scheduler.step()
+                # lr_scheduler.step()
             
             train_metric_vals = [ trn_loss_lower, trn_loss_upper, trn_loss_value,
                                   trn_loss_combined, trn_mse_value,
                                   trn_mae_value, trn_mape_value ]
 
             # forward pass of validation to estimate labels
-            val_lbls_hat       = self.model(val_phy_dat, val_aux_dat)
+            val_lbls_hat: object       = self.model(val_phy_dat, val_aux_dat)
 
             # collect validation metrics
             val_loss_value     = loss_value_func(val_lbls_hat[0], val_lbls).item()
@@ -553,21 +581,6 @@ class CnnTrainer(Trainer):
             val_metric_vals = [ val_loss_value, val_loss_lower, val_loss_upper,
                                 val_loss_combined, val_mse_value, val_mae_value,
                                 val_mape_value ]
-
-            # self.train_history.loc[len(self.train_history.index)] = [i, 'train', 'loss_lower',     trn_loss_lower]
-            # self.train_history.loc[len(self.train_history.index)] = [i, 'train', 'loss_upper',     trn_loss_upper]
-            # self.train_history.loc[len(self.train_history.index)] = [i, 'train', 'loss_value',     trn_loss_value]
-            # self.train_history.loc[len(self.train_history.index)] = [i, 'train', 'loss_combined',  trn_loss_combined]
-            # self.train_history.loc[len(self.train_history.index)] = [i, 'train', 'mse_value',      trn_mse_value]
-            # self.train_history.loc[len(self.train_history.index)] = [i, 'train', 'mae_value',      trn_mae_value]
-            # self.train_history.loc[len(self.train_history.index)] = [i, 'train', 'mape_value',     trn_mape_value]            
-            # self.train_history.loc[len(self.train_history.index)] = [i, 'validation', 'loss_value',     val_loss_value]
-            # self.train_history.loc[len(self.train_history.index)] = [i, 'validation', 'loss_lower',     val_loss_lower]
-            # self.train_history.loc[len(self.train_history.index)] = [i, 'validation', 'loss_upper',     val_loss_upper]
-            # self.train_history.loc[len(self.train_history.index)] = [i, 'validation', 'loss_combined',  val_loss_combined ]
-            # self.train_history.loc[len(self.train_history.index)] = [i, 'validation', 'mse_value',      val_mse_value]
-            # self.train_history.loc[len(self.train_history.index)] = [i, 'validation', 'mae_value',      val_mae_value]
-            # self.train_history.loc[len(self.train_history.index)] = [i, 'validation', 'mape_value',     val_mape_value]
 
             # raw training metrics for epoch
             trn_loss_str = f'    Train        --   loss: {"{0:.4f}".format(trn_loss_combined)}'
@@ -609,13 +622,14 @@ class CnnTrainer(Trainer):
         This function appends new rows to the train history dataframe.
         
         Args:
+            epoch (int): current epoch
             metric_names (list): names for metrics to be logged
             metric_vals (list): values for metrics to be logged
             dataset_name (str): name of dataset that is logged (e.g. train or validation)
 
         """
 
-        assert(len(metric_names) == len(metric_vals))
+        assert len(metric_names) == len(metric_vals)
         
         for i,(j,k) in enumerate(zip(metric_names, metric_vals)):
             self.train_history.loc[len(self.train_history.index)] = [ epoch, dataset_name, j, k ]
@@ -625,14 +639,15 @@ class CnnTrainer(Trainer):
     def make_results(self):
         """Makes all results from the Train step.
 
-        This function undoes all the transformation and rescaling for the 
+        This function undoes all the transformation and rescaling for the
         input and output datasets.
 
         """
         
         # training label estimates
+        num_train_examples = 1000
         trainloader = torch.utils.data.DataLoader(dataset=self.train_dataset,
-                                                  batch_size = 1000)
+                                                  batch_size=num_train_examples)
         train_phy_dat, train_aux_dat, train_lbl = next(iter(trainloader))
         norm_train_label_est = self.model(train_phy_dat, train_aux_dat)
         
@@ -643,15 +658,17 @@ class CnnTrainer(Trainer):
                                                 exp=True) - self.log_offset
  
         # make initial CPI estimates
-        calibloader = torch.utils.data.DataLoader(dataset = self.calib_dataset,
-                                                  batch_size = self.calib_phy_data_tensor.shape[0])
+        # todo: can't we learn dataset and batchsize somehow??
+        num_calib_examples = self.calib_phy_data_tensor.shape[0]
+        calibloader = torch.utils.data.DataLoader(dataset=self.calib_dataset,
+                                                  batch_size=num_calib_examples)
         calib_phy_dat, calib_aux_dat, calib_lbl = next(iter(calibloader))
         norm_calib_label_est = self.model(calib_phy_dat, calib_aux_dat)
 
         # make CPI adjustments
         norm_calib_label_est = torch.stack(norm_calib_label_est).detach().numpy()
         norm_calib_est_quantiles = norm_calib_label_est[1:,:,:]
-        self.cpi_adjustments = self.get_CQR_constant(norm_calib_est_quantiles,
+        self.cpi_adjustments = self.get_cqr_constant(norm_calib_est_quantiles,
                                                      self.norm_calib_labels,
                                                      inner_quantile=self.cpi_coverage,
                                                      asymmetric=self.cpi_asymmetric)
@@ -667,7 +684,6 @@ class CnnTrainer(Trainer):
 
         return
 
-
     def save_results(self):
         """Save training results.
 
@@ -679,7 +695,7 @@ class CnnTrainer(Trainer):
         max_idx = 1000
         
         # format str
-        float_fmt_str = '%.4e' #'{{:0.{:d}e}}'.format(util.OUTPUT_PRECISION)
+        # float_fmt_str = '%.4e'
 
         # save model to file
         torch.save(self.model, self.model_arch_fn)
@@ -687,19 +703,16 @@ class CnnTrainer(Trainer):
         # save json history from running MASTER
         self.train_history.to_csv(self.model_history_fn, index=False, sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
 
-
         # save aux_data names, means, sd for new test dataset normalization
         df_aux_data = pd.DataFrame({'name':self.aux_data_names,
                                     'mean':self.train_aux_data_mean_sd[0],
                                     'sd':self.train_aux_data_mean_sd[1]})
-        #df_aux_data.columns = ['name', 'mean', 'sd']
         df_aux_data.to_csv(self.train_aux_data_norm_fn, index=False, sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
  
         # save label names, means, sd for new test dataset normalization
         df_labels = pd.DataFrame({'name':self.label_names,
                                   'mean':self.train_labels_mean_sd[0],
                                   'sd':self.train_labels_mean_sd[1]})
-        #df_labels.columns = ['name', 'mean', 'sd']
         df_labels.to_csv(self.train_labels_norm_fn, index=False, sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
 
         # save train/test scatterplot results (Value, Lower, Upper)
@@ -710,7 +723,7 @@ class CnnTrainer(Trainer):
         df_train_label_true = pd.DataFrame(self.train_label_true[0:max_idx,:], columns=self.label_names )
         
         # save CPI intervals
-        df_cpi_intervals = pd.DataFrame( self.cpi_adjustments, columns=self.label_names )
+        df_cpi_intervals = pd.DataFrame(self.cpi_adjustments, columns=self.label_names)
 
         # convert to csv and save
         df_train_label_est_nocalib.to_csv(self.train_label_est_nocalib_fn, index=False, sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
@@ -720,9 +733,9 @@ class CnnTrainer(Trainer):
 
         return
 
-#------------------------------------------------------------------------------#
+# ---------------------------------------------------------------------------- #
         
-    def get_CQR_constant(self, ests, true, inner_quantile=0.95, asymmetric = True):
+    def get_cqr_constant(self, ests, true, inner_quantile=0.95, asymmetric=True):
         """Computes the conformalized quantile regression (CQR) constants.
         
         This function computes symmetric or asymmetric CQR constants for the
@@ -735,8 +748,8 @@ class CnnTrainer(Trainer):
         Arguments:
             ests (array-like): The input data.
             true (array-like): The target data.
-            q_lower (function): The lower quantile function.
-            q_upper (function): The upper quantile function.
+            inner_quantile (float): The inner quantile range.
+            asymmetric (bool): If True, computes asymmetric CQR constants.
 
         Returns:
             array-like: The conformity scores.
@@ -744,7 +757,7 @@ class CnnTrainer(Trainer):
         """
         
         # compute non-comformity scores
-        Q = np.empty((2, ests.shape[2]))
+        q_score = np.empty((2, ests.shape[2]))
         
         for i in range(ests.shape[2]):
             if asymmetric:
@@ -755,11 +768,11 @@ class CnnTrainer(Trainer):
                 upper_p = (1 + inner_quantile)/2 * (1 + 1/ests.shape[1])
                 if lower_p < 0.:
                     self.logger.write_log('trn',
-                                          'get_CQR_constant: lower_p >= 0.')
+                                          'get_cqr_constant: lower_p >= 0.')
                     lower_p = 0.
                 if upper_p > 1.:
                     self.logger.write_log('trn',
-                                          'get_CQR_constant: upper_p <= 1.')
+                                          'get_cqr_constant: upper_p <= 1.')
                     upper_p = 1.
                 lower_q = np.quantile(lower_s, lower_p)
                 upper_q = np.quantile(upper_s, upper_p)
@@ -770,18 +783,18 @@ class CnnTrainer(Trainer):
                 symm_p = inner_quantile * (1 + 1/ests.shape[1])
                 if symm_p < 0.:
                     self.logger.write_log('trn',
-                                          'get_CQR_constant: symm_p >= 0.')
+                                          'get_cqr_constant: symm_p >= 0.')
                     symm_p = 0.
                 elif symm_p > 1.:
                     self.logger.write_log('trn',
-                                          'get_CQR_constant: symm_p <= 1.')
-                    symm_p = 1.                    
+                                          'get_cqr_constant: symm_p <= 1.')
+                    symm_p = 1.
                 lower_q = np.quantile(s, symm_p)
                 upper_q = lower_q
-                #Q[:,i] = np.array([lower_q, upper_q])
+                # Q[:,i] = np.array([lower_q, upper_q])
 
-            Q[:,i] = np.array([lower_q, upper_q])
+            q_score[:,i] = np.array([lower_q, upper_q])
                                 
-        return Q
+        return q_score
     
-#------------------------------------------------------------------------------#
+# ---------------------------------------------------------------------------- #
