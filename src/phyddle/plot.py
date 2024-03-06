@@ -72,6 +72,8 @@ class Plotter:
         # initialize with phyddle settings
         self.set_args(args)
         self.prepare_filepaths()
+        self.min_num_emp_density = 10
+        self.max_num_emp_point = 5
         return
 
     def set_args(self, args):
@@ -97,52 +99,60 @@ class Plotter:
         """
 
         # directories
-        # self.fmt_proj_dir = f'{self.work_dir}/{self.fmt_proj}/{self.fmt_dir}'
-        # self.trn_proj_dir = f'{self.work_dir}/{self.trn_proj}/{self.trn_dir}'
-        # self.est_proj_dir = f'{self.work_dir}/{self.est_proj}/{self.est_dir}'
-        # self.plt_proj_dir = f'{self.work_dir}/{self.plt_proj}/{self.plt_dir}'
-        self.fmt_proj_dir = f'{self.fmt_dir}'
-        self.trn_proj_dir = f'{self.trn_dir}'
-        self.est_proj_dir = f'{self.est_dir}'
-        self.plt_proj_dir = f'{self.plt_dir}'
+        self.fmt_proj_dir           = f'{self.fmt_dir}'
+        self.trn_proj_dir           = f'{self.trn_dir}'
+        self.est_proj_dir           = f'{self.est_dir}'
+        self.plt_proj_dir           = f'{self.plt_dir}'
 
         # prefixes
-        network_prefix          = f'network_nt{self.tree_width}'
-        self.plot_prefix        = f'fig_nt{self.tree_width}'
-        fmt_proj_prefix         = f'{self.fmt_proj_dir}/train.nt{self.tree_width}'
-        trn_proj_prefix         = f'{self.trn_proj_dir}/{network_prefix}'
-        est_proj_prefix         = f'{self.est_proj_dir}/{self.est_prefix}'
-        plt_proj_prefix         = f'{self.plt_proj_dir}/{self.plot_prefix}'
+        fmt_proj_prefix             = f'{self.fmt_proj_dir}/{self.fmt_prefix}'
+        trn_proj_prefix             = f'{self.trn_proj_dir}/{self.trn_prefix}'
+        est_proj_prefix             = f'{self.est_proj_dir}/{self.est_prefix}'
+        plt_proj_prefix             = f'{self.plt_proj_dir}/{self.plt_prefix}'
         
-        # tensors
-        self.train_aux_data_fn  = f'{fmt_proj_prefix}.aux_data.csv'
-        self.train_labels_fn    = f'{fmt_proj_prefix}.labels.csv'
-        self.input_hdf5_fn      = f'{fmt_proj_prefix}.hdf5'
+        # train dataset tensors
+        self.train_hdf5_fn         = f'{fmt_proj_prefix}.train.hdf5'
+        self.train_aux_data_fn     = f'{fmt_proj_prefix}.train.aux_data.csv'
+        self.train_est_fn          = f'{trn_proj_prefix}.train_est.labels.csv'
+        self.train_true_fn         = f'{trn_proj_prefix}.train_true.labels.csv'
+        
+        # test dataset tensors
+        self.test_est_fn           = f'{est_proj_prefix}.test_est.labels.csv'
+        self.test_true_fn          = f'{est_proj_prefix}.test_true.labels.csv'
+
+        # empirical dataset tensors
+        self.emp_hdf5_fn           = f'{fmt_proj_prefix}.empirical.hdf5'
+        self.emp_aux_data_fn       = f'{fmt_proj_prefix}.empirical.aux_data.csv'
+        self.emp_est_fn            = f'{est_proj_prefix}.empirical_est.labels.csv'
 
         # network
-        self.model_arch_fn      = f'{trn_proj_prefix}.trained_model.pkl'
-        self.history_fn         = f'{trn_proj_prefix}.train_history.csv'
-        self.train_est_fn       = f'{trn_proj_prefix}.train_est.labels.csv'
-        self.train_labels_fn    = f'{trn_proj_prefix}.train_true.labels.csv'
+        self.model_arch_fn         = f'{trn_proj_prefix}.trained_model.pkl'
+        self.history_fn            = f'{trn_proj_prefix}.train_history.csv'
         
-        # estimates
-        # self.est_aux_data_fn    = f'{est_proj_prefix}.aux_data.csv'
-        #self.est_known_param_fn = f'{est_proj_prefix}.known_param.csv'
-        # self.est_lbl_fn         = f'{est_proj_prefix}.emp_est.labels.csv'
-        self.test_est_fn        = f'test.est.labels.csv'
-        self.test_true_fn       = f'test.true.labels.csv'
-        self.emp_est_fn         = f'empirical.est.labels.csv'
+        # new empirical plot
+        self.save_cpi_est_fn       = f'{plt_proj_prefix}.empirical_estimate'
+
+        # PCA plotting output
+        self.save_train_pca_aux_data_fn  = f'{plt_proj_prefix}.train_pca_contour_aux_data.pdf'
+        self.save_train_pca_labels_fn    = f'{plt_proj_prefix}.train_pca_contour_labels.pdf'
+        self.save_emp_pca_aux_data_fn    = f'{plt_proj_prefix}.empirical_pca_contour_aux_data.pdf'
+        self.save_emp_pca_labels_fn      = f'{plt_proj_prefix}.empirical_pca_contour_labels.pdf'
+
+        # density plotting output
+        self.save_train_density_aux_fn   = f'{plt_proj_prefix}.train_density_aux_data.pdf'
+        self.save_train_density_label_fn = f'{plt_proj_prefix}.train_density_labels.pdf'
+        self.save_emp_density_aux_fn     = f'{plt_proj_prefix}.empirical_density_aux_data.pdf'
+        self.save_emp_density_label_fn   = f'{plt_proj_prefix}.empirical_density_labels.pdf'
         
-        # plotting output
-        self.save_density_aux_fn   = f'{plt_proj_prefix}.density_aux_data.pdf'
-        self.save_density_label_fn = f'{plt_proj_prefix}.density_label.pdf'
-        self.save_train_est_fn     = f'{plt_proj_prefix}.estimate_train'
-        self.save_test_est_fn      = f'{plt_proj_prefix}.estimate_test'
-        self.save_pca_aux_data_fn  = f'{plt_proj_prefix}.pca_contour_aux_data.pdf'
-        self.save_pca_labels_fn    = f'{plt_proj_prefix}.pca_contour_labels.pdf'
-        self.save_cpi_est_fn       = f'{plt_proj_prefix}.estimate_new.pdf'
+        # scatter plotting output
+        self.save_train_est_fn     = f'{plt_proj_prefix}.train_estimate'
+        self.save_test_est_fn      = f'{plt_proj_prefix}.test_estimate'
+        
+        # network plotting output
         self.save_network_fn       = f'{plt_proj_prefix}.network_architecture.pdf'
         self.save_history_fn       = f'{plt_proj_prefix}.train_history'
+        
+        # summary plotting output
         self.save_summary_fn       = f'{plt_proj_prefix}.summary.pdf'
         self.save_report_fn        = f'{plt_proj_prefix}.summary.csv'
 
@@ -208,10 +218,11 @@ class Plotter:
         if self.tensor_format == 'csv':
             # csv tensor format
             self.train_aux_data = pd.read_csv( self.train_aux_data_fn )
-            self.train_labels = pd.read_csv( self.train_labels_fn )
+            self.train_labels = pd.read_csv( self.train_true_fn )
+            
         elif self.tensor_format == 'hdf5':
             # hdf5 tensor format
-            hdf5_file = h5py.File(self.input_hdf5_fn, 'r')
+            hdf5_file = h5py.File(self.train_hdf5_fn, 'r')
             train_aux_data_names = [ s.decode() for s in hdf5_file['aux_data_names'][0,:] ]
             train_label_names = [ s.decode() for s in hdf5_file['label_names'][0,:] ]
             self.train_aux_data = pd.DataFrame( hdf5_file['aux_data'][:,:], columns=train_aux_data_names )
@@ -223,49 +234,40 @@ class Plotter:
         self.aux_data_names = self.train_aux_data.columns.to_list()
 
         # trained model
-        # self.model = tf.keras.models.load_model(self.model_arch_fn, compile=False)
         self.model = torch.load(self.model_arch_fn)
         
         # training estimates/labels
         self.train_ests   = pd.read_csv(self.train_est_fn)
-        self.train_labels = pd.read_csv(self.train_labels_fn)
+        self.train_labels = pd.read_csv(self.train_true_fn)
         
         # test estimates/labels
         self.test_ests    = pd.read_csv(self.test_est_fn)
-        self.test_labels  = pd.read_csv(self.test_labels_fn)
+        self.test_labels  = pd.read_csv(self.test_true_fn)
         
         # training history for network
-        # TODO: Need to get training history from torch
         self.history_table = pd.read_csv(self.history_fn)
-        # self.history_dict = json.load(open(self.history_json_fn, 'r'))
 
-        # load new aux data from Estimate
-        self.est_aux_data = None
-        new_aux_found = os.path.isfile(self.est_aux_data_fn)
-        if new_aux_found:
-            self.est_aux_data = pd.read_csv(self.est_aux_data_fn)
-        # new_param_found = os.path.isfile(self.est_known_param_fn)
-        # if new_param_found and new_summ_stat_found:
-        #     self.est_known_params = pd.read_csv(self.est_known_param_fn)
-        #     self.est_aux_data = pd.concat( [self.est_aux_data, self.est_known_params], axis=1)
-        #     self.est_aux_data = self.est_aux_data[self.train_aux_data.columns]
-        
-        # load new estimates from Estimate
-        self.est_lbl_loaded = os.path.isfile(self.est_lbl_fn)
-        if self.est_lbl_loaded:
-            _data = pd.read_csv(self.est_lbl_fn)
-            _value = _data[ [x for x in _data.columns if '_value' in x] ]
-            _lower = _data[ [x for x in _data.columns if '_lower' in x] ]
-            _upper = _data[ [x for x in _data.columns if '_upper' in x] ]
-            _value.columns = [ x.replace('_value','') for x in _value.columns ]
-            _lower.columns = [ x.replace('_lower','') for x in _lower.columns ]
-            _upper.columns = [ x.replace('_upper','') for x in _upper.columns ]
-            self.est_lbl_df = pd.concat([_value, _lower, _upper])
-            self.est_lbl_df.index = ['value','lower','upper']
-            self.est_lbl_value = pd.DataFrame(_value, columns=self.param_names)
-        else:
-            self.est_lbl_value = None
-            self.est_lbl_df = None
+        # load empirical data/estimates if they exist
+        self.num_empirical = 0
+
+        self.emp_ests = None
+        if os.path.isfile(self.emp_est_fn):
+            self.emp_ests = pd.read_csv(self.emp_est_fn)
+            
+        self.emp_aux_data = None
+        if self.tensor_format == 'csv' and \
+                os.path.isfile(self.emp_aux_data_fn):
+            self.emp_aux_data = pd.read_csv(self.emp_aux_data_fn)
+            
+        elif self.tensor_format == 'hdf5' and \
+                os.path.isfile(self.emp_hdf5_fn):
+            hdf5_file = h5py.File(self.emp_hdf5_fn, 'r')
+            emp_aux_data_names = [ s.decode() for s in hdf5_file['aux_data_names'][0,:] ]
+            self.emp_aux_data = pd.DataFrame( hdf5_file['aux_data'][:,:], columns=emp_aux_data_names )
+            hdf5_file.close()
+            
+        if self.emp_ests is not None and self.emp_aux_data is not None:
+            self.num_empirical = self.emp_ests.shape[0]
 
         # done
         return
@@ -288,27 +290,27 @@ class Plotter:
 
         """
         
-        # training aux. data densities
-        self.make_plot_stat_density('aux_data')
-        
-        # training labels histogram
-        self.make_plot_stat_density('labels')
+        # Densities for aux. data and labels
+        self.make_plot_stat_density('train', 'aux_data')
+        self.make_plot_stat_density('train', 'labels')
+        if self.num_empirical >= self.min_num_emp_density:
+            self.make_plot_stat_density('empirical', 'aux_data')
+            self.make_plot_stat_density('empirical', 'labels')
 
-        # PCA-contour of training aux. data
-        self.make_plot_pca_contour('aux_data')
+        # PCA-contours for aux. data and labels
+        aux_pca_model = self.make_plot_pca_contour('train', 'aux_data')
+        lbl_pca_model = self.make_plot_pca_contour('train', 'labels')
+        if self.num_empirical >= self.min_num_emp_density:
+            self.make_plot_pca_contour('empirical', 'aux_data', pca_model=aux_pca_model)
+            self.make_plot_pca_contour('empirical', 'labels', pca_model=lbl_pca_model)
 
-        # PCA-contour of training aux. data
-        self.make_plot_pca_contour('labels')
-
-        # train scatter accuracy
+        # scatter accuracy
         self.make_plot_scatter_accuracy('train')
-
-        # # test scatter accuracy
         self.make_plot_scatter_accuracy('test')
 
-        # when available, point estimates and CPIs for new dataset
+        # # when available, point estimates and CPIs for new dataset
         self.make_plot_est_CI()
-        
+
         # training history stats
         self.make_plot_train_history()
 
@@ -330,19 +332,20 @@ class Plotter:
         files_unsorted = os.listdir(self.plt_proj_dir)
         files_unsorted.sort()
         files = []
+        
         for f in files_unsorted:
             has_pdf = '.pdf' in f
-            has_net = self.plot_prefix in f
-            has_all_not = 'all_results' not in f
-            if all([has_pdf, has_net, has_all_not]):
+            has_prefix = self.plt_prefix in f
+            has_all_not = 'summary' not in f
+            if all([has_pdf, has_prefix, has_all_not]):
                 files.append(f)
 
         # get files for different categories
-        files_CPI        = self.filter_files(files, 'estimate_new')
+        files_CPI        = self.filter_files(files, 'empirical_estimate')
         files_pca        = self.filter_files(files, 'pca_contour')
         files_density    = self.filter_files(files, 'density')
-        files_train      = self.filter_files(files, 'estimate_train')
-        files_test       = self.filter_files(files, 'estimate_test')
+        files_train      = self.filter_files(files, 'train_estimate')
+        files_test       = self.filter_files(files, 'test_estimate')
         files_arch       = self.filter_files(files, 'architecture')
         files_history    = self.filter_files(files, 'train_history')
 
@@ -367,6 +370,7 @@ class Plotter:
             if filter in '.'.join(f.split('.')[-2:]):
                 ret.append(f)
         return ret
+    
 # ---------------------------------------------------------------------------- #
 
     def make_report(self):
@@ -430,83 +434,121 @@ class Plotter:
 
 # ---------------------------------------------------------------------------- #
 
-    def make_plot_stat_density(self, type):
+    def make_plot_stat_density(self, data, type):
         """Calls plot_stat_density with arguments."""
-        assert(type in ['aux_data', 'labels'])
-        if type == 'aux_data':
-            self.plot_stat_density(save_fn=self.save_density_aux_fn,
-                                   sim_values=self.train_aux_data,
-                                   est_values=self.est_aux_data,
+        assert data in ['train', 'empirical']
+        assert type in ['aux_data', 'labels']
+        
+        if data == 'train' and type == 'aux_data':
+            self.plot_stat_density(save_fn=self.save_train_density_aux_fn,
+                                   dist_values=self.train_aux_data.copy(),
+                                   point_values=self.emp_aux_data.copy(),
                                    color=self.plot_aux_color,
-                                   title='Aux. data')
-        elif type == 'labels':
-            self.plot_stat_density(save_fn=self.save_density_label_fn,
-                                   sim_values=self.train_labels,
-                                   est_values=self.est_lbl_value,
+                                   title='training aux. data')
+            
+        elif data == 'train' and type == 'labels':
+            self.plot_stat_density(save_fn=self.save_train_density_label_fn,
+                                   dist_values=self.train_labels.copy(),
+                                   point_values=self.emp_ests.copy(),
                                    color=self.plot_label_color,
-                                   title='Labels' )
+                                   title='training labels')
+            
+        elif data == 'empirical' and type == 'aux_data':
+            self.plot_stat_density(save_fn=self.save_emp_density_aux_fn,
+                                   dist_values=self.emp_aux_data.copy(),
+                                   point_values=None,
+                                   color=self.plot_aux_color,
+                                   title='empirical aux. data')
+        
+        elif data == 'empirical' and type == 'labels':
+            self.plot_stat_density(save_fn=self.save_emp_density_label_fn,
+                                   dist_values=self.emp_ests.copy(),
+                                   point_values=None,
+                                   color=self.plot_label_color,
+                                   title='empirical labels')
+
+        
                 
         return
     
     def make_plot_scatter_accuracy(self, type):
         """Calls plot_scatter_accuracy with arguments."""
-        assert(type in ['train', 'test'])
+        assert type in ['train', 'test']
 
         n_max = 250
         if type == 'train':
             # plot train scatter
             n = min(n_max, self.train_ests.shape[0])
-            self.plot_scatter_accuracy(ests=self.train_ests.iloc[0:n],
-                                       labels=self.train_labels.iloc[0:n],
+            self.plot_scatter_accuracy(ests=self.train_ests.iloc[0:n].copy(),
+                                       labels=self.train_labels.iloc[0:n].copy(),
                                        prefix=self.save_train_est_fn,
                                        color=self.plot_train_color,
                                        title='Train')
         elif type == 'test':
             # plot test scatter
             n = min(n_max, self.test_ests.shape[0])
-            self.plot_scatter_accuracy(ests=self.test_ests.iloc[0:n],
-                                       labels=self.test_labels.iloc[0:n],
+            self.plot_scatter_accuracy(ests=self.test_ests.iloc[0:n].copy(),
+                                       labels=self.test_labels.iloc[0:n].copy(),
                                        prefix=self.save_test_est_fn,
                                        color=self.plot_test_color,
                                        title='Test')
         # done
         return
 
-    def make_plot_pca(self):
-        """Calls plot_PCA with arguments."""
-        self.plot_pca(save_fn=self.save_pca_aux_fn,
-                      sim_values=self.train_aux_data,
-                      est_values=self.est_aux_data,
-                      color=self.plot_aux_color)
-        return
-    
-    def make_plot_pca_contour(self, type):
+    def make_plot_pca_contour(self, data, type, pca_model=None):
         """Calls plot_pca_contour with arguments."""
-        if type == 'aux_data':
-            self.plot_pca_contour(save_fn=self.save_pca_aux_data_fn,
-                                  sim_values=self.train_aux_data,
-                                  est_values=self.est_aux_data,
+        assert data in ['train', 'empirical']
+        assert type in ['aux_data', 'labels']
+        
+        if data == 'train' and type == 'aux_data':
+            self.plot_pca_contour(save_fn=self.save_train_pca_aux_data_fn,
+                                  dist_values=self.train_aux_data.copy(),
+                                  point_values=self.emp_aux_data.copy(),
+                                  pca_model=pca_model,
                                   color=self.plot_aux_color,
-                                  title='Aux. data')
-        elif type == 'labels':
-            self.plot_pca_contour(save_fn=self.save_pca_labels_fn,
-                                  sim_values=self.train_labels,
-                                  est_values=self.est_lbl_value,
+                                  title='training aux. data')
+            
+        elif data == 'train' and type == 'labels':
+            self.plot_pca_contour(save_fn=self.save_train_pca_labels_fn,
+                                  dist_values=self.train_labels.copy(),
+                                  point_values=self.emp_ests.copy(),
+                                  pca_model=pca_model,
                                   color=self.plot_label_color,
-                                  title='Labels')
+                                  title='training labels')
+
+        elif data == 'empirical' and type == 'aux_data':
+            self.plot_pca_contour(save_fn=self.save_emp_pca_aux_data_fn,
+                                  dist_values=self.emp_aux_data.copy(),
+                                  point_values=None,
+                                  pca_model=pca_model,
+                                  color=self.plot_aux_color,
+                                  title='empirical aux. data')
+
+        elif data == 'empirical' and type == 'labels':
+            self.plot_pca_contour(save_fn=self.save_emp_pca_labels_fn,
+                                  dist_values=self.emp_ests.copy(),
+                                  point_values=None,
+                                  pca_model=pca_model,
+                                  color=self.plot_label_color,
+                                  title='empirical labels')
+        
         return
 
     def make_plot_est_CI(self):
         """Calls plot_est_CI with arguments."""
-        self.plot_est_CI(save_fn=self.save_cpi_est_fn,
-                         est_label=self.est_lbl_df,
-                         title=f'Estimate: {self.est_dir}/{self.est_prefix}',
-                         color=self.plot_est_color)
+        max_num = np.min([self.max_num_emp_point, self.num_empirical])
+        for i in range(max_num):
+            save_fn = f'{self.save_cpi_est_fn}_{i}.pdf'
+            title = f'Estimate: {self.est_prefix}.empirical.{i}'
+            self.plot_est_CI(save_fn=save_fn,
+                             est_label=self.emp_ests.iloc[[i]].copy(),
+                             title=title,
+                             color=self.plot_est_color)
         return
 
     def make_plot_train_history(self):
         """Calls plot_train_history with arguments."""
-        self.plot_train_history(self.history_table,
+        self.plot_train_history(self.history_table.copy(),
                                 prefix=self.save_history_fn,
                                 train_color=self.plot_train_color,
                                 val_color=self.plot_val_color)
@@ -536,7 +578,7 @@ class Plotter:
     
 # ---------------------------------------------------------------------------- #        
 
-    def plot_stat_density(self, save_fn, sim_values, est_values=None,
+    def plot_stat_density(self, save_fn, dist_values, point_values=None,
                            title='', ncol_plot=3, color='blue'):
         """Plots histograms.
 
@@ -555,7 +597,7 @@ class Plotter:
         """
         
         # data dimensions
-        col_names = sorted( sim_values.columns )
+        col_names = sorted(dist_values.columns )
         num_aux = len(col_names)
         nrow = int( np.ceil(num_aux/ncol_plot) )
 
@@ -578,7 +620,7 @@ class Plotter:
                   
                 # input data
                 p = col_names[i]
-                x = sorted(sim_values[p])
+                x = sorted(dist_values[p])
                 if np.var(x) == 0.0:
                     x = sp.stats.norm.rvs(size=len(x), loc=x, scale=x[0]*1e-3)
                 
@@ -612,8 +654,8 @@ class Plotter:
                 ax.annotate(aux_lower_str, xy=(x_pos, y_pos-1*dy_pos), xycoords='axes fraction', fontsize=10, horizontalalignment=ha, verticalalignment='top')
                 ax.annotate(aux_upper_str, xy=(x_pos, y_pos-2*dy_pos), xycoords='axes fraction', fontsize=10, horizontalalignment=ha, verticalalignment='top')
                 
-                if est_values is not None and p in est_values:
-                    x_data = est_values[p][0]
+                if point_values is not None and p in point_values:
+                    x_data = point_values[p][0]
                     y_data = kde(x_data)
                     q_true = np.sum(x < x_data) / len(x)
                     ax.vlines(x_data, 0, y_data, color='red')
@@ -635,12 +677,13 @@ class Plotter:
         fig.tight_layout(rect=[0, 0.03, 1, 0.98])
         plt.savefig(fname=save_fn, format='pdf', dpi=300, bbox_inches='tight')
         plt.clf()
-
+        plt.close()
+        
         # done
         return
     
-    def plot_pca_contour(self, save_fn, sim_values, est_values=None,
-                         num_comp=4, color='blue', title=''):
+    def plot_pca_contour(self, save_fn, dist_values, point_values=None,
+                         pca_model=None, num_comp=4, color='blue', title=''):
         """
         Plots PCA Contour Plot.
 
@@ -660,30 +703,36 @@ class Plotter:
         
         # figure size
         fig_width = 8
-        fig_height = 8 
+        fig_height = 8
 
         # reduce num components if needed
-        num_comp = min(sim_values.shape[1], num_comp)
+        num_comp = min(dist_values.shape[1], num_comp)
 
         # rescale input data
-        sim_values = np.log(sim_values + self.log_offset)
+        dist_values = np.log(dist_values + self.log_offset)
         scaler = StandardScaler()
-        x = scaler.fit_transform(sim_values)
+        x = scaler.fit_transform(dist_values)
         
         # apply PCA to sim_values
-        pca_model = PCA(n_components=num_comp)
-        pca = pca_model.fit_transform(x)
+        if pca_model is None:
+            pca_model = PCA(n_components=num_comp)
+            pca = pca_model.fit_transform(x)
+        else:
+            pca = pca_model.transform(x)
+            
         pca_var = pca_model.explained_variance_ratio_
         pca_coef = np.transpose(pca_model.components_)
         plot_pca_loadings = False
 
         # project est_values on to PCA space
-        if est_values is not None:
-            est_values = np.log(est_values + self.log_offset)
-            est_values = scaler.transform(est_values)
-            pca_est = pca_model.transform(est_values)
+        if point_values is not None:
+            point_values.columns = [ p.replace('_value','') for p in point_values.columns.to_list() ]
+            point_values = point_values[ dist_values.columns.to_list() ]
+            point_values = np.log(point_values + self.log_offset)
+            point_values = scaler.transform(point_values)
+            pca_est = pca_model.transform(point_values)
         
-        # figure dimennsions
+        # figure dimensions
         fig, axs = plt.subplots(num_comp-1, num_comp-1,
                                 sharex=True, sharey=True,
                                 figsize=(fig_width, fig_height))
@@ -703,7 +752,7 @@ class Plotter:
                 axs[i,j].axis('off')
 
             for j in range(0, i+1):
-                # countours
+                # contours
                 x = pca[:,i+1]
                 y = pca[:,j]
                 xmin, xmax = np.min(x), np.max(x)
@@ -740,7 +789,7 @@ class Plotter:
                                     color='black', fontsize=8,
                                     ha='center',va='center')
                     
-                if est_values is not None:    
+                if point_values is not None:
                     axs[i,j].scatter(pca_est[:,i+1], pca_est[:,j],
                                      alpha=1.0, color='white',
                                      edgecolor='black', s=80, zorder=2.1)
@@ -764,9 +813,10 @@ class Plotter:
         fig.tight_layout(rect=[0, 0.03, 1, 0.98])
         plt.savefig(save_fn, format='pdf', dpi=300, bbox_inches='tight')
         plt.clf()
-
+        plt.close()
+        
         #done
-        return
+        return pca_model
 
     def plot_scatter_accuracy(self, ests, labels, prefix,
                               color="blue", axis_labels = ["truth", "estimate"],
@@ -912,6 +962,7 @@ class Plotter:
             save_fn = f'{prefix}_{p}.pdf'
             plt.savefig(save_fn, format='pdf', dpi=300, bbox_inches='tight')
             plt.clf()
+            plt.close()
 
         # done    
         return
@@ -941,22 +992,23 @@ class Plotter:
         fig_height = 5
 
         # data dimensions
-        label_names = est_label.columns
+        #label_names = [ f.replace('_value','') for f in est_label.columns.to_list() if '_value' in f ]
+        label_names = [ f.replace('_value','') for f in est_label.columns.to_list() if '_value' in f ]
         num_label = len(label_names)
         
         # set up plot
-        plt.figure(figsize=(fig_width,fig_height))      
+        plt.figure(figsize=(fig_width,fig_height))
         
         # use log-scale for y-axis?
         if plot_log:
             plt.yscale('log')
 
         # plot each estimated label
-        for i,col in enumerate(label_names):
-            col_data = est_label[col]
-            y_value = col_data.loc['value']
-            y_lower = col_data.loc['lower']
-            y_upper = col_data.loc['upper']
+        for i,lbl in enumerate(label_names):
+            # col_data = est_label[col]
+            y_value = est_label[lbl+'_value'].iloc[0]
+            y_lower = est_label[lbl+'_lower'].iloc[0]
+            y_upper = est_label[lbl+'_upper'].iloc[0]
 
             if plot_log:
                 y_value = np.max([1e-4, y_value])
@@ -991,6 +1043,7 @@ class Plotter:
         plt.ylim( )
         plt.savefig(save_fn, format='pdf', dpi=300, bbox_inches='tight')
         plt.clf()
+        plt.close()
         
         #done
         return
@@ -1071,6 +1124,7 @@ class Plotter:
         # print(save_fn)
         plt.savefig(save_fn, format='pdf', dpi=300, bbox_inches='tight')
         plt.clf()
+        plt.close()
         
         # done
         return
