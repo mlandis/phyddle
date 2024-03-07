@@ -89,7 +89,7 @@ class Formatter:
         self.log_dir            = str(args['log_dir'])
         # analysis settings
         self.verbose            = bool(args['verbose'])
-        self.emp_analysis       = bool(args['emp_analysis'])
+        # self.emp_analysis       = bool(args['emp_analysis'])
         self.num_proc           = int(args['num_proc'])
         self.use_parallel       = bool(args['use_parallel'])
         # dataset dimensions
@@ -113,14 +113,6 @@ class Formatter:
         self.prop_test          = float(args['prop_test'])
         self.log_offset         = float(args['log_offset'])
         self.save_phyenc_csv    = bool(args['save_phyenc_csv'])
-        
-        # directory for empirical data (alt input)
-        if self.emp_analysis:
-            # use sim_proj_dir path for empirical data prefix/dir
-            self.sim_prefix = self.emp_prefix
-            self.sim_dir = self.emp_dir
-            # do not split data into train/test
-            self.prop_test = 0.0
         
         # set number of processors
         if self.num_proc <= 0:
@@ -170,20 +162,34 @@ class Formatter:
 
         # run() attempts to generate one simulation per value in rep_idx,
         # where rep_idx is list of unique ints to identify simulated datasets
-        util.print_str('▪ Collecting files', verbose)
-        self.rep_idx = self.get_rep_idx()
+        util.print_str('▪ Collecting simulated data', verbose)
+        self.rep_idx = self.get_rep_idx(mode='sim')
 
         # encode each dataset into individual tensors
-        util.print_str('▪ Encoding raw data as tensors', verbose)
-        self.encode_all()
+        util.print_str('▪ Encoding simulated data as tensors', verbose)
+        self.encode_all(mode='sim')
 
         # split examples into training and test datasets
-        util.print_str('▪ Splitting into train and text examples', verbose)
+        util.print_str('▪ Splitting into train and test datasets', verbose)
         self.split_idx = self.split_examples()
 
         # write tensors across all examples to file
-        util.print_str('▪ Combining and writing tensors', verbose)
-        self.write_tensor()
+        util.print_str('▪ Combining and writing simulated data as tensors', verbose)
+        self.write_tensor(mode='sim')
+
+        if self.has_valid_emp_dataset():
+            # collecting empirical files
+            util.print_str('▪ Collecting empirical data', verbose)
+            self.rep_idx = self.get_rep_idx(mode='emp')
+        
+            # encode each dataset into individual tensors
+            util.print_str('▪ Encoding empirical data as tensors', verbose)
+            self.encode_all(mode='emp')
+    
+            # write tensors across all examples to file
+            util.print_str('▪ Combining and writing empirical data as tensors', verbose)
+            self.split_idx = { 'emp' : self.rep_idx }
+            self.write_tensor(mode='emp')
 
         # end time
         end_time,end_time_str = util.get_time()
@@ -193,7 +199,40 @@ class Formatter:
         # done
         util.print_str('... done!', verbose)
     
-    def encode_all(self):
+    def has_valid_emp_dataset(self):
+        """Determines if empirical analysis is being performed.
+        
+        Returns:
+            bool: True if empirical analysis is being performed.
+        """
+        
+        # check if empirical directory exists
+        if not os.path.exists(self.emp_dir):
+            return False
+        
+        # check if empirical directory contains files
+        emp_files = set()
+        for f in os.listdir(self.emp_dir):
+            f = '.'.join( f.split('.')[0:2])
+            if self.emp_prefix in f:
+                emp_files.add(f)
+        
+        if len(emp_files) == 0:
+            return False
+        
+        # check that at least one dataset is complete
+        for f in emp_files:
+            has_dat = os.path.exists(f'{self.emp_dir}/{f}.dat.csv') or \
+                      os.path.exists(f'{self.emp_dir}/{f}.dat.nex')
+            has_tre = os.path.exists(f'{self.emp_dir}/{f}.tre')
+            
+            # if both files exist, then we have a valid dataset
+            if has_dat and has_tre:
+                return True
+    
+        return False
+
+    def encode_all(self, mode='sim'):
         """Encode all simulated replicates.
         
         Encode each simulated dataset identified by the replicate-index list
@@ -208,13 +247,22 @@ class Formatter:
         multiprocessing.Pool. When self.use_parallel is false, jobs are run
         serially with one CPU.
 
+        Args:
+            mode (str): specifies 'sim' or 'emp' dataset
         """
 
         # construct list of encoding arguments
+        
+        assert mode in ['sim', 'emp']
+        encode_path = ''
+        if mode == 'sim':
+            encode_path = f'{self.sim_dir}/{self.sim_prefix}'
+        elif mode == 'emp':
+            encode_path = f'{self.emp_dir}/{self.emp_prefix}'
+        
         args = []
-
         for idx in self.rep_idx:
-            args.append((f'{self.sim_dir}/{self.sim_prefix}.{idx}', idx))
+            args.append((f'{encode_path}.{idx}', idx))
         
         # visit each replicate, encode it, and return result
         if self.use_parallel:
@@ -262,7 +310,7 @@ class Formatter:
 
         return
     
-    def get_rep_idx(self):
+    def get_rep_idx(self, mode='sim'):
         """Determines replicate indices to use.
 
         This function finds all replicate indices within sim_proj_dir.
@@ -271,13 +319,19 @@ class Formatter:
             int[]: List of replicate indices.
         """
 
-        # this assumes the simulate directory only contains the target set of
-        # files which is an unsafe assumption
-
+        assert mode in ['sim', 'emp']
+        
+        # procedure assumes the simulate directory only contains the target set
+        # of files which is an unsafe assumption, in general
         # find all rep index
+        all_idx = []
         if self.encode_all_sim:
             all_idx = set()
-            files = os.listdir(f'{self.sim_dir}')
+            files = []
+            if mode == 'sim':
+                files = os.listdir(f'{self.sim_dir}')
+            elif mode == 'emp':
+                files = os.listdir(f'{self.emp_dir}')
             files = [ f for f in files if '.dat.' in f ]
             
             for f in files:
@@ -289,7 +343,7 @@ class Formatter:
                     pass
                 
             all_idx = sorted(list(all_idx))
-        else:
+        elif self.encode_all_sim:
             all_idx = list(range(self.start_idx, self.end_idx))
             
         return all_idx
@@ -343,38 +397,41 @@ class Formatter:
 
     def split_examples(self):
         """Split examples into training and test datasets."""
+        
+        # assert mode in ['sim', 'emp']
+        
         split_idx = {}
         rep_idx = sorted(list(self.phy_tensors.keys()))
         rep_idx = np.array(rep_idx)
         num_samples = len(rep_idx)
         
-        if self.emp_analysis:
-            # all empirical examples used
-            split_idx['empirical'] = rep_idx
-        else:
-            # shuffle examples
-            np.random.shuffle(rep_idx)
-            # split examples
-            num_test = int(num_samples * self.prop_test)
-            split_idx['test'] = rep_idx[:num_test]
-            split_idx['train'] = rep_idx[num_test:]
+        # if mode == 'emp':
+        #     # all empirical examples used
+        #     split_idx['empirical'] = rep_idx
+        # elif mode == 'sim':
+        # shuffle examples
+        np.random.shuffle(rep_idx)
+        # split examples
+        num_test = int(num_samples * self.prop_test)
+        split_idx['test'] = rep_idx[:num_test]
+        split_idx['train'] = rep_idx[num_test:]
             
         # return split indices
         return split_idx
 
-    def write_tensor(self):
+    def write_tensor(self, mode='train'):
         """Write tensors to file.
         
         This function writes the train and test tensors as files in csv
         or hdf5 format based on the tensor_format setting. Actual writing
         is delegated to write_tensor_csv() and write_tensor_hdf5() functions.
         """
-        if self.emp_analysis:
+        if mode == 'temp':
             if self.tensor_format == 'csv':
                 self.write_tensor_csv('empirical')
             elif self.tensor_format == 'hdf5':
                 self.write_tensor_hdf5('empirical')
-        else:
+        elif mode == 'sim':
             if self.tensor_format == 'csv':
                 self.write_tensor_csv('train')
                 self.write_tensor_csv('test')
