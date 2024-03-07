@@ -215,6 +215,9 @@ class Formatter:
     def has_valid_dataset(self, mode='sim'):
         """Determines if empirical analysis is being performed.
         
+        Args:
+            mode (str): 'sim' or 'emp' for simulated or empirical analysis.
+        
         Returns:
             bool: True if empirical analysis is being performed.
         """
@@ -392,7 +395,7 @@ class Formatter:
         # get headers from file
         dat_dir_prefix = ''
         if mode == 'sim':
-            dat_dir_prefix = f'{self.sim_dir}/{self.sim_prefix}.{idx}' 
+            dat_dir_prefix = f'{self.sim_dir}/{self.sim_prefix}.{idx}'
         elif mode == 'emp':
             dat_dir_prefix = f'{self.emp_dir}/{self.emp_prefix}.{idx}'
         fn = f'{dat_dir_prefix}.summ_stat.csv'
@@ -676,6 +679,7 @@ class Formatter:
     
         Args:
             idx (int): Replicate index of the simulation.
+            mode (str): specifies 'sim' or 'emp' dataset.
         
         Returns:
             Tuple of numpy arrays (x1, x2, x3).
@@ -695,7 +699,6 @@ class Formatter:
         x1 = self.phy_tensors[idx].flatten()
         x2 = np.loadtxt(fname_stat, delimiter=',', skiprows=1)
         
-        x3 = None
         if mode == 'emp' and len(self.param_data) == 0:
             num_labels = len(self.label_names)
             x3 = np.zeros( (1,num_labels) )

@@ -92,22 +92,6 @@ class Estimator:
         self.num_char           = int(args['num_char'])
         self.num_states         = int(args['num_states'])
         self.log_offset         = float(args['log_offset'])
-
-        # model files
-        self.model_arch_fn          = f'{self.trn_prefix_dir}.trained_model.pkl'
-        self.train_labels_norm_fn   = f'{self.trn_prefix_dir}.train_label_norm.csv'
-        self.train_aux_data_norm_fn = f'{self.trn_prefix_dir}.train_aux_data_norm.csv'
-        self.model_cpi_fn           = f'{self.trn_prefix_dir}.cpi_adjustments.csv'
-
-        # simulated test datasets for csv or hdf5
-        self.test_phy_data_fn       = f'{self.fmt_prefix_dir}.phy_data.csv'
-        self.test_aux_data_fn       = f'{self.fmt_prefix_dir}.aux_data.csv'
-        self.test_labels_fn         = f'{self.fmt_prefix_dir}.labels.csv'
-        self.test_hdf5_fn           = f'{self.fmt_prefix_dir}.hdf5'
-
-        # test outputs
-        self.out_label_est_fn       = f'{self.est_prefix_dir}_est.labels.csv'
-        self.out_label_true_fn      = f'{self.est_prefix_dir}_true.labels.csv'
         
         # get size of CPV+S tensors
         self.num_tree_col = util.get_num_tree_col(self.tree_encode,
@@ -121,13 +105,14 @@ class Estimator:
         self.logger = util.Logger(args)
 
         # initialized later
-        self.train_labels_mean_sd = None       # init in load_input()
-        self.label_names          = None       # init in load_input()
-        self.test_phy_data        = None       # init in load_input()
-        self.norm_test_aux_data   = None       # init in load_input()
-        self.test_label_true      = None       # init in load_input()
-        self.cpi_adjustments      = None       # init in load_input()
-        self.mymodel              = None       # init in make_results()
+        self.train_aux_data_mean_sd  = None       # init in load_train_input()
+        self.train_labels_mean_sd    = None       # init in load_train_input()
+        self.label_names             = None       # init in load_train_input()
+        self.cpi_adjustments         = None       # init in load_train_input()
+        self.phy_data                = None       # init in load_format_input()
+        self.aux_data                = None       # init in load_format_input()
+        self.labels                  = None       # init in load_format_input()
+        self.mymodel                 = None       # init in make_results()
         
         # done
         return
@@ -160,13 +145,40 @@ class Estimator:
         start_time,start_time_str = util.get_time()
         util.print_str(f'▪ Start time of {start_time_str}', verbose)
 
-        # load input
-        util.print_str('▪ Loading input', verbose)
-        self.load_input()
+        # load Train input
+        self.load_train_input()
 
-        # make estimates
-        util.print_str('▪ Making estimates', verbose)
-        self.make_results()
+        found_sim = False
+        if self.has_valid_dataset(mode='sim'):
+            found_sim = True
+
+            # load input
+            # todo: load input based on mode
+            util.print_str('▪ Loading simulated test input', verbose)
+            self.load_format_input(mode='sim')
+    
+            # make estimates
+            # todo: make estimates based on mode
+            util.print_str('▪ Making simulated test estimates', verbose)
+            self.make_results(mode='sim')
+
+        found_emp = False
+        if self.has_valid_dataset(mode='emp'):
+            found_emp = True
+            # load input
+            # todo: load input based on mode
+            util.print_str('▪ Loading empirical input', verbose)
+            self.load_format_input(mode='emp')
+    
+            # make estimates
+            # todo: make estimates based on mode
+            util.print_str('▪ Making empirical estimates', verbose)
+            self.make_results(mode='emp')
+        
+        if not found_sim and not found_emp:
+            util.print_str('No simulated test or empirical datasets found. '
+                           'Check config settings.', verbose)
+            return
         
         # end time
         end_time,end_time_str = util.get_time()
@@ -176,8 +188,36 @@ class Estimator:
         # done
         util.print_str('... done!', verbose)
         return
+
+    def has_valid_dataset(self, mode='sim'):
+        """Determines if empirical analysis is being performed.
         
-    def load_input(self):
+        Args:
+            mode (str): 'sim' or 'emp' for simulated or empirical analysis.
+            
+        Returns:
+            bool: True if empirical analysis is being performed.
+        """
+
+        assert mode in ['sim', 'emp']
+        
+        # check if empirical directory exists
+        if not os.path.exists(self.fmt_dir):
+            return False
+
+        # check if empirical directory contains files
+        fn = ''
+        if mode == 'sim':
+            fn = f'{self.fmt_dir}/{self.fmt_prefix}.test.hdf5'
+        elif mode == 'emp':
+            fn = f'{self.fmt_dir}/{self.fmt_prefix}.empirical.hdf5'
+
+        if os.path.exists(fn):
+            return True
+        else:
+            return False
+    
+    def load_train_input(self):
         """Load input data for estimation.
 
         This function loads input from Train and Estimate. From Train, it
@@ -187,112 +227,146 @@ class Estimator:
         
         The script re-normalizes the new estimation to match the scale/location
         used for simulated training examples to train the network.
-
+            
         """
-        
-        # INPUT FROM TRAIN STEP
-        # Load factors for aux. data and label standardization;
-        # Load factors for calibration step for prediction intervals
+        # filesystem
+        path_prefix = f'{self.trn_dir}/{self.trn_prefix}'
+        train_aux_data_norm_fn = f'{path_prefix}.train_aux_data_norm.csv'
+        train_labels_norm_fn = f'{path_prefix}.train_label_norm.csv'
+        model_cpi_fn = f'{path_prefix}.cpi_adjustments.csv'
 
         # denormalization factors for new aux data
-        train_aux_data_norm = pd.read_csv(self.train_aux_data_norm_fn, sep=',', index_col=False)
+        train_aux_data_norm = pd.read_csv(train_aux_data_norm_fn, sep=',', index_col=False)
         train_aux_data_means = train_aux_data_norm['mean'].T.to_numpy().flatten()
         train_aux_data_sd = train_aux_data_norm['sd'].T.to_numpy().flatten()
-        train_aux_data_mean_sd = (train_aux_data_means, train_aux_data_sd)
+        self.train_aux_data_mean_sd = (train_aux_data_means, train_aux_data_sd)
 
         # denormalization factors for labels
-        train_labels_norm = pd.read_csv(self.train_labels_norm_fn, sep=',', index_col=False)
+        train_labels_norm = pd.read_csv(train_labels_norm_fn, sep=',', index_col=False)
         train_labels_means = train_labels_norm['mean'].T.to_numpy().flatten()
         train_labels_sd = train_labels_norm['sd'].T.to_numpy().flatten()
         self.train_labels_mean_sd = (train_labels_means, train_labels_sd)
 
         # get param_names from training labels
-        # self.aux_data_names = train_aux_data_norm['name'].to_list()
         self.label_names = train_labels_norm['name'].to_list()
         
         # read in CQR interval adjustments
-        self.cpi_adjustments = pd.read_csv(self.model_cpi_fn, sep=',', index_col=False).to_numpy()
+        self.cpi_adjustments = pd.read_csv(model_cpi_fn, sep=',', index_col=False).to_numpy()
         
-        # INPUT TEST DATA FROM FORMAT STEP
-        # load all the test dataset
-        test_phy_data = None
-        test_aux_data = None
-        test_labels = None
-        if self.tensor_format == 'csv':
-            test_phy_data = pd.read_csv(self.test_phy_data_fn, header=None,
-                                        on_bad_lines='skip').to_numpy()
-            test_aux_data = pd.read_csv(self.test_aux_data_fn, header=None,
-                                        on_bad_lines='skip').to_numpy()
-            if not self.emp_analysis:
-                test_labels   = pd.read_csv(self.test_labels_fn, header=None,
-                                            on_bad_lines='skip').to_numpy()
-            test_aux_data = test_aux_data[1:,:].astype('float64')
-            test_labels   = test_labels[1:,:].astype('float64')
-
-        elif self.tensor_format == 'hdf5':
-            hdf5_file           = h5py.File(self.test_hdf5_fn, 'r')
-            test_phy_data       = pd.DataFrame(hdf5_file['phy_data']).to_numpy()
-            test_aux_data       = pd.DataFrame(hdf5_file['aux_data']).to_numpy()
-            if not self.emp_analysis:
-                test_labels         = pd.DataFrame(hdf5_file['labels']).to_numpy()
-            hdf5_file.close()
-
-        # add assert statement to guarantee that num examples matches across
-        # different test dataset components: phy. data, aux. data, labels
-        assert test_phy_data.shape[0] == test_aux_data.shape[0]
-        if not self.emp_analysis:
-            assert test_phy_data.shape[0] == test_labels.shape[0]
-        
-        # reshape phylogenetic state tensor
-        num_sample = test_phy_data.shape[0]
-        test_phy_data.shape = (num_sample, -1, self.num_data_col)
-        test_phy_data = np.transpose(test_phy_data, axes=[0,2,1]).astype('float32')
-        self.test_phy_data = test_phy_data
-
-        # test dataset normalization
-        test_aux_data = np.log(test_aux_data + self.log_offset)
-        self.norm_test_aux_data = util.normalize(test_aux_data,
-                                                 train_aux_data_mean_sd)
-        
-        if not self.emp_analysis:
-            self.test_label_true = test_labels
-            
         # done
         return
 
-    def make_results(self):
+    def load_format_input(self, mode='sim'):
+        """Load input data for estimation.
+
+        This function loads the phy. data and aux. data tensors stored in the
+        Format job directory.
+        
+        Args:
+            mode (str): 'sim' or 'emp' for simulated or empirical analysis.
+            
+        """
+
+        assert mode in ['sim', 'emp']
+        
+        path_prefix = ''
+        if mode == 'sim':
+            path_prefix = f'{self.fmt_dir}/{self.fmt_prefix}.test'
+        elif mode == 'emp':
+            path_prefix = f'{self.fmt_dir}/{self.fmt_prefix}.empirical'
+        
+        # simulated test datasets for csv or hdf5
+        phy_data_fn = f'{path_prefix}.phy_data.csv'
+        aux_data_fn = f'{path_prefix}.aux_data.csv'
+        labels_fn = f'{path_prefix}.labels.csv'
+        hdf5_fn = f'{path_prefix}.hdf5'
+        
+        # load all the test dataset
+        phy_data = None
+        aux_data = None
+        labels = None
+        if self.tensor_format == 'csv':
+            phy_data = pd.read_csv(phy_data_fn, header=None,
+                                        on_bad_lines='skip').to_numpy()
+            aux_data = pd.read_csv(aux_data_fn, header=None,
+                                        on_bad_lines='skip').to_numpy()
+            if mode == 'sim':
+                labels = pd.read_csv(labels_fn, header=None,
+                                            on_bad_lines='skip').to_numpy()
+            aux_data = aux_data[1:,:].astype('float64')
+            labels = labels[1:,:].astype('float64')
+
+        elif self.tensor_format == 'hdf5':
+            hdf5_file = h5py.File(hdf5_fn, 'r')
+            phy_data = pd.DataFrame(hdf5_file['phy_data']).to_numpy()
+            aux_data = pd.DataFrame(hdf5_file['aux_data']).to_numpy()
+            if mode == 'sim':
+                labels = pd.DataFrame(hdf5_file['labels']).to_numpy()
+            hdf5_file.close()
+        
+        # get number of samples
+        num_sample = phy_data.shape[0]
+
+        # reshape phylogenetic state tensor
+        phy_data.shape = (num_sample, -1, self.num_data_col)
+        phy_data = np.transpose(phy_data, axes=[0,2,1]).astype('float32')
+        self.phy_data = phy_data
+
+        # test dataset normalization
+        assert aux_data.shape[0] == num_sample
+        aux_data = np.log(aux_data + self.log_offset)
+        self.aux_data = util.normalize(aux_data, self.train_aux_data_mean_sd)
+
+        if mode == 'sim':
+            assert labels.shape[0] == num_sample
+            self.labels = labels
+
+    def make_results(self, mode='sim'):
         """Makes all results for the Estimate step.
 
         This function loads a trained model from the Train stem, then uses it
         to perform the estimation task. For example, the step might estimate all
         model parameter values and adjusted lower and upper CPI bounds.
 
+        Args:
+            mode (str): 'sim' or 'emp' for simulated or empirical analysis.
+
         """
-        
+
+        # filesystem
+        path_prefix = ''
+        if mode == 'sim':
+            path_prefix = f'{self.est_dir}/{self.est_prefix}.test'
+        if mode == 'emp':
+            path_prefix = f'{self.est_dir}/{self.est_prefix}.empirical'
+            
+        model_arch_fn = f'{self.trn_dir}/{self.trn_prefix}.trained_model.pkl'
+        out_label_est_fn = f'{path_prefix}_est.labels.csv'
+        out_label_true_fn = f'{path_prefix}_true.labels.csv'
+    
         # load model
-        self.mymodel = torch.load(self.model_arch_fn)
+        self.mymodel = torch.load(model_arch_fn)
 
         # test dataset
-        norm_test_label_est = self.mymodel(torch.Tensor(self.test_phy_data),
-                                           torch.Tensor(self.norm_test_aux_data))
+        label_est = self.mymodel(torch.Tensor(self.phy_data),
+                                      torch.Tensor(self.aux_data))
 
         # point estimates & CPIs for test labels
-        norm_test_label_est        = torch.stack(norm_test_label_est).detach().numpy()
-        # norm_test_label_est        = np.array(norm_test_label_est)
-        norm_test_label_est[1,:,:] = norm_test_label_est[1,:,:] - self.cpi_adjustments[0,:]
-        norm_test_label_est[2,:,:] = norm_test_label_est[2,:,:] + self.cpi_adjustments[1,:]
+        label_est = torch.stack(label_est).detach().numpy()
+        label_est[1,:,:] = label_est[1,:,:] - self.cpi_adjustments[0,:]
+        label_est[2,:,:] = label_est[2,:,:] + self.cpi_adjustments[1,:]
         
         # denormalize test label estimates
-        test_label_est = util.denormalize(norm_test_label_est,
-                                          self.train_labels_mean_sd,
-                                          exp=True) - self.log_offset
+        denorm_label_est = util.denormalize(label_est,
+                                            self.train_labels_mean_sd,
+                                            exp=True) - self.log_offset
 
         # save test estimates
-        df_test_label_est = util.make_param_VLU_mtx(test_label_est, self.label_names)
-        df_test_label_est.to_csv(self.out_label_est_fn, index=False, sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
-        if not self.emp_analysis:
-            df_test_label_true = pd.DataFrame(self.test_label_true, columns=self.label_names)
-            df_test_label_true.to_csv(self.out_label_true_fn, index=False, sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
+        df_test_label_est = util.make_param_VLU_mtx(denorm_label_est, self.label_names)
+        df_test_label_est.to_csv(out_label_est_fn, index=False, sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
+        if mode == 'sim':
+            df_test_label_true = pd.DataFrame(self.labels, columns=self.label_names)
+            df_test_label_true.to_csv(out_label_true_fn, index=False, sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
         
         # done
         return
