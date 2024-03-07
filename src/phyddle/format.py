@@ -151,7 +151,7 @@ class Formatter:
         verbose = self.verbose
 
         # print header
-        util.print_step_header('fmt', [self.sim_dir],
+        util.print_step_header('fmt', [self.sim_dir, self.emp_dir],
                                self.fmt_dir, verbose)
         # prepare workspace
         os.makedirs(self.fmt_dir, exist_ok=True)
@@ -160,24 +160,30 @@ class Formatter:
         start_time,start_time_str = util.get_time()
         util.print_str(f'▪ Start time of {start_time_str}', verbose)
 
-        # run() attempts to generate one simulation per value in rep_idx,
-        # where rep_idx is list of unique ints to identify simulated datasets
-        util.print_str('▪ Collecting simulated data', verbose)
-        self.rep_idx = self.get_rep_idx(mode='sim')
+        found_sim = False
+        if self.has_valid_dataset(mode='sim'):
+            # run() attempts to generate one simulation per value in rep_idx,
+            # where rep_idx is list of unique ints to identify simulated datasets
+            util.print_str('▪ Collecting simulated data', verbose)
+            self.rep_idx = self.get_rep_idx(mode='sim')
+    
+            # encode each dataset into individual tensors
+            util.print_str('▪ Encoding simulated data as tensors', verbose)
+            self.encode_all(mode='sim')
+    
+            # split examples into training and test datasets
+            util.print_str('▪ Splitting into train and test datasets', verbose)
+            self.split_idx = self.split_examples()
+    
+            # write tensors across all examples to file
+            util.print_str('▪ Combining and writing simulated data as tensors', verbose)
+            self.write_tensor(mode='sim')
+            
+            # done
+            found_sim = True
 
-        # encode each dataset into individual tensors
-        util.print_str('▪ Encoding simulated data as tensors', verbose)
-        self.encode_all(mode='sim')
-
-        # split examples into training and test datasets
-        util.print_str('▪ Splitting into train and test datasets', verbose)
-        self.split_idx = self.split_examples()
-
-        # write tensors across all examples to file
-        util.print_str('▪ Combining and writing simulated data as tensors', verbose)
-        self.write_tensor(mode='sim')
-
-        if self.has_valid_emp_dataset():
+        found_emp = False
+        if self.has_valid_dataset(mode='emp'):
             # collecting empirical files
             util.print_str('▪ Collecting empirical data', verbose)
             self.rep_idx = self.get_rep_idx(mode='emp')
@@ -188,8 +194,15 @@ class Formatter:
     
             # write tensors across all examples to file
             util.print_str('▪ Combining and writing empirical data as tensors', verbose)
-            self.split_idx = { 'emp' : self.rep_idx }
+            self.split_idx = { 'empirical' : np.array(self.rep_idx) }
             self.write_tensor(mode='emp')
+            
+            # done
+            found_emp = True
+        
+        if not found_sim and not found_emp:
+            util.print_err('No simulated or empirical datasets found. '
+                           'Check config settings.', verbose)
 
         # end time
         end_time,end_time_str = util.get_time()
@@ -199,35 +212,50 @@ class Formatter:
         # done
         util.print_str('... done!', verbose)
     
-    def has_valid_emp_dataset(self):
+    def has_valid_dataset(self, mode='sim'):
         """Determines if empirical analysis is being performed.
         
         Returns:
             bool: True if empirical analysis is being performed.
         """
         
+        assert mode in ['sim', 'emp']
+        dat_dir = ''
+        dat_prefix = ''
+        if mode == 'sim':
+            dat_dir = self.sim_dir
+            dat_prefix = self.sim_prefix
+        elif mode == 'emp':
+            dat_dir = self.emp_dir
+            dat_prefix = self.emp_prefix
+            
         # check if empirical directory exists
-        if not os.path.exists(self.emp_dir):
+        if not os.path.exists(dat_dir):
             return False
         
         # check if empirical directory contains files
-        emp_files = set()
-        for f in os.listdir(self.emp_dir):
+        files = set()
+        for f in os.listdir(dat_dir):
             f = '.'.join( f.split('.')[0:2])
-            if self.emp_prefix in f:
-                emp_files.add(f)
+            if dat_prefix in f:
+                files.add(f)
         
-        if len(emp_files) == 0:
+        if len(files) == 0:
             return False
         
         # check that at least one dataset is complete
-        for f in emp_files:
-            has_dat = os.path.exists(f'{self.emp_dir}/{f}.dat.csv') or \
-                      os.path.exists(f'{self.emp_dir}/{f}.dat.nex')
-            has_tre = os.path.exists(f'{self.emp_dir}/{f}.tre')
+        for f in files:
+            has_dat = os.path.exists(f'{dat_dir}/{f}.dat.csv') or \
+                      os.path.exists(f'{dat_dir}/{f}.dat.nex')
+            has_tre = os.path.exists(f'{dat_dir}/{f}.tre')
+            has_lbl = os.path.exists(f'{dat_dir}/{f}.labels.csv')
             
-            # if both files exist, then we have a valid dataset
-            if has_dat and has_tre:
+            # no labels needed for empirical datasets with no param_data
+            if mode == 'emp' and len(self.param_data) == 0:
+                has_lbl = True
+            
+            # if the 2-3 files exist, then we have 1+ valid datasets
+            if has_dat and has_tre and has_lbl:
                 return True
     
         return False
@@ -288,7 +316,7 @@ class Formatter:
 
         num_total = len(res)
         num_valid = len([x for x in res if x is not None])
-        util.print_str(f'Encoding found {num_valid} of {num_total} examples valid.')
+        util.print_str(f'Encoding found {num_valid} of {num_total} valid examples.')
         if num_valid == 0:
             # exits
             util.print_err('Format cannot proceed without valid examples. '
@@ -305,8 +333,8 @@ class Formatter:
                 self.phy_tensors[i[0]] = i[1]
 
         # save names/lengths of summary statistic and label lists
-        self.summ_stat_names = self.get_summ_stat_names()
-        self.label_names     = self.get_label_names()
+        self.summ_stat_names = self.get_summ_stat_names(mode)
+        self.label_names     = self.get_label_names(mode)
 
         return
     
@@ -348,21 +376,29 @@ class Formatter:
             
         return all_idx
 
-    def get_summ_stat_names(self):
+    def get_summ_stat_names(self, mode='sim'):
         """Get names of summary statistics.
     
         Returns:
             str[]: List of summary statistics names.
         """
+        assert mode in ['sim', 'emp']
         # get first index
         idx = None
         k_list = list(self.phy_tensors.keys())
         if len(k_list) > 0 and idx is None:
             idx = k_list[0]
+        
         # get headers from file
-        fn = f'{self.sim_dir}/{self.sim_prefix}.{idx}.summ_stat.csv'
+        dat_dir_prefix = ''
+        if mode == 'sim':
+            dat_dir_prefix = f'{self.sim_dir}/{self.sim_prefix}.{idx}' 
+        elif mode == 'emp':
+            dat_dir_prefix = f'{self.emp_dir}/{self.emp_prefix}.{idx}'
+        fn = f'{dat_dir_prefix}.summ_stat.csv'
+        
         if not os.path.exists(fn):
-            util.print_err(f'Cannot find {self.sim_dir}/{self.sim_prefix}.'
+            util.print_err(f'Cannot find {dat_dir_prefix}.'
                            f'*.summ_stat.csv. Verify that your simulator '
                            f'created output that is detectable based on your '
                            f'config settings.')
@@ -371,21 +407,30 @@ class Formatter:
         ret = df.columns.to_list()
         return ret
     
-    def get_label_names(self):
+    def get_label_names(self, mode='sim'):
         """Get names of training labels.
     
         Returns:
             str[]: List of label names.
         """
+        assert mode in ['sim', 'emp']
+        
         # get first index
         idx = None
         k_list = list(self.phy_tensors.keys())
         if len(k_list) > 0 and idx is None:
             idx = k_list[0]
+        
         # get headers from file
-        fn = f'{self.sim_dir}/{self.sim_prefix}.{idx}.labels.csv'
-        if not os.path.exists(fn):
-            util.print_err(f'Cannot find {self.sim_dir}/{self.sim_prefix}.'
+        dat_dir_prefix = ''
+        if mode == 'sim':
+            dat_dir_prefix = f'{self.sim_dir}/{self.sim_prefix}.{idx}'
+        elif mode == 'emp':
+            dat_dir_prefix = f'{self.emp_dir}/{self.emp_prefix}.{idx}'
+        fn = f'{dat_dir_prefix}.labels.csv'
+        
+        if not os.path.exists(fn) and mode != 'emp' and len(self.param_data) > 0:
+            util.print_err(f'Cannot find {dat_dir_prefix}.'
                            f'*.labels.csv. Verify that your simulator created '
                            f'output that is detectable based on your config '
                            f'settings.')
@@ -426,7 +471,7 @@ class Formatter:
         or hdf5 format based on the tensor_format setting. Actual writing
         is delegated to write_tensor_csv() and write_tensor_hdf5() functions.
         """
-        if mode == 'temp':
+        if mode == 'emp':
             if self.tensor_format == 'csv':
                 self.write_tensor_csv('empirical')
             elif self.tensor_format == 'hdf5':
@@ -457,6 +502,9 @@ class Formatter:
         """
 
         assert data_str in ['test', 'train', 'empirical']
+        mode = 'sim'
+        if data_str == 'empirical':
+            mode = 'emp'
         
         # build files
         tree_width = self.tree_width
@@ -485,7 +533,7 @@ class Formatter:
                                               dtype='f', compression='gzip')
         
         # load all the info
-        res = [ self.load_one_sim(idx=idx) for idx in tqdm(rep_idx,
+        res = [ self.load_one_sim(idx=idx, mode=mode) for idx in tqdm(rep_idx,
                                                            total=len(rep_idx),
                                                            desc='Combining',
                                                            smoothing=0) ]
@@ -623,7 +671,7 @@ class Formatter:
 
         return
     
-    def load_one_sim(self, idx):
+    def load_one_sim(self, idx, mode='sim'):
         """Load single simulated dataset.
     
         Args:
@@ -634,13 +682,26 @@ class Formatter:
         """
         
         # file names
-        fname_base  = f'{self.sim_dir}/{self.sim_prefix}.{idx}'
+        fname_base = ''
+        if mode == 'sim':
+            fname_base  = f'{self.sim_dir}/{self.sim_prefix}.{idx}'
+        elif mode == 'emp':
+            fname_base  = f'{self.emp_dir}/{self.emp_prefix}.{idx}'
+            
         fname_param = fname_base + '.labels.csv'
         fname_stat  = fname_base + '.summ_stat.csv'
+        
         # dataset values
         x1 = self.phy_tensors[idx].flatten()
         x2 = np.loadtxt(fname_stat, delimiter=',', skiprows=1)
-        x3 = np.loadtxt(fname_param, delimiter=',', skiprows=1)
+        
+        x3 = None
+        if mode == 'emp' and len(self.param_data) == 0:
+            num_labels = len(self.label_names)
+            x3 = np.zeros( (1,num_labels) )
+        else:
+            x3 = np.loadtxt(fname_param, delimiter=',', skiprows=1)
+        
         # return
         return x1, x2, x3
 
