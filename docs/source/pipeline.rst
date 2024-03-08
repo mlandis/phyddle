@@ -488,7 +488,7 @@ Plot
 :ref:`Plot` collects all results from the :ref:`Format`, :ref:`Train`, and
 :ref:`Estimate` steps to compile a set of useful figures, listed below. When 
 results from :ref:`Estimate` are available, the step will integrate it into
-other figures to contextualize where that input dataset and estimateed
+other figures to contextualize where that input dataset and estimated
 labels fall with respect to the training dataset.
 
 Plots are stored within ``plot_dir``.

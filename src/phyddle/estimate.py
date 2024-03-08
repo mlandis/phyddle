@@ -125,7 +125,7 @@ class Estimator:
         
         """
         verbose = self.verbose
-
+        
         # print header
         util.print_step_header('est',
                                [self.fmt_dir, self.trn_dir],

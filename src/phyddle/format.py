@@ -154,8 +154,16 @@ class Formatter:
         
         verbose = self.verbose
 
+        valid_emp = self.has_valid_dataset(mode='emp')
+        valid_sim = self.has_valid_dataset(mode='sim')
+        input_print_dir = list()
+        if valid_emp and not self.no_emp:
+            input_print_dir.append(self.emp_dir)
+        if valid_sim and not self.no_sim:
+            input_print_dir.append(self.sim_dir)
+            
         # print header
-        util.print_step_header('fmt', [self.sim_dir, self.emp_dir],
+        util.print_step_header('fmt', input_print_dir,
                                self.fmt_dir, verbose)
         # prepare workspace
         os.makedirs(self.fmt_dir, exist_ok=True)
