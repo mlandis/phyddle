@@ -52,13 +52,14 @@ work into these directories:
 
 .. code-block:: shell
 
+	workspace/example/empirical      # your empirical dataset
 	workspace/example/simulate       # output of Simulate step
 	workspace/example/format         # output of Format step
 	workspace/example/train          # output of Train step
 	workspace/example/estimate       # output of Estimate step
 	workspace/example/plot           # output of Plot step
-	workspace/example/log            # analysis logs
-
+	workspace/example/log            # logs for phyddle analyses
+	
 Next, we give an overview of the standard files and formats corresponding to
 each pipeline directory.
 

@@ -51,22 +51,22 @@ would use. In this section, we assume the project name is ``example``:
 
     Format
     - input:   ./workspace/example/simulate  # simulated datasets
+               ./workspace/example/empirical # empirical datasets
     - output:  ./workspace/example/format    # formatted datasets
   
     Train
     - input:   ./workspace/example/format    # simulated training dataset
-    - output:  ./workspace/example/train     # trained network + results
+    - output:  ./workspace/example/train     # trained network + train results
   
     Estimate
-    - input:   ./workspace/example/format    # simulated test dataset
+    - input:   ./workspace/example/format    # simulated test + empirical datasets
                ./workspace/example/train     # trained network
-               ./workspace/example/estimate  # new (empirical) dataset
-    - output:  ./workspace/example/estimate  # new (empirical) estimates
+    - output:  ./workspace/example/estimate  # test + empirical results
 
     Plot
     - input:   ./workspace/example/format    # simulated training dataset
                ./workspace/example/train     # trained network and output
-               ./workspace/example/estimate  # new (empirical) dataset & estimates
+               ./workspace/example/estimate  # simulated + empirical estimates
     - output:  ./workspace/example/plot      # analysis figures
 
 
@@ -99,14 +99,15 @@ the following code
     # arguments
     args        = commandArgs(trailingOnly = TRUE)
     out_path    = args[1]
-    start_idx   = as.numeric(args[2])
-    batch_size  = as.numeric(args[3])
+    out_prefix  = args[2]
+    start_idx   = as.numeric(args[3])
+    batch_size  = as.numeric(args[4])
     rep_idx     = start_idx:(start_idx+batch_size-1)
     num_rep     = length(rep_idx)
     get_mle     = FALSE
 
     # filesystem
-    tmp_fn = paste0(out_path, "/sim.", rep_idx)   # sim path prefix
+    tmp_fn = paste0(out_path, "/", out_prefix, ".", rep_idx)  # sim path prefix
     phy_fn = paste0(tmp_fn, ".tre")               # newick file
     dat_fn = paste0(tmp_fn, ".dat.csv")           # csv of data
     lbl_fn = paste0(tmp_fn, ".labels.csv")        # csv of labels (e.g. params)
@@ -195,11 +196,11 @@ properly. This is done by setting the ``sim_command`` argument equal to a
 command string of the form ``MY_COMMAND [MY_COMMAND_ARGUMENTS]``. During
 simulation, phyddle executes the command string against different filepath
 locations. More specifically, phyddle will execute the command
-``MY_COMMAND [MY_COMMAND_ARGUMENTS] SIM_PREFIX``, where ``SIM_PREFIX`` contains
-the beginning of the filepath locating for an individual simulated dataset. As
-part of the Simulate step, phyddle will execute the command string against a
-range of values of ``SIM_PREFIX`` generates the complete simulated dataset of
-replicated training examples.
+``MY_COMMAND [MY_COMMAND_ARGUMENTS] [SIM_DIR] [SIM_PREFIX]``, where ``SIM_DIR``
+is the path to the directory locating the individual simulated datasets, and 
+``SIM_PREFIX`` is a common prefix shared by individual simulation files. As
+part of the Simulate step, phyddle will execute the command string to generate
+the complete simulated dataset of replicated training examples.
 
 In this case, we assume that `sim_bisse.R` is an R script that is located in
 the subdirectory `./workspace/example` and can be executed using the `Rscript` 
@@ -209,20 +210,20 @@ command. The correct `sim_command` value to run this script is:
 
     'sim_command' : 'Rscript ./workspace/example/sim_bisse.R'
 
-Assuming ``sim_dir = ./workspace/example/simulate`` and
+Assuming ``sim_dir = './workspace/example/simulate'``, ``sim_prefix = 'sim'``
 ``sim_batch_size = 10``, phyddle will execute the commands during simulation
 
 .. code-block:: shell
 
-    Rscript sim_one.R ../workspace/example/simulate/sim 0 10
-    Rscript sim_one.R ../workspace/example/simulate/sim 10 10
-    Rscript sim_one.R ../workspace/example/simulate/sim 20 10
+    Rscript sim_one.R ../workspace/example/simulate/ sim 0 10
+    Rscript sim_one.R ../workspace/example/simulate/ sim 10 10
+    Rscript sim_one.R ../workspace/example/simulate/ sim 20 10
     ...
 
 for every replication index between ``start_idx`` and ``end_idx`` in
 increments of ``sim_batch_size``, where the R script itself is responsible
 for generating the ``sim_batch_size`` replicates per batch. In fact,
-executing ``Rscript sim_bisse.R ./workspace/example/simulate/sim 1 10``
+executing ``Rscript sim_bisse.R ./workspace/example/simulate/ sim 1 10``
 from terminal is an ideal way to validate that your custom simulator is
 compatible with the phyddle requirements.
 

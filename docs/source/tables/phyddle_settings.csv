@@ -2,13 +2,21 @@ Setting|Step(s)|Type|Description
 ``cfg``|–––––|*str*|Config file name
 ``step``|SFTEP|*str*|Pipeline step(s) defined with (S)imulate, (F)ormat, (T)rain, (E)stimate, (P)lot, or (A)ll
 ``verbose``|SFTEP|*str*|Verbose output to screen?
-``force``|–––––|––|Arguments override config file settings
 ``make_cfg``|–––––|––|Write default config file to '__config_default.py'?
 ``output_precision``|SFTEP|*int*|Number of digits (precision) for numbers in output files
 ``use_parallel``|SF–––|*str*|Use parallelization? (recommended)
 ``num_proc``|SFT––|*int*|Number of cores for multiprocessing (-N for all but N)
+``no_emp``|–––––|––|Disable Format/Estimate steps for empirical data?
+``no_sim``|–––––|––|Disable Format/Estimate steps for simulated data?
+``sim_prefix``|SF–––|*str*|Prefix for raw simulated data
+``emp_prefix``|SF–––|*str*|Prefix for raw empirical data
+``fmt_prefix``|–FTEP|*str*|Prefix for tensor-formatted data
+``trn_prefix``|–FTEP|*str*|Prefix for trained networks and training output
+``est_prefix``|––TEP|*str*|Prefix for new datasets and estimates
+``plt_prefix``|––––P|*str*|Prefix for plotted results
 ``sim_dir``|SF–––|*str*|Directory for raw simulated data
-``fmt_dir``|–FTEP|*str*|Directory for tensor-formatted simulated data
+``emp_dir``|SF–––|*str*|Directory for raw empirical data
+``fmt_dir``|–FTEP|*str*|Directory for tensor-formatted data
 ``trn_dir``|–FTEP|*str*|Directory for trained networks and training output
 ``est_dir``|––TEP|*str*|Directory for new datasets and estimates
 ``plt_dir``|––––P|*str*|Directory for plotted results
@@ -56,7 +64,6 @@ Setting|Step(s)|Type|Description
 ``phy_kernel_dilate``|––T––|*int[]*|Kernel sizes for dilate convolutional layers for phylogenetic state input
 ``phy_stride_stride``|––T––|*int[]*|Stride sizes for stride convolutional layers for phylogenetic state input
 ``phy_dilate_dilate``|––T––|*int[]*|Dilation sizes for dilate convolutional layers for phylogenetic state input
-``est_prefix``|–––EP|*str*|Predict results for this dataset
 ``plot_train_color``|––––P|*str*|Plotting color for training data elements
 ``plot_label_color``|––––P|*str*|Plotting color for training label elements
 ``plot_test_color``|––––P|*str*|Plotting color for test data elements

@@ -70,6 +70,12 @@ if desired.
         #-------------------------------#
         # Workspace                     #
         #-------------------------------#
+        'sim_prefix'         : 'out',          # Prefix for raw simulated data
+        'emp_prefix'         : 'out',          # Prefix for raw empirical data
+        'fmt_prefix'         : 'out',          # Prefix for tensor-formatted data
+        'trn_prefix'         : 'out',          # Prefix for trained networks and training output
+        'est_prefix'         : 'out',          # Prefix for new datasets and estimates
+        'plt_prefix'         : 'out',          # Prefix for plotted results
         'log_dir'            : f'{work_dir}/log',      # Directory for logs of analysis metadata
         'sim_dir'            : f'{work_dir}/simulate', # Directory for raw simulated data
         'fmt_dir'            : f'{work_dir}/format',   # Directory for tensor-formatted simulated data
@@ -102,7 +108,7 @@ if desired.
         'param_est'         : [                      # model parameters to predict (labels)
         'birth_1', 'birth_2', 'death', 'state_rate'
         ],
-        'param_data'        : [                      # model parameters that are known (aux. data)
+        'param_data'        : [                      # Model parameters that are known (aux. data)
             'sample_frac'
         ],
         'char_format'        : 'csv',                # File format for character data
@@ -138,7 +144,7 @@ if desired.
         #-------------------------------#
         # Estimate                      #
         #-------------------------------#
-        'est_prefix'         : 'new.0',              # Predict results for this dataset
+        # not currently used
 
         #-------------------------------#
         # Plot                          #
@@ -171,53 +177,74 @@ adjusted with the command line using the ``--help`` option:
 
 	$ phyddle --help
     
-    usage: phyddle [-h] [-c] [-s] [-v] [-f] [--make_cfg] [--output_precision]
-                   [--use_parallel] [--num_proc] [--sim_dir] [--fmt_dir]
-                   [--trn_dir] [--est_dir] [--plt_dir] [--log_dir] [--sim_command]
-                   [--sim_logging] [--start_idx] [--end_idx] [--sim_more]
+    usage: phyddle [-h] [-c] [-s] [-v] [--make_cfg] [--output_precision]
+                   [--use_parallel] [--num_proc] [--no_emp] [--no_sim]
+                   [--sim_prefix] [--emp_prefix] [--fmt_prefix]
+                   [--trn_prefix] [--est_prefix] [--plt_prefix] [--sim_dir]
+                   [--emp_dir] [--fmt_dir] [--trn_dir] [--est_dir]
+                   [--plt_dir] [--log_dir] [--sim_command] [--sim_logging]
+                   [--start_idx] [--end_idx] [--sim_more]
                    [--sim_batch_size] [--encode_all_sim] [--num_char]
                    [--num_states] [--min_num_taxa] [--max_num_taxa]
                    [--downsample_taxa] [--tree_width] [--tree_encode]
-                   [--brlen_encode] [--char_encode] [--param_est] [--param_data]
-                   [--char_format] [--tensor_format] [--save_phyenc_csv]
-                   [--trn_objective] [--num_epochs] [--trn_batch_size]
-                   [--prop_test] [--prop_val] [--prop_cal] [--cpi_coverage]
-                   [--cpi_asymmetric] [--loss] [--optimizer] [--metrics]
-                   [--log_offset] [--phy_channel_plain] [--phy_channel_stride]
+                   [--brlen_encode] [--char_encode] [--param_est]
+                   [--param_data] [--char_format] [--tensor_format]
+                   [--save_phyenc_csv] [--trn_objective] [--num_epochs]
+                   [--trn_batch_size] [--prop_test] [--prop_val]
+                   [--prop_cal] [--cpi_coverage] [--cpi_asymmetric]
+                   [--loss] [--optimizer] [--metrics] [--log_offset]
+                   [--phy_channel_plain] [--phy_channel_stride]
                    [--phy_channel_dilate] [--aux_channel] [--lbl_channel]
                    [--phy_kernel_plain] [--phy_kernel_stride]
                    [--phy_kernel_dilate] [--phy_stride_stride]
-                   [--phy_dilate_dilate] [--est_prefix] [--plot_train_color]
-                   [--plot_label_color] [--plot_test_color] [--plot_val_color]
-                   [--plot_aux_color] [--plot_est_color] [--plot_scatter_log]
-                   [--plot_contour_log] [--plot_density_log]
+                   [--phy_dilate_dilate] [--plot_train_color]
+                   [--plot_label_color] [--plot_test_color]
+                   [--plot_val_color] [--plot_aux_color] [--plot_est_color]
+                   [--plot_scatter_log] [--plot_contour_log]
+                   [--plot_density_log]
     
     Software to fiddle around with deep learning for phylogenetic models
     
     options:
       -h, --help            show this help message and exit
       -c , --cfg            Config file name
-      -s , --step           Pipeline step(s) defined with (S)imulate, (F)ormat,
-                            (T)rain, (E)stimate, (P)lot, or (A)ll
+      -s , --step           Pipeline step(s) defined with (S)imulate,
+                            (F)ormat, (T)rain, (E)stimate, (P)lot, or (A)ll
       -v , --verbose        Verbose output to screen?
-      -f, --force           Arguments override config file settings
-      --make_cfg            Write default config file to '__config_default.py'?
-      --output_precision    Number of digits (precision) for numbers in output
-                            files
+      --make_cfg            Write default config file to
+                            '__config_default.py'?
+      --output_precision    Number of digits (precision) for numbers in
+                            output files
       --use_parallel        Use parallelization? (recommended)
-      --num_proc            Number of cores for multiprocessing (-N for all but N)
+      --num_proc            Number of cores for multiprocessing (-N for all
+                            but N)
+      --no_emp              Disable Format/Estimate steps for empirical
+                            data?
+      --no_sim              Disable Format/Estimate steps for simulated
+                            data?
+      --sim_prefix          Prefix for raw simulated data
+      --emp_prefix          Prefix for raw empirical data
+      --fmt_prefix          Prefix for tensor-formatted data
+      --trn_prefix          Prefix for trained networks and training output
+      --est_prefix          Prefix for new datasets and estimates
+      --plt_prefix          Prefix for plotted results
       --sim_dir             Directory for raw simulated data
-      --fmt_dir             Directory for tensor-formatted simulated data
-      --trn_dir             Directory for trained networks and training output
+      --emp_dir             Directory for raw empirical data
+      --fmt_dir             Directory for tensor-formatted data
+      --trn_dir             Directory for trained networks and training
+                            output
       --est_dir             Directory for new datasets and estimates
       --plt_dir             Directory for plotted results
       --log_dir             Directory for logs of analysis metadata
       --sim_command         Simulation command to run single job (see
                             documentation)
       --sim_logging         Simulation logging style
-      --start_idx           Start replicate index for simulated training dataset
-      --end_idx             End replicate index for simulated training dataset
-      --sim_more            Add more simulations with auto-generated indices
+      --start_idx           Start replicate index for simulated training
+                            dataset
+      --end_idx             End replicate index for simulated training
+                            dataset
+      --sim_more            Add more simulations with auto-generated
+                            indices
       --sim_batch_size      Number of replicates per simulation command
       --encode_all_sim      Encode all simulated replicates into tensor?
       --num_char            Number of characters
@@ -233,48 +260,48 @@ adjusted with the command line using the ``--help`` option:
       --param_data          Model parameters treated as data
       --char_format         File format for character data
       --tensor_format       File format for training example tensors
-      --save_phyenc_csv     Save encoded phylogenetic tensor encoding to csv?
+      --save_phyenc_csv     Save encoded phylogenetic tensor encoding to
+                            csv?
       --trn_objective       Objective of training procedure
       --num_epochs          Number of training epochs
       --trn_batch_size      Training batch sizes
-      --prop_test           Proportion of data used as test examples (assess
-                            trained network performance)
+      --prop_test           Proportion of data used as test examples
+                            (assess trained network performance)
       --prop_val            Proportion of data used as validation examples
                             (diagnose network overtraining)
       --prop_cal            Proportion of data used as calibration examples
                             (calibrate CPIs)
-      --cpi_coverage        Expected coverage percent for calibrated prediction
-                            intervals (CPIs)
-      --cpi_asymmetric      Use asymmetric (True) or symmetric (False) adjustments
-                            for CPIs?
+      --cpi_coverage        Expected coverage percent for calibrated
+                            prediction intervals (CPIs)
+      --cpi_asymmetric      Use asymmetric (True) or symmetric (False)
+                            adjustments for CPIs?
       --loss                Loss function for optimization
       --optimizer           Method used for optimizing neural network
       --metrics             Recorded training metrics
-      --log_offset          Offset size c when taking ln(x+c) for potentially
-                            zero-valued variables
-      --phy_channel_plain   Output channel sizes for plain convolutional layers
-                            for phylogenetic state input
+      --log_offset          Offset size c when taking ln(x+c) for
+                            potentially zero-valued variables
+      --phy_channel_plain   Output channel sizes for plain convolutional
+                            layers for phylogenetic state input
       --phy_channel_stride
-                            Output channel sizes for stride convolutional layers
-                            for phylogenetic state input
+                            Output channel sizes for stride convolutional
+                            layers for phylogenetic state input
       --phy_channel_dilate
-                            Output channel sizes for dilate convolutional layers
-                            for phylogenetic state input
-      --aux_channel         Output channel sizes for dense layers for auxiliary
-                            data input
+                            Output channel sizes for dilate convolutional
+                            layers for phylogenetic state input
+      --aux_channel         Output channel sizes for dense layers for
+                            auxiliary data input
       --lbl_channel         Output channel sizes for dense layers for label
                             outputs
       --phy_kernel_plain    Kernel sizes for plain convolutional layers for
                             phylogenetic state input
-      --phy_kernel_stride   Kernel sizes for stride convolutional layers for
-                            phylogenetic state input
-      --phy_kernel_dilate   Kernel sizes for dilate convolutional layers for
-                            phylogenetic state input
-      --phy_stride_stride   Stride sizes for stride convolutional layers for
-                            phylogenetic state input
-      --phy_dilate_dilate   Dilation sizes for dilate convolutional layers for
-                            phylogenetic state input
-      --est_prefix          Predict results for this dataset
+      --phy_kernel_stride   Kernel sizes for stride convolutional layers
+                            for phylogenetic state input
+      --phy_kernel_dilate   Kernel sizes for dilate convolutional layers
+                            for phylogenetic state input
+      --phy_stride_stride   Stride sizes for stride convolutional layers
+                            for phylogenetic state input
+      --phy_dilate_dilate   Dilation sizes for dilate convolutional layers
+                            for phylogenetic state input
       --plot_train_color    Plotting color for training data elements
       --plot_label_color    Plotting color for training label elements
       --plot_test_color     Plotting color for test data elements
