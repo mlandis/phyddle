@@ -73,7 +73,6 @@ class Plotter:
 
         # settings
         self.verbose            = bool(args['verbose'])
-        self.emp_analysis       = bool(args['emp_analysis'])
         
         # filesystem
         self.sim_prefix            = str(args['sim_prefix'])

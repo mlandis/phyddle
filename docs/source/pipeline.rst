@@ -182,14 +182,13 @@ the following code
     quit()
   
 
-This script has a few important features. First, the simulator is entirely
-responsible for simulating the dataset. Second, the script assumes it will be
-provided a runtime argument (``args[1]``) to generate filenames for the training
-example and a batch size argument (``args[2]``) that determines how many
-simulated datasets will be generated when the script is run. Third, output
-for the Newick string is stored into a ``.tre`` file, for the character
-matrix data into a ``.dat.csv`` file, and for the training labels
-into a comma-separated ``.csv`` file.
+This particular script has a few important features. First, the simulator is
+entirely responsible for simulating the dataset. Second, the script assumes it
+will be provided runtime arguments (``args```) to generate filenames and to
+determine how many simulated datasets will be generated when the script is run
+(more details in next paragraph). Third, output for the Newick string is stored
+into a ``.tre`` file, for the character matrix data into a ``.dat.csv`` file,
+and for the training labels into a comma-separated ``.csv`` file.
 
 Now that we understand the script, we need to configure phyddle to call it
 properly. This is done by setting the ``sim_command`` argument equal to a
@@ -233,16 +232,16 @@ compatible with the phyddle requirements.
 Format
 ------
 
-:ref:`Format` converts the simulated data for a project into a tensor format
-that phyddle uses to train neural networks in the :ref:`Train` step.
-:ref:`Format` performs two main tasks:
+:ref:`Format` converts simulated and/or empirical data for a project into a
+tensor format that phyddle uses to train neural networks in the :ref:`Train`
+step. :ref:`Format` performs two main tasks:
 
-1. Encode all individual raw datasets in the simulate project directory into
-   individual tensor representations
-2. Combines all the individual tensors into larger, singular tensors to act
-   as the training dataset
+1. Encode all individual raw datasets in the simulate and empirical project
+   directory into individual tensor representations
+2. Combines all the individual tensors into larger, singular tensors that can
+   be processed by the neural network
 
-For each simulated example, :ref:`Format` encodes the raw data into two input
+For each example, :ref:`Format` encodes the raw data into two input
 tensors and one output tensor:
 
 - One input tensor is the **phylogenetic-state tensor**. Loosely speaking,
@@ -286,7 +285,7 @@ size.
 The phylogenetic-state tensors and auxiliary data tensors are then created. If
 ``save_phyenc_csv`` is set, then individual csv files are saved for each
 dataset, which is especially useful for formatting new empirical datasets into
-an accepted phyddle format. The ``param_est`` setting identifies which
+an accepted phyddle format. The ``param_est`` setting identifies which "unknown"
 parameters in the labels tensor you want to treat as downstream estimation
 targets. The ``param_data`` setting identifies which of those parameters you
 want to treat as "known" auxiliary data. Lastly, Format creates a test dataset
@@ -295,27 +294,68 @@ that contains all remaining examples.
 
 Formatted tensors are then saved to disk either in simple comma-separated
 value format or in a compressed HDF5 format. For example, suppose we set
-``fmt_dir`` to ``'format'``, ``proj`` to ``'example'``, and ``tree_encode``
-to ``'serial'``. If we set ``tensor_format`` to ``'hdf5'`` it produces:
+``fmt_dir`` to ``'./workspace/format/example'``, ``fmt_prefix`` to ``'out'``,
+and ``tree_encode`` to ``'serial'``. If we set ``tensor_format == 'hdf5'``,
+it produces:
 
 .. code-block:: shell
 
-    workspace/example/format/test.nt200.hdf5
-    workspace/example/format/train.nt200.hdf5
+    workspace/example/format/out.empirical.hdf5
+    workspace/example/format/out.test.hdf5
+    workspace/example/format/out.train.hdf5
 
 or if ``tensor_format == 'csv'``:
 
 .. code-block:: shell
 
-    workspace/example/format/test.nt200.aux_data.csv
-    workspace/example/format/test.nt200.labels.csv
-    workspace/example/format/test.nt200.phy_data.csv
-    workspace/example/format/train.nt200.aux_data.csv
-    workspace/example/format/train.nt200.labels.csv
-    workspace/example/format/train.nt200.phy_data.csv
+    workspace/example/format/out.empirical.aux_data.csv
+    workspace/example/format/out.empirical.labels.csv
+    workspace/example/format/out.empirical.phy_data.csv
+    workspace/example/format/out.test.aux_data.csv
+    workspace/example/format/out.test.labels.csv
+    workspace/example/format/out.test.phy_data.csv
+    workspace/example/format/out.train.aux_data.csv
+    workspace/example/format/out.train.labels.csv
+    workspace/example/format/out.train.phy_data.csv
 
+:ref:`Format` behaves the same way for simulated vs. empirical datasets,
+except in two key ways. First, simulated datasets will be split into datasets
+used to train the neural network and test its accuracy (in proportions defined
+by ``test_prop``), whereas empirical datasets are left whole. Second, simulated
+datasets will contain labels for all data-generating parameters, meaning both 
+the "unknown" parameters that we want to estimate and the "known" parameters
+that contribute to the data-generating process, but could be measured in the 
+real world. For example, the birth rate might be an "unknown" parameter we want 
+to estimate, while the missing proportion of species is a "known" parameter 
+that we can provide the network if we know e.g. only 10% of described
+plant species are in the dataset.
 
-These files can then be processed by the :ref:`Train` step.
+When searching for empirical and simulated datasets, :ref:`Format` uses
+``emp_dir`` and ``sim_dir`` to locate the datasets. The ``emp_prefix`` and
+``sim_prefix`` settings are used to identify the datasets. :ref:`Format`
+assumes that empirical datasets follow the naming pattern of
+``<prefix>.<rep_idx>.<ext>`` described for :ref:`Simulate`. For example,
+setting ``emp_dir`` to ``'./workspace/dnds/empirical'`` and ``emp_prefix``
+to ``'mammal_gene'`` will cause :ref:`Format` to search for files with
+these names:
+
+.. code-block:: shell
+
+    workspace/dnds/empirical/mammal_gene.1.tre
+    workspace/dnds/empirical/mammal_gene.1.dat.csv
+    workspace/dnds/empirical/mammal_gene.1.labels.csv  # if using known params
+    workspace/dnds/empirical/mammal_gene.2.tre
+    workspace/dnds/empirical/mammal_gene.2.dat.csv
+    workspace/dnds/empirical/mammal_gene.2.labels.csv  # if using known params
+    ...
+
+Using the ``--no_emp`` or ``--no_sim`` flags will instruct :ref:`Format` to
+skip processing the empirical and simulated datasets, respectively. In
+addition, :ref:`Format` will report that it is skipping the empirical and
+simulated datasets if they do not exist.
+
+Once complete, the formatted files can then be processed by the
+:ref:`Train` step and :ref:`Estimate` steps.
 
 
 .. _Train:
@@ -324,10 +364,11 @@ Train
 -----
 
 :ref:`Train` builds a neural network and trains it to make model-based
-estimates using the training example tensors compiled by the :ref:`Format`
-step.
+estimates using the simulated training example tensors compiled by the
+:ref:`Format` step.
 
 The :ref:`Train` step performs six main tasks:
+
 1. Load the input training example tensor.
 2. Shuffle the input tensor and split it into training, test, validation, and calibration subsets.
 3. Build and configure the neural network
@@ -335,12 +376,21 @@ The :ref:`Train` step performs six main tasks:
 5. Record network training performance to file
 6. Save the trained network to file
 
+Each network is trained for one set of prediction tasks for the exact model
+as specified for the :ref:`Simulate` step. Each network is trained to
+expect a specific set of :ref:`Format` settings (see above).
+Important :ref:`Format` settings include ``tree_width``, ``num_char``,
+``num_states``, ``char_encode``, ``tree_encode``, ``brlen_encode``,
+``param_est``, and ``param_known``. 
+
 When the training dataset is read in, its examples are randomly shuffled by
 replicate index. It then sets aside some examples for a validation dataset
-(``prop_val``) and others for a calibration dataset (``prop_cal``). Note, some
-examples were already set aside for the training dataset during the
-Format step (``prop_test``). All remaining examples are used for training.
-A network must be trained against a particular ``tree_width`` size (see above). 
+(``prop_val``) and others for a calibration dataset (``prop_cal``). Note, 
+the :ref:`Format` step will have previously set aside some proportion of test 
+number of examples (``prop_test``) to measure final network accuracy
+during the later :ref:`Estimate` step. The ``prop_val`` and ``prop_cal``
+are themselves proportions of the ``1.0 - prop_test`` training example
+proportion.
 
 phyddle uses `PyTorch <https://pytorch.org/>` to build and train the network.
 The phylogenetic-state tensor is processed by convolutional and pooling layers,
@@ -352,12 +402,25 @@ is a simplified schematic of the network architecture:
 .. code-block::
 
     Simplified network architecture:
+                              
+                         Phylo. Data                  Aux. Data
+                            Input                       Input
+                              |                           |
+                .-------------+-------------.            |
+               v              v              v            v
+        Conv1D-plain   Conv1D-dilate   Conv1D-stride    Dense
+           + Pool         + Pool          + Pool          |
+               .              |              |            |
+                `-------------+--------------+-----------'
+                              |
+                            Concat
+                           + Dense
+                              |     
+                  .-----------+-----------.
+                 v            v            v  
+               Lower        Point        Upper
+              quantile     estimate     quantile
 
-                              ,--> Conv1D-plain  + Pool --.
-        Phylo. Data Tensor --+---> Conv1D-stride + Pool ---\                          ,--> Point estimate
-                              `--> Conv1D-dilate + Pool ----+--> Concat + Output(s)--+---> Lower quantile
-                                                           /                          `--> Upper quantile
-        Aux. Data Tensor   ------> Dense -----------------'
 
 
 Parameter point estimates use a loss function (e.g. ``loss`` set to ``'mse'``;
@@ -387,7 +450,7 @@ output channels, respectively.
 
 Training is automatically parallelized using CPUs and GPUs, dependent on
 how Tensorflow was installed and system hardware. Output files are stored
-in the directory assigned to ``trn_dir`` in the subdirectory ``proj``.
+in the directory assigned to ``trn_dir``.
 
 
 .. _Estimate:
@@ -395,17 +458,26 @@ in the directory assigned to ``trn_dir`` in the subdirectory ``proj``.
 Estimate
 --------
 
-:ref:`Estimate` loads the simulated test dataset saved with the format indicated
-by ``tensor_format`` stored in ``fmt_dir``. :ref:`Estimate` also
-loads a new dataset stored in ``est_dir`` with filenames
-``<est_prefix.tre>`` and ``<est_prefix>.dat.nex`` or ``<est_prefix>.dat.csv``,
-if the new dataset exists.
+:ref:`Estimate` loads the simulated and empirical test datasets created by
+:ref:`Format` stored in ``fmt_dir`` with prefix ``fmt_prefix``. For example,
+if ``fmt_dir == './workspace/format/example'``, ``fmt_prefix == 'out'``,
+and ``tensor_format == 'hdf5'`` then :ref:`Estimate` will process the
+following files, if they exist: 
+
+.. code-block:: shell
+
+    workspace/example/format/out.test.hdf5
+    workspace/example/format/out.test.empirical.hdf5
 
 This step then loads a pretrained network for a given ``tree_width`` and
 uses it to estimate parameter values and calibrated prediction intervals
-(CPIs) for both the new (empirical) dataset and the test (simulated) dataset.
-Estimates are then stored as separated datasets into the original
-``est_dir`` directory.
+(CPIs) for both the empirical dataset and the (simulated) test dataset.
+Estimates are then stored as separate files into the ``est_dir`` directory.
+
+Using the ``--no_emp`` or ``--no_sim`` flags will instruct :ref:`Estimate` to
+skip processing the empirical and simulated datasets, respectively. In
+addition, :ref:`Estimate` will report that it is skipping the empirical and
+simulated datasets if they do not exist.
 
 
 .. _Plot:
@@ -427,22 +499,20 @@ names supported by `Matplotlib <https://matplotlib.org/stable/gallery/color/name
 
 - ``summary.pdf`` contains all figures in a single plot
 - ``summary.csv`` records important results in plain text format
-- ``density_aux_data.pdf`` - densities of all values in the auxiliary dataset;
-  red line for estimateed dataset
-- ``density_label.pdf`` - densities of all values in the auxiliary dataset;
-  red line for estimateed dataset
-- ``pca_contour_aux_data.pdf`` - pairwise PCA of all values in the auxiliary dataset;
-  red dot for estimateed dataset
-- ``pca_contour_label.pdf`` - pairwise PCA of all values in the auxiliary dataset;
-  red dot for estimateed dataset
+- ``density_<dataset_name>_aux_data.pdf`` - densities of all values in the auxiliary dataset;
+  red line for empirical dataset; run for training and empirical datasets
+- ``density_<dataset_name>_label.pdf`` - densities of all values in the auxiliary dataset;
+  red line for empirical dataset; run for training and empirical datasets
+- ``pca_<dataset_name>_contour_aux_data.pdf`` - pairwise PCA of all values in the auxiliary dataset;
+  red dot for empirical dataset; run for training and empirical datasets
+- ``pca_<dataset_name>_contour_label.pdf`` - pairwise PCA of all values in the auxiliary dataset;
+  red dot for empirical dataset; run for training and empirical datasets
 - ``train_history.pdf`` - loss performance across epochs for test/validation
   datasets for entire network
-- ``estimate_train_<label_name>.pdf`` - point estimates and calibrated estimation
-  intervals for training dataset
-- ``estimate_test_<label_name>.pdf`` - point estimates and calibrated estimation
-  intervals for test dataset
-- ``estimate_new.pdf`` - simple plot of point estimates and calibrated estimation
-  intervals for estimation
+- ``estimate_<dataset_name>_<label_name>.pdf`` - point estimates and calibrated
+  estimation intervals for test or training datasets
+- ``empirical_estimate_<N>.pdf`` - simple plot of point estimates and
+  calibrated prediction intervals for each empirical dataset
 - ``network_architecture.pdf`` - visualization of Tensorflow architecture
 
 
@@ -456,114 +526,125 @@ The output of phyddle pipeline analysis will resemble this:
 .. code-block::
 
     ┏━━━━━━━━━━━━━━━━━━━━━━┓
-    ┃   phyddle   v0.1.0   ┃
+    ┃   phyddle   v0.1.1   ┃
     ┣━━━━━━━━━━━━━━━━━━━━━━┫
     ┃                      ┃
     ┗━┳━▪ Simulating... ▪━━┛
-    ┃
-    ┗━━━▪ output: ./workspace/example/simulate
-
-    ▪ Start time of 09:34:35
+      ┃
+      ┗━━━▪ output: ./workspace/bisse_r/simulate
+    
+    ▪ Start time of 09:48:30
     ▪ Simulating raw data
-    Simulating: 100%|███████████████████| 100/100 [00:20<00:00,  4.90it/s]
-    ▪ End time of 09:34:56 (+00:00:21)
+    Simulating: 100%|███████████████████████| 100/100 [00:20<00:00,  4.80it/s]
+    ▪ End time of 09:48:52 (+00:00:22)
     ... done!
     ┃                      ┃
     ┗━┳━▪ Formatting... ▪━━┛
-    ┃
-    ┣━━━▪ input:  ./workspace/example/simulate
-    ┗━━━▪ output: ./workspace/example/format
-
-    ▪ Start time of 09:34:56
-    ▪ Collecting files
-    ▪ Encoding raw data as tensors
-    Encoding: 100%|███████████████████| 1000/1000 [00:10<00:00, 98.22it/s]
-    ▪ Combining and writing tensors
-    Making train hdf5 dataset: 950 examples for tree width = 500
-    Combining: 100%|██████████████████| 950/950 [00:00<00:00, 2664.89it/s]
-    Making test hdf5 dataset: 50 examples for tree width = 500
-    Combining: 100%|████████████████████| 50/50 [00:00<00:00, 2376.43it/s]
-    ▪ End time of 09:35:07 (+00:00:11)
+      ┃
+      ┣━━━▪ input:  ./workspace/bisse_r/simulate
+      ┃             ./workspace/bisse_r/empirical
+      ┗━━━▪ output: ./workspace/bisse_r/format
+    
+    ▪ Start time of 09:48:52
+    ▪ Collecting simulated data
+    ▪ Encoding simulated data as tensors
+    Encoding: 100%|█████████████████████| 15030/15030 [03:14<00:00, 77.24it/s]
+    Encoding found 15030 of 15030 valid examples.
+    ▪ Splitting into train and test datasets
+    ▪ Combining and writing simulated data as tensors
+    Making train hdf5 dataset: 14279 examples for tree width = 500
+    Combining: 100%|██████████████████| 14279/14279 [00:12<00:00, 1117.76it/s]
+    Making test hdf5 dataset: 751 examples for tree width = 500
+    Combining: 100%|██████████████████████| 751/751 [00:00<00:00, 1323.66it/s]
+    ▪ Collecting empirical data
+    ▪ Encoding empirical data as tensors
+    Encoding: 100%|███████████████████████████| 10/10 [00:09<00:00,  1.01it/s]
+    Encoding found 10 of 10 valid examples.
+    ▪ Combining and writing empirical data as tensors
+    Making empirical hdf5 dataset: 10 examples for tree width = 500
+    Combining: 100%|████████████████████████| 10/10 [00:00<00:00, 1606.71it/s]
+    ▪ End time of 09:52:38 (+00:03:46)
     ... done!
     ┃                      ┃
     ┗━┳━▪ Training...   ▪━━┛
-    ┃
-    ┣━━━▪ input:  ./workspace/example/format
-    ┗━━━▪ output: ./workspace/example/train
-
-    ▪ Start time of 09:35:10
+      ┃
+      ┣━━━▪ input:  ./workspace/bisse_r/format
+      ┗━━━▪ output: ./workspace/bisse_r/train
+    
+    ▪ Start time of 09:52:40
     ▪ Loading input
     ▪ Building network
-
     ▪ Training network
-    Training epoch 1 of 10: 100%|███████████| 2/2 [00:05<00:00,  2.65s/it]
-        Train        --   loss: 2.7907
-        Validation   --   loss: 1.6169
-
-    Training epoch 2 of 10: 100%|███████████| 2/2 [00:04<00:00,  2.34s/it]
-        Train        --   loss: 1.6322  abs: -1.1584  rel: -41.50%
-        Validation   --   loss: 1.1854  abs: -0.4315  rel: -26.70%
-
-    Training epoch 3 of 10: 100%|███████████| 2/2 [00:04<00:00,  2.31s/it]
-        Train        --   loss: 1.1911  abs: -0.4411  rel: -27.00%
-        Validation   --   loss: 1.0017  abs: -0.1837  rel: -15.50%
-
-    Training epoch 4 of 10: 100%|███████████| 2/2 [00:04<00:00,  2.30s/it]
-        Train        --   loss: 1.0178  abs: -0.1733  rel: -14.60%
-        Validation   --   loss: 0.8788  abs: -0.1229  rel: -12.30%
-
-    Training epoch 5 of 10: 100%|███████████| 2/2 [00:04<00:00,  2.28s/it]
-        Train        --   loss: 0.9175  abs: -0.1003  rel: -9.90%
-        Validation   --   loss: 0.8573  abs: -0.0215  rel: -2.50%
-
-    Training epoch 6 of 10: 100%|███████████| 2/2 [00:04<00:00,  2.06s/it]
-        Train        --   loss: 0.8751  abs: -0.0424  rel: -4.60%
-        Validation   --   loss: 0.8544  abs: -0.0029  rel: -0.30%
-
-    Training epoch 7 of 10: 100%|███████████| 2/2 [00:04<00:00,  2.04s/it]
-        Train        --   loss: 0.8583  abs: -0.0168  rel: -1.90%
-        Validation   --   loss: 0.8439  abs: -0.0104  rel: -1.20%
-
-    Training epoch 8 of 10: 100%|███████████| 2/2 [00:04<00:00,  2.12s/it]
-        Train        --   loss: 0.8230  abs: -0.0352  rel: -4.10%
-        Validation   --   loss: 0.8108  abs: -0.0331  rel: -3.90%
-
-    Training epoch 9 of 10: 100%|███████████| 2/2 [00:04<00:00,  2.11s/it]
-        Train        --   loss: 0.8058  abs: -0.0172  rel: -2.10%
-        Validation   --   loss: 0.7899  abs: -0.0210  rel: -2.60%
-
-    Training epoch 10 of 10: 100%|███████████| 2/2 [00:04<00:00,  2.02s/it]
-        Train        --   loss: 0.7835  abs: -0.0223  rel: -2.80%
-        Validation   --   loss: 0.7963  abs: +0.0064  rel: +0.80%
-
+    Training epoch 1 of 10: 100%|█████████████| 21/21 [00:27<00:00,  1.33s/it]
+        Train        --   loss: 0.9831
+        Validation   --   loss: 0.6960
+    
+    Training epoch 2 of 10: 100%|█████████████| 21/21 [00:31<00:00,  1.52s/it]
+        Train        --   loss: 0.5950  abs: -0.3881  rel: -39.50%
+        Validation   --   loss: 0.5356  abs: -0.1604  rel: -23.00%
+    
+    Training epoch 3 of 10: 100%|█████████████| 21/21 [00:33<00:00,  1.61s/it]
+        Train        --   loss: 0.4686  abs: -0.1264  rel: -21.20%
+        Validation   --   loss: 0.4611  abs: -0.0745  rel: -13.90%
+    
+    Training epoch 4 of 10: 100%|█████████████| 21/21 [00:32<00:00,  1.53s/it]
+        Train        --   loss: 0.4031  abs: -0.0655  rel: -14.00%
+        Validation   --   loss: 0.4136  abs: -0.0475  rel: -10.30%
+    
+    Training epoch 5 of 10: 100%|█████████████| 21/21 [00:31<00:00,  1.49s/it]
+        Train        --   loss: 0.3696  abs: -0.0335  rel: -8.30%
+        Validation   --   loss: 0.3914  abs: -0.0222  rel: -5.40%
+    
+    Training epoch 6 of 10: 100%|█████████████| 21/21 [00:31<00:00,  1.52s/it]
+        Train        --   loss: 0.3357  abs: -0.0339  rel: -9.20%
+        Validation   --   loss: 0.3509  abs: -0.0405  rel: -10.30%
+    
+    Training epoch 7 of 10: 100%|█████████████| 21/21 [00:31<00:00,  1.50s/it]
+        Train        --   loss: 0.3217  abs: -0.0140  rel: -4.20%
+        Validation   --   loss: 0.3359  abs: -0.0150  rel: -4.30%
+    
+    Training epoch 8 of 10: 100%|█████████████| 21/21 [00:31<00:00,  1.52s/it]
+        Train        --   loss: 0.3030  abs: -0.0187  rel: -5.80%
+        Validation   --   loss: 0.3291  abs: -0.0068  rel: -2.00%
+    
+    Training epoch 9 of 10: 100%|█████████████| 21/21 [00:33<00:00,  1.57s/it]
+        Train        --   loss: 0.2963  abs: -0.0067  rel: -2.20%
+        Validation   --   loss: 0.3149  abs: -0.0142  rel: -4.30%
+    
+    Training epoch 10 of 10: 100%|████████████| 21/21 [00:33<00:00,  1.59s/it]
+        Train        --   loss: 0.2835  abs: -0.0128  rel: -4.30%
+        Validation   --   loss: 0.3179  abs: +0.0030  rel: +1.00%
+    
     ▪ Processing results
     ▪ Saving results
-    ▪ End time of 09:35:58 (+00:00:48)
+    ▪ End time of 09:58:14 (+00:05:34)
     ▪ ... done!
     ┃                      ┃
     ┗━┳━▪ Estimating... ▪━━┛
-    ┃
-    ┣━━━▪ input:  ./workspace/example/format
-    ┃             ./workspace/example/estimate
-    ┃             ./workspace/example/train
-    ┗━━━▪ output: ./workspace/example/estimate
-
-    ▪ Start time of 09:35:58
-    ▪ Loading input
-    ▪ Making estimates
-    ▪ End time of 09:35:58 (+00:00:00)
+      ┃
+      ┣━━━▪ input:  ./workspace/bisse_r/format
+      ┃             ./workspace/bisse_r/train
+      ┗━━━▪ output: ./workspace/bisse_r/estimate
+    
+    ▪ Start time of 09:58:14
+    ▪ Loading simulated test input
+    ▪ Making simulated test estimates
+    ▪ Loading empirical input
+    ▪ Making empirical estimates
+    ▪ End time of 09:58:15 (+00:00:01)
     ... done!
     ┃                      ┃
     ┗━┳━▪ Plotting...   ▪━━┛
-    ┃
-    ┣━━━▪ input:  ./workspace/example/format
-    ┃             ./workspace/example/train
-    ┃             ./workspace/example/estimate
-    ┗━━━▪ output: ./workspace/example/plot
-
-    ▪ Start time of 09:36:00
+      ┃
+      ┣━━━▪ input:  ./workspace/bisse_r/format
+      ┃             ./workspace/bisse_r/train
+      ┃             ./workspace/bisse_r/estimate
+      ┗━━━▪ output: ./workspace/bisse_r/plot
+    
+    ▪ Start time of 10:01:09
     ▪ Loading input
     ▪ Generating individual plots
     ▪ Combining plots
-    ▪ End time of 09:36:12 (+00:00:12)
+    ▪ Making csv report
+    ▪ End time of 10:01:40 (+00:00:31)
     ... done!
