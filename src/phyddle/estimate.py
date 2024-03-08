@@ -65,7 +65,8 @@ class Estimator:
         
         # settings
         self.verbose            = bool(args['verbose'])
-        self.emp_analysis       = bool(args['emp_analysis'])
+        self.no_sim             = bool(args['no_sim'])
+        self.no_emp             = bool(args['no_emp'])
         
         # filesystem
         self.trn_prefix         = str(args['trn_prefix'])
@@ -141,36 +142,46 @@ class Estimator:
         self.load_train_input()
 
         found_sim = False
-        if self.has_valid_dataset(mode='sim'):
-            found_sim = True
-
+        if self.no_sim:
+            # skip sim
+            util.print_str('▪ Skipping simulated test input', verbose)
+            
+        elif self.has_valid_dataset(mode='sim'):
             # load input
-            # todo: load input based on mode
             util.print_str('▪ Loading simulated test input', verbose)
             self.load_format_input(mode='sim')
     
             # make estimates
-            # todo: make estimates based on mode
             util.print_str('▪ Making simulated test estimates', verbose)
             self.make_results(mode='sim')
+            
+            # done
+            found_sim = True
 
         found_emp = False
+        if self.no_emp:
+            # skip emp
+            util.print_str('▪ Skipping empirical test input', verbose)
+            
         if self.has_valid_dataset(mode='emp'):
-            found_emp = True
             # load input
-            # todo: load input based on mode
             util.print_str('▪ Loading empirical input', verbose)
             self.load_format_input(mode='emp')
     
             # make estimates
-            # todo: make estimates based on mode
             util.print_str('▪ Making empirical estimates', verbose)
             self.make_results(mode='emp')
-        
-        if not found_sim and not found_emp:
-            util.print_str('No simulated test or empirical datasets found. '
-                           'Check config settings.', verbose)
-            return
+
+            # done
+            found_emp = True
+
+        # notify user if no work done
+        if self.no_emp and self.no_sim:
+            util.print_warning('Estimate has no work to do when no_sim '
+                               'and no_emp are used together.')
+        elif not found_sim and not found_emp:
+            util.print_warning('No simulated test or empirical datasets found. '
+                               'Check config settings.', verbose)
         
         # end time
         end_time,end_time_str = util.get_time()

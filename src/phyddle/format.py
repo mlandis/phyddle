@@ -92,6 +92,8 @@ class Formatter:
         self.verbose            = bool(args['verbose'])
         self.num_proc           = int(args['num_proc'])
         self.use_parallel       = bool(args['use_parallel'])
+        self.no_sim             = bool(args['no_sim'])
+        self.no_emp             = bool(args['no_emp'])
         
         # dataset dimensions
         self.num_char           = int(args['num_char'])
@@ -163,6 +165,8 @@ class Formatter:
         util.print_str(f'▪ Start time of {start_time_str}', verbose)
 
         found_sim = False
+        if self.no_sim:
+            util.print_str('▪ Skipping simulated data', verbose)
         if self.has_valid_dataset(mode='sim'):
             # run() attempts to generate one simulation per value in rep_idx,
             # where rep_idx is list of unique ints to identify simulated datasets
@@ -185,6 +189,8 @@ class Formatter:
             found_sim = True
 
         found_emp = False
+        if self.no_emp:
+            util.print_str('▪ Skipping empirical data', verbose)
         if self.has_valid_dataset(mode='emp'):
             # collecting empirical files
             util.print_str('▪ Collecting empirical data', verbose)
@@ -201,7 +207,11 @@ class Formatter:
             
             # done
             found_emp = True
-        
+
+        # notify user if no work done
+        if self.no_emp and self.no_sim:
+            util.print_warning('Format has no work to do when no_sim '
+                               'and no_emp are used together.')
         if not found_sim and not found_emp:
             util.print_err('No simulated or empirical datasets found. '
                            'Check config settings.', verbose)

@@ -111,8 +111,10 @@ def settings_registry():
         'output_precision' : { 'step':'SFTEP', 'type':int,  'section':'Basic', 'default':16,           'help':'Number of digits (precision) for numbers in output files' },
         
         # analysis options
-        'use_parallel'     : { 'step':'SF',  'type':str, 'section':'Analysis', 'default':'T', 'help':'Use parallelization? (recommended)', 'bool':True },
-        'num_proc'         : { 'step':'SFT', 'type':int, 'section':'Analysis', 'default':-2, 'help':'Number of cores for multiprocessing (-N for all but N)' },
+        'use_parallel'     : { 'step':'SF',  'type':str,  'section':'Analysis', 'default':'T',   'help':'Use parallelization? (recommended)', 'bool':True },
+        'num_proc'         : { 'step':'SFT', 'type':int,  'section':'Analysis', 'default':-2,    'help':'Number of cores for multiprocessing (-N for all but N)' },
+        'no_emp'           : { 'step':'',    'type':None, 'section':'Analysis', 'default':None,  'help':'Disable Format/Estimate steps for empirical data?' },
+        'no_sim'           : { 'step':'',    'type':None, 'section':'Analysis', 'default':None,  'help':'Disable Format/Estimate steps for empirical data?' },
         
         # directories
         # 'work_dir'         : { 'step':'SFTEP', 'type':str, 'section':'Workspace', 'default':'../workspace/',  'help':'Directory where projects are stored (workspace)' },
@@ -154,7 +156,6 @@ def settings_registry():
         'char_format'      : { 'step':'FTE',  'type':str,   'section':'Format', 'default':'nexus',        'help':'File format for character data',               'choices':['csv', 'nexus'] },
         'tensor_format'    : { 'step':'FTEP', 'type':str,   'section':'Format', 'default':'hdf5',         'help':'File format for training example tensors',     'choices':['csv', 'hdf5'] },
         'save_phyenc_csv'  : { 'step':'F',    'type':str,   'section':'Format', 'default':'F',            'help':'Save encoded phylogenetic tensor encoding to csv?', 'bool':True },
-        'emp_analysis'     : { 'step':'FE',   'type':str,   'section':'Format', 'default':'F',            'help':'Run using empirical data instead of test data?', 'bool':True },
         
         # training options
         'trn_objective'    : { 'step':'T',   'type':str,   'section':'Train', 'default':'param_est',   'help':'Objective of training procedure', 'choices':['param_est'] },
@@ -535,8 +536,17 @@ def make_default_config(config_fn):
     # get settings registry
     settings = settings_registry()
     
-    # sort settings by section
-    section_settings = {}
+    # order sections
+    section_settings = dict()
+    section_settings['Workspace'] = {}
+    section_settings['Analysis'] = {}
+    section_settings['Simulate'] = {}
+    section_settings['Format'] = {}
+    section_settings['Train'] = {}
+    section_settings['Estimate'] = {}
+    section_settings['Plot'] = {}
+    
+    # populate settings by section
     for k,v in settings.items():
         sect = v['section']
         if sect not in section_settings.keys():
@@ -580,7 +590,7 @@ def make_default_config(config_fn):
 
             # value
             s_value = str(v2['default'])
-            if (v2['type'] is str and s_value != 'None'):
+            if v2['type'] is str and s_value != 'None':
                 s_value = "'" + s_value + "'"
             v_value.append(s_value+',')
             max_value = max(max_value, len(s_value))
@@ -597,7 +607,7 @@ def make_default_config(config_fn):
             width_value = max(len_value, max_value)
             width_help = len_line - (width_key + width_value + len_punct)
             
-            s_tok = []
+            s_tok = list()
             s_tok.append(s_indent)
             s_tok.append(ki.ljust(width_key, ' '))
             s_tok.append(s_assign)
@@ -607,12 +617,15 @@ def make_default_config(config_fn):
         
             s_sect += ''.join(s_tok) + '\n'
 
+        if len(v1) == 0:
+            s_sect += "  # none currently\n"
+
         section_str[k1] = s_sect
 
     # build file content
-    s_cfg  = "#==============================================================================#\n"
-    s_cfg += "# Default phyddle config file                                                  #\n"
-    s_cfg += "#==============================================================================#\n"
+    s_cfg  = "#====================================================================#\n"
+    s_cfg += "# Default phyddle config file                                        #\n"
+    s_cfg += "#====================================================================#\n"
     s_cfg += "\n"
     s_cfg += "args = {\n"
     for k,v in section_str.items():
