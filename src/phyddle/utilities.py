@@ -113,11 +113,10 @@ def settings_registry():
         # analysis options
         'use_parallel'     : { 'step':'SF',  'type':str,  'section':'Analysis', 'default':'T',   'help':'Use parallelization? (recommended)', 'bool':True },
         'num_proc'         : { 'step':'SFT', 'type':int,  'section':'Analysis', 'default':-2,    'help':'Number of cores for multiprocessing (-N for all but N)' },
-        'no_emp'           : { 'step':'',    'type':None, 'section':'Analysis', 'default':None,  'help':'Disable Format/Estimate steps for empirical data?' },
-        'no_sim'           : { 'step':'',    'type':None, 'section':'Analysis', 'default':None,  'help':'Disable Format/Estimate steps for empirical data?' },
+        'no_emp'           : { 'step':'',    'type':None, 'section':'Analysis', 'default':False,  'help':'Disable Format/Estimate steps for empirical data?' },
+        'no_sim'           : { 'step':'',    'type':None, 'section':'Analysis', 'default':False,  'help':'Disable Format/Estimate steps for simulated data?' },
         
         # directories
-        # 'work_dir'         : { 'step':'SFTEP', 'type':str, 'section':'Workspace', 'default':'../workspace/',  'help':'Directory where projects are stored (workspace)' },
         'sim_prefix'       : { 'step':'SF',    'type':str, 'section':'Workspace', 'default':'sim',                                   'help':'Prefix for raw simulated data' },
         'emp_prefix'       : { 'step':'SF',    'type':str, 'section':'Workspace', 'default':'emp',                                   'help':'Prefix for raw empirical data' },
         'fmt_prefix'       : { 'step':'FTEP',  'type':str, 'section':'Workspace', 'default':'out',                                   'help':'Prefix for tensor-formatted data' },
@@ -294,7 +293,9 @@ def load_config(config_fn,
         arg_help = v['help']
         arg_type = v['type']
         
-        if arg_type is not None:
+        if arg_type is None:
+            parser.add_argument(*arg_opt, action='store_true', help=arg_help)
+        else:
             if 'choices' in v:
                 arg_choices = v['choices']
                 parser.add_argument(*arg_opt, dest=arg_dest,
@@ -303,8 +304,6 @@ def load_config(config_fn,
             else:
                 parser.add_argument(*arg_opt, dest=arg_dest,
                                     type=arg_type, help=arg_help, metavar='')
-        else:
-             parser.add_argument(*arg_opt, action='store_true', help=arg_help)
    
     # COMMAND LINE SETTINGS
     args = parser.parse_args(args)
@@ -326,14 +325,15 @@ def load_config(config_fn,
         # make_default_config(CONFIG_DEFAULT_FN)
     
     # load config into namespace
+    # TODO: can this be deleted?
     default_args = {}
-    if os.path.exists(CONFIG_DEFAULT_FN):
-        namespace = {}
-        with open(CONFIG_DEFAULT_FN) as file:
-            code = file.read()
-            exec(code, namespace)
-        # move imported args into local variable
-        default_args = namespace['args']
+    # if os.path.exists(CONFIG_DEFAULT_FN):
+    #     namespace = {}
+    #     with open(CONFIG_DEFAULT_FN) as file:
+    #         code = file.read()
+    #         exec(code, namespace)
+    #     # move imported args into local variable
+    #     default_args = namespace['args']
     
     # PROJECT CONFIG FILE SETTINGS
     if arg_overwrite and args.cfg is not None:
@@ -455,10 +455,10 @@ def check_args(args):
     assert args['num_epochs'] > 0
     assert args['trn_batch_size'] > 0
     assert args['sim_batch_size'] > 0
-    assert args['cpi_coverage'] >= 0. and args['cpi_coverage'] <= 1.
-    assert args['prop_test'] >= 0. and args['prop_test'] <= 1.
-    assert args['prop_val'] >= 0. and args['prop_val'] <= 1.
-    assert args['prop_cal'] >= 0. and args['prop_cal'] <= 1.
+    assert 0. <= args['cpi_coverage'] <= 1.
+    assert 0. <= args['prop_test'] <= 1.
+    assert 0. <= args['prop_val'] <= 1.
+    assert 0. <= args['prop_cal'] <= 1.
 
     # done
     return

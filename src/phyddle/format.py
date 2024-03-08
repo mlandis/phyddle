@@ -167,7 +167,7 @@ class Formatter:
         found_sim = False
         if self.no_sim:
             util.print_str('▪ Skipping simulated data', verbose)
-        if self.has_valid_dataset(mode='sim'):
+        elif self.has_valid_dataset(mode='sim'):
             # run() attempts to generate one simulation per value in rep_idx,
             # where rep_idx is list of unique ints to identify simulated datasets
             util.print_str('▪ Collecting simulated data', verbose)
@@ -191,7 +191,7 @@ class Formatter:
         found_emp = False
         if self.no_emp:
             util.print_str('▪ Skipping empirical data', verbose)
-        if self.has_valid_dataset(mode='emp'):
+        elif self.has_valid_dataset(mode='emp'):
             # collecting empirical files
             util.print_str('▪ Collecting empirical data', verbose)
             self.rep_idx = self.get_rep_idx(mode='emp')
@@ -210,11 +210,11 @@ class Formatter:
 
         # notify user if no work done
         if self.no_emp and self.no_sim:
-            util.print_warning('Format has no work to do when no_sim '
+            util.print_warn('Format has no work to do when no_sim '
                                'and no_emp are used together.')
-        if not found_sim and not found_emp:
-            util.print_err('No simulated or empirical datasets found. '
-                           'Check config settings.', verbose)
+        elif not found_sim and not found_emp:
+            util.print_warn('No simulated or empirical datasets found. '
+                            'Check config settings.', verbose)
 
         # end time
         end_time,end_time_str = util.get_time()

@@ -177,11 +177,11 @@ class Estimator:
 
         # notify user if no work done
         if self.no_emp and self.no_sim:
-            util.print_warning('Estimate has no work to do when no_sim '
-                               'and no_emp are used together.')
+            util.print_warn('Estimate has no work to do when no_sim '
+                            'and no_emp are used together.')
         elif not found_sim and not found_emp:
-            util.print_warning('No simulated test or empirical datasets found. '
-                               'Check config settings.', verbose)
+            util.print_warn('No simulated test or empirical datasets found. '
+                            'Check config settings.', verbose)
         
         # end time
         end_time,end_time_str = util.get_time()
