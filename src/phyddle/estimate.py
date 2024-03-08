@@ -76,14 +76,6 @@ class Estimator:
         self.est_dir            = str(args['est_dir'])
         self.log_dir            = str(args['log_dir'])
         
-        # prefixes
-        self.fmt_prefix_dir         = f'{self.fmt_dir}/{self.fmt_prefix}.test'
-        self.est_prefix_dir         = f'{self.est_dir}/{self.est_prefix}.test'
-        if self.emp_analysis:
-            self.fmt_prefix_dir         = f'{self.fmt_dir}/{self.fmt_prefix}.empirical'
-            self.est_prefix_dir         = f'{self.est_dir}/{self.est_prefix}.empirical'
-        self.trn_prefix_dir         = f'{self.trn_dir}/{self.trn_prefix}'
-        
         # dimensions
         self.tree_encode        = str(args['tree_encode'])
         self.char_encode        = str(args['char_encode'])

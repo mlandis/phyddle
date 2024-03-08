@@ -75,31 +75,6 @@ class Trainer:
         self.fmt_dir                = str(args['fmt_dir'])
         self.trn_dir                = str(args['trn_dir'])
         self.log_dir                = str(args['log_dir'])
-
-        # input prefix
-        input_prefix                = f'{self.fmt_dir}/{self.fmt_prefix}.train'
-        output_prefix               = f'{self.trn_dir}/{self.trn_prefix}'
-
-        # input dataset filenames for csv or hdf5
-        self.input_phy_data_fn      = f'{input_prefix}.phy_data.csv'
-        self.input_aux_data_fn      = f'{input_prefix}.aux_data.csv'
-        self.input_labels_fn        = f'{input_prefix}.labels.csv'
-        self.input_hdf5_fn          = f'{input_prefix}.hdf5'
-
-        # output network model info
-        self.model_arch_fn          = f'{output_prefix}.trained_model.pkl'
-        self.model_weights_fn       = f'{output_prefix}.train_weights.hdf5'
-        self.model_history_fn       = f'{output_prefix}.train_history.csv'
-        self.model_cpi_fn           = f'{output_prefix}.cpi_adjustments.csv'
-
-        # output scaling terms
-        self.train_labels_norm_fn   = f'{output_prefix}.train_label_norm.csv'
-        self.train_aux_data_norm_fn = f'{output_prefix}.train_aux_data_norm.csv'
-
-        # output training labels
-        self.train_label_true_fn          = f'{output_prefix}.train_true.labels.csv'
-        self.train_label_est_calib_fn     = f'{output_prefix}.train_est.labels.csv'
-        self.train_label_est_nocalib_fn   = f'{output_prefix}.train_est_nocalib.labels.csv'
         
         # analysis settings
         self.verbose            = bool(args['verbose'])
@@ -341,16 +316,24 @@ class CnnTrainer(Trainer):
         validation, test, and calibration parts.
 
         """
+
+        # input dataset filenames for csv or hdf5
+        path_prefix = f'{self.fmt_dir}/{self.fmt_prefix}.train'
+        input_phy_data_fn = f'{path_prefix}.phy_data.csv'
+        input_aux_data_fn = f'{path_prefix}.aux_data.csv'
+        input_labels_fn = f'{path_prefix}.labels.csv'
+        input_hdf5_fn = f'{path_prefix}.hdf5'
+        
         # read phy. data, aux. data, and labels
         full_phy_data = None
         full_aux_data = None
         full_labels   = None
         if self.tensor_format == 'csv':
-            full_phy_data = pd.read_csv(self.input_phy_data_fn, header=None,
+            full_phy_data = pd.read_csv(input_phy_data_fn, header=None,
                                         on_bad_lines='skip').to_numpy()
-            full_aux_data = pd.read_csv(self.input_aux_data_fn, header=None,
+            full_aux_data = pd.read_csv(input_aux_data_fn, header=None,
                                         on_bad_lines='skip').to_numpy()
-            full_labels   = pd.read_csv(self.input_labels_fn, header=None,
+            full_labels   = pd.read_csv(input_labels_fn, header=None,
                                         on_bad_lines='skip').to_numpy()
             self.aux_data_names = full_aux_data[0,:]
             self.label_names    = full_labels[0,:]
@@ -358,7 +341,7 @@ class CnnTrainer(Trainer):
             full_labels         = full_labels[1:,:].astype('float64')
 
         elif self.tensor_format == 'hdf5':
-            hdf5_file = h5py.File(self.input_hdf5_fn, 'r')
+            hdf5_file = h5py.File(input_hdf5_fn, 'r')
             self.aux_data_names = [ s.decode() for s in hdf5_file['aux_data_names'][0,:] ]
             self.label_names    = [ s.decode() for s in hdf5_file['label_names'][0,:] ]
             full_phy_data       = pd.DataFrame(hdf5_file['phy_data']).to_numpy()
@@ -383,8 +366,6 @@ class CnnTrainer(Trainer):
         full_labels    = full_labels[randomized_idx,:]
 
         # reshape phylogenetic tensor data based on CPV+S
-        # TODO: probably not, but does this need to be (see below) ... ?
-        # full_phy_data.shape = (num_sample, self.num_data_col, -1)
         full_phy_data.shape = (num_sample, -1, self.num_data_col)
 
         # split dataset into training, test, validation, and calibration parts
@@ -414,11 +395,6 @@ class CnnTrainer(Trainer):
         train_phy_data_tensor = full_phy_data[train_idx,:,:]
         val_phy_data_tensor = full_phy_data[val_idx,:,:]
         self.calib_phy_data_tensor = full_phy_data[calib_idx,:,:]
-
-        # create auxiliary data tensors (with scaling)
-        # self.train_aux_data_tensor = norm_train_aux_data
-        # self.val_aux_data_tensor   = self.norm_val_aux_data
-        # self.calib_aux_data_tensor = self.norm_calib_aux_data
 
         # torch datasets
         self.train_dataset = network.Dataset(train_phy_data_tensor,
@@ -693,27 +669,44 @@ class CnnTrainer(Trainer):
 
         """
         max_idx = 1000
+
+        path_prefix = f'{self.trn_dir}/{self.trn_prefix}'
         
-        # format str
-        # float_fmt_str = '%.4e'
+        # output network model info
+        model_arch_fn          = f'{path_prefix}.trained_model.pkl'
+        model_history_fn       = f'{path_prefix}.train_history.csv'
+        model_cpi_fn           = f'{path_prefix}.cpi_adjustments.csv'
+        # model_weights_fn       = f'{path_prefix}.train_weights.hdf5'
+        
+        # output scaling terms
+        train_labels_norm_fn   = f'{path_prefix}.train_label_norm.csv'
+        train_aux_data_norm_fn = f'{path_prefix}.train_aux_data_norm.csv'
+
+        # output training labels
+        train_label_true_fn          = f'{path_prefix}.train_true.labels.csv'
+        train_label_est_calib_fn     = f'{path_prefix}.train_est.labels.csv'
+        train_label_est_nocalib_fn   = f'{path_prefix}.train_est_nocalib.labels.csv'
 
         # save model to file
-        torch.save(self.model, self.model_arch_fn)
+        torch.save(self.model, model_arch_fn)
 
         # save json history from running MASTER
-        self.train_history.to_csv(self.model_history_fn, index=False, sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
+        self.train_history.to_csv(model_history_fn, index=False, sep=',',
+                                  float_format=util.PANDAS_FLOAT_FMT_STR)
 
         # save aux_data names, means, sd for new test dataset normalization
         df_aux_data = pd.DataFrame({'name':self.aux_data_names,
                                     'mean':self.train_aux_data_mean_sd[0],
                                     'sd':self.train_aux_data_mean_sd[1]})
-        df_aux_data.to_csv(self.train_aux_data_norm_fn, index=False, sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
+        df_aux_data.to_csv(train_aux_data_norm_fn, index=False, sep=',',
+                           float_format=util.PANDAS_FLOAT_FMT_STR)
  
         # save label names, means, sd for new test dataset normalization
         df_labels = pd.DataFrame({'name':self.label_names,
                                   'mean':self.train_labels_mean_sd[0],
                                   'sd':self.train_labels_mean_sd[1]})
-        df_labels.to_csv(self.train_labels_norm_fn, index=False, sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
+        df_labels.to_csv(train_labels_norm_fn, index=False, sep=',',
+                         float_format=util.PANDAS_FLOAT_FMT_STR)
 
         # save train/test scatterplot results (Value, Lower, Upper)
         df_train_label_est_nocalib = util.make_param_VLU_mtx(self.train_label_est[0:max_idx,:], self.label_names )
@@ -726,10 +719,14 @@ class CnnTrainer(Trainer):
         df_cpi_intervals = pd.DataFrame(self.cpi_adjustments, columns=self.label_names)
 
         # convert to csv and save
-        df_train_label_est_nocalib.to_csv(self.train_label_est_nocalib_fn, index=False, sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
-        df_train_label_est_calib.to_csv(self.train_label_est_calib_fn, index=False, sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
-        df_train_label_true.to_csv(self.train_label_true_fn, index=False, sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
-        df_cpi_intervals.to_csv(self.model_cpi_fn, index=False, sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
+        df_train_label_est_nocalib.to_csv(train_label_est_nocalib_fn, index=False, sep=',',
+                                          float_format=util.PANDAS_FLOAT_FMT_STR)
+        df_train_label_est_calib.to_csv(train_label_est_calib_fn, index=False,
+                                        sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
+        df_train_label_true.to_csv(train_label_true_fn, index=False,
+                                   sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
+        df_cpi_intervals.to_csv(model_cpi_fn, index=False,
+                                sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
 
         return
 

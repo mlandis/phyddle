@@ -71,16 +71,16 @@ class ParameterEstimationNetwork(nn.Module):
         self.lbl_width      = lbl_width
 
         # collect args
-        self.phy_std_out_size       = args['phy_channel_plain']
-        self.phy_std_kernel_size    = args['phy_kernel_plain']
-        self.phy_stride_out_size    = args['phy_channel_stride']
-        self.phy_stride_kernel_size = args['phy_kernel_stride']
-        self.phy_stride_stride_size = args['phy_stride_stride']
-        self.phy_dilate_out_size    = args['phy_channel_dilate']
-        self.phy_dilate_kernel_size = args['phy_kernel_dilate']
-        self.phy_dilate_dilate_size = args['phy_dilate_dilate']
-        self.aux_out_size           = args['aux_channel']
-        self.lbl_channel            = args['lbl_channel']
+        self.phy_std_out_size       = list(args['phy_channel_plain'])
+        self.phy_std_kernel_size    = list(args['phy_kernel_plain'])
+        self.phy_stride_out_size    = list(args['phy_channel_stride'])
+        self.phy_stride_kernel_size = list(args['phy_kernel_stride'])
+        self.phy_stride_stride_size = list(args['phy_stride_stride'])
+        self.phy_dilate_out_size    = list(args['phy_channel_dilate'])
+        self.phy_dilate_kernel_size = list(args['phy_kernel_dilate'])
+        self.phy_dilate_dilate_size = list(args['phy_dilate_dilate'])
+        self.aux_out_size           = list(args['aux_channel'])
+        self.lbl_channel            = list(args['lbl_channel'])
 
         # standard convolution and pooling layers for CPV+S
         self.phy_std_in_size = [ self.phy_dat_width ] + self.phy_std_out_size[:-1]

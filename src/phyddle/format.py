@@ -87,17 +87,19 @@ class Formatter:
         self.emp_dir            = str(args['emp_dir'])
         self.fmt_dir            = str(args['fmt_dir'])
         self.log_dir            = str(args['log_dir'])
+        
         # analysis settings
         self.verbose            = bool(args['verbose'])
-        # self.emp_analysis       = bool(args['emp_analysis'])
         self.num_proc           = int(args['num_proc'])
         self.use_parallel       = bool(args['use_parallel'])
+        
         # dataset dimensions
         self.num_char           = int(args['num_char'])
         self.num_states         = int(args['num_states'])
         self.min_num_taxa       = int(args['min_num_taxa'])
         self.max_num_taxa       = int(args['max_num_taxa'])
         self.tree_width         = int(args['tree_width'])
+        
         # dataset processing
         self.encode_all_sim     = bool(args['encode_all_sim'])
         self.start_idx          = int(args['start_idx'])
