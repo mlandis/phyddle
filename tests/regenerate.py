@@ -3,7 +3,7 @@
 import os
 import shutil
 
-dirs = ['simulate','format','train','estimate','plot']
+dirs = ['simulate','format','train','estimate','plot','empirical']
 for d in dirs:
     test_dir = f'./workspace/test/{d}'
     valid_dir = f'./workspace/valid/{d}'

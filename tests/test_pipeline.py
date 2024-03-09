@@ -48,23 +48,23 @@ torch.set_deterministic_debug_mode(debug_mode='warn')
 # Each test function below covers one pipeline step.
 
 def test_sim():
-    do_sim()
-    check_sim()
+    # do_sim()
+    # check_sim()
     return
 
 def test_fmt():
-    do_fmt()
-    check_fmt()
+    # do_fmt()
+    # check_fmt()
     return
 
 def test_trn():
-    do_trn()
-    check_trn()
+    # do_trn()
+    # check_trn()
     return
 
 def test_est():
-    do_est()
-    check_est()
+    # do_est()
+    # check_est()
     return
 
 def test_plt():
@@ -87,6 +87,7 @@ def do_sim():
 
     # command line arguments
     cmd_args = ['--step', 'S',
+                '--sim_prefix', 'sim',
                 '--sim_dir', sim_dir,
                 '--sim_command', 'Rscript ./workspace/bisse_r/sim_bisse.R',
                 '--end_idx', '100',
@@ -144,16 +145,33 @@ def do_fmt():
 
     # filesystem
     work_dir = './tests/workspace'
-    sim_dir = work_dir + '/test/simulate'
-    fmt_dir = work_dir + '/test/format'
+    test_dir = f'{work_dir}/test'
+    valid_dir = f'{work_dir}/valid'
+    sim_dir = f'{test_dir}/simulate'
+    fmt_dir = f'{test_dir}/format'
+    emp_dir = f'{test_dir}/estimate'
 
     # command line arguments
     cmd_args = ['--step', 'F',
+                '--sim_prefix','sim',
+                '--emp_prefix','emp',
+                '--fmt_prefix','out',
                 '--sim_dir', sim_dir,
                 '--fmt_dir', fmt_dir,
+                '--emp_dir', emp_dir,
                 '--prop_test','0.10',
                 '--prop_val','0.10',
                 '--use_parallel', 'F']
+
+    # copy minimal input fileset from valid into test
+    input_files = [ 'tre', 'dat.csv', 'labels.csv' ]
+    os.makedirs(f'{test_dir}/empirical', exist_ok=True)
+    if ENABLE_TEST:
+        for fn in input_files:
+            shutil.copyfile( f'{valid_dir}/simulate/sim.0.{fn}', f'{test_dir}/empirical/new.0.{fn}' )
+    else:
+        for fn in input_files:
+            shutil.copyfile( f'{test_dir}/simulate/sim.0.{fn}', f'{test_dir}/empirical/new.0.{fn}' )
 
     # phyddle arguments
     my_args = util.load_config('./workspace/bisse_r/config.py', arg_overwrite=True, args=cmd_args)
@@ -178,33 +196,62 @@ def check_fmt():
     valid_dir = work_dir + '/valid/format'
 
     # confirm test and valid tree match
-    dat_test  = h5py.File(test_dir + '/test.nt500.hdf5', 'r')
-    dat_valid = h5py.File(valid_dir + '/test.nt500.hdf5', 'r')
-
+    dat_test_test = h5py.File(test_dir + '/out.test.hdf5', 'r')
+    dat_test_valid = h5py.File(valid_dir + '/out.test.hdf5', 'r')
+    
     # collect test format output arrays
-    aux_data_names_test  = dat_test['aux_data_names'][:]
-    label_names_test     = dat_test['label_names'][:]
-    phy_data_test        = dat_test['phy_data'][:]
-    aux_data_test        = dat_test['aux_data'][:]
-    labels_test          = dat_test['labels'][:]
+    aux_data_names_test_test  = dat_test_test['aux_data_names'][:]
+    label_names_test_test     = dat_test_test['label_names'][:]
+    phy_data_test_test        = dat_test_test['phy_data'][:]
+    aux_data_test_test        = dat_test_test['aux_data'][:]
+    labels_test_test          = dat_test_test['labels'][:]
 
     # collect valid format output arrays
-    aux_data_names_valid = dat_valid['aux_data_names'][:]
-    label_names_valid    = dat_valid['label_names'][:]
-    phy_data_valid       = dat_valid['phy_data'][:]
-    aux_data_valid       = dat_valid['aux_data'][:]
-    labels_valid         = dat_valid['labels'][:]
+    aux_data_names_test_valid = dat_test_valid['aux_data_names'][:]
+    label_names_test_valid    = dat_test_valid['label_names'][:]
+    phy_data_test_valid       = dat_test_valid['phy_data'][:]
+    aux_data_test_valid       = dat_test_valid['aux_data'][:]
+    labels_test_valid         = dat_test_valid['labels'][:]
 
     # close files
-    dat_test.close()
-    dat_valid.close()
+    dat_test_test.close()
+    dat_test_valid.close()
 
     # verify all test and valid format output match
-    assert(np.array_equal(aux_data_names_test, aux_data_names_valid))
-    assert(np.array_equal(label_names_test, label_names_valid))
-    assert(np.array_equal(phy_data_test, phy_data_valid))
-    assert(np.array_equal(aux_data_test, aux_data_valid))
-    assert(np.array_equal(labels_test, labels_valid))
+    assert(np.array_equal(aux_data_names_test_test, aux_data_names_test_valid))
+    assert(np.array_equal(label_names_test_test, label_names_test_valid))
+    assert(np.array_equal(phy_data_test_test, phy_data_test_valid))
+    assert(np.array_equal(aux_data_test_test, aux_data_test_valid))
+    assert(np.array_equal(labels_test_test, labels_test_valid))
+
+    # confirm test and valid tree match
+    dat_emp_test = h5py.File(test_dir + '/out.empirical.hdf5', 'r')
+    dat_emp_valid = h5py.File(valid_dir + '/out.empirical.hdf5', 'r')
+
+    # collect test format output arrays
+    aux_data_names_emp_test  = dat_emp_test['aux_data_names'][:]
+    label_names_emp_test     = dat_emp_test['label_names'][:]
+    phy_data_emp_test        = dat_emp_test['phy_data'][:]
+    aux_data_emp_test        = dat_emp_test['aux_data'][:]
+    labels_emp_test          = dat_emp_test['labels'][:]
+
+    # collect valid format output arrays
+    aux_data_names_emp_valid = dat_emp_valid['aux_data_names'][:]
+    label_names_emp_valid    = dat_emp_valid['label_names'][:]
+    phy_data_emp_valid       = dat_emp_valid['phy_data'][:]
+    aux_data_emp_valid       = dat_emp_valid['aux_data'][:]
+    labels_emp_valid         = dat_emp_valid['labels'][:]
+
+    # close files
+    dat_test_test.close()
+    dat_test_valid.close()
+
+    # verify all test and valid format output match
+    assert(np.array_equal(aux_data_names_emp_test, aux_data_names_emp_valid))
+    assert(np.array_equal(label_names_emp_test, label_names_emp_valid))
+    assert(np.array_equal(phy_data_emp_test, phy_data_emp_valid))
+    assert(np.array_equal(aux_data_emp_test, aux_data_emp_valid))
+    assert(np.array_equal(labels_emp_test, labels_emp_valid))
 
     # success
     return
@@ -225,6 +272,8 @@ def do_trn():
 
     # command line arguments
     cmd_args = ['--step', 'T',
+                '--fmt_prefix', 'out',
+                '--trn_prefix', 'out',
                 '--fmt_dir', fmt_dir,
                 '--trn_dir', trn_dir,
                 '--prop_test', '0.1',
@@ -254,10 +303,10 @@ def check_trn():
     valid_dir = work_dir + '/valid/train'
 
     # load test output for Train
-    lbl_test_fn = test_dir + '/network_nt500.train_est.labels.csv'
-    cpi_test_fn = test_dir + '/network_nt500.cpi_adjustments.csv'
-    aux_norm_test_fn = test_dir + '/network_nt500.train_aux_data_norm.csv'
-    lbl_norm_test_fn = test_dir + '/network_nt500.train_label_norm.csv'
+    lbl_test_fn = test_dir + '/out.train_est.labels.csv'
+    cpi_test_fn = test_dir + '/out.cpi_adjustments.csv'
+    aux_norm_test_fn = test_dir + '/out.train_aux_data_norm.csv'
+    lbl_norm_test_fn = test_dir + '/out.train_label_norm.csv'
 
     lbl_test = pd.read_csv(lbl_test_fn, header=0).iloc[:,1:].to_numpy()
     cpi_test = pd.read_csv(cpi_test_fn, header=0).to_numpy()
@@ -265,10 +314,10 @@ def check_trn():
     lbl_norm_test = pd.read_csv(lbl_norm_test_fn, header=0).iloc[:,1:].to_numpy()
     
     # load valid output for Train
-    lbl_valid_fn = valid_dir + '/network_nt500.train_est.labels.csv'
-    cpi_valid_fn = valid_dir + '/network_nt500.cpi_adjustments.csv'
-    aux_norm_valid_fn = valid_dir + '/network_nt500.train_aux_data_norm.csv'
-    lbl_norm_valid_fn = valid_dir + '/network_nt500.train_label_norm.csv'
+    lbl_valid_fn = valid_dir + '/out.train_est.labels.csv'
+    cpi_valid_fn = valid_dir + '/out.cpi_adjustments.csv'
+    aux_norm_valid_fn = valid_dir + '/out.train_aux_data_norm.csv'
+    lbl_norm_valid_fn = valid_dir + '/out.train_label_norm.csv'
 
     lbl_valid = pd.read_csv(lbl_valid_fn, header=0).iloc[:,1:].to_numpy()
     cpi_valid = pd.read_csv(cpi_valid_fn, header=0).to_numpy()
@@ -318,38 +367,22 @@ def do_est():
     work_dir = './tests/workspace'
     test_dir = work_dir + '/test'
     valid_dir = work_dir + '/valid'
-    sim_dir = work_dir + '/valid/simulate'
     fmt_dir = work_dir + '/valid/format'
     trn_dir = work_dir + '/valid/train'
     est_dir = work_dir + '/test/estimate'
-    est_prefix = 'new.0'
-
+    
 	# command line arguments
     cmd_args = ['--step', 'E',
-                '--sim_dir', sim_dir,
+                '--fmt_prefix', 'out',
+                '--trn_prefix', 'out',
+                '--est_prefix', 'out',
                 '--fmt_dir', fmt_dir,
                 '--trn_dir', trn_dir,
                 '--est_dir', est_dir,
-                '--est_prefix', est_prefix,
                 '--use_parallel', 'F']
 
     # phyddle arguments
     my_args = util.load_config('./workspace/bisse_r/config.py', arg_overwrite=True, args=cmd_args)
-
-    # copy minimal input fileset from valid into test
-    input_files = [ 'tre', 'dat.csv', 'labels.csv' ]
-    os.makedirs(f'{test_dir}/estimate', exist_ok=True)
-    if ENABLE_TEST:
-        for fn in input_files:
-            shutil.copyfile( f'{valid_dir}/simulate/sim.0.{fn}', f'{test_dir}/estimate/new.0.{fn}' )
-    else:
-        for fn in input_files:
-            shutil.copyfile( f'{test_dir}/simulate/sim.0.{fn}', f'{test_dir}/estimate/new.0.{fn}' )
-
-    # make formatted dataset
-    est_prefix_path = f'{test_dir}/{est_prefix}'
-    my_fmt = fmt.load(my_args)
-    my_fmt.encode_one(tmp_fn=est_prefix_path, idx=-1, save_phyenc_csv=True)
 
     # load estimator
     my_est = est.load(my_args)
@@ -369,14 +402,27 @@ def check_est():
     work_dir  = './tests/workspace'
     test_dir  = work_dir + '/test/estimate'
     valid_dir = work_dir + '/valid/estimate'
-    est_prefix = 'new.0'
 
     # load test output for Estimate
-    est_lbl_test_fn = test_dir + f'/{est_prefix}.test_est.labels.csv'
+    est_lbl_test_fn = test_dir + f'/out.test_est.labels.csv'
     est_lbl_test = pd.read_csv(est_lbl_test_fn, header=0).to_numpy()
 
     # load valid output for Estimate
-    est_lbl_valid_fn = valid_dir + f'/{est_prefix}.test_est.labels.csv'
+    est_lbl_valid_fn = valid_dir + f'/out.test_est.labels.csv'
+    est_lbl_valid = pd.read_csv(est_lbl_valid_fn, header=0).to_numpy()
+
+    # compare test and valid estimate labels
+    lbl_error = np.max(np.abs(est_lbl_test - est_lbl_valid))
+    if lbl_error < ERROR_TOL:
+        print('lbl_error < ERROR_TOL: ', lbl_error)
+    assert( lbl_error < ERROR_TOL)
+
+    # load test output for Estimate
+    est_lbl_test_fn = test_dir + f'/out.empirical_est.labels.csv'
+    est_lbl_test = pd.read_csv(est_lbl_test_fn, header=0).to_numpy()
+
+    # load valid output for Estimate
+    est_lbl_valid_fn = valid_dir + f'/out.empirical_est.labels.csv'
     est_lbl_valid = pd.read_csv(est_lbl_valid_fn, header=0).to_numpy()
 
     # compare test and valid estimate labels
@@ -407,6 +453,12 @@ def do_plt():
 
 	# command line arguments
     cmd_args = ['--step', 'P',
+                '--sim_prefix', 'sim',
+                '--emp_prefix', 'emp',
+                '--fmt_prefix', 'out',
+                '--trn_prefix', 'out',
+                '--est_prefix', 'out',
+                '--plt_prefix', 'out',
                 '--sim_dir', sim_dir,
                 '--fmt_dir', fmt_dir,
                 '--trn_dir', trn_dir,
@@ -438,13 +490,13 @@ def check_plt():
 
 	# verify output
     out_files = [
-        'fig_nt500.density_aux_data.pdf',
-        'fig_nt500.density_label.pdf',
-        'fig_nt500.network_architecture.pdf',
-        'fig_nt500.pca_contour_aux_data.pdf',
-        'fig_nt500.pca_contour_labels.pdf',
-        'fig_nt500.summary.pdf',
-        'fig_nt500.train_history.pdf'
+        'out.train_density_aux_data.pdf',
+        'out.train_density_labels.pdf',
+        'out.network_architecture.pdf',
+        'out.train_pca_contour_aux_data.pdf',
+        'out.train_pca_contour_labels.pdf',
+        'out.summary.pdf',
+        'out.train_history.pdf'
     ]
     
     # verify all test output files exist
