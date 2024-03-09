@@ -48,23 +48,23 @@ torch.set_deterministic_debug_mode(debug_mode='warn')
 # Each test function below covers one pipeline step.
 
 def test_sim():
-    # do_sim()
-    # check_sim()
+    do_sim()
+    check_sim()
     return
 
 def test_fmt():
-    # do_fmt()
-    # check_fmt()
+    do_fmt()
+    check_fmt()
     return
 
 def test_trn():
-    # do_trn()
-    # check_trn()
+    do_trn()
+    check_trn()
     return
 
 def test_est():
-    # do_est()
-    # check_est()
+    do_est()
+    check_est()
     return
 
 def test_plt():
