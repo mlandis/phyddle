@@ -169,7 +169,7 @@ def settings_registry():
         'loss'             : { 'step':'T',   'type':str,   'section':'Train', 'default':'mse',         'help':'Loss function for optimization', 'choices':['mse', 'mae']},
         'optimizer'        : { 'step':'T',   'type':str,   'section':'Train', 'default':'adam',        'help':'Method used for optimizing neural network', 'choices':['adam'] },
         'metrics'          : { 'step':'T',   'type':list,  'section':'Train', 'default':['mae','acc'], 'help':'Recorded training metrics' },
-        'log_offset'       : { 'step':'FTEP', 'type':float, 'section':'Train', 'default':1.0,          'help':'Offset size c when taking ln(x+c) for potentially zero-valued variables' },
+        'log_offset'       : { 'step':'FTEP', 'type':float, 'section':'Train', 'default':1.0,          'help':'Offset size c when taking ln(x+c) for zero-valued variables' },
         'phy_channel_plain'  : { 'step':'T',   'type':list,  'section':'Train', 'default':[64,96,128],   'help':'Output channel sizes for plain convolutional layers for phylogenetic state input' },
         'phy_channel_stride' : { 'step':'T',   'type':list,  'section':'Train', 'default':[64,96],       'help':'Output channel sizes for stride convolutional layers for phylogenetic state input' },
         'phy_channel_dilate' : { 'step':'T',   'type':list,  'section':'Train', 'default':[32,64],       'help':'Output channel sizes for dilate convolutional layers for phylogenetic state input' },
@@ -1464,6 +1464,26 @@ def ndarray_to_flat_str(x):
 #########################
 # Tensor de/normalizing #
 #########################
+
+def safe_log_tensor(data, col, log_offset=0.0):
+    assert col is list()
+    assert np.all([ type(x)==bool for x in col ])
+    assert np.all(data[:,col] >= 0.0)
+    
+    # y = log(x + c)
+    data[:,col] = np.log(data[:,col] + log_offset)
+    
+    return data
+
+def safe_delog_tensor(data, col, log_offset=0.0):
+    assert col is list()
+    assert np.all([ type(x)==bool for x in col ])
+
+    # x = exp(y) - c
+    data[:,col] = np.exp(data[:,col]) - log_offset
+    assert np.all(data[:,col] >= 0.0)
+    
+    return data
 
 def normalize(data, m_sd = None):
     """
