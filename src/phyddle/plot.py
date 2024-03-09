@@ -168,6 +168,9 @@ class Plotter:
         self.test_labels = None         # init with load_input()
         self.history_table = None       # init with load_input()
         self.num_empirical = int(0)     # init with load_input()
+        self.emp_valid = False
+        self.sim_test_valid = False
+        self.sim_train_valid = False
 
         return
 
@@ -303,14 +306,14 @@ class Plotter:
         # Densities for aux. data and labels
         self.make_plot_stat_density('train', 'aux_data')
         self.make_plot_stat_density('train', 'labels')
-        if self.num_empirical >= self.min_num_emp_density:
+        if self.num_empirical >= self.min_num_emp_density and self.emp_valid:
             self.make_plot_stat_density('empirical', 'aux_data')
             self.make_plot_stat_density('empirical', 'labels')
 
         # PCA-contours for aux. data and labels
         aux_pca_model = self.make_plot_pca_contour('train', 'aux_data')
         lbl_pca_model = self.make_plot_pca_contour('train', 'labels')
-        if self.num_empirical >= self.min_num_emp_density:
+        if self.num_empirical >= self.min_num_emp_density and self.emp_valid:
             self.make_plot_pca_contour('empirical', 'aux_data', pca_model=aux_pca_model)
             self.make_plot_pca_contour('empirical', 'labels', pca_model=lbl_pca_model)
 
@@ -447,31 +450,44 @@ class Plotter:
         """Calls plot_stat_density with arguments."""
         assert data in ['train', 'empirical']
         assert var in ['aux_data', 'labels']
+
+        train_aux_data = None
+        train_labels = None
+        emp_aux_data = None
+        emp_ests = None
+        if self.train_aux_data is not None:
+            train_aux_data = self.train_aux_data.copy()
+        if self.train_labels is not None:
+            train_labels = self.train_labels.copy()
+        if self.emp_aux_data is not None:
+            emp_aux_data = self.emp_aux_data.copy()
+        if self.emp_ests is not None:
+            emp_ests = self.emp_ests.copy()
         
         if data == 'train' and var == 'aux_data':
             self.plot_stat_density(save_fn=self.save_train_density_aux_fn,
-                                   dist_values=self.train_aux_data.copy(),
-                                   point_values=self.emp_aux_data.copy(),
+                                   dist_values=train_aux_data,
+                                   point_values=emp_aux_data,
                                    color=self.plot_aux_color,
                                    title='training aux. data')
             
         elif data == 'train' and var == 'labels':
             self.plot_stat_density(save_fn=self.save_train_density_label_fn,
-                                   dist_values=self.train_labels.copy(),
-                                   point_values=self.emp_ests.copy(),
+                                   dist_values=train_labels,
+                                   point_values=emp_ests,
                                    color=self.plot_label_color,
                                    title='training labels')
             
         elif data == 'empirical' and var == 'aux_data':
             self.plot_stat_density(save_fn=self.save_emp_density_aux_fn,
-                                   dist_values=self.emp_aux_data.copy(),
+                                   dist_values=emp_aux_data,
                                    point_values=None,
                                    color=self.plot_aux_color,
                                    title='empirical aux. data')
         
         elif data == 'empirical' and var == 'labels':
             self.plot_stat_density(save_fn=self.save_emp_density_label_fn,
-                                   dist_values=self.emp_ests.copy(),
+                                   dist_values=emp_ests,
                                    point_values=None,
                                    color=self.plot_label_color,
                                    title='empirical labels')
@@ -508,26 +524,39 @@ class Plotter:
         assert data in ['train', 'empirical']
         assert var in ['aux_data', 'labels']
 
+        train_aux_data = None
+        train_labels = None
+        emp_aux_data = None
+        emp_ests = None
+        if self.train_aux_data is not None:
+            train_aux_data = self.train_aux_data.copy()
+        if self.train_labels is not None:
+            train_labels = self.train_labels.copy()
+        if self.emp_aux_data is not None:
+            emp_aux_data = self.emp_aux_data.copy()
+        if self.emp_ests is not None:
+            emp_ests = self.emp_ests.copy()
+            
         mdl = None
         if data == 'train' and var == 'aux_data':
             mdl = self.plot_pca_contour(save_fn=self.save_train_pca_aux_data_fn,
-                                        dist_values=self.train_aux_data.copy(),
-                                        point_values=self.emp_aux_data.copy(),
+                                        dist_values=train_aux_data,
+                                        point_values=emp_aux_data,
                                         pca_model=pca_model,
                                         color=self.plot_aux_color,
                                         title='training aux. data')
             
         elif data == 'train' and var == 'labels':
             mdl = self.plot_pca_contour(save_fn=self.save_train_pca_labels_fn,
-                                        dist_values=self.train_labels.copy(),
-                                        point_values=self.emp_ests.copy(),
+                                        dist_values=train_labels,
+                                        point_values=emp_ests,
                                         pca_model=pca_model,
                                         color=self.plot_label_color,
                                         title='training labels')
 
         elif data == 'empirical' and var == 'aux_data':
             mdl = self.plot_pca_contour(save_fn=self.save_emp_pca_aux_data_fn,
-                                        dist_values=self.emp_aux_data.copy(),
+                                        dist_values=emp_aux_data,
                                         point_values=None,
                                         pca_model=pca_model,
                                         color=self.plot_aux_color,
@@ -535,7 +564,7 @@ class Plotter:
 
         elif data == 'empirical' and var == 'labels':
             mdl = self.plot_pca_contour(save_fn=self.save_emp_pca_labels_fn,
-                                        dist_values=self.emp_ests.copy(),
+                                        dist_values=emp_ests,
                                         point_values=None,
                                         pca_model=pca_model,
                                         color=self.plot_label_color,
