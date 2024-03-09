@@ -29,7 +29,7 @@ cd ~/projects/phyddle
 
 Then create and run a pipeline under the settings you've specified in `configs/config_R.py`:
 ```shell
-phyddle --cfg configs/config_R.py
+phyddle --cfg ./workspace/example/config.py
 ```
 
 This will run a phyddle analysis with 1000 simulations using R and the castor package for a simple birth-death model with one 3-state character. In practice, you'll want to generate a larger training dataset with anywhere from 10k to 1M examples, depending on the model.
@@ -37,19 +37,19 @@ This will run a phyddle analysis with 1000 simulations using R and the castor pa
 To add new examples to your training set
 ```shell
 # simulate new training examples and store in simulate
-phyddle -s S -c configs/config_R.py --sim_more 14000
+phyddle -s S -c ./workspace/example/config.py --sim_more 14000
 
 # encode all raw_data examples as tensors in format
-phyddle -s F -c configs/config_R.py
+phyddle -s F -c ./workspace/example/config.py
 
 # train network with tensor data, but override batch size, then store in train
-phyddle -s T -c configs/config_R.py --trn_batch_size 256
+phyddle -s T -c ./workspace/example/config.py --trn_batch_size 256
 
 # make prediction for empirical example in dataset
-phyddle -s E -c configs/config_R.py
+phyddle -s E -c ./workspace/example/config.py
 
 # generate figures and store in plot
-phyddle -s P -c configs/config_R.py
+phyddle -s P -c ./workspace/example/config.py
 ```
 
 To see a full list of all options currently supported by phyddle
