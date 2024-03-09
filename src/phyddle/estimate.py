@@ -352,10 +352,13 @@ class Estimator:
 
         # test dataset
         label_est = self.mymodel(torch.Tensor(self.phy_data),
-                                      torch.Tensor(self.aux_data))
+                                 torch.Tensor(self.aux_data))
 
         # point estimates & CPIs for test labels
         label_est = torch.stack(label_est).detach().numpy()
+        # add dummy dimension if only one sample
+        if label_est.ndim == 2:
+            label_est.shape = (label_est.shape[0], 1, label_est.shape[1])
         label_est[1,:,:] = label_est[1,:,:] - self.cpi_adjustments[0,:]
         label_est[2,:,:] = label_est[2,:,:] + self.cpi_adjustments[1,:]
         
