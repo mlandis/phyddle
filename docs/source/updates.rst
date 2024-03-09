@@ -6,6 +6,8 @@ The complete commit history for phyddle is located here: https://github.com/mlan
 **phyddle v0.1.2** -- in progress
 
   * Even simpler default directory structure. Default phyddle configs, scripts, and outputs now share a proj directory in ./workspace.
+  * Better support for multiple project names within a workspace directory.
+  * Rewrote how Format/Estimate/Plot interact so simulated-test/empirical datasets are treated similarly.
   * Better error checking and helpful messages for Simulate-Format config mismatches.
 
 
