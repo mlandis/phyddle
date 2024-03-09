@@ -149,7 +149,7 @@ def do_fmt():
     valid_dir = f'{work_dir}/valid'
     sim_dir = f'{test_dir}/simulate'
     fmt_dir = f'{test_dir}/format'
-    emp_dir = f'{test_dir}/estimate'
+    emp_dir = f'{test_dir}/empirical'
 
     # command line arguments
     cmd_args = ['--step', 'F',
@@ -168,10 +168,10 @@ def do_fmt():
     os.makedirs(f'{test_dir}/empirical', exist_ok=True)
     if ENABLE_TEST:
         for fn in input_files:
-            shutil.copyfile( f'{valid_dir}/simulate/sim.0.{fn}', f'{test_dir}/empirical/new.0.{fn}' )
+            shutil.copyfile( f'{valid_dir}/simulate/sim.0.{fn}', f'{test_dir}/empirical/emp.0.{fn}' )
     else:
         for fn in input_files:
-            shutil.copyfile( f'{test_dir}/simulate/sim.0.{fn}', f'{test_dir}/empirical/new.0.{fn}' )
+            shutil.copyfile( f'{test_dir}/simulate/sim.0.{fn}', f'{test_dir}/empirical/emp.0.{fn}' )
 
     # phyddle arguments
     my_args = util.load_config('./workspace/bisse_r/config.py', arg_overwrite=True, args=cmd_args)
