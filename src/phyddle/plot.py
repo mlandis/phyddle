@@ -759,7 +759,7 @@ class Plotter:
         num_comp = min(dist_values.shape[1], num_comp)
 
         # rescale input data
-        dist_values = np.log(dist_values + self.log_offset)
+        # dist_values = np.log(dist_values + self.log_offset)
         scaler = StandardScaler()
         x = scaler.fit_transform(dist_values)
         
@@ -779,7 +779,7 @@ class Plotter:
         if point_values is not None:
             point_values.columns = [ p.replace('_value','') for p in point_values.columns ]
             point_values = point_values[ dist_values.columns ]
-            point_values = np.log(point_values + self.log_offset)
+            #point_values = np.log(point_values + self.log_offset)
             point_values = scaler.transform(point_values)
             pca_est = pca_model.transform(point_values)
         
@@ -909,14 +909,14 @@ class Plotter:
             lbl_upper = ests[f'{p}_upper'][:].to_numpy()
             lbl_true = labels[p][:].to_numpy()
 
-            only_positive = np.all(lbl_true >= 0.)
-            if only_positive and plot_log:
-                lbl_est = np.log(lbl_est)
-                lbl_lower = np.log(lbl_lower)
-                lbl_upper = np.log(lbl_upper)
-                lbl_true = np.log(lbl_true)
-                x_label = f'ln {p} {axis_labels[0]}'
-                y_label = f'ln {p} {axis_labels[1]}'
+            # only_positive = np.all(lbl_true >= 0.)
+            # if only_positive and plot_log:
+            #     lbl_est = np.log(lbl_est)
+            #     lbl_lower = np.log(lbl_lower)
+            #     lbl_upper = np.log(lbl_upper)
+            #     lbl_true = np.log(lbl_true)
+            #     x_label = f'ln {p} {axis_labels[0]}'
+            #     y_label = f'ln {p} {axis_labels[1]}'
                 
             # accuracy stats
             stat_mae = np.mean( np.abs(lbl_est - lbl_true) )
@@ -1048,8 +1048,8 @@ class Plotter:
         plt.figure(figsize=(fig_width,fig_height))
         
         # use log-scale for y-axis?
-        if plot_log:
-            plt.yscale('log')
+        # if plot_log:
+        #     plt.yscale('log')
 
         # plot each estimated label
         for i,lbl in enumerate(label_names):
@@ -1058,10 +1058,10 @@ class Plotter:
             y_lower = est_label[lbl+'_lower'].iloc[0]
             y_upper = est_label[lbl+'_upper'].iloc[0]
 
-            if plot_log:
-                y_value = np.max([1e-4, y_value])
-                y_lower = np.max([1e-4, y_lower])
-                y_upper = np.max([1e-4, y_upper])
+            # if plot_log:
+            #     y_value = np.max([1e-4, y_value])
+            #     y_lower = np.max([1e-4, y_lower])
+            #     y_upper = np.max([1e-4, y_upper])
 
             s_value = '{:.2E}'.format(y_value)
             s_lower = '{:.2E}'.format(y_lower)

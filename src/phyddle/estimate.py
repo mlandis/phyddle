@@ -317,7 +317,7 @@ class Estimator:
 
         # test dataset normalization
         assert aux_data.shape[0] == num_sample
-        aux_data = np.log(aux_data + self.log_offset)
+        # aux_data = np.log(aux_data + self.log_offset)
         self.aux_data = util.normalize(aux_data, self.train_aux_data_mean_sd)
 
         if mode == 'sim':
@@ -363,9 +363,12 @@ class Estimator:
         label_est[2,:,:] = label_est[2,:,:] + self.cpi_adjustments[1,:]
         
         # denormalize test label estimates
+        # denorm_label_est = util.denormalize(label_est,
+        #                                     self.train_labels_mean_sd,
+        #                                     exp=True) - self.log_offset
         denorm_label_est = util.denormalize(label_est,
                                             self.train_labels_mean_sd,
-                                            exp=True) - self.log_offset
+                                            exp=False) # - self.log_offset
 
         # save test estimates
         df_test_label_est = util.make_param_VLU_mtx(denorm_label_est, self.label_names)

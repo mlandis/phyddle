@@ -356,8 +356,8 @@ class CnnTrainer(Trainer):
 
         # logs of labels (rates) for variance stabilization against
         # heteroskedasticity (variance grows with mean)
-        full_labels = np.log(full_labels + self.log_offset)
-        full_aux_data = np.log(full_aux_data + self.log_offset)
+        # full_labels = np.log(full_labels + self.log_offset)
+        # full_aux_data = np.log(full_aux_data + self.log_offset)
         
         # shuffle datasets
         randomized_idx = np.random.permutation(full_phy_data.shape[0])
@@ -373,7 +373,8 @@ class CnnTrainer(Trainer):
         self.validate_tensor_idx(train_idx, val_idx, calib_idx)
         
         # save original training input
-        self.train_label_true = np.exp(full_labels[train_idx,:]) - self.log_offset
+        self.train_label_true = full_labels[train_idx,:]
+        # self.train_label_true = np.exp(full_labels[train_idx,:]) - self.log_offset
 
         # normalize auxiliary data
         norm_train_aux_data, train_aux_data_means, train_aux_data_sd = util.normalize(full_aux_data[train_idx,:])
@@ -629,9 +630,12 @@ class CnnTrainer(Trainer):
         
         # we want an array of 3 outputs [point, lower, upper], N examples, K parameters
         norm_train_label_est = torch.stack(norm_train_label_est).detach().numpy()
+        # self.train_label_est = util.denormalize(norm_train_label_est,
+        #                                         self.train_labels_mean_sd,
+        #                                         exp=True) - self.log_offset
         self.train_label_est = util.denormalize(norm_train_label_est,
                                                 self.train_labels_mean_sd,
-                                                exp=True) - self.log_offset
+                                                exp=False)
  
         # make initial CPI estimates
         # todo: can't we learn dataset and batchsize somehow??
@@ -654,9 +658,12 @@ class CnnTrainer(Trainer):
         norm_train_label_est_calib = norm_train_label_est
         norm_train_label_est_calib[1,:,:] = norm_train_label_est_calib[1,:,:] - self.cpi_adjustments[0,:]
         norm_train_label_est_calib[2,:,:] = norm_train_label_est_calib[2,:,:] + self.cpi_adjustments[1,:]
+        # self.train_label_est_calib = util.denormalize(norm_train_label_est_calib,
+        #                                               self.train_labels_mean_sd,
+        #                                               exp=True) - self.log_offset
         self.train_label_est_calib = util.denormalize(norm_train_label_est_calib,
                                                       self.train_labels_mean_sd,
-                                                      exp=True) - self.log_offset
+                                                      exp=False)  # - self.log_offset
 
         return
 
