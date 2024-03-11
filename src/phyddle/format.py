@@ -134,10 +134,7 @@ class Formatter:
         self.logger = util.Logger(args)
 
         # initialized later
-        # self.phy_tensors        = dict()   # init with encode_all()
         self.rep_data           = dict()   # init with encode_all()
-        # self.summ_stat_names    = list()   # init with encode_all()
-        # self.label_names        = list()   # init with encode_all()
         self.split_idx          = dict()   # init with split_examples()
         self.rep_idx            = list()   # init with get_rep_idx()
 
@@ -349,21 +346,13 @@ class Formatter:
                            'the configuration (e.g. min_taxa_size setting).')
             sys.exit()
             
-        # save all phylogenetic-state tensors into the phy_tensors dictionary,
-        # while sorting tensors into different tree-width categories
-        
-        #self.phy_tensors = {}
+        # save all replicate output by index
         self.rep_data = {}
         for i in res:
             if i is not None:
                 self.rep_data[i[0]] = { 'phy':i[1].flatten(),
                                         'aux': i[2],
                                         'lbl': i[3] }
-                #self.phy_tensors[i[0]] = i[1]
-
-        # save names/lengths of summary statistic and label lists
-        # self.summ_stat_names = self.get_summ_stat_names(mode)
-        # self.label_names     = self.get_label_names(mode)
 
         return
     
@@ -405,86 +394,17 @@ class Formatter:
             
         return all_idx
 
-    # def get_summ_stat_names(self, mode='sim'):
-    #     """Get names of summary statistics.
-    # 
-    #     Returns:
-    #         str[]: List of summary statistics names.
-    #     """
-    #     assert mode in ['sim', 'emp']
-    #     # get first index
-    #     idx = None
-    #     k_list = list(self.phy_tensors.keys())
-    #     if len(k_list) > 0 and idx is None:
-    #         idx = k_list[0]
-    #     
-    #     # get headers from file
-    #     dat_dir_prefix = ''
-    #     if mode == 'sim':
-    #         dat_dir_prefix = f'{self.sim_dir}/{self.sim_prefix}.{idx}'
-    #     elif mode == 'emp':
-    #         dat_dir_prefix = f'{self.emp_dir}/{self.emp_prefix}.{idx}'
-    #     fn = f'{dat_dir_prefix}.summ_stat.csv'
-    #     
-    #     if not os.path.exists(fn):
-    #         util.print_err(f'Cannot find {dat_dir_prefix}.'
-    #                        f'*.summ_stat.csv. Verify that your simulator '
-    #                        f'created output that is detectable based on your '
-    #                        f'config settings.')
-    #         sys.exit()
-    #     df = pd.read_csv(fn,header=0)
-    #     ret = df.columns.to_list()
-    #     return ret
-    # 
-    # def get_label_names(self, mode='sim'):
-    #     """Get names of training labels.
-    # 
-    #     Returns:
-    #         str[]: List of label names.
-    #     """
-    #     assert mode in ['sim', 'emp']
-    #     
-    #     # get first index
-    #     idx = None
-    #     k_list = list(self.phy_tensors.keys())
-    #     if len(k_list) > 0 and idx is None:
-    #         idx = k_list[0]
-    #     
-    #     # get headers from file
-    #     dat_dir_prefix = ''
-    #     if mode == 'sim':
-    #         dat_dir_prefix = f'{self.sim_dir}/{self.sim_prefix}.{idx}'
-    #     elif mode == 'emp':
-    #         dat_dir_prefix = f'{self.emp_dir}/{self.emp_prefix}.{idx}'
-    #     fn = f'{dat_dir_prefix}.labels.csv'
-    #     
-    #     if not os.path.exists(fn) and mode != 'emp' and len(self.param_data) > 0:
-    #         util.print_err(f'Cannot find {dat_dir_prefix}.'
-    #                        f'*.labels.csv. Verify that your simulator created '
-    #                        f'output that is detectable based on your config '
-    #                        f'settings.')
-    #         sys.exit()
-    #         # exits
-    #     df = pd.read_csv(fn,header=0)
-    #     ret = df.columns.to_list()
-    #     return ret
-
     def split_examples(self):
         """Split examples into training and test datasets."""
-        
-        # assert mode in ['sim', 'emp']
         
         split_idx = {}
         rep_idx = sorted(list(self.rep_data.keys()))
         rep_idx = np.array(rep_idx)
         num_samples = len(rep_idx)
         
-        # if mode == 'emp':
-        #     # all empirical examples used
-        #     split_idx['empirical'] = rep_idx
-        # elif mode == 'sim':
         # shuffle examples
         np.random.shuffle(rep_idx)
+        
         # split examples
         num_test = int(num_samples * self.prop_test)
         split_idx['test'] = rep_idx[:num_test]
@@ -661,65 +581,8 @@ class Formatter:
         # replicate index
         df_idx = pd.DataFrame(rep_idx, columns=['idx'])
         df_idx.to_csv(out_idx_fn, index=False)
-        
-        # # rearrange labels and summary statistics
-        # # - labels contains param_est
-        # # - aux_data contains summ_stat and param_data
-        # 
-        # # read in summ_stats and labels
-        # df_summ_stats = pd.read_csv(out_stat_fn)
-        # df_labels = pd.read_csv(out_labels_fn)
-        # 
-        # # separate data parameters (things we know) from label parameters (things we predict)
-        # df_labels_keep = df_labels[self.param_est]
-        # df_labels_move = df_labels[self.param_data]
-        # 
-        # # concatenate new data parameters as column to existing summ_stats dataframe
-        # df_summ_stats = df_summ_stats.join( df_labels_move )
-        # 
-        # # overwrite original files with new modified versions
-        # df_summ_stats.to_csv(out_stat_fn, index=False, float_format=util.PANDAS_FLOAT_FMT_STR)
-        # df_labels_keep.to_csv(out_labels_fn, index=False, float_format=util.PANDAS_FLOAT_FMT_STR)
 
         return
-    
-    def load_one_sim(self, idx, mode='sim'):
-        """Load single simulated dataset.
-    
-        x1 is the phylogenetic state tensor
-        x2 is the aux data tensor file
-        x3 is the labels tensor file
-    
-        Args:
-            idx (int): Replicate index of the simulation.
-            mode (str): specifies 'sim' or 'emp' dataset.
-        
-        Returns:
-            Tuple of numpy arrays (x1, x2, x3).
-        """
-        
-        # file names
-        fname_base = ''
-        if mode == 'sim':
-            fname_base  = f'{self.sim_dir}/{self.sim_prefix}.{idx}'
-        elif mode == 'emp':
-            fname_base  = f'{self.emp_dir}/{self.emp_prefix}.{idx}'
-            
-        fname_param = fname_base + '.labels.csv'
-        fname_stat  = fname_base + '.summ_stat.csv'
-        
-        # dataset values
-        x1 = self.phy_tensors[idx].flatten()
-        x2 = np.loadtxt(fname_stat, delimiter=',', skiprows=1)
-        
-        if mode == 'emp' and len(self.param_data) == 0:
-            num_labels = len(self.label_names)
-            x3 = np.zeros( (1,num_labels) )
-        else:
-            x3 = np.loadtxt(fname_param, delimiter=',', skiprows=1)
-        
-        # return
-        return x1, x2, x3
 
     def encode_one_star(self, args):
         """Wrapper for encode_one w/ unpacked args"""
@@ -761,7 +624,6 @@ class Formatter:
         prune_fn   = tmp_fn + '.extant.tre'
         down_fn    = tmp_fn + '.downsampled.tre'
         cpsv_fn    = tmp_fn + '.phy_data.csv'
-        # ss_fn      = tmp_fn + '.summ_stat.csv'
         aux_fn     = tmp_fn + '.aux_data.csv'
         lbl_fn     = tmp_fn + '.labels.csv'
         par_est_fn = tmp_fn + '.param_est.csv'
@@ -847,10 +709,6 @@ class Formatter:
             cpsv_str = util.ndarray_to_flat_str(cpvs_data.flatten()) + '\n'
             util.write_to_file(cpsv_str, cpsv_fn)
 
-        # record info
-        # info_str = self.make_settings_str(idx, tree_width)
-        # util.write_to_file(info_str, info_fn)
-
         # read in raw labels file
         labels = pd.read_csv(lbl_fn, header=0)
         
@@ -873,8 +731,6 @@ class Formatter:
         param_est.to_csv(par_est_fn, index=False, float_format=util.PANDAS_FLOAT_FMT_STR)
 
         # set empty param dataframes as None
-        # if len(param_data.columns) == 0:
-        #     param_data = None
         if len(param_est.columns) == 0:
             param_est = None
 
@@ -945,30 +801,10 @@ class Formatter:
                 # summ_stats['f_dat_' + str(i)] = np.sum(dat.iloc[i]) / num_taxa
                 summ_stats['n_dat_' + str(i)] = np.sum(dat.iloc[i])
 
-        
         df = pd.DataFrame(summ_stats, index=[0])
 
         # done
         return df
-    
-    # ==> Can probably move to util? seems generic and useful
-    def make_summ_stat_str(self, ss):
-        """
-        Generate a string representation of the summary statistics.
-
-        Arguments:
-            ss (dict): dictionary of summary statistics
-
-        Returns:
-            keys_str: string containing the keys of the summary statistics
-            vals_str: string containing the values of the summary statistics
-
-        """
-        keys_str = ','.join( list(ss.keys()) ) + '\n'
-        # vals_str = ','.join( [ str(x) for x in ss.values() ] ) + '\n'
-        vals = np.array([ float(x) for x in ss.values() ])
-        vals_str = util.ndarray_to_flat_str(vals) + '\n'
-        return keys_str + vals_str
     
     def encode_cpvs(self, phy, dat, tree_width, tree_type,
                     tree_encode_type, idx, rescale=True):
