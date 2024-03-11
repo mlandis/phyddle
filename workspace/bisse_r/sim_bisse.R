@@ -29,7 +29,7 @@ lbl_fn = paste0(tmp_fn, ".labels.csv")        # csv of labels (e.g. params)
 # dataset setup
 num_states = 2
 tree_width = 500
-label_names = c( paste0("birth_",1:num_states), "death", "state_rate", "sample_frac")
+label_names = c( paste0("ln_birth_",1:num_states), "ln_death", "ln_state_rate", "ln_sample_frac", "model_type")
 
 # simulate each replicate
 for (i in 1:num_rep) {
@@ -50,8 +50,12 @@ for (i in 1:num_rep) {
         }
 
         # simulate parameters
+        model_type = sample(1:2, size=1)
         Q = get_random_mk_transition_matrix(num_states, rate_model="ER", max_rate=0.1)
         birth = runif(num_states, 0, 1)
+        if (model_type == 1) {
+            birth[2] = birth[1]
+        }
         death = min(birth) * runif(1, 0, 1.0)
         death = rep(death, num_states)
         parameters = list(
@@ -84,7 +88,9 @@ for (i in 1:num_rep) {
     write.csv(df_state, file=dat_fn[i], row.names=F, quote=F)
 
     # save learned labels (e.g. estimated data-generating parameters)
-    label_sim = c(birth[1], birth[2], death[1], Q[1,2], sample_frac)
+    label_sim = c( birth[1], birth[2], death[1], Q[1,2], sample_frac, model_type)
+    label_sim[1:5] = log(label_sim[1:5])
+    # label_sim[5] = label_sim[5] / (1 - exp(label_sim[5]))
     names(label_sim) = label_names
     df_label = data.frame(t(label_sim))
     write.csv(df_label, file=lbl_fn[i], row.names=F, quote=F)

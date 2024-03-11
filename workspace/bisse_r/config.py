@@ -56,12 +56,16 @@ args = {
     'tree_encode'       : 'extant',         # use model with serial or extant tree
     'brlen_encode'      : 'height_brlen',   # how to encode phylo brlen? height_only or height_brlen
     'char_encode'       : 'integer',        # how to encode discrete states? one_hot or integer
-    'param_est'         : [                 # model parameters to predict (labels)
-        'birth_1', 'birth_2', 'death', 'state_rate'
-    ],
-    'param_data'        : [                 # model parameters that are known (aux. data)
-        'sample_frac'
-    ],
+    'param_est'         : {                 # model parameters to predict (labels)
+                           'ln_birth_1'     : 'real',
+                           'ln_birth_2'     : 'real',
+                           'ln_death'       : 'real',
+                           'ln_state_rate'  : 'real',
+                           'model_type'     : 'cat'
+                          },
+    'param_data'        : {                 # model parameters that are known (aux. data)
+                           'ln_sample_frac' : 'real'
+                          },
     'tensor_format'     : 'hdf5',           # save as compressed HDF5 or raw csv
     'char_format'       : 'csv',
     'save_phyenc_csv'   : 'F',              # save intermediate phylo-state vectors to file
@@ -78,7 +82,7 @@ args = {
     'cpi_coverage'      : 0.95,             # coverage level for CPIs
     'cpi_asymmetric'    : 'T',              # upper/lower ('T') or symmetric ('F') CPI adjustments
     'batch_size'        : 1024,             # number of samples in each training batch
-    'loss'              : 'mse',            # loss function for learning
+    'loss'              : 'mse',            # loss function for learning (real-valued) targets
     'optimizer'         : 'adam',           # optimizer for network weight/bias parameters
     'metrics'           : ['mae', 'acc'],   # recorded training metrics
     'log_offset'        : 1.0,

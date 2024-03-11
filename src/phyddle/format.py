@@ -134,9 +134,10 @@ class Formatter:
         self.logger = util.Logger(args)
 
         # initialized later
-        self.phy_tensors        = dict()   # init with encode_all()
-        self.summ_stat_names    = list()   # init with encode_all()
-        self.label_names        = list()   # init with encode_all()
+        # self.phy_tensors        = dict()   # init with encode_all()
+        self.rep_data           = dict()   # init with encode_all()
+        # self.summ_stat_names    = list()   # init with encode_all()
+        # self.label_names        = list()   # init with encode_all()
         self.split_idx          = dict()   # init with split_examples()
         self.rep_idx            = list()   # init with get_rep_idx()
 
@@ -350,14 +351,19 @@ class Formatter:
             
         # save all phylogenetic-state tensors into the phy_tensors dictionary,
         # while sorting tensors into different tree-width categories
-        self.phy_tensors = {}
+        
+        #self.phy_tensors = {}
+        self.rep_data = {}
         for i in res:
             if i is not None:
-                self.phy_tensors[i[0]] = i[1]
+                self.rep_data[i[0]] = { 'phy':i[1].flatten(),
+                                        'aux': i[2],
+                                        'lbl': i[3] }
+                #self.phy_tensors[i[0]] = i[1]
 
         # save names/lengths of summary statistic and label lists
-        self.summ_stat_names = self.get_summ_stat_names(mode)
-        self.label_names     = self.get_label_names(mode)
+        # self.summ_stat_names = self.get_summ_stat_names(mode)
+        # self.label_names     = self.get_label_names(mode)
 
         return
     
@@ -399,69 +405,69 @@ class Formatter:
             
         return all_idx
 
-    def get_summ_stat_names(self, mode='sim'):
-        """Get names of summary statistics.
-    
-        Returns:
-            str[]: List of summary statistics names.
-        """
-        assert mode in ['sim', 'emp']
-        # get first index
-        idx = None
-        k_list = list(self.phy_tensors.keys())
-        if len(k_list) > 0 and idx is None:
-            idx = k_list[0]
-        
-        # get headers from file
-        dat_dir_prefix = ''
-        if mode == 'sim':
-            dat_dir_prefix = f'{self.sim_dir}/{self.sim_prefix}.{idx}'
-        elif mode == 'emp':
-            dat_dir_prefix = f'{self.emp_dir}/{self.emp_prefix}.{idx}'
-        fn = f'{dat_dir_prefix}.summ_stat.csv'
-        
-        if not os.path.exists(fn):
-            util.print_err(f'Cannot find {dat_dir_prefix}.'
-                           f'*.summ_stat.csv. Verify that your simulator '
-                           f'created output that is detectable based on your '
-                           f'config settings.')
-            sys.exit()
-        df = pd.read_csv(fn,header=0)
-        ret = df.columns.to_list()
-        return ret
-    
-    def get_label_names(self, mode='sim'):
-        """Get names of training labels.
-    
-        Returns:
-            str[]: List of label names.
-        """
-        assert mode in ['sim', 'emp']
-        
-        # get first index
-        idx = None
-        k_list = list(self.phy_tensors.keys())
-        if len(k_list) > 0 and idx is None:
-            idx = k_list[0]
-        
-        # get headers from file
-        dat_dir_prefix = ''
-        if mode == 'sim':
-            dat_dir_prefix = f'{self.sim_dir}/{self.sim_prefix}.{idx}'
-        elif mode == 'emp':
-            dat_dir_prefix = f'{self.emp_dir}/{self.emp_prefix}.{idx}'
-        fn = f'{dat_dir_prefix}.labels.csv'
-        
-        if not os.path.exists(fn) and mode != 'emp' and len(self.param_data) > 0:
-            util.print_err(f'Cannot find {dat_dir_prefix}.'
-                           f'*.labels.csv. Verify that your simulator created '
-                           f'output that is detectable based on your config '
-                           f'settings.')
-            sys.exit()
-            # exits
-        df = pd.read_csv(fn,header=0)
-        ret = df.columns.to_list()
-        return ret
+    # def get_summ_stat_names(self, mode='sim'):
+    #     """Get names of summary statistics.
+    # 
+    #     Returns:
+    #         str[]: List of summary statistics names.
+    #     """
+    #     assert mode in ['sim', 'emp']
+    #     # get first index
+    #     idx = None
+    #     k_list = list(self.phy_tensors.keys())
+    #     if len(k_list) > 0 and idx is None:
+    #         idx = k_list[0]
+    #     
+    #     # get headers from file
+    #     dat_dir_prefix = ''
+    #     if mode == 'sim':
+    #         dat_dir_prefix = f'{self.sim_dir}/{self.sim_prefix}.{idx}'
+    #     elif mode == 'emp':
+    #         dat_dir_prefix = f'{self.emp_dir}/{self.emp_prefix}.{idx}'
+    #     fn = f'{dat_dir_prefix}.summ_stat.csv'
+    #     
+    #     if not os.path.exists(fn):
+    #         util.print_err(f'Cannot find {dat_dir_prefix}.'
+    #                        f'*.summ_stat.csv. Verify that your simulator '
+    #                        f'created output that is detectable based on your '
+    #                        f'config settings.')
+    #         sys.exit()
+    #     df = pd.read_csv(fn,header=0)
+    #     ret = df.columns.to_list()
+    #     return ret
+    # 
+    # def get_label_names(self, mode='sim'):
+    #     """Get names of training labels.
+    # 
+    #     Returns:
+    #         str[]: List of label names.
+    #     """
+    #     assert mode in ['sim', 'emp']
+    #     
+    #     # get first index
+    #     idx = None
+    #     k_list = list(self.phy_tensors.keys())
+    #     if len(k_list) > 0 and idx is None:
+    #         idx = k_list[0]
+    #     
+    #     # get headers from file
+    #     dat_dir_prefix = ''
+    #     if mode == 'sim':
+    #         dat_dir_prefix = f'{self.sim_dir}/{self.sim_prefix}.{idx}'
+    #     elif mode == 'emp':
+    #         dat_dir_prefix = f'{self.emp_dir}/{self.emp_prefix}.{idx}'
+    #     fn = f'{dat_dir_prefix}.labels.csv'
+    #     
+    #     if not os.path.exists(fn) and mode != 'emp' and len(self.param_data) > 0:
+    #         util.print_err(f'Cannot find {dat_dir_prefix}.'
+    #                        f'*.labels.csv. Verify that your simulator created '
+    #                        f'output that is detectable based on your config '
+    #                        f'settings.')
+    #         sys.exit()
+    #         # exits
+    #     df = pd.read_csv(fn,header=0)
+    #     ret = df.columns.to_list()
+    #     return ret
 
     def split_examples(self):
         """Split examples into training and test datasets."""
@@ -469,7 +475,7 @@ class Formatter:
         # assert mode in ['sim', 'emp']
         
         split_idx = {}
-        rep_idx = sorted(list(self.phy_tensors.keys()))
+        rep_idx = sorted(list(self.rep_data.keys()))
         rep_idx = np.array(rep_idx)
         num_samples = len(rep_idx)
         
@@ -525,18 +531,24 @@ class Formatter:
         """
 
         assert data_str in ['test', 'train', 'empirical']
-        mode = 'sim'
-        if data_str == 'empirical':
-            mode = 'emp'
+        # mode = 'sim'
+        # if data_str == 'empirical':
+        #     mode = 'emp'
         
-        # build files
-        tree_width = self.tree_width
-                 
+        # analysis info
+        rep_idx               = self.split_idx[data_str]
+        first_aux_data_values = list(self.rep_data.values())[0]['aux']
+        first_par_est_values  = list(self.rep_data.values())[0]['lbl']
+        aux_data_names        = first_aux_data_values.columns.to_list()
+        par_est_names         = first_par_est_values.columns.to_list()
+        
         # dimensions
-        rep_idx = self.split_idx[data_str]
-        num_samples = len(rep_idx)
-        num_data_length = tree_width * self.num_data_col
-
+        num_samples           = len(rep_idx)
+        tree_width            = self.tree_width
+        num_data_length       = tree_width * self.num_data_col
+        num_aux_data          = len(aux_data_names)
+        num_par_est           = len(par_est_names)
+        
         # print info
         print(f'Making {data_str} hdf5 dataset: {num_samples} examples for tree width = {tree_width}')
 
@@ -544,56 +556,32 @@ class Formatter:
         out_hdf5_fn = f'{self.fmt_dir}/{self.fmt_prefix}.{data_str}.hdf5'
         hdf5_file = h5py.File(out_hdf5_fn, 'w')
 
-        # create datasets for numerical data
-        dat_data = hdf5_file.create_dataset('phy_data',
-                                            (num_samples, num_data_length),
-                                            dtype='f', compression='gzip')
-        dat_stat = hdf5_file.create_dataset('summ_stat',
-                                            (num_samples, len(self.summ_stat_names)),
-                                            dtype='f', compression='gzip')
-        dat_labels = hdf5_file.create_dataset('labels',
-                                              (num_samples, len(self.label_names)),
-                                              dtype='f', compression='gzip')
-        
-        # load all the info
-        res = [ self.load_one_sim(idx=idx, mode=mode) for idx in tqdm(rep_idx,
-                                                           total=len(rep_idx),
-                                                           desc='Combining',
-                                                           smoothing=0) ]
+        # create HDF5 datasets
+        hdf5_file.create_dataset('idx', rep_idx.shape,
+                                 'i', rep_idx, compression='gzip' )
+        hdf5_file.create_dataset('aux_data_names', (1, num_aux_data),
+                                 'S64', aux_data_names, compression='gzip')
+        hdf5_file.create_dataset('label_names',(1, num_par_est),
+                                 'S64', par_est_names, compression='gzip')
 
+        dat_phy = hdf5_file.create_dataset('phy_data',
+                                           (num_samples, num_data_length),
+                                           dtype='f', compression='gzip')
+        dat_aux = hdf5_file.create_dataset('aux_data',
+                                           (num_samples, num_aux_data),
+                                           dtype='f', compression='gzip')
+        dat_lbl = hdf5_file.create_dataset('labels',
+                                           (num_samples, num_par_est),
+                                           dtype='f', compression='gzip')
+
+        # Each entry is a dictionary of phylo-state, aux. data, and label
+        res = [ self.rep_data[idx] for idx in rep_idx ]
+        
         # store all numerical data into hdf5)
         if len(res) > 0:
-            dat_data[:,:] = np.vstack( [ x[0] for x in res ] )
-            dat_stat[:,:] = np.vstack( [ x[1] for x in res ] )
-            dat_labels[:,:] = np.vstack( [ x[2] for x in res ] )
-
-        # read in summ_stats and labels (_all_ params) dataframes
-        df_summ_stats = pd.DataFrame(dat_stat, columns=self.summ_stat_names)
-        df_labels = pd.DataFrame(dat_labels, columns=self.label_names)
-        
-        # separate data parameters (things we know) from label parameters (things we estimate)
-        df_labels_new = df_labels[self.param_est]
-        df_labels_move = df_labels[self.param_data]
-
-        # concatenate new data parameters as column to existing summ_stats dataframe
-        df_aux_data = df_summ_stats.join( df_labels_move )
-
-        # get new label/stat names
-        new_label_names = self.param_est
-        new_aux_data_names = self.summ_stat_names + self.param_data
-
-        # delete original datasets
-        del hdf5_file['summ_stat']
-        del hdf5_file['labels']
-        
-        # create new datasets
-        hdf5_file.create_dataset('labels', df_labels_new.shape, 'f', df_labels_new, compression='gzip')
-        hdf5_file.create_dataset('label_names', (1, len(new_label_names)), 'S64', new_label_names, compression='gzip')
-        hdf5_file.create_dataset('aux_data', df_aux_data.shape, 'f', df_aux_data, compression='gzip')
-        hdf5_file.create_dataset('aux_data_names', (1, len(new_aux_data_names)), 'S64', new_aux_data_names, compression='gzip')
-
-        # add replicate idx
-        hdf5_file.create_dataset('idx', rep_idx.shape, 'i', rep_idx, compression='gzip' )
+            dat_phy[:,:] = np.vstack( [ x['phy'] for x in res ] )
+            dat_aux[:,:] = np.vstack( [ x['aux'] for x in res ] )
+            dat_lbl[:,:] = np.vstack( [ x['lbl'] for x in res ] )
 
         # close HDF5 files
         hdf5_file.close()
@@ -617,85 +605,90 @@ class Formatter:
         """
         assert data_str in ['test', 'train', 'empirical']
         
-        # build files
-        tree_width = self.tree_width
-        phy_tensor = self.phy_tensors
+        # analysis info
+        rep_idx               = self.split_idx[data_str]
+        first_aux_data_values = list(self.rep_data.values())[0]['aux']
+        first_par_est_values  = list(self.rep_data.values())[0]['lbl']
+        aux_data_names        = first_aux_data_values.columns.to_list()
+        par_est_names         = first_par_est_values.columns.to_list()
 
         # dimensions
-        rep_idx = self.split_idx[data_str]
-        num_samples = len(rep_idx)
-            
+        num_samples           = len(rep_idx)
+        tree_width            = self.tree_width
+        num_data_length       = tree_width * self.num_data_col
+        num_aux_data          = len(aux_data_names)
+        num_par_est           = len(par_est_names)
+        
         # info
         print(f'Making {data_str} csv dataset: {num_samples} examples for tree width = {tree_width}')
         
         # output csv filepaths
         out_prefix    = f'{self.fmt_dir}/{self.fmt_prefix}.{data_str}'
         in_prefix     = f'{self.sim_dir}/{self.sim_prefix}'
-        out_phys_fn   = f'{out_prefix}.phy_data.csv'
-        out_stat_fn   = f'{out_prefix}.aux_data.csv'
-        out_labels_fn = f'{out_prefix}.labels.csv'
         out_idx_fn    = f'{out_prefix}.idx.csv'
-
-        # phylogenetic state tensor
-        with open(out_phys_fn, 'w') as outfile:
+        out_phy_fn    = f'{out_prefix}.phy_data.csv'
+        out_aux_fn    = f'{out_prefix}.aux_data.csv'
+        out_lbl_fn    = f'{out_prefix}.labels.csv'
+        
+        # phylo-state data tensor
+        with open(out_phy_fn, 'w') as outfile:
             for idx in rep_idx:
-                pt = phy_tensor[idx]
-                s = util.ndarray_to_flat_str(pt.flatten()) + '\n'
+                x = self.rep_data[idx]['phy']
+                s = util.ndarray_to_flat_str(x) + '\n'
                 outfile.write(s)
 
-        # summary stats tensor
-        with open(out_stat_fn, 'w') as outfile:
+        # aux. data tensor
+        with open(out_aux_fn, 'w') as outfile:
             is_first = True
             for idx in rep_idx:
-                fname = f'{in_prefix}.{idx}.summ_stat.csv'
-                with open(fname, 'r') as infile:
-                    if is_first:
-                        s = infile.read()
-                        is_first = False
-                    else:
-                        s = ''.join(infile.readlines()[1:])
-                    outfile.write(s)
+                x = self.rep_data[idx]['aux']
+                s = ''
+                if is_first:
+                    s += ','.join(aux_data_names) + '\n'
+                s += util.ndarray_to_flat_str(x.to_numpy()) + '\n'
+                outfile.write(s)
                     
-        # labels input tensor
-        with open(out_labels_fn, 'w') as outfile:
+        # labels tensor
+        with open(out_lbl_fn, 'w') as outfile:
             is_first = True
-            for idx in rep_idx:
-                fname = f'{in_prefix}.{idx}.labels.csv'
-                with open(fname, 'r') as infile:
-                    if is_first:
-                        s = infile.read()
-                        is_first = False
-                    else:
-                        s = ''.join(infile.readlines()[1:])
-                    outfile.write(s)
-
-        # rearrange labels and summary statistics
-        # - labels contains param_est
-        # - aux_data contains summ_stat and param_data
-
-        # read in summ_stats and labels
-        df_summ_stats = pd.read_csv(out_stat_fn)
-        df_labels = pd.read_csv(out_labels_fn)
-
-        # separate data parameters (things we know) from label parameters (things we predict)
-        df_labels_keep = df_labels[self.param_est]
-        df_labels_move = df_labels[self.param_data]
-
-        # concatenate new data parameters as column to existing summ_stats dataframe
-        df_summ_stats = df_summ_stats.join( df_labels_move )
-
-        # overwrite original files with new modified versions
-        df_summ_stats.to_csv(out_stat_fn, index=False, float_format=util.PANDAS_FLOAT_FMT_STR)
-        df_labels_keep.to_csv(out_labels_fn, index=False, float_format=util.PANDAS_FLOAT_FMT_STR)
-
-        # write rep_idx
+            x = self.rep_data[idx]['lbl']
+            s = ''
+            if is_first:
+                s += ','.join(par_est_names) + '\n'
+            s += util.ndarray_to_flat_str(x.to_numpy()) + '\n'
+            outfile.write(s)
+            
+        # replicate index
         df_idx = pd.DataFrame(rep_idx, columns=['idx'])
         df_idx.to_csv(out_idx_fn, index=False)
+        
+        # # rearrange labels and summary statistics
+        # # - labels contains param_est
+        # # - aux_data contains summ_stat and param_data
+        # 
+        # # read in summ_stats and labels
+        # df_summ_stats = pd.read_csv(out_stat_fn)
+        # df_labels = pd.read_csv(out_labels_fn)
+        # 
+        # # separate data parameters (things we know) from label parameters (things we predict)
+        # df_labels_keep = df_labels[self.param_est]
+        # df_labels_move = df_labels[self.param_data]
+        # 
+        # # concatenate new data parameters as column to existing summ_stats dataframe
+        # df_summ_stats = df_summ_stats.join( df_labels_move )
+        # 
+        # # overwrite original files with new modified versions
+        # df_summ_stats.to_csv(out_stat_fn, index=False, float_format=util.PANDAS_FLOAT_FMT_STR)
+        # df_labels_keep.to_csv(out_labels_fn, index=False, float_format=util.PANDAS_FLOAT_FMT_STR)
 
         return
     
     def load_one_sim(self, idx, mode='sim'):
         """Load single simulated dataset.
+    
+        x1 is the phylogenetic state tensor
+        x2 is the aux data tensor file
+        x3 is the labels tensor file
     
         Args:
             idx (int): Replicate index of the simulation.
@@ -768,7 +761,10 @@ class Formatter:
         prune_fn   = tmp_fn + '.extant.tre'
         down_fn    = tmp_fn + '.downsampled.tre'
         cpsv_fn    = tmp_fn + '.phy_data.csv'
-        ss_fn      = tmp_fn + '.summ_stat.csv'
+        # ss_fn      = tmp_fn + '.summ_stat.csv'
+        aux_fn     = tmp_fn + '.aux_data.csv'
+        lbl_fn     = tmp_fn + '.labels.csv'
+        par_est_fn = tmp_fn + '.param_est.csv'
         
         # check if key files exist
         if not os.path.exists(dat_fn):
@@ -855,19 +851,35 @@ class Formatter:
         # info_str = self.make_settings_str(idx, tree_width)
         # util.write_to_file(info_str, info_fn)
 
+        # read in raw labels file
+        labels = pd.read_csv(lbl_fn, header=0)
+        
+        # split raw labels into est vs. data
+        param_est = labels[self.param_est]
+        param_data = labels[self.param_data]
+        
         # record summ stat data
-        ss = self.make_summ_stat(phy, dat)
-
-        # add downsampling info
-        ss['num_taxa'] = num_taxa_orig
-        ss['prop_taxa'] = num_taxa / num_taxa_orig
+        summ_stat = self.make_summ_stat(phy, dat)
+        summ_stat['num_taxa'] = [ num_taxa_orig ]
+        summ_stat['prop_taxa'] = [ num_taxa / num_taxa_orig ]
+        
+        # make aux. data from  "known" data parameters and sum. stats
+        aux_data = pd.concat(objs=[summ_stat, param_data], axis=1)
 
         # save summ. stats.
-        ss_str = self.make_summ_stat_str(ss)
-        util.write_to_file(ss_str, ss_fn)
+        aux_data.to_csv(aux_fn, index=False, float_format=util.PANDAS_FLOAT_FMT_STR)
+        
+        # save param_est
+        param_est.to_csv(par_est_fn, index=False, float_format=util.PANDAS_FLOAT_FMT_STR)
+
+        # set empty param dataframes as None
+        # if len(param_data.columns) == 0:
+        #     param_data = None
+        if len(param_est.columns) == 0:
+            param_est = None
 
         # done!
-        return idx, cpvs_data
+        return idx, cpvs_data, aux_data, param_est
     
     def make_summ_stat(self, phy, dat):
         """
@@ -933,8 +945,11 @@ class Formatter:
                 # summ_stats['f_dat_' + str(i)] = np.sum(dat.iloc[i]) / num_taxa
                 summ_stats['n_dat_' + str(i)] = np.sum(dat.iloc[i])
 
+        
+        df = pd.DataFrame(summ_stats, index=[0])
+
         # done
-        return summ_stats
+        return df
     
     # ==> Can probably move to util? seems generic and useful
     def make_summ_stat_str(self, ss):
