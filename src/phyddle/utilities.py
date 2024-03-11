@@ -369,7 +369,6 @@ def load_config(config_fn,
     
     # check arguments are valid
     check_args(m)
-
     # set steps & projects
     # m = add_step_proj(m)
     

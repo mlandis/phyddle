@@ -32,15 +32,17 @@ class Dataset(torch.utils.data.Dataset):
     phylogenetic-state tensors, auxiliary data tensors, and labels.
     """
     # Constructor
-    def __init__(self, phy_data, aux_data, labels):
-        self.phy_data = np.transpose(phy_data, axes=[0,2,1]).astype('float32')
-        self.aux_data = aux_data.astype('float32')
-        self.labels   = labels.astype('float32')
-        self.len = self.labels.shape[0]
+    def __init__(self, phy_data, aux_data, labels_real, labels_cat):
+        self.phy_data    = np.transpose(phy_data, axes=[0,2,1]).astype('float32')
+        self.aux_data    = aux_data.astype('float32')
+        self.labels_real = labels_real.astype('float32')
+        self.labels_cat  = labels_cat.astype('int')
+        self.len         = self.labels_real.shape[0]
 
     # Getting the dataq
     def __getitem__(self, index):
-        return self.phy_data[index], self.aux_data[index], self.labels[index]
+        return (self.phy_data[index], self.aux_data[index],
+                self.labels_real[index], self.labels_cat[index])
     
     # Getting length of the data
     def __len__(self):
@@ -59,7 +61,7 @@ class ParameterEstimationNetwork(nn.Module):
             args (dict): Contains phyddle settings.
     """
     def __init__(self, phy_dat_width, phy_dat_height, aux_dat_width,
-                 lbl_width, args):
+                 lbl_width, param_cat, args):
         
         # initialize base class
         super(ParameterEstimationNetwork, self).__init__()
@@ -69,6 +71,8 @@ class ParameterEstimationNetwork(nn.Module):
         self.phy_dat_height = phy_dat_height
         self.aux_dat_width  = aux_dat_width
         self.lbl_width      = lbl_width
+        self.param_cat      = param_cat
+        self.param_cat_size = dict()
 
         # collect args
         self.phy_std_out_size       = list(args['phy_channel_plain'])
@@ -106,8 +110,11 @@ class ParameterEstimationNetwork(nn.Module):
                            self.aux_out_size[-1]
         
         # dense layers for output predictions
-        self.label_out_size = self.lbl_channel + [ self.lbl_width ]
-        self.label_in_size = [ self.concat_size ] + self.label_out_size
+        self.label_real_out_size = self.lbl_channel + [ self.lbl_width ]
+        self.label_in_size = [ self.concat_size ] + self.label_real_out_size[:-1]
+        self.label_cat_out_size = dict()
+        for k,v in self.param_cat.items():
+            self.label_cat_out_size[k] = self.lbl_channel + [ int(v) ]
         
         # build network
         # standard convolution and pooling layers for CPV+S
@@ -155,17 +162,28 @@ class ParameterEstimationNetwork(nn.Module):
             c_out = self.aux_out_size[i]
             self.aux_ffnn.append(nn.Linear(c_in, c_out))
 
-        # dense layers for point estimates
+        # dense layers for point/bound estimates
         self.point_ffnn = nn.ModuleList([])
         self.lower_ffnn = nn.ModuleList([])
         self.upper_ffnn = nn.ModuleList([])
-        for i in range(len(self.label_out_size)):
+        for i in range(len(self.label_real_out_size)):
             c_in  = self.label_in_size[i]
-            c_out = self.label_out_size[i]
+            c_out = self.label_real_out_size[i]
             self.point_ffnn.append(nn.Linear(c_in, c_out))
             self.lower_ffnn.append(nn.Linear(c_in, c_out))
             self.upper_ffnn.append(nn.Linear(c_in, c_out))
 
+        # dense layers for categorical predictions
+        self.categ_ffnn = dict()
+        for k,v in self.param_cat.items():
+            k_str = f'{k}_categ_ffnn'
+            k_mod_list = nn.ModuleList([])
+            for i in range(len(self.label_real_out_size)):
+                c_in  = self.label_in_size[i]
+                c_out = self.label_cat_out_size[k][i]
+                k_mod_list.append(nn.Linear(c_in, c_out))
+            setattr(self, k_str, k_mod_list)
+            
         # initialize weights for layers
         self._initialize_weights()
 
@@ -218,28 +236,41 @@ class ParameterEstimationNetwork(nn.Module):
         x_aux = x_aux.unsqueeze(dim=2)
 
         # Concatenate phylo and aux layers
-        x_cat = torch.cat((x_std, x_stride, x_dilate, x_aux), dim=1).squeeze()
+        x_concat = torch.cat((x_std, x_stride, x_dilate, x_aux), dim=1).squeeze()
         
         # Point estimate path
-        x_point = x_cat
+        x_point = x_concat
         for i in range(len(self.point_ffnn)-1):
             x_point = func.relu(self.point_ffnn[i](x_point))
         x_point = self.point_ffnn[-1](x_point)
 
         # Lower quantile path
-        x_lower = x_cat
+        x_lower = x_concat
         for i in range(len(self.lower_ffnn)-1):
             x_lower = func.relu(self.lower_ffnn[i](x_lower))
         x_lower = self.lower_ffnn[-1](x_lower)
 
         # Upper quantile path
-        x_upper = x_cat
+        x_upper = x_concat
         for i in range(len(self.upper_ffnn)-1):
             x_upper = func.relu(self.upper_ffnn[i](x_upper))
         x_upper = self.upper_ffnn[-1](x_upper)
         
+        # Categorical paths
+        x_categ = dict()
+        for k,v in self.param_cat.items():
+            # take initial input from x_concat
+            if k not in x_categ:
+                x_categ[k] = x_concat
+            k_str = f'{k}_categ_ffnn'
+            k_mod_list = getattr(self, k_str)
+            for i in range(len(k_mod_list)-1):
+                x_categ[k] = func.relu(k_mod_list[i](x_categ[k]))
+            x_categ[k] = func.softmax(k_mod_list[-1](x_categ[k]), dim=1)
+            setattr(self, k_str, k_mod_list)
+        
         # return loss
-        return x_point, x_lower, x_upper
+        return x_point, x_lower, x_upper, x_categ
     
 
 class QuantileLoss(nn.Module):

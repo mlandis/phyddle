@@ -92,8 +92,8 @@ class Trainer:
         self.brlen_encode       = str(args['brlen_encode'])
         self.char_format        = str(args['char_format'])
         self.tensor_format      = str(args['tensor_format'])
-        self.param_est          = list(args['param_est'])
-        self.param_data         = list(args['param_data'])
+        self.param_est          = dict(args['param_est'])
+        self.param_data         = dict(args['param_data'])
         self.prop_test          = float(args['prop_test'])
         self.log_offset         = float(args['log_offset'])
         self.save_phyenc_csv    = bool(args['save_phyenc_csv'])
@@ -224,7 +224,11 @@ class CnnTrainer(Trainer):
         self.aux_data_names = list()    # init with load_input()
         self.label_names    = list()    # init with load_input()
         self.num_aux_data   = int()     # init with load_input()
-        self.num_params     = int()     # init with load_input()
+        self.param_cat_names = list()   # init with load_input()
+        self.param_real_names = list()  # init with load_input()
+        self.num_param_real = int()     # init with load_input()
+        self.num_param_cat  = int()     # init with load_input()
+        self.param_cat      = dict()    # init with load_input()
 
         # todo: revisit and simplify, provide types
         self.train_dataset = None       # init with load_input()
@@ -348,22 +352,22 @@ class CnnTrainer(Trainer):
             full_aux_data       = pd.DataFrame(hdf5_file['aux_data']).to_numpy()
             full_labels         = pd.DataFrame(hdf5_file['labels']).to_numpy()
             hdf5_file.close()
-
+            
+        # separate labels for categorical param_est targets
+        full_labels_real, full_labels_cat = self.separate_labels(full_labels)
+        
         # data dimensions
-        num_sample        = full_phy_data.shape[0]
-        self.num_params   = full_labels.shape[1]
-        self.num_aux_data = full_aux_data.shape[1]
-
-        # logs of labels (rates) for variance stabilization against
-        # heteroskedasticity (variance grows with mean)
-        # full_labels = np.log(full_labels + self.log_offset)
-        # full_aux_data = np.log(full_aux_data + self.log_offset)
+        num_sample             = full_phy_data.shape[0]
+        self.num_param_real    = full_labels_real.shape[1]
+        self.num_param_cat     = full_labels_cat.shape[1]
+        self.num_aux_data      = full_aux_data.shape[1]
         
         # shuffle datasets
-        randomized_idx = np.random.permutation(full_phy_data.shape[0])
-        full_phy_data  = full_phy_data[randomized_idx,:]
-        full_aux_data  = full_aux_data[randomized_idx,:]
-        full_labels    = full_labels[randomized_idx,:]
+        randomized_idx     = np.random.permutation(full_phy_data.shape[0])
+        full_phy_data      = full_phy_data[randomized_idx,:]
+        full_aux_data      = full_aux_data[randomized_idx,:]
+        full_labels_real   = full_labels_real[randomized_idx,:]
+        full_labels_cat    = full_labels_cat[randomized_idx,:]
 
         # reshape phylogenetic tensor data based on CPV+S
         full_phy_data.shape = (num_sample, -1, self.num_data_col)
@@ -385,31 +389,79 @@ class CnnTrainer(Trainer):
                                              self.train_aux_data_mean_sd)
 
         # normalize labels
-        norm_train_labels, train_label_means, train_label_sd = util.normalize(full_labels[train_idx,:])
-        self.train_labels_mean_sd = (train_label_means, train_label_sd)
-        norm_val_labels = util.normalize(full_labels[val_idx,:],
-                                         self.train_labels_mean_sd)
-        self.norm_calib_labels = util.normalize(full_labels[calib_idx,:],
-                                                self.train_labels_mean_sd)
+        norm_train_labels_real, train_labels_real_means, train_labels_real_sd = util.normalize(full_labels_real[train_idx,:])
+        self.train_labels_real_mean_sd = (train_labels_real_means, train_labels_real_sd)
+        norm_val_labels_real = util.normalize(full_labels_real[val_idx,:],
+                                         self.train_labels_real_mean_sd)
+        self.norm_calib_labels_real = util.normalize(full_labels_real[calib_idx,:],
+                                                     self.train_labels_real_mean_sd)
 
         # create phylogenetic data tensors
         train_phy_data_tensor = full_phy_data[train_idx,:,:]
         val_phy_data_tensor = full_phy_data[val_idx,:,:]
         self.calib_phy_data_tensor = full_phy_data[calib_idx,:,:]
 
+        # create categorical label tensors
+        train_labels_cat = full_labels_cat[train_idx,:]
+        val_labels_cat = full_labels_cat[val_idx,:]
+        calib_labels_cat = full_labels_cat[calib_idx,:]
+        
         # torch datasets
         self.train_dataset = network.Dataset(train_phy_data_tensor,
                                              norm_train_aux_data,
-                                             norm_train_labels)
+                                             norm_train_labels_real,
+                                             train_labels_cat)
         self.calib_dataset = network.Dataset(self.calib_phy_data_tensor,
                                              norm_calib_aux_data,
-                                             self.norm_calib_labels)
+                                             self.norm_calib_labels_real,
+                                             calib_labels_cat)
         self.val_dataset   = network.Dataset(val_phy_data_tensor,
                                              norm_val_aux_data,
-                                             norm_val_labels)
+                                             norm_val_labels_real,
+                                             val_labels_cat)
 
         return
     
+##################################################
+
+    def separate_labels(self, labels):
+        """Separates labels for categorical param_est targets.
+        
+        This function separates labels into real and categorical subsets
+        based on the param_est dictionary.
+        
+        Args:
+            labels (numpy.ndarray): The input labels.
+            
+        Returns:
+            labels_real (numpy.ndarray): The real-valued labels.
+            labels_cat (numpy.ndarray): The categorical labels.
+        
+        """
+
+        idx_real = list()
+        idx_cat = list()
+        
+        for k,v in self.param_est.items():
+            if v == 'cat':
+                idx = self.label_names.index(k)
+                unique_cats, encoded_cats = np.unique(labels[:,idx],
+                                                      return_inverse=True)
+                self.param_cat[k] = len(unique_cats)
+                labels[:,idx] = encoded_cats
+                idx_cat.append( idx )
+                self.param_cat_names.append(k)
+            elif v == 'real':
+                idx_real.append( self.label_names.index(k) )
+                self.param_real_names.append(k)
+                    
+        # get data subsets
+        labels_real = labels[:,idx_real].copy()
+        labels_cat = labels[:,idx_cat].copy()
+
+        # done
+        return labels_real, labels_cat
+
 ##################################################
 
     def build_network(self):
@@ -421,7 +473,8 @@ class CnnTrainer(Trainer):
         self.model = network.ParameterEstimationNetwork(phy_dat_width=self.num_data_col,
                                                         phy_dat_height=self.tree_width,
                                                         aux_dat_width=self.num_aux_data,
-                                                        lbl_width=self.num_params,
+                                                        lbl_width=self.num_param_real,
+                                                        param_cat=self.param_cat,
                                                         args=self.args)
         
         self.model.phy_dat_shape = (self.num_data_col, self.tree_width)
@@ -451,9 +504,10 @@ class CnnTrainer(Trainer):
         num_batches = int(np.ceil(self.train_dataset.phy_data.shape[0] / self.trn_batch_size))
 
         # validation dataset
-        val_phy_dat = torch.Tensor(self.val_dataset.phy_data)
-        val_aux_dat = torch.Tensor(self.val_dataset.aux_data)
-        val_lbls    = torch.Tensor(self.val_dataset.labels)
+        val_phy_dat  = torch.Tensor(self.val_dataset.phy_data)
+        val_aux_dat  = torch.Tensor(self.val_dataset.aux_data)
+        val_lbl_real = torch.Tensor(self.val_dataset.labels_real)
+        val_lbl_cat  = torch.Tensor(self.val_dataset.labels_cat)
 
         # loss functions
         q_width = self.cpi_coverage
@@ -463,6 +517,7 @@ class CnnTrainer(Trainer):
         loss_value_func = torch.nn.MSELoss()
         loss_lower_func = network.QuantileLoss(alpha=q_lower)
         loss_upper_func = network.QuantileLoss(alpha=q_upper)
+        loss_categ_func = torch.nn.CrossEntropyLoss()
 
         # optimizer
         optimizer = torch.optim.Adam(self.model.parameters())
@@ -498,17 +553,18 @@ class CnnTrainer(Trainer):
             trn_mae_value = 0.
 
             train_msg = f'Training epoch {i+1} of {self.num_epochs}'
-            for j, (phy_dat, aux_dat, lbls) in tqdm(enumerate(train_loader),
-                                                    total=num_batches,
-                                                    desc=train_msg,
-                                                    smoothing=0):
+            for j, (phy_dat, aux_dat, lbl_real, lbl_cat) in tqdm(enumerate(train_loader),
+                                                                 total=num_batches,
+                                                                 desc=train_msg,
+                                                                 smoothing=0):
                 
                 # short cut batches for training
                 # if j > 1:
                 #     break
                 
                 # send labels to device
-                lbls.to(self.TORCH_DEVICE)
+                lbl_real.to(self.TORCH_DEVICE)
+                lbl_cat.to(self.TORCH_DEVICE)
                 # phy_dat.to(self.TORCH_DEVICE)
                 # aux_dat.to(self.TORCH_DEVICE)
                 
@@ -517,21 +573,26 @@ class CnnTrainer(Trainer):
                 
                 # forward pass of training data to estimate labels
                 lbls_hat = self.model(phy_dat, aux_dat)
+                # print(lbls_hat[3]['model_type'])
+                # print(lbl_cat.reshape(-1))
 
                 # calculating the loss between original and predicted data points
-                loss_value     = loss_value_func(lbls_hat[0], lbls)
-                loss_lower     = loss_lower_func(lbls_hat[1], lbls)
-                loss_upper     = loss_upper_func(lbls_hat[2], lbls)
+                loss_value     = loss_value_func(lbls_hat[0], lbl_real)
+                loss_lower     = loss_lower_func(lbls_hat[1], lbl_real)
+                loss_upper     = loss_upper_func(lbls_hat[2], lbl_real)
                 loss_combined  = loss_value + loss_lower + loss_upper
+                for k,v in lbls_hat[3].items():
+                    loss_combined += loss_categ_func(lbls_hat[3][k],
+                                                     lbl_cat.reshape(-1))
 
                 # collect history stats
                 trn_loss_value    += loss_value.item() / num_batches
                 trn_loss_lower    += loss_lower.item() / num_batches
                 trn_loss_upper    += loss_upper.item() / num_batches
                 trn_loss_combined += loss_combined.item() / num_batches
-                trn_mse_value     += ( torch.mean((lbls - lbls_hat[0])**2) ).item() / num_batches
-                trn_mae_value     += ( torch.mean(torch.abs(lbls - lbls_hat[0])) ).item() / num_batches
-                trn_mape_value    += ( torch.mean(torch.abs((lbls - lbls_hat[0]) / lbls)) ).item() / num_batches
+                trn_mse_value     += ( torch.mean((lbl_real - lbls_hat[0])**2) ).item() / num_batches
+                trn_mae_value     += ( torch.mean(torch.abs(lbl_real - lbls_hat[0])) ).item() / num_batches
+                trn_mape_value    += ( torch.mean(torch.abs((lbl_real - lbls_hat[0]) / lbl_real)) ).item() / num_batches
                 
                 # backward pass to update gradients
                 loss_combined.backward()
@@ -548,13 +609,13 @@ class CnnTrainer(Trainer):
             val_lbls_hat: object       = self.model(val_phy_dat, val_aux_dat)
 
             # collect validation metrics
-            val_loss_value     = loss_value_func(val_lbls_hat[0], val_lbls).item()
-            val_loss_lower     = loss_lower_func(val_lbls_hat[1], val_lbls).item()
-            val_loss_upper     = loss_upper_func(val_lbls_hat[2], val_lbls).item()
+            val_loss_value     = loss_value_func(val_lbls_hat[0], val_lbl_real).item()
+            val_loss_lower     = loss_lower_func(val_lbls_hat[1], val_lbl_real).item()
+            val_loss_upper     = loss_upper_func(val_lbls_hat[2], val_lbl_real).item()
             val_loss_combined  = val_loss_value + val_loss_lower + val_loss_upper
-            val_mse_value      = ( torch.mean((val_lbls - val_lbls_hat[0])**2) ).item()
-            val_mae_value      = ( torch.mean(torch.abs(val_lbls - val_lbls_hat[0])) ).item()
-            val_mape_value     = ( torch.mean(torch.abs((val_lbls - val_lbls_hat[0]) / val_lbls)) ).item()
+            val_mse_value      = ( torch.mean((val_lbl_real - val_lbls_hat[0])**2) ).item()
+            val_mae_value      = ( torch.mean(torch.abs(val_lbl_real - val_lbls_hat[0])) ).item()
+            val_mape_value     = ( torch.mean(torch.abs((val_lbl_real - val_lbls_hat[0]) / val_lbl_real)) ).item()
             val_metric_vals = [ val_loss_value, val_loss_lower, val_loss_upper,
                                 val_loss_combined, val_mse_value, val_mae_value,
                                 val_mape_value ]
@@ -625,45 +686,47 @@ class CnnTrainer(Trainer):
         num_train_examples = 1000
         train_loader = torch.utils.data.DataLoader(dataset=self.train_dataset,
                                                    batch_size=num_train_examples)
-        train_phy_dat, train_aux_dat, train_lbl = next(iter(train_loader))
+        train_phy_dat, train_aux_dat, train_real_lbl, train_cat_lbl = next(iter(train_loader))
         norm_train_label_est = self.model(train_phy_dat, train_aux_dat)
         
         # we want an array of 3 outputs [point, lower, upper], N examples, K parameters
-        norm_train_label_est = torch.stack(norm_train_label_est).detach().numpy()
+        norm_train_label_real_est = norm_train_label_est[0:3]
+        norm_train_label_real_est = torch.stack(norm_train_label_real_est).detach().numpy()
         # self.train_label_est = util.denormalize(norm_train_label_est,
         #                                         self.train_labels_mean_sd,
         #                                         exp=True) - self.log_offset
-        self.train_label_est = util.denormalize(norm_train_label_est,
-                                                self.train_labels_mean_sd,
-                                                exp=False)
+        self.train_label_real_est = util.denormalize(norm_train_label_real_est,
+                                                     self.train_labels_mean_sd,
+                                                     exp=False)
  
         # make initial CPI estimates
         # todo: can't we learn dataset and batchsize somehow??
         num_calib_examples = self.calib_phy_data_tensor.shape[0]
-        calibloader = torch.utils.data.DataLoader(dataset=self.calib_dataset,
-                                                  batch_size=num_calib_examples)
-        calib_phy_dat, calib_aux_dat, calib_lbl = next(iter(calibloader))
+        calib_loader = torch.utils.data.DataLoader(dataset=self.calib_dataset,
+                                                   batch_size=num_calib_examples)
+        calib_phy_dat, calib_aux_dat, calib_real_lbl, calib_cat_lbl = next(iter(calib_loader))
         norm_calib_label_est = self.model(calib_phy_dat, calib_aux_dat)
 
         # make CPI adjustments
-        norm_calib_label_est = torch.stack(norm_calib_label_est).detach().numpy()
-        norm_calib_est_quantiles = norm_calib_label_est[1:,:,:]
-        self.cpi_adjustments = self.get_cqr_constant(norm_calib_est_quantiles,
-                                                     self.norm_calib_labels,
+        norm_calib_label_real_est = norm_calib_label_est[0:3]
+        norm_calib_label_real_est = torch.stack(norm_calib_label_real_est).detach().numpy()
+        norm_calib_real_est_quantiles = norm_calib_label_real_est[1:,:,:]
+        self.cpi_adjustments = self.get_cqr_constant(norm_calib_real_est_quantiles,
+                                                     self.norm_calib_labels_real,
                                                      inner_quantile=self.cpi_coverage,
                                                      asymmetric=self.cpi_asymmetric)
         self.cpi_adjustments = np.array(self.cpi_adjustments).reshape((2,-1))
     
         # make final CPI estimates
-        norm_train_label_est_calib = norm_train_label_est
-        norm_train_label_est_calib[1,:,:] = norm_train_label_est_calib[1,:,:] - self.cpi_adjustments[0,:]
-        norm_train_label_est_calib[2,:,:] = norm_train_label_est_calib[2,:,:] + self.cpi_adjustments[1,:]
+        norm_train_label_real_est_calib = norm_train_label_real_est
+        norm_train_label_real_est_calib[1,:,:] = norm_train_label_real_est_calib[1,:,:] - self.cpi_adjustments[0,:]
+        norm_train_label_real_est_calib[2,:,:] = norm_train_label_real_est_calib[2,:,:] + self.cpi_adjustments[1,:]
         # self.train_label_est_calib = util.denormalize(norm_train_label_est_calib,
         #                                               self.train_labels_mean_sd,
         #                                               exp=True) - self.log_offset
-        self.train_label_est_calib = util.denormalize(norm_train_label_est_calib,
-                                                      self.train_labels_mean_sd,
-                                                      exp=False)  # - self.log_offset
+        self.train_label_real_est_calib = util.denormalize(norm_train_label_real_est_calib,
+                                                           self.train_labels_mean_sd,
+                                                           exp=False)  # - self.log_offset
 
         return
 
@@ -709,21 +772,21 @@ class CnnTrainer(Trainer):
                            float_format=util.PANDAS_FLOAT_FMT_STR)
  
         # save label names, means, sd for new test dataset normalization
-        df_labels = pd.DataFrame({'name':self.label_names,
+        df_labels = pd.DataFrame({'name':self.param_real_names,
                                   'mean':self.train_labels_mean_sd[0],
                                   'sd':self.train_labels_mean_sd[1]})
         df_labels.to_csv(train_labels_norm_fn, index=False, sep=',',
                          float_format=util.PANDAS_FLOAT_FMT_STR)
 
         # save train/test scatterplot results (Value, Lower, Upper)
-        df_train_label_est_nocalib = util.make_param_VLU_mtx(self.train_label_est[0:max_idx,:], self.label_names )
-        df_train_label_est_calib   = util.make_param_VLU_mtx(self.train_label_est_calib[0:max_idx,:], self.label_names )
+        df_train_label_est_nocalib = util.make_param_VLU_mtx(self.train_label_real_est[0:max_idx,:], self.param_real_names )
+        df_train_label_est_calib   = util.make_param_VLU_mtx(self.train_label_real_est_calib[0:max_idx,:], self.param_real_names )
         
         # save train/test labels
         df_train_label_true = pd.DataFrame(self.train_label_true[0:max_idx,:], columns=self.label_names )
         
         # save CPI intervals
-        df_cpi_intervals = pd.DataFrame(self.cpi_adjustments, columns=self.label_names)
+        df_cpi_intervals = pd.DataFrame(self.cpi_adjustments, columns=self.param_real_names)
 
         # convert to csv and save
         df_train_label_est_nocalib.to_csv(train_label_est_nocalib_fn, index=False, sep=',',

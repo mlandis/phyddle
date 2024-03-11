@@ -61,7 +61,7 @@ args = {
                            'ln_birth_2'     : 'real',
                            'ln_death'       : 'real',
                            'ln_state_rate'  : 'real',
-                           #'model_type'     : 'cat',
+                           'model_type'     : 'cat',
                           },
     'param_data'        : {                 # model parameters that are known (aux. data)
                            'ln_sample_frac' : 'real'
