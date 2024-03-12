@@ -1542,7 +1542,7 @@ def denormalize(data, m_sd, exp=False, tol=300):
 # phyddle print info #
 ######################
 
-def phyddle_str(s, style=1, fg=34):
+def phyddle_str(s, style=1, color=34):
     """Make printable phyddle output string.
     
     Args:
@@ -1555,12 +1555,12 @@ def phyddle_str(s, style=1, fg=34):
 
     """
 
-    CSTART = f'\x1b[{style};{fg};m'
+    CSTART = f'\x1b[{style};{color};m'
     CEND   = '\x1b[0m'
     x      = CSTART + s + CEND
     return x
 
-def print_str(s, verbose=True, style=1, fg=34):
+def print_str(s, verbose=True, style=1, color=34):
     """Prints a phyddle string to the standard output.
 
     Args:
@@ -1572,10 +1572,10 @@ def print_str(s, verbose=True, style=1, fg=34):
     """
 
     if verbose:
-        print(phyddle_str(s, style, fg))
+        print(phyddle_str(s, style, color))
     return
 
-def print_err(s, verbose=True, style=1, fg=34):
+def print_err(s, verbose=True, style=1, color=34):
     """Prints a phyddle error to the standard output.
 
     Args:
@@ -1585,10 +1585,10 @@ def print_err(s, verbose=True, style=1, fg=34):
         verbose (bool, optional): Prints the formatted string if True.
 
     """
-    print_str(f'ERROR: {s}', verbose, style, fg)
+    print_str(f'ERROR: {s}', verbose, style, color)
     return
 
-def print_warn(s, verbose=True, style=1, fg=34):
+def print_warn(s, verbose=True, style=1, color=34):
     """Prints a phyddle warning to the standard output.
 
     Args:
@@ -1599,10 +1599,10 @@ def print_warn(s, verbose=True, style=1, fg=34):
 
     """
 
-    print_str(f'WARNING: {s}', verbose, style, fg)
+    print_str(f'WARNING: {s}', verbose, style, color)
     return
 
-def phyddle_header(s, style=1, fg=34):
+def phyddle_header(s, style=1, color=34):
     """Generate a phyddle header string.
     
     Args:
@@ -1624,19 +1624,19 @@ def phyddle_header(s, style=1, fg=34):
               'plt' : 'Plotting' }
 
     if s == 'title':
-        x  = phyddle_str( '┏━━━━━━━━━━━━━━━━━━━━━━┓', style, fg ) + '\n'
-        x += phyddle_str(f'┃   phyddle {version}   ┃', style, fg ) + '\n'
-        x += phyddle_str( '┣━━━━━━━━━━━━━━━━━━━━━━┫', style, fg )
+        x  = phyddle_str( '┏━━━━━━━━━━━━━━━━━━━━━━┓', style, color ) + '\n'
+        x += phyddle_str(f'┃   phyddle {version}   ┃', style, color ) + '\n'
+        x += phyddle_str( '┣━━━━━━━━━━━━━━━━━━━━━━┫', style, color )
     
     elif s in list(steps.keys()):
         step_name = steps[s] + '...'
         step_name = step_name.ljust(13, ' ')
-        x  = phyddle_str(  '┃                      ┃', style, fg ) + '\n'
-        x += phyddle_str( f'┗━┳━▪ {step_name} ▪━━┛', style, fg )
+        x  = phyddle_str(  '┃                      ┃', style, color ) + '\n'
+        x += phyddle_str( f'┗━┳━▪ {step_name} ▪━━┛', style, color )
 
     return x
 
-def print_step_header(step, in_dir, out_dir, verbose=True, style=1, fg=34):
+def print_step_header(step, in_dir, out_dir, verbose=True, style=1, color=34):
     """Generate a phyddle step info string.
     
     Args:
@@ -1662,13 +1662,13 @@ def print_step_header(step, in_dir, out_dir, verbose=True, style=1, fg=34):
         for i,_in_dir in enumerate(in_dir):
             in_path = f'{_in_dir}'
             if i == 0:
-                run_info += phyddle_str(f'  ┣━━━▪ input:  {in_path}', style, fg ) + '\n'
+                run_info += phyddle_str(f'  ┣━━━▪ input:  {in_path}', style, color ) + '\n'
             else:
-                run_info += phyddle_str(f'  ┃             {in_path}', style, fg ) + '\n'
+                run_info += phyddle_str(f'  ┃             {in_path}', style, color ) + '\n'
     
     # out path
     if out_dir is not None:
-        #run_info += phyddle_str('  ┃')  + '\n'
+        # run_info += phyddle_str('  ┃')  + '\n'
         out_path = f'{out_dir}'
     if plot_bar:
         run_info += phyddle_str('  ┃')  + '\n'
@@ -1696,7 +1696,7 @@ class Logger:
     """
     def __init__(self, args):
         
-        # collect info from args        
+        # collect info from args
         self.args        = args
         self.arg_str     = self.make_arg_str()
         self.job_id      = self.args['job_id']

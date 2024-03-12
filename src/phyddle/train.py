@@ -108,6 +108,9 @@ class Trainer:
         
         # initialized later
         self.phy_tensors        = dict()   # init with encode_all()
+        self.train_dataset      = None     # init with load_input()
+        self.val_dataset        = None     # init with load_input()
+        self.calib_dataset      = None     # init with load_input()
         
         # set CPUs
         if self.num_proc <= 0:
@@ -160,8 +163,12 @@ class Trainer:
         util.print_str(f'▪ Start time of {start_time_str}', verbose)
 
         # perform run tasks
-        util.print_str('▪ Loading input', verbose)
+        util.print_str('▪ Loading input...', verbose)
         self.load_input()
+        num_rjust = len(str(len(self.train_dataset)))
+        util.print_str(f'  ▪ ' + str(len(self.train_dataset)).rjust(num_rjust) + ' training examples')
+        util.print_str(f'  ▪ ' + str(len(self.calib_dataset)).rjust(num_rjust) + ' calibration examples')
+        util.print_str(f'  ▪ ' + str(len(self.val_dataset)).rjust(num_rjust) + ' validation examples')
 
         util.print_str('▪ Building network', verbose)
         self.build_network()
@@ -235,16 +242,18 @@ class CnnTrainer(Trainer):
         self.val_dataset   = None       # init with load_input()
         self.calib_dataset = None       # init with load_input()
         self.model = None               # init with build_network()
-        self.train_label_est = None
-        self.train_label_est_calib = None
+        self.train_label_real_est = None
+        self.train_label_cat_est = None
+        self.train_label_real_est_calib = None
         self.calib_phy_data_tensor = None
-        self.train_history = None
-        
+        self.train_history = None       # init with train()
         self.train_label_true = None    # init with load_input()
         self.train_aux_data_mean_sd = (0,0)
-        self.train_labels_mean_sd = (0,0)
+        self.train_labels_real_mean_sd = (0,0)
         self.cpi_adjustments = np.array([0,0])
-        self.norm_calib_labels = None
+        self.norm_calib_labels_real = None
+        self.has_label_cat = False
+        self.has_label_real = False
         
         return
     
@@ -392,7 +401,7 @@ class CnnTrainer(Trainer):
         norm_train_labels_real, train_labels_real_means, train_labels_real_sd = util.normalize(full_labels_real[train_idx,:])
         self.train_labels_real_mean_sd = (train_labels_real_means, train_labels_real_sd)
         norm_val_labels_real = util.normalize(full_labels_real[val_idx,:],
-                                         self.train_labels_real_mean_sd)
+                                              self.train_labels_real_mean_sd)
         self.norm_calib_labels_real = util.normalize(full_labels_real[calib_idx,:],
                                                      self.train_labels_real_mean_sd)
 
@@ -444,6 +453,7 @@ class CnnTrainer(Trainer):
         
         for k,v in self.param_est.items():
             if v == 'cat':
+                self.has_label_cat = True
                 idx = self.label_names.index(k)
                 unique_cats, encoded_cats = np.unique(labels[:,idx],
                                                       return_inverse=True)
@@ -451,10 +461,12 @@ class CnnTrainer(Trainer):
                 labels[:,idx] = encoded_cats
                 idx_cat.append( idx )
                 self.param_cat_names.append(k)
+                
             elif v == 'real':
+                self.has_label_real = True
                 idx_real.append( self.label_names.index(k) )
                 self.param_real_names.append(k)
-                    
+                
         # get data subsets
         labels_real = labels[:,idx_real].copy()
         labels_cat = labels[:,idx_cat].copy()
@@ -507,7 +519,7 @@ class CnnTrainer(Trainer):
         val_phy_dat  = torch.Tensor(self.val_dataset.phy_data)
         val_aux_dat  = torch.Tensor(self.val_dataset.aux_data)
         val_lbl_real = torch.Tensor(self.val_dataset.labels_real)
-        val_lbl_cat  = torch.Tensor(self.val_dataset.labels_cat)
+        val_lbl_cat  = torch.LongTensor(self.val_dataset.labels_cat)
 
         # loss functions
         q_width = self.cpi_coverage
@@ -517,7 +529,8 @@ class CnnTrainer(Trainer):
         loss_value_func = torch.nn.MSELoss()
         loss_lower_func = network.QuantileLoss(alpha=q_lower)
         loss_upper_func = network.QuantileLoss(alpha=q_upper)
-        loss_categ_func = torch.nn.CrossEntropyLoss()
+        # loss_categ_func = torch.nn.CrossEntropyLoss()
+        loss_categ_func = network.CrossEntropyLoss()
 
         # optimizer
         optimizer = torch.optim.Adam(self.model.parameters())
@@ -580,10 +593,11 @@ class CnnTrainer(Trainer):
                 loss_value     = loss_value_func(lbls_hat[0], lbl_real)
                 loss_lower     = loss_lower_func(lbls_hat[1], lbl_real)
                 loss_upper     = loss_upper_func(lbls_hat[2], lbl_real)
-                loss_combined  = loss_value + loss_lower + loss_upper
-                for k,v in lbls_hat[3].items():
-                    loss_combined += loss_categ_func(lbls_hat[3][k],
-                                                     lbl_cat.reshape(-1))
+                loss_categ     = loss_categ_func(lbls_hat[3], lbl_cat)
+                loss_combined  = loss_value + loss_lower + loss_upper + loss_categ
+                # for k,v in lbls_hat[3].items():
+                #     loss_combined += loss_categ_func(lbls_hat[3][k],
+                #                                      lbl_cat.reshape(-1))
 
                 # collect history stats
                 trn_loss_value    += loss_value.item() / num_batches
@@ -606,13 +620,18 @@ class CnnTrainer(Trainer):
                                   trn_mae_value, trn_mape_value ]
 
             # forward pass of validation to estimate labels
-            val_lbls_hat: object       = self.model(val_phy_dat, val_aux_dat)
+            val_lbls_hat       = self.model(val_phy_dat, val_aux_dat)
 
             # collect validation metrics
             val_loss_value     = loss_value_func(val_lbls_hat[0], val_lbl_real).item()
             val_loss_lower     = loss_lower_func(val_lbls_hat[1], val_lbl_real).item()
             val_loss_upper     = loss_upper_func(val_lbls_hat[2], val_lbl_real).item()
-            val_loss_combined  = val_loss_value + val_loss_lower + val_loss_upper
+            val_loss_categ     = loss_categ_func(val_lbls_hat[3], val_lbl_cat).item()
+            val_loss_combined  = val_loss_value + val_loss_lower + val_loss_upper + val_loss_categ
+            # for k,v in val_lbls_hat[3].items():
+            #     val_loss_combined += loss_categ_func(val_lbls_hat[3][k],
+            #                                          val_lbl_cat.reshape(-1))
+                
             val_mse_value      = ( torch.mean((val_lbl_real - val_lbls_hat[0])**2) ).item()
             val_mae_value      = ( torch.mean(torch.abs(val_lbl_real - val_lbls_hat[0])) ).item()
             val_mape_value     = ( torch.mean(torch.abs((val_lbl_real - val_lbls_hat[0]) / val_lbl_real)) ).item()
@@ -625,6 +644,8 @@ class CnnTrainer(Trainer):
             val_loss_str = f'    Validation   --   loss: {"{0:.4f}".format(val_loss_combined)}'
             
             # changes in training metrics between epochs
+            trn_color = 37  # white
+            val_color = 37  # white
             if i > 0:
                 diff_trn_loss = trn_loss_combined - prev_trn_loss_combined
                 diff_val_loss = val_loss_combined - prev_val_loss_combined
@@ -636,13 +657,24 @@ class CnnTrainer(Trainer):
                 rat_trn_loss_str  = '{0:+.2f}'.format(rat_trn_loss).rjust(4, ' ')
                 rat_val_loss_str  = '{0:+.2f}'.format(rat_val_loss).rjust(4, ' ')
             
-                trn_loss_str += f'  abs: {diff_trn_loss_str}  rel: {rat_trn_loss_str}%'
-                val_loss_str += f'  abs: {diff_val_loss_str}  rel: {rat_val_loss_str}%'
+                # trn_loss_change_str = f'  abs: {diff_trn_loss_str}  rel: {rat_trn_loss_str}%'
+                # val_loss_change_str = f'  abs: {diff_val_loss_str}  rel: {rat_val_loss_str}%'
+                trn_color = 31 if diff_trn_loss >= 0 else 32  # green or red
+                val_color = 31 if diff_val_loss >= 0 else 32  # green or red
+                trn_loss_change_str = f'  abs: {util.phyddle_str(diff_trn_loss_str, style=0, color=trn_color)}'
+                trn_loss_change_str += f'  rel: {util.phyddle_str(rat_trn_loss_str, style=0, color=trn_color)}%'
+                val_loss_change_str = f'  abs: {util.phyddle_str(diff_val_loss_str, style=0, color=val_color)}'
+                val_loss_change_str += f'  rel: {util.phyddle_str(rat_val_loss_str, style=0, color=val_color)}%'
 
+                trn_loss_str += trn_loss_change_str
+                val_loss_str += val_loss_change_str
+                
             prev_trn_loss_combined = trn_loss_combined
             prev_val_loss_combined = val_loss_combined
 
             # display training metric progress
+            # util.print_str(trn_loss_str, style=0, color=trn_color)
+            # util.print_str(val_loss_str, style=0, color=val_color)
             print(trn_loss_str)
             print(val_loss_str)
             print('')
@@ -653,7 +685,7 @@ class CnnTrainer(Trainer):
 
         # print(self.train_history)
         return
-
+    
     def update_train_history(self, epoch, metric_names, metric_vals, dataset_name='train',):
         """Updates train history dataframe.
         
@@ -696,7 +728,7 @@ class CnnTrainer(Trainer):
         #                                         self.train_labels_mean_sd,
         #                                         exp=True) - self.log_offset
         self.train_label_real_est = util.denormalize(norm_train_label_real_est,
-                                                     self.train_labels_mean_sd,
+                                                     self.train_labels_real_mean_sd,
                                                      exp=False)
  
         # make initial CPI estimates
@@ -725,10 +757,27 @@ class CnnTrainer(Trainer):
         #                                               self.train_labels_mean_sd,
         #                                               exp=True) - self.log_offset
         self.train_label_real_est_calib = util.denormalize(norm_train_label_real_est_calib,
-                                                           self.train_labels_mean_sd,
+                                                           self.train_labels_real_mean_sd,
                                                            exp=False)  # - self.log_offset
 
+        self.train_label_cat_est = self.format_label_cat(norm_train_label_est[3])
+        
         return
+
+    def format_label_cat(self, x):
+        """Formats categorical labels.
+
+        Formats categorical labels for training and validation datasets.
+
+        """
+        
+        df_list = list()
+        for k,v in x.items():
+            col_names = [ f'{k}_{i}' for i in range(v.shape[1]) ]
+            df = pd.DataFrame(v.detach().numpy(), columns=col_names)
+            df_list.append(df)
+            
+        return pd.concat(df_list, axis=1)
 
     def save_results(self):
         """Save training results.
@@ -743,20 +792,22 @@ class CnnTrainer(Trainer):
         path_prefix = f'{self.trn_dir}/{self.trn_prefix}'
         
         # output network model info
-        model_arch_fn          = f'{path_prefix}.trained_model.pkl'
-        model_history_fn       = f'{path_prefix}.train_history.csv'
-        model_cpi_fn           = f'{path_prefix}.cpi_adjustments.csv'
-        # model_weights_fn       = f'{path_prefix}.train_weights.hdf5'
+        model_arch_fn                = f'{path_prefix}.trained_model.pkl'
+        model_history_fn             = f'{path_prefix}.train_history.csv'
+        model_cpi_fn                 = f'{path_prefix}.cpi_adjustments.csv'
+        # model_weights_fn           = f'{path_prefix}.train_weights.hdf5'
         
         # output scaling terms
-        train_labels_norm_fn   = f'{path_prefix}.train_label_norm.csv'
-        train_aux_data_norm_fn = f'{path_prefix}.train_aux_data_norm.csv'
+        train_labels_real_norm_fn    = f'{path_prefix}.train_norm.labels_real.csv'
+        train_aux_data_norm_fn       = f'{path_prefix}.train_norm.aux_data.csv'
 
         # output training labels
-        train_label_true_fn          = f'{path_prefix}.train_true.labels.csv'
-        train_label_est_calib_fn     = f'{path_prefix}.train_est.labels.csv'
-        train_label_est_nocalib_fn   = f'{path_prefix}.train_est_nocalib.labels.csv'
-
+        train_label_real_true_fn     = f'{path_prefix}.train_true.labels_real.csv'
+        train_label_real_est_fn      = f'{path_prefix}.train_est.labels_real.csv'
+        train_label_est_nocalib_fn   = f'{path_prefix}.train_est.labels_real_nocalib.csv'
+        train_label_cat_true_fn      = f'{path_prefix}.train_true.labels_cat.csv'
+        train_label_cat_est_fn       = f'{path_prefix}.train_est.labels_cat.csv'
+        
         # save model to file
         torch.save(self.model, model_arch_fn)
 
@@ -773,30 +824,47 @@ class CnnTrainer(Trainer):
  
         # save label names, means, sd for new test dataset normalization
         df_labels = pd.DataFrame({'name':self.param_real_names,
-                                  'mean':self.train_labels_mean_sd[0],
-                                  'sd':self.train_labels_mean_sd[1]})
-        df_labels.to_csv(train_labels_norm_fn, index=False, sep=',',
+                                  'mean':self.train_labels_real_mean_sd[0],
+                                  'sd':self.train_labels_real_mean_sd[1]})
+        df_labels.to_csv(train_labels_real_norm_fn, index=False, sep=',',
                          float_format=util.PANDAS_FLOAT_FMT_STR)
 
-        # save train/test scatterplot results (Value, Lower, Upper)
-        df_train_label_est_nocalib = util.make_param_VLU_mtx(self.train_label_real_est[0:max_idx,:], self.param_real_names )
-        df_train_label_est_calib   = util.make_param_VLU_mtx(self.train_label_real_est_calib[0:max_idx,:], self.param_real_names )
-        
-        # save train/test labels
-        df_train_label_true = pd.DataFrame(self.train_label_true[0:max_idx,:], columns=self.label_names )
-        
         # save CPI intervals
         df_cpi_intervals = pd.DataFrame(self.cpi_adjustments, columns=self.param_real_names)
+        df_cpi_intervals.to_csv(model_cpi_fn,
+                                index=False, sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
+        
+        # downsample all true training labels
+        df_train_label_true = pd.DataFrame(self.train_label_true[0:max_idx,:], columns=self.label_names )
+        
+        # save true values for train real labels
+        df_train_label_real_true = df_train_label_true[self.param_real_names]
+        df_train_label_real_true.to_csv(train_label_real_true_fn,
+                                        index=False, sep=',',
+                                        float_format=util.PANDAS_FLOAT_FMT_STR)
+        
+        # save true values for train categ. labels
+        df_train_label_cat_true = df_train_label_true[self.param_cat_names]
+        df_train_label_cat_true.to_csv(train_label_cat_true_fn,
+                                       index=False, sep=',',
+                                       float_format=util.PANDAS_FLOAT_FMT_STR)
+
+        # save train real label estimates
+        df_train_label_real_est_nocalib = util.make_param_VLU_mtx(self.train_label_real_est[0:max_idx,:], self.param_real_names )
+        df_train_label_real_est_calib   = util.make_param_VLU_mtx(self.train_label_real_est_calib[0:max_idx,:], self.param_real_names )
+        
+        # save train categorical label estimates
+        self.train_label_cat_est.to_csv(train_label_cat_est_fn,
+                                        index=False, sep=',',
+                                        float_format=util.PANDAS_FLOAT_FMT_STR)
 
         # convert to csv and save
-        df_train_label_est_nocalib.to_csv(train_label_est_nocalib_fn, index=False, sep=',',
-                                          float_format=util.PANDAS_FLOAT_FMT_STR)
-        df_train_label_est_calib.to_csv(train_label_est_calib_fn, index=False,
-                                        sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
-        df_train_label_true.to_csv(train_label_true_fn, index=False,
-                                   sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
-        df_cpi_intervals.to_csv(model_cpi_fn, index=False,
-                                sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
+        df_train_label_real_est_nocalib.to_csv(train_label_est_nocalib_fn,
+                                               index=False, sep=',',
+                                               float_format=util.PANDAS_FLOAT_FMT_STR)
+        df_train_label_real_est_calib.to_csv(train_label_real_est_fn,
+                                             index=False, sep=',',
+                                             float_format=util.PANDAS_FLOAT_FMT_STR)
 
         return
 

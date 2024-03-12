@@ -57,9 +57,9 @@ args = {
     'brlen_encode'      : 'height_brlen',   # how to encode phylo brlen? height_only or height_brlen
     'char_encode'       : 'integer',        # how to encode discrete states? one_hot or integer
     'param_est'         : {                 # model parameters to predict (labels)
-                           'ln_birth_1'     : 'real',
-                           'ln_birth_2'     : 'real',
-                           'ln_death'       : 'real',
+    #                       'ln_birth_1'     : 'real',
+    #                       'ln_birth_2'     : 'real',
+    #                       'ln_death'       : 'real',
                            'ln_state_rate'  : 'real',
                            'model_type'     : 'cat',
                           },

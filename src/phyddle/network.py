@@ -271,7 +271,9 @@ class ParameterEstimationNetwork(nn.Module):
         
         # return loss
         return x_point, x_lower, x_upper, x_categ
-    
+
+##################################################
+
 
 class QuantileLoss(nn.Module):
     """
@@ -294,3 +296,30 @@ class QuantileLoss(nn.Module):
 
 
 ##################################################
+
+class CrossEntropyLoss(nn.Module):
+    """
+    Quantile loss function. This function uses an asymmetric quantile
+    (or "pinball") loss function.
+    
+    https://medium.com/the-artificial-impostor/quantile-regression-part-2-6fdbc26b2629
+    """
+    def __init__(self):
+        """Defines quantile loss function to predict interval that captures
+        alpha-% of output predictions."""
+        super(CrossEntropyLoss, self).__init__()
+        return
+
+    def forward(self, predictions, targets):
+        """Simple quantile loss function for prediction intervals."""
+        
+        loss_list = list()
+        loss_func = torch.nn.CrossEntropyLoss()
+        
+        # assumes that order of entries in predictions
+        # matches order of entries in targets; could be unsafe
+        for i,(k,v) in enumerate(predictions.items()):
+            loss_list.append(loss_func(v, targets[:,i]))
+            
+        return torch.mean(torch.Tensor(loss_list))
+
