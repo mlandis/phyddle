@@ -156,18 +156,18 @@ class Plotter:
         self.max_num_emp_point = 5
         
         # initialized later
-        self.emp_ests = None            # init with load_input()
-        self.emp_aux_data = None        # init with load_input()
-        self.train_aux_data = None      # init with load_input()
-        self.param_names = None         # init with load_input()
-        self.aux_data_names = None      # init with load_input()
-        self.model = None               # init with load_input()
-        self.train_ests = None          # init with load_input()
-        self.train_labels = None        # init with load_input()
-        self.test_ests = None           # init with load_input()
-        self.test_labels = None         # init with load_input()
-        self.history_table = None       # init with load_input()
-        self.num_empirical = int(0)     # init with load_input()
+        self.emp_ests = None               # init with load_input()
+        self.emp_aux_data = None           # init with load_input()
+        self.train_aux_data = None         # init with load_input()
+        self.param_names = None            # init with load_input()
+        self.aux_data_names = None         # init with load_input()
+        self.model = None                  # init with load_input()
+        self.train_ests = None             # init with load_input()
+        self.train_labels = None           # init with load_input()
+        self.test_ests = None              # init with load_input()
+        self.test_labels = None            # init with load_input()
+        self.history_table = None          # init with load_input()
+        self.num_empirical = int(0)        # init with load_input()
         self.emp_valid = False
         self.sim_test_valid = False
         self.sim_train_valid = False
@@ -446,10 +446,10 @@ class Plotter:
 
 ##################################################
 
-    def make_plot_stat_density(self, data, var):
+    def make_plot_stat_density(self, dataset_name, dataset_type):
         """Calls plot_stat_density with arguments."""
-        assert data in ['train', 'empirical']
-        assert var in ['aux_data', 'labels']
+        assert dataset_name in ['train', 'empirical']
+        assert dataset_type in ['aux_data', 'labels']
 
         train_aux_data = None
         train_labels = None
@@ -464,28 +464,28 @@ class Plotter:
         if self.emp_ests is not None:
             emp_ests = self.emp_ests.copy()
         
-        if data == 'train' and var == 'aux_data':
+        if dataset_name == 'train' and dataset_type == 'aux_data':
             self.plot_stat_density(save_fn=self.save_train_density_aux_fn,
                                    dist_values=train_aux_data,
                                    point_values=emp_aux_data,
                                    color=self.plot_aux_color,
                                    title='training aux. data')
             
-        elif data == 'train' and var == 'labels':
+        elif dataset_name == 'train' and dataset_type == 'labels':
             self.plot_stat_density(save_fn=self.save_train_density_label_fn,
                                    dist_values=train_labels,
                                    point_values=emp_ests,
                                    color=self.plot_label_color,
                                    title='training labels')
             
-        elif data == 'empirical' and var == 'aux_data':
+        elif dataset_name == 'empirical' and dataset_type == 'aux_data':
             self.plot_stat_density(save_fn=self.save_emp_density_aux_fn,
                                    dist_values=emp_aux_data,
                                    point_values=None,
                                    color=self.plot_aux_color,
                                    title='empirical aux. data')
         
-        elif data == 'empirical' and var == 'labels':
+        elif dataset_name == 'empirical' and dataset_type == 'labels':
             self.plot_stat_density(save_fn=self.save_emp_density_label_fn,
                                    dist_values=emp_ests,
                                    point_values=None,
@@ -495,12 +495,12 @@ class Plotter:
         # done
         return
     
-    def make_plot_scatter_accuracy(self, data):
+    def make_plot_scatter_accuracy(self, dataset_name):
         """Calls plot_scatter_accuracy with arguments."""
-        assert data in ['train', 'test']
+        assert dataset_name in ['train', 'test']
 
         n_max = 250
-        if data == 'train':
+        if dataset_name == 'train':
             # plot train scatter
             n = min(n_max, self.train_ests.shape[0])
             self.plot_scatter_accuracy(ests=self.train_ests.iloc[0:n].copy(),
@@ -508,7 +508,7 @@ class Plotter:
                                        prefix=self.save_train_est_fn,
                                        color=self.plot_train_color,
                                        title='Train')
-        elif data == 'test':
+        elif dataset_name == 'test':
             # plot test scatter
             n = min(n_max, self.test_ests.shape[0])
             self.plot_scatter_accuracy(ests=self.test_ests.iloc[0:n].copy(),
@@ -519,10 +519,10 @@ class Plotter:
         # done
         return
 
-    def make_plot_pca_contour(self, data, var, pca_model=None):
+    def make_plot_pca_contour(self, dataset_name, dataset_type, pca_model=None):
         """Calls plot_pca_contour with arguments."""
-        assert data in ['train', 'empirical']
-        assert var in ['aux_data', 'labels']
+        assert dataset_name in ['train', 'empirical']
+        assert dataset_type in ['aux_data', 'labels']
 
         train_aux_data = None
         train_labels = None
@@ -538,35 +538,44 @@ class Plotter:
             emp_ests = self.emp_ests.copy()
             
         mdl = None
-        if data == 'train' and var == 'aux_data':
+        num_comp = 4
+        if dataset_name == 'train' and dataset_type == 'aux_data':
             mdl = self.plot_pca_contour(save_fn=self.save_train_pca_aux_data_fn,
                                         dist_values=train_aux_data,
                                         point_values=emp_aux_data,
                                         pca_model=pca_model,
+                                        num_comp=num_comp,
                                         color=self.plot_aux_color,
                                         title='training aux. data')
             
-        elif data == 'train' and var == 'labels':
+        elif dataset_name == 'train' and dataset_type == 'labels':
+            if train_labels.shape[1] <= 1:
+                return None
             mdl = self.plot_pca_contour(save_fn=self.save_train_pca_labels_fn,
                                         dist_values=train_labels,
                                         point_values=emp_ests,
                                         pca_model=pca_model,
+                                        num_comp=num_comp,
                                         color=self.plot_label_color,
                                         title='training labels')
 
-        elif data == 'empirical' and var == 'aux_data':
+        elif dataset_name == 'empirical' and dataset_type == 'aux_data':
             mdl = self.plot_pca_contour(save_fn=self.save_emp_pca_aux_data_fn,
                                         dist_values=emp_aux_data,
                                         point_values=None,
                                         pca_model=pca_model,
+                                        num_comp=num_comp,
                                         color=self.plot_aux_color,
                                         title='empirical aux. data')
 
-        elif data == 'empirical' and var == 'labels':
+        elif dataset_name == 'empirical' and dataset_type == 'labels':
+            if emp_ests.shape[1] <= 1:
+                return None
             mdl = self.plot_pca_contour(save_fn=self.save_emp_pca_labels_fn,
                                         dist_values=emp_ests,
                                         point_values=None,
                                         pca_model=pca_model,
+                                        num_comp=num_comp,
                                         color=self.plot_label_color,
                                         title='empirical labels')
         
@@ -596,9 +605,11 @@ class Plotter:
 
     def make_plot_network_architecture(self):
         """Calls torchview.draw_graph with arguments."""
-        
-        phy_dat_fake = torch.empty( self.model.phy_dat_shape, dtype=torch.float32 )[None,:,:]
-        aux_dat_fake = torch.empty( self.model.aux_dat_shape, dtype=torch.float32 )[None,:]
+        n_fake = 10
+        phy_dat_fake = torch.zeros( [n_fake] + list(self.model.phy_dat_shape),
+                                    dtype=torch.float32 )
+        aux_dat_fake = torch.zeros( [n_fake] + list(self.model.aux_dat_shape),
+                                    dtype=torch.float32 )
         lbl_fake = self.model(phy_dat_fake, aux_dat_fake)
         
         # save as png
@@ -897,17 +908,17 @@ class Plotter:
         plt.figure(figsize=(fig_width,fig_height))
 
         # plot parameters
-        for i,p in enumerate(self.param_names):
+        for i,p in enumerate(labels.columns):
 
             # labels
             x_label = f'{p} {axis_labels[0]}'
             y_label = f'{p} {axis_labels[1]}'
 
             # estimates (x) and true values (y)
-            lbl_est = ests[f'{p}_value'][:].to_numpy()
+            lbl_est   = ests[f'{p}_value'][:].to_numpy()
             lbl_lower = ests[f'{p}_lower'][:].to_numpy()
             lbl_upper = ests[f'{p}_upper'][:].to_numpy()
-            lbl_true = labels[p][:].to_numpy()
+            lbl_true  = labels[p][:].to_numpy()
 
             # only_positive = np.all(lbl_true >= 0.)
             # if only_positive and plot_log:

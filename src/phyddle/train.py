@@ -844,9 +844,9 @@ class CnnTrainer(Trainer):
                                         float_format=util.PANDAS_FLOAT_FMT_STR)
         
         # save true values for train categ. labels
-        df_train_label_cat_true = df_train_label_true[self.param_cat_names]
+        df_train_label_cat_true = df_train_label_true[self.param_cat_names].astype('int')
         df_train_label_cat_true.to_csv(train_label_cat_true_fn,
-                                       index=False, sep=',', dtype='int')
+                                       index=False, sep=',')
 
         # save train real label estimates
         df_train_label_real_est_nocalib = util.make_param_VLU_mtx(self.train_label_real_est[0:max_idx,:], self.param_real_names )

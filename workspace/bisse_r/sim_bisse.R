@@ -50,7 +50,7 @@ for (i in 1:num_rep) {
         }
 
         # simulate parameters
-        model_type = sample(1:2, size=1)
+        model_type = sample(0:1, size=1)
         Q = get_random_mk_transition_matrix(num_states, rate_model="ER", max_rate=0.1)
         birth = runif(num_states, 0, 1)
         if (model_type == 1) {
