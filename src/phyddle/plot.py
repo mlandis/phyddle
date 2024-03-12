@@ -108,17 +108,17 @@ class Plotter:
         # train dataset tensors
         self.train_hdf5_fn         = f'{fmt_proj_prefix}.train.hdf5'
         self.train_aux_data_fn     = f'{fmt_proj_prefix}.train.aux_data.csv'
-        self.train_est_fn          = f'{trn_proj_prefix}.train_est.labels.csv'
-        self.train_true_fn         = f'{trn_proj_prefix}.train_true.labels.csv'
+        self.train_est_fn          = f'{trn_proj_prefix}.train_est.labels_real.csv'
+        self.train_true_fn         = f'{trn_proj_prefix}.train_true.labels_real.csv'
 
         # test dataset tensors
-        self.test_est_fn           = f'{est_proj_prefix}.test_est.labels.csv'
-        self.test_true_fn          = f'{est_proj_prefix}.test_true.labels.csv'
+        self.test_est_fn           = f'{est_proj_prefix}.test_est.labels_real.csv'
+        self.test_true_fn          = f'{est_proj_prefix}.test_true.labels_real.csv'
 
         # empirical dataset tensors
         self.emp_hdf5_fn           = f'{fmt_proj_prefix}.empirical.hdf5'
         self.emp_aux_data_fn       = f'{fmt_proj_prefix}.empirical.aux_data.csv'
-        self.emp_est_fn            = f'{est_proj_prefix}.empirical_est.labels.csv'
+        self.emp_est_fn            = f'{est_proj_prefix}.empirical_est.labels_real.csv'
 
         # network
         self.model_arch_fn         = f'{trn_proj_prefix}.trained_model.pkl'
@@ -129,15 +129,15 @@ class Plotter:
 
         # PCA plotting output
         self.save_train_pca_aux_data_fn  = f'{plt_proj_prefix}.train_pca_contour_aux_data.pdf'
-        self.save_train_pca_labels_fn    = f'{plt_proj_prefix}.train_pca_contour_labels.pdf'
+        self.save_train_pca_labels_fn    = f'{plt_proj_prefix}.train_pca_contour_labels_real.pdf'
         self.save_emp_pca_aux_data_fn    = f'{plt_proj_prefix}.empirical_pca_contour_aux_data.pdf'
-        self.save_emp_pca_labels_fn      = f'{plt_proj_prefix}.empirical_pca_contour_labels.pdf'
+        self.save_emp_pca_labels_fn      = f'{plt_proj_prefix}.empirical_pca_contour_labels_real.pdf'
 
         # density plotting output
         self.save_train_density_aux_fn   = f'{plt_proj_prefix}.train_density_aux_data.pdf'
-        self.save_train_density_label_fn = f'{plt_proj_prefix}.train_density_labels.pdf'
+        self.save_train_density_label_fn = f'{plt_proj_prefix}.train_density_labels_real.pdf'
         self.save_emp_density_aux_fn     = f'{plt_proj_prefix}.empirical_density_aux_data.pdf'
-        self.save_emp_density_label_fn   = f'{plt_proj_prefix}.empirical_density_labels.pdf'
+        self.save_emp_density_label_fn   = f'{plt_proj_prefix}.empirical_density_labels_real.pdf'
 
         # scatter plotting output
         self.save_train_est_fn     = f'{plt_proj_prefix}.train_estimate'

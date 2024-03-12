@@ -84,6 +84,7 @@ class Estimator:
         self.tensor_format      = str(args['tensor_format'])
         self.num_char           = int(args['num_char'])
         self.num_states         = int(args['num_states'])
+        self.param_est          = dict(args['param_est'])
         self.log_offset         = float(args['log_offset'])
         
         # get size of CPV+S tensors
@@ -98,14 +99,18 @@ class Estimator:
         self.logger = util.Logger(args)
 
         # initialized later
-        self.train_aux_data_mean_sd  = None       # init in load_train_input()
-        self.train_labels_mean_sd    = None       # init in load_train_input()
-        self.label_names             = None       # init in load_train_input()
-        self.cpi_adjustments         = None       # init in load_train_input()
-        self.phy_data                = None       # init in load_format_input()
-        self.aux_data                = None       # init in load_format_input()
-        self.labels                  = None       # init in load_format_input()
-        self.mymodel                 = None       # init in make_results()
+        self.train_aux_data_mean_sd     = None       # init in load_train_input()
+        self.train_labels_real_mean_sd  = None       # init in load_train_input()
+        self.cpi_adjustments            = None       # init in load_train_input()
+        self.phy_data                   = None       # init in load_format_input()
+        self.aux_data                   = None       # init in load_format_input()
+        self.true_labels_real           = None       # init in load_format_input()
+        self.true_labels_cat            = None       # init in load_format_input()
+        self.label_real_names           = None       # init in load_train_input()
+        self.label_cat_names            = None       # init in load_train_input()
+        self.label_real_idx             = list()     # init in load_train_input()
+        self.label_cat_idx              = list()     # init in load_train_input()
+        self.mymodel                    = None       # init in make_results()
         
         # done
         return
@@ -234,24 +239,21 @@ class Estimator:
         """
         # filesystem
         path_prefix = f'{self.trn_dir}/{self.trn_prefix}'
-        train_aux_data_norm_fn = f'{path_prefix}.train_aux_data_norm.csv'
-        train_labels_norm_fn = f'{path_prefix}.train_label_norm.csv'
+        train_norm_aux_data_fn = f'{path_prefix}.train_norm.aux_data.csv'
+        train_norm_labels_real_fn = f'{path_prefix}.train_norm.labels_real.csv'
         model_cpi_fn = f'{path_prefix}.cpi_adjustments.csv'
 
         # denormalization factors for new aux data
-        train_aux_data_norm = pd.read_csv(train_aux_data_norm_fn, sep=',', index_col=False)
+        train_aux_data_norm = pd.read_csv(train_norm_aux_data_fn, sep=',', index_col=False)
         train_aux_data_means = train_aux_data_norm['mean'].T.to_numpy().flatten()
         train_aux_data_sd = train_aux_data_norm['sd'].T.to_numpy().flatten()
         self.train_aux_data_mean_sd = (train_aux_data_means, train_aux_data_sd)
 
         # denormalization factors for labels
-        train_labels_norm = pd.read_csv(train_labels_norm_fn, sep=',', index_col=False)
-        train_labels_means = train_labels_norm['mean'].T.to_numpy().flatten()
-        train_labels_sd = train_labels_norm['sd'].T.to_numpy().flatten()
-        self.train_labels_mean_sd = (train_labels_means, train_labels_sd)
-
-        # get param_names from training labels
-        self.label_names = train_labels_norm['name'].to_list()
+        train_norm_labels_real = pd.read_csv(train_norm_labels_real_fn, sep=',', index_col=False)
+        train_real_labels_mean = train_norm_labels_real['mean'].T.to_numpy().flatten()
+        train_real_labels_sd = train_norm_labels_real['sd'].T.to_numpy().flatten()
+        self.train_labels_real_mean_sd = (train_real_labels_mean, train_real_labels_sd)
         
         # read in CQR interval adjustments
         self.cpi_adjustments = pd.read_csv(model_cpi_fn, sep=',', index_col=False).to_numpy()
@@ -288,6 +290,7 @@ class Estimator:
         phy_data = None
         aux_data = None
         labels = None
+        label_names = None
         if self.tensor_format == 'csv':
             phy_data = pd.read_csv(phy_data_fn, header=None,
                                         on_bad_lines='skip').to_numpy()
@@ -298,6 +301,7 @@ class Estimator:
                                             on_bad_lines='skip').to_numpy()
             aux_data = aux_data[1:,:].astype('float64')
             labels = labels[1:,:].astype('float64')
+            label_names = labels[0,:]
 
         elif self.tensor_format == 'hdf5':
             hdf5_file = h5py.File(hdf5_fn, 'r')
@@ -305,6 +309,7 @@ class Estimator:
             aux_data = pd.DataFrame(hdf5_file['aux_data']).to_numpy()
             if mode == 'sim':
                 labels = pd.DataFrame(hdf5_file['labels']).to_numpy()
+            label_names = [ s.decode() for s in hdf5_file['label_names'][0,:] ]
             hdf5_file.close()
         
         # get number of samples
@@ -319,10 +324,30 @@ class Estimator:
         assert aux_data.shape[0] == num_sample
         # aux_data = np.log(aux_data + self.log_offset)
         self.aux_data = util.normalize(aux_data, self.train_aux_data_mean_sd)
+        
+        # get real/cat names
+        self.label_real_names = [ k for k,v in self.param_est.items() if v == 'real' ]
+        self.label_cat_names = [ k for k,v in self.param_est.items() if v == 'cat' ]
 
+        for idx,lbl in enumerate(label_names):
+            if lbl in self.label_real_names:
+                self.label_real_idx.append(idx)
+            elif lbl in self.label_cat_names:
+                self.label_cat_idx.append(idx)
+        
         if mode == 'sim':
             assert labels.shape[0] == num_sample
-            self.labels = labels
+            self.true_labels_real = labels[:,self.label_real_idx]
+            self.true_labels_cat = labels[:,self.label_cat_idx]
+
+            # recode categoricals
+            for idx in range(self.true_labels_cat.shape[1]):
+                unique_cats, encoded_cats = np.unique(self.true_labels_cat[:,idx],
+                                                      return_inverse=True)
+                self.true_labels_cat[:,idx] = encoded_cats
+        
+        # done
+        return
 
     def make_results(self, mode='sim'):
         """Makes all results for the Estimate step.
@@ -344,8 +369,10 @@ class Estimator:
             path_prefix = f'{self.est_dir}/{self.est_prefix}.empirical'
             
         model_arch_fn = f'{self.trn_dir}/{self.trn_prefix}.trained_model.pkl'
-        out_label_est_fn = f'{path_prefix}_est.labels.csv'
-        out_label_true_fn = f'{path_prefix}_true.labels.csv'
+        out_est_labels_real_fn = f'{path_prefix}_est.labels_real.csv'
+        out_true_labels_real_fn = f'{path_prefix}_true.labels_real.csv'
+        out_est_labels_cat_fn = f'{path_prefix}_est.labels_cat.csv'
+        out_true_labels_cat_fn = f'{path_prefix}_true.labels_cat.csv'
     
         # load model
         self.mymodel = torch.load(model_arch_fn)
@@ -353,31 +380,59 @@ class Estimator:
         # test dataset
         label_est = self.mymodel(torch.Tensor(self.phy_data),
                                  torch.Tensor(self.aux_data))
-
+        
+        labels_est_real = label_est[0:3]
+        labels_est_real = torch.stack(labels_est_real).detach().numpy()
+        labels_est_cat = label_est[3]
+        
         # point estimates & CPIs for test labels
-        label_est = torch.stack(label_est).detach().numpy()
-        # add dummy dimension if only one sample
-        if label_est.ndim == 2:
-            label_est.shape = (label_est.shape[0], 1, label_est.shape[1])
-        label_est[1,:,:] = label_est[1,:,:] - self.cpi_adjustments[0,:]
-        label_est[2,:,:] = label_est[2,:,:] + self.cpi_adjustments[1,:]
+        if labels_est_real.ndim == 2:
+            labels_est_real.shape = (labels_est_real.shape[0], 1, labels_est_real.shape[1])
+        labels_est_real[1,:,:] = labels_est_real[1,:,:] - self.cpi_adjustments[0,:]
+        labels_est_real[2,:,:] = labels_est_real[2,:,:] + self.cpi_adjustments[1,:]
         
         # denormalize test label estimates
-        # denorm_label_est = util.denormalize(label_est,
-        #                                     self.train_labels_mean_sd,
-        #                                     exp=True) - self.log_offset
-        denorm_label_est = util.denormalize(label_est,
-                                            self.train_labels_mean_sd,
-                                            exp=False) # - self.log_offset
+        denorm_est_labels_real = util.denormalize(labels_est_real,
+                                                  self.train_labels_real_mean_sd,
+                                                  exp=False)
 
-        # save test estimates
-        df_test_label_est = util.make_param_VLU_mtx(denorm_label_est, self.label_names)
-        df_test_label_est.to_csv(out_label_est_fn, index=False, sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
+        # save label real estimates
+        df_est_labels_real = util.make_param_VLU_mtx(denorm_est_labels_real,
+                                                     self.label_real_names)
+        df_est_labels_real.to_csv(out_est_labels_real_fn, index=False, sep=',',
+                                  float_format=util.PANDAS_FLOAT_FMT_STR)
+        
+        # save label cat estimates
+        df_est_labels_cat = self.format_label_cat(labels_est_cat)
+        df_est_labels_cat.to_csv(out_est_labels_cat_fn, index=False, sep=',',
+                                 float_format=util.PANDAS_FLOAT_FMT_STR)
+        
+        for k,v in labels_est_cat.items():
+            labels_est_cat[k] = labels_est_cat[k].detach().numpy()
+        
         if mode == 'sim':
-            df_test_label_true = pd.DataFrame(self.labels, columns=self.label_names)
-            df_test_label_true.to_csv(out_label_true_fn, index=False, sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
+            df_true_labels_real = pd.DataFrame(self.true_labels_real, columns=self.label_real_names)
+            df_true_labels_real.to_csv(out_true_labels_real_fn, index=False, sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
+            
+            df_true_labels_cat = pd.DataFrame(self.true_labels_cat, columns=self.label_cat_names, dtype='int')
+            df_true_labels_cat.to_csv(out_true_labels_cat_fn, index=False, sep=',')
         
         # done
         return
+    
+    def format_label_cat(self, x):
+        """Formats categorical labels.
+    
+        Formats categorical labels for training and validation datasets.
+    
+        """
+    
+        df_list = list()
+        for k,v in x.items():
+            col_names = [ f'{k}_{i}' for i in range(v.shape[1]) ]
+            df = pd.DataFrame(v.detach().numpy(), columns=col_names)
+            df_list.append(df)
+    
+        return pd.concat(df_list, axis=1)
     
 ##################################################

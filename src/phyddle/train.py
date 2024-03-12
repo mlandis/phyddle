@@ -71,7 +71,7 @@ class Trainer:
 
         # filesystem
         self.fmt_prefix             = str(args['fmt_prefix'])
-        self.trn_prefix             = str(args['sim_prefix'])
+        self.trn_prefix             = str(args['trn_prefix'])
         self.fmt_dir                = str(args['fmt_dir'])
         self.trn_dir                = str(args['trn_dir'])
         self.log_dir                = str(args['log_dir'])
@@ -846,8 +846,7 @@ class CnnTrainer(Trainer):
         # save true values for train categ. labels
         df_train_label_cat_true = df_train_label_true[self.param_cat_names]
         df_train_label_cat_true.to_csv(train_label_cat_true_fn,
-                                       index=False, sep=',',
-                                       float_format=util.PANDAS_FLOAT_FMT_STR)
+                                       index=False, sep=',', dtype='int')
 
         # save train real label estimates
         df_train_label_real_est_nocalib = util.make_param_VLU_mtx(self.train_label_real_est[0:max_idx,:], self.param_real_names )
