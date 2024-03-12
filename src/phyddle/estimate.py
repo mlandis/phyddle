@@ -111,6 +111,8 @@ class Estimator:
         self.label_real_idx             = list()     # init in load_train_input()
         self.label_cat_idx              = list()     # init in load_train_input()
         self.mymodel                    = None       # init in make_results()
+        self.has_label_cat              = False      # init in make_results()
+        self.has_label_real             = False      # init in make_results()
         
         # done
         return
@@ -322,12 +324,15 @@ class Estimator:
 
         # test dataset normalization
         assert aux_data.shape[0] == num_sample
-        # aux_data = np.log(aux_data + self.log_offset)
         self.aux_data = util.normalize(aux_data, self.train_aux_data_mean_sd)
         
         # get real/cat names
         self.label_real_names = [ k for k,v in self.param_est.items() if v == 'real' ]
         self.label_cat_names = [ k for k,v in self.param_est.items() if v == 'cat' ]
+        if len(self.label_cat_names) > 0:
+            self.has_label_cat = True
+        if len(self.label_real_names) > 0:
+            self.has_label_real = True
 
         for idx,lbl in enumerate(label_names):
             if lbl in self.label_real_names:
@@ -403,10 +408,11 @@ class Estimator:
                                   float_format=util.PANDAS_FLOAT_FMT_STR)
         
         # save label cat estimates
-        df_est_labels_cat = self.format_label_cat(labels_est_cat)
-        df_est_labels_cat.to_csv(out_est_labels_cat_fn, index=False, sep=',',
-                                 float_format=util.PANDAS_FLOAT_FMT_STR)
-        
+        if self.has_label_cat:
+            df_est_labels_cat = self.format_label_cat(labels_est_cat)
+            df_est_labels_cat.to_csv(out_est_labels_cat_fn, index=False, sep=',',
+                                     float_format=util.PANDAS_FLOAT_FMT_STR)
+            
         for k,v in labels_est_cat.items():
             labels_est_cat[k] = labels_est_cat[k].detach().numpy()
         
@@ -414,9 +420,10 @@ class Estimator:
             df_true_labels_real = pd.DataFrame(self.true_labels_real, columns=self.label_real_names)
             df_true_labels_real.to_csv(out_true_labels_real_fn, index=False, sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
             
-            df_true_labels_cat = pd.DataFrame(self.true_labels_cat, columns=self.label_cat_names, dtype='int')
-            df_true_labels_cat.to_csv(out_true_labels_cat_fn, index=False, sep=',')
-        
+            if self.has_label_cat:
+                df_true_labels_cat = pd.DataFrame(self.true_labels_cat, columns=self.label_cat_names, dtype='int')
+                df_true_labels_cat.to_csv(out_true_labels_cat_fn, index=False, sep=',')
+            
         # done
         return
     

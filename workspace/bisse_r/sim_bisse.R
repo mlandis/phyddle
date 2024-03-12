@@ -28,6 +28,7 @@ lbl_fn = paste0(tmp_fn, ".labels.csv")        # csv of labels (e.g. params)
 
 # dataset setup
 num_states = 2
+symm_Q_mtx = TRUE
 tree_width = 500
 label_names = c( paste0("ln_birth_",1:num_states), "ln_death", "ln_state_rate", "ln_sample_frac", "model_type")
 
@@ -51,12 +52,20 @@ for (i in 1:num_rep) {
 
         # simulate parameters
         model_type = sample(0:1, size=1)
-        Q = get_random_mk_transition_matrix(num_states, rate_model="ER", max_rate=0.1)
-        birth = runif(num_states, 0, 1)
-        if (model_type == 1) {
+        Q = matrix(runif(n=num_states*num_states, 0, 0.1),
+                   ncol=num_states, nrow=num_states)
+        diag(Q) = 0
+        if (symm_Q_mtx) {
+            Q[lower.tri(Q)] = t(Q)[lower.tri(Q)]
+        }
+        diag(Q) = -rowSums(Q)
+
+        # Q = get_random_mk_transition_matrix(num_states, rate_model="ER", max_rate=0.1)
+        birth = runif(n=num_states, 0, 1 )  # rate=1.0)
+        if (model_type == 0) {
             birth[2] = birth[1]
         }
-        death = min(birth) * runif(1, 0, 1.0)
+        death = min(birth) * runif(n=1, 0, 1)  # rate=1.0)
         death = rep(death, num_states)
         parameters = list(
             birth_rates=birth,
