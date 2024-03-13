@@ -215,17 +215,26 @@ class Estimator:
         if not os.path.exists(self.fmt_dir):
             return False
 
-        # check if empirical directory contains files
-        fn = ''
-        if mode == 'sim':
-            fn = f'{self.fmt_dir}/{self.fmt_prefix}.test.hdf5'
-        elif mode == 'emp':
-            fn = f'{self.fmt_dir}/{self.fmt_prefix}.empirical.hdf5'
+        data_src = None
+        if mode == 'emp':
+            data_src = 'empirical'
+        elif mode == 'sim':
+            data_src = 'test'
 
-        if os.path.exists(fn):
-            return True
-        else:
-            return False
+        # check if empirical directory contains files
+        files = ['']
+        if self.tensor_format == 'hdf5':
+            files = [ f'{self.fmt_dir}/{self.fmt_prefix}.{data_src}.hdf5' ]
+        elif self.tensor_format == 'csv':
+            files = [ f'{self.fmt_dir}/{self.fmt_prefix}.{data_src}.phy_data.csv',
+                      f'{self.fmt_dir}/{self.fmt_prefix}.{data_src}.aux_data.csv' ]
+        
+        # fail if key file missing
+        for fn in files:
+            if not os.path.exists(fn):
+                return False
+        
+        return True
     
     def load_train_input(self):
         """Load input data for estimation.
@@ -278,7 +287,7 @@ class Estimator:
         
         path_prefix = ''
         if mode == 'sim':
-            path_prefix = f'{self.fmt_dir}/{self.fmt_prefix}.test'
+            path_prefix = f'{self.fmt_dir}/{self.fmt_prefix}.train'
         elif mode == 'emp':
             path_prefix = f'{self.fmt_dir}/{self.fmt_prefix}.empirical'
         
@@ -345,7 +354,7 @@ class Estimator:
             self.true_labels_real = labels[:,self.label_real_idx]
             self.true_labels_cat = labels[:,self.label_cat_idx]
 
-            # recode categoricals
+            # recode categorical labels
             for idx in range(self.true_labels_cat.shape[1]):
                 unique_cats, encoded_cats = np.unique(self.true_labels_cat[:,idx],
                                                       return_inverse=True)
@@ -382,15 +391,16 @@ class Estimator:
         # load model
         self.mymodel = torch.load(model_arch_fn)
 
-        # test dataset
+        # get estimates
         label_est = self.mymodel(torch.Tensor(self.phy_data),
                                  torch.Tensor(self.aux_data))
         
+        # real vs. cat estimates
         labels_est_real = label_est[0:3]
-        labels_est_real = torch.stack(labels_est_real).detach().numpy()
         labels_est_cat = label_est[3]
         
         # point estimates & CPIs for test labels
+        labels_est_real = torch.stack(labels_est_real).detach().numpy()
         if labels_est_real.ndim == 2:
             labels_est_real.shape = (labels_est_real.shape[0], 1, labels_est_real.shape[1])
         labels_est_real[1,:,:] = labels_est_real[1,:,:] - self.cpi_adjustments[0,:]
@@ -423,7 +433,7 @@ class Estimator:
             if self.has_label_cat:
                 df_true_labels_cat = pd.DataFrame(self.true_labels_cat, columns=self.label_cat_names, dtype='int')
                 df_true_labels_cat.to_csv(out_true_labels_cat_fn, index=False, sep=',')
-            
+        
         # done
         return
     

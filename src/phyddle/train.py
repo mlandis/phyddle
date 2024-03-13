@@ -105,6 +105,7 @@ class Trainer:
         self.trn_batch_size     = int(args['trn_batch_size'])
         self.cpi_coverage       = float(args['cpi_coverage'])
         self.cpi_asymmetric     = bool(args['cpi_asymmetric'])
+        self.loss_real          = str(args['loss_real'])
         
         # initialized later
         self.phy_tensors        = dict()   # init with encode_all()
@@ -243,6 +244,7 @@ class CnnTrainer(Trainer):
         self.calib_dataset = None       # init with load_input()
         self.model = None               # init with build_network()
         self.train_label_real_est = None
+        self.train_label_real_true = None
         self.train_label_cat_est = None
         self.train_label_real_est_calib = None
         self.calib_phy_data_tensor = None
@@ -495,7 +497,28 @@ class CnnTrainer(Trainer):
         # model.to(TORCH_DEVICE)
 
         return
+
+
 ##################################################
+
+    def make_loss_real_func(self):
+        """Makes loss function for real-valued labels.
+
+        This function makes a loss function for real-valued labels based on the
+        specified loss function in the phyddle settings.
+
+        Returns:
+            loss_func (torch.nn.Module): The loss function for real-valued labels.
+
+        """
+        if self.loss_real == 'mse':
+            loss_func = torch.nn.MSELoss()
+        elif self.loss_real == 'mae':
+            loss_func = torch.nn.L1Loss()
+        else:
+            raise ValueError(f'Unknown loss function: {self.loss_real}')
+        
+        return loss_func
 
     def train(self):
         """Trains the neural network model.
@@ -525,7 +548,7 @@ class CnnTrainer(Trainer):
         q_tail  = (1.0 - q_width) / 2
         q_lower = q_tail
         q_upper = 1.0 - q_tail
-        loss_value_func = torch.nn.MSELoss()
+        loss_value_func = self.make_loss_real_func()
         loss_lower_func = network.QuantileLoss(alpha=q_lower)
         loss_upper_func = network.QuantileLoss(alpha=q_upper)
         # loss_categ_func = torch.nn.CrossEntropyLoss()
@@ -632,9 +655,6 @@ class CnnTrainer(Trainer):
             if self.has_label_cat:
                 val_loss_categ     = loss_categ_func(val_lbls_hat[3], val_lbl_cat).item()
                 val_loss_combined += val_loss_categ
-            # for k,v in val_lbls_hat[3].items():
-            #     val_loss_combined += loss_categ_func(val_lbls_hat[3][k],
-            #                                          val_lbl_cat.reshape(-1))
                 
             val_mse_value      = ( torch.mean((val_lbl_real - val_lbls_hat[0])**2) ).item()
             val_mae_value      = ( torch.mean(torch.abs(val_lbl_real - val_lbls_hat[0])) ).item()
@@ -675,8 +695,6 @@ class CnnTrainer(Trainer):
             prev_val_loss_combined = val_loss_combined
 
             # display training metric progress
-            # util.print_str(trn_loss_str, style=0, color=trn_color)
-            # util.print_str(val_loss_str, style=0, color=val_color)
             print(trn_loss_str)
             print(val_loss_str)
             print('')
@@ -708,6 +726,35 @@ class CnnTrainer(Trainer):
         
         return
 
+    def perform_cpi_calibration(self):
+        """Performs CPI calibration.
+
+        This function performs CPI calibration to estimate the CPI adjustment
+        terms for the training dataset.
+
+        """
+        # make initial CPI estimates
+        num_calib_examples = self.calib_phy_data_tensor.shape[0]
+        calib_loader = torch.utils.data.DataLoader(dataset=self.calib_dataset,
+                                                   batch_size=num_calib_examples)
+        calib_batch = next(iter(calib_loader))
+        calib_phy_dat, calib_aux_dat = calib_batch[0], calib_batch[1]
+        
+        # get calib estimates
+        calib_label_est = self.model(calib_phy_dat, calib_aux_dat)
+
+        # make CPI adjustments
+        norm_calib_label_real_est = torch.stack(calib_label_est[0:3]).detach().numpy()
+        norm_calib_real_est_quantiles = norm_calib_label_real_est[1:,:,:]
+        self.cpi_adjustments = self.get_cqr_constant(norm_calib_real_est_quantiles,
+                                                     self.norm_calib_labels_real,
+                                                     inner_quantile=self.cpi_coverage,
+                                                     asymmetric=self.cpi_asymmetric)
+        self.cpi_adjustments = np.array(self.cpi_adjustments).reshape((2,-1))
+
+        # done
+        return
+    
     def make_results(self):
         """Makes all results from the Train step.
 
@@ -716,48 +763,46 @@ class CnnTrainer(Trainer):
 
         """
         
+        # get uncalibrated estimates
         # training label estimates
         num_train_examples = 1000
         train_loader = torch.utils.data.DataLoader(dataset=self.train_dataset,
                                                    batch_size=num_train_examples)
-        train_phy_dat, train_aux_dat, train_real_lbl, train_cat_lbl = next(iter(train_loader))
-        norm_train_label_est = self.model(train_phy_dat, train_aux_dat)
+        train_batch = next(iter(train_loader))
+        train_phy_dat, train_aux_dat, train_labels_real, train_labels_cat = train_batch
+
+        # get train estimates
+        label_est = self.model(train_phy_dat, train_aux_dat)
+
+        # real vs. cat estimates
+        labels_real_est = label_est[0:3]
+        labels_real_est = torch.stack(labels_real_est).detach().numpy()
+        labels_cat_est  = label_est[3]
+
+        # get true label values (does not need to be denormalized??) 
+        train_labels_real = train_labels_real.detach().numpy()
+        self.train_label_real_true = train_labels_real
+        # self.train_label_real_true = util.denormalize(train_labels_real.copy(),
+        #                                               self.train_labels_real_mean_sd)
+
+        # uncalibrated training estimates of real labels
+        self.train_label_real_est = util.denormalize(labels_real_est.copy(),
+                                                     self.train_labels_real_mean_sd)
+
+        # generate calibration factors
+        self.perform_cpi_calibration()
         
-        # we want an array of 3 outputs [point, lower, upper], N examples, K parameters
-        norm_train_label_real_est = norm_train_label_est[0:3]
-        norm_train_label_real_est = torch.stack(norm_train_label_real_est).detach().numpy()
-        self.train_label_real_est = util.denormalize(norm_train_label_real_est,
-                                                     self.train_labels_real_mean_sd,
-                                                     exp=False)
- 
-        # make initial CPI estimates
-        # todo: can't we learn dataset and batchsize somehow??
-        num_calib_examples = self.calib_phy_data_tensor.shape[0]
-        calib_loader = torch.utils.data.DataLoader(dataset=self.calib_dataset,
-                                                   batch_size=num_calib_examples)
-        calib_phy_dat, calib_aux_dat, calib_real_lbl, calib_cat_lbl = next(iter(calib_loader))
-        norm_calib_label_est = self.model(calib_phy_dat, calib_aux_dat)
+        # calibrate original estimates
+        labels_real_est_calib = labels_real_est.copy()
+        labels_real_est_calib[1,:,:] = labels_real_est_calib[1,:,:] - self.cpi_adjustments[0,:]
+        labels_real_est_calib[2,:,:] = labels_real_est_calib[2,:,:] + self.cpi_adjustments[1,:]
+        
+        # denormalize calibrated estimates
+        self.train_label_real_est_calib = labels_real_est_calib
 
-        # make CPI adjustments
-        norm_calib_label_real_est = norm_calib_label_est[0:3]
-        norm_calib_label_real_est = torch.stack(norm_calib_label_real_est).detach().numpy()
-        norm_calib_real_est_quantiles = norm_calib_label_real_est[1:,:,:]
-        self.cpi_adjustments = self.get_cqr_constant(norm_calib_real_est_quantiles,
-                                                     self.norm_calib_labels_real,
-                                                     inner_quantile=self.cpi_coverage,
-                                                     asymmetric=self.cpi_asymmetric)
-        self.cpi_adjustments = np.array(self.cpi_adjustments).reshape((2,-1))
-    
-        # make final CPI estimates
-        norm_train_label_real_est_calib = norm_train_label_real_est
-        norm_train_label_real_est_calib[1,:,:] = norm_train_label_real_est_calib[1,:,:] - self.cpi_adjustments[0,:]
-        norm_train_label_real_est_calib[2,:,:] = norm_train_label_real_est_calib[2,:,:] + self.cpi_adjustments[1,:]
-        self.train_label_real_est_calib = util.denormalize(norm_train_label_real_est_calib,
-                                                           self.train_labels_real_mean_sd,
-                                                           exp=False)
-
+        # reformat categorical estimates, if they exist
         if self.has_label_cat:
-            self.train_label_cat_est = self.format_label_cat(norm_train_label_est[3])
+            self.train_label_cat_est = self.format_label_cat(labels_cat_est)
         
         return
 
@@ -827,12 +872,15 @@ class CnnTrainer(Trainer):
                          float_format=util.PANDAS_FLOAT_FMT_STR)
 
         # save CPI intervals
-        df_cpi_intervals = pd.DataFrame(self.cpi_adjustments, columns=self.param_real_names)
+        df_cpi_intervals = pd.DataFrame(self.cpi_adjustments,
+                                        columns=self.param_real_names)
         df_cpi_intervals.to_csv(model_cpi_fn,
-                                index=False, sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
+                                index=False, sep=',',
+                                float_format=util.PANDAS_FLOAT_FMT_STR)
         
         # downsample all true training labels
-        df_train_label_true = pd.DataFrame(self.train_label_true[0:max_idx,:], columns=self.label_names )
+        df_train_label_true = pd.DataFrame(self.train_label_real_true[0:max_idx,:],
+                                           columns=self.label_names )
         
         # save true values for train real labels
         df_train_label_real_true = df_train_label_true[self.param_real_names]
@@ -841,8 +889,10 @@ class CnnTrainer(Trainer):
                                         float_format=util.PANDAS_FLOAT_FMT_STR)
         
         # save train real label estimates
-        df_train_label_real_est_nocalib = util.make_param_VLU_mtx(self.train_label_real_est[0:max_idx,:], self.param_real_names )
-        df_train_label_real_est_calib   = util.make_param_VLU_mtx(self.train_label_real_est_calib[0:max_idx,:], self.param_real_names )
+        df_train_label_real_est_nocalib = util.make_param_VLU_mtx(self.train_label_real_est[0:max_idx,:],
+                                                                  self.param_real_names )
+        df_train_label_real_est_calib   = util.make_param_VLU_mtx(self.train_label_real_est_calib[0:max_idx,:],
+                                                                  self.param_real_names )
 
         # convert to csv and save
         df_train_label_real_est_nocalib.to_csv(train_label_est_nocalib_fn,
