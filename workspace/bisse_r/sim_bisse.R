@@ -30,7 +30,7 @@ lbl_fn = paste0(tmp_fn, ".labels.csv")        # csv of labels (e.g. params)
 num_states = 2
 symm_Q_mtx = TRUE
 tree_width = 500
-label_names = c( paste0("ln_birth_",1:num_states), "ln_death", "ln_state_rate", "ln_sample_frac", "model_type")
+label_names = c( paste0("log10_birth_",1:num_states), "log10_death", "log10_state_rate", "log10_sample_frac", "model_type", "start_state")
 
 # simulate each replicate
 for (i in 1:num_rep) {
@@ -52,6 +52,7 @@ for (i in 1:num_rep) {
 
         # simulate parameters
         model_type = sample(0:1, size=1)
+        start_state = sample(1:2, size=1)
         Q = matrix(runif(n=num_states*num_states, 0, 0.1),
                    ncol=num_states, nrow=num_states)
         diag(Q) = 0
@@ -77,6 +78,7 @@ for (i in 1:num_rep) {
         res_sim = simulate_dsse(
                 Nstates=num_states,
                 parameters=parameters,
+                start_state=start_state,
                 sampling_fractions=sample_frac,
                 max_extant_tips=max_taxa,
                 max_time=max_time,
@@ -97,8 +99,8 @@ for (i in 1:num_rep) {
     write.csv(df_state, file=dat_fn[i], row.names=F, quote=F)
 
     # save learned labels (e.g. estimated data-generating parameters)
-    label_sim = c( birth[1], birth[2], death[1], Q[1,2], sample_frac, model_type)
-    label_sim[1:5] = log(label_sim[1:5])
+    label_sim = c( birth[1], birth[2], death[1], Q[1,2], sample_frac, model_type, start_state)
+    label_sim[1:5] = log(label_sim[1:5], base=10)
     # label_sim[5] = label_sim[5] / (1 - exp(label_sim[5]))
     names(label_sim) = label_names
     df_label = data.frame(t(label_sim))

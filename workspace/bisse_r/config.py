@@ -57,14 +57,15 @@ args = {
     'brlen_encode'      : 'height_brlen',   # how to encode phylo brlen? height_only or height_brlen
     'char_encode'       : 'integer',        # how to encode discrete states? one_hot or integer
     'param_est'         : {                 # model parameters to predict (labels)
-                           'ln_birth_1'     : 'real',
-                           'ln_birth_2'     : 'real',
-                           'ln_death'       : 'real',
-                           'ln_state_rate'  : 'real',
-    #                       'model_type'     : 'cat',
+                           'log10_birth_1'     : 'real',
+                           'log10_birth_2'     : 'real',
+                           'log10_death'       : 'real',
+                           'log10_state_rate'  : 'real',
+                           'model_type'        : 'cat',
+                           'start_state',      : 'cat',
                           },
     'param_data'        : {                 # model parameters that are known (aux. data)
-                           'ln_sample_frac' : 'real'
+                           'log10_sample_frac' : 'real'
                           },
     'tensor_format'     : 'hdf5',           # save as compressed HDF5 or raw csv
     'char_format'       : 'csv',
