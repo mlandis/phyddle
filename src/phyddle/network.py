@@ -266,7 +266,8 @@ class ParameterEstimationNetwork(nn.Module):
             k_mod_list = getattr(self, k_str)
             for i in range(len(k_mod_list)-1):
                 x_categ[k] = func.relu(k_mod_list[i](x_categ[k]))
-            x_categ[k] = func.softmax(k_mod_list[-1](x_categ[k]), dim=1)
+            # x_categ[k] = func.softmax(k_mod_list[-1](x_categ[k]), dim=1)
+            x_categ[k] = k_mod_list[-1](x_categ[k])
             setattr(self, k_str, k_mod_list)
         
         # return loss
@@ -313,7 +314,7 @@ class CrossEntropyLoss(nn.Module):
     def forward(self, predictions, targets):
         """Simple quantile loss function for prediction intervals."""
         
-        loss_list = list()
+        loss_list = []
         loss_func = torch.nn.CrossEntropyLoss()
         
         # assumes that order of entries in predictions
@@ -321,5 +322,5 @@ class CrossEntropyLoss(nn.Module):
         for i,(k,v) in enumerate(predictions.items()):
             loss_list.append(loss_func(v, targets[:,i]))
             
-        return torch.mean(torch.Tensor(loss_list))
+        return torch.sum(torch.stack(loss_list))
 

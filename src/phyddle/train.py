@@ -246,6 +246,7 @@ class CnnTrainer(Trainer):
         self.train_label_real_est = None
         self.train_label_real_true = None
         self.train_label_cat_est = None
+        self.train_label_cat_true = None
         self.train_label_real_est_calib = None
         self.calib_phy_data_tensor = None
         self.train_history = None       # init with train()
@@ -551,7 +552,6 @@ class CnnTrainer(Trainer):
         loss_value_func = self.make_loss_real_func()
         loss_lower_func = network.QuantileLoss(alpha=q_lower)
         loss_upper_func = network.QuantileLoss(alpha=q_upper)
-        # loss_categ_func = torch.nn.CrossEntropyLoss()
         loss_categ_func = network.CrossEntropyLoss()
 
         # optimizer
@@ -600,16 +600,12 @@ class CnnTrainer(Trainer):
                 # send labels to device
                 lbl_real.to(self.TORCH_DEVICE)
                 lbl_cat.to(self.TORCH_DEVICE)
-                # phy_dat.to(self.TORCH_DEVICE)
-                # aux_dat.to(self.TORCH_DEVICE)
                 
                 # reset gradients for tensors
                 optimizer.zero_grad()
                 
                 # forward pass of training data to estimate labels
                 lbls_hat = self.model(phy_dat, aux_dat)
-                # print(lbls_hat[3]['model_type'])
-                # print(lbl_cat.reshape(-1))
 
                 # calculating the loss between original and predicted data points
                 loss_value     = loss_value_func(lbls_hat[0], lbl_real)
@@ -619,10 +615,6 @@ class CnnTrainer(Trainer):
                 if self.has_label_cat:
                     loss_categ     = loss_categ_func(lbls_hat[3], lbl_cat)
                     loss_combined += loss_categ
-
-                # for k,v in lbls_hat[3].items():
-                #     loss_combined += loss_categ_func(lbls_hat[3][k],
-                #                                      lbl_cat.reshape(-1))
 
                 # collect history stats
                 trn_loss_value    += loss_value.item() / num_batches
@@ -679,13 +671,11 @@ class CnnTrainer(Trainer):
                 rat_trn_loss_str  = '{0:+.2f}'.format(rat_trn_loss).rjust(4, ' ')
                 rat_val_loss_str  = '{0:+.2f}'.format(rat_val_loss).rjust(4, ' ')
             
-                # trn_loss_change_str = f'  abs: {diff_trn_loss_str}  rel: {rat_trn_loss_str}%'
-                # val_loss_change_str = f'  abs: {diff_val_loss_str}  rel: {rat_val_loss_str}%'
                 trn_color = 31 if diff_trn_loss >= 0 else 32  # green or red
                 val_color = 31 if diff_val_loss >= 0 else 32  # green or red
-                trn_loss_change_str = f'  abs: {util.phyddle_str(diff_trn_loss_str, style=0, color=trn_color)}'
+                trn_loss_change_str  = f'  abs: {util.phyddle_str(diff_trn_loss_str, style=0, color=trn_color)}'
                 trn_loss_change_str += f'  rel: {util.phyddle_str(rat_trn_loss_str, style=0, color=trn_color)}%'
-                val_loss_change_str = f'  abs: {util.phyddle_str(diff_val_loss_str, style=0, color=val_color)}'
+                val_loss_change_str  = f'  abs: {util.phyddle_str(diff_val_loss_str, style=0, color=val_color)}'
                 val_loss_change_str += f'  rel: {util.phyddle_str(rat_val_loss_str, style=0, color=val_color)}%'
 
                 trn_loss_str += trn_loss_change_str
@@ -782,6 +772,7 @@ class CnnTrainer(Trainer):
         # get true label values (does not need to be denormalized??) 
         train_labels_real = train_labels_real.detach().numpy()
         self.train_label_real_true = train_labels_real
+        self.train_label_cat_true = train_labels_cat.detach().numpy().astype('int')
         # self.train_label_real_true = util.denormalize(train_labels_real.copy(),
         #                                               self.train_labels_real_mean_sd)
 
@@ -815,8 +806,9 @@ class CnnTrainer(Trainer):
         
         df_list = list()
         for k,v in x.items():
+            v = torch.softmax(v, dim=1).detach().numpy()
             col_names = [ f'{k}_{i}' for i in range(v.shape[1]) ]
-            df = pd.DataFrame(v.detach().numpy(), columns=col_names)
+            df = pd.DataFrame(v, columns=col_names)
             df_list.append(df)
             
         return pd.concat(df_list, axis=1)
@@ -880,7 +872,7 @@ class CnnTrainer(Trainer):
         
         # downsample all true training labels
         df_train_label_true = pd.DataFrame(self.train_label_real_true[0:max_idx,:],
-                                           columns=self.label_names )
+                                           columns=self.param_real_names )
         
         # save true values for train real labels
         df_train_label_real_true = df_train_label_true[self.param_real_names]
@@ -904,7 +896,8 @@ class CnnTrainer(Trainer):
     
         if self.has_label_cat:
             # save true values for train categ. labels
-            df_train_label_cat_true = df_train_label_true[self.param_cat_names].astype('int')
+            df_train_label_cat_true = pd.DataFrame(self.train_label_cat_true[0:max_idx,:],
+                                                   columns=self.param_cat_names )
             df_train_label_cat_true.to_csv(train_label_cat_true_fn,
                                            index=False, sep=',')
     

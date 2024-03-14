@@ -287,7 +287,7 @@ class Estimator:
         
         path_prefix = ''
         if mode == 'sim':
-            path_prefix = f'{self.fmt_dir}/{self.fmt_prefix}.train'
+            path_prefix = f'{self.fmt_dir}/{self.fmt_prefix}.test'
         elif mode == 'emp':
             path_prefix = f'{self.fmt_dir}/{self.fmt_prefix}.empirical'
         
@@ -443,13 +443,14 @@ class Estimator:
         Formats categorical labels for training and validation datasets.
     
         """
-    
+
         df_list = list()
         for k,v in x.items():
+            v = torch.softmax(v, dim=1).detach().numpy()
             col_names = [ f'{k}_{i}' for i in range(v.shape[1]) ]
-            df = pd.DataFrame(v.detach().numpy(), columns=col_names)
+            df = pd.DataFrame(v, columns=col_names)
             df_list.append(df)
-    
+
         return pd.concat(df_list, axis=1)
     
 ##################################################

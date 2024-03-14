@@ -18,6 +18,7 @@ import os
 import h5py
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+from matplotlib.colors import LinearSegmentedColormap
 import numpy as np
 import pandas as pd
 import scipy as sp
@@ -90,12 +91,13 @@ class Plotter:
 
         # dataset info
         self.tensor_format         = str(args['tensor_format'])
+        self.param_est             = dict(args['param_est'])
         self.plot_aux_color        = str(args['plot_aux_color'])
         self.plot_label_color      = str(args['plot_label_color'])
         self.plot_train_color      = str(args['plot_train_color'])
         self.plot_test_color       = str(args['plot_test_color'])
         self.plot_val_color        = str(args['plot_val_color'])
-        self.plot_est_color        = str(args['plot_est_color'])
+        self.plot_emp_color        = str(args['plot_est_color'])
         self.log_offset            = float(args['log_offset'])
         self.cpi_coverage          = float(args['cpi_coverage'])
 
@@ -105,20 +107,29 @@ class Plotter:
         est_proj_prefix             = f'{self.est_dir}/{self.est_prefix}'
         plt_proj_prefix             = f'{self.plt_dir}/{self.plt_prefix}'
 
-        # train dataset tensors
+        # train dataset, main dataset
         self.train_hdf5_fn         = f'{fmt_proj_prefix}.train.hdf5'
         self.train_aux_data_fn     = f'{fmt_proj_prefix}.train.aux_data.csv'
-        self.train_est_fn          = f'{trn_proj_prefix}.train_est.labels_real.csv'
-        self.train_true_fn         = f'{trn_proj_prefix}.train_true.labels_real.csv'
+        self.train_labels_fn       = f'{fmt_proj_prefix}.train.labels.csv'
+
+        # train dataset tensors
+        self.train_est_real_fn     = f'{trn_proj_prefix}.train_est.labels_real.csv'
+        self.train_true_real_fn    = f'{trn_proj_prefix}.train_true.labels_real.csv'
+        self.train_est_cat_fn      = f'{trn_proj_prefix}.train_est.labels_cat.csv'
+        self.train_true_cat_fn     = f'{trn_proj_prefix}.train_true.labels_cat.csv'
+
 
         # test dataset tensors
-        self.test_est_fn           = f'{est_proj_prefix}.test_est.labels_real.csv'
-        self.test_true_fn          = f'{est_proj_prefix}.test_true.labels_real.csv'
-
+        self.test_est_real_fn      = f'{est_proj_prefix}.test_est.labels_real.csv'
+        self.test_true_real_fn     = f'{est_proj_prefix}.test_true.labels_real.csv'
+        self.test_est_cat_fn       = f'{est_proj_prefix}.test_est.labels_cat.csv'
+        self.test_true_cat_fn      = f'{est_proj_prefix}.test_true.labels_cat.csv'
+        
         # empirical dataset tensors
         self.emp_hdf5_fn           = f'{fmt_proj_prefix}.empirical.hdf5'
         self.emp_aux_data_fn       = f'{fmt_proj_prefix}.empirical.aux_data.csv'
-        self.emp_est_fn            = f'{est_proj_prefix}.empirical_est.labels_real.csv'
+        self.emp_est_real_fn       = f'{est_proj_prefix}.empirical_est.labels_real.csv'
+        self.emp_est_cat_fn        = f'{est_proj_prefix}.empirical_est.labels_cat.csv'
 
         # network
         self.model_arch_fn         = f'{trn_proj_prefix}.trained_model.pkl'
@@ -151,27 +162,49 @@ class Plotter:
         self.save_summary_fn       = f'{plt_proj_prefix}.summary.pdf'
         self.save_report_fn        = f'{plt_proj_prefix}.summary.csv'
         
-        # plot settings (maybe move to user settings)
+        # cat vs. real parameter names
+        self.param_name_real = [ k for k,v in self.param_est.items() if v == 'real' ]
+        self.param_name_cat = [ k for k,v in self.param_est.items() if v == 'cat' ]
+        
+        # plot settings (possible add as util setting)
         self.min_num_emp_density = 10
         self.max_num_emp_point = 5
         
         # initialized later
-        self.emp_ests = None               # init with load_input()
-        self.emp_aux_data = None           # init with load_input()
         self.train_aux_data = None         # init with load_input()
-        self.param_names = None            # init with load_input()
+        self.train_labels_real = None      # init with load_input()
+        self.train_labels_cat = None       # init with load_input()
+        self.emp_aux_data = None           # init with load_input()
         self.aux_data_names = None         # init with load_input()
         self.model = None                  # init with load_input()
-        self.train_ests = None             # init with load_input()
-        self.train_labels = None           # init with load_input()
-        self.test_ests = None              # init with load_input()
-        self.test_labels = None            # init with load_input()
+
+        # datasets to load
+        self.train_est_real = None         # init with load_input()
+        self.train_true_real = None        # init with load_input()
+        self.train_est_cat = None          # init with load_input()
+        self.train_true_cat = None         # init with load_input()
+        self.test_est_real = None         # init with load_input()
+        self.test_true_real = None        # init with load_input()
+        self.test_est_cat = None          # init with load_input()
+        self.test_true_cat = None         # init with load_input()
+        self.emp_est_real = None         # init with load_input()
+        self.emp_est_cat = None          # init with load_input()
+
+        # what datasets do we have?
+        self.has_train_real = False
+        self.has_train_cat = False
+        self.has_test_real = False
+        self.has_test_cat = False
+        self.has_emp_real = False
+        self.has_emp_cat = False
+        
+        # analysis info
         self.history_table = None          # init with load_input()
         self.num_empirical = int(0)        # init with load_input()
         self.emp_valid = False
         self.sim_test_valid = False
         self.sim_train_valid = False
-
+        
         return
 
     def run(self):
@@ -231,45 +264,67 @@ class Plotter:
         """
 
         # load input from Format step
+        train_labels = None
         if self.tensor_format == 'csv':
             # csv tensor format
-            self.train_aux_data = pd.read_csv( self.train_aux_data_fn )
-            self.train_labels = pd.read_csv( self.train_true_fn )
+            self.train_aux_data = util.read_csv_as_pandas( self.train_aux_data_fn )
+            train_labels = util.read_csv_as_pandas( self.train_labels_fn )
             
         elif self.tensor_format == 'hdf5':
             # hdf5 tensor format
             hdf5_file = h5py.File(self.train_hdf5_fn, 'r')
             train_aux_data_names = [ s.decode() for s in hdf5_file['aux_data_names'][0,:] ]
-            train_label_names = [ s.decode() for s in hdf5_file['label_names'][0,:] ]
             self.train_aux_data = pd.DataFrame( hdf5_file['aux_data'][:,:], columns=train_aux_data_names )
-            self.train_labels = pd.DataFrame( hdf5_file['labels'][:,:], columns=train_label_names)
+            train_label_names = [ s.decode() for s in hdf5_file['label_names'][0,:] ]
+            train_labels = pd.DataFrame( hdf5_file['labels'][:,:], columns=train_label_names)
             hdf5_file.close()
 
-        # label and aux data column names
-        self.param_names = self.train_labels.columns.to_list()
+        # split training labels from format into real/cat
+        self.train_labels_real = train_labels[ self.param_name_real ]
+        self.train_labels_cat = train_labels[ self.param_name_cat ]
+
+        # aux data column names
         self.aux_data_names = self.train_aux_data.columns.to_list()
 
         # trained model
         self.model = torch.load(self.model_arch_fn)
         
-        # training estimates/labels
-        self.train_ests   = pd.read_csv(self.train_est_fn)
-        self.train_labels = pd.read_csv(self.train_true_fn)
+        # training true/estimated labels
+        self.train_est_real  = util.read_csv_as_pandas(self.train_est_real_fn)
+        self.train_true_real = util.read_csv_as_pandas(self.train_true_real_fn)
+        self.train_est_cat   = util.read_csv_as_pandas(self.train_est_cat_fn)
+        self.train_true_cat  = util.read_csv_as_pandas(self.train_true_cat_fn)
         
-        # test estimates/labels
-        self.test_ests    = pd.read_csv(self.test_est_fn)
-        self.test_labels  = pd.read_csv(self.test_true_fn)
+        # test true/estimated labels
+        self.test_est_real   = util.read_csv_as_pandas(self.test_est_real_fn)
+        self.test_true_real  = util.read_csv_as_pandas(self.test_true_real_fn)
+        self.test_est_cat    = util.read_csv_as_pandas(self.test_est_cat_fn)
+        self.test_true_cat   = util.read_csv_as_pandas(self.test_true_cat_fn)
+        
+        # empirical estimated labels
+        self.emp_est_real = util.read_csv_as_pandas(self.emp_est_real_fn)
+        self.emp_est_cat  = util.read_csv_as_pandas(self.emp_est_cat_fn)
+        
+        # check what datasets we have
+        if self.test_est_real is not None and self.test_true_real is not None:
+            self.has_test_real = True
+        if self.test_est_cat is not None and self.test_true_cat is not None:
+            self.has_test_cat = True
+        if self.train_est_real is not None and self.train_true_real is not None:
+            self.has_train_real = True
+        if self.train_est_cat is not None and self.train_true_cat is not None:
+            self.has_train_cat = True
+        if self.emp_est_real is not None:
+            self.has_emp_real = True
+        if self.emp_est_cat is not None:
+            self.has_emp_cat = True
         
         # training history for network
-        self.history_table = pd.read_csv(self.history_fn)
+        self.history_table   = util.read_csv_as_pandas(self.history_fn)
 
-        # load empirical data/estimates if they exist
-        if os.path.isfile(self.emp_est_fn):
-            self.emp_ests = pd.read_csv(self.emp_est_fn)
-            
+        # load empirical aux. data, if they exist
         self.emp_aux_data = None
-        if self.tensor_format == 'csv' and \
-                os.path.isfile(self.emp_aux_data_fn):
+        if self.tensor_format == 'csv':
             self.emp_aux_data = pd.read_csv(self.emp_aux_data_fn)
             
         elif self.tensor_format == 'hdf5' and \
@@ -279,8 +334,8 @@ class Plotter:
             self.emp_aux_data = pd.DataFrame( hdf5_file['aux_data'][:,:], columns=emp_aux_data_names )
             hdf5_file.close()
             
-        if self.emp_ests is not None and self.emp_aux_data is not None:
-            self.num_empirical = self.emp_ests.shape[0]
+        if self.emp_aux_data is not None:
+            self.num_empirical = self.emp_aux_data.shape[0]
 
         # done
         return
@@ -304,145 +359,48 @@ class Plotter:
         """
         
         # Densities for aux. data and labels
-        self.make_plot_stat_density('train', 'aux_data')
-        self.make_plot_stat_density('train', 'labels')
-        if self.num_empirical >= self.min_num_emp_density and self.emp_valid:
-            self.make_plot_stat_density('empirical', 'aux_data')
-            self.make_plot_stat_density('empirical', 'labels')
-
-        # PCA-contours for aux. data and labels
-        aux_pca_model = self.make_plot_pca_contour('train', 'aux_data')
-        lbl_pca_model = self.make_plot_pca_contour('train', 'labels')
-        if self.num_empirical >= self.min_num_emp_density and self.emp_valid:
-            self.make_plot_pca_contour('empirical', 'aux_data', pca_model=aux_pca_model)
-            self.make_plot_pca_contour('empirical', 'labels', pca_model=lbl_pca_model)
-
-        # scatter accuracy
-        self.make_plot_scatter_accuracy('train')
-        self.make_plot_scatter_accuracy('test')
-
-        # # when available, point estimates and CPIs for new dataset
-        self.make_plot_est_ci()
-
-        # training history stats
-        self.make_plot_train_history()
-
-        # network architecture
-        self.make_plot_network_architecture()
-
-        # done
-        return
-    
-    def combine_plots(self):
-        """Combine all plots.
-        
-        This function collects all pdfs in the plot project directory, orders
-        them into meaningful groups, then plots a merged report.
-
-        """
-
-        # collect and sort file names
-        files_unsorted = os.listdir(self.plt_dir)
-        files_unsorted.sort()
-        files = []
-        
-        for f in files_unsorted:
-            has_pdf = '.pdf' in f
-            has_prefix = self.plt_prefix in f
-            has_all_not = 'summary' not in f
-            if all([has_pdf, has_prefix, has_all_not]):
-                files.append(f)
-
-        # get files for different categories
-        files_emp        = self.filter_files(files, 'empirical_estimate')
-        files_pca        = self.filter_files(files, 'pca_contour')
-        files_density    = self.filter_files(files, 'density')
-        files_train      = self.filter_files(files, 'train_estimate')
-        files_test       = self.filter_files(files, 'test_estimate')
-        files_arch       = self.filter_files(files, 'architecture')
-        files_history    = self.filter_files(files, 'train_history')
-
-        # construct ordered list of files
-        files_ordered = files_emp + files_pca + files_density + \
-                        files_train + files_test + files_history + files_arch
-        
-        # combine pdfs
-        merger = PdfMerger()
-        for f in files_ordered:
-            merger.append( f'{self.plt_dir}/{f}' )
-
-        # write combined pdf
-        merger.write(self.save_summary_fn)
+        # self.make_plot_stat_density('train', 'aux_data')
+        # self.make_plot_stat_density('train', 'labels')
+        # if self.num_empirical >= self.min_num_emp_density and self.emp_valid:
+        #     self.make_plot_stat_density('empirical', 'aux_data')
+        #     self.make_plot_stat_density('empirical', 'labels')
+        # 
+        # # PCA-contours for aux. data and labels
+        # aux_pca_model = self.make_plot_pca_contour('train', 'aux_data')
+        # lbl_pca_model = self.make_plot_pca_contour('train', 'labels')
+        # if self.num_empirical >= self.min_num_emp_density and self.emp_valid:
+        #     self.make_plot_pca_contour('empirical', 'aux_data', pca_model=aux_pca_model)
+        #     self.make_plot_pca_contour('empirical', 'labels', pca_model=lbl_pca_model)
+        # 
+        # # scatter accuracy
+        # if self.has_train_real:
+        #     self.make_plot_scatter_accuracy('train')
+        # if self.has_test_real:
+        #     self.make_plot_scatter_accuracy('test')
+        #     
+        # confusion matrix
+        if self.has_train_cat:
+            self.make_plot_confusion_matrix('train')
+        if self.has_test_cat:
+            self.make_plot_confusion_matrix('test')
+        # 
+        # # point estimates and CPIs in empirical dataset
+        # if self.has_emp_real:
+        #     self.make_plot_emp_ci()
+        #     
+        # # bar plot for categorical in empirical dataset
+        # if self.has_emp_cat:
+        #     self.make_plot_emp_cat()
+        # 
+        # # training history stats
+        # self.make_plot_train_history()
+        # 
+        # # network architecture
+        # self.make_plot_network_architecture()
 
         # done
         return
     
-    @staticmethod
-    def filter_files(files, pattern):
-        ret = []
-        for f in files:
-            if pattern in '.'.join(f.split('.')[-2:]):
-                ret.append(f)
-        return ret
-    
-##################################################
-
-    def make_report(self):
-        """Makes CSV of main results."""
-        
-        df = pd.DataFrame(columns=['id1','id2','metric','variable','value'])
-        
-        # TODO: dataset sizes
-        # - num examples in train/test/val/cal
-        # - tree width
-        # - num char col
-        # - num brlen col
-        # - num total col
-
-        # prediction stats
-        test_train = [('train', self.train_labels, self.train_ests),
-                      ('test', self.test_labels, self.test_ests)]
-        
-        for name, lbl, est in test_train:
-            for col in lbl:
-                # get stats
-                mae = np.mean(np.abs(lbl[col] - est[col+'_value']))
-                mse = np.mean((lbl[col] - est[col+'_value'])**2)
-                mape = np.mean(np.abs((lbl[col] - est[col+'_value']) / lbl[col]))
-                cov = np.mean(np.logical_and(est[col+'_lower'] < lbl[col],
-                                             est[col+'_upper'] > lbl[col]))
-                ci_width = est[col+'_upper'] - est[col+'_lower']
-                rel_ci_width = np.divide(ci_width, est[col+'_value'])
-                # store stats
-                df.loc[len(df)] = [ name, 'true', 'mean', col, np.mean(lbl[col]) ]
-                df.loc[len(df)] = [ name, 'true', 'var', col, np.var(lbl[col]) ]
-                df.loc[len(df)] = [ name, 'true', 'lower95', col, np.quantile(lbl[col], 0.025) ]
-                df.loc[len(df)] = [ name, 'true', 'upper95', col, np.quantile(lbl[col], 0.975) ]
-                df.loc[len(df)] = [ name, 'est', 'mean', col, np.mean(est[col+'_value']) ]
-                df.loc[len(df)] = [ name, 'est', 'var', col, np.var(est[col+'_value']) ]
-                df.loc[len(df)] = [ name, 'est', 'lower95', col, np.quantile(est[col+'_value'], 0.025) ]
-                df.loc[len(df)] = [ name, 'est', 'upper95', col, np.quantile(est[col+'_value'], 0.975) ]
-                df.loc[len(df)] = [ name, 'est', 'mae', col, mae ]
-                df.loc[len(df)] = [ name, 'est', 'mse', col, mse ]
-                df.loc[len(df)] = [ name, 'est', 'mape', col, mape ]
-                df.loc[len(df)] = [ name, 'est', 'coverage', col, cov ]
-                df.loc[len(df)] = [ name, 'est', 'mean_CI_width', col, np.mean(ci_width) ]
-                df.loc[len(df)] = [ name, 'est', 'mean_rel_CI_width', col, np.mean(rel_ci_width) ]
-
-        # TODO: auxiliary data
-        # - similar stuff as prediction for aux data
-
-        # TODO: empirical estimate
-        # - values against empirical datasets
-        # - quantile against training/test datasets
-
-        # TODO: training stats
-        # - best epoch
-                
-        # save results
-        df.to_csv(self.save_report_fn, index=False, float_format=util.PANDAS_FLOAT_FMT_STR)
-
-        return
 
 ##################################################
 
@@ -452,17 +410,17 @@ class Plotter:
         assert dataset_type in ['aux_data', 'labels']
 
         train_aux_data = None
-        train_labels = None
+        train_labels_real = None
         emp_aux_data = None
-        emp_ests = None
+        emp_est_real = None
         if self.train_aux_data is not None:
             train_aux_data = self.train_aux_data.copy()
-        if self.train_labels is not None:
-            train_labels = self.train_labels.copy()
+        if self.train_true_real is not None:
+            train_labels_real = self.train_labels_real.copy()
         if self.emp_aux_data is not None:
             emp_aux_data = self.emp_aux_data.copy()
-        if self.emp_ests is not None:
-            emp_ests = self.emp_ests.copy()
+        if self.emp_est_real is not None:
+            emp_est_real = self.emp_est_real.copy()
         
         if dataset_name == 'train' and dataset_type == 'aux_data':
             self.plot_stat_density(save_fn=self.save_train_density_aux_fn,
@@ -473,8 +431,8 @@ class Plotter:
             
         elif dataset_name == 'train' and dataset_type == 'labels':
             self.plot_stat_density(save_fn=self.save_train_density_label_fn,
-                                   dist_values=train_labels,
-                                   point_values=emp_ests,
+                                   dist_values=train_labels_real,
+                                   point_values=emp_est_real,
                                    color=self.plot_label_color,
                                    title='training labels')
             
@@ -487,7 +445,7 @@ class Plotter:
         
         elif dataset_name == 'empirical' and dataset_type == 'labels':
             self.plot_stat_density(save_fn=self.save_emp_density_label_fn,
-                                   dist_values=emp_ests,
+                                   dist_values=emp_est_real,
                                    point_values=None,
                                    color=self.plot_label_color,
                                    title='empirical labels')
@@ -502,21 +460,108 @@ class Plotter:
         n_max = 250
         if dataset_name == 'train':
             # plot train scatter
-            n = min(n_max, self.train_ests.shape[0])
-            self.plot_scatter_accuracy(ests=self.train_ests.iloc[0:n].copy(),
-                                       labels=self.train_labels.iloc[0:n].copy(),
+            n = min(n_max, self.train_est_real.shape[0])
+            self.plot_scatter_accuracy(ests=self.train_est_real.iloc[0:n].copy(),
+                                       labels=self.train_true_real.iloc[0:n].copy(),
                                        prefix=self.save_train_est_fn,
                                        color=self.plot_train_color,
                                        title='Train')
         elif dataset_name == 'test':
             # plot test scatter
-            n = min(n_max, self.test_ests.shape[0])
-            self.plot_scatter_accuracy(ests=self.test_ests.iloc[0:n].copy(),
-                                       labels=self.test_labels.iloc[0:n].copy(),
+            n = min(n_max, self.test_est_real.shape[0])
+            self.plot_scatter_accuracy(ests=self.test_est_real.iloc[0:n].copy(),
+                                       labels=self.test_true_real.iloc[0:n].copy(),
                                        prefix=self.save_test_est_fn,
                                        color=self.plot_test_color,
                                        title='Test')
         # done
+        return
+
+    def make_plot_confusion_matrix(self, dataset_name):
+        """Calls plot_confusion_matrix with arguments."""
+        assert dataset_name in ['train', 'test']
+
+        if dataset_name == 'train':
+            self.plot_confusion_matrix(ests=self.train_est_cat.copy(),
+                                      labels=self.train_true_cat.copy(),
+                                      prefix=self.save_train_est_fn,
+                                      color=self.plot_train_color,
+                                      title='Train')
+        elif dataset_name == 'test':
+            self.plot_confusion_matrix(ests=self.test_est_cat.copy(),
+                                      labels=self.test_true_cat.copy(),
+                                      prefix=self.save_test_est_fn,
+                                      color=self.plot_test_color,
+                                      title='Test')
+        # done
+        return
+
+    def plot_confusion_matrix(self, ests, labels, prefix, color, title):
+        """Plots confusion matrix.
+
+        This function plots the confusion matrix for categorical labels.
+
+        Args:
+            ests (numpy.array): Estimated categorical labels.
+            labels (numpy.array): True categorical labels.
+            prefix (str): Filename prefix to save plot.
+            color (str): Color of histograms.
+            title (str): Plot title.
+
+        """
+        # plot confusion matrix
+        fig, ax = plt.subplots(figsize=(6, 6))
+        fig.tight_layout()
+        
+        # loop over cat. parameters
+        for p in self.param_name_cat:
+            # get true/est values
+            est_cats_p = [ x for x in ests.columns if p in x ]
+            lbls_p = labels[p].copy()
+            ests_p = ests[est_cats_p].copy()
+            
+            # make confusion matrix
+            num_cat = ests_p.shape[1]
+            conf_mtx = np.zeros( (num_cat, num_cat) )
+            for i in range(num_cat):
+                for j in range(num_cat):
+                    true_match = (lbls_p == i)
+                    est_match = (ests_p.idxmax(axis=1) == est_cats_p[j])
+                    conf_mtx[i,j] = np.sum(true_match & est_match)
+            conf_mtx = conf_mtx / np.sum(conf_mtx, axis=1)[:,None]
+            conf_mtx = np.transpose(conf_mtx)
+            
+            # get stats
+            true_pos = np.diag(conf_mtx)
+            false_pos = np.sum(conf_mtx, axis=0) - true_pos
+            true_pos_rate = true_pos / np.sum(conf_mtx, axis=0) * 100
+            false_pos_rate = false_pos / np.sum(conf_mtx, axis=0) * 100
+            # s_tpr = [ '{:.2E}'.format(x) for x in true_pos_rate ]
+            # s_fpr = [ '{:.2E}'.format(x) for x in false_pos_rate ]
+            # s_tpr = [ '{:.1f}%'.format(x) for x in true_pos_rate ]
+            # s_fpr = [ '{:.1f}%'.format(x) for x in false_pos_rate ]
+            # plot confusion matrix
+            # ax = plt.subplot(1, 1, 1)
+            cm = LinearSegmentedColormap.from_list(
+                "Custom", ['white', color], N=20)
+            cax = ax.matshow(conf_mtx, cmap=cm, vmin=0.0, vmax=1.0)
+            for (i, j), z in np.ndenumerate(conf_mtx):
+                text_color = 'black'
+                if z > 0.5:
+                    text_color = 'white'
+                ax.text(j, i, '{:0.2f}'.format(z), ha='center', va='center', color=text_color)
+            ax.xaxis.set_ticks_position('bottom')
+            cbar = plt.colorbar(cax, fraction=0.046, pad=0.04)
+            # plt.text(x=0,y=0,s=f'False Positive Rate: {s_fpr}', ha='right', va='top', fontsize=10)
+            # plt.text(x=0,y=0,s=f'True Positive Rate: {s_tpr}', ha='right', va='bottom', fontsize=10)
+            plt.xlabel(f'{p} truth')
+            plt.ylabel(f'{p} estimate')
+            plt.title(f'{title} estimates: {p}')
+            
+            plt.savefig(fname=f'{prefix}_{p}.pdf', format='pdf', dpi=300, bbox_inches='tight')
+            plt.clf()
+            plt.close()
+            
         return
 
     def make_plot_pca_contour(self, dataset_name, dataset_type, pca_model=None):
@@ -525,17 +570,17 @@ class Plotter:
         assert dataset_type in ['aux_data', 'labels']
 
         train_aux_data = None
-        train_labels = None
+        train_labels_real = None
         emp_aux_data = None
-        emp_ests = None
+        emp_est_real = None
         if self.train_aux_data is not None:
             train_aux_data = self.train_aux_data.copy()
-        if self.train_labels is not None:
-            train_labels = self.train_labels.copy()
+        if self.train_true_real is not None:
+            train_labels_real = self.train_labels_real.copy()
         if self.emp_aux_data is not None:
             emp_aux_data = self.emp_aux_data.copy()
-        if self.emp_ests is not None:
-            emp_ests = self.emp_ests.copy()
+        if self.emp_est_real is not None:
+            emp_est_real = self.emp_est_real.copy()
             
         mdl = None
         num_comp = 4
@@ -549,11 +594,11 @@ class Plotter:
                                         title='training aux. data')
             
         elif dataset_name == 'train' and dataset_type == 'labels':
-            if train_labels.shape[1] <= 1:
+            if train_labels_real.shape[1] <= 1:
                 return None
             mdl = self.plot_pca_contour(save_fn=self.save_train_pca_labels_fn,
-                                        dist_values=train_labels,
-                                        point_values=emp_ests,
+                                        dist_values=train_labels_real,
+                                        point_values=emp_est_real,
                                         pca_model=pca_model,
                                         num_comp=num_comp,
                                         color=self.plot_label_color,
@@ -569,10 +614,10 @@ class Plotter:
                                         title='empirical aux. data')
 
         elif dataset_name == 'empirical' and dataset_type == 'labels':
-            if emp_ests.shape[1] <= 1:
+            if emp_est_real.shape[1] <= 1:
                 return None
             mdl = self.plot_pca_contour(save_fn=self.save_emp_pca_labels_fn,
-                                        dist_values=emp_ests,
+                                        dist_values=emp_est_real,
                                         point_values=None,
                                         pca_model=pca_model,
                                         num_comp=num_comp,
@@ -583,16 +628,29 @@ class Plotter:
         mdl = None
         return mdl
 
-    def make_plot_est_ci(self):
+    def make_plot_emp_ci(self):
         """Calls plot_est_CI with arguments."""
         max_num = np.min([self.max_num_emp_point, self.num_empirical])
         for i in range(max_num):
-            save_fn = f'{self.save_cpi_est_fn}_{i}.pdf'
+            save_fn = f'{self.save_cpi_est_fn}_real_{i}.pdf'
             title = f'Estimate: {self.est_prefix}.empirical.{i}'
-            self.plot_est_ci(save_fn=save_fn,
-                             est_label=self.emp_ests.iloc[[i]].copy(),
+            self.plot_emp_ci(save_fn=save_fn,
+                             est_label=self.emp_est_real.iloc[[i]].copy(),
                              title=title,
-                             color=self.plot_est_color)
+                             color=self.plot_emp_color)
+        return
+
+    def make_plot_emp_cat(self):
+        """Calls plot_emp_cat with arguments."""
+        max_num = np.min([self.max_num_emp_point, self.num_empirical])
+        for i in range(max_num):
+            save_fn = f'{self.save_cpi_est_fn}_cat_{i}.pdf'
+            title = f'Estimate: {self.est_prefix}.empirical.{i}'
+            self.plot_emp_cat(save_fn=save_fn,
+                              est_label=self.emp_est_cat.iloc[[i]].copy(),
+                              title=title,
+                              color=self.plot_emp_color)
+        
         return
 
     def make_plot_train_history(self):
@@ -1027,7 +1085,7 @@ class Plotter:
         # done
         return
     
-    def plot_est_ci(self, save_fn, est_label, title='Estimates', color='black',
+    def plot_emp_ci(self, save_fn, est_label, title='Estimates', color='black',
                     plot_log=True):
         """Plots point estimates and CPIs.
 
@@ -1104,6 +1162,69 @@ class Plotter:
         plt.clf()
         plt.close()
         
+        # done
+        return
+
+    def plot_emp_cat(self, save_fn, est_label, title='Estimates', color='black'):
+        """Plots point estimates and CPIs.
+    
+        This function plots the point estimates and calibrated prediction
+        intervals for the new dataset, if it exists.
+    
+        Args:
+            save_fn (str): Filename to save plot.
+            est_label (numpy.array): Estimated values from new dataset.
+            title (str): Title for the plot.
+            color (str): Color of histograms
+            plot_log (bool): Plot y-axis on log scale? Default True.
+    
+        """
+    
+        # abort if no labels from Estimate found
+        if est_label is None:
+            return
+    
+        # data dimensions
+        label_names = self.param_name_cat
+        num_labels = len(label_names)
+
+        # figure size
+        fig_width = 6
+        plot_height = 2
+        fig_height = num_labels * plot_height
+        # set up plot
+        fig, axs = plt.subplots(nrows=num_labels, ncols=1, squeeze=False,
+                                 figsize=(fig_width, fig_height))
+    
+        # fig.tight_layout()
+        # fill in plot
+        i = 0
+        for i in range(num_labels):
+            
+            # get estimated value
+            p = label_names[i]
+            est_cats_p = [ x for x in est_label.columns if p in x ]
+            ests_p = est_label[est_cats_p].copy()
+
+            # bar plot
+            axs[i][0].bar(est_cats_p, ests_p.iloc[0], color=color)
+            for k,v in enumerate(ests_p.iloc[0]):
+                axs[i][0].text(k, v, f'{v:.2f}', ha='center', va='bottom', color=color)
+                
+            # cosmetics
+            axs[i][0].xaxis.set_ticks_position('bottom')
+            axs[i][0].set_ylim(0,1)
+            axs[i][0].title.set_text(f'Empirical estimate: {p}')
+            
+        # plot values as text
+        plt.title(title)
+        # plt.xticks(np.arange(num_labels), label_names)
+        # plt.xlim( -0.5, num_labels )
+        # plt.ylim( )
+        plt.savefig(save_fn, format='pdf', dpi=300, bbox_inches='tight')
+        plt.clf()
+        plt.close()
+    
         # done
         return
     
@@ -1185,6 +1306,119 @@ class Plotter:
         plt.close()
         
         # done
+        return
+
+##################################################
+
+    def combine_plots(self):
+        """Combine all plots.
+        
+        This function collects all pdfs in the plot project directory, orders
+        them into meaningful groups, then plots a merged report.
+    
+        """
+    
+        # collect and sort file names
+        files_unsorted = os.listdir(self.plt_dir)
+        files_unsorted.sort()
+        files = []
+    
+        for f in files_unsorted:
+            has_pdf = '.pdf' in f
+            has_prefix = self.plt_prefix in f
+            has_all_not = 'summary' not in f
+            if all([has_pdf, has_prefix, has_all_not]):
+                files.append(f)
+    
+        # get files for different categories
+        files_emp        = self.filter_files(files, 'empirical_estimate')
+        files_pca        = self.filter_files(files, 'pca_contour')
+        files_density    = self.filter_files(files, 'density')
+        files_train      = self.filter_files(files, 'train_estimate')
+        files_test       = self.filter_files(files, 'test_estimate')
+        files_arch       = self.filter_files(files, 'architecture')
+        files_history    = self.filter_files(files, 'train_history')
+    
+        # construct ordered list of files
+        files_ordered = files_emp + files_pca + files_density + \
+                        files_train + files_test + files_history + files_arch
+    
+        # combine pdfs
+        merger = PdfMerger()
+        for f in files_ordered:
+            merger.append( f'{self.plt_dir}/{f}' )
+    
+        # write combined pdf
+        merger.write(self.save_summary_fn)
+    
+        # done
+        return
+    
+    @staticmethod
+    def filter_files(files, pattern):
+        ret = []
+        for f in files:
+            if pattern in '.'.join(f.split('.')[-2:]):
+                ret.append(f)
+        return ret
+    
+    ##################################################
+    
+    def make_report(self):
+        """Makes CSV of main results."""
+    
+        df = pd.DataFrame(columns=['id1','id2','metric','variable','value'])
+    
+        # TODO: dataset sizes
+        # - num examples in train/test/val/cal
+        # - tree width
+        # - num char col
+        # - num brlen col
+        # - num total col
+    
+        # prediction stats
+        test_train = [('train', self.train_true_real, self.train_est_real),
+                      ('test', self.test_true_real, self.test_est_real)]
+    
+        for name, lbl, est in test_train:
+            for col in lbl:
+                # get stats
+                mae = np.mean(np.abs(lbl[col] - est[col+'_value']))
+                mse = np.mean((lbl[col] - est[col+'_value'])**2)
+                mape = np.mean(np.abs((lbl[col] - est[col+'_value']) / lbl[col]))
+                cov = np.mean(np.logical_and(est[col+'_lower'] < lbl[col],
+                                             est[col+'_upper'] > lbl[col]))
+                ci_width = est[col+'_upper'] - est[col+'_lower']
+                rel_ci_width = np.divide(ci_width, est[col+'_value'])
+                # store stats
+                df.loc[len(df)] = [ name, 'true', 'mean', col, np.mean(lbl[col]) ]
+                df.loc[len(df)] = [ name, 'true', 'var', col, np.var(lbl[col]) ]
+                df.loc[len(df)] = [ name, 'true', 'lower95', col, np.quantile(lbl[col], 0.025) ]
+                df.loc[len(df)] = [ name, 'true', 'upper95', col, np.quantile(lbl[col], 0.975) ]
+                df.loc[len(df)] = [ name, 'est', 'mean', col, np.mean(est[col+'_value']) ]
+                df.loc[len(df)] = [ name, 'est', 'var', col, np.var(est[col+'_value']) ]
+                df.loc[len(df)] = [ name, 'est', 'lower95', col, np.quantile(est[col+'_value'], 0.025) ]
+                df.loc[len(df)] = [ name, 'est', 'upper95', col, np.quantile(est[col+'_value'], 0.975) ]
+                df.loc[len(df)] = [ name, 'est', 'mae', col, mae ]
+                df.loc[len(df)] = [ name, 'est', 'mse', col, mse ]
+                df.loc[len(df)] = [ name, 'est', 'mape', col, mape ]
+                df.loc[len(df)] = [ name, 'est', 'coverage', col, cov ]
+                df.loc[len(df)] = [ name, 'est', 'mean_CI_width', col, np.mean(ci_width) ]
+                df.loc[len(df)] = [ name, 'est', 'mean_rel_CI_width', col, np.mean(rel_ci_width) ]
+    
+        # TODO: auxiliary data
+        # - similar stuff as prediction for aux data
+    
+        # TODO: empirical estimate
+        # - values against empirical datasets
+        # - quantile against training/test datasets
+    
+        # TODO: training stats
+        # - best epoch
+    
+        # save results
+        df.to_csv(self.save_report_fn, index=False, float_format=util.PANDAS_FLOAT_FMT_STR)
+    
         return
 
 ##################################################

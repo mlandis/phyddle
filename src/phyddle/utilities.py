@@ -863,6 +863,23 @@ def append_row(df, row):
 # FILE HELPERS #
 ################
 
+def read_csv_as_pandas(fn):
+    """Reads a CSV file into a pandas DataFrame.
+
+    Args:
+        fn (str): The file name or path of the CSV file.
+
+    Returns:
+        pd.DataFrame: The parsed CSV file as a pandas DataFrame.
+
+    """
+    
+    if os.path.exists(fn):
+        return pd.read_csv(fn)
+    
+    return None
+    
+
 def write_to_file(s, fn):
     """Writes a string to a file.
 
