@@ -359,44 +359,44 @@ class Plotter:
         """
         
         # Densities for aux. data and labels
-        # self.make_plot_stat_density('train', 'aux_data')
-        # self.make_plot_stat_density('train', 'labels')
-        # if self.num_empirical >= self.min_num_emp_density and self.emp_valid:
-        #     self.make_plot_stat_density('empirical', 'aux_data')
-        #     self.make_plot_stat_density('empirical', 'labels')
-        # 
-        # # PCA-contours for aux. data and labels
-        # aux_pca_model = self.make_plot_pca_contour('train', 'aux_data')
-        # lbl_pca_model = self.make_plot_pca_contour('train', 'labels')
-        # if self.num_empirical >= self.min_num_emp_density and self.emp_valid:
-        #     self.make_plot_pca_contour('empirical', 'aux_data', pca_model=aux_pca_model)
-        #     self.make_plot_pca_contour('empirical', 'labels', pca_model=lbl_pca_model)
-        # 
-        # # scatter accuracy
-        # if self.has_train_real:
-        #     self.make_plot_scatter_accuracy('train')
-        # if self.has_test_real:
-        #     self.make_plot_scatter_accuracy('test')
-        #     
+        self.make_plot_stat_density('train', 'aux_data')
+        self.make_plot_stat_density('train', 'labels')
+        if self.num_empirical >= self.min_num_emp_density and self.emp_valid:
+            self.make_plot_stat_density('empirical', 'aux_data')
+            self.make_plot_stat_density('empirical', 'labels')
+
+        # PCA-contours for aux. data and labels
+        aux_pca_model = self.make_plot_pca_contour('train', 'aux_data')
+        lbl_pca_model = self.make_plot_pca_contour('train', 'labels')
+        if self.num_empirical >= self.min_num_emp_density and self.emp_valid:
+            self.make_plot_pca_contour('empirical', 'aux_data', pca_model=aux_pca_model)
+            self.make_plot_pca_contour('empirical', 'labels', pca_model=lbl_pca_model)
+
+        # scatter accuracy
+        if self.has_train_real:
+            self.make_plot_scatter_accuracy('train')
+        if self.has_test_real:
+            self.make_plot_scatter_accuracy('test')
+
         # confusion matrix
         if self.has_train_cat:
             self.make_plot_confusion_matrix('train')
         if self.has_test_cat:
             self.make_plot_confusion_matrix('test')
-        # 
-        # # point estimates and CPIs in empirical dataset
-        # if self.has_emp_real:
-        #     self.make_plot_emp_ci()
-        #     
-        # # bar plot for categorical in empirical dataset
-        # if self.has_emp_cat:
-        #     self.make_plot_emp_cat()
-        # 
-        # # training history stats
-        # self.make_plot_train_history()
-        # 
-        # # network architecture
-        # self.make_plot_network_architecture()
+
+        # point estimates and CPIs in empirical dataset
+        if self.has_emp_real:
+            self.make_plot_emp_ci()
+
+        # bar plot for categorical in empirical dataset
+        if self.has_emp_cat:
+            self.make_plot_emp_cat()
+
+        # training history stats
+        self.make_plot_train_history()
+
+        # network architecture
+        self.make_plot_network_architecture()
 
         # done
         return
@@ -509,9 +509,6 @@ class Plotter:
             title (str): Plot title.
 
         """
-        # plot confusion matrix
-        fig, ax = plt.subplots(figsize=(6, 6))
-        fig.tight_layout()
         
         # loop over cat. parameters
         for p in self.param_name_cat:
@@ -530,22 +527,24 @@ class Plotter:
                     conf_mtx[i,j] = np.sum(true_match & est_match)
             conf_mtx = conf_mtx / np.sum(conf_mtx, axis=1)[:,None]
             conf_mtx = np.transpose(conf_mtx)
-            
+        
             # get stats
-            true_pos = np.diag(conf_mtx)
-            false_pos = np.sum(conf_mtx, axis=0) - true_pos
-            true_pos_rate = true_pos / np.sum(conf_mtx, axis=0) * 100
-            false_pos_rate = false_pos / np.sum(conf_mtx, axis=0) * 100
+            # true_pos = np.diag(conf_mtx)
+            # false_pos = np.sum(conf_mtx, axis=0) - true_pos
+            # true_pos_rate = true_pos / np.sum(conf_mtx, axis=0) * 100
+            # false_pos_rate = false_pos / np.sum(conf_mtx, axis=0) * 100
             # s_tpr = [ '{:.2E}'.format(x) for x in true_pos_rate ]
             # s_fpr = [ '{:.2E}'.format(x) for x in false_pos_rate ]
             # s_tpr = [ '{:.1f}%'.format(x) for x in true_pos_rate ]
             # s_fpr = [ '{:.1f}%'.format(x) for x in false_pos_rate ]
+        
             # plot confusion matrix
-            # ax = plt.subplot(1, 1, 1)
+            fig, ax = plt.subplots(figsize=(6, 6))
+            fig.tight_layout()
             cm = LinearSegmentedColormap.from_list(
                 "Custom", ['white', color], N=20)
             cax = ax.matshow(conf_mtx, cmap=cm, vmin=0.0, vmax=1.0)
-            for (i, j), z in np.ndenumerate(conf_mtx):
+            for (i,j), z in np.ndenumerate(conf_mtx):
                 text_color = 'black'
                 if z > 0.5:
                     text_color = 'white'
@@ -557,7 +556,6 @@ class Plotter:
             plt.xlabel(f'{p} truth')
             plt.ylabel(f'{p} estimate')
             plt.title(f'{title} estimates: {p}')
-            
             plt.savefig(fname=f'{prefix}_{p}.pdf', format='pdf', dpi=300, bbox_inches='tight')
             plt.clf()
             plt.close()
@@ -1114,7 +1112,7 @@ class Plotter:
         num_label = len(label_names)
         
         # set up plot
-        plt.figure(figsize=(fig_width,fig_height))
+        fig = plt.figure(figsize=(fig_width,fig_height))
         
         # use log-scale for y-axis?
         # if plot_log:
@@ -1157,7 +1155,8 @@ class Plotter:
         plt.title(title)
         plt.xticks(np.arange(num_label), label_names)
         plt.xlim( -0.5, num_label )
-        plt.ylim( )
+        # plt.ylim( )
+        plt.xticks(rotation=90, fontsize=10)
         plt.savefig(save_fn, format='pdf', dpi=300, bbox_inches='tight')
         plt.clf()
         plt.close()
@@ -1195,8 +1194,8 @@ class Plotter:
         # set up plot
         fig, axs = plt.subplots(nrows=num_labels, ncols=1, squeeze=False,
                                  figsize=(fig_width, fig_height))
-    
-        # fig.tight_layout()
+        fig.tight_layout(pad=3)
+        
         # fill in plot
         i = 0
         for i in range(num_labels):
@@ -1207,17 +1206,24 @@ class Plotter:
             ests_p = est_label[est_cats_p].copy()
 
             # bar plot
-            axs[i][0].bar(est_cats_p, ests_p.iloc[0], color=color)
+            state_labels = [ x.split('_')[-1] for x in est_cats_p ]
+            axs[i][0].bar(state_labels, ests_p.iloc[0], color=color, alpha=0.5,
+                          edgecolor=color)
             for k,v in enumerate(ests_p.iloc[0]):
-                axs[i][0].text(k, v, f'{v:.2f}', ha='center', va='bottom', color=color)
+                axs[i][0].text(k, v, f'{v:.2f}', ha='center', va='bottom',
+                               color='black')
                 
             # cosmetics
             axs[i][0].xaxis.set_ticks_position('bottom')
+            # axs[i][0].set_xticks(np.arange(len(est_cats_p)))
+            # axs[i][0].set_xticklabels(est_cats_p,
+            #                           rotation=90, ha='right')
+            axs[i][0].set_xlabel(p)
             axs[i][0].set_ylim(0,1)
-            axs[i][0].title.set_text(f'Empirical estimate: {p}')
+            # axs[i][0].title.set_text(f'{p}')
             
         # plot values as text
-        plt.title(title)
+        fig.suptitle(title)
         # plt.xticks(np.arange(num_labels), label_names)
         # plt.xlim( -0.5, num_labels )
         # plt.ylim( )
@@ -1331,7 +1337,8 @@ class Plotter:
                 files.append(f)
     
         # get files for different categories
-        files_emp        = self.filter_files(files, 'empirical_estimate')
+        files_emp_real   = self.filter_files(files, 'empirical_estimate_real')
+        files_emp_cat    = self.filter_files(files, 'empirical_estimate_cat')
         files_pca        = self.filter_files(files, 'pca_contour')
         files_density    = self.filter_files(files, 'density')
         files_train      = self.filter_files(files, 'train_estimate')
@@ -1340,7 +1347,7 @@ class Plotter:
         files_history    = self.filter_files(files, 'train_history')
     
         # construct ordered list of files
-        files_ordered = files_emp + files_pca + files_density + \
+        files_ordered = files_emp_real + files_emp_cat + files_pca + files_density + \
                         files_train + files_test + files_history + files_arch
     
         # combine pdfs

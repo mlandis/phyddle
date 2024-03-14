@@ -99,7 +99,7 @@ for (i in 1:num_rep) {
     write.csv(df_state, file=dat_fn[i], row.names=F, quote=F)
 
     # save learned labels (e.g. estimated data-generating parameters)
-    label_sim = c( birth[1], birth[2], death[1], Q[1,2], sample_frac, model_type, start_state)
+    label_sim = c( birth[1], birth[2], death[1], Q[1,2], sample_frac, model_type, start_state-1)
     label_sim[1:5] = log(label_sim[1:5], base=10)
     # label_sim[5] = label_sim[5] / (1 - exp(label_sim[5]))
     names(label_sim) = label_names

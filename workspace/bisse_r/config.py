@@ -62,7 +62,7 @@ args = {
                            'log10_death'       : 'real',
                            'log10_state_rate'  : 'real',
                            'model_type'        : 'cat',
-                           'start_state',      : 'cat',
+                           'start_state'       : 'cat',
                           },
     'param_data'        : {                 # model parameters that are known (aux. data)
                            'log10_sample_frac' : 'real'
