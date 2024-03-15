@@ -56,12 +56,17 @@ args = {
     'tree_encode'       : 'extant',         # use model with serial or extant tree
     'brlen_encode'      : 'height_brlen',   # how to encode phylo brlen? height_only or height_brlen
     'char_encode'       : 'numeric',        # how to encode discrete states? one_hot or integer
-    'param_est'         : [                 # model parameters to predict (labels)
-        'sigma_bm', 'lambda_jn', 'delta_jn', 'trait_orig'
-    ],
-    'param_data'        : [                 # model parameters that are known (aux. data)
-        'sample_frac', 'trait_min', 'trait_max'
-    ],
+    'param_est'         : {                 # model parameters to predict (labels)
+                           'log10_process_var':'real',
+                           'log10_process_kurt':'real',
+                           #'log10_frac_of_var':'real',
+                           'trait_orig':'real'
+                          },
+    'param_data'        : {                 # model parameters that are known (aux. data)
+                           'log10_sample_frac':'real',
+                           'trait_min':'real',
+                           'trait_max':'real'
+                          },
     'tensor_format'     : 'hdf5',           # save as compressed HDF5 or raw csv
     'char_format'       : 'csv',
     'save_phyenc_csv'   : 'F',              # save intermediate phylo-state vectors to file
@@ -78,7 +83,7 @@ args = {
     'cpi_coverage'      : 0.95,             # coverage level for CPIs
     'cpi_asymmetric'    : 'T',              # upper/lower ('T') or symmetric ('F') CPI adjustments
     'batch_size'        : 256,              # number of samples in each training batch
-    'loss'              : 'mse',            # loss function for learning
+    'loss'              : 'mae',            # loss function for learning
     'optimizer'         : 'adam',           # optimizer for network weight/bias parameters
     'metrics'           : ['mae', 'acc'],   # recorded training metrics
     'log_offset'        : 1.0,

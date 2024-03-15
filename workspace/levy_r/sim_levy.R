@@ -28,7 +28,16 @@ lbl_fn = paste0(tmp_fn, ".labels.csv")        # csv of labels (e.g. params)
 
 # dataset setup
 tree_width = 500
-label_names = c("sigma_bm", "lambda_jn", "delta_jn", "sample_frac", "trait_min", "trait_max", "trait_orig")
+label_names = c("log10_process_var",
+                "log10_process_kurt",
+                "log10_frac_of_var",
+                "log10_sigma_bm",
+                "log10_lambda_jn",
+                "log10_delta_jn",
+                "log10_sample_frac",
+                "trait_orig",
+                "trait_min",
+                "trait_max")
 
 # simulate each replicate
 for (i in 1:num_rep) {
@@ -42,21 +51,22 @@ for (i in 1:num_rep) {
         
         # simulation conditions
         max_taxa = runif(1, 50, 1000)
-        max_time = runif(1, 0, 100)
+        max_time = runif(1, 0, 5)
         sample_frac = 1.0
         if (max_taxa > tree_width) {
             sample_frac = tree_width / max_taxa
         }
 
         # birth-death parameters
-        birth = runif(1, 0, 1)
+        birth = runif(1, 0, 5)
         death = min(birth) * runif(1, 0, 1)
        
         # Levy parameters
-        trait_orig = rnorm(1, 0, 5) + 1e5  ## NOTE: adding 1e5 to avoid negative values in aux data, need better solution
-        process_var = runif(1, 0, 5)
-        process_kurt = runif(1, 0, 20)
+        trait_orig = rnorm(1, 0, 2)
+        process_var = rexp(1, 1)
+        process_kurt = runif(1, 0.1)
         frac_of_var = runif(1, 0, 1)
+        frac_of_var = 1
         params = pulsR::get_params_for_var(process_var=process_var,
                                            process_kurt=process_kurt,
                                            frac_of_var=frac_of_var)
@@ -97,7 +107,11 @@ for (i in 1:num_rep) {
     write.csv(df_state, file=dat_fn[i], row.names=F, quote=F)
 
     # save learned labels (e.g. estimated data-generating parameters)
-    label_sim = c(sigma_bm, lambda_jn, delta_jn, sample_frac, trait_min, trait_max, trait_orig)
+    label_sim = c(process_var, process_kurt, frac_of_var,
+                  sigma_bm, lambda_jn, delta_jn,
+                  sample_frac,
+                  trait_orig, trait_min, trait_max)
+    label_sim[1:7] = log(label_sim[1:7], base=10)
     names(label_sim) = label_names
     df_label = data.frame(t(label_sim))
     write.csv(df_label, file=lbl_fn[i], row.names=F, quote=F)
