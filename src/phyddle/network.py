@@ -73,6 +73,9 @@ class ParameterEstimationNetwork(nn.Module):
         self.lbl_width      = lbl_width
         self.param_cat      = param_cat
         self.param_cat_size = dict()
+        
+        self.has_param_real = self.lbl_width > 0
+        self.has_param_cat  = len(self.param_cat) > 0
 
         # collect args
         self.phy_std_out_size       = list(args['phy_channel_plain'])
@@ -162,28 +165,30 @@ class ParameterEstimationNetwork(nn.Module):
             c_out = self.aux_out_size[i]
             self.aux_ffnn.append(nn.Linear(c_in, c_out))
 
-        # dense layers for point/bound estimates
-        self.point_ffnn = nn.ModuleList([])
-        self.lower_ffnn = nn.ModuleList([])
-        self.upper_ffnn = nn.ModuleList([])
-        for i in range(len(self.label_real_out_size)):
-            c_in  = self.label_in_size[i]
-            c_out = self.label_real_out_size[i]
-            self.point_ffnn.append(nn.Linear(c_in, c_out))
-            self.lower_ffnn.append(nn.Linear(c_in, c_out))
-            self.upper_ffnn.append(nn.Linear(c_in, c_out))
-
-        # dense layers for categorical predictions
-        self.categ_ffnn = dict()
-        for k,v in self.param_cat.items():
-            k_str = f'{k}_categ_ffnn'
-            k_mod_list = nn.ModuleList([])
+        if self.has_param_real:
+            # dense layers for point/bound estimates
+            self.point_ffnn = nn.ModuleList([])
+            self.lower_ffnn = nn.ModuleList([])
+            self.upper_ffnn = nn.ModuleList([])
             for i in range(len(self.label_real_out_size)):
                 c_in  = self.label_in_size[i]
-                c_out = self.label_cat_out_size[k][i]
-                k_mod_list.append(nn.Linear(c_in, c_out))
-            setattr(self, k_str, k_mod_list)
-            
+                c_out = self.label_real_out_size[i]
+                self.point_ffnn.append(nn.Linear(c_in, c_out))
+                self.lower_ffnn.append(nn.Linear(c_in, c_out))
+                self.upper_ffnn.append(nn.Linear(c_in, c_out))
+
+        if self.has_param_cat:
+            # dense layers for categorical predictions
+            self.categ_ffnn = dict()
+            for k,v in self.param_cat.items():
+                k_str = f'{k}_categ_ffnn'
+                k_mod_list = nn.ModuleList([])
+                for i in range(len(self.label_real_out_size)):
+                    c_in  = self.label_in_size[i]
+                    c_out = self.label_cat_out_size[k][i]
+                    k_mod_list.append(nn.Linear(c_in, c_out))
+                setattr(self, k_str, k_mod_list)
+                
         # initialize weights for layers
         self._initialize_weights()
 
@@ -206,6 +211,7 @@ class ParameterEstimationNetwork(nn.Module):
         # Phylogenetic Tensor forwarding
         phy_dat = phy_dat.float()
         aux_dat = aux_dat.float()
+        num_sample = phy_dat.shape[0]
 
         # MJL: Does this need to be set? Seems like no.
         # phy_dat.requires_grad = True
@@ -238,37 +244,43 @@ class ParameterEstimationNetwork(nn.Module):
         # Concatenate phylo and aux layers
         x_concat = torch.cat((x_std, x_stride, x_dilate, x_aux), dim=1).squeeze()
         
-        # Point estimate path
-        x_point = x_concat
-        for i in range(len(self.point_ffnn)-1):
-            x_point = func.relu(self.point_ffnn[i](x_point))
-        x_point = self.point_ffnn[-1](x_point)
+        if self.has_param_real:
+            # Point estimate path
+            x_point = x_concat
+            for i in range(len(self.point_ffnn)-1):
+                x_point = func.relu(self.point_ffnn[i](x_point))
+            x_point = self.point_ffnn[-1](x_point)
+    
+            # Lower quantile path
+            x_lower = x_concat
+            for i in range(len(self.lower_ffnn)-1):
+                x_lower = func.relu(self.lower_ffnn[i](x_lower))
+            x_lower = self.lower_ffnn[-1](x_lower)
+    
+            # Upper quantile path
+            x_upper = x_concat
+            for i in range(len(self.upper_ffnn)-1):
+                x_upper = func.relu(self.upper_ffnn[i](x_upper))
+            x_upper = self.upper_ffnn[-1](x_upper)
+        else:
+            x_point = torch.empty((num_sample,0))
+            x_lower = torch.empty((num_sample,0))
+            x_upper = torch.empty((num_sample,0))
 
-        # Lower quantile path
-        x_lower = x_concat
-        for i in range(len(self.lower_ffnn)-1):
-            x_lower = func.relu(self.lower_ffnn[i](x_lower))
-        x_lower = self.lower_ffnn[-1](x_lower)
-
-        # Upper quantile path
-        x_upper = x_concat
-        for i in range(len(self.upper_ffnn)-1):
-            x_upper = func.relu(self.upper_ffnn[i](x_upper))
-        x_upper = self.upper_ffnn[-1](x_upper)
-        
-        # Categorical paths
         x_categ = dict()
-        for k,v in self.param_cat.items():
-            # take initial input from x_concat
-            if k not in x_categ:
-                x_categ[k] = x_concat
-            k_str = f'{k}_categ_ffnn'
-            k_mod_list = getattr(self, k_str)
-            for i in range(len(k_mod_list)-1):
-                x_categ[k] = func.relu(k_mod_list[i](x_categ[k]))
-            # x_categ[k] = func.softmax(k_mod_list[-1](x_categ[k]), dim=1)
-            x_categ[k] = k_mod_list[-1](x_categ[k])
-            setattr(self, k_str, k_mod_list)
+        if self.has_param_cat:
+            # Categorical paths
+            for k,v in self.param_cat.items():
+                # take initial input from x_concat
+                if k not in x_categ:
+                    x_categ[k] = x_concat
+                k_str = f'{k}_categ_ffnn'
+                k_mod_list = getattr(self, k_str)
+                for i in range(len(k_mod_list)-1):
+                    x_categ[k] = func.relu(k_mod_list[i](x_categ[k]))
+                # x_categ[k] = func.softmax(k_mod_list[-1](x_categ[k]), dim=1)
+                x_categ[k] = k_mod_list[-1](x_categ[k])
+                setattr(self, k_str, k_mod_list)
         
         # return loss
         return x_point, x_lower, x_upper, x_categ
