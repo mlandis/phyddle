@@ -873,11 +873,13 @@ def read_csv_as_pandas(fn):
         pd.DataFrame: The parsed CSV file as a pandas DataFrame.
 
     """
-    
+    df = None
     if os.path.exists(fn):
-        return pd.read_csv(fn)
+        df = pd.read_csv(fn)
+        if len(df.columns) == 0:
+            df = None
     
-    return None
+    return df
     
 
 def write_to_file(s, fn):

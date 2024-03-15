@@ -360,16 +360,22 @@ class Plotter:
         
         # Densities for aux. data and labels
         self.make_plot_stat_density('train', 'aux_data')
-        self.make_plot_stat_density('train', 'labels')
+        if self.has_train_real:
+            self.make_plot_stat_density('train', 'labels')
+            
         if self.num_empirical >= self.min_num_emp_density and self.emp_valid:
             self.make_plot_stat_density('empirical', 'aux_data')
+        if self.num_empirical >= self.min_num_emp_density and self.has_emp_real:
             self.make_plot_stat_density('empirical', 'labels')
 
         # PCA-contours for aux. data and labels
         aux_pca_model = self.make_plot_pca_contour('train', 'aux_data')
-        lbl_pca_model = self.make_plot_pca_contour('train', 'labels')
+        lbl_pca_model = None
+        if self.has_train_real:
+            lbl_pca_model = self.make_plot_pca_contour('train', 'labels')
         if self.num_empirical >= self.min_num_emp_density and self.emp_valid:
             self.make_plot_pca_contour('empirical', 'aux_data', pca_model=aux_pca_model)
+        if self.num_empirical >= self.min_num_emp_density and self.has_emp_real:
             self.make_plot_pca_contour('empirical', 'labels', pca_model=lbl_pca_model)
 
         # scatter accuracy
@@ -1384,9 +1390,20 @@ class Plotter:
         # - num total col
     
         # prediction stats
-        test_train = [('train', self.train_true_real, self.train_est_real),
-                      ('test', self.test_true_real, self.test_est_real)]
-    
+        test_train = []
+        if self.has_train_real:
+            test_train.append(('train', self.train_true_real, self.train_est_real))
+        if self.has_test_real:
+            test_train.append(('test', self.test_true_real, self.test_est_real))
+        if self.has_train_cat:
+            pass
+        if self.has_test_cat:
+            pass
+        if self.has_emp_real:
+            pass
+        if self.has_emp_cat:
+            pass
+        
         for name, lbl, est in test_train:
             for col in lbl:
                 # get stats

@@ -608,22 +608,26 @@ class CnnTrainer(Trainer):
                 lbls_hat = self.model(phy_dat, aux_dat)
 
                 # calculating the loss between original and predicted data points
-                loss_value     = loss_value_func(lbls_hat[0], lbl_real)
-                loss_lower     = loss_lower_func(lbls_hat[1], lbl_real)
-                loss_upper     = loss_upper_func(lbls_hat[2], lbl_real)
-                loss_combined  = loss_value + loss_lower + loss_upper
+                loss_list = list()
+                if self.has_label_real:
+                    loss_value = loss_value_func(lbls_hat[0], lbl_real)
+                    loss_lower = loss_lower_func(lbls_hat[1], lbl_real)
+                    loss_upper = loss_upper_func(lbls_hat[2], lbl_real)
+                    loss_list += [ loss_value, loss_lower, loss_upper ]
                 if self.has_label_cat:
-                    loss_categ     = loss_categ_func(lbls_hat[3], lbl_cat)
-                    loss_combined += loss_categ
+                    loss_categ = loss_categ_func(lbls_hat[3], lbl_cat)
+                    loss_list += [ loss_categ ]
+                loss_combined = torch.stack(loss_list).sum()
 
                 # collect history stats
-                trn_loss_value    += loss_value.item() / num_batches
-                trn_loss_lower    += loss_lower.item() / num_batches
-                trn_loss_upper    += loss_upper.item() / num_batches
+                if self.has_label_real:
+                    trn_loss_value    += loss_value.item() / num_batches
+                    trn_loss_lower    += loss_lower.item() / num_batches
+                    trn_loss_upper    += loss_upper.item() / num_batches
+                    trn_mse_value     += ( torch.mean((lbl_real - lbls_hat[0])**2) ).item() / num_batches
+                    trn_mae_value     += ( torch.mean(torch.abs(lbl_real - lbls_hat[0])) ).item() / num_batches
+                    trn_mape_value    += ( torch.mean(torch.abs((lbl_real - lbls_hat[0]) / lbl_real)) ).item() / num_batches
                 trn_loss_combined += loss_combined.item() / num_batches
-                trn_mse_value     += ( torch.mean((lbl_real - lbls_hat[0])**2) ).item() / num_batches
-                trn_mae_value     += ( torch.mean(torch.abs(lbl_real - lbls_hat[0])) ).item() / num_batches
-                trn_mape_value    += ( torch.mean(torch.abs((lbl_real - lbls_hat[0]) / lbl_real)) ).item() / num_batches
                 
                 # backward pass to update gradients
                 loss_combined.backward()
@@ -638,19 +642,32 @@ class CnnTrainer(Trainer):
 
             # forward pass of validation to estimate labels
             val_lbls_hat       = self.model(val_phy_dat, val_aux_dat)
-
+            
             # collect validation metrics
-            val_loss_value     = loss_value_func(val_lbls_hat[0], val_lbl_real).item()
-            val_loss_lower     = loss_lower_func(val_lbls_hat[1], val_lbl_real).item()
-            val_loss_upper     = loss_upper_func(val_lbls_hat[2], val_lbl_real).item()
-            val_loss_combined  = val_loss_value + val_loss_lower + val_loss_upper
+            val_loss_list = list()
+            val_loss_value = 0.
+            val_loss_lower = 0.
+            val_loss_upper = 0.
+            if self.has_label_real:
+                val_loss_value = loss_value_func(val_lbls_hat[0], val_lbl_real).item()
+                val_loss_lower = loss_lower_func(val_lbls_hat[1], val_lbl_real).item()
+                val_loss_upper = loss_upper_func(val_lbls_hat[2], val_lbl_real).item()
+                val_loss_list += [ val_loss_value, val_loss_lower, val_loss_upper ]
+            # val_loss_combined  = val_loss_value + val_loss_lower + val_loss_upper
             if self.has_label_cat:
-                val_loss_categ     = loss_categ_func(val_lbls_hat[3], val_lbl_cat).item()
-                val_loss_combined += val_loss_categ
+                val_loss_categ = loss_categ_func(val_lbls_hat[3], val_lbl_cat).item()
+                val_loss_list += [ val_loss_categ ]
+            
+            val_loss_combined = sum(val_loss_list)
                 
-            val_mse_value      = ( torch.mean((val_lbl_real - val_lbls_hat[0])**2) ).item()
-            val_mae_value      = ( torch.mean(torch.abs(val_lbl_real - val_lbls_hat[0])) ).item()
-            val_mape_value     = ( torch.mean(torch.abs((val_lbl_real - val_lbls_hat[0]) / val_lbl_real)) ).item()
+            val_mse_value = 0.
+            val_mae_value = 0.
+            val_mape_value = 0.
+            if self.has_label_real:
+                val_mse_value      = ( torch.mean((val_lbl_real - val_lbls_hat[0])**2) ).item()
+                val_mae_value      = ( torch.mean(torch.abs(val_lbl_real - val_lbls_hat[0])) ).item()
+                val_mape_value     = ( torch.mean(torch.abs((val_lbl_real - val_lbls_hat[0]) / val_lbl_real)) ).item()
+                
             val_metric_vals = [ val_loss_value, val_loss_lower, val_loss_upper,
                                 val_loss_combined, val_mse_value, val_mae_value,
                                 val_mape_value ]
@@ -769,30 +786,31 @@ class CnnTrainer(Trainer):
         labels_real_est = torch.stack(labels_real_est).detach().numpy()
         labels_cat_est  = label_est[3]
 
-        # get true label values (does not need to be denormalized??) 
-        train_labels_real = train_labels_real.detach().numpy()
-        self.train_label_real_true = train_labels_real
-        self.train_label_cat_true = train_labels_cat.detach().numpy().astype('int')
-        # self.train_label_real_true = util.denormalize(train_labels_real.copy(),
-        #                                               self.train_labels_real_mean_sd)
+        if self.has_label_real:
+            # get true label values (does not need to be denormalized??) 
+            train_labels_real = train_labels_real.detach().numpy()
+            self.train_label_real_true = train_labels_real
+            # self.train_label_real_true = util.denormalize(train_labels_real.copy(),
+            #                                               self.train_labels_real_mean_sd)
+    
+            # uncalibrated training estimates of real labels
+            self.train_label_real_est = util.denormalize(labels_real_est.copy(),
+                                                         self.train_labels_real_mean_sd)
 
-        # uncalibrated training estimates of real labels
-        self.train_label_real_est = util.denormalize(labels_real_est.copy(),
-                                                     self.train_labels_real_mean_sd)
+            # generate calibration factors
+            self.perform_cpi_calibration()
 
-        # generate calibration factors
-        self.perform_cpi_calibration()
-        
-        # calibrate original estimates
-        labels_real_est_calib = labels_real_est.copy()
-        labels_real_est_calib[1,:,:] = labels_real_est_calib[1,:,:] - self.cpi_adjustments[0,:]
-        labels_real_est_calib[2,:,:] = labels_real_est_calib[2,:,:] + self.cpi_adjustments[1,:]
-        
-        # denormalize calibrated estimates
-        self.train_label_real_est_calib = labels_real_est_calib
+            # calibrate original estimates
+            labels_real_est_calib = labels_real_est.copy()
+            labels_real_est_calib[1,:,:] = labels_real_est_calib[1,:,:] - self.cpi_adjustments[0,:]
+            labels_real_est_calib[2,:,:] = labels_real_est_calib[2,:,:] + self.cpi_adjustments[1,:]
+            
+            # denormalize calibrated estimates
+            self.train_label_real_est_calib = labels_real_est_calib
 
         # reformat categorical estimates, if they exist
         if self.has_label_cat:
+            self.train_label_cat_true = train_labels_cat.detach().numpy().astype('int')
             self.train_label_cat_est = self.format_label_cat(labels_cat_est)
         
         return
@@ -856,43 +874,44 @@ class CnnTrainer(Trainer):
         df_aux_data.to_csv(train_aux_data_norm_fn, index=False, sep=',',
                            float_format=util.PANDAS_FLOAT_FMT_STR)
  
-        # save label names, means, sd for new test dataset normalization
-        df_labels = pd.DataFrame({'name':self.param_real_names,
-                                  'mean':self.train_labels_real_mean_sd[0],
-                                  'sd':self.train_labels_real_mean_sd[1]})
-        df_labels.to_csv(train_labels_real_norm_fn, index=False, sep=',',
-                         float_format=util.PANDAS_FLOAT_FMT_STR)
-
-        # save CPI intervals
-        df_cpi_intervals = pd.DataFrame(self.cpi_adjustments,
-                                        columns=self.param_real_names)
-        df_cpi_intervals.to_csv(model_cpi_fn,
-                                index=False, sep=',',
-                                float_format=util.PANDAS_FLOAT_FMT_STR)
-        
-        # downsample all true training labels
-        df_train_label_true = pd.DataFrame(self.train_label_real_true[0:max_idx,:],
-                                           columns=self.param_real_names )
-        
-        # save true values for train real labels
-        df_train_label_real_true = df_train_label_true[self.param_real_names]
-        df_train_label_real_true.to_csv(train_label_real_true_fn,
-                                        index=False, sep=',',
-                                        float_format=util.PANDAS_FLOAT_FMT_STR)
-        
-        # save train real label estimates
-        df_train_label_real_est_nocalib = util.make_param_VLU_mtx(self.train_label_real_est[0:max_idx,:],
-                                                                  self.param_real_names )
-        df_train_label_real_est_calib   = util.make_param_VLU_mtx(self.train_label_real_est_calib[0:max_idx,:],
-                                                                  self.param_real_names )
-
-        # convert to csv and save
-        df_train_label_real_est_nocalib.to_csv(train_label_est_nocalib_fn,
-                                               index=False, sep=',',
-                                               float_format=util.PANDAS_FLOAT_FMT_STR)
-        df_train_label_real_est_calib.to_csv(train_label_real_est_fn,
-                                             index=False, sep=',',
-                                             float_format=util.PANDAS_FLOAT_FMT_STR)
+        if self.has_label_real:
+            # save label names, means, sd for new test dataset normalization
+            df_labels = pd.DataFrame({'name':self.param_real_names,
+                                      'mean':self.train_labels_real_mean_sd[0],
+                                      'sd':self.train_labels_real_mean_sd[1]})
+            df_labels.to_csv(train_labels_real_norm_fn, index=False, sep=',',
+                             float_format=util.PANDAS_FLOAT_FMT_STR)
+    
+            # save CPI intervals
+            df_cpi_intervals = pd.DataFrame(self.cpi_adjustments,
+                                            columns=self.param_real_names)
+            df_cpi_intervals.to_csv(model_cpi_fn,
+                                    index=False, sep=',',
+                                    float_format=util.PANDAS_FLOAT_FMT_STR)
+            
+            # downsample all true training labels
+            df_train_label_true = pd.DataFrame(self.train_label_real_true[0:max_idx,:],
+                                               columns=self.param_real_names )
+            
+            # save true values for train real labels
+            df_train_label_real_true = df_train_label_true[self.param_real_names]
+            df_train_label_real_true.to_csv(train_label_real_true_fn,
+                                            index=False, sep=',',
+                                            float_format=util.PANDAS_FLOAT_FMT_STR)
+            
+            # save train real label estimates
+            df_train_label_real_est_nocalib = util.make_param_VLU_mtx(self.train_label_real_est[0:max_idx,:],
+                                                                      self.param_real_names )
+            df_train_label_real_est_calib   = util.make_param_VLU_mtx(self.train_label_real_est_calib[0:max_idx,:],
+                                                                      self.param_real_names )
+    
+            # convert to csv and save
+            df_train_label_real_est_nocalib.to_csv(train_label_est_nocalib_fn,
+                                                   index=False, sep=',',
+                                                   float_format=util.PANDAS_FLOAT_FMT_STR)
+            df_train_label_real_est_calib.to_csv(train_label_real_est_fn,
+                                                 index=False, sep=',',
+                                                 float_format=util.PANDAS_FLOAT_FMT_STR)
     
         if self.has_label_cat:
             # save true values for train categ. labels

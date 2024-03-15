@@ -94,6 +94,12 @@ class Estimator:
                                                   self.num_char,
                                                   self.num_states)
         self.num_data_col = self.num_tree_col + self.num_char_col
+
+        # cat vs. real parameter names
+        self.label_real_names = [ k for k,v in self.param_est.items() if v == 'real' ]
+        self.label_cat_names = [ k for k,v in self.param_est.items() if v == 'cat' ]
+        self.has_label_cat = len(self.label_cat_names) > 0
+        self.has_label_real = len(self.label_real_names) > 0
         
         # create logger to track runtime info
         self.logger = util.Logger(args)
@@ -259,16 +265,17 @@ class Estimator:
         train_aux_data_means = train_aux_data_norm['mean'].T.to_numpy().flatten()
         train_aux_data_sd = train_aux_data_norm['sd'].T.to_numpy().flatten()
         self.train_aux_data_mean_sd = (train_aux_data_means, train_aux_data_sd)
-
-        # denormalization factors for labels
-        train_norm_labels_real = pd.read_csv(train_norm_labels_real_fn, sep=',', index_col=False)
-        train_real_labels_mean = train_norm_labels_real['mean'].T.to_numpy().flatten()
-        train_real_labels_sd = train_norm_labels_real['sd'].T.to_numpy().flatten()
-        self.train_labels_real_mean_sd = (train_real_labels_mean, train_real_labels_sd)
         
-        # read in CQR interval adjustments
-        self.cpi_adjustments = pd.read_csv(model_cpi_fn, sep=',', index_col=False).to_numpy()
-        
+        if self.has_label_real:
+            # denormalization factors for labels
+            train_norm_labels_real = pd.read_csv(train_norm_labels_real_fn, sep=',', index_col=False)
+            train_real_labels_mean = train_norm_labels_real['mean'].T.to_numpy().flatten()
+            train_real_labels_sd = train_norm_labels_real['sd'].T.to_numpy().flatten()
+            self.train_labels_real_mean_sd = (train_real_labels_mean, train_real_labels_sd)
+            
+            # read in CQR interval adjustments
+            self.cpi_adjustments = pd.read_csv(model_cpi_fn, sep=',', index_col=False).to_numpy()
+            
         # done
         return
 
@@ -335,20 +342,7 @@ class Estimator:
         assert aux_data.shape[0] == num_sample
         self.aux_data = util.normalize(aux_data, self.train_aux_data_mean_sd)
         
-        # get real/cat names
-        self.label_real_names = [ k for k,v in self.param_est.items() if v == 'real' ]
-        self.label_cat_names = [ k for k,v in self.param_est.items() if v == 'cat' ]
-        if len(self.label_cat_names) > 0:
-            self.has_label_cat = True
-        if len(self.label_real_names) > 0:
-            self.has_label_real = True
-
-        for idx,lbl in enumerate(label_names):
-            if lbl in self.label_real_names:
-                self.label_real_idx.append(idx)
-            elif lbl in self.label_cat_names:
-                self.label_cat_idx.append(idx)
-        
+        # running against test sim?
         if mode == 'sim':
             assert labels.shape[0] == num_sample
             self.true_labels_real = labels[:,self.label_real_idx]
@@ -400,22 +394,23 @@ class Estimator:
         labels_est_cat = label_est[3]
         
         # point estimates & CPIs for test labels
-        labels_est_real = torch.stack(labels_est_real).detach().numpy()
-        if labels_est_real.ndim == 2:
-            labels_est_real.shape = (labels_est_real.shape[0], 1, labels_est_real.shape[1])
-        labels_est_real[1,:,:] = labels_est_real[1,:,:] - self.cpi_adjustments[0,:]
-        labels_est_real[2,:,:] = labels_est_real[2,:,:] + self.cpi_adjustments[1,:]
-        
-        # denormalize test label estimates
-        denorm_est_labels_real = util.denormalize(labels_est_real,
-                                                  self.train_labels_real_mean_sd,
-                                                  exp=False)
-
-        # save label real estimates
-        df_est_labels_real = util.make_param_VLU_mtx(denorm_est_labels_real,
-                                                     self.label_real_names)
-        df_est_labels_real.to_csv(out_est_labels_real_fn, index=False, sep=',',
-                                  float_format=util.PANDAS_FLOAT_FMT_STR)
+        if self.has_label_real:
+            labels_est_real = torch.stack(labels_est_real).detach().numpy()
+            if labels_est_real.ndim == 2:
+                labels_est_real.shape = (labels_est_real.shape[0], 1, labels_est_real.shape[1])
+            labels_est_real[1,:,:] = labels_est_real[1,:,:] - self.cpi_adjustments[0,:]
+            labels_est_real[2,:,:] = labels_est_real[2,:,:] + self.cpi_adjustments[1,:]
+            
+            # denormalize test label estimates
+            denorm_est_labels_real = util.denormalize(labels_est_real,
+                                                      self.train_labels_real_mean_sd,
+                                                      exp=False)
+    
+            # save label real estimates
+            df_est_labels_real = util.make_param_VLU_mtx(denorm_est_labels_real,
+                                                         self.label_real_names)
+            df_est_labels_real.to_csv(out_est_labels_real_fn, index=False, sep=',',
+                                      float_format=util.PANDAS_FLOAT_FMT_STR)
         
         # save label cat estimates
         if self.has_label_cat:
@@ -427,8 +422,9 @@ class Estimator:
             labels_est_cat[k] = labels_est_cat[k].detach().numpy()
         
         if mode == 'sim':
-            df_true_labels_real = pd.DataFrame(self.true_labels_real, columns=self.label_real_names)
-            df_true_labels_real.to_csv(out_true_labels_real_fn, index=False, sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
+            if self.has_label_real:
+                df_true_labels_real = pd.DataFrame(self.true_labels_real, columns=self.label_real_names)
+                df_true_labels_real.to_csv(out_true_labels_real_fn, index=False, sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
             
             if self.has_label_cat:
                 df_true_labels_cat = pd.DataFrame(self.true_labels_cat, columns=self.label_cat_names, dtype='int')
