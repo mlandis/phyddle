@@ -98,8 +98,8 @@ class Estimator:
         # cat vs. real parameter names
         self.label_real_names = [ k for k,v in self.param_est.items() if v == 'real' ]
         self.label_cat_names = [ k for k,v in self.param_est.items() if v == 'cat' ]
-        self.has_label_cat = len(self.label_cat_names) > 0
         self.has_label_real = len(self.label_real_names) > 0
+        self.has_label_cat = len(self.label_cat_names) > 0
         
         # create logger to track runtime info
         self.logger = util.Logger(args)
@@ -112,13 +112,7 @@ class Estimator:
         self.aux_data                   = None       # init in load_format_input()
         self.true_labels_real           = None       # init in load_format_input()
         self.true_labels_cat            = None       # init in load_format_input()
-        self.label_real_names           = None       # init in load_train_input()
-        self.label_cat_names            = None       # init in load_train_input()
-        self.label_real_idx             = list()     # init in load_train_input()
-        self.label_cat_idx              = list()     # init in load_train_input()
         self.mymodel                    = None       # init in make_results()
-        self.has_label_cat              = False      # init in make_results()
-        self.has_label_real             = False      # init in make_results()
         
         # done
         return
@@ -341,19 +335,28 @@ class Estimator:
         # test dataset normalization
         assert aux_data.shape[0] == num_sample
         self.aux_data = util.normalize(aux_data, self.train_aux_data_mean_sd)
-        
+
+        # real vs. cat labels
+        label_real_idx = list()
+        label_cat_idx = list()
+        for i,p in enumerate(label_names):
+            if p in self.label_real_names:
+                label_real_idx.append(i)
+            if p in self.label_cat_names:
+                label_cat_idx.append(i)
+                
         # running against test sim?
         if mode == 'sim':
             assert labels.shape[0] == num_sample
-            self.true_labels_real = labels[:,self.label_real_idx]
-            self.true_labels_cat = labels[:,self.label_cat_idx]
-
+            self.true_labels_real = labels[:,label_real_idx]
+            self.true_labels_cat = labels[:,label_cat_idx]
+            
             # recode categorical labels
             for idx in range(self.true_labels_cat.shape[1]):
                 unique_cats, encoded_cats = np.unique(self.true_labels_cat[:,idx],
                                                       return_inverse=True)
                 self.true_labels_cat[:,idx] = encoded_cats
-        
+            
         # done
         return
 
@@ -418,8 +421,8 @@ class Estimator:
             df_est_labels_cat.to_csv(out_est_labels_cat_fn, index=False, sep=',',
                                      float_format=util.PANDAS_FLOAT_FMT_STR)
             
-        for k,v in labels_est_cat.items():
-            labels_est_cat[k] = labels_est_cat[k].detach().numpy()
+            for k,v in labels_est_cat.items():
+                labels_est_cat[k] = labels_est_cat[k].detach().numpy()
         
         if mode == 'sim':
             if self.has_label_real:
