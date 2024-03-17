@@ -215,8 +215,11 @@ class Plotter:
         verbose = self.verbose
 
         # print header
-        util.print_step_header('plt', [self.fmt_dir, self.trn_dir, self.est_dir],
-                               self.plt_dir, verbose)
+        util.print_step_header('plt',
+                               [self.fmt_dir, self.trn_dir, self.est_dir],
+                               self.plt_dir,
+                               [self.fmt_prefix, self.trn_prefix, self.est_prefix],
+                               self.plt_prefix, verbose)
 
         # prepare workspace
         os.makedirs(self.plt_dir, exist_ok=True)

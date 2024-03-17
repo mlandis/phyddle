@@ -117,19 +117,20 @@ def settings_registry():
         'no_sim'           : { 'step':'',    'type':None, 'section':'Analysis', 'default':False,  'help':'Disable Format/Estimate steps for simulated data?' },
         
         # directories
-        'sim_prefix'       : { 'step':'SF',    'type':str, 'section':'Workspace', 'default':'sim',                                   'help':'Prefix for raw simulated data' },
-        'emp_prefix'       : { 'step':'SF',    'type':str, 'section':'Workspace', 'default':'emp',                                   'help':'Prefix for raw empirical data' },
-        'fmt_prefix'       : { 'step':'FTEP',  'type':str, 'section':'Workspace', 'default':'out',                                   'help':'Prefix for tensor-formatted data' },
-        'trn_prefix'       : { 'step':'FTEP',  'type':str, 'section':'Workspace', 'default':'out',                                   'help':'Prefix for trained networks and training output' },
-        'est_prefix'       : { 'step':'TEP',   'type':str, 'section':'Workspace', 'default':'out',                                   'help':'Prefix for new datasets and estimates' },
-        'plt_prefix'       : { 'step':'P',     'type':str, 'section':'Workspace', 'default':'out',                                   'help':'Prefix for plotted results' },
-        'sim_dir'          : { 'step':'SF',    'type':str, 'section':'Workspace', 'default':'./workspace/my_project/simulate',       'help':'Directory for raw simulated data' },
-        'emp_dir'          : { 'step':'SF',    'type':str, 'section':'Workspace', 'default':'./workspace/my_project/empirical',      'help':'Directory for raw empirical data' },
-        'fmt_dir'          : { 'step':'FTEP',  'type':str, 'section':'Workspace', 'default':'./workspace/my_project/format',         'help':'Directory for tensor-formatted data' },
-        'trn_dir'          : { 'step':'FTEP',  'type':str, 'section':'Workspace', 'default':'./workspace/my_project/train',          'help':'Directory for trained networks and training output' },
-        'est_dir'          : { 'step':'TEP',   'type':str, 'section':'Workspace', 'default':'./workspace/my_project/estimate',       'help':'Directory for new datasets and estimates' },
-        'plt_dir'          : { 'step':'P',     'type':str, 'section':'Workspace', 'default':'./workspace/my_project/plot',           'help':'Directory for plotted results' },
-        'log_dir'          : { 'step':'SFTEP', 'type':str, 'section':'Workspace', 'default':'./workspace/my_project/log',            'help':'Directory for logs of analysis metadata' },
+        'prefix'           : { 'step':'SFTEP', 'type':str, 'section':'Workspace', 'default':'out',                                   'help':'Prefix for all output unless step prefix given' },
+        'sim_prefix'       : { 'step':'SF',    'type':str, 'section':'Workspace', 'default':None,                                   'help':'Prefix for raw simulated data' },
+        'emp_prefix'       : { 'step':'SF',    'type':str, 'section':'Workspace', 'default':None,                                   'help':'Prefix for raw empirical data' },
+        'fmt_prefix'       : { 'step':'FTEP',  'type':str, 'section':'Workspace', 'default':None,                                   'help':'Prefix for tensor-formatted data' },
+        'trn_prefix'       : { 'step':'FTEP',  'type':str, 'section':'Workspace', 'default':None,                                   'help':'Prefix for trained networks and training output' },
+        'est_prefix'       : { 'step':'TEP',   'type':str, 'section':'Workspace', 'default':None,                                   'help':'Prefix for new datasets and estimates' },
+        'plt_prefix'       : { 'step':'P',     'type':str, 'section':'Workspace', 'default':None,                                   'help':'Prefix for plotted results' },
+        'sim_dir'          : { 'step':'SF',    'type':str, 'section':'Workspace', 'default':'./workspace/project/simulate',       'help':'Directory for raw simulated data' },
+        'emp_dir'          : { 'step':'SF',    'type':str, 'section':'Workspace', 'default':'./workspace/project/empirical',      'help':'Directory for raw empirical data' },
+        'fmt_dir'          : { 'step':'FTEP',  'type':str, 'section':'Workspace', 'default':'./workspace/project/format',         'help':'Directory for tensor-formatted data' },
+        'trn_dir'          : { 'step':'FTEP',  'type':str, 'section':'Workspace', 'default':'./workspace/project/train',          'help':'Directory for trained networks and training output' },
+        'est_dir'          : { 'step':'TEP',   'type':str, 'section':'Workspace', 'default':'./workspace/project/estimate',       'help':'Directory for new datasets and estimates' },
+        'plt_dir'          : { 'step':'P',     'type':str, 'section':'Workspace', 'default':'./workspace/project/plot',           'help':'Directory for plotted results' },
+        'log_dir'          : { 'step':'SFTEP', 'type':str, 'section':'Workspace', 'default':'./workspace/project/log',            'help':'Directory for logs of analysis metadata' },
 
         # simulation options
         'sim_command'      : { 'step':'S',  'type':str, 'section':'Simulate', 'default':None,    'help':'Simulation command to run single job (see documentation)' },
@@ -369,6 +370,13 @@ def load_config(config_fn,
     
     # check arguments are valid
     check_args(m)
+    
+    # handle project prefix
+    for p in ['sim','fmt','trn','est','plt']:
+        k = f'{p}_prefix'
+        if m[k] is None:
+            m[k] = m['prefix']
+    
     # set steps & projects
     # m = add_step_proj(m)
     
@@ -1652,13 +1660,16 @@ def phyddle_header(s, style=1, color=34):
 
     return x
 
-def print_step_header(step, in_dir, out_dir, verbose=True, style=1, color=34):
+def print_step_header(step, in_dir, out_dir, in_prefix, out_prefix,
+                      verbose=True, style=1, color=34):
     """Generate a phyddle step info string.
     
     Args:
         step (str): The step symbol.
         in_dir (list): A list of input directories.
         out_dir (str): The output directory.
+        in_prefix (list): A list of input prefixes.
+        out_prefix (str): The output prefix.
         style (int, optional): Style code.
         fg (int, optional): Foreground color code.
         
@@ -1670,26 +1681,36 @@ def print_step_header(step, in_dir, out_dir, verbose=True, style=1, color=34):
     # header
     run_info  = phyddle_header( step ) + '\n'
     
+    # get ljust
+    num_ljust = max([ len(x) for x in in_dir + [out_dir] ])
+    
     # in paths
     plot_bar = True
     if in_dir is not None:
         run_info += phyddle_str('  ┃')  + '\n'
         plot_bar = False
         for i,_in_dir in enumerate(in_dir):
-            in_path = f'{_in_dir}'
+            in_pfx = in_prefix[i]
+            in_path = f'{_in_dir}'.ljust(num_ljust, ' ')
+            if in_pfx != 'out':
+                in_path += f'  [prefix: {in_pfx}]'
             if i == 0:
-                run_info += phyddle_str(f'  ┣━━━▪ input:  {in_path}', style, color ) + '\n'
+                run_info += phyddle_str(f'  ┣━━━▪ input:   {in_path}', style, color ) + '\n'
             else:
-                run_info += phyddle_str(f'  ┃             {in_path}', style, color ) + '\n'
+                run_info += phyddle_str(f'  ┃              {in_path}', style, color ) + '\n'
     
     # out path
+    out_path = ''
     if out_dir is not None:
         # run_info += phyddle_str('  ┃')  + '\n'
-        out_path = f'{out_dir}'
+        out_path = f'{out_dir}'.ljust(num_ljust, ' ')
+        if out_prefix != 'out':
+            out_path += f'  [prefix: {out_prefix}]'
+    
     if plot_bar:
         run_info += phyddle_str('  ┃')  + '\n'
     
-    run_info += phyddle_str(f'  ┗━━━▪ output: {out_path}' ) + '\n'
+    run_info += phyddle_str(f'  ┗━━━▪ output:  {out_path}' ) + '\n'
     
     # print if verbose is True
     if verbose:

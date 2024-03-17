@@ -211,7 +211,8 @@ class Simulator:
         verbose = self.verbose
 
         # print header
-        util.print_step_header('sim', None, self.sim_dir, verbose)
+        util.print_step_header('sim', None, self.sim_dir,
+                               None, self.sim_prefix, verbose)
 
         # prepare workspace
         os.makedirs(self.sim_dir, exist_ok=True)

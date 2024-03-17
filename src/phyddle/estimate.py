@@ -134,9 +134,9 @@ class Estimator:
         verbose = self.verbose
         
         # print header
-        util.print_step_header('est',
-                               [self.fmt_dir, self.trn_dir],
-                                self.est_dir, verbose)
+        util.print_step_header('est', [self.fmt_dir, self.trn_dir], self.est_dir,
+                               [self.fmt_prefix, self.trn_prefix], self.est_prefix,
+                               verbose)
         
         # prepare workspace
         os.makedirs(self.est_dir, exist_ok=True)
@@ -145,9 +145,15 @@ class Estimator:
         start_time,start_time_str = util.get_time()
         util.print_str(f'▪ Start time of {start_time_str}', verbose)
 
+        # print estimate settings
+        util.print_str('▪ Estimation targets:', verbose)
+        num_ljust = max([len(k) for k in self.param_est.keys()])
+        for k,v in self.param_est.items():
+            util.print_str(f'  ▪ {k.ljust(num_ljust)}  [type: {v}]', verbose)
+
         # load Train input
         self.load_train_input()
-
+        
         found_sim = False
         if self.no_sim:
             # skip sim

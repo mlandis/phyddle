@@ -155,14 +155,17 @@ class Formatter:
         valid_emp = self.has_valid_dataset(mode='emp')
         valid_sim = self.has_valid_dataset(mode='sim')
         input_print_dir = list()
+        input_prefix = list()
         if valid_emp and not self.no_emp:
             input_print_dir.append(self.emp_dir)
+            input_prefix.append(self.emp_prefix)
         if valid_sim and not self.no_sim:
             input_print_dir.append(self.sim_dir)
+            input_prefix.append(self.sim_prefix)
             
         # print header
-        util.print_step_header('fmt', input_print_dir,
-                               self.fmt_dir, verbose)
+        util.print_step_header('fmt', input_print_dir, self.fmt_dir,
+                               input_prefix, self.fmt_prefix, verbose)
         # prepare workspace
         os.makedirs(self.fmt_dir, exist_ok=True)
 

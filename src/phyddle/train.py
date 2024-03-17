@@ -152,7 +152,8 @@ class Trainer:
         verbose = self.verbose
 
         # print header
-        util.print_step_header('trn', [self.fmt_dir], self.trn_dir, verbose)
+        util.print_step_header('trn', [self.fmt_dir], self.trn_dir,
+                               [self.fmt_prefix], self.trn_prefix, verbose)
         
         # prepare workspace
         os.makedirs(self.trn_dir, exist_ok=True)
@@ -172,7 +173,7 @@ class Trainer:
         util.print_str('▪ Training targets:', verbose)
         num_ljust = max([len(k) for k in self.param_est.keys()])
         for k,v in self.param_est.items():
-            util.print_str(f'  ▪ {k.ljust(num_ljust)}  [{v}]', verbose)
+            util.print_str(f'  ▪ {k.ljust(num_ljust)}  [type: {v}]', verbose)
 
         util.print_str('▪ Building network', verbose)
         self.build_network()
