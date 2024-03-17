@@ -374,7 +374,7 @@ def load_config(config_fn,
     # handle project prefix
     for p in ['sim','fmt','trn','est','plt']:
         k = f'{p}_prefix'
-        if m[k] is None:
+        if k not in m:
             m[k] = m['prefix']
     
     # set steps & projects
@@ -446,7 +446,6 @@ def check_args(args):
     assert args['char_encode']       in ['one_hot', 'integer', 'numeric']
     assert args['tensor_format']     in ['csv', 'hdf5']
     assert args['char_format']       in ['csv', 'nexus']
-    assert args['trn_objective']     in ['param_est', 'model_test']
     assert args['downsample_taxa']   in ['uniform']
     
     # numerical values
@@ -654,8 +653,8 @@ def reconcile_settings(settings_args, default_args, file_args, cmd_args, var):
         Settings are applied and overwritten in this order:
         1. default settings from phyddle source
         2. default settings from file (config_default.py)
-        2. analysis settings from file (e.g. config_<example>.py)
-        3. command line settings (e.g. --sim_more 200)
+        3. analysis settings from file (e.g. config_<example>.py)
+        4. command line settings (e.g. --sim_more 200)
 
         Settings are applied to default settings before being returned.
 
@@ -689,7 +688,7 @@ def reconcile_settings(settings_args, default_args, file_args, cmd_args, var):
                 args[k] = v
 
         # (4) overwrite with command line args
-        for k in args.keys():
+        for k in settings_args.keys():
             if k in cmd_args:
                 v = getattr(cmd_args, k)
                 if v is not None:
@@ -1682,8 +1681,10 @@ def print_step_header(step, in_dir, out_dir, in_prefix, out_prefix,
     run_info  = phyddle_header( step ) + '\n'
     
     # get ljust
-    num_ljust = max([ len(x) for x in in_dir + [out_dir] ])
-    
+    num_ljust = len(out_dir)
+    if in_dir is not None:
+        num_ljust = max([ len(x) for x in in_dir + [out_dir] ])
+        
     # in paths
     plot_bar = True
     if in_dir is not None:

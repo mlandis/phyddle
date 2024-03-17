@@ -14,12 +14,7 @@ args = {
     #-------------------------------#
     'step'    : 'SFTEP',                   # Step(s) to run
     'verbose' : 'T',                       # print verbose phyddle output?
-  	'sim_prefix'  : 'out',          # Prefix for raw simulated data
-  	'emp_prefix'  : 'out',          # Prefix for raw empirical data
-  	'fmt_prefix'  : 'out',          # Prefix for tensor-formatted data
-  	'trn_prefix'  : 'out',          # Prefix for trained networks and training output
-  	'est_prefix'  : 'out',          # Prefix for new datasets and estimates
-  	'plt_prefix'  : 'out',          # Prefix for plotted results
+    'prefix'  : 'out',                     # Prefix for output for all setps
     'sim_dir'     : f'{work_dir}/simulate',    # Directory for simulated data
     'emp_dir'     : f'{work_dir}/empirical',   # Directory for empirical data
     'fmt_dir'     : f'{work_dir}/format',      # Directory for tensor-formatted data
@@ -74,18 +69,16 @@ args = {
     #-------------------------------#
     # Train Step settings           #
     #-------------------------------#
-    'trn_objective'     : 'param_est',      # what is the learning task? param_est or model_test
-    'num_epochs'        : 10,               # number of training intervals (epochs)
+    'num_epochs'        : 20,               # number of training intervals (epochs)
     'prop_test'         : 0.05,             # proportion of sims in test dataset
     'prop_val'          : 0.05,             # proportion of sims in validation dataset
     'prop_cal'          : 0.20,             # proportion of sims in CPI calibration dataset
     'combine_test_val'  : 'T',
-    'cpi_coverage'      : 0.95,             # coverage level for CPIs
+    'cpi_coverage'      : 0.80,             # coverage level for CPIs
     'cpi_asymmetric'    : 'T',              # upper/lower ('T') or symmetric ('F') CPI adjustments
-    'batch_size'        : 1024,             # number of samples in each training batch
+    'batch_size'        : 2048,             # number of samples in each training batch
     'loss'              : 'mse',            # loss function for learning (real-valued) targets
     'optimizer'         : 'adam',           # optimizer for network weight/bias parameters
-    'metrics'           : ['mae', 'acc'],   # recorded training metrics
     'log_offset'        : 1.0,
 
     #-------------------------------#
