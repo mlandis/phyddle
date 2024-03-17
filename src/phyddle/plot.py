@@ -97,9 +97,12 @@ class Plotter:
         self.plot_train_color      = str(args['plot_train_color'])
         self.plot_test_color       = str(args['plot_test_color'])
         self.plot_val_color        = str(args['plot_val_color'])
-        self.plot_emp_color        = str(args['plot_est_color'])
+        self.plot_emp_color        = str(args['plot_emp_color'])
         self.log_offset            = float(args['log_offset'])
         self.cpi_coverage          = float(args['cpi_coverage'])
+        self.plot_num_scatter      = int(args['plot_num_scatter'])
+        self.plot_min_emp          = int(args['plot_min_emp'])
+        self.plot_num_emp          = int(args['plot_num_emp'])
 
         # prefixes
         fmt_proj_prefix             = f'{self.fmt_dir}/{self.fmt_prefix}'
@@ -117,7 +120,6 @@ class Plotter:
         self.train_true_real_fn    = f'{trn_proj_prefix}.train_true.labels_real.csv'
         self.train_est_cat_fn      = f'{trn_proj_prefix}.train_est.labels_cat.csv'
         self.train_true_cat_fn     = f'{trn_proj_prefix}.train_true.labels_cat.csv'
-
 
         # test dataset tensors
         self.test_est_real_fn      = f'{est_proj_prefix}.test_est.labels_real.csv'
@@ -139,10 +141,10 @@ class Plotter:
         self.save_cpi_est_fn       = f'{plt_proj_prefix}.empirical_estimate'
 
         # PCA plotting output
-        self.save_train_pca_aux_data_fn  = f'{plt_proj_prefix}.train_pca_contour_aux_data.pdf'
-        self.save_train_pca_labels_fn    = f'{plt_proj_prefix}.train_pca_contour_labels_real.pdf'
-        self.save_emp_pca_aux_data_fn    = f'{plt_proj_prefix}.empirical_pca_contour_aux_data.pdf'
-        self.save_emp_pca_labels_fn      = f'{plt_proj_prefix}.empirical_pca_contour_labels_real.pdf'
+        self.save_train_pca_aux_data_fn  = f'{plt_proj_prefix}.train_pca_aux_data.pdf'
+        self.save_train_pca_labels_fn    = f'{plt_proj_prefix}.train_pca_labels_real.pdf'
+        # self.save_emp_pca_aux_data_fn    = f'{plt_proj_prefix}.empirical_pca_contour_aux_data.pdf'
+        # self.save_emp_pca_labels_fn      = f'{plt_proj_prefix}.empirical_pca_contour_labels_real.pdf'
 
         # density plotting output
         self.save_train_density_aux_fn   = f'{plt_proj_prefix}.train_density_aux_data.pdf'
@@ -165,10 +167,6 @@ class Plotter:
         # cat vs. real parameter names
         self.param_name_real = [ k for k,v in self.param_est.items() if v == 'real' ]
         self.param_name_cat = [ k for k,v in self.param_est.items() if v == 'cat' ]
-        
-        # plot settings (possible add as util setting)
-        self.min_num_emp_density = 10
-        self.max_num_emp_point = 5
         
         # initialized later
         self.train_aux_data = None         # init with load_input()
@@ -201,7 +199,6 @@ class Plotter:
         # analysis info
         self.history_table = None          # init with load_input()
         self.num_empirical = int(0)        # init with load_input()
-        self.emp_valid = False
         self.sim_test_valid = False
         self.sim_train_valid = False
         
@@ -362,21 +359,21 @@ class Plotter:
         self.make_plot_stat_density('train', 'aux_data')
         if self.has_train_real:
             self.make_plot_stat_density('train', 'labels')
-            
-        if self.num_empirical >= self.min_num_emp_density and self.emp_valid:
+
+        if self.num_empirical >= self.plot_min_emp:
             self.make_plot_stat_density('empirical', 'aux_data')
-        if self.num_empirical >= self.min_num_emp_density and self.has_emp_real:
+        if self.num_empirical >= self.plot_min_emp and self.has_emp_real:
             self.make_plot_stat_density('empirical', 'labels')
 
         # PCA-contours for aux. data and labels
-        aux_pca_model = self.make_plot_pca_contour('train', 'aux_data')
+        aux_pca_model = self.make_plot_pca_hexbin('train', 'aux_data')
         lbl_pca_model = None
         if self.has_train_real:
-            lbl_pca_model = self.make_plot_pca_contour('train', 'labels')
-        if self.num_empirical >= self.min_num_emp_density and self.emp_valid:
-            self.make_plot_pca_contour('empirical', 'aux_data', pca_model=aux_pca_model)
-        if self.num_empirical >= self.min_num_emp_density and self.has_emp_real:
-            self.make_plot_pca_contour('empirical', 'labels', pca_model=lbl_pca_model)
+            lbl_pca_model = self.make_plot_pca_hexbin('train', 'labels')
+        # if self.num_empirical >= self.min_num_emp_density:
+        #     self.make_plot_pca_contour('empirical', 'aux_data', pca_model=aux_pca_model)
+        # if self.num_empirical >= self.min_num_emp_density and self.has_emp_real:
+        #     self.make_plot_pca_contour('empirical', 'labels', pca_model=lbl_pca_model)
 
         # scatter accuracy
         if self.has_train_real:
@@ -395,8 +392,8 @@ class Plotter:
             self.make_plot_emp_ci()
 
         # bar plot for categorical in empirical dataset
-        if self.has_emp_cat:
-            self.make_plot_emp_cat()
+        # if self.has_emp_cat:
+            # self.make_plot_emp_cat()
 
         # training history stats
         self.make_plot_train_history()
@@ -463,20 +460,20 @@ class Plotter:
         """Calls plot_scatter_accuracy with arguments."""
         assert dataset_name in ['train', 'test']
 
-        n_max = 250
+        # n_max = self.plot_num_scatter
         if dataset_name == 'train':
             # plot train scatter
-            n = min(n_max, self.train_est_real.shape[0])
-            self.plot_scatter_accuracy(ests=self.train_est_real.iloc[0:n].copy(),
-                                       labels=self.train_true_real.iloc[0:n].copy(),
+            # n = min(n_max, self.train_est_real.shape[0])
+            self.plot_scatter_accuracy(ests=self.train_est_real.copy(),
+                                       labels=self.train_true_real.copy(),
                                        prefix=self.save_train_est_fn,
                                        color=self.plot_train_color,
                                        title='Train')
         elif dataset_name == 'test':
             # plot test scatter
-            n = min(n_max, self.test_est_real.shape[0])
-            self.plot_scatter_accuracy(ests=self.test_est_real.iloc[0:n].copy(),
-                                       labels=self.test_true_real.iloc[0:n].copy(),
+            # n = min(n_max, self.test_est_real.shape[0])
+            self.plot_scatter_accuracy(ests=self.test_est_real.copy(),
+                                       labels=self.test_true_real.copy(),
                                        prefix=self.save_test_est_fn,
                                        color=self.plot_test_color,
                                        title='Test')
@@ -568,8 +565,8 @@ class Plotter:
             
         return
 
-    def make_plot_pca_contour(self, dataset_name, dataset_type, pca_model=None):
-        """Calls plot_pca_contour with arguments."""
+    def make_plot_pca_hexbin(self, dataset_name, dataset_type, pca_model=None):
+        """Calls plot_pca_hexbin with arguments."""
         assert dataset_name in ['train', 'empirical']
         assert dataset_type in ['aux_data', 'labels']
 
@@ -589,7 +586,7 @@ class Plotter:
         mdl = None
         num_comp = 4
         if dataset_name == 'train' and dataset_type == 'aux_data':
-            mdl = self.plot_pca_contour(save_fn=self.save_train_pca_aux_data_fn,
+            mdl = self.plot_pca_hexbin(save_fn=self.save_train_pca_aux_data_fn,
                                         dist_values=train_aux_data,
                                         point_values=emp_aux_data,
                                         pca_model=pca_model,
@@ -600,7 +597,7 @@ class Plotter:
         elif dataset_name == 'train' and dataset_type == 'labels':
             if train_labels_real.shape[1] <= 1:
                 return None
-            mdl = self.plot_pca_contour(save_fn=self.save_train_pca_labels_fn,
+            mdl = self.plot_pca_hexbin(save_fn=self.save_train_pca_labels_fn,
                                         dist_values=train_labels_real,
                                         point_values=emp_est_real,
                                         pca_model=pca_model,
@@ -608,25 +605,25 @@ class Plotter:
                                         color=self.plot_label_color,
                                         title='training labels')
 
-        elif dataset_name == 'empirical' and dataset_type == 'aux_data':
-            mdl = self.plot_pca_contour(save_fn=self.save_emp_pca_aux_data_fn,
-                                        dist_values=emp_aux_data,
-                                        point_values=None,
-                                        pca_model=pca_model,
-                                        num_comp=num_comp,
-                                        color=self.plot_aux_color,
-                                        title='empirical aux. data')
-
-        elif dataset_name == 'empirical' and dataset_type == 'labels':
-            if emp_est_real.shape[1] <= 1:
-                return None
-            mdl = self.plot_pca_contour(save_fn=self.save_emp_pca_labels_fn,
-                                        dist_values=emp_est_real,
-                                        point_values=None,
-                                        pca_model=pca_model,
-                                        num_comp=num_comp,
-                                        color=self.plot_label_color,
-                                        title='empirical labels')
+        # elif dataset_name == 'empirical' and dataset_type == 'aux_data':
+        #     mdl = self.plot_pca_hexbin(save_fn=self.save_emp_pca_aux_data_fn,
+        #                                 dist_values=emp_aux_data,
+        #                                 point_values=None,
+        #                                 pca_model=pca_model,
+        #                                 num_comp=num_comp,
+        #                                 color=self.plot_aux_color,
+        #                                 title='empirical aux. data')
+        # 
+        # elif dataset_name == 'empirical' and dataset_type == 'labels':
+        #     if emp_est_real.shape[1] <= 1:
+        #         return None
+        #     mdl = self.plot_pca_hexbin(save_fn=self.save_emp_pca_labels_fn,
+        #                                 dist_values=emp_est_real,
+        #                                 point_values=None,
+        #                                 pca_model=pca_model,
+        #                                 num_comp=num_comp,
+        #                                 color=self.plot_label_color,
+        #                                 title='empirical labels')
         
         # todo: fix PCA num columns/labels
         mdl = None
@@ -634,7 +631,7 @@ class Plotter:
 
     def make_plot_emp_ci(self):
         """Calls plot_est_CI with arguments."""
-        max_num = np.min([self.max_num_emp_point, self.num_empirical])
+        max_num = np.min([self.plot_max_num_emp_ind, self.num_empirical])
         for i in range(max_num):
             save_fn = f'{self.save_cpi_est_fn}_real_{i}.pdf'
             title = f'Estimate: {self.est_prefix}.empirical.{i}'
@@ -646,7 +643,7 @@ class Plotter:
 
     def make_plot_emp_cat(self):
         """Calls plot_emp_cat with arguments."""
-        max_num = np.min([self.max_num_emp_point, self.num_empirical])
+        max_num = np.min([self.plot_max_num_emp_ind, self.num_empirical])
         for i in range(max_num):
             save_fn = f'{self.save_cpi_est_fn}_cat_{i}.pdf'
             title = f'Estimate: {self.est_prefix}.empirical.{i}'
@@ -766,8 +763,12 @@ class Plotter:
                 ax.annotate(aux_lower_str, xy=(x_pos, y_pos-1*dy_pos), xycoords='axes fraction', fontsize=10, horizontalalignment=ha, verticalalignment='top')
                 ax.annotate(aux_upper_str, xy=(x_pos, y_pos-2*dy_pos), xycoords='axes fraction', fontsize=10, horizontalalignment=ha, verticalalignment='top')
                 
-                if point_values is not None and p in point_values:
-                    x_data = point_values[p][0]
+                p_point = p
+                if point_values is not None and p not in point_values:
+                    p_point = f'{p}_value'
+                    
+                if point_values is not None and p_point in point_values:
+                    x_data = point_values[p_point][0]
                     y_data = kde(x_data)
                     q_true = np.sum(x < x_data) / len(x)
                     ax.vlines(x_data, 0, y_data, color='red')
@@ -794,10 +795,10 @@ class Plotter:
         # done
         return
     
-    def plot_pca_contour(self, save_fn, dist_values, point_values=None,
+    def plot_pca_hexbin(self, save_fn, dist_values, point_values=None,
                          pca_model=None, num_comp=4, color='blue', title=''):
         """
-        Plots PCA Contour Plot.
+        Plots PCA Hexbin Plot.
 
         This function plots the PCA for simulated training aux. data examples.
         The function plots a grid of pairs of principal components. It will also
@@ -852,13 +853,13 @@ class Plotter:
         if point_values is not None:
             point_values.columns = [ p.replace('_value','') for p in point_values.columns ]
             point_values = point_values[ dist_values.columns ]
-            #point_values = np.log(point_values + self.log_offset)
+            # point_values = np.log(point_values + self.log_offset)
             point_values = scaler.transform(point_values)
             pca_est = pca_model.transform(point_values)
         
         # figure dimensions
         fig, axs = plt.subplots(num_comp-1, num_comp-1,
-                                sharex=True, sharey=True,
+                                sharex=False, sharey=False,
                                 figsize=(fig_width, fig_height))
 
         # use this to turn off subplots
@@ -886,32 +887,9 @@ class Plotter:
 
                 # Perform the kernel density estimate
                 xx, yy = np.mgrid[xmin:xmax:100j, ymin:ymax:100j]
-                positions = np.vstack([xx.ravel(), yy.ravel()])
-                values = np.vstack([x, y])
-                kernel = sp.stats.gaussian_kde(values)
-                f = np.reshape(kernel(positions).T, xx.shape)
-                n_levels = 6
-                extent = (-4,4,-4,4)
-                cfset = axs[i,j].contourf(xx, yy, f, levels=n_levels,
-                                          extend='both', cmap=cmap0)
-                cset = axs[i,j].contour(xx, yy, f, levels=n_levels,
-                                        extend='both', linewidths=0.5,
-                                        colors='k')
-                axs[i,j].clabel(cset, inline=1, fontsize=6)
-
-                # # loads
-                # if plot_pca_loadings:
-                #     nn = pca_coef.shape[0]
-                #     for k in range(nn):
-                #         axs[i,j].arrow(x=0,y=0,
-                #                     dx=pca_coef[k,i]*yscale/2,
-                #                     dy=pca_coef[k,j]*xscale/2,
-                #                     color='black',alpha=0.75, width=0.05)
-                #         axs[i,j].text(pca_coef[k,i]*yscale,
-                #                     pca_coef[k,j]*xscale,
-                #                     self.train_aux_data_names[k],
-                #                     color='black', fontsize=8,
-                #                     ha='center',va='center')
+                axs[i,j].hexbin(x, y, gridsize=(19,13), bins=10,
+                                cmap=cmap0, linewidths=0.1, vmin=0)
+                
                     
                 if pca_est is not None:
                     axs[i,j].scatter(pca_est[:,i+1], pca_est[:,j],
@@ -931,8 +909,10 @@ class Plotter:
                     var = int(100*round(pca_var[j], ndigits=2))
                     xlabel = f'PC{idx} ({var}%)'
                     axs[i,j].set_xlabel(xlabel, fontsize=12)
+                    
+                axs[i,j].set_xlim(xmin, xmax)
+                axs[i,j].set_ylim(ymin, ymax)
                 
-        plt.tight_layout()
         fig.suptitle(f'PCA: {title}')
         fig.tight_layout(rect=[0, 0.03, 1, 0.98])
         plt.savefig(save_fn, format='pdf', dpi=300, bbox_inches='tight')
@@ -969,6 +949,8 @@ class Plotter:
         # create figure
         plt.figure(figsize=(fig_width,fig_height))
 
+        max_num = np.min([self.plot_num_scatter, ests.shape[0]])
+        
         # plot parameters
         for i,p in enumerate(labels.columns):
 
@@ -1024,7 +1006,14 @@ class Plotter:
             s_cover_target = '{:.1f}%'.format(f_stat_cover_target)
             
             # covered points
-            alpha = 0.5     # 50. / len(y_cover)
+            alpha = 0.5
+            # downsample
+            lbl_true = lbl_true[0:max_num]
+            lbl_est = lbl_est[0:max_num]
+            lbl_lower = lbl_lower[0:max_num]
+            lbl_upper = lbl_upper[0:max_num]
+            stat_cover = stat_cover[0:max_num]
+            stat_not_cover = stat_not_cover[0:max_num]
             plt.scatter(lbl_true[stat_cover], lbl_est[stat_cover],
                         alpha=alpha, c=color, zorder=3, s=3)
             # covered bars
@@ -1035,11 +1024,11 @@ class Plotter:
             
             # not covered points
             plt.scatter(lbl_true[stat_not_cover], lbl_est[stat_not_cover],
-                        alpha=alpha, c='red', zorder=5, s=3)
+                        alpha=alpha, c='#aaaaaa', zorder=5, s=3)
             # not covered bars
             plt.plot([lbl_true[stat_not_cover], lbl_true[stat_not_cover]],
                      [lbl_lower[stat_not_cover], lbl_upper[stat_not_cover]],
-                     color='red', alpha=alpha, linestyle="-", marker='_',
+                     color='#aaaaaa', alpha=alpha, linestyle="-", marker='_',
                      linewidth=0.5, zorder=4 )
             
             # regression line
@@ -1336,16 +1325,17 @@ class Plotter:
         files = []
     
         for f in files_unsorted:
-            has_pdf = '.pdf' in f
-            has_prefix = self.plt_prefix in f
-            has_all_not = 'summary' not in f
+            tok = f.split('.')
+            has_prefix = self.plt_prefix == tok[0]
+            has_all_not = 'summary' not in tok[1:-1]
+            has_pdf = 'pdf' == tok[-1]
             if all([has_pdf, has_prefix, has_all_not]):
                 files.append(f)
     
         # get files for different categories
         files_emp_real   = self.filter_files(files, 'empirical_estimate_real')
         files_emp_cat    = self.filter_files(files, 'empirical_estimate_cat')
-        files_pca        = self.filter_files(files, 'pca_contour')
+        files_pca        = self.filter_files(files, 'pca')
         files_density    = self.filter_files(files, 'density')
         files_train      = self.filter_files(files, 'train_estimate')
         files_test       = self.filter_files(files, 'test_estimate')

@@ -40,14 +40,12 @@ def load(args):
     """
 
     # load object
-    trn_objective = args['trn_objective']
-    if trn_objective == 'param_est':
+    train_method = 'default'
+    if train_method == 'default':
         return CnnTrainer(args)
-    elif trn_objective == 'model_test':
-        raise NotImplementedError
     else:
         return NotImplementedError
-
+    
 ##################################################
 
 
@@ -164,12 +162,17 @@ class Trainer:
         util.print_str(f'▪ Start time of {start_time_str}', verbose)
 
         # perform run tasks
-        util.print_str('▪ Loading input...', verbose)
+        util.print_str('▪ Loading input:', verbose)
         self.load_input()
         num_rjust = len(str(len(self.train_dataset)))
-        util.print_str(f'  ▪ ' + str(len(self.train_dataset)).rjust(num_rjust) + ' training examples')
-        util.print_str(f'  ▪ ' + str(len(self.calib_dataset)).rjust(num_rjust) + ' calibration examples')
-        util.print_str(f'  ▪ ' + str(len(self.val_dataset)).rjust(num_rjust) + ' validation examples')
+        util.print_str(f'  ▪ ' + str(len(self.train_dataset)).rjust(num_rjust) + ' training examples', verbose)
+        util.print_str(f'  ▪ ' + str(len(self.calib_dataset)).rjust(num_rjust) + ' calibration examples', verbose)
+        util.print_str(f'  ▪ ' + str(len(self.val_dataset)).rjust(num_rjust) + ' validation examples', verbose)
+
+        util.print_str('▪ Training targets:', verbose)
+        num_ljust = max([len(k) for k in self.param_est.keys()])
+        for k,v in self.param_est.items():
+            util.print_str(f'  ▪ {k.ljust(num_ljust)}  [{v}]', verbose)
 
         util.print_str('▪ Building network', verbose)
         self.build_network()

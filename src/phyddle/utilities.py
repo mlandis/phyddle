@@ -157,7 +157,7 @@ def settings_registry():
         'save_phyenc_csv'  : { 'step':'F',    'type':str,   'section':'Format', 'default':'F',            'help':'Save encoded phylogenetic tensor encoding to csv?', 'bool':True },
         
         # training options
-        'trn_objective'    : { 'step':'T',   'type':str,   'section':'Train', 'default':'param_est',   'help':'Objective of training procedure', 'choices':['param_est'] },
+        # 'trn_objective'    : { 'step':'T',   'type':str,   'section':'Train', 'default':'param_est',   'help':'Objective of training procedure', 'choices':['param_est'] },
         'num_epochs'       : { 'step':'TEP', 'type':int,   'section':'Train', 'default':20,            'help':'Number of training epochs' },
         'trn_batch_size'   : { 'step':'TEP', 'type':int,   'section':'Train', 'default':512,           'help':'Training batch sizes' },
         'prop_test'        : { 'step':'FT',  'type':float, 'section':'Train', 'default':0.05,          'help':'Proportion of data used as test examples (assess trained network performance)' },
@@ -168,7 +168,7 @@ def settings_registry():
         'cpi_asymmetric'   : { 'step':'T',   'type':str,   'section':'Train', 'default':'T',           'help':'Use asymmetric (True) or symmetric (False) adjustments for CPIs?', 'bool':True },
         'loss_real'        : { 'step':'T',   'type':str,   'section':'Train', 'default':'mse',         'help':'Loss function for real value estimates', 'choices':['mse', 'mae']},
         'optimizer'        : { 'step':'T',   'type':str,   'section':'Train', 'default':'adam',        'help':'Method used for optimizing neural network', 'choices':['adam'] },
-        'metrics'          : { 'step':'T',   'type':list,  'section':'Train', 'default':['mae','acc'], 'help':'Recorded training metrics' },
+        # 'metrics'          : { 'step':'T',   'type':list,  'section':'Train', 'default':['mae','acc'], 'help':'Recorded training metrics' },
         'log_offset'       : { 'step':'FTEP', 'type':float, 'section':'Train', 'default':1.0,          'help':'Offset size c when taking ln(x+c) for zero-valued variables' },
         'phy_channel_plain'  : { 'step':'T',   'type':list,  'section':'Train', 'default':[64,96,128],   'help':'Output channel sizes for plain convolutional layers for phylogenetic state input' },
         'phy_channel_stride' : { 'step':'T',   'type':list,  'section':'Train', 'default':[64,96],       'help':'Output channel sizes for stride convolutional layers for phylogenetic state input' },
@@ -185,14 +185,14 @@ def settings_registry():
         
         # plotting options
         'plot_train_color' : { 'step':'P',  'type':str, 'section':'Plot', 'default':'blue',   'help':'Plotting color for training data elements' },
-        'plot_label_color' : { 'step':'P',  'type':str, 'section':'Plot', 'default':'orange', 'help':'Plotting color for training label elements' },
         'plot_test_color'  : { 'step':'P',  'type':str, 'section':'Plot', 'default':'purple', 'help':'Plotting color for test data elements' },
         'plot_val_color'   : { 'step':'P',  'type':str, 'section':'Plot', 'default':'red',    'help':'Plotting color for validation data elements' },
+        'plot_label_color' : { 'step':'P',  'type':str, 'section':'Plot', 'default':'orange', 'help':'Plotting color for label elements' },
         'plot_aux_color'   : { 'step':'P',  'type':str, 'section':'Plot', 'default':'green',  'help':'Plotting color for auxiliary data elements' },
-        'plot_est_color'   : { 'step':'P',  'type':str, 'section':'Plot', 'default':'black',  'help':'Plotting color for new estimation elements' },
-        'plot_scatter_log' : { 'step':'P',  'type':str, 'section':'Plot', 'default':'T',      'help':'Use log values for scatter plots when possible?', 'bool':True },
-        'plot_contour_log' : { 'step':'P',  'type':str, 'section':'Plot', 'default':'T',      'help':'Use log values for contour plots when possible?', 'bool':True },
-        'plot_density_log' : { 'step':'P',  'type':str, 'section':'Plot', 'default':'T',      'help':'Use log values for density plots when possible?', 'bool':True },
+        'plot_emp_color'   : { 'step':'P',  'type':str, 'section':'Plot', 'default':'black',  'help':'Plotting color for empirical elements' },
+        'plot_num_scatter' : { 'step':'P',  'type':int, 'section':'Plot', 'default':50,       'help':'Number of examples in scatter plot' },
+        'plot_min_emp'     : { 'step':'P',  'type':int, 'section':'Plot', 'default':10,       'help':'Minimum number of empirical datasets to plot densities' },
+        'plot_num_emp'     : { 'step':'P',  'type':int, 'section':'Plot', 'default':5,        'help':'Number of empirical results to plot' },
     }
 
     # Developer note: uncomment to export settings to file

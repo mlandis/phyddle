@@ -57,13 +57,18 @@ args = {
     'brlen_encode'      : 'height_brlen',   # how to encode phylo brlen? height_only or height_brlen
     'char_encode'       : 'numeric',        # how to encode discrete states? one_hot or integer
     'param_est'         : {                 # model parameters to predict (labels)
-                           'log10_process_var':'real',
-                           'log10_process_kurt':'real',
-                           #'log10_frac_of_var':'real',
-                           'trait_orig':'real'
+                           #'log10_process_var':'real',
+                           #'log10_process_kurt':'real',
+                           #'frac_of_var':'real',
+                           'log10_sigma_bm':'real',
+                           'log10_lambda_jn':'real',
+                           'log10_delta_jn':'real',
+    #                       'log10_sigma_tip':'real',
+                           'trait_orig':'real',
+    #                       'model_type':'cat'
                           },
     'param_data'        : {                 # model parameters that are known (aux. data)
-                           'log10_sample_frac':'real',
+                           'sample_frac':'real',
                            'trait_min':'real',
                            'trait_max':'real'
                           },
@@ -75,14 +80,14 @@ args = {
     # Train Step settings           #
     #-------------------------------#
     'trn_objective'     : 'param_est',      # what is the learning task? param_est or model_test
-    'num_epochs'        : 20,               # number of training intervals (epochs)
+    'num_epochs'        : 10,               # number of training intervals (epochs)
     'prop_test'         : 0.05,             # proportion of sims in test dataset
     'prop_val'          : 0.05,             # proportion of sims in validation dataset
     'prop_cal'          : 0.20,             # proportion of sims in CPI calibration dataset
     'combine_test_val'  : 'T',
-    'cpi_coverage'      : 0.95,             # coverage level for CPIs
+    'cpi_coverage'      : 0.80,             # coverage level for CPIs
     'cpi_asymmetric'    : 'T',              # upper/lower ('T') or symmetric ('F') CPI adjustments
-    'batch_size'        : 256,              # number of samples in each training batch
+    'batch_size'        : 2048,              # number of samples in each training batch
     'loss'              : 'mae',            # loss function for learning
     'optimizer'         : 'adam',           # optimizer for network weight/bias parameters
     'metrics'           : ['mae', 'acc'],   # recorded training metrics

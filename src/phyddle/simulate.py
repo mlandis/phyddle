@@ -355,15 +355,20 @@ class Simulator:
             # replicate is valid if it has all three files
             if has_phy and has_lbl and has_dat:
                 valid_all.append(int(idx))
+
+        # check files
+        n_phy = len(valid_phy)
+        n_lbl = len(valid_lbl)
+        n_dat = len(valid_dat)
+        num_rjust = len(str(max([n_phy,n_dat,n_lbl])))
+        util.print_str(f'▪ Total counts of simulated files:', self.verbose)
+        util.print_str(f'  ▪ ' + str(n_phy).rjust(num_rjust) + ' phylogeny files', self.verbose)
+        util.print_str(f'  ▪ ' + str(n_dat).rjust(num_rjust) + ' data files', self.verbose)
+        util.print_str(f'  ▪ ' + str(n_lbl).rjust(num_rjust) + ' labels files', self.verbose)
         
         if len(valid_all) == 0:
-            n_phy = len(valid_phy)
-            n_lbl = len(valid_lbl)
-            n_dat = len(valid_dat)
             util.print_warn(f'{self.sim_dir} contains no valid simulations.'
-                            f' File counts: {n_phy} trees, {n_lbl} labels,'
-                            f' {n_dat} data matrices. Verify that simulation '
-                            f'command:\n\n'
+                            f'Verify that simulation command:\n\n'
                             f'\t{self.sim_command} {self.sim_dir} {self.sim_prefix} 0 1\n\n'
                             f'works as intended with the provided configuration.')
             
