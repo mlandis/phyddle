@@ -15,13 +15,14 @@ args = {
     'step'    : 'SFTEP',                   # Step(s) to run
     'verbose' : 'T',                       # print verbose phyddle output?
     'prefix'  : 'out',                     # Prefix for output for all setps
-    'sim_dir'     : f'{work_dir}/simulate',    # Directory for simulated data
-    'emp_dir'     : f'{work_dir}/empirical',   # Directory for empirical data
-    'fmt_dir'     : f'{work_dir}/format',      # Directory for tensor-formatted data
-    'trn_dir'     : f'{work_dir}/train',       # Directory for trained network
-    'plt_dir'     : f'{work_dir}/plot',        # Directory for plotted figures
-    'est_dir'     : f'{work_dir}/estimate',    # Directory for predictions on new data
-    'log_dir'     : f'{work_dir}/log',         # Directory for analysis logs
+    'dir'     : work_dir,
+    #'sim_dir'     : f'{work_dir}/simulate',    # Directory for simulated data
+    #'emp_dir'     : f'{work_dir}/empirical',   # Directory for empirical data
+    #'fmt_dir'     : f'{work_dir}/format',      # Directory for tensor-formatted data
+    #'trn_dir'     : f'{work_dir}/train',       # Directory for trained network
+    #'plt_dir'     : f'{work_dir}/plot',        # Directory for plotted figures
+    #'est_dir'     : f'{work_dir}/estimate',    # Directory for predictions on new data
+    #'log_dir'     : f'{work_dir}/log',         # Directory for analysis logs
     'output_precision'   : 12,             # Number of digits (precision) for numbers in output files
 
     #-------------------------------#
@@ -52,12 +53,12 @@ args = {
     'brlen_encode'      : 'height_brlen',   # how to encode phylo brlen? height_only or height_brlen
     'char_encode'       : 'integer',        # how to encode discrete states? one_hot or integer
     'param_est'         : {                 # model parameters to predict (labels)
-#                           'log10_birth_1'     : 'real',
-#                           'log10_birth_2'     : 'real',
-#                           'log10_death'       : 'real',
-#                           'log10_state_rate'  : 'real',
-                           'model_type'        : 'cat',
-                           'start_state'       : 'cat',
+                           'log10_birth_1'     : 'real',
+                           'log10_birth_2'     : 'real',
+                           'log10_death'       : 'real',
+                           'log10_state_rate'  : 'real',
+#                           'model_type'        : 'cat',
+#                           'start_state'       : 'cat',
                           },
     'param_data'        : {                 # model parameters that are known (aux. data)
                           # 'log10_sample_frac' : 'real'

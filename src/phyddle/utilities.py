@@ -117,20 +117,21 @@ def settings_registry():
         'no_sim'           : { 'step':'',    'type':None, 'section':'Analysis', 'default':False,  'help':'Disable Format/Estimate steps for simulated data?' },
         
         # directories
-        'prefix'           : { 'step':'SFTEP', 'type':str, 'section':'Workspace', 'default':'out',                                   'help':'Prefix for all output unless step prefix given' },
-        'sim_prefix'       : { 'step':'SF',    'type':str, 'section':'Workspace', 'default':None,                                   'help':'Prefix for raw simulated data' },
-        'emp_prefix'       : { 'step':'SF',    'type':str, 'section':'Workspace', 'default':None,                                   'help':'Prefix for raw empirical data' },
-        'fmt_prefix'       : { 'step':'FTEP',  'type':str, 'section':'Workspace', 'default':None,                                   'help':'Prefix for tensor-formatted data' },
-        'trn_prefix'       : { 'step':'FTEP',  'type':str, 'section':'Workspace', 'default':None,                                   'help':'Prefix for trained networks and training output' },
-        'est_prefix'       : { 'step':'TEP',   'type':str, 'section':'Workspace', 'default':None,                                   'help':'Prefix for new datasets and estimates' },
-        'plt_prefix'       : { 'step':'P',     'type':str, 'section':'Workspace', 'default':None,                                   'help':'Prefix for plotted results' },
-        'sim_dir'          : { 'step':'SF',    'type':str, 'section':'Workspace', 'default':'./workspace/project/simulate',       'help':'Directory for raw simulated data' },
-        'emp_dir'          : { 'step':'SF',    'type':str, 'section':'Workspace', 'default':'./workspace/project/empirical',      'help':'Directory for raw empirical data' },
-        'fmt_dir'          : { 'step':'FTEP',  'type':str, 'section':'Workspace', 'default':'./workspace/project/format',         'help':'Directory for tensor-formatted data' },
-        'trn_dir'          : { 'step':'FTEP',  'type':str, 'section':'Workspace', 'default':'./workspace/project/train',          'help':'Directory for trained networks and training output' },
-        'est_dir'          : { 'step':'TEP',   'type':str, 'section':'Workspace', 'default':'./workspace/project/estimate',       'help':'Directory for new datasets and estimates' },
-        'plt_dir'          : { 'step':'P',     'type':str, 'section':'Workspace', 'default':'./workspace/project/plot',           'help':'Directory for plotted results' },
-        'log_dir'          : { 'step':'SFTEP', 'type':str, 'section':'Workspace', 'default':'./workspace/project/log',            'help':'Directory for logs of analysis metadata' },
+        'prefix'           : { 'step':'SFTEP', 'type':str, 'section':'Workspace', 'default':'out',                        'help':'Prefix for all output unless step prefix given' },
+        'sim_prefix'       : { 'step':'SF',    'type':str, 'section':'Workspace', 'default':None,                         'help':'Prefix for raw simulated data' },
+        'emp_prefix'       : { 'step':'SF',    'type':str, 'section':'Workspace', 'default':None,                         'help':'Prefix for raw empirical data' },
+        'fmt_prefix'       : { 'step':'FTEP',  'type':str, 'section':'Workspace', 'default':None,                         'help':'Prefix for tensor-formatted data' },
+        'trn_prefix'       : { 'step':'FTEP',  'type':str, 'section':'Workspace', 'default':None,                         'help':'Prefix for trained networks and training output' },
+        'est_prefix'       : { 'step':'TEP',   'type':str, 'section':'Workspace', 'default':None,                         'help':'Prefix for estimate results' },
+        'plt_prefix'       : { 'step':'P',     'type':str, 'section':'Workspace', 'default':None,                         'help':'Prefix for plotted results' },
+        'dir'              : { 'step':'SFTEP', 'type':str, 'section':'Workspace', 'default':'./workspace/project',        'help':'Parent directory for all step directories unless step directory given'},
+        'sim_dir'          : { 'step':'SF',    'type':str, 'section':'Workspace', 'default':None,                         'help':'Directory for raw simulated data' },
+        'emp_dir'          : { 'step':'SF',    'type':str, 'section':'Workspace', 'default':None,                         'help':'Directory for raw empirical data' },
+        'fmt_dir'          : { 'step':'FTEP',  'type':str, 'section':'Workspace', 'default':None,                         'help':'Directory for tensor-formatted data' },
+        'trn_dir'          : { 'step':'FTEP',  'type':str, 'section':'Workspace', 'default':None,                         'help':'Directory for trained networks and training output' },
+        'est_dir'          : { 'step':'TEP',   'type':str, 'section':'Workspace', 'default':None,                         'help':'Directory for new datasets and estimates' },
+        'plt_dir'          : { 'step':'P',     'type':str, 'section':'Workspace', 'default':None,                         'help':'Directory for plotted results' },
+        'log_dir'          : { 'step':'SFTEP', 'type':str, 'section':'Workspace', 'default':None,                         'help':'Directory for logs of analysis metadata' },
 
         # simulation options
         'sim_command'      : { 'step':'S',  'type':str, 'section':'Simulate', 'default':None,    'help':'Simulation command to run single job (see documentation)' },
@@ -372,10 +373,7 @@ def load_config(config_fn,
     check_args(m)
     
     # handle project prefix
-    for p in ['sim','fmt','trn','est','plt']:
-        k = f'{p}_prefix'
-        if k not in m:
-            m[k] = m['prefix']
+    m = set_step_args(m)
     
     # set steps & projects
     # m = add_step_proj(m)
@@ -424,6 +422,30 @@ def str2bool(x):
         return False
     else:
         return None
+
+def set_step_args(args):
+    """Sets step-specific arguments for a project."""
+    
+    proj_dict = {
+        'sim':'simulate',
+        'emp':'empirical',
+        'fmt':'format',
+        'trn':'train',
+        'est':'estimate',
+        'plt':'plot',
+        'log':'log'
+    }
+
+    for k,v in proj_dict.items():
+        k_prefix = f'{k}_prefix'
+        k_dir = f'{k}_dir'
+        if k_prefix not in args:
+            args[k_prefix] = args['prefix']
+        if k_dir not in args:
+            args[k_dir] = args['dir'] + '/' + v
+
+    return args
+    
 
 def check_args(args):
     """Checks if the given arguments meet certain conditions.
