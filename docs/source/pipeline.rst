@@ -297,6 +297,9 @@ want to treat as "known" auxiliary data.
 
 .. code-block:: python
 
+    # Settings in config.py
+
+    # "unknown" parameters to estimate
     'param_est' : {
         'log10_birth_rate' : 'real',
         'log10_death_rate' : 'real',
@@ -305,6 +308,7 @@ want to treat as "known" auxiliary data.
         'root_state' : 'cat'
     }
     
+    # "known" parameters to use as auxiliary data
     'param_data' : {
         'sample_frac' : 'real'
     }
@@ -316,16 +320,17 @@ step. The values are the data types of the parameters. Data types may be either
 
 .. note::
 
-    Real-valued parameters may have values that are negative, positive, or zero.
-    We recommend that you transform numerical parameters into real-valued for
-    use with phyddle. For example, although an evolutionary rate parameter is
-    non-negative, the log of that rate can be negative, positive, or zero.
+    Real-valued parameters have ordered values that are negative, positive,
+    or zero. We recommend that you transform numerical parameters into
+    real values for use with phyddle. For example, although an evolutionary
+    rate parameter is non-negative, the log of that rate can be negative,
+    positive, or zero.
     
 .. note::
 
     Categorical parameters have unordered values. They are encoded using 
     base-0 sequential integers. For example, the nucleotides for an ancestral
-    state estimation task would use ``0, 1, 2, 3`` to represent A, C, G, T.    
+    state estimation task would use ``0, 1, 2, 3`` to represent A, C, G, T.
 
 Lastly, Format creates a test dataset containing proportion ``test_prop`` of
 all simulated examples, and a second training dataset that contains all
@@ -333,29 +338,29 @@ remaining ``1.0 - test_prop`` examples.
 
 Formatted tensors are then saved to disk either in simple comma-separated
 value format or in a compressed HDF5 format. For example, suppose we set
-``fmt_dir`` to ``'./workspace/format/example'``, ``fmt_prefix`` to ``'out'``,
+``fmt_dir`` to ``'./format'``, ``fmt_prefix`` to ``'out'``,
 and ``tree_encode`` to ``'serial'``. If we set ``tensor_format == 'hdf5'``,
 it produces:
 
 .. code-block:: shell
 
-    workspace/example/format/out.empirical.hdf5
-    workspace/example/format/out.test.hdf5
-    workspace/example/format/out.train.hdf5
+    ./format/out.empirical.hdf5
+    ./format/out.test.hdf5
+    ./format/out.train.hdf5
 
 or if ``tensor_format == 'csv'``:
 
 .. code-block:: shell
 
-    workspace/example/format/out.empirical.aux_data.csv
-    workspace/example/format/out.empirical.labels.csv
-    workspace/example/format/out.empirical.phy_data.csv
-    workspace/example/format/out.test.aux_data.csv
-    workspace/example/format/out.test.labels.csv
-    workspace/example/format/out.test.phy_data.csv
-    workspace/example/format/out.train.aux_data.csv
-    workspace/example/format/out.train.labels.csv
-    workspace/example/format/out.train.phy_data.csv
+    ./format/out.empirical.aux_data.csv
+    ./format/out.empirical.labels.csv
+    ./format/out.empirical.phy_data.csv
+    ./format/out.test.aux_data.csv
+    ./format/out.test.labels.csv
+    ./format/out.test.phy_data.csv
+    ./format/out.train.aux_data.csv
+    ./format/out.train.labels.csv
+    ./format/out.train.phy_data.csv
 
 :ref:`Format` behaves the same way for simulated vs. empirical datasets,
 except in two key ways. First, simulated datasets will be split into datasets
@@ -374,18 +379,18 @@ When searching for empirical and simulated datasets, :ref:`Format` uses
 ``sim_prefix`` settings are used to identify the datasets. :ref:`Format`
 assumes that empirical datasets follow the naming pattern of
 ``<prefix>.<rep_idx>.<ext>`` described for :ref:`Simulate`. For example,
-setting ``emp_dir`` to ``'./workspace/dnds/empirical'`` and ``emp_prefix``
+setting ``emp_dir`` to ``'../dnds/empirical'`` and ``emp_prefix``
 to ``'mammal_gene'`` will cause :ref:`Format` to search for files with
 these names:
 
 .. code-block:: shell
 
-    workspace/dnds/empirical/mammal_gene.1.tre
-    workspace/dnds/empirical/mammal_gene.1.dat.csv
-    workspace/dnds/empirical/mammal_gene.1.labels.csv  # if using known params
-    workspace/dnds/empirical/mammal_gene.2.tre
-    workspace/dnds/empirical/mammal_gene.2.dat.csv
-    workspace/dnds/empirical/mammal_gene.2.labels.csv  # if using known params
+    ../dnds/empirical/mammal_gene.1.tre
+    ../dnds/empirical/mammal_gene.1.dat.csv
+    ../dnds/empirical/mammal_gene.1.labels.csv  # if using known params
+    ../dnds/empirical/mammal_gene.2.tre
+    ../dnds/empirical/mammal_gene.2.dat.csv
+    ../dnds/empirical/mammal_gene.2.labels.csv  # if using known params
     ...
 
 Using the ``--no_emp`` or ``--no_sim`` flags will instruct :ref:`Format` to
@@ -500,14 +505,14 @@ Estimate
 
 :ref:`Estimate` loads the simulated and empirical test datasets created by
 :ref:`Format` stored in ``fmt_dir`` with prefix ``fmt_prefix``. For example,
-if ``fmt_dir == './workspace/format/example'``, ``fmt_prefix == 'out'``,
+if ``fmt_dir == './format'``, ``fmt_prefix == 'out'``,
 and ``tensor_format == 'hdf5'`` then :ref:`Estimate` will process the
 following files, if they exist: 
 
 .. code-block:: shell
 
-    workspace/example/format/out.test.hdf5
-    workspace/example/format/out.test.empirical.hdf5
+    ./out.test.hdf5
+    ./out.empirical.hdf5
 
 This step then loads a pretrained network for a given ``tree_width`` and
 uses it to estimate parameter values and calibrated prediction intervals
@@ -543,16 +548,19 @@ names supported by `Matplotlib <https://matplotlib.org/stable/gallery/color/name
   red line for empirical dataset; run for training and empirical datasets
 - ``density_<dataset_name>_label.pdf`` - densities of all values in the auxiliary dataset;
   red line for empirical dataset; run for training and empirical datasets
-- ``pca_<dataset_name>_contour_aux_data.pdf`` - pairwise PCA of all values in the auxiliary dataset;
+- ``pca_<dataset_name>_aux_data.pdf`` - pairwise PCA of all values in the auxiliary dataset;
   red dot for empirical dataset; run for training and empirical datasets
-- ``pca_<dataset_name>_contour_label.pdf`` - pairwise PCA of all values in the auxiliary dataset;
+- ``pca_<dataset_name>_label.pdf`` - pairwise PCA of all values in the auxiliary dataset;
   red dot for empirical dataset; run for training and empirical datasets
 - ``train_history.pdf`` - loss performance across epochs for test/validation
   datasets for entire network
-- ``estimate_<dataset_name>_<label_name>.pdf`` - point estimates and calibrated
-  estimation intervals for test or training datasets
-- ``empirical_estimate_<N>.pdf`` - simple plot of point estimates and
+- ``<dataset_name>_estimate_<real_label_name>.pdf`` - point estimates and calibrated
+  estimation intervals of real-valued parameters for test or training datasets
+- ``<dataset_name>_estimate_<cat_label_name>.pdf`` - confusion matrix of categorical
+  parameters for test or training dataset
+- ``empirical_estimate_real_<N>.pdf`` - simple plot of point estimates and
   calibrated prediction intervals for each empirical dataset
+- ``empirical_estimate_cat_<N>.pdf`` - simple bar plot for each empirical dataset
 - ``network_architecture.pdf`` - visualization of Tensorflow architecture
 
 
