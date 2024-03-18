@@ -5,7 +5,6 @@
 # Description:  Simple birth-death and equal-rates CTMC model in R using ape   #
 #==============================================================================#
 
-work_dir = './workspace/levy_r'
 
 args = {
 
@@ -14,19 +13,8 @@ args = {
     #-------------------------------#
     'step'    : 'SFTEP',                   # Step(s) to run
     'verbose' : 'T',                       # print verbose phyddle output?
-  	'sim_prefix'  : 'out',          # Prefix for raw simulated data
-  	'emp_prefix'  : 'out',          # Prefix for raw empirical data
-  	'fmt_prefix'  : 'out',          # Prefix for tensor-formatted data
-  	'trn_prefix'  : 'out',          # Prefix for trained networks and training output
-  	'est_prefix'  : 'out',          # Prefix for new datasets and estimates
-  	'plt_prefix'  : 'out',          # Prefix for plotted results
-    'sim_dir'     : f'{work_dir}/simulate',    # Directory for simulated data
-    'emp_dir'     : f'{work_dir}/empirical',   # Directory for empirical data
-    'fmt_dir'     : f'{work_dir}/format',      # Directory for tensor-formatted data
-    'trn_dir'     : f'{work_dir}/train',       # Directory for trained network
-    'plt_dir'     : f'{work_dir}/plot',        # Directory for plotted figures
-    'est_dir'     : f'{work_dir}/estimate',    # Directory for predictions on new data
-    'log_dir'     : f'{work_dir}/log',         # Directory for analysis logs
+    'prefix'  : 'out',
+    'dir'     : './',
     'output_precision'   : 12,             # Number of digits (precision) for numbers in output files
 
     #-------------------------------#

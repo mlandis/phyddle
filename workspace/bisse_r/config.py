@@ -5,7 +5,7 @@
 # Description:  Simple birth-death and equal-rates CTMC model in R using ape   #
 #==============================================================================#
 
-work_dir = './workspace/bisse_r'
+work_dir = './'
 
 args = {
 

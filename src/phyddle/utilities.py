@@ -443,6 +443,7 @@ def set_step_args(args):
             args[k_prefix] = args['prefix']
         if k_dir not in args:
             args[k_dir] = args['dir'] + '/' + v
+            args[k_dir] = args[k_dir].replace('//', '/')
 
     return args
     
