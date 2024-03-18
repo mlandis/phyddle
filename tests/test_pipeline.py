@@ -89,12 +89,12 @@ def do_sim():
     cmd_args = ['--step', 'S',
                 '--sim_prefix', 'sim',
                 '--sim_dir', sim_dir,
-                '--sim_command', 'Rscript ./workspace/bisse_r/sim_bisse.R',
+                '--sim_command', 'Rscript ./tests/sim_bisse.R',
                 '--end_idx', '100',
                 '--use_parallel', 'F']
 
     # build arguments
-    my_args = util.load_config('./workspace/bisse_r/config.py', arg_overwrite=True, args=cmd_args)
+    my_args = util.load_config('./tests/config.py', arg_overwrite=True, args=cmd_args)
 
     # load simulator
     my_sim = sim.load(my_args)
@@ -174,7 +174,7 @@ def do_fmt():
             shutil.copyfile( f'{test_dir}/simulate/sim.0.{fn}', f'{test_dir}/empirical/emp.0.{fn}' )
 
     # phyddle arguments
-    my_args = util.load_config('./workspace/bisse_r/config.py', arg_overwrite=True, args=cmd_args)
+    my_args = util.load_config('./tests/config.py', arg_overwrite=True, args=cmd_args)
 
     # load simulator
     my_fmt = fmt.load(my_args)
@@ -281,7 +281,7 @@ def do_trn():
                 '--use_parallel', 'F']
 
     # phyddle arguments
-    my_args = util.load_config('./workspace/bisse_r/config.py', arg_overwrite=True, args=cmd_args)
+    my_args = util.load_config('./tests/config.py', arg_overwrite=True, args=cmd_args)
 
     # load trainer
     my_trn = trn.load(my_args)
@@ -382,7 +382,7 @@ def do_est():
                 '--use_parallel', 'F']
 
     # phyddle arguments
-    my_args = util.load_config('./workspace/bisse_r/config.py', arg_overwrite=True, args=cmd_args)
+    my_args = util.load_config('./tests/config.py', arg_overwrite=True, args=cmd_args)
 
     # load estimator
     my_est = est.load(my_args)
@@ -467,7 +467,7 @@ def do_plt():
                 '--use_parallel', 'F']
 
 	# phyddle arguments
-    my_args = util.load_config('./workspace/bisse_r/config.py', arg_overwrite=True, args=cmd_args)
+    my_args = util.load_config('./tests/config.py', arg_overwrite=True, args=cmd_args)
 
     # load estimator
     my_plt = plt.load(my_args)
