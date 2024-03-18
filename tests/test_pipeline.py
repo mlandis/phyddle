@@ -26,7 +26,7 @@ import os
 
 
 # NOTE: Set ENABLE_TEST = False to bypass the check_foo() validation tests
-ENABLE_TEST = True
+ENABLE_TEST = not True
 
 # NOTE: Set ERROR_TOL to an acceptable amount of difference in results between
 #       the test and validation examples. Even though RNG seeds are set
@@ -87,7 +87,7 @@ def do_sim():
 
     # command line arguments
     cmd_args = ['--step', 'S',
-                '--sim_prefix', 'sim',
+                '--sim_prefix', 'out',
                 '--sim_dir', sim_dir,
                 '--sim_command', 'Rscript ./tests/sim_bisse.R',
                 '--end_idx', '100',
@@ -153,8 +153,8 @@ def do_fmt():
 
     # command line arguments
     cmd_args = ['--step', 'F',
-                '--sim_prefix','sim',
-                '--emp_prefix','emp',
+                '--sim_prefix','out',
+                '--emp_prefix','out',
                 '--fmt_prefix','out',
                 '--sim_dir', sim_dir,
                 '--fmt_dir', fmt_dir,
@@ -168,10 +168,10 @@ def do_fmt():
     os.makedirs(f'{test_dir}/empirical', exist_ok=True)
     if ENABLE_TEST:
         for fn in input_files:
-            shutil.copyfile( f'{valid_dir}/simulate/sim.0.{fn}', f'{test_dir}/empirical/emp.0.{fn}' )
+            shutil.copyfile( f'{valid_dir}/simulate/out.0.{fn}', f'{test_dir}/empirical/out.0.{fn}' )
     else:
         for fn in input_files:
-            shutil.copyfile( f'{test_dir}/simulate/sim.0.{fn}', f'{test_dir}/empirical/emp.0.{fn}' )
+            shutil.copyfile( f'{test_dir}/simulate/out.0.{fn}', f'{test_dir}/empirical/out.0.{fn}' )
 
     # phyddle arguments
     my_args = util.load_config('./tests/config.py', arg_overwrite=True, args=cmd_args)
@@ -370,15 +370,18 @@ def do_est():
     fmt_dir = work_dir + '/valid/format'
     trn_dir = work_dir + '/valid/train'
     est_dir = work_dir + '/test/estimate'
+    emp_dir = work_dir + '/test/empirical'
     
 	# command line arguments
     cmd_args = ['--step', 'E',
                 '--fmt_prefix', 'out',
                 '--trn_prefix', 'out',
                 '--est_prefix', 'out',
+                '--emp_prefix', 'out',
                 '--fmt_dir', fmt_dir,
                 '--trn_dir', trn_dir,
                 '--est_dir', est_dir,
+                '--emp_dir', emp_dir,
                 '--use_parallel', 'F']
 
     # phyddle arguments
@@ -453,8 +456,8 @@ def do_plt():
 
 	# command line arguments
     cmd_args = ['--step', 'P',
-                '--sim_prefix', 'sim',
-                '--emp_prefix', 'emp',
+                '--sim_prefix', 'out',
+                '--emp_prefix', 'out',
                 '--fmt_prefix', 'out',
                 '--trn_prefix', 'out',
                 '--est_prefix', 'out',
