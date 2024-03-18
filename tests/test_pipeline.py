@@ -371,7 +371,7 @@ def do_est():
     trn_dir = work_dir + '/valid/train'
     est_dir = work_dir + '/test/estimate'
     emp_dir = work_dir + '/test/empirical'
-    
+   
 	# command line arguments
     cmd_args = ['--step', 'E',
                 '--fmt_prefix', 'out',

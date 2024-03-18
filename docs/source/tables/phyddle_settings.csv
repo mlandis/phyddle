@@ -8,12 +8,7 @@ Setting|Step(s)|Type|Description
 ``num_proc``|SFT––|*int*|Number of cores for multiprocessing (-N for all but N)
 ``no_emp``|–––––|––|Disable Format/Estimate steps for empirical data?
 ``no_sim``|–––––|––|Disable Format/Estimate steps for simulated data?
-``sim_prefix``|SF–––|*str*|Prefix for raw simulated data
-``emp_prefix``|SF–––|*str*|Prefix for raw empirical data
-``fmt_prefix``|–FTEP|*str*|Prefix for tensor-formatted data
-``trn_prefix``|–FTEP|*str*|Prefix for trained networks and training output
-``est_prefix``|––TEP|*str*|Prefix for new datasets and estimates
-``plt_prefix``|––––P|*str*|Prefix for plotted results
+``dir``|SFTEP|*str*|Parent directory for all step directories unless step directory given
 ``sim_dir``|SF–––|*str*|Directory for raw simulated data
 ``emp_dir``|SF–––|*str*|Directory for raw empirical data
 ``fmt_dir``|–FTEP|*str*|Directory for tensor-formatted data
@@ -21,6 +16,13 @@ Setting|Step(s)|Type|Description
 ``est_dir``|––TEP|*str*|Directory for new datasets and estimates
 ``plt_dir``|––––P|*str*|Directory for plotted results
 ``log_dir``|SFTEP|*str*|Directory for logs of analysis metadata
+``prefix``|SFTEP|*str*|Prefix for all output unless step prefix given
+``sim_prefix``|SF–––|*str*|Prefix for raw simulated data
+``emp_prefix``|SF–––|*str*|Prefix for raw empirical data
+``fmt_prefix``|–FTEP|*str*|Prefix for tensor-formatted data
+``trn_prefix``|–FTEP|*str*|Prefix for trained networks and training output
+``est_prefix``|––TEP|*str*|Prefix for estimate results
+``plt_prefix``|––––P|*str*|Prefix for plotted results
 ``sim_command``|S––––|*str*|Simulation command to run single job (see documentation)
 ``sim_logging``|S––––|*str*|Simulation logging style
 ``start_idx``|SF–––|*int*|Start replicate index for simulated training dataset
@@ -37,12 +39,11 @@ Setting|Step(s)|Type|Description
 ``tree_encode``|–FTE–|*str*|Encoding strategy for tree
 ``brlen_encode``|–FTE–|*str*|Encoding strategy for branch lengths
 ``char_encode``|–FTE–|*str*|Encoding strategy for character data
-``param_est``|–FTE–|*str[]*|Model parameters to estimate
-``param_data``|–FTE–|*str[]*|Model parameters treated as data
+``param_est``|–FTE–|*dict*|Model parameters and variables to estimate
+``param_data``|–FTE–|*dict*|Model parameters and variables treated as data
 ``char_format``|–FTE–|*str*|File format for character data
 ``tensor_format``|–FTEP|*str*|File format for training example tensors
 ``save_phyenc_csv``|–F–––|*str*|Save encoded phylogenetic tensor encoding to csv?
-``trn_objective``|––T––|*str*|Objective of training procedure
 ``num_epochs``|––TEP|*int*|Number of training epochs
 ``trn_batch_size``|––TEP|*int*|Training batch sizes
 ``prop_test``|–FT––|*float*|Proportion of data used as test examples (assess trained network performance)
@@ -50,10 +51,9 @@ Setting|Step(s)|Type|Description
 ``prop_cal``|––T––|*float*|Proportion of data used as calibration examples (calibrate CPIs)
 ``cpi_coverage``|––T––|*float*|Expected coverage percent for calibrated prediction intervals (CPIs)
 ``cpi_asymmetric``|––T––|*str*|Use asymmetric (True) or symmetric (False) adjustments for CPIs?
-``loss``|––T––|*str*|Loss function for optimization
+``loss_real``|––T––|*str*|Loss function for real value estimates
 ``optimizer``|––T––|*str*|Method used for optimizing neural network
-``metrics``|––T––|*str[]*|Recorded training metrics
-``log_offset``|–FTEP|*float*|Offset size c when taking ln(x+c) for potentially zero-valued variables
+``log_offset``|–FTEP|*float*|Offset size c when taking ln(x+c) for zero-valued variables
 ``phy_channel_plain``|––T––|*int[]*|Output channel sizes for plain convolutional layers for phylogenetic state input
 ``phy_channel_stride``|––T––|*int[]*|Output channel sizes for stride convolutional layers for phylogenetic state input
 ``phy_channel_dilate``|––T––|*int[]*|Output channel sizes for dilate convolutional layers for phylogenetic state input
@@ -65,11 +65,11 @@ Setting|Step(s)|Type|Description
 ``phy_stride_stride``|––T––|*int[]*|Stride sizes for stride convolutional layers for phylogenetic state input
 ``phy_dilate_dilate``|––T––|*int[]*|Dilation sizes for dilate convolutional layers for phylogenetic state input
 ``plot_train_color``|––––P|*str*|Plotting color for training data elements
-``plot_label_color``|––––P|*str*|Plotting color for training label elements
 ``plot_test_color``|––––P|*str*|Plotting color for test data elements
 ``plot_val_color``|––––P|*str*|Plotting color for validation data elements
+``plot_label_color``|––––P|*str*|Plotting color for label elements
 ``plot_aux_color``|––––P|*str*|Plotting color for auxiliary data elements
-``plot_est_color``|––––P|*str*|Plotting color for new estimation elements
-``plot_scatter_log``|––––P|*str*|Use log values for scatter plots when possible?
-``plot_contour_log``|––––P|*str*|Use log values for contour plots when possible?
-``plot_density_log``|––––P|*str*|Use log values for density plots when possible?
+``plot_emp_color``|––––P|*str*|Plotting color for empirical elements
+``plot_num_scatter``|––––P|*int*|Number of examples in scatter plot
+``plot_min_emp``|––––P|*int*|Minimum number of empirical datasets to plot densities
+``plot_num_emp``|––––P|*int*|Number of empirical results to plot

@@ -13,26 +13,32 @@ To run a phyddle analysis enter your new directory, e.g.:
 
 .. code-block:: shell
 
-	cd ~/projects/phyddle
+  # enter phyddle directory  
+  cd ~/projects/phyddle
 
 Several example phyddle analyses are stored in the ``./workspace`` subdirectory.
 Each project directory contains a :ref:`Configuration` file, a
 :ref:`Simulation <Simulate>` script, and will contain directories for output
 resulting from an analysis. For example, you can run an analysis for the
-``bisse_r`` project using the command:
+``bisse_r`` project using the commands:
 
 .. code-block:: shell
 
-	phyddle -c workspace/bisse_r/config.py
+  # enter project directory
+  cd ./workspace/bisse_r
+  
+  # run phyddle with project config
+  phyddle -c config.py
 
 This will run an analysis using the default settings for all :ref:`Pipeline`
 steps. As the first step, :ref:`Simulate` will execute the command string
-stored under ``sim_command``  in the config file. For ``workspace/bisse_r/config.py``
+stored under ``sim_command``  in the config file. For ``./workspace/bisse_r/config.py``
 this command is 
 	
 .. code-block::
 
-    Rscript workspace/bisse_r/sim_bisse.R
+  # phyddle runs this R script to simulate
+  Rscript ./sim_bisse.R
     
 .. note::
 
@@ -48,16 +54,23 @@ existing script. Another option is to create a new blank config with
 
 .. code-block:: shell
 
+  # create a default config file
   phyddle --make_cfg
-  mv config_default.py config_my_model.py
-  edit config_my_model.py
+  
+  # rename the config file
+  mv config_default.py new_config.py
+  
+  # update the config file
+  edit new_config.py
 
-Now, let's assume ``config.py`` specifies a phyddle analysis with 1000 simulated 
-training examples, using R for simulation. 
+Now, let's assume ``new_config.py`` specifies a phyddle analysis with 1000 simulated 
+training examples, using R for simulation. Run phyddle against the new config
+with the following command:
 
 .. code-block:: shell
 
-  phyddle -c workspace/my_project/config.py
+  # run phyddle with new config file
+  phyddle -c ./new_config.py
 
 Provide phyddle with command-line options to customize how each pipeline step
 is executed. Visit :ref:`Pipeline` and :ref:`Workspace` to learn more about
@@ -69,22 +82,25 @@ training set, for example:
 
 .. code-block:: shell
 
+  # enter project directory
+  cd workspace/my_project
+  
   # [S]imulate new training examples, stored in
-  # workspace/my_project/simulate
-  phyddle -s S -c workspace/my_project/config.py --sim_more 14000
+  # ./simulate subdirectory
+  phyddle -s S -c config.py --sim_more 14000
 
   # [F]ormat all raw_data examples as tensors,
-  # stored in workspace/my_project/format
-  phyddle -s F -c workspace/my_project/config.py
+  # stored in ./format subdirectory
+  phyddle -s F -c config.py
 
   # [T]rain network with tensor_data, but override batch size,
-  # stored in workspace/my_project/train
-  phyddle -s T -c workspace/my_project/config.py --trn_batch_size 256
+  # stored in ./train subdirectory
+  phyddle -s T -c config.py --trn_batch_size 256
 
   # [E]stimate parameters for biological dataset, with results
-  # stored in workspace/my_project/estimate; and then [P]lot
-  # figures, storing them in workspace/my_project/plot
-  phyddle -s EP -c workspace/my_project/config.py
+  # stored in ./estimate subdirectory; and then [P]lot
+  # figures, storing them in ./plot subdirectory
+  phyddle -s EP -c config.py
 
 
 Visit :ref:`Configuration` to learn more about currently supported phyddle
@@ -92,5 +108,6 @@ settings. View supported command-line options with:
 
 .. code-block:: shell
 
+  # see help for phyddle
   phyddle --help
 

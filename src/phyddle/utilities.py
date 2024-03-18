@@ -117,13 +117,6 @@ def settings_registry():
         'no_sim'           : { 'step':'',    'type':None, 'section':'Analysis', 'default':False,  'help':'Disable Format/Estimate steps for simulated data?' },
         
         # directories
-        'prefix'           : { 'step':'SFTEP', 'type':str, 'section':'Workspace', 'default':'out',                        'help':'Prefix for all output unless step prefix given' },
-        'sim_prefix'       : { 'step':'SF',    'type':str, 'section':'Workspace', 'default':None,                         'help':'Prefix for raw simulated data' },
-        'emp_prefix'       : { 'step':'SF',    'type':str, 'section':'Workspace', 'default':None,                         'help':'Prefix for raw empirical data' },
-        'fmt_prefix'       : { 'step':'FTEP',  'type':str, 'section':'Workspace', 'default':None,                         'help':'Prefix for tensor-formatted data' },
-        'trn_prefix'       : { 'step':'FTEP',  'type':str, 'section':'Workspace', 'default':None,                         'help':'Prefix for trained networks and training output' },
-        'est_prefix'       : { 'step':'TEP',   'type':str, 'section':'Workspace', 'default':None,                         'help':'Prefix for estimate results' },
-        'plt_prefix'       : { 'step':'P',     'type':str, 'section':'Workspace', 'default':None,                         'help':'Prefix for plotted results' },
         'dir'              : { 'step':'SFTEP', 'type':str, 'section':'Workspace', 'default':'./workspace/project',        'help':'Parent directory for all step directories unless step directory given'},
         'sim_dir'          : { 'step':'SF',    'type':str, 'section':'Workspace', 'default':None,                         'help':'Directory for raw simulated data' },
         'emp_dir'          : { 'step':'SF',    'type':str, 'section':'Workspace', 'default':None,                         'help':'Directory for raw empirical data' },
@@ -132,6 +125,13 @@ def settings_registry():
         'est_dir'          : { 'step':'TEP',   'type':str, 'section':'Workspace', 'default':None,                         'help':'Directory for new datasets and estimates' },
         'plt_dir'          : { 'step':'P',     'type':str, 'section':'Workspace', 'default':None,                         'help':'Directory for plotted results' },
         'log_dir'          : { 'step':'SFTEP', 'type':str, 'section':'Workspace', 'default':None,                         'help':'Directory for logs of analysis metadata' },
+        'prefix'           : { 'step':'SFTEP', 'type':str, 'section':'Workspace', 'default':'out',                        'help':'Prefix for all output unless step prefix given' },
+        'sim_prefix'       : { 'step':'SF',    'type':str, 'section':'Workspace', 'default':None,                         'help':'Prefix for raw simulated data' },
+        'emp_prefix'       : { 'step':'SF',    'type':str, 'section':'Workspace', 'default':None,                         'help':'Prefix for raw empirical data' },
+        'fmt_prefix'       : { 'step':'FTEP',  'type':str, 'section':'Workspace', 'default':None,                         'help':'Prefix for tensor-formatted data' },
+        'trn_prefix'       : { 'step':'FTEP',  'type':str, 'section':'Workspace', 'default':None,                         'help':'Prefix for trained networks and training output' },
+        'est_prefix'       : { 'step':'TEP',   'type':str, 'section':'Workspace', 'default':None,                         'help':'Prefix for estimate results' },
+        'plt_prefix'       : { 'step':'P',     'type':str, 'section':'Workspace', 'default':None,                         'help':'Prefix for plotted results' },
 
         # simulation options
         'sim_command'      : { 'step':'S',  'type':str, 'section':'Simulate', 'default':None,    'help':'Simulation command to run single job (see documentation)' },
@@ -152,8 +152,8 @@ def settings_registry():
         'tree_encode'      : { 'step':'FTE',  'type':str,   'section':'Format', 'default':'extant',       'help':'Encoding strategy for tree',                   'choices':['extant', 'serial'] },
         'brlen_encode'     : { 'step':'FTE',  'type':str,   'section':'Format', 'default':'height_brlen', 'help':'Encoding strategy for branch lengths',         'choices':['height_only', 'height_brlen'] },
         'char_encode'      : { 'step':'FTE',  'type':str,   'section':'Format', 'default':'one_hot',      'help':'Encoding strategy for character data',         'choices':['one_hot', 'integer', 'numeric'] },
-        'param_est'        : { 'step':'FTE',  'type':list,  'section':'Format', 'default':dict(),         'help':'Model parameters and variables to estimate' },
-        'param_data'       : { 'step':'FTE',  'type':list,  'section':'Format', 'default':dict(),         'help':'Model parameters and variables treated as data' },
+        'param_est'        : { 'step':'FTE',  'type':dict,  'section':'Format', 'default':dict(),         'help':'Model parameters and variables to estimate' },
+        'param_data'       : { 'step':'FTE',  'type':dict,  'section':'Format', 'default':dict(),         'help':'Model parameters and variables treated as data' },
         'char_format'      : { 'step':'FTE',  'type':str,   'section':'Format', 'default':'nexus',        'help':'File format for character data',               'choices':['csv', 'nexus'] },
         'tensor_format'    : { 'step':'FTEP', 'type':str,   'section':'Format', 'default':'hdf5',         'help':'File format for training example tensors',     'choices':['csv', 'hdf5'] },
         'save_phyenc_csv'  : { 'step':'F',    'type':str,   'section':'Format', 'default':'F',            'help':'Save encoded phylogenetic tensor encoding to csv?', 'bool':True },
@@ -198,7 +198,7 @@ def settings_registry():
     }
 
     # Developer note: uncomment to export settings to file
-    # export_settings_to_sphinx_table(settings)
+    export_settings_to_sphinx_table(settings)
     
     return settings
 
