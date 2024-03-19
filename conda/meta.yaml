@@ -1,5 +1,5 @@
 {% set name = "phyddle" %}
-{% set version = "0.1.1" %}
+{% set version = "0.2.0" %}
 
 package:
   name: {{name}}
@@ -7,7 +7,7 @@ package:
 
 source:
   # get URL & SHA for new version from: https://pypi.org/project/phyddle/#modal-close
-  url: https://files.pythonhosted.org/packages/e9/77/f1ada90c4fac985c2604b582cbc3fad51fa01c6a705bdd1acb0a41af8a00/phyddle-0.1.1.tar.gz
+  url: https://files.pythonhosted.org/packages/e9/77/f1ada90c4fac985c2604b582cbc3fad51fa01c6a705bdd1acb0a41af8a00/phyddle-0.2.0.tar.gz
   sha: 640750f8c09afce582496c3a2d86304c91ae61eb93d9528177fd67cee267de68
 
 build:
