@@ -848,7 +848,7 @@ class CnnTrainer(Trainer):
         
         df_list = list()
         for k,v in x.items():
-            v = torch.softmax(v, dim=1).detach().numpy()
+            v = torch.softmax(v, dim=1).cpu().detach().numpy()
             col_names = [ f'{k}_{i}' for i in range(v.shape[1]) ]
             df = pd.DataFrame(v, columns=col_names)
             df_list.append(df)
