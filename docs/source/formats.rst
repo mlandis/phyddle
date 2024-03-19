@@ -250,7 +250,7 @@ The auxiliary data tensor contains a panel of summary statistics extracted
 from the inputted phylogeny and character data matrix for a given dataset.
 Currently, phyddle generates the following summary statistics:
 
-.. code-block:: shell
+.. code-block::
 
     tree_length       # sum of branch lengths
     num_taxa          # number of terminal taxa in tree/data
@@ -261,10 +261,10 @@ Currently, phyddle generates the following summary statistics:
     age_mean          # mean of internal node ages
     age_var           # variance of internal node ages
     age_skew          # skewness of internal node ages
-    B1                # [`link <https://dendropy.org/library/treemeasure.html#dendropy.calculate.treemeasure.B1>`__]
-    N_bar             # [`link <https://dendropy.org/library/treemeasure.html#dendropy.calculate.treemeasure.N_bar>`__]
-    colless           # [`link <https://dendropy.org/library/treemeasure.html?highlight=colless#dendropy.calculate.treemeasure.colless_tree_imbalance>`__]
-    treeness          # [`link <https://dendropy.org/library/treemeasure.html#dendropy.calculate.treemeasure.treeness>`__]
+    B1                # B1 tree measure (Dendropy)
+    N_bar             # N_bar tree measure (Dendropy)
+    colless           # Colless tree measure (Dendropy)
+    treeness          # treeness measure (Dendropy)
     f_dat_0           # frequency of taxa with character in state 0
     f_dat_1           # frequency of taxa with character in state 1
     ...
