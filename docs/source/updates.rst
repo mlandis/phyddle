@@ -7,6 +7,7 @@ The complete commit history for phyddle is located here: https://github.com/mlan
 
   * New support for categorical labels (e.g. model testing).
   * New plots for categorical results.
+  * Add support for GPU + CUDA + PyTorch to accelerate Train and Estimate.
   * Improved printed feedback for all steps.
   * Better plots for PCA and scatter plot results.
   * Simpler default directory structure. Default phyddle configs, scripts, and outputs now share a proj directory in ./workspace. 

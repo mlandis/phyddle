@@ -96,7 +96,7 @@ class Estimator:
                                                   self.num_states)
         self.num_data_col = self.num_tree_col + self.num_char_col
 
-		# set CUDA stuff
+        # set CUDA stuff
         self.TORCH_DEVICE_STR = (
             "cuda"
             if torch.cuda.is_available() and self.use_cuda
@@ -105,7 +105,6 @@ class Estimator:
             else "cpu"
         )
         self.TORCH_DEVICE = torch.device(self.TORCH_DEVICE_STR)
-        self.cuda_enabled = (self.TORCH_DEVICE_STR == 'cuda')
 
         # cat vs. real parameter names
         self.label_real_names = [ k for k,v in self.param_est.items() if v == 'real' ]
@@ -429,10 +428,10 @@ class Estimator:
         
         # point estimates & CPIs for test labels
         if self.has_label_real:
-            if self.cuda_enabled:
-                labels_est_real = torch.stack(labels_est_real).cpu().detach().numpy()
-            else:
-                labels_est_real = torch.stack(labels_est_real).detach().numpy()
+            
+            # move Tensor from device to numpy
+            labels_est_real = torch.stack(labels_est_real).cpu().detach().numpy()
+            
             if labels_est_real.ndim == 2:
                 labels_est_real.shape = (labels_est_real.shape[0], 1, labels_est_real.shape[1])
             labels_est_real[1,:,:] = labels_est_real[1,:,:] - self.cpi_adjustments[0,:]
@@ -456,7 +455,7 @@ class Estimator:
                                      float_format=util.PANDAS_FLOAT_FMT_STR)
             
             for k,v in labels_est_cat.items():
-                labels_est_cat[k] = labels_est_cat[k].detach().numpy()
+                labels_est_cat[k] = labels_est_cat[k].cpu().detach().numpy()
         
         if mode == 'sim':
             if self.has_label_real:
@@ -479,7 +478,7 @@ class Estimator:
 
         df_list = list()
         for k,v in x.items():
-            v = torch.softmax(v, dim=1).detach().numpy()
+            v = torch.softmax(v, dim=1).cpu().detach().numpy()
             col_names = [ f'{k}_{i}' for i in range(v.shape[1]) ]
             df = pd.DataFrame(v, columns=col_names)
             df_list.append(df)

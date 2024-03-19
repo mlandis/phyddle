@@ -138,13 +138,7 @@ class Trainer:
             if torch.backends.mps.is_available()
             else "cpu"
         )
-
-        # only use CUDA if enabled
-        #if self.use_cuda == False and self.TORCH_DEVICE_STR == 'cuda':
-        #    self.TORCH_DEVICE_STR = 'cpu'
-
         self.TORCH_DEVICE = torch.device(self.TORCH_DEVICE_STR)
-        self.cuda_enabled = (self.TORCH_DEVICE_STR == 'cuda')
         
         # done
         return
@@ -779,10 +773,7 @@ class CnnTrainer(Trainer):
         calib_label_est = self.model(calib_phy_dat, calib_aux_dat)
 
         # make CPI adjustments
-        if self.cuda_enabled:
-            norm_calib_label_real_est = torch.stack(calib_label_est[0:3]).cpu().detach().numpy()
-        else:
-            norm_calib_label_real_est = torch.stack(calib_label_est[0:3]).detach().numpy()
+        norm_calib_label_real_est = torch.stack(calib_label_est[0:3]).cpu().detach().numpy()
         norm_calib_real_est_quantiles = norm_calib_label_real_est[1:,:,:]
         self.cpi_adjustments = self.get_cqr_constant(norm_calib_real_est_quantiles,
                                                      self.norm_calib_labels_real,
@@ -819,23 +810,13 @@ class CnnTrainer(Trainer):
 
         # real vs. cat estimates
         labels_real_est = label_est[0:3]
-        if self.cuda_enabled:
-            labels_real_est = torch.stack(labels_real_est).cpu().detach().numpy()
-        else:
-            labels_real_est = torch.stack(labels_real_est).detach().numpy()
+        labels_real_est = torch.stack(labels_real_est).cpu().detach().numpy()
         labels_cat_est  = label_est[3]
 
         if self.has_label_real:
-            # get true label values (does not need to be denormalized??) 
-            if self.cuda_enabled:
-                train_labels_real = train_labels_real.cpu().detach().numpy()
-            else:
-                train_labels_real = train_labels_real.detach().numpy()
-
+            train_labels_real = train_labels_real.cpu().detach().numpy()
             self.train_label_real_true = train_labels_real
-            # self.train_label_real_true = util.denormalize(train_labels_real.copy(),
-            #                                               self.train_labels_real_mean_sd)
-    
+            
             # uncalibrated training estimates of real labels
             self.train_label_real_est = util.denormalize(labels_real_est.copy(),
                                                          self.train_labels_real_mean_sd)
@@ -853,7 +834,7 @@ class CnnTrainer(Trainer):
 
         # reformat categorical estimates, if they exist
         if self.has_label_cat:
-            self.train_label_cat_true = train_labels_cat.detach().numpy().astype('int')
+            self.train_label_cat_true = train_labels_cat.cpu().detach().numpy().astype('int')
             self.train_label_cat_est = self.format_label_cat(labels_cat_est)
         
         return
