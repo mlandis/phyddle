@@ -104,6 +104,7 @@ class Trainer:
         self.cpi_coverage       = float(args['cpi_coverage'])
         self.cpi_asymmetric     = bool(args['cpi_asymmetric'])
         self.loss_real          = str(args['loss_real'])
+        self.use_cuda           = bool(args['use_cuda'])
         
         # initialized later
         self.phy_tensors        = dict()   # init with encode_all()
@@ -132,12 +133,18 @@ class Trainer:
         # NOTE: need to test against cuda
         self.TORCH_DEVICE_STR = (
             "cuda"
-            if torch.cuda.is_available()
+            if torch.cuda.is_available() and self.use_cuda
             else "mps"
             if torch.backends.mps.is_available()
             else "cpu"
         )
+
+        # only use CUDA if enabled
+        #if self.use_cuda == False and self.TORCH_DEVICE_STR == 'cuda':
+        #    self.TORCH_DEVICE_STR = 'cpu'
+
         self.TORCH_DEVICE = torch.device(self.TORCH_DEVICE_STR)
+        self.cuda_enabled = (self.TORCH_DEVICE_STR == 'cuda')
         
         # done
         return
@@ -174,6 +181,11 @@ class Trainer:
         num_ljust = max([len(k) for k in self.param_est.keys()])
         for k,v in self.param_est.items():
             util.print_str(f'  ▪ {k.ljust(num_ljust)}  [type: {v}]', verbose)
+
+        device_info = self.TORCH_DEVICE_STR
+        # if self.TORCH_DEVICE_STR == 'gpu':
+        #     device_info += '  [' + torch.cuda.get_device_properties(0).name + ']'
+        util.print_str('▪ PyTorch device used: ' + device_info, verbose)
 
         util.print_str('▪ Building network', verbose)
         self.build_network()
@@ -499,7 +511,7 @@ class CnnTrainer(Trainer):
         self.model.aux_dat_shape = (self.num_aux_data,)
 
         # print(self.model)
-        # model.to(TORCH_DEVICE)
+        self.model.to(self.TORCH_DEVICE)
 
         return
 
@@ -543,10 +555,13 @@ class CnnTrainer(Trainer):
         num_batches = int(np.ceil(self.train_dataset.phy_data.shape[0] / self.trn_batch_size))
 
         # validation dataset
-        val_phy_dat  = torch.Tensor(self.val_dataset.phy_data)
-        val_aux_dat  = torch.Tensor(self.val_dataset.aux_data)
-        val_lbl_real = torch.Tensor(self.val_dataset.labels_real)
-        val_lbl_cat  = torch.LongTensor(self.val_dataset.labels_cat)
+        val_phy_dat  = torch.Tensor(self.val_dataset.phy_data).to(self.TORCH_DEVICE)
+        val_aux_dat  = torch.Tensor(self.val_dataset.aux_data).to(self.TORCH_DEVICE)
+        val_lbl_real = torch.Tensor(self.val_dataset.labels_real).to(self.TORCH_DEVICE)
+        val_lbl_cat  = torch.LongTensor(self.val_dataset.labels_cat).to(self.TORCH_DEVICE)
+
+        # model device
+        # self.model.to(self.TORCH_DEVICE)
 
         # loss functions
         q_width = self.cpi_coverage
@@ -602,8 +617,10 @@ class CnnTrainer(Trainer):
                 #     break
                 
                 # send labels to device
-                lbl_real.to(self.TORCH_DEVICE)
-                lbl_cat.to(self.TORCH_DEVICE)
+                phy_dat = phy_dat.to(self.TORCH_DEVICE)
+                aux_dat = aux_dat.to(self.TORCH_DEVICE)
+                lbl_real = lbl_real.to(self.TORCH_DEVICE)
+                lbl_cat = lbl_cat.to(self.TORCH_DEVICE)
                 
                 # reset gradients for tensors
                 optimizer.zero_grad()
@@ -750,12 +767,17 @@ class CnnTrainer(Trainer):
                                                    batch_size=num_calib_examples)
         calib_batch = next(iter(calib_loader))
         calib_phy_dat, calib_aux_dat = calib_batch[0], calib_batch[1]
+        calib_phy_dat = calib_phy_dat.to(self.TORCH_DEVICE)
+        calib_aux_dat = calib_aux_dat.to(self.TORCH_DEVICE)
         
         # get calib estimates
         calib_label_est = self.model(calib_phy_dat, calib_aux_dat)
 
         # make CPI adjustments
-        norm_calib_label_real_est = torch.stack(calib_label_est[0:3]).detach().numpy()
+        if self.cuda_enabled:
+            norm_calib_label_real_est = torch.stack(calib_label_est[0:3]).cpu().detach().numpy()
+        else:
+            norm_calib_label_real_est = torch.stack(calib_label_est[0:3]).detach().numpy()
         norm_calib_real_est_quantiles = norm_calib_label_real_est[1:,:,:]
         self.cpi_adjustments = self.get_cqr_constant(norm_calib_real_est_quantiles,
                                                      self.norm_calib_labels_real,
@@ -781,18 +803,30 @@ class CnnTrainer(Trainer):
                                                    batch_size=num_train_examples)
         train_batch = next(iter(train_loader))
         train_phy_dat, train_aux_dat, train_labels_real, train_labels_cat = train_batch
+        train_phy_dat = train_phy_dat.to(self.TORCH_DEVICE)
+        train_aux_dat = train_aux_dat.to(self.TORCH_DEVICE)
+        train_labels_real = train_labels_real.to(self.TORCH_DEVICE)
+        train_labels_cat = train_labels_cat.to(self.TORCH_DEVICE)
+
 
         # get train estimates
         label_est = self.model(train_phy_dat, train_aux_dat)
 
         # real vs. cat estimates
         labels_real_est = label_est[0:3]
-        labels_real_est = torch.stack(labels_real_est).detach().numpy()
+        if self.cuda_enabled:
+            labels_real_est = torch.stack(labels_real_est).cpu().detach().numpy()
+        else:
+            labels_real_est = torch.stack(labels_real_est).detach().numpy()
         labels_cat_est  = label_est[3]
 
         if self.has_label_real:
             # get true label values (does not need to be denormalized??) 
-            train_labels_real = train_labels_real.detach().numpy()
+            if self.cuda_enabled:
+                train_labels_real = train_labels_real.cpu().detach().numpy()
+            else:
+                train_labels_real = train_labels_real.detach().numpy()
+
             self.train_label_real_true = train_labels_real
             # self.train_label_real_true = util.denormalize(train_labels_real.copy(),
             #                                               self.train_labels_real_mean_sd)

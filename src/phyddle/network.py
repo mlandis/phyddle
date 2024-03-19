@@ -209,8 +209,6 @@ class ParameterEstimationNetwork(nn.Module):
         """Forward-pass function of input through network to output labels."""
         
         # Phylogenetic Tensor forwarding
-        phy_dat = phy_dat.float()
-        aux_dat = aux_dat.float()
         num_sample = phy_dat.shape[0]
 
         # MJL: Does this need to be set? Seems like no.

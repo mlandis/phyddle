@@ -111,8 +111,9 @@ def settings_registry():
         'output_precision' : { 'step':'SFTEP', 'type':int,  'section':'Basic', 'default':16,           'help':'Number of digits (precision) for numbers in output files' },
         
         # analysis options
-        'use_parallel'     : { 'step':'SF',  'type':str,  'section':'Analysis', 'default':'T',   'help':'Use parallelization? (recommended)', 'bool':True },
-        'num_proc'         : { 'step':'SFT', 'type':int,  'section':'Analysis', 'default':-2,    'help':'Number of cores for multiprocessing (-N for all but N)' },
+        'use_parallel'     : { 'step':'SF',  'type':str,  'section':'Analysis', 'default':'T',    'help':'Use parallelization? (recommended)', 'bool':True },
+        'use_cuda'         : { 'step':'TE',  'type':str,  'section':'Analysis', 'default':'T',    'help':'Use CUDA parallelization? (recommended; requires Nvidia GPU)', 'bool':True },
+        'num_proc'         : { 'step':'SFT', 'type':int,  'section':'Analysis', 'default':-2,     'help':'Number of cores for multiprocessing (-N for all but N)' },
         'no_emp'           : { 'step':'',    'type':None, 'section':'Analysis', 'default':False,  'help':'Disable Format/Estimate steps for empirical data?' },
         'no_sim'           : { 'step':'',    'type':None, 'section':'Analysis', 'default':False,  'help':'Disable Format/Estimate steps for simulated data?' },
         
