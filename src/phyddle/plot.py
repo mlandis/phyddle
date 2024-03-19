@@ -634,7 +634,7 @@ class Plotter:
 
     def make_plot_emp_ci(self):
         """Calls plot_est_CI with arguments."""
-        max_num = np.min([self.plot_max_num_emp_ind, self.num_empirical])
+        max_num = np.min([self.plot_num_emp, self.num_empirical])
         for i in range(max_num):
             save_fn = f'{self.save_cpi_est_fn}_real_{i}.pdf'
             title = f'Estimate: {self.est_prefix}.empirical.{i}'
@@ -646,7 +646,7 @@ class Plotter:
 
     def make_plot_emp_cat(self):
         """Calls plot_emp_cat with arguments."""
-        max_num = np.min([self.plot_max_num_emp_ind, self.num_empirical])
+        max_num = np.min([self.plot_num_emp, self.num_empirical])
         for i in range(max_num):
             save_fn = f'{self.save_cpi_est_fn}_cat_{i}.pdf'
             title = f'Estimate: {self.est_prefix}.empirical.{i}'

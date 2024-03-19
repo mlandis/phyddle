@@ -20,9 +20,9 @@ Input datasets
 phyddle can make phylogenetic model predictions against input datasets with
 previously trained networks. Valid phyddle input datasets contain a set of
 files with a shared filename prefix. For example, a dataset with the prefix
-``sim.3`` would contain a tree file ``sim.3.tre``, a character matrix file
-``sim.3.dat.nex``, and (when applicable) a 'known parameters' file
-``sim.3.known_params.csv``. Simulated training datasets and real biological
+``out.3`` would contain a tree file ``out.0.tre``, a character matrix file
+``out.3.dat.nex``, and (when applicable) a 'known parameters' file
+``out.3.labels.csv``. Simulated training datasets and real biological
 datasets follow the same format.
 
 Trees are encoded as raw data in simple Newick format. Trees are assumed to be
@@ -34,7 +34,7 @@ serially sampled viruses or fossils should be analyzed using
 
 .. code-block:: shell
    
-    $ cat workspace/example/simulate/sim.0.tre
+    $ cat ./simulate/out.0.tre
     ((((1:0.35994691486501296,2:0.35994691486501296):1.389952711060852,(3:1.5810568349100933,(4:0.5830569936279364,5:0.5830569936279364):0.9979998412821569):0.1688427910157717):5.655066077200624,6:7.404965703126489):0.3108578683347094,(7:0.7564319839861859,8:0.7564319839861859):6.959391587475013):2.2841764285388018;
 
 
@@ -43,7 +43,7 @@ example of a matrix with N=8 taxa and M=3 binary characters.
 
 .. code-block:: shell
 
-    $ cat workspace/example/simulate/sim.0.dat.nex
+    $ cat ./simulate/out.0.dat.nex
     #NEXUS
     Begin DATA;
     Dimensions NTAX=8 NCHAR=3
@@ -65,7 +65,7 @@ example:
 
 .. code-block:: shell
 
-    $ cat workspace/example/simulate/sim.0.dat.nex
+    $ cat ./simulate/out.0.dat.nex
     1,0,0,1
     2,0,1,0
     3,1,0,0
@@ -83,7 +83,7 @@ setting will be encoded into the auxiliary data tensor during formatting. Exampl
 
 .. code-block:: shell
 
-    $ cat new.0.labels.csv
+    $ cat ./simulate/out.0.labels.csv
     birth_1,birth_2,death,state_rate,sample_frac
     0.5728,0.9082,0.1155,0.0372,0.1114
 
@@ -262,9 +262,9 @@ Currently, phyddle generates the following summary statistics:
     age_var           # variance of internal node ages
     age_skew          # skewness of internal node ages
     B1                # [`link <https://dendropy.org/library/treemeasure.html#dendropy.calculate.treemeasure.B1>`__]
-    N_bar             # https://dendropy.org/library/treemeasure.html#dendropy.calculate.treemeasure.N_bar
-    colless           # https://dendropy.org/library/treemeasure.html?highlight=colless#dendropy.calculate.treemeasure.colless_tree_imbalance
-    treeness          # https://dendropy.org/library/treemeasure.html#dendropy.calculate.treemeasure.treeness
+    N_bar             # [`link <https://dendropy.org/library/treemeasure.html#dendropy.calculate.treemeasure.N_bar>`__]
+    colless           # [`link <https://dendropy.org/library/treemeasure.html?highlight=colless#dendropy.calculate.treemeasure.colless_tree_imbalance>`__]
+    treeness          # [`link <https://dendropy.org/library/treemeasure.html#dendropy.calculate.treemeasure.treeness>`__]
     f_dat_0           # frequency of taxa with character in state 0
     f_dat_1           # frequency of taxa with character in state 1
     ...

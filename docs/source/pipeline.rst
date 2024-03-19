@@ -41,7 +41,8 @@ These simulated files can either be generated through phyddle with
 the :ref:`Simulate` step or outside of phyddle entirely.
 
 Below is the project directory structure that a standard phyddle analysis
-would use. In this section, we assume the project name is ``example``:
+would use. In this section, we assume the project ``dir`` is 
+``./workspace/example``:
 
 .. code-block:: shell
 
@@ -470,12 +471,13 @@ is a simplified schematic of the network architecture:
 
 Parameter point estimates use a loss function (e.g. ``loss`` set to ``'mse'``;
 Tensorflow-supported string or function) while lower/upper quantile estimates
-use a pinball loss function (hard-coded).
+use a pinball loss function (hard-coded). Each categorical parameter is trained
+using a separate cross-entropy loss function.
 
 Calibrated prediction intervals (CPIs) are estimated using the conformalized
 quantile regression technique of Romano et al. (2019). CPIs target a
-particular estimation interval, e.g. set ``cpi_coverage`` to ``0.95`` so
-95% of test estimations are expected contain the true simulating value.
+particular estimation interval, e.g. set ``cpi_coverage`` to ``0.80`` so
+80% of test estimations are expected contain the true simulating value.
 More accurate CPIs can be obtained using two-sided conformalized quantile
 regression by setting ``cpi_asymmetric`` to ``True``, though this often
 requires larger numbers of calibration examples, determined through
@@ -579,120 +581,133 @@ The output of phyddle pipeline analysis will resemble this:
     ┃                      ┃
     ┗━┳━▪ Simulating... ▪━━┛
       ┃
-      ┗━━━▪ output: ./workspace/bisse_r/simulate
+      ┗━━━▪ output:  ./simulate
     
-    ▪ Start time of 09:48:30
+    ▪ Start time of 20:37:07
     ▪ Simulating raw data
-    Simulating: 100%|███████████████████████| 100/100 [00:20<00:00,  4.80it/s]
-    ▪ End time of 09:48:52 (+00:00:22)
+    Simulating: 100%|█████████████████████████| 100/100 [00:20<00:00,  4.94it/s]
+    ▪ Total counts of simulated files:
+      ▪ 31030 phylogeny files
+      ▪ 31030 data files
+      ▪ 31030 labels files
+    ▪ End time of 20:37:31 (+00:00:24)
     ... done!
     ┃                      ┃
     ┗━┳━▪ Formatting... ▪━━┛
       ┃
-      ┣━━━▪ input:  ./workspace/bisse_r/simulate
-      ┃             ./workspace/bisse_r/empirical
-      ┗━━━▪ output: ./workspace/bisse_r/format
+      ┣━━━▪ input:   ./empirical
+      ┃              ./simulate
+      ┗━━━▪ output:  ./format
     
-    ▪ Start time of 09:48:52
+    ▪ Start time of 20:37:32
     ▪ Collecting simulated data
     ▪ Encoding simulated data as tensors
-    Encoding: 100%|█████████████████████| 15030/15030 [03:14<00:00, 77.24it/s]
-    Encoding found 15030 of 15030 valid examples.
+    Encoding: 100%|██████████████████████| 31030/31030 [04:36<00:00, 112.08it/s]
+    Encoding found 31030 of 31030 valid examples.
     ▪ Splitting into train and test datasets
     ▪ Combining and writing simulated data as tensors
-    Making train hdf5 dataset: 14279 examples for tree width = 500
-    Combining: 100%|██████████████████| 14279/14279 [00:12<00:00, 1117.76it/s]
-    Making test hdf5 dataset: 751 examples for tree width = 500
-    Combining: 100%|██████████████████████| 751/751 [00:00<00:00, 1323.66it/s]
+    Making train hdf5 dataset: 29479 examples for tree width = 500
+    Making test hdf5 dataset: 1551 examples for tree width = 500
     ▪ Collecting empirical data
     ▪ Encoding empirical data as tensors
-    Encoding: 100%|███████████████████████████| 10/10 [00:09<00:00,  1.01it/s]
+    Encoding: 100%|█████████████████████████████| 10/10 [00:50<00:00,  5.08s/it]
     Encoding found 10 of 10 valid examples.
     ▪ Combining and writing empirical data as tensors
     Making empirical hdf5 dataset: 10 examples for tree width = 500
-    Combining: 100%|████████████████████████| 10/10 [00:00<00:00, 1606.71it/s]
-    ▪ End time of 09:52:38 (+00:03:46)
+    ▪ End time of 20:43:21 (+00:05:49)
     ... done!
-    ┃                      ┃
     ┗━┳━▪ Training...   ▪━━┛
       ┃
-      ┣━━━▪ input:  ./workspace/bisse_r/format
-      ┗━━━▪ output: ./workspace/bisse_r/train
+      ┣━━━▪ input:   ./format
+      ┗━━━▪ output:  ./train
     
-    ▪ Start time of 09:52:40
-    ▪ Loading input
+    ▪ Start time of 20:45:09
+    ▪ Loading input:
+      ▪ 22111 training examples
+      ▪  5895 calibration examples
+      ▪  1473 validation examples
+    ▪ Training targets:
+      ▪ log10_birth_1     [type: real]
+      ▪ log10_birth_2     [type: real]
+      ▪ log10_death       [type: real]
+      ▪ log10_state_rate  [type: real]
     ▪ Building network
     ▪ Training network
-    Training epoch 1 of 10: 100%|█████████████| 21/21 [00:27<00:00,  1.33s/it]
-        Train        --   loss: 0.9831
-        Validation   --   loss: 0.6960
+    Training epoch 1 of 10: 100%|███████████████| 44/44 [00:50<00:00,  1.14s/it]
+        Train        --   loss: 1.0648
+        Validation   --   loss: 0.9459
     
-    Training epoch 2 of 10: 100%|█████████████| 21/21 [00:31<00:00,  1.52s/it]
-        Train        --   loss: 0.5950  abs: -0.3881  rel: -39.50%
-        Validation   --   loss: 0.5356  abs: -0.1604  rel: -23.00%
+    Training epoch 2 of 10: 100%|███████████████| 44/44 [00:49<00:00,  1.13s/it]
+        Train        --   loss: 0.8429  abs: -0.2219  rel: -20.84%
+        Validation   --   loss: 0.8125  abs: -0.1333  rel: -14.10%
     
-    Training epoch 3 of 10: 100%|█████████████| 21/21 [00:33<00:00,  1.61s/it]
-        Train        --   loss: 0.4686  abs: -0.1264  rel: -21.20%
-        Validation   --   loss: 0.4611  abs: -0.0745  rel: -13.90%
+    Training epoch 3 of 10: 100%|███████████████| 44/44 [00:49<00:00,  1.12s/it]
+        Train        --   loss: 0.7646  abs: -0.0782  rel: -9.28%
+        Validation   --   loss: 0.7716  abs: -0.0410  rel: -5.04%
     
-    Training epoch 4 of 10: 100%|█████████████| 21/21 [00:32<00:00,  1.53s/it]
-        Train        --   loss: 0.4031  abs: -0.0655  rel: -14.00%
-        Validation   --   loss: 0.4136  abs: -0.0475  rel: -10.30%
+    Training epoch 4 of 10: 100%|███████████████| 44/44 [00:49<00:00,  1.12s/it]
+        Train        --   loss: 0.7218  abs: -0.0429  rel: -5.61%
+        Validation   --   loss: 0.7275  abs: -0.0441  rel: -5.71%
     
-    Training epoch 5 of 10: 100%|█████████████| 21/21 [00:31<00:00,  1.49s/it]
-        Train        --   loss: 0.3696  abs: -0.0335  rel: -8.30%
-        Validation   --   loss: 0.3914  abs: -0.0222  rel: -5.40%
+    Training epoch 5 of 10: 100%|███████████████| 44/44 [00:48<00:00,  1.11s/it]
+        Train        --   loss: 0.6917  abs: -0.0300  rel: -4.16%
+        Validation   --   loss: 0.6930  abs: -0.0345  rel: -4.74%
     
-    Training epoch 6 of 10: 100%|█████████████| 21/21 [00:31<00:00,  1.52s/it]
-        Train        --   loss: 0.3357  abs: -0.0339  rel: -9.20%
-        Validation   --   loss: 0.3509  abs: -0.0405  rel: -10.30%
+    Training epoch 6 of 10: 100%|███████████████| 44/44 [00:48<00:00,  1.11s/it]
+        Train        --   loss: 0.6657  abs: -0.0261  rel: -3.77%
+        Validation   --   loss: 0.6874  abs: -0.0056  rel: -0.81%
     
-    Training epoch 7 of 10: 100%|█████████████| 21/21 [00:31<00:00,  1.50s/it]
-        Train        --   loss: 0.3217  abs: -0.0140  rel: -4.20%
-        Validation   --   loss: 0.3359  abs: -0.0150  rel: -4.30%
+    Training epoch 7 of 10: 100%|███████████████| 44/44 [00:49<00:00,  1.13s/it]
+        Train        --   loss: 0.6417  abs: -0.0240  rel: -3.61%
+        Validation   --   loss: 0.6621  abs: -0.0253  rel: -3.68%
     
-    Training epoch 8 of 10: 100%|█████████████| 21/21 [00:31<00:00,  1.52s/it]
-        Train        --   loss: 0.3030  abs: -0.0187  rel: -5.80%
-        Validation   --   loss: 0.3291  abs: -0.0068  rel: -2.00%
+    Training epoch 8 of 10: 100%|███████████████| 44/44 [00:50<00:00,  1.14s/it]
+        Train        --   loss: 0.6264  abs: -0.0153  rel: -2.38%
+        Validation   --   loss: 0.6549  abs: -0.0072  rel: -1.09%
     
-    Training epoch 9 of 10: 100%|█████████████| 21/21 [00:33<00:00,  1.57s/it]
-        Train        --   loss: 0.2963  abs: -0.0067  rel: -2.20%
-        Validation   --   loss: 0.3149  abs: -0.0142  rel: -4.30%
+    Training epoch 9 of 10: 100%|███████████████| 44/44 [00:49<00:00,  1.13s/it]
+        Train        --   loss: 0.6144  abs: -0.0119  rel: -1.91%
+        Validation   --   loss: 0.6376  abs: -0.0173  rel: -2.64%
     
-    Training epoch 10 of 10: 100%|████████████| 21/21 [00:33<00:00,  1.59s/it]
-        Train        --   loss: 0.2835  abs: -0.0128  rel: -4.30%
-        Validation   --   loss: 0.3179  abs: +0.0030  rel: +1.00%
+    Training epoch 10 of 10: 100%|██████████████| 44/44 [00:49<00:00,  1.14s/it]
+        Train        --   loss: 0.6078  abs: -0.0067  rel: -1.08%
+        Validation   --   loss: 0.6307  abs: -0.0069  rel: -1.08%
     
     ▪ Processing results
     ▪ Saving results
-    ▪ End time of 09:58:14 (+00:05:34)
+    ▪ End time of 20:53:47 (+00:08:38)
     ▪ ... done!
     ┃                      ┃
     ┗━┳━▪ Estimating... ▪━━┛
       ┃
-      ┣━━━▪ input:  ./workspace/bisse_r/format
-      ┃             ./workspace/bisse_r/train
-      ┗━━━▪ output: ./workspace/bisse_r/estimate
+      ┣━━━▪ input:   ./format
+      ┃              ./train
+      ┗━━━▪ output:  ./estimate
     
-    ▪ Start time of 09:58:14
+    ▪ Start time of 20:53:47
+    ▪ Estimation targets:
+      ▪ log10_birth_1     [type: real]
+      ▪ log10_birth_2     [type: real]
+      ▪ log10_death       [type: real]
+      ▪ log10_state_rate  [type: real]
     ▪ Loading simulated test input
     ▪ Making simulated test estimates
     ▪ Loading empirical input
     ▪ Making empirical estimates
-    ▪ End time of 09:58:15 (+00:00:01)
+    ▪ End time of 20:53:49 (+00:00:02)
     ... done!
     ┃                      ┃
     ┗━┳━▪ Plotting...   ▪━━┛
       ┃
-      ┣━━━▪ input:  ./workspace/bisse_r/format
-      ┃             ./workspace/bisse_r/train
-      ┃             ./workspace/bisse_r/estimate
-      ┗━━━▪ output: ./workspace/bisse_r/plot
+      ┣━━━▪ input:   ./format
+      ┃              ./train
+      ┃              ./estimate
+      ┗━━━▪ output:  ./plot
     
-    ▪ Start time of 10:01:09
+    ▪ Start time of 20:55:18
     ▪ Loading input
     ▪ Generating individual plots
     ▪ Combining plots
     ▪ Making csv report
-    ▪ End time of 10:01:40 (+00:00:31)
+    ▪ End time of 20:55:35 (+00:00:17)
     ... done!
