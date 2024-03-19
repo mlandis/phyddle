@@ -201,7 +201,7 @@ class Plotter:
         self.num_empirical = int(0)        # init with load_input()
         self.sim_test_valid = False
         self.sim_train_valid = False
-        
+
         return
 
     def run(self):
@@ -288,6 +288,7 @@ class Plotter:
 
         # trained model
         self.model = torch.load(self.model_arch_fn)
+        self.model = self.model.to('cpu')
         
         # training true/estimated labels
         self.train_est_real  = util.read_csv_as_pandas(self.train_est_real_fn)

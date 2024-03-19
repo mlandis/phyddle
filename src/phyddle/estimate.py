@@ -86,6 +86,7 @@ class Estimator:
         self.num_states         = int(args['num_states'])
         self.param_est          = dict(args['param_est'])
         self.log_offset         = float(args['log_offset'])
+        self.use_cuda           = bool(args['use_cuda'])
         
         # get size of CPV+S tensors
         self.num_tree_col = util.get_num_tree_col(self.tree_encode,
@@ -94,6 +95,17 @@ class Estimator:
                                                   self.num_char,
                                                   self.num_states)
         self.num_data_col = self.num_tree_col + self.num_char_col
+
+		# set CUDA stuff
+        self.TORCH_DEVICE_STR = (
+            "cuda"
+            if torch.cuda.is_available() and self.use_cuda
+            else "mps"
+            if torch.backends.mps.is_available()
+            else "cpu"
+        )
+        self.TORCH_DEVICE = torch.device(self.TORCH_DEVICE_STR)
+        self.cuda_enabled = (self.TORCH_DEVICE_STR == 'cuda')
 
         # cat vs. real parameter names
         self.label_real_names = [ k for k,v in self.param_est.items() if v == 'real' ]
@@ -151,7 +163,19 @@ class Estimator:
         for k,v in self.param_est.items():
             util.print_str(f'  ▪ {k.ljust(num_ljust)}  [type: {v}]', verbose)
 
+
         # load Train input
+        util.print_str('▪ Preparing network', verbose)
+        device_info = ''
+        if self.TORCH_DEVICE_STR == 'cuda':
+            device_info = '  ▪ using CUDA + GPU'
+            device_info += ' [device: ' + torch.cuda.get_device_properties(0).name + ']'
+        elif self.TORCH_DEVICE_STR == 'cpu':
+            num_cpu = os.cpu_count()
+            device_info = '  ▪ using CPUs [num: ' + str(num_cpu) + ']'
+        if device_info != '':
+            util.print_str(device_info, verbose)
+
         self.load_train_input()
         
         found_sim = False
@@ -393,10 +417,11 @@ class Estimator:
     
         # load model
         self.mymodel = torch.load(model_arch_fn)
+        self.mymodel.to(self.TORCH_DEVICE)
 
         # get estimates
-        label_est = self.mymodel(torch.Tensor(self.phy_data),
-                                 torch.Tensor(self.aux_data))
+        label_est = self.mymodel(torch.Tensor(self.phy_data).to(self.TORCH_DEVICE),
+                                 torch.Tensor(self.aux_data).to(self.TORCH_DEVICE))
         
         # real vs. cat estimates
         labels_est_real = label_est[0:3]
@@ -404,7 +429,10 @@ class Estimator:
         
         # point estimates & CPIs for test labels
         if self.has_label_real:
-            labels_est_real = torch.stack(labels_est_real).detach().numpy()
+            if self.cuda_enabled:
+                labels_est_real = torch.stack(labels_est_real).cpu().detach().numpy()
+            else:
+                labels_est_real = torch.stack(labels_est_real).detach().numpy()
             if labels_est_real.ndim == 2:
                 labels_est_real.shape = (labels_est_real.shape[0], 1, labels_est_real.shape[1])
             labels_est_real[1,:,:] = labels_est_real[1,:,:] - self.cpi_adjustments[0,:]
