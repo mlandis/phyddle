@@ -182,15 +182,20 @@ class Trainer:
         for k,v in self.param_est.items():
             util.print_str(f'  ▪ {k.ljust(num_ljust)}  [type: {v}]', verbose)
 
-        device_info = self.TORCH_DEVICE_STR
-        # if self.TORCH_DEVICE_STR == 'gpu':
-        #     device_info += '  [' + torch.cuda.get_device_properties(0).name + ']'
-        util.print_str('▪ PyTorch device used: ' + device_info, verbose)
 
         util.print_str('▪ Building network', verbose)
         self.build_network()
 
         util.print_str('▪ Training network', verbose)
+        device_info = ''
+        if self.TORCH_DEVICE_STR == 'cuda':
+            device_info = '  ▪ using CUDA + GPU'
+            device_info += ' [device: ' + torch.cuda.get_device_properties(0).name + ']'
+        elif self.TORCH_DEVICE_STR == 'cpu':
+            num_cpu = os.cpu_count()
+            device_info = '  ▪ using CPUs [num: ' + str(num_cpu) + ']'
+        if device_info != '':
+            util.print_str(device_info, verbose)
         self.train()
 
         util.print_str('▪ Processing results', verbose)
