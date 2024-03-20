@@ -1,4 +1,5 @@
 import sys
+import math
 import os
 import subprocess
 from natsort import natsorted
@@ -12,6 +13,7 @@ __email__ = "f.mendes@wustl.edu"
 # $ sudo python3 sim/PhyloJunction/sim_one.py sim/PhyloJunction/bisse_timehet.pj trs sim/PhyloJunction/ 1 10
 
 def parse_PJ_tree_tsv(out_path,
+                      prefix,
                       tree_tsv_path,
                       tree_state_csv_paths,
                       tree_node_name,
@@ -28,12 +30,12 @@ def parse_PJ_tree_tsv(out_path,
         j = i + 1
 
         # write parsed tree file
-        parsed_tr_path = "sim." + str(idx + i) + ".tre"
+        parsed_tr_path = prefix + "." + str(idx + i) + ".tre"
         with open(out_path + parsed_tr_path, "w") as outfile:
             print(tr_list[i], file=outfile)
 
         # write states to csv file
-        parsed_states_path = "sim." + str(idx + i) + ".dat.csv"
+        parsed_states_path = prefix + "." + str(idx + i) + ".dat.csv"
         with open(out_path + parsed_states_path, "w") as outfile:
             with open(tree_state_csv_paths[i]) as infile:
                 lines = infile.readlines()
@@ -42,17 +44,19 @@ def parse_PJ_tree_tsv(out_path,
                 print(content, file=outfile)
 
 
-def parse_PJ_scalar_tsv(out_path, scalar_csv_path, idx):
+def parse_PJ_scalar_tsv(out_path, prefix, scalar_csv_path, idx):
 
     # write scalar csv file
     with open(scalar_csv_path, "r") as infile:
         header = infile.readline().split(",")
+        header = [ 'log10_' + x for x in header ]
         rv_names = ",".join(header[2:]) # skip sim and repl
-        
-        for i, line in enumerate(infile):
-            vals = ",".join(line.split(",")[2:]).rstrip()
 
-            with open(out_path + "sim." + str(idx + i) + ".labels.csv", "w") as outfile:
+        for i, line in enumerate(infile):
+            vals = [ math.log(float(x), 10) for x in line.split(',')[2:] ]
+            vals = ','.join([str(x) for x in vals]).rstrip()
+
+            with open(out_path + prefix + "." + str(idx + i) + ".labels.csv", "w") as outfile:
                 print(rv_names + vals, file=outfile)
 
 
@@ -61,22 +65,23 @@ if __name__ == "__main__":
     ###########################
     # get and parse arguments #
     ###########################
-    
+   
     pj_script_path = sys.argv[1]
     if not os.path.isfile(pj_script_path):
         exit("Could not find " + pj_script_path + ". Exiting.")
 
     # e.g. trs_1
-    tree_node_name = sys.argv[2] # + '_' + sys.argv[4]
+    tree_node_name = sys.argv[2]
 
     pj_out_path = sys.argv[3]
     if not pj_out_path.endswith("/"):
         pj_out_path += "/"
 
-    idx = int(sys.argv[4]) # used to name files
-    sim_prefix = "sim" + str(idx)
+    prefix = sys.argv[4]
+    idx = int(sys.argv[5]) # used to name files
+    sim_prefix = prefix + '.' + str(idx)
 
-    n_batches = sys.argv[5] # PJ's number of samples
+    n_batches = sys.argv[6] # PJ's number of samples
 
     ##################
     # preparing dirs #
@@ -93,6 +98,8 @@ if __name__ == "__main__":
     #####################
 
     head, tail = os.path.split(pj_script_path)
+    if head == '':
+        head = '.'
     if not head.endswith("/"):
         head += "/"
         
@@ -149,12 +156,14 @@ if __name__ == "__main__":
     #####################
 
     parse_PJ_tree_tsv(out_path,
+                      prefix,
                       tree_tsv_path,
                       tree_state_csv_paths,
                       tree_node_name,
                       idx)
 
     parse_PJ_scalar_tsv(out_path,
+                        prefix,
                         scalar_csv_path,
                         idx)
 

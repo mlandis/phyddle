@@ -5,33 +5,29 @@
 # Description:  Simple birth-death and equal-rates CTMC model in R using ape   #
 #==============================================================================#
 
-work_dir = "./workspace/bisse_timehet_pj"
 
 args = {
 
     #-------------------------------#
     # Project organization          #
     #-------------------------------#
-    'step'    : 'SFTEP',                    # step(s) to run
-    'verbose' : 'T',                        # print verbose phyddle output?
-    'sim_dir' : f'{work_dir}/simulate',    # directory for simulated data
-    'fmt_dir' : f'{work_dir}/format',      # directory for tensor-formatted data
-    'trn_dir' : f'{work_dir}/train',       # directory for trained network
-    'plt_dir' : f'{work_dir}/plot',        # directory for plotted figures
-    'est_dir' : f'{work_dir}/estimate',    # directory for predictions on new data
-    'log_dir' : f'{work_dir}/log',         # directory for analysis logs
+    'step'               : 'SFTEP',               # step(s) to run
+    'verbose'            : 'T',                   # print verbose phyddle output?
+    'dir'                : './',                  # base directory for step directories
+    'prefix'             : 'out',                 # base prefix for step output
     'output_precision'   : 12,                    # Number of digits (precision) for numbers in output files
 
     #-------------------------------#
     # Multiprocessing               #
     #-------------------------------#
     'use_parallel'   : 'T',                 # use multiprocessing to speed up jobs?
+    'use_cuda'       : 'T',                 # use CUDA for training?
     'num_proc'       : -2,                  # how many CPUs to use (-2 means all but 2)
 
     #-------------------------------#
     # Simulate Step settings        #
     #-------------------------------#
-    'sim_command'       : f'python3 {work_dir}/sim_bisse_timehet.py {work_dir}/bisse_timehet.pj trs', # exact command string, argument is output file prefix
+    'sim_command'       : f'python3 sim_bisse_timehet.py bisse_timehet.pj trs', # exact command string, argument is output file prefix
     'sim_logging'       : 'verbose',        # verbose, compressed, or clean
     'start_idx'         : 0,                # first simulation replicate index
     'end_idx'           : 1000,             # last simulation replicate index
@@ -49,11 +45,12 @@ args = {
     'tree_encode'       : 'extant',         # use model with serial or extant tree
     'brlen_encode'      : 'height_brlen',   # how to encode phylo brlen? height_only or height_brlen
     'char_encode'       : 'integer',        # how to encode discrete states? one_hot or integer
-    'param_est'         : [                 # model parameters to predict (labels)
-        'birth_rate0_t0', 'birth_rate0_t1'
-    ],
-    'param_data'        : [                 # model parameters that are known (aux. data)
-    ],
+    'param_est'         : {                 # model parameters to predict (labels)
+                           'log10_birth_rate0_t0':'real', 
+                           'log10_birth_rate0_t1':'real',
+                          },
+    'param_data'        : {                 # model parameters that are known (aux. data)
+                          },
     'tensor_format'     : 'hdf5',           # save as compressed HDF5 or raw csv
     'char_format'       : 'csv',
     'save_phyenc_csv'   : 'F',              # save intermediate phylo-state vectors to file
@@ -61,7 +58,6 @@ args = {
     #-------------------------------#
     # Train Step settings           #
     #-------------------------------#
-    'trn_objective'     : 'param_est',      # what is the learning task? param_est or model_test
     'num_epochs'        : 10,               # number of training intervals (epochs)
     'prop_test'         : 0.05,             # proportion of sims in test dataset
     'prop_val'          : 0.05,             # proportion of sims in validation dataset
@@ -72,13 +68,11 @@ args = {
     'batch_size'        : 1024,             # number of samples in each training batch
     'loss'              : 'mse',            # loss function for learning
     'optimizer'         : 'adam',           # optimizer for network weight/bias parameters
-    'metrics'           : ['mae', 'acc'],   # recorded training metrics
     'log_offset'        : 1.0,
 
     #-------------------------------#
     # Estimate Step settings        #
     #-------------------------------#
-    'est_prefix'     : 'new.0',             # prefix for new dataset to predict
 
     #-------------------------------#
     # Plot Step settings            #
