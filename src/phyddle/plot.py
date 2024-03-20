@@ -862,7 +862,7 @@ class Plotter:
             pca_est = pca_model.transform(point_values)
         
         # figure dimensions
-        fig, axs = plt.subplots(num_comp-1, num_comp-1,
+        fig, axs = plt.subplots(num_comp-1, num_comp-1, squeeze=False,
                                 sharex=False, sharey=False,
                                 figsize=(fig_width, fig_height))
 

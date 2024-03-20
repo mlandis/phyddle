@@ -6,10 +6,10 @@
 
 if (exists("args")) {
     out_path   = args[1]
-    start_idx  = args[2]
-    batch_size = args[3]
+    prefix     = args[2]
+    start_idx  = args[3]
+    batch_size = args[4]
     rep_idx    = start_idx:(start_idx+batch_size-1)
-    print(start_idx)
     seed(start_idx)
 } else {
     rep_idx = 0:9
@@ -88,7 +88,7 @@ for (i in 1:rep_idx.size()) {
     idx = rep_idx[i]
 
     # filenames
-    tmp_fn = out_path + "/sim." + idx
+    tmp_fn = out_path + "/" + prefix + "." + idx
     phy_fn = tmp_fn + ".tre"
     dat_fn = tmp_fn + ".dat.nex"
     lbl_fn = tmp_fn + ".labels.csv"
@@ -125,13 +125,17 @@ for (i in 1:rep_idx.size()) {
     dat <- phy.getCharData()
      
     # make training labels
-    label_str = "rho_w,rho_e,rho_d,rho_b,sample_frac\n"
+    label_str = "log10_rho_w,log10_rho_e,log10_rho_d,log10_rho_b,sample_frac\n"
     label_values = [ rho_w, rho_e, rho_d, rho_b, sample_frac ]
     for (i in 1:label_values.size()) {
+        v = label_values[i]
+        if (i > 1 && i <= 4) {
+            v = log(v, base=10)
+        }
         if (i != 1) {
             label_str += ","
         }
-        label_str += ""+label_values[i]
+        label_str += ""+v
     }
     label_str += "\n"
 

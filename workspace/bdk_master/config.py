@@ -2,7 +2,7 @@
 # Default phyddle config file                                                  #
 #==============================================================================#
 
-work_dir = './workspace/bdk_master'
+work_dir = './'
 
 args = {
   #-------------------------------#
@@ -21,17 +21,13 @@ args = {
   #-------------------------------#
   # Workspace                     #
   #-------------------------------#
-  'sim_dir'            : f'{work_dir}/simulate',           # Directory for raw simulated data
-  'fmt_dir'            : f'{work_dir}/format',             # Directory for tensor-formatted simulated data
-  'trn_dir'            : f'{work_dir}/train',              # Directory for trained networks and training output
-  'est_dir'            : f'{work_dir}/estimate',           # Directory for new datasets and estimates
-  'plt_dir'            : f'{work_dir}/plot',               # Directory for plotted results  
-  'log_dir'            : f'{work_dir}/log',                # Directory for logs of analysis metadata
+  'dir'                : f'{work_dir}',
+  'prefix'             : 'out',
 
   #-------------------------------#
   # Simulate                      #
   #-------------------------------#
-  'sim_command'        : f'python3 {work_dir}/sim_bdk.py', # Simulation command to run single job (see documentation)
+  'sim_command'        : f'python3 sim_bdk.py', # Simulation command to run single job (see documentation)
   'sim_logging'        : 'clean',              # Simulation logging style       
   'start_idx'          : 0,                    # Start replicate index for simulated training dataset
   'end_idx'            : 1000,                 # End replicate index for simulated training dataset

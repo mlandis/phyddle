@@ -2,7 +2,6 @@
 # Default phyddle config file                                                  #
 #==============================================================================#
 
-work_dir = './workspace/geosse_revbayes'
 args = {
     
     #-------------------------------#
@@ -10,23 +9,20 @@ args = {
     #-------------------------------#
     'step'           : 'SFTEP',                  # steps to run? all, sim, fmt, trn, est, plt
     'verbose'        : 'T',
-    'sim_dir'        : f'{work_dir}/simulate',  # directory for simulated data
-    'fmt_dir'        : f'{work_dir}/format',    # directory for tensor-formatted data
-    'trn_dir'        : f'{work_dir}/train',     # directory for trained network
-    'plt_dir'        : f'{work_dir}/plot',      # directory for plotted figures
-    'est_dir'        : f'{work_dir}/estimate',  # directory for predictions on new data
-    'log_dir'        : f'{work_dir}/log',       # directory for logging metadata
-    
+    'dir'            : './',
+    'prefix'         : 'out',
+
     #-------------------------------#
     # Multiprocessing               #
     #-------------------------------#
     'use_parallel'   : 'T',                 # use multiprocessing to speed up jobs?
+    'use_cuda'       : 'T',
     'num_proc'       : -2,                  # how many CPUs to use (-2 means all but 2)
     
     #-------------------------------#
     # Simulate settings             #
     #-------------------------------#
-    'sim_command'       : f'rb {work_dir}/sim_geosse.Rev --args',   # exact command string, argument is output file prefix
+    'sim_command'       : f'rb sim_geosse.Rev --args',   # exact command string, argument is output file prefix
     'sim_logging'       : 'verbose',        # verbose, compressed, or clean
     'start_idx'         : 0,                # first simulation replicate index
     'end_idx'           : 100,              # last simulation replicate index
@@ -44,12 +40,15 @@ args = {
     'tree_encode'       : 'extant',         # use model with serial or extant tree
     'brlen_encode'      : 'height_brlen',   # how to encode phylo brlen? height_only or height_brlen
     'char_encode'       : 'one_hot',        # how to encode discrete states? one_hot or integer 
-    'param_est'        : [                  # model parameters to predict (labels)
-        'rho_w','rho_d','rho_e','rho_b'
-    ],
-    'param_data'        : [                 # model parameters that are known (aux. data)
-        'sample_frac'
-    ],               
+    'param_est'        : {                  # model parameters to predict (labels)
+        'log10_rho_w':'real',
+        'log10_rho_d':'real',
+        'log10_rho_e':'real',
+        'log10_rho_b':'real'
+    },
+    'param_data'        : {                 # model parameters that are known (aux. data)
+        'sample_frac':'real'
+    },               
     'tensor_format'     : 'hdf5',           # save as compressed HDF5 or raw csv
     'char_format'       : 'nexus',          # expect character data is in nexus or csv format
     'save_phyenc_csv'   : 'F',              # save intermediate phylo-state vectors to file
@@ -57,24 +56,20 @@ args = {
     #-------------------------------#
     # Train settings                #
     #-------------------------------#
-    'trn_objective'     : 'param_est',      # what is the learning task? param_est or model_test
     'num_epochs'        : 20,               # number of training intervals (epochs)
     'prop_test'         : 0.05,             # proportion of sims in test dataset
     'prop_val'          : 0.05,             # proportion of sims in validation dataset
     'prop_cal'          : 0.20,             # proportion of sims in CPI calibration dataset 
-    'combine_test_val'  : 'F',
     'cpi_coverage'      : 0.95,             # coverage level for CPIs
     'cpi_asymmetric'    : 'T',              # two-sided (True) or one-sided (False) CPI adjustments
     'trn_batch_size'    : 1024,             # number of samples in each training batch
     'loss'              : 'mse',            # loss function for learning
     'optimizer'         : 'adam',           # optimizer for network weight/bias parameters
-    'metrics'           : ['mae', 'acc'],   # recorded training metrics
     'log_offset'        : 1.0,
 
     #-------------------------------#
     # Estimate settings             #
     #-------------------------------#
-    'est_prefix'     : 'new.0',             # prefix for new dataset to predict
 
     #-------------------------------#
     # Plot settings                 #
