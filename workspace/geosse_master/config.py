@@ -19,6 +19,7 @@ args = {
     # Multiprocessing               #
     #-------------------------------#
     'use_parallel'   : 'True',              # use multiprocessing to speed up jobs?
+    'use_cuda'       : 'True',              # use CUDA for Train
     'num_proc'       : -2,                  # how many CPUs to use (-2 means all but 2)
     
     #-------------------------------#
@@ -41,17 +42,19 @@ args = {
     'char_format'       : 'nexus',
     'brlen_encode'      : 'height_brlen',   # how to encode phylo brlen? height_only or height_brlen
     'char_encode'       : 'integer',        # how to encode discrete states? one_hot or integer
-    'param_est'         : [                 # model parameters to estimate (labels)
-        'w_0', 'e_0', 'd_0_1', 'b_0_1'
-    ],
-    'param_data'        : [],               # model parameters that are known (aux. data)
+    'param_est'         : {                 # model parameters to estimate (labels)
+                           'log10_w_0':'real',
+                           'log10_e_0':'real',
+                           'log10_d_0_1':'real',
+                           'log10_b_0_1':'real'
+                           },
+    'param_data'        : { },               # model parameters that are known (aux. data)
     'tensor_format'     : 'hdf5',           # save as compressed HDF5 or raw csv
     'save_phyenc_csv'   : 'F',              # save intermediate phylo-state vectors to file
 
     #-------------------------------#
     # Train Step settings           #
     #-------------------------------#
-    'trn_objective'     : 'param_est',      # what is the learning task? param_est or model_test
     'tree_width'        : 200,              # tree width category used to train network
     'num_epochs'        : 20,               # number of training intervals (epochs)
     'prop_test'         : 0.05,             # proportion of sims in test dataset
@@ -60,14 +63,11 @@ args = {
     'cpi_coverage'      : 0.95,             # coverage level for CPIs
     'cpi_asymmetric'    : 'T',              # upper/lower (True) or symmetric (False) CPI adjustments
     'trn_batch_size'    : 128,              # number of samples in each training batch
-    'loss'              : 'mse',            # loss function for learning
     'optimizer'         : 'adam',           # optimizer for network weight/bias parameters
-    'metrics'           : ['mae', 'acc'],   # recorded training metrics
 
     #-------------------------------#
     # Estimate Step settings        #
     #-------------------------------#
-    'est_prefix'     : 'new.1',             # prefix for new dataset to predict
 
     #-------------------------------#
     # Plot Step settings            #

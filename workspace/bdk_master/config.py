@@ -17,6 +17,7 @@ args = {
   # Analysis                      #
   #-------------------------------#
   'use_parallel'       : 'T',                  # Use parallelization? (recommended)
+  'use_cuda'           : 'T',                  # Use CUDA for Train?
   'num_proc'           : -2,                   # Number of cores for multiprocessing (-N for all but N)
 
   #-------------------------------#
@@ -41,10 +42,12 @@ args = {
   'tree_encode'        : 'extant',             # Encoding strategy for tree     
   'brlen_encode'       : 'height_brlen',       # Encoding strategy for branch lengths
   'char_encode'        : 'integer',            # Encoding strategy for character data
-  'param_est'          : ['BirthConst_0',
-                          'DeathConst_0',
-                          'DeathDensity_0'],          # Model parameters to estimate   
-  'param_data'         : [ ],          # Model parameters treated as data
+  'param_est'          : {
+      'BirthConst_0':'real',
+      'DeathConst_0':'real',
+      'DeathDensity_0':'real'
+    },          # Model parameters to estimate   
+  'param_data'         : { },          # Model parameters treated as data
   'char_format'        : 'nexus',              # File format for character data 
   'tensor_format'      : 'hdf5',               # File format for training example tensors
   'save_phyenc_csv'    : 'F',                  # Save encoded phylogenetic tensor encoding to csv?
@@ -52,7 +55,6 @@ args = {
   #-------------------------------#
   # Train                         #
   #-------------------------------#
-  'trn_objective'      : 'param_est',          # Objective of training procedure
   'num_epochs'         : 20,                   # Number of training epochs      
   'trn_batch_size'     : 512,                  # Training batch sizes           
   'prop_test'          : 0.05,                 # Proportion of data used as test examples (assess trained network performance)
@@ -62,8 +64,6 @@ args = {
   'cpi_asymmetric'     : 'T',                  # Use asymmetric (True) or symmetric (False) adjustments for CPIs?
   'loss'               : 'mse',                # Loss function for optimization 
   'optimizer'          : 'adam',               # Method used for optimizing neural network
-  'metrics'            : ['mae', 'acc'],       # Recorded training metrics      
-  'log_offset'         : 1.0,                  # Offset size c when taking ln(x+c) for potentially zero-valued variables
   'phy_channel_plain'  : [32, 64],        # Output channel sizes for plain convolutional layers for phylogenetic state input
   'phy_channel_stride' : [32, 64],             # Output channel sizes for stride convolutional layers for phylogenetic state input
   'phy_channel_dilate' : [32, 64],             # Output channel sizes for dilate convolutional layers for phylogenetic state input
@@ -89,8 +89,5 @@ args = {
   'plot_val_color'     : 'red',                # Plotting color for validation data elements
   'plot_aux_color'     : 'green',              # Plotting color for auxiliary data elements
   'plot_est_color'     : 'black',              # Plotting color for new estimation elements
-  'plot_scatter_log'   : 'T',                  # Use log values for scatter plots when possible?
-  'plot_contour_log'   : 'T',                  # Use log values for contour plots when possible?
-  'plot_density_log'   : 'T',                  # Use log values for density plots when possible?
 
 }

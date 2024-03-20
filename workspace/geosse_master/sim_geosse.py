@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import masterpy
 import scipy as sp
+import numpy as np
 import sys
 import os
 import subprocess
@@ -76,7 +77,13 @@ x = subprocess.run(['beast', xml_fn], capture_output=True)
 #sys.stderr.write(x_stderr)
 
 # get params (labels) from model
-param_mtx_str,param_vec_str = masterpy.param_dict_to_str(my_model.params)
+params = {
+        'log10_w': np.log10(my_model.params['w']),
+        'log10_e': np.log10(my_model.params['e']),
+        'log10_d': np.log10(my_model.params['d']),
+        'log10_b': np.log10(my_model.params['b'])
+}
+param_mtx_str,param_vec_str = masterpy.param_dict_to_str(params)
 
 # save output
 masterpy.write_to_file(param_mtx_str, param_mtx_fn)
