@@ -9,11 +9,12 @@ import numpy as np
 
 # get arguments
 out_path     = sys.argv[1]
-idx          = int(sys.argv[2])
-batch_size   = int(sys.argv[3])
+prefix       = sys.argv[2]
+idx          = int(sys.argv[3])
+batch_size   = int(sys.argv[4])
 
 # process arguments
-tmp_fn       = out_path + f'/sim.{idx}'
+tmp_fn       = f'{out_path}/{prefix}.{idx}'
 sim_tok      = tmp_fn.split('/')
 sim_dir      = '/'.join(sim_tok[:-2])
 proj         = sim_tok[-2]

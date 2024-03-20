@@ -4,21 +4,16 @@
 
 
 # helper variables
-work_dir = './workspace/sir_master'
 
 args = {
     
     #-------------------------------#
     # Project organization          #
     #-------------------------------#
-    'step'    : 'SFTEP',                        # step(s) to run
+    'step'    : 'SFTEP',                   # step(s) to run
     'verbose' : 'T',                       # print verbose phyddle output?
-    'sim_dir' : f'{work_dir}/simulate',    # directory for simulated data
-    'fmt_dir' : f'{work_dir}/format',      # directory for tensor-formatted data
-    'trn_dir' : f'{work_dir}/train',       # directory for trained network
-    'plt_dir' : f'{work_dir}/plot',        # directory for plotted figures
-    'est_dir' : f'{work_dir}/estimate',    # directory for predictions on new data
-    'log_dir' : f'{work_dir}/log',         # directory for analysis logs
+    'dir'     : './',                      # project directory
+    'prefix'  : 'out',                     # project prefix
     
     #-------------------------------#
     # Multiprocessing               #
@@ -29,7 +24,7 @@ args = {
     #-------------------------------#
     # Simulate Step settings        #
     #-------------------------------#
-    'sim_command'       : f'python3 {work_dir}/sim_sir.py', # exact command string, argument is output file prefix
+    'sim_command'       : f'python3 sim_sir.py', # exact command string, argument is output file prefix
     'sim_logging'       : 'verbose',        # verbose, compressed, or clean
     'start_idx'         : 0,                # first simulation replicate index
     'end_idx'           : 1000,             # last simulation replicate index

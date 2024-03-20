@@ -368,10 +368,12 @@ class Simulator:
         util.print_str(f'  ▪ ' + str(n_lbl).rjust(num_rjust) + ' labels files', self.verbose)
         
         if len(valid_all) == 0:
-            util.print_warn(f'{self.sim_dir} contains no valid simulations.'
+            print('')
+            util.print_warn(f'{self.sim_dir} contains no valid simulations. '
                             f'Verify that simulation command:\n\n'
-                            f'\t{self.sim_command} {self.sim_dir} {self.sim_prefix} 0 1\n\n'
-                            f'works as intended with the provided configuration.')
+                            f'    {self.sim_command} {self.sim_dir} {self.sim_prefix} 0 1\n\n'
+                            f'works as intended with the provided configuration.'
+                            '\n')
             
         return
     
