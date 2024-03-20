@@ -2,7 +2,6 @@
 # Default phyddle config file                                                  #
 #==============================================================================#
 
-work_dir = './'
 
 args = {
   #-------------------------------#
@@ -11,6 +10,8 @@ args = {
   'step'               : 'SFTEP',              # Pipeline step(s) defined with (S)imulate, (F)ormat, (T)rain, (E)stimate, (P)lot, or (A)ll
   'verbose'            : 'T',                  # Verbose output to screen?      
   'output_precision'   : 16,                   # Number of digits (precision) for numbers in output files
+  'dir'                : './',
+  'prefix'             : 'out',
 
   #-------------------------------#
   # Analysis                      #
@@ -19,15 +20,9 @@ args = {
   'num_proc'           : -2,                   # Number of cores for multiprocessing (-N for all but N)
 
   #-------------------------------#
-  # Workspace                     #
-  #-------------------------------#
-  'dir'                : f'{work_dir}',
-  'prefix'             : 'out',
-
-  #-------------------------------#
   # Simulate                      #
   #-------------------------------#
-  'sim_command'        : f'python3 sim_bdk.py', # Simulation command to run single job (see documentation)
+  'sim_command'        : 'python3 sim_bdk.py', # Simulation command to run single job (see documentation)
   'sim_logging'        : 'clean',              # Simulation logging style       
   'start_idx'          : 0,                    # Start replicate index for simulated training dataset
   'end_idx'            : 1000,                 # End replicate index for simulated training dataset

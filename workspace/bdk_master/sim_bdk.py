@@ -16,15 +16,11 @@ batch_size   = int(sys.argv[4])
 
 # process arguments
 tmp_fn       = f'{out_path}/{prefix}.{idx}'
-sim_tok      = tmp_fn.split('/')
-sim_dir      = '/'.join(sim_tok[:-2])
-proj         = sim_tok[-2]
-sim_proj_dir = f'{sim_dir}/{proj}'
 
 # model setup
 args = {
-    'sim_dir'            : sim_dir,         # dir for simulations
-    'proj'               : proj,            # project name(s)
+    'dir'                : out_path,         # dir for simulations
+    'prefix'             : prefix,            # project name(s)
 	'model_type'         : 'birthdeath',           # model type defines states & events
     # model variant defines rates
     'model_variant'      : ['FreeRates',            # [FreeRates, EqualRates]
@@ -62,7 +58,7 @@ dat_nex_fn   = tmp_fn + '.dat.nex'
 dat_json_fn  = tmp_fn + '.json'
 
 # make sim dir for output
-os.makedirs(sim_proj_dir, exist_ok=True)
+os.makedirs(out_path, exist_ok=True)
 
 # load model
 my_model = masterpy.load(args)

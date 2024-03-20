@@ -12,18 +12,14 @@ idx          = int(sys.argv[3])
 batch_size   = int(sys.argv[4])
 
 # process arguments
-tmp_fn       = f'{sys.argv[1]}/{prefix}.{idx}'
-sim_tok      = tmp_fn.split('/')
-sim_dir      = '/'.join(sim_tok[:-2])
-proj         = sim_tok[-2]
-sim_proj_dir = f'{sim_dir}/{proj}'
+tmp_fn       = f'{out_path}/{prefix}.{idx}'
 
 # model setup
 num_char = 3
 num_states = 2
 args = {
-    'sim_dir'            : sim_dir,         # dir for simulations
-    'proj'               : proj,            # project name(s)
+    'dir'                : out_path,        # dir for simulations
+    'prefix'             : prefix,          # project name(s)
 	'model_type'         : 'geosse',        # model type defines states & events
     'model_variant'      : 'equal_rates',   # model variant defines rates
     'num_char'           : num_char,        # number of evolutionary characters
@@ -58,7 +54,7 @@ phy_nex_fn   = tmp_fn + '.nex.tre'
 dat_nex_fn   = tmp_fn + '.dat.nex'
 
 # make sim dir for output
-os.makedirs(sim_proj_dir, exist_ok=True)
+os.makedirs(out_path, exist_ok=True)
 
 # load model
 my_model = masterpy.load(args)
