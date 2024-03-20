@@ -86,7 +86,7 @@ git pull
 ./build.sh
 ```
 
-phyddle uses third-party simulators to generate training datasets. Example workflows assume that [R](https://cran.r-project.org) v4.2.2, [RevBayes](https://revbayes.github.io) v1.2.1, or [BEAST](https://www.beast2.org/) v2.7.3 with [MASTER](https://github.com/tgvaughan/MASTER) v7.0.0 (plugin) is installed on your machine and can be executed as a command from terminal. The documentation explains how to configure R for use with phyddle.
+phyddle uses third-party simulators to generate training datasets. Example workflows assume that [R](https://cran.r-project.org) v4.2.2, [RevBayes](https://revbayes.github.io) v1.2.1, [Phylojunction](https://phylojunction.org/build/html/index.html), or [BEAST](https://www.beast2.org/) v2.7.3 with [MASTER](https://github.com/tgvaughan/MASTER) v7.0.0 (plugin) is installed on your machine and can be executed as a command from terminal. The documentation explains how to configure R for use with phyddle.
 
 ## Note on code stability
 
