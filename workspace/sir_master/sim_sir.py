@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 import masterpy
+import pandas as pd
+import numpy as np
 import scipy as sp
 import sys
 import os
 import subprocess
 import json
-import numpy as np
 
 # get arguments
 out_path     = sys.argv[1]
@@ -15,15 +16,11 @@ batch_size   = int(sys.argv[4])
 
 # process arguments
 tmp_fn       = f'{out_path}/{prefix}.{idx}'
-sim_tok      = tmp_fn.split('/')
-sim_dir      = '/'.join(sim_tok[:-2])
-proj         = sim_tok[-2]
-sim_proj_dir = f'{sim_dir}/{proj}'
 
 # model setup
 args = {
-    'sim_dir'            : sim_dir,         # dir for simulations
-    'proj'               : proj,            # project name(s)
+    'dir'                : out_path,        # dir for simulations
+    'prefix'             : prefix,          # file prefix
 	'model_type'         : 'sir',           # model type defines states & events
     # model variant defines rates
     'model_variant'      : ['EqualRates',            # [FreeRates, EqualRates]
@@ -33,7 +30,7 @@ args = {
     'num_hidden_char'    : 1,               # number of hidden states
     'num_exposed_cat'    : 1,               # number of infected Exposed stages (>1)
     'stop_time'          : None,            # time to stop simulation 
-    'min_num_taxa'       : 1,               # min number of taxa for valid sim
+    'min_num_taxa'       : 10,               # min number of taxa for valid sim
     'max_num_taxa'       : 500,             # max number of taxa for valid sim
     'rv_fn'              : {                # distributions for model params
         'R0'             : sp.stats.uniform.rvs,
@@ -48,7 +45,7 @@ args = {
         'R0'                : { 'loc' : 1.0,     'scale' : 7.0   }, 
         'Recover'           : { 'loc' : 0.1,     'scale' : 0.9   }, # 1 to 10 days, rate of 0.1 to 1
         'Sample'            : { 'loc' : 0.1,     'scale' : 0.9   }, # 1 to 100 days, rate of 0.1 to 1
-        'S0'                : { 'loc' : 1000.,   'scale' : 9000. }, # 1000 to 10000 ind. in population
+        'S0'                : { 'loc' : 10000.,   'scale' : 90000. }, # 1000 to 10000 ind. in population
         'Stop_time'         : { 'loc' : 20,      'scale' : 200   },  # between 10 days and 1 year
         'nSampled_tips'     : { 'low' : 50.0,    'high' : 450.   },   # subsample samples
         'Time_before_present' : { 'loc' : 0,     'scale' : 30}
@@ -65,7 +62,7 @@ dat_nex_fn   = tmp_fn + '.dat.nex'
 dat_json_fn  = tmp_fn + '.json'
 
 # make sim dir for output
-os.makedirs(sim_proj_dir, exist_ok=True)
+os.makedirs(out_path, exist_ok=True)
 
 # load model
 my_model = masterpy.load(args)
@@ -88,13 +85,21 @@ x = subprocess.run(['beast', xml_fn], capture_output=True)
 # sim_stats = my_model.get_json_stats(dat_json_fn)
 
 # make stochastic files and gather more stats for labels
-if my_model.model_stochastic:
+if my_model.model_stochastic and os.path.isfile(phy_nwk_fn):
     phy_state_dat = masterpy.blank_phy2dat_nex(phy_nwk_fn)
     masterpy.write_to_file(phy_state_dat, dat_nex_fn)
     # masterpy.remove_stem_branch(phy_nwk_fn)
 
 # gather all data for labels files
-param_mtx_str, param_vec_str = masterpy.param_dict_to_str( my_model.params )
+params = {
+        'log10_R0'      : np.log10(my_model.params['R0']),
+        'log10_Sample'  : np.log10(my_model.params['Sample']),
+        'log10_Infect'  : np.log10(my_model.params['Infect']),
+        'log10_Recover' : np.log10(my_model.params['Recover']),
+        'log10_S0'      : np.log10(my_model.params['S0'])
+}
+
+param_mtx_str, param_vec_str = masterpy.param_dict_to_str( params )
 
 # make label file
 masterpy.write_to_file(param_mtx_str, param_mtx_fn)

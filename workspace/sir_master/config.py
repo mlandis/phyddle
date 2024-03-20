@@ -12,19 +12,20 @@ args = {
     #-------------------------------#
     'step'    : 'SFTEP',                   # step(s) to run
     'verbose' : 'T',                       # print verbose phyddle output?
-    'dir'     : './',                      # project directory
-    'prefix'  : 'out',                     # project prefix
+    'dir'     : './',                      # default base projet directory
+    'prefix'  : 'out',                     # default step filename prefix
     
     #-------------------------------#
     # Multiprocessing               #
     #-------------------------------#
     'use_parallel'   : 'T',                # use multiprocessing to speed up jobs?
+    'use_cuda'       : 'T',                # use CUDA for Train
     'num_proc'       : -2,                 # how many CPUs to use (-2 means all but 2)
     
     #-------------------------------#
     # Simulate Step settings        #
     #-------------------------------#
-    'sim_command'       : f'python3 sim_sir.py', # exact command string, argument is output file prefix
+    'sim_command'       : 'python3 sim_sir.py', # exact command string, argument is output file prefix
     'sim_logging'       : 'verbose',        # verbose, compressed, or clean
     'start_idx'         : 0,                # first simulation replicate index
     'end_idx'           : 1000,             # last simulation replicate index
@@ -43,12 +44,15 @@ args = {
     'tree_width'        : 500,              # tree width categories for phylo-state tensors
     'brlen_encode'      : 'height_brlen',   # how to encode phylo brlen? height_only or height_brlen
     'char_encode'       : 'one_hot',        # how to encode discrete states? one_hot or integer
-    'param_est'         : [                 # model parameters to estimate (labels)
-        'R0_0', 'Sample_0', 'Infect_0'
-    ],
-    'param_data'        : [                 # model parameters that are known (aux. data)
-        'Recover_0', 'S0_0_0'
-    ],
+    'param_est'         : {                 # model parameters to estimate (labels)
+                           'log10_R0_0':'real',
+                           'log10_Sample_0':'real',
+                           'log10_Infect_0':'real'
+                          },
+    'param_data'        : {                 # model parameters that are known (aux. data)
+                           'log10_Recover_0':'real',
+                           'log10_S0_0_0':'real'
+                          },
     'tensor_format'     : 'hdf5',           # save as compressed HDF5 or raw csv
     'save_phyenc_csv'   : 'F',            # save intermediate phylo-state vectors to file
     'log_offset'        : 1.0,
@@ -56,7 +60,6 @@ args = {
     #-------------------------------#
     # Train Step settings           #
     #-------------------------------#
-    'trn_objective'     : 'param_est',      # what is the learning task? param_est or model_test
     'num_epochs'        : 20,               # number of training intervals (epochs)
     'prop_val'          : 0.05,             # proportion of sims in validation dataset
     'prop_cal'          : 0.20,             # proportion of sims in CPI calibration dataset 
@@ -66,12 +69,10 @@ args = {
     'batch_size'        : 128,              # number of samples in each training batch
     'loss'              : 'mse',            # loss function for learning
     'optimizer'         : 'adam',           # optimizer for network weight/bias parameters
-    'metrics'           : ['mae', 'acc'],   # recorded training metrics
 
     #-------------------------------#
     # Estimate Step settings        #
     #-------------------------------#
-    'est_prefix'     : 'new.0',             # prefix for new dataset to predict
 
     #-------------------------------#
     # Plot Step settings            #
