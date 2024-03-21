@@ -5,6 +5,7 @@ workspace/*/train
 workspace/*/estimate
 workspace/*/plot
 workspace/*/log
+workspace/*/empirical
 
 !tests/workspace/valid/simulate/
 !tests/workspace/valid/format/
@@ -12,13 +13,19 @@ workspace/*/log
 !tests/workspace/valid/train/
 !tests/workspace/valid/plot/
 !tests/workspace/valid/log/
+!tests/workspace/valid/empirical/
 
-tests/workspace/test/simulate/
-tests/workspace/test/format/
-tests/workspace/test/estimate/
-tests/workspace/test/train/
-tests/workspace/test/plot/
-tests/workspace/test/log/
+tests/workspace/test/*
+#simulate/
+#tests/workspace/test/format/
+#tests/workspace/test/estimate/
+#tests/workspace/test/train/
+#tests/workspace/test/plot/
+#tests/workspace/test/log/
+#tests/workspace/test/empirical/
+
+# Ignore distribution files
+dist/
 
 # Ignore simulation tmp files
 workspace/bisse_timehet_pj/bisse_timehet_*_parsed.pj
@@ -53,6 +60,10 @@ pkg_notes.txt
 **/.DS_Store
 **/.DS_Store?
 
+# Ignore JetBrains Rider project files
+*.sln*
+.idea/
+
 # Ignore Sphinx extras
 #docs/build/doctrees
 #docs/build/doctrees/*
@@ -63,3 +74,16 @@ docs/build/*
 
 # Ignore programming files
 
+# Ignore helper scripts
+scripts/download_all.sh
+scripts/download_plots.sh
+build_all.sh
+
+# Ignore notes
+TODO.md
+
+# Ignore random files
+docs/source/tables/glossary_raw.csv
+docs/source/tables/make_phyddle_settings_table.sh
+workspace/levy_r/config_modeltest.py
+workspace/levy_r/plot_tree.R
