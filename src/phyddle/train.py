@@ -731,6 +731,7 @@ class CnnTrainer(Trainer):
             self.update_train_history(i, metric_names, val_metric_vals, 'validation')
 
         # print(self.train_history)
+
         return
     
     def update_train_history(self, epoch, metric_names, metric_vals, dataset_name='train',):
@@ -760,14 +761,18 @@ class CnnTrainer(Trainer):
         terms for the training dataset.
 
         """
+
+        # temporarily switch to CPU
+        self.model.to('cpu')
+
         # make initial CPI estimates
         num_calib_examples = self.calib_phy_data_tensor.shape[0]
         calib_loader = torch.utils.data.DataLoader(dataset=self.calib_dataset,
                                                    batch_size=num_calib_examples)
         calib_batch = next(iter(calib_loader))
         calib_phy_dat, calib_aux_dat = calib_batch[0], calib_batch[1]
-        calib_phy_dat = calib_phy_dat.to(self.TORCH_DEVICE)
-        calib_aux_dat = calib_aux_dat.to(self.TORCH_DEVICE)
+        calib_phy_dat = calib_phy_dat.to('cpu')
+        calib_aux_dat = calib_aux_dat.to('cpu')
         
         # get calib estimates
         calib_label_est = self.model(calib_phy_dat, calib_aux_dat)
@@ -780,6 +785,9 @@ class CnnTrainer(Trainer):
                                                      inner_quantile=self.cpi_coverage,
                                                      asymmetric=self.cpi_asymmetric)
         self.cpi_adjustments = np.array(self.cpi_adjustments).reshape((2,-1))
+
+        # restore device
+        self.model.to(self.TORCH_DEVICE)
 
         # done
         return
@@ -804,10 +812,9 @@ class CnnTrainer(Trainer):
         train_labels_real = train_labels_real.to(self.TORCH_DEVICE)
         train_labels_cat = train_labels_cat.to(self.TORCH_DEVICE)
 
-
         # get train estimates
         label_est = self.model(train_phy_dat, train_aux_dat)
-
+        
         # real vs. cat estimates
         labels_real_est = label_est[0:3]
         labels_real_est = torch.stack(labels_real_est).cpu().detach().numpy()
