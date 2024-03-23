@@ -29,6 +29,7 @@ Visit the :ref:`Quick_Start` and :ref:`Installation` pages to get started.
     :hidden:
 
     quick_start
+    tutorial
     installation
     configuration
     pipeline
