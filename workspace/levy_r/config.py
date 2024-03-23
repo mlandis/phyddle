@@ -26,7 +26,7 @@ args = {
     #-------------------------------#
     # Simulate Step settings        #
     #-------------------------------#
-    'sim_command'       : f'Rscript {work_dir}/sim_levy.R', # exact command string, argument is output file prefix
+    'sim_command'       : f'Rscript sim_levy.R', # exact command string, argument is output file prefix
     'sim_logging'       : 'verbose',        # verbose, compressed, or clean
     'start_idx'         : 0,                # first simulation replicate index
     'end_idx'           : 2500,             # last simulation replicate index
@@ -45,13 +45,13 @@ args = {
     'brlen_encode'      : 'height_brlen',   # how to encode phylo brlen? height_only or height_brlen
     'char_encode'       : 'numeric',        # how to encode discrete states? one_hot or integer
     'param_est'         : {                 # model parameters to predict (labels)
-                           #'log10_process_var':'real',
-                           #'log10_process_kurt':'real',
-                           #'frac_of_var':'real',
-                           'log10_sigma_bm':'real',
-                           'log10_lambda_jn':'real',
-                           'log10_delta_jn':'real',
-    #                       'log10_sigma_tip':'real',
+                           'log10_process_var':'real',
+                           'log10_process_kurt':'real',
+    #                       'frac_of_var':'real',
+                           #'log10_sigma_bm':'real',
+                           #'log10_lambda_jn':'real',
+                           #'log10_delta_jn':'real',
+                           'log10_sigma_tip':'real',
                            'trait_orig':'real',
     #                       'model_type':'cat'
                           },
@@ -67,7 +67,6 @@ args = {
     #-------------------------------#
     # Train Step settings           #
     #-------------------------------#
-    'trn_objective'     : 'param_est',      # what is the learning task? param_est or model_test
     'num_epochs'        : 10,               # number of training intervals (epochs)
     'prop_test'         : 0.05,             # proportion of sims in test dataset
     'prop_val'          : 0.05,             # proportion of sims in validation dataset
@@ -75,10 +74,9 @@ args = {
     'combine_test_val'  : 'T',
     'cpi_coverage'      : 0.80,             # coverage level for CPIs
     'cpi_asymmetric'    : 'T',              # upper/lower ('T') or symmetric ('F') CPI adjustments
-    'batch_size'        : 2048,              # number of samples in each training batch
+    'batch_size'        : 4096,              # number of samples in each training batch
     'loss'              : 'mae',            # loss function for learning
     'optimizer'         : 'adam',           # optimizer for network weight/bias parameters
-    'metrics'           : ['mae', 'acc'],   # recorded training metrics
     'log_offset'        : 1.0,
 
     #-------------------------------#

@@ -62,6 +62,7 @@ for (i in 1:num_rep) {
         model_names = c("BM","OU","EB","JN","NIG","BMJN","BMNIG")
         num_models = length(model_names)
         model_type = sample(0:(num_models-1), size=1)
+        model_type = 3
 
         # birth-death parameters
         birth = runif(1, 1, 5)
@@ -82,7 +83,7 @@ for (i in 1:num_rep) {
         # Levy parameters
         trait_orig = rnorm(1, 0, 2)
         process_var = rexp(1, 1)
-        sigma_tip = rexp(1, 10)
+        sigma_tip = rexp(1, 5)
         halflife = rgamma(1, 15, 2)
         decay = -rgamma(1, 15, 2)
         if (model_type == 0) {
