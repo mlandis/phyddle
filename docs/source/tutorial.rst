@@ -17,8 +17,8 @@ This tutorial explains how to:
 - Interpret results from :ref:`Plot`
 
 
-A carefree analysis
--------------------
+An analysis, now!
+-----------------
 
 You need a result and you need it now! To run a phyddle analysis for
 ``bisse_r`` using 25000 training examples, type: 
@@ -54,7 +54,8 @@ The directory ``./workspace/bisse_r/`` contains:
 - ``config.py``, a phyddle config file designed to work with ``sim_bisse.R``
 
 Files and directories for results from phyddle pipeline steps will
-be generated automatically.
+be generated automatically. See :ref:`Workspace` for more details
+regarding a typical project directory structure.
 
 
 The simulation script
@@ -488,8 +489,61 @@ train a dataset.
 Interpreting results
 --------------------
 
-In this section, we look at some plots. Will take some time to write.
+In this section, we look at some plots. The figures 
+named ``out.empirical_estimate_real_N.pdf`` show estimates for
+empirical datasets, where ``N`` represents the `Nth` empirical
+replicate.
 
+.. figure:: images/out.empirical_estimate_real_0.png
+  :width: 500
+  :align: center
+
+|
+
+.. .. image:: out.train_density_labels_real.png
+..   :width: 500
+..   :align: center
+.. 
+.. .. image:: out.train_density_aux_data.png
+..   :width: 500
+..   :align: center
+.. 
+.. .. image:: out.train_pca_labels_real.png
+..   :width: 500
+..   :align: center
+.. 
+.. .. image:: out.train_pca_aux_data.png
+..   :width: 500
+..   :align: center
+  
+The figure ``out.train_estimate_log10_birth_1.pdf`` shows trained
+network predictions for the training dataset.
+
+.. figure:: images/out.train_estimate_log10_birth_1.png
+  :width: 500
+  :align: center
+
+|
+  
+The figure ``out.test_estimate_log10_birth_1.pdf`` shows trained
+network predictions for the test dataset (the data not used for training).
+  
+.. figure:: images/out.test_estimate_log10_birth_1.png
+  :width: 500
+  :align: center
+
+|
+
+This figure ``out.network_architecture.pdf`` represents the network
+architecture used for training.
+  
+.. figure:: images/out.network_architecture.png
+  :width: 500
+  :align: center
+
+|
+
+Exactly which figures are generated depends on how phyddle was configured.
 
 Sharing a trained network
 -------------------------
