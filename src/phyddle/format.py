@@ -759,29 +759,33 @@ class Formatter:
         # new dictionary to return
         summ_stats = {}
 
+        # small dx to offset zero-valued things
+        zero_offset = 1E-4
+        one_offset = 1E+4
+        
         # return default summ stats if phy not valid
         if phy is not None:
             
             # read basic info from phylogenetic tree
-            # num_taxa                  = len(phy.leaf_nodes())
+            num_taxa                  = len(phy.leaf_nodes())
             node_ages                 = phy.internal_node_ages(ultrametricity_precision=False)
             root_age                  = phy.seed_node.age
             branch_lengths            = [ nd.edge.length for nd in phy.nodes() if nd != phy.seed_node ]
             
             # tree statistics
-            summ_stats['tree_length'] = phy.length()
-            summ_stats['root_age']    = root_age
-            summ_stats['brlen_mean']  = np.mean(branch_lengths)
-            summ_stats['age_mean']    = np.mean(node_ages)
-            summ_stats['B1']          = dp.calculate.treemeasure.B1(phy)
+            summ_stats['log10_tree_length'] = np.log10( phy.length() )
+            summ_stats['log10_root_age']    = np.log10( root_age )
+            summ_stats['log10_brlen_mean']  = np.log10( np.mean(branch_lengths) )
+            summ_stats['log10_age_mean']    = np.log10( np.mean(node_ages) )
+            summ_stats['log10_B1']          = np.log10( dp.calculate.treemeasure.B1(phy) )
             try:
-                summ_stats['colless'] = dp.calculate.treemeasure.colless_tree_imbalance(phy)
+                summ_stats['colless'] = np.log10( dp.calculate.treemeasure.colless_tree_imbalance(phy) )
             except ZeroDivisionError:
-                summ_stats['colless'] = 0.0
-            summ_stats['age_var']     = np.var(node_ages)
-            summ_stats['brlen_var']   = np.var(branch_lengths)
-            summ_stats['treeness']    = dp.calculate.treemeasure.treeness(phy)
-            summ_stats['N_bar']       = dp.calculate.treemeasure.N_bar(phy)
+                summ_stats['colless'] = np.log10(zero_offset)
+            summ_stats['age_var']     = np.log10( np.var(node_ages) )
+            summ_stats['brlen_var']   = np.log10( np.var(branch_lengths) )
+            summ_stats['treeness']    = np.log10( dp.calculate.treemeasure.treeness(phy) )
+            summ_stats['N_bar']       = np.log10( dp.calculate.treemeasure.N_bar(phy) )
 
         # frequencies of character states
         if self.char_encode == 'integer':
@@ -789,20 +793,49 @@ class Formatter:
             # initialize state freqs
             states = list(range(self.num_states))
             for i in states:
-                # summ_stats[f'f_dat_{i}'] = 0.
+                summ_stats[f'f_dat_{i}'] = 0.0
                 summ_stats[f'n_dat_{i}'] = 0.0
 
             # fill-in non-zero state freqs
             unique, counts = np.unique(dat, return_counts=True)
             for i,j in zip(states, counts):
-                # summ_stats[f'f_dat_{i}'] = j / num_taxa
+                summ_stats[f'f_dat_{i}'] = j / num_taxa
                 summ_stats[f'n_dat_{i}'] = j
-
+                
+            for i in states:
+                f = summ_stats[f'f_dat_{i}']
+                n = summ_stats[f'n_dat_{i}']
+                if f == 0.0:
+                    f = zero_offset
+                elif f == 1.0:
+                    f = one_offset
+                else:
+                    # print(f)
+                    f = np.log(f / (1.0 - f))
+                if n == 0.0:
+                    n = zero_offset
+                else:
+                    n = np.log(n)
+                summ_stats[f'f_dat_{i}'] = f
+                summ_stats[f'n_dat_{i}'] = n
+                
         elif self.char_encode == 'one_hot':
             # one-hot-encoded states
             for i in range(dat.shape[0]):
-                # summ_stats['f_dat_' + str(i)] = np.sum(dat.iloc[i]) / num_taxa
-                summ_stats['n_dat_' + str(i)] = np.sum(dat.iloc[i])
+                f = np.sum(dat.iloc[i]) / num_taxa
+                n = np.sum(dat.iloc[i])
+                if f == 0.0:
+                    f = zero_offset
+                elif f == 1.0:
+                    f = one_offset
+                else:
+                    f = np.log(f / (1.0 - f))
+                if n == 0.0:
+                    n = zero_offset
+                else:
+                    n = np.log(n)
+                summ_stats['f_dat_' + str(i)] = f
+                summ_stats['n_dat_' + str(i)] = n
 
         df = pd.DataFrame(summ_stats, index=[0])
 

@@ -289,6 +289,15 @@ Lastly, we save the model parameters to file in csv format. This file is
 later parsed into "unknown" parameters to estimate vs. "known" parameters
 that become auxiliary data.  
 
+.. note::
+
+    We recommend transforming numerical labels as real-valued variables
+    (i.e. they can be negative-, positive- or zero-valued). Non-negative
+    valued labels, such as rate parameters, can be transformed into
+    real values through a log transformation, ``log(x)``. Bounded labels, such as
+    probabilities or proportions, can be transformed to real values using
+    the logit transformation, ``log(x / (1 - x))``. 
+
 .. code-block:: R
 
     # save learned labels (e.g. estimated data-generating parameters)
@@ -297,7 +306,7 @@ that become auxiliary data.
     names(label_sim) = label_names
     df_label = data.frame(t(label_sim))
     write.csv(df_label, file=lbl_fn[i], row.names=F, quote=F)
-    
+      
 That completes the anatomy of the simulation script. This is a fairly
 simple simulation script for a specific model using a specific programming
 language and code base (e.g. R packages). The general logic is the same

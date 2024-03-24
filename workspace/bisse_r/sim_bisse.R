@@ -30,7 +30,7 @@ lbl_fn = paste0(tmp_fn, ".labels.csv")        # csv of labels (e.g. params)
 num_states = 2
 symm_Q_mtx = TRUE
 tree_width = 500
-label_names = c( paste0("log10_birth_",1:num_states), "log10_death", "log10_state_rate", "log10_sample_frac", "model_type", "start_state")
+label_names = c( paste0("log_birth_",1:num_states), "log_death", "log_state_rate", "logit_sample_frac", "model_type", "start_state")
 
 # simulate each replicate
 for (i in 1:num_rep) {
@@ -45,31 +45,32 @@ for (i in 1:num_rep) {
         # simulation conditions
         max_taxa = runif(1, 10, 5000)
         max_time = runif(1, 1, 100)
-        sample_frac = 1.0
+        sample_frac = 0.9999
         if (max_taxa > tree_width) {
             sample_frac = tree_width / max_taxa
         }
+        logit_sample_frac = log( sample_frac/(1-sample_frac), base=10 )
 
         # simulate parameters
         model_type = sample(0:1, size=1)
         start_state = sample(1:2, size=1)
-        log10_state_rate = runif(1,-3,0)
-        state_rate = 10^log10_state_rate
+        log_state_rate = runif(1,-3,0)
+        state_rate = 10^log_state_rate
         Q = matrix(state_rate,
                    ncol=num_states, nrow=num_states)
         diag(Q) = 0
         diag(Q) = -rowSums(Q)
 
         # Q = get_random_mk_transition_matrix(num_states, rate_model="ER", max_rate=0.1)
-        log10_birth = runif(n=num_states, -2, 0)
+        log_birth = runif(n=num_states, -2, 0)
         if (model_type == 0) {
-            log10_birth[2] = log10_birth[1]
+            log_birth[2] = log_birth[1]
         }
-        birth = 10^log10_birth
+        birth = 10^log_birth
 
-        log10_death = runif(n=1, -2, 0)
-        death = min(birth) * 10^log10_death   # death rate <= min(birth_rate)
+        death = min(birth) * 10^runif(n=1, -2, 0)
         death = rep(death, num_states)
+        log_death = log(death[1], base=10)
         parameters = list(
             birth_rates=birth,
             death_rates=death,
@@ -101,7 +102,7 @@ for (i in 1:num_rep) {
     write.csv(df_state, file=dat_fn[i], row.names=F, quote=F)
 
     # save learned labels (e.g. estimated data-generating parameters)
-    label_sim = c( log10_birth[1], log10_birth[2], log10_death[1], log10_state_rate, sample_frac, model_type, start_state-1)
+    label_sim = c( log_birth[1], log_birth[2], log_death[1], log_state_rate, logit_sample_frac, model_type, start_state-1)
     names(label_sim) = label_names
     df_label = data.frame(t(label_sim))
     write.csv(df_label, file=lbl_fn[i], row.names=F, quote=F)

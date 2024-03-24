@@ -1551,8 +1551,8 @@ def normalize(data, m_sd = None):
         numpy.ndarray: The normalized data.
     """
     if type(m_sd) == type(None):
-        m = data.mean(axis = 0)
-        sd = data.std(axis = 0)
+        m = data.mean(axis=0)
+        sd = data.std(axis=0)
         sd[np.where(sd == 0)] = 1
         return (data - m)/sd, m, sd
     else:
