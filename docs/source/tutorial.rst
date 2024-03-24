@@ -464,6 +464,84 @@ dataset are expected to contain the true value of the target variable.
 There are no important settings for :ref:`Estimate` or :ref:`Plot` to
 discuss for this beginning tutorial.
 
+Validating the simulator
+------------------------
+
+Before launching a full analysis, it is important to validate the
+simulator behaves as intended and is properly interfaced with phyddle.
+
+.. warning::
+    
+    Do not proceed with training a neural network in phyddle 
+    until the simulator has been validated.
+    
+    phyddle can only check for the presence and general format
+    of required files. phyddle does not, and cannot, verify that the
+    simulation script is modeling the the biological system
+    accurately.
+
+To validate the interface, run a small batch of simulations and inspect
+the output. For example, to simulate 10 datasets starting at index 0,
+type:
+
+.. code-block:: shell
+
+  Rscript sim_bisse.R ./simulate out 0 10
+  
+This command will simulate datasets 0 through 9, saving them to the
+directory ``./simulate`` with the filename prefix ``out``. Inspect the  
+output to ensure most replicate datasets have the following files:
+
+- ``out.0.tre``: a newick tree file
+- ``out.0.dat.csv``: a csv file of character data
+- ``out.0.labels.csv``: a csv file of model parameters
+
+Some replicates may not have a complete fileset if the simulator if,
+for example, the simulator failed to simulate a tree with 2 or more taxa.
+
+When phyddle fails to detect any valid examples from the script,
+it will suggest that you debug the simulation script. In this case,
+the simulation script was not properly writing labels files.
+
+.. code-block::
+
+  ▪ Simulating raw data
+  Simulating: 100%|█████████████████████| 1/1 [00:01<00:00,  1.32s/it]
+  ▪ Total counts of simulated files:
+    ▪ 10 phylogeny files
+    ▪ 10 data files
+    ▪  0 labels files
+  
+  WARNING: ./simulate contains no valid simulations. Verify that simulation command:
+  
+      Rscript sim_bisse.R ./simulate out 0 1
+  
+  works as intended with the provided configuration.
+
+Again, we stress that phyddle does not and cannot verify that
+the simulation script generates mathematically valid datasets
+under the specified phylogenetic model.
+
+Users are responsible for validating that their simulation scripts
+behave properly. This form of validation generally requires some
+knowledge of the mathematical or statistical properties of the
+model. Showing that the model and the simulated data have 
+matching expected values (means, variances, etc.) is a good strategy. 
+
+For example, a Brownian motion model can be validated by showing
+that the expected variance-covariance structure of traits among taxa
+reflects shared branch lengths and the diffusion rate.
+Simple birth-death models can be validated by showing the process
+generates the expected number of taxa for a given set of rates
+and process start time.
+
+Using simulator that has published validation results can help
+establish whether the simulator works as intended. However, such
+results may be for a different version of the software and for
+only part of the model's parameter space. When possible, it is
+still best to personally validate the simulator for the specific
+version and part of parameter space you will use with phyddle.
+
 
 Making a trained network
 ------------------------

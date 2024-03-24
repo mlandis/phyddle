@@ -53,20 +53,22 @@ for (i in 1:num_rep) {
         # simulate parameters
         model_type = sample(0:1, size=1)
         start_state = sample(1:2, size=1)
-        Q = matrix(runif(n=num_states*num_states, 0, 0.1),
+        log10_state_rate = runif(1,-3,0)
+        state_rate = 10^log10_state_rate
+        Q = matrix(state_rate,
                    ncol=num_states, nrow=num_states)
         diag(Q) = 0
-        if (symm_Q_mtx) {
-            Q[lower.tri(Q)] = t(Q)[lower.tri(Q)]
-        }
         diag(Q) = -rowSums(Q)
 
         # Q = get_random_mk_transition_matrix(num_states, rate_model="ER", max_rate=0.1)
-        birth = runif(n=num_states, 0, 1 )  # rate=1.0)
+        log10_birth = runif(n=num_states, -2, 0)
         if (model_type == 0) {
-            birth[2] = birth[1]
+            log10_birth[2] = log10_birth[1]
         }
-        death = min(birth) * runif(n=1, 0, 1)  # rate=1.0)
+        birth = 10^log10_birth
+
+        log10_death = runif(n=1, -2, 0)
+        death = min(birth) * 10^log10_death   # death rate <= min(birth_rate)
         death = rep(death, num_states)
         parameters = list(
             birth_rates=birth,
@@ -99,12 +101,10 @@ for (i in 1:num_rep) {
     write.csv(df_state, file=dat_fn[i], row.names=F, quote=F)
 
     # save learned labels (e.g. estimated data-generating parameters)
-    label_sim = c( birth[1], birth[2], death[1], Q[1,2], sample_frac, model_type, start_state-1)
-    label_sim[1:5] = log(label_sim[1:5], base=10)
-    # label_sim[5] = label_sim[5] / (1 - exp(label_sim[5]))
+    label_sim = c( log10_birth[1], log10_birth[2], log10_death[1], log10_state_rate, sample_frac, model_type, start_state-1)
     names(label_sim) = label_names
     df_label = data.frame(t(label_sim))
-    write.csv(df_label, file=lbl_fn[i], row.names=F, quote=F)
+    #write.csv(df_label, file=lbl_fn[i], row.names=F, quote=F)
 
 }
 
