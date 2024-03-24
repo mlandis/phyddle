@@ -104,7 +104,7 @@ for (i in 1:num_rep) {
     label_sim = c( log10_birth[1], log10_birth[2], log10_death[1], log10_state_rate, sample_frac, model_type, start_state-1)
     names(label_sim) = label_names
     df_label = data.frame(t(label_sim))
-    #write.csv(df_label, file=lbl_fn[i], row.names=F, quote=F)
+    write.csv(df_label, file=lbl_fn[i], row.names=F, quote=F)
 
 }
 
