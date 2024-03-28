@@ -91,5 +91,6 @@ args = {
     'plot_est_color'        : 'black',      # plot color for estimated data/values
     'plot_scatter_log'      : 'T',          # Use log values for scatter plots when possible?
     'plot_contour_log'      : 'T',          # Use log values for scatter plots when possible?
-    'plot_density_log'      : 'T'           # Use log values for scatter plots when possible?
+    'plot_density_log'      : 'T',          # Use log values for scatter plots when possible?
+    'plot_pca_noise'        : 0.01          # Add noise to PCA plot to dampen contrast from point values
 }

@@ -103,6 +103,7 @@ class Plotter:
         self.plot_num_scatter      = int(args['plot_num_scatter'])
         self.plot_min_emp          = int(args['plot_min_emp'])
         self.plot_num_emp          = int(args['plot_num_emp'])
+        self.plot_pca_noise             = float(args['plot_pca_noise'])
 
         # prefixes
         fmt_proj_prefix             = f'{self.fmt_dir}/{self.fmt_prefix}'
@@ -840,6 +841,8 @@ class Plotter:
         # dist_values = np.log(dist_values + self.log_offset)
         scaler = StandardScaler()
         x = scaler.fit_transform(dist_values)
+        if self.plot_pca_noise != 0.0:
+            x = x + sp.stats.norm.rvs(size=x.shape, loc=0, scale=self.plot_pca_noise)
         
         # apply PCA to sim_values
         if pca_model is None:
@@ -859,6 +862,8 @@ class Plotter:
             point_values = point_values[ dist_values.columns ]
             # point_values = np.log(point_values + self.log_offset)
             point_values = scaler.transform(point_values)
+            if self.plot_pca_noise != 0.0:
+                point_values = point_values + sp.stats.norm.rvs(size=point_values.shape, loc=0, scale=self.plot_pca_noise)
             pca_est = pca_model.transform(point_values)
         
         # figure dimensions
@@ -874,6 +879,8 @@ class Plotter:
                                                              ['white', color])
 
         # generate PCA subplots
+        vmin = np.min(pca)
+        vmax = np.max(pca)
         for i in range(0, num_comp-1):
             
             # disable x,y axes for all plots, later turned on for some
@@ -891,9 +898,17 @@ class Plotter:
 
                 # Perform the kernel density estimate
                 xx, yy = np.mgrid[xmin:xmax:100j, ymin:ymax:100j]
-                axs[i,j].hexbin(x, y, gridsize=(19,13), bins=10,
-                                cmap=cmap0, linewidths=0.1, vmin=0)
+
+                #hb = axs[i,j].hexbin(x, y, gridsize=(19,13), bins=10,
+                #                cmap=cmap0, linewidths=0.1,) # vmin=0) #, vmax=vmax)
+                #axs[i,j].set_visible(False)
+                hb = axs[i,j].hexbin(x, y, 
+                                #C=np.ones_like(y, dtype=np.float64) / hb.get_array().max(),
+                                #reduce_C_function=np.sum,
+                                gridsize=(19,13), bins=10,
+                                cmap=cmap0, linewidths=0.1,) # vmin=0) #, vmax=vmax)
                 
+                axs[i,j].set_visible(True)
                     
                 if pca_est is not None:
                     axs[i,j].scatter(pca_est[:,i+1], pca_est[:,j],
@@ -913,6 +928,8 @@ class Plotter:
                     var = int(100*round(pca_var[j], ndigits=2))
                     xlabel = f'PC{idx} ({var}%)'
                     axs[i,j].set_xlabel(xlabel, fontsize=12)
+
+                # cb = fig.colorbar(hb, ax=axs[i,j], label='freq.')
                     
                 axs[i,j].set_xlim(xmin, xmax)
                 axs[i,j].set_ylim(ymin, ymax)
