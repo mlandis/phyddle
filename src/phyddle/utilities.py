@@ -162,6 +162,7 @@ def settings_registry():
         # training options
         # 'trn_objective'    : { 'step':'T',   'type':str,   'section':'Train', 'default':'param_est',   'help':'Objective of training procedure', 'choices':['param_est'] },
         'num_epochs'       : { 'step':'TEP', 'type':int,   'section':'Train', 'default':20,            'help':'Number of training epochs' },
+        'num_early_stop'   : { 'step':'TEP', 'type':int,   'section':'Train', 'default':3,             'help':'Number of consecutive validation loss gains before early stopping' },
         'trn_batch_size'   : { 'step':'TEP', 'type':int,   'section':'Train', 'default':512,           'help':'Training batch sizes' },
         'prop_test'        : { 'step':'FT',  'type':float, 'section':'Train', 'default':0.05,          'help':'Proportion of data used as test examples (assess trained network performance)' },
         'prop_val'         : { 'step':'T',   'type':float, 'section':'Train', 'default':0.05,          'help':'Proportion of data used as validation examples (diagnose network overtraining)' },

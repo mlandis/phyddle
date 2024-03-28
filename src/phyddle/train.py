@@ -105,7 +105,8 @@ class Trainer:
         self.cpi_asymmetric     = bool(args['cpi_asymmetric'])
         self.loss_real          = str(args['loss_real'])
         self.use_cuda           = bool(args['use_cuda'])
-        
+        self.num_early_stop     = int(args['num_early_stop'])
+
         # initialized later
         self.phy_tensors        = dict()   # init with encode_all()
         self.train_dataset      = None     # init with load_input()
@@ -558,6 +559,7 @@ class CnnTrainer(Trainer):
         val_aux_dat  = torch.Tensor(self.val_dataset.aux_data).to(self.TORCH_DEVICE)
         val_lbl_real = torch.Tensor(self.val_dataset.labels_real).to(self.TORCH_DEVICE)
         val_lbl_cat  = torch.LongTensor(self.val_dataset.labels_cat).to(self.TORCH_DEVICE)
+        val_bad_count = 0
 
         # model device
         # self.model.to(self.TORCH_DEVICE)
@@ -717,6 +719,12 @@ class CnnTrainer(Trainer):
 
                 trn_loss_str += trn_loss_change_str
                 val_loss_str += val_loss_change_str
+
+                if diff_val_loss >= 0:
+                    val_bad_count += 1
+                else:
+                    val_bad_count = 0
+
                 
             prev_trn_loss_combined = trn_loss_combined
             prev_val_loss_combined = val_loss_combined
@@ -729,6 +737,11 @@ class CnnTrainer(Trainer):
             # update train history log
             self.update_train_history(i, metric_names, train_metric_vals, 'train')
             self.update_train_history(i, metric_names, val_metric_vals, 'validation')
+
+            # early stopping
+            if val_bad_count >= self.num_early_stop:
+                print(f'Early stop: validation loss increased for num_early_stop={self.num_early_stop} consecutive epochs')
+                break
 
         # print(self.train_history)
 

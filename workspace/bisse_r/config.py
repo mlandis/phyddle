@@ -50,8 +50,8 @@ args = {
                             'log_birth_2'     : 'real',
                             'log_death'       : 'real',
                             'log_state_rate'  : 'real',
-                            # 'model_type'      : 'cat',
-                            # 'start_state'     : 'cat',
+                            'model_type'      : 'cat',
+                            'start_state'     : 'cat',
                           },
     'param_data'        : {                 # model parameters that are known (aux. data)
                             'logit_sample_frac' : 'real'
