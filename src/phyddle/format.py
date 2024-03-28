@@ -805,13 +805,13 @@ class Formatter:
             for i in states:
                 f = summ_stats[f'f_dat_{i}']
                 n = summ_stats[f'n_dat_{i}']
-                if f == 0.0:
-                    f = zero_offset
-                elif f == 1.0:
-                    f = one_offset
-                else:
-                    # print(f)
-                    f = np.log(f / (1.0 - f))
+                # if f == 0.0:
+                #     f = zero_offset
+                # elif f == 1.0:
+                #     f = one_offset
+                # else:
+                #     # print(f)
+                #     f = np.log(f / (1.0 - f))
                 if n == 0.0:
                     n = zero_offset
                 else:
@@ -824,12 +824,12 @@ class Formatter:
             for i in range(dat.shape[0]):
                 f = np.sum(dat.iloc[i]) / num_taxa
                 n = np.sum(dat.iloc[i])
-                if f == 0.0:
-                    f = zero_offset
-                elif f == 1.0:
-                    f = one_offset
-                else:
-                    f = np.log(f / (1.0 - f))
+                # if f == 0.0:
+                #     f = zero_offset
+                # elif f == 1.0:
+                #     f = one_offset
+                # else:
+                #     f = np.log(f / (1.0 - f))
                 if n == 0.0:
                     n = zero_offset
                 else:
