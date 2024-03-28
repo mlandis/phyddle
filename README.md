@@ -86,13 +86,13 @@ git pull
 ./build.sh
 ```
 
-phyddle uses third-party simulators to generate training datasets. Example workflows assume that [R](https://cran.r-project.org) v4.2.2, [RevBayes](https://revbayes.github.io) v1.2.1, [Phylojunction](https://phylojunction.org/build/html/index.html), or [BEAST](https://www.beast2.org/) v2.7.3 with [MASTER](https://github.com/tgvaughan/MASTER) v7.0.0 (plugin) is installed on your machine and can be executed as a command from terminal. The documentation explains how to configure R for use with phyddle.
+phyddle uses third-party simulators to generate training datasets. Example workflows assume that [R](https://cran.r-project.org), [RevBayes](https://revbayes.github.io), [Phylojunction](https://phylojunction.org/build/html/index.html), or [BEAST](https://www.beast2.org/) with [MASTER](https://github.com/tgvaughan/MASTER) (plugin) is installed on your machine and can be executed as a command from terminal. The documentation explains how to configure R for use with phyddle.
 
 ## Note on code stability
 
 Code on the [main](https://github.com/mlandis/phyddle/tree/main) branch is tested and stable with respect to the standard use cases. Code on the [development](https://github.com/mlandis/phyddle/tree/development) branch contains new features, but is not as rigorously tested. Most phyddle development occurs on a 16-core Intel Macbook Pro laptop and a 64-core Intel Ubuntu server. Any feedback is appreciated! [michael.landis@wustl.edu](mailto:michael.landis@wustl.edu)
 
 ## About
-Thanks for your interest in phyddle. The phyddle project emerged from a phylogenetic deep learning study led by Ammon Thompson ([paper](https://www.biorxiv.org/content/10.1101/2023.02.08.527714v2)). The goal of phyddle is to provide its users with a generalizable pipeline workflow for phylogenetic modeling and deep learning. This hopefully will make it easier for phylogenetic model enthusiasts and developers to explore and apply models that do not have tractable likelihood functions. It's also intended for use by methods developers who want to characterize how deep learning methods perform under different conditions for standard phylogenetic estimation tasks.
+Thanks for your interest in phyddle. The phyddle project emerged from a phylogenetic deep learning study led by Ammon Thompson ([paper](https://doi.org/10.1093/sysbio/syad074)). The goal of phyddle is to provide its users with a generalizable pipeline workflow for phylogenetic modeling and deep learning. This hopefully will make it easier for phylogenetic model enthusiasts and developers to explore and apply models that do not have tractable likelihood functions. It's also intended for use by methods developers who want to characterize how deep learning methods perform under different conditions for standard phylogenetic estimation tasks.
 
 The phyddle project is developed by [Michael Landis](https://landislab.org) and [Ammon Thompson](https://scholar.google.com/citations?user=_EpmmTwAAAAJ&hl=en&oi=ao).
