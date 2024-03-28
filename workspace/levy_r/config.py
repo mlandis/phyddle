@@ -67,7 +67,8 @@ args = {
     #-------------------------------#
     # Train Step settings           #
     #-------------------------------#
-    'num_epochs'        : 10,               # number of training intervals (epochs)
+    'num_epochs'        : 50,               # number of training intervals (epochs)
+    'num_early_stop'    : 3,
     'prop_test'         : 0.05,             # proportion of sims in test dataset
     'prop_val'          : 0.05,             # proportion of sims in validation dataset
     'prop_cal'          : 0.20,             # proportion of sims in CPI calibration dataset
