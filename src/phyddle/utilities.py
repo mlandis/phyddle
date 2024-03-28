@@ -197,6 +197,7 @@ def settings_registry():
         'plot_num_scatter' : { 'step':'P',  'type':int, 'section':'Plot', 'default':50,       'help':'Number of examples in scatter plot' },
         'plot_min_emp'     : { 'step':'P',  'type':int, 'section':'Plot', 'default':10,       'help':'Minimum number of empirical datasets to plot densities' },
         'plot_num_emp'     : { 'step':'P',  'type':int, 'section':'Plot', 'default':5,        'help':'Number of empirical results to plot' },
+        'plot_pca_noise'   : { 'step':'P',  'type':float, 'section':'Plot', 'default':0.0,        'help':'Scale of Gaussian noise to add to PCA plot' },
     }
 
     # Developer note: uncomment to export settings to file
