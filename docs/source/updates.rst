@@ -3,11 +3,14 @@ Updates
 
 The complete commit history for phyddle is located here: https://github.com/mlandis/phyddle/commits/main
 
-**phyddle v0.2.0** -- 24.03.19
+**phyddle v0.2.1** -- In progress.
+
+**phyddle v0.2.0** -- 24.03.28
 
   * New support for categorical labels (e.g. model testing).
   * New plots for categorical results.
   * Add support for GPU + CUDA + PyTorch to accelerate Train and Estimate.
+  * Support for early stopping rule with Train.
   * Improved printed feedback for all steps.
   * Better plots for PCA and scatter plot results.
   * Simpler default directory structure. Default phyddle configs, scripts, and outputs now share a proj directory in ./workspace. 
