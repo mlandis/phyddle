@@ -107,9 +107,9 @@ class Estimator:
         self.TORCH_DEVICE = torch.device(self.TORCH_DEVICE_STR)
 
         # cat vs. real parameter names
-        self.label_real_names = [ k for k,v in self.param_est.items() if v == 'real' ]
+        self.label_num_names = [ k for k,v in self.param_est.items() if v == 'num' ]
         self.label_cat_names = [ k for k,v in self.param_est.items() if v == 'cat' ]
-        self.has_label_real = len(self.label_real_names) > 0
+        self.has_label_num = len(self.label_num_names) > 0
         self.has_label_cat = len(self.label_cat_names) > 0
         
         # create logger to track runtime info
@@ -117,11 +117,11 @@ class Estimator:
 
         # initialized later
         self.train_aux_data_mean_sd     = None       # init in load_train_input()
-        self.train_labels_real_mean_sd  = None       # init in load_train_input()
+        self.train_labels_num_mean_sd  = None       # init in load_train_input()
         self.cpi_adjustments            = None       # init in load_train_input()
         self.phy_data                   = None       # init in load_format_input()
         self.aux_data                   = None       # init in load_format_input()
-        self.true_labels_real           = None       # init in load_format_input()
+        self.true_labels_num           = None       # init in load_format_input()
         self.true_labels_cat            = None       # init in load_format_input()
         self.mymodel                    = None       # init in make_results()
         
@@ -280,7 +280,7 @@ class Estimator:
         # filesystem
         path_prefix = f'{self.trn_dir}/{self.trn_prefix}'
         train_norm_aux_data_fn = f'{path_prefix}.train_norm.aux_data.csv'
-        train_norm_labels_real_fn = f'{path_prefix}.train_norm.labels_real.csv'
+        train_norm_labels_num_fn = f'{path_prefix}.train_norm.labels_num.csv'
         model_cpi_fn = f'{path_prefix}.cpi_adjustments.csv'
 
         # denormalization factors for new aux data
@@ -289,12 +289,12 @@ class Estimator:
         train_aux_data_sd = train_aux_data_norm['sd'].T.to_numpy().flatten()
         self.train_aux_data_mean_sd = (train_aux_data_means, train_aux_data_sd)
         
-        if self.has_label_real:
+        if self.has_label_num:
             # denormalization factors for labels
-            train_norm_labels_real = pd.read_csv(train_norm_labels_real_fn, sep=',', index_col=False)
-            train_real_labels_mean = train_norm_labels_real['mean'].T.to_numpy().flatten()
-            train_real_labels_sd = train_norm_labels_real['sd'].T.to_numpy().flatten()
-            self.train_labels_real_mean_sd = (train_real_labels_mean, train_real_labels_sd)
+            train_norm_labels_num = pd.read_csv(train_norm_labels_num_fn, sep=',', index_col=False)
+            train_num_labels_mean = train_norm_labels_num['mean'].T.to_numpy().flatten()
+            train_num_labels_sd = train_norm_labels_num['sd'].T.to_numpy().flatten()
+            self.train_labels_num_mean_sd = (train_num_labels_mean, train_num_labels_sd)
             
             # read in CQR interval adjustments
             self.cpi_adjustments = pd.read_csv(model_cpi_fn, sep=',', index_col=False).to_numpy()
@@ -366,18 +366,18 @@ class Estimator:
         self.aux_data = util.normalize(aux_data, self.train_aux_data_mean_sd)
 
         # real vs. cat labels
-        label_real_idx = list()
+        label_num_idx = list()
         label_cat_idx = list()
         for i,p in enumerate(label_names):
-            if p in self.label_real_names:
-                label_real_idx.append(i)
+            if p in self.label_num_names:
+                label_num_idx.append(i)
             if p in self.label_cat_names:
                 label_cat_idx.append(i)
                 
         # running against test sim?
         if mode == 'sim':
             assert labels.shape[0] == num_sample
-            self.true_labels_real = labels[:,label_real_idx]
+            self.true_labels_num = labels[:,label_num_idx]
             self.true_labels_cat = labels[:,label_cat_idx]
             
             # recode categorical labels
@@ -409,8 +409,8 @@ class Estimator:
             path_prefix = f'{self.est_dir}/{self.est_prefix}.empirical'
             
         model_arch_fn = f'{self.trn_dir}/{self.trn_prefix}.trained_model.pkl'
-        out_est_labels_real_fn = f'{path_prefix}_est.labels_real.csv'
-        out_true_labels_real_fn = f'{path_prefix}_true.labels_real.csv'
+        out_est_labels_num_fn = f'{path_prefix}_est.labels_num.csv'
+        out_true_labels_num_fn = f'{path_prefix}_true.labels_num.csv'
         out_est_labels_cat_fn = f'{path_prefix}_est.labels_cat.csv'
         out_true_labels_cat_fn = f'{path_prefix}_true.labels_cat.csv'
     
@@ -423,29 +423,29 @@ class Estimator:
                                  torch.Tensor(self.aux_data).to(self.TORCH_DEVICE))
         
         # real vs. cat estimates
-        labels_est_real = label_est[0:3]
+        labels_est_num = label_est[0:3]
         labels_est_cat = label_est[3]
         
         # point estimates & CPIs for test labels
-        if self.has_label_real:
+        if self.has_label_num:
             
             # move Tensor from device to numpy
-            labels_est_real = torch.stack(labels_est_real).cpu().detach().numpy()
+            labels_est_num = torch.stack(labels_est_num).cpu().detach().numpy()
             
-            if labels_est_real.ndim == 2:
-                labels_est_real.shape = (labels_est_real.shape[0], 1, labels_est_real.shape[1])
-            labels_est_real[1,:,:] = labels_est_real[1,:,:] - self.cpi_adjustments[0,:]
-            labels_est_real[2,:,:] = labels_est_real[2,:,:] + self.cpi_adjustments[1,:]
+            if labels_est_num.ndim == 2:
+                labels_est_num.shape = (labels_est_num.shape[0], 1, labels_est_num.shape[1])
+            labels_est_num[1,:,:] = labels_est_num[1,:,:] - self.cpi_adjustments[0,:]
+            labels_est_num[2,:,:] = labels_est_num[2,:,:] + self.cpi_adjustments[1,:]
             
             # denormalize test label estimates
-            denorm_est_labels_real = util.denormalize(labels_est_real,
-                                                      self.train_labels_real_mean_sd,
+            denorm_est_labels_num = util.denormalize(labels_est_num,
+                                                      self.train_labels_num_mean_sd,
                                                       exp=False)
     
             # save label real estimates
-            df_est_labels_real = util.make_param_VLU_mtx(denorm_est_labels_real,
-                                                         self.label_real_names)
-            df_est_labels_real.to_csv(out_est_labels_real_fn, index=False, sep=',',
+            df_est_labels_num = util.make_param_VLU_mtx(denorm_est_labels_num,
+                                                         self.label_num_names)
+            df_est_labels_num.to_csv(out_est_labels_num_fn, index=False, sep=',',
                                       float_format=util.PANDAS_FLOAT_FMT_STR)
         
         # save label cat estimates
@@ -458,9 +458,9 @@ class Estimator:
                 labels_est_cat[k] = labels_est_cat[k].cpu().detach().numpy()
         
         if mode == 'sim':
-            if self.has_label_real:
-                df_true_labels_real = pd.DataFrame(self.true_labels_real, columns=self.label_real_names)
-                df_true_labels_real.to_csv(out_true_labels_real_fn, index=False, sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
+            if self.has_label_num:
+                df_true_labels_num = pd.DataFrame(self.true_labels_num, columns=self.label_num_names)
+                df_true_labels_num.to_csv(out_true_labels_num_fn, index=False, sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
             
             if self.has_label_cat:
                 df_true_labels_cat = pd.DataFrame(self.true_labels_cat, columns=self.label_cat_names, dtype='int')

@@ -32,17 +32,17 @@ class Dataset(torch.utils.data.Dataset):
     phylogenetic-state tensors, auxiliary data tensors, and labels.
     """
     # Constructor
-    def __init__(self, phy_data, aux_data, labels_real, labels_cat):
+    def __init__(self, phy_data, aux_data, labels_num, labels_cat):
         self.phy_data    = np.transpose(phy_data, axes=[0,2,1]).astype('float32')
         self.aux_data    = aux_data.astype('float32')
-        self.labels_real = labels_real.astype('float32')
+        self.labels_num = labels_num.astype('float32')
         self.labels_cat  = labels_cat.astype('int')
-        self.len         = self.labels_real.shape[0]
+        self.len         = self.labels_num.shape[0]
 
     # Getting the dataq
     def __getitem__(self, index):
         return (self.phy_data[index], self.aux_data[index],
-                self.labels_real[index], self.labels_cat[index])
+                self.labels_num[index], self.labels_cat[index])
     
     # Getting length of the data
     def __len__(self):
@@ -74,7 +74,7 @@ class ParameterEstimationNetwork(nn.Module):
         self.param_cat      = param_cat
         self.param_cat_size = dict()
         
-        self.has_param_real = self.lbl_width > 0
+        self.has_param_num = self.lbl_width > 0
         self.has_param_cat  = len(self.param_cat) > 0
 
         # collect args
@@ -113,8 +113,8 @@ class ParameterEstimationNetwork(nn.Module):
                            self.aux_out_size[-1]
         
         # dense layers for output predictions
-        self.label_real_out_size = self.lbl_channel + [ self.lbl_width ]
-        self.label_in_size = [ self.concat_size ] + self.label_real_out_size[:-1]
+        self.label_num_out_size = self.lbl_channel + [ self.lbl_width ]
+        self.label_in_size = [ self.concat_size ] + self.label_num_out_size[:-1]
         self.label_cat_out_size = dict()
         for k,v in self.param_cat.items():
             self.label_cat_out_size[k] = self.lbl_channel + [ int(v) ]
@@ -165,14 +165,14 @@ class ParameterEstimationNetwork(nn.Module):
             c_out = self.aux_out_size[i]
             self.aux_ffnn.append(nn.Linear(c_in, c_out))
 
-        if self.has_param_real:
+        if self.has_param_num:
             # dense layers for point/bound estimates
             self.point_ffnn = nn.ModuleList([])
             self.lower_ffnn = nn.ModuleList([])
             self.upper_ffnn = nn.ModuleList([])
-            for i in range(len(self.label_real_out_size)):
+            for i in range(len(self.label_num_out_size)):
                 c_in  = self.label_in_size[i]
-                c_out = self.label_real_out_size[i]
+                c_out = self.label_num_out_size[i]
                 self.point_ffnn.append(nn.Linear(c_in, c_out))
                 self.lower_ffnn.append(nn.Linear(c_in, c_out))
                 self.upper_ffnn.append(nn.Linear(c_in, c_out))
@@ -183,7 +183,7 @@ class ParameterEstimationNetwork(nn.Module):
             for k,v in self.param_cat.items():
                 k_str = f'{k}_categ_ffnn'
                 k_mod_list = nn.ModuleList([])
-                for i in range(len(self.label_real_out_size)):
+                for i in range(len(self.label_num_out_size)):
                     c_in  = self.label_in_size[i]
                     c_out = self.label_cat_out_size[k][i]
                     k_mod_list.append(nn.Linear(c_in, c_out))
@@ -242,7 +242,7 @@ class ParameterEstimationNetwork(nn.Module):
         # Concatenate phylo and aux layers
         x_concat = torch.cat((x_std, x_stride, x_dilate, x_aux), dim=1).squeeze()
         
-        if self.has_param_real:
+        if self.has_param_num:
             # Point estimate path
             x_point = x_concat
             for i in range(len(self.point_ffnn)-1):
