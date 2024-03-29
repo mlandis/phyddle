@@ -117,21 +117,21 @@ class Plotter:
         self.train_labels_fn       = f'{fmt_proj_prefix}.train.labels.csv'
 
         # train dataset tensors
-        self.train_est_real_fn     = f'{trn_proj_prefix}.train_est.labels_real.csv'
-        self.train_true_real_fn    = f'{trn_proj_prefix}.train_true.labels_real.csv'
+        self.train_est_num_fn     = f'{trn_proj_prefix}.train_est.labels_num.csv'
+        self.train_true_num_fn    = f'{trn_proj_prefix}.train_true.labels_num.csv'
         self.train_est_cat_fn      = f'{trn_proj_prefix}.train_est.labels_cat.csv'
         self.train_true_cat_fn     = f'{trn_proj_prefix}.train_true.labels_cat.csv'
 
         # test dataset tensors
-        self.test_est_real_fn      = f'{est_proj_prefix}.test_est.labels_real.csv'
-        self.test_true_real_fn     = f'{est_proj_prefix}.test_true.labels_real.csv'
+        self.test_est_num_fn      = f'{est_proj_prefix}.test_est.labels_num.csv'
+        self.test_true_num_fn     = f'{est_proj_prefix}.test_true.labels_num.csv'
         self.test_est_cat_fn       = f'{est_proj_prefix}.test_est.labels_cat.csv'
         self.test_true_cat_fn      = f'{est_proj_prefix}.test_true.labels_cat.csv'
         
         # empirical dataset tensors
         self.emp_hdf5_fn           = f'{fmt_proj_prefix}.empirical.hdf5'
         self.emp_aux_data_fn       = f'{fmt_proj_prefix}.empirical.aux_data.csv'
-        self.emp_est_real_fn       = f'{est_proj_prefix}.empirical_est.labels_real.csv'
+        self.emp_est_num_fn       = f'{est_proj_prefix}.empirical_est.labels_num.csv'
         self.emp_est_cat_fn        = f'{est_proj_prefix}.empirical_est.labels_cat.csv'
 
         # network
@@ -143,15 +143,15 @@ class Plotter:
 
         # PCA plotting output
         self.save_train_pca_aux_data_fn  = f'{plt_proj_prefix}.train_pca_aux_data.pdf'
-        self.save_train_pca_labels_fn    = f'{plt_proj_prefix}.train_pca_labels_real.pdf'
+        self.save_train_pca_labels_fn    = f'{plt_proj_prefix}.train_pca_labels_num.pdf'
         # self.save_emp_pca_aux_data_fn    = f'{plt_proj_prefix}.empirical_pca_contour_aux_data.pdf'
-        # self.save_emp_pca_labels_fn      = f'{plt_proj_prefix}.empirical_pca_contour_labels_real.pdf'
+        # self.save_emp_pca_labels_fn      = f'{plt_proj_prefix}.empirical_pca_contour_labels_num.pdf'
 
         # density plotting output
         self.save_train_density_aux_fn   = f'{plt_proj_prefix}.train_density_aux_data.pdf'
-        self.save_train_density_label_fn = f'{plt_proj_prefix}.train_density_labels_real.pdf'
+        self.save_train_density_label_fn = f'{plt_proj_prefix}.train_density_labels_num.pdf'
         self.save_emp_density_aux_fn     = f'{plt_proj_prefix}.empirical_density_aux_data.pdf'
-        self.save_emp_density_label_fn   = f'{plt_proj_prefix}.empirical_density_labels_real.pdf'
+        self.save_emp_density_label_fn   = f'{plt_proj_prefix}.empirical_density_labels_num.pdf'
 
         # scatter plotting output
         self.save_train_est_fn     = f'{plt_proj_prefix}.train_estimate'
@@ -166,35 +166,35 @@ class Plotter:
         self.save_report_fn        = f'{plt_proj_prefix}.summary.csv'
         
         # cat vs. real parameter names
-        self.param_name_real = [ k for k,v in self.param_est.items() if v == 'real' ]
+        self.param_name_num = [ k for k,v in self.param_est.items() if v == 'num' ]
         self.param_name_cat = [ k for k,v in self.param_est.items() if v == 'cat' ]
         
         # initialized later
         self.train_aux_data = None         # init with load_input()
-        self.train_labels_real = None      # init with load_input()
+        self.train_labels_num = None      # init with load_input()
         self.train_labels_cat = None       # init with load_input()
         self.emp_aux_data = None           # init with load_input()
         self.aux_data_names = None         # init with load_input()
         self.model = None                  # init with load_input()
 
         # datasets to load
-        self.train_est_real = None         # init with load_input()
-        self.train_true_real = None        # init with load_input()
+        self.train_est_num = None         # init with load_input()
+        self.train_true_num = None        # init with load_input()
         self.train_est_cat = None          # init with load_input()
         self.train_true_cat = None         # init with load_input()
-        self.test_est_real = None         # init with load_input()
-        self.test_true_real = None        # init with load_input()
+        self.test_est_num = None         # init with load_input()
+        self.test_true_num = None        # init with load_input()
         self.test_est_cat = None          # init with load_input()
         self.test_true_cat = None         # init with load_input()
-        self.emp_est_real = None         # init with load_input()
+        self.emp_est_num = None         # init with load_input()
         self.emp_est_cat = None          # init with load_input()
 
         # what datasets do we have?
-        self.has_train_real = False
+        self.has_train_num = False
         self.has_train_cat = False
-        self.has_test_real = False
+        self.has_test_num = False
         self.has_test_cat = False
-        self.has_emp_real = False
+        self.has_emp_num = False
         self.has_emp_cat = False
         
         # analysis info
@@ -281,7 +281,7 @@ class Plotter:
             hdf5_file.close()
 
         # split training labels from format into real/cat
-        self.train_labels_real = train_labels[ self.param_name_real ]
+        self.train_labels_num = train_labels[ self.param_name_num ]
         self.train_labels_cat = train_labels[ self.param_name_cat ]
 
         # aux data column names
@@ -292,32 +292,32 @@ class Plotter:
         self.model = self.model.to('cpu')
         
         # training true/estimated labels
-        self.train_est_real  = util.read_csv_as_pandas(self.train_est_real_fn)
-        self.train_true_real = util.read_csv_as_pandas(self.train_true_real_fn)
+        self.train_est_num  = util.read_csv_as_pandas(self.train_est_num_fn)
+        self.train_true_num = util.read_csv_as_pandas(self.train_true_num_fn)
         self.train_est_cat   = util.read_csv_as_pandas(self.train_est_cat_fn)
         self.train_true_cat  = util.read_csv_as_pandas(self.train_true_cat_fn)
         
         # test true/estimated labels
-        self.test_est_real   = util.read_csv_as_pandas(self.test_est_real_fn)
-        self.test_true_real  = util.read_csv_as_pandas(self.test_true_real_fn)
+        self.test_est_num   = util.read_csv_as_pandas(self.test_est_num_fn)
+        self.test_true_num  = util.read_csv_as_pandas(self.test_true_num_fn)
         self.test_est_cat    = util.read_csv_as_pandas(self.test_est_cat_fn)
         self.test_true_cat   = util.read_csv_as_pandas(self.test_true_cat_fn)
         
         # empirical estimated labels
-        self.emp_est_real = util.read_csv_as_pandas(self.emp_est_real_fn)
+        self.emp_est_num = util.read_csv_as_pandas(self.emp_est_num_fn)
         self.emp_est_cat  = util.read_csv_as_pandas(self.emp_est_cat_fn)
         
         # check what datasets we have
-        if self.test_est_real is not None and self.test_true_real is not None:
-            self.has_test_real = True
+        if self.test_est_num is not None and self.test_true_num is not None:
+            self.has_test_num = True
         if self.test_est_cat is not None and self.test_true_cat is not None:
             self.has_test_cat = True
-        if self.train_est_real is not None and self.train_true_real is not None:
-            self.has_train_real = True
+        if self.train_est_num is not None and self.train_true_num is not None:
+            self.has_train_num = True
         if self.train_est_cat is not None and self.train_true_cat is not None:
             self.has_train_cat = True
-        if self.emp_est_real is not None:
-            self.has_emp_real = True
+        if self.emp_est_num is not None:
+            self.has_emp_num = True
         if self.emp_est_cat is not None:
             self.has_emp_cat = True
         
@@ -362,28 +362,28 @@ class Plotter:
         
         # Densities for aux. data and labels
         self.make_plot_stat_density('train', 'aux_data')
-        if self.has_train_real:
+        if self.has_train_num:
             self.make_plot_stat_density('train', 'labels')
 
         if self.num_empirical >= self.plot_min_emp:
             self.make_plot_stat_density('empirical', 'aux_data')
-        if self.num_empirical >= self.plot_min_emp and self.has_emp_real:
+        if self.num_empirical >= self.plot_min_emp and self.has_emp_num:
             self.make_plot_stat_density('empirical', 'labels')
 
         # PCA-contours for aux. data and labels
         aux_pca_model = self.make_plot_pca_hexbin('train', 'aux_data')
         lbl_pca_model = None
-        if self.has_train_real:
+        if self.has_train_num:
             lbl_pca_model = self.make_plot_pca_hexbin('train', 'labels')
         # if self.num_empirical >= self.min_num_emp_density:
         #     self.make_plot_pca_contour('empirical', 'aux_data', pca_model=aux_pca_model)
-        # if self.num_empirical >= self.min_num_emp_density and self.has_emp_real:
+        # if self.num_empirical >= self.min_num_emp_density and self.has_emp_num:
         #     self.make_plot_pca_contour('empirical', 'labels', pca_model=lbl_pca_model)
 
         # scatter accuracy
-        if self.has_train_real:
+        if self.has_train_num:
             self.make_plot_scatter_accuracy('train')
-        if self.has_test_real:
+        if self.has_test_num:
             self.make_plot_scatter_accuracy('test')
 
         # confusion matrix
@@ -393,7 +393,7 @@ class Plotter:
             self.make_plot_confusion_matrix('test')
 
         # point estimates and CPIs in empirical dataset
-        if self.has_emp_real:
+        if self.has_emp_num:
             self.make_plot_emp_ci()
 
         # bar plot for categorical in empirical dataset
@@ -418,17 +418,17 @@ class Plotter:
         assert dataset_type in ['aux_data', 'labels']
 
         train_aux_data = None
-        train_labels_real = None
+        train_labels_num = None
         emp_aux_data = None
-        emp_est_real = None
+        emp_est_num = None
         if self.train_aux_data is not None:
             train_aux_data = self.train_aux_data.copy()
-        if self.train_true_real is not None:
-            train_labels_real = self.train_labels_real.copy()
+        if self.train_true_num is not None:
+            train_labels_num = self.train_labels_num.copy()
         if self.emp_aux_data is not None:
             emp_aux_data = self.emp_aux_data.copy()
-        if self.emp_est_real is not None:
-            emp_est_real = self.emp_est_real.copy()
+        if self.emp_est_num is not None:
+            emp_est_num = self.emp_est_num.copy()
         
         if dataset_name == 'train' and dataset_type == 'aux_data':
             self.plot_stat_density(save_fn=self.save_train_density_aux_fn,
@@ -439,8 +439,8 @@ class Plotter:
             
         elif dataset_name == 'train' and dataset_type == 'labels':
             self.plot_stat_density(save_fn=self.save_train_density_label_fn,
-                                   dist_values=train_labels_real,
-                                   point_values=emp_est_real,
+                                   dist_values=train_labels_num,
+                                   point_values=emp_est_num,
                                    color=self.plot_label_color,
                                    title='training labels')
             
@@ -453,7 +453,7 @@ class Plotter:
         
         elif dataset_name == 'empirical' and dataset_type == 'labels':
             self.plot_stat_density(save_fn=self.save_emp_density_label_fn,
-                                   dist_values=emp_est_real,
+                                   dist_values=emp_est_num,
                                    point_values=None,
                                    color=self.plot_label_color,
                                    title='empirical labels')
@@ -468,17 +468,17 @@ class Plotter:
         # n_max = self.plot_num_scatter
         if dataset_name == 'train':
             # plot train scatter
-            # n = min(n_max, self.train_est_real.shape[0])
-            self.plot_scatter_accuracy(ests=self.train_est_real.copy(),
-                                       labels=self.train_true_real.copy(),
+            # n = min(n_max, self.train_est_num.shape[0])
+            self.plot_scatter_accuracy(ests=self.train_est_num.copy(),
+                                       labels=self.train_true_num.copy(),
                                        prefix=self.save_train_est_fn,
                                        color=self.plot_train_color,
                                        title='Train')
         elif dataset_name == 'test':
             # plot test scatter
-            # n = min(n_max, self.test_est_real.shape[0])
-            self.plot_scatter_accuracy(ests=self.test_est_real.copy(),
-                                       labels=self.test_true_real.copy(),
+            # n = min(n_max, self.test_est_num.shape[0])
+            self.plot_scatter_accuracy(ests=self.test_est_num.copy(),
+                                       labels=self.test_true_num.copy(),
                                        prefix=self.save_test_est_fn,
                                        color=self.plot_test_color,
                                        title='Test')
@@ -576,17 +576,17 @@ class Plotter:
         assert dataset_type in ['aux_data', 'labels']
 
         train_aux_data = None
-        train_labels_real = None
+        train_labels_num = None
         emp_aux_data = None
-        emp_est_real = None
+        emp_est_num = None
         if self.train_aux_data is not None:
             train_aux_data = self.train_aux_data.copy()
-        if self.train_true_real is not None:
-            train_labels_real = self.train_labels_real.copy()
+        if self.train_true_num is not None:
+            train_labels_num = self.train_labels_num.copy()
         if self.emp_aux_data is not None:
             emp_aux_data = self.emp_aux_data.copy()
-        if self.emp_est_real is not None:
-            emp_est_real = self.emp_est_real.copy()
+        if self.emp_est_num is not None:
+            emp_est_num = self.emp_est_num.copy()
             
         mdl = None
         num_comp = 4
@@ -600,11 +600,11 @@ class Plotter:
                                         title='training aux. data')
             
         elif dataset_name == 'train' and dataset_type == 'labels':
-            if train_labels_real.shape[1] <= 1:
+            if train_labels_num.shape[1] <= 1:
                 return None
             mdl = self.plot_pca_hexbin(save_fn=self.save_train_pca_labels_fn,
-                                        dist_values=train_labels_real,
-                                        point_values=emp_est_real,
+                                        dist_values=train_labels_num,
+                                        point_values=emp_est_num,
                                         pca_model=pca_model,
                                         num_comp=num_comp,
                                         color=self.plot_label_color,
@@ -620,10 +620,10 @@ class Plotter:
         #                                 title='empirical aux. data')
         # 
         # elif dataset_name == 'empirical' and dataset_type == 'labels':
-        #     if emp_est_real.shape[1] <= 1:
+        #     if emp_est_num.shape[1] <= 1:
         #         return None
         #     mdl = self.plot_pca_hexbin(save_fn=self.save_emp_pca_labels_fn,
-        #                                 dist_values=emp_est_real,
+        #                                 dist_values=emp_est_num,
         #                                 point_values=None,
         #                                 pca_model=pca_model,
         #                                 num_comp=num_comp,
@@ -638,10 +638,10 @@ class Plotter:
         """Calls plot_est_CI with arguments."""
         max_num = np.min([self.plot_num_emp, self.num_empirical])
         for i in range(max_num):
-            save_fn = f'{self.save_cpi_est_fn}_real_{i}.pdf'
+            save_fn = f'{self.save_cpi_est_fn}_num_{i}.pdf'
             title = f'Estimate: {self.est_prefix}.empirical.{i}'
             self.plot_emp_ci(save_fn=save_fn,
-                             est_label=self.emp_est_real.iloc[[i]].copy(),
+                             est_label=self.emp_est_num.iloc[[i]].copy(),
                              title=title,
                              color=self.plot_emp_color)
         return
@@ -1354,7 +1354,7 @@ class Plotter:
                 files.append(f)
     
         # get files for different categories
-        files_emp_real   = self.filter_files(files, 'empirical_estimate_real')
+        files_emp_num   = self.filter_files(files, 'empirical_estimate_num')
         files_emp_cat    = self.filter_files(files, 'empirical_estimate_cat')
         files_pca        = self.filter_files(files, 'pca')
         files_density    = self.filter_files(files, 'density')
@@ -1364,7 +1364,7 @@ class Plotter:
         files_history    = self.filter_files(files, 'train_history')
     
         # construct ordered list of files
-        files_ordered = files_emp_real + files_emp_cat + files_pca + files_density + \
+        files_ordered = files_emp_num + files_emp_cat + files_pca + files_density + \
                         files_train + files_test + files_history + files_arch
     
         # combine pdfs
@@ -1402,15 +1402,15 @@ class Plotter:
     
         # prediction stats
         test_train = []
-        if self.has_train_real:
-            test_train.append(('train', self.train_true_real, self.train_est_real))
-        if self.has_test_real:
-            test_train.append(('test', self.test_true_real, self.test_est_real))
+        if self.has_train_num:
+            test_train.append(('train', self.train_true_num, self.train_est_num))
+        if self.has_test_num:
+            test_train.append(('test', self.test_true_num, self.test_est_num))
         if self.has_train_cat:
             pass
         if self.has_test_cat:
             pass
-        if self.has_emp_real:
+        if self.has_emp_num:
             pass
         if self.has_emp_cat:
             pass

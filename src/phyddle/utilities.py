@@ -170,7 +170,7 @@ def settings_registry():
         # 'combine_test_val' : { 'step':'T',   'type':bool,  'section':'Train', 'default':True,          'help':'Combine test and validation datasets when assessing network fit?' },
         'cpi_coverage'     : { 'step':'T',   'type':float, 'section':'Train', 'default':0.95,          'help':'Expected coverage percent for calibrated prediction intervals (CPIs)' },
         'cpi_asymmetric'   : { 'step':'T',   'type':str,   'section':'Train', 'default':'T',           'help':'Use asymmetric (True) or symmetric (False) adjustments for CPIs?', 'bool':True },
-        'loss_real'        : { 'step':'T',   'type':str,   'section':'Train', 'default':'mse',         'help':'Loss function for real value estimates', 'choices':['mse', 'mae']},
+        'loss_numerical'   : { 'step':'T',   'type':str,   'section':'Train', 'default':'mse',         'help':'Loss function for real value estimates', 'choices':['mse', 'mae']},
         'optimizer'        : { 'step':'T',   'type':str,   'section':'Train', 'default':'adam',        'help':'Method used for optimizing neural network', 'choices':['adam'] },
         # 'metrics'          : { 'step':'T',   'type':list,  'section':'Train', 'default':['mae','acc'], 'help':'Recorded training metrics' },
         'log_offset'       : { 'step':'FTEP', 'type':float, 'section':'Train', 'default':1.0,          'help':'Offset size c when taking ln(x+c) for zero-valued variables' },
@@ -491,6 +491,11 @@ def check_args(args):
     assert 0. <= args['prop_test'] <= 1.
     assert 0. <= args['prop_val'] <= 1.
     assert 0. <= args['prop_cal'] <= 1.
+    
+    settings = settings_registry()
+    for k,v in args.items():
+        if k not in settings.keys():
+            print_warn(f"Setting '{k}' not in settings registry")
 
     # done
     return

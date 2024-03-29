@@ -46,15 +46,15 @@ args = {
     'brlen_encode'      : 'height_brlen',   # how to encode phylo brlen? height_only or height_brlen
     'char_encode'       : 'integer',        # how to encode discrete states? one_hot or integer
     'param_est'         : {                 # model parameters to predict (labels)
-                            'log_birth_1'     : 'real',
-                            'log_birth_2'     : 'real',
-                            'log_death'       : 'real',
-                            'log_state_rate'  : 'real',
+                            'log_birth_1'     : 'num',
+                            'log_birth_2'     : 'num',
+                            'log_death'       : 'num',
+                            'log_state_rate'  : 'num',
                             'model_type'      : 'cat',
                             'start_state'     : 'cat',
                           },
     'param_data'        : {                 # model parameters that are known (aux. data)
-                            'logit_sample_frac' : 'real'
+                            'logit_sample_frac' : 'num'
                           },
     'tensor_format'     : 'hdf5',           # save as compressed HDF5 or raw csv
     'char_format'       : 'csv',
@@ -68,13 +68,11 @@ args = {
     'prop_test'         : 0.05,             # proportion of sims in test dataset
     'prop_val'          : 0.05,             # proportion of sims in validation dataset
     'prop_cal'          : 0.20,             # proportion of sims in CPI calibration dataset
-    'combine_test_val'  : 'T',
     'cpi_coverage'      : 0.80,             # coverage level for CPIs
     'cpi_asymmetric'    : 'T',              # upper/lower ('T') or symmetric ('F') CPI adjustments
-    'batch_size'        : 2048,             # number of samples in each training batch
-    'loss'              : 'mae',            # loss function for learning (real-valued) targets
+    'trn_batch_size'    : 2048,             # number of samples in each training batch
+    'loss_numerical'    : 'mae',            # loss function for learning (real-valued) targets
     'optimizer'         : 'adam',           # optimizer for network weight/bias parameters
-    'log_offset'        : 1.0,
 
     #-------------------------------#
     # Estimate Step settings        #
@@ -88,9 +86,6 @@ args = {
     'plot_val_color'        : 'red',        # plot color for validation data
     'plot_aux_color'        : 'green',      # plot color for input auxiliary data
     'plot_label_color'      : 'orange',     # plot color for labels (params)
-    'plot_est_color'        : 'black',      # plot color for estimated data/values
-    'plot_scatter_log'      : 'T',          # Use log values for scatter plots when possible?
-    'plot_contour_log'      : 'T',          # Use log values for scatter plots when possible?
-    'plot_density_log'      : 'T',          # Use log values for scatter plots when possible?
+    'plot_emp_color'        : 'black',      # plot color for estimated data/values
     'plot_pca_noise'        : 0.01          # Add noise to PCA plot to dampen contrast from point values
 }
