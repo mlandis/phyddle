@@ -739,7 +739,7 @@ class CnnTrainer(Trainer):
             self.update_train_history(i, metric_names, val_metric_vals, 'validation')
 
             # early stopping
-            if val_bad_count >= self.num_early_stop:
+            if val_bad_count >= self.num_early_stop and self.num_early_stop > 0:
                 print(f'Early stop: validation loss increased for num_early_stop={self.num_early_stop} consecutive epochs')
                 break
 
