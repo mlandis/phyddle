@@ -74,7 +74,7 @@ class ParameterEstimationNetwork(nn.Module):
         self.param_cat      = param_cat
         self.param_cat_size = dict()
         
-        self.has_param_num = self.lbl_width > 0
+        self.has_param_num  = self.lbl_width > 0
         self.has_param_cat  = len(self.param_cat) > 0
 
         # collect args
