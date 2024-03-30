@@ -5,24 +5,12 @@ Installation
 
 This page describes how to download and install phyddle and its dependencies.
 
-Conda package
--------------
 
-phyddle is available as a `conda package <https://anaconda.org/landismj/phyddle>`_,
-and can be installed with the following commands:
-
-.. code-block:: shell
-
-    conda create -n phyddle -c bioconda -c landismj phyddle
-    conda install -c bioconda -c landismj phyddle
-    # ... install ...
-    conda activate phyddle
-    phyddle
 
 Python package
 --------------
 
-phyddle is also available as a `PyPI package <https://pypi.org/project/phyddle/>`_ 
+phyddle is available as a `PyPI package <https://pypi.org/project/phyddle/>`_ 
 and can be installed using ``pip``.
 
 .. code-block:: shell
@@ -30,6 +18,21 @@ and can be installed using ``pip``.
   python3 -m pip install phyddle
   # ... install ...
   phyddle
+
+
+Conda package
+-------------
+
+phyddle is also available as a `conda package <https://anaconda.org/landismj/phyddle>`_,
+and can be installed with the following commands:
+
+.. code-block:: shell
+
+    conda create -n phyddle -c bioconda -c pytorch -c landismj phyddle
+    conda install -c bioconda -c pytorch -c landismj phyddle
+    # ... install ...
+    conda activate phyddle
+    phyddle
 
 
 GitHub repository
@@ -44,7 +47,9 @@ the `repository <https://github.com/mlandis/phyddle>`_
 	git clone https://github.com/mlandis/phyddle.git   # using HTTPS
 	gh repo clone mlandis/phyddle                      # using GitHub CLI
 
-or you can `download <https://github.com/mlandis/phyddle/archive/refs/heads/main.zip>`_ 
+Note, that newer experimental features are stored on the development branch.
+
+You can also `download <https://github.com/mlandis/phyddle/archive/refs/heads/main.zip>`_ 
 and unzip the current version of the main branch
 
 .. code-block:: shell
