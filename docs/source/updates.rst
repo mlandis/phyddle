@@ -3,7 +3,11 @@ Updates
 
 The complete commit history for phyddle is located here: https://github.com/mlandis/phyddle/commits/main
 
-**phyddle v0.2.1** -- In progress.
+**phyddle v0.2.1** -- in progress
+
+  * Better warnings/errors for invalid settings
+  * Remove logit transformation from summary statistics for state frequencies (caused crash in some cases)
+
 
 **phyddle v0.2.0** -- 24.03.28
 

@@ -115,15 +115,15 @@ if desired.
         'brlen_encode'       : 'height_brlen',       # Encoding strategy for branch lengths
         'char_encode'        : 'integer',            # Encoding strategy for character data
         'param_est'          : {                     # Unknown model parameters to estimate
-            'log10_birth_1'      : 'real',
-            'log10_birth_2'      : 'real',
-            'log10_death'        : 'real',
-            'log10_state_rate'   : 'real',
+            'log10_birth_1'      : 'num',
+            'log10_birth_2'      : 'num',
+            'log10_death'        : 'num',
+            'log10_state_rate'   : 'num',
             'model_type'         : 'cat',
             'root_state'         : 'cat'
         ],
         'param_data'        : {                      # Known model parameters to treat as aux. data
-            'sample_frac'        : 'real'
+            'sample_frac'        : 'num'
         },
         'char_format'        : 'csv',                # File format for character data
         'tensor_format'      : 'hdf5',               # File format for training example tensors
@@ -216,7 +216,7 @@ adjusted with the command line using the ``--help`` option:
                    [--tensor_format] [--save_phyenc_csv]
                    [--num_epochs] [--trn_batch_size] [--prop_test]
                    [--prop_val] [--prop_cal] [--cpi_coverage]
-                   [--cpi_asymmetric] [--loss_real] [--optimizer]
+                   [--cpi_asymmetric] [--loss_numerical] [--optimizer]
                    [--log_offset] [--phy_channel_plain]
                    [--phy_channel_stride] [--phy_channel_dilate]
                    [--aux_channel] [--lbl_channel]
@@ -311,7 +311,7 @@ adjusted with the command line using the ``--help`` option:
                             prediction intervals (CPIs)
       --cpi_asymmetric      Use asymmetric (True) or symmetric (False)
                             adjustments for CPIs?
-      --loss_real           Loss function for real value estimates
+      --loss_numerical      Loss function for numerical estimates
       --optimizer           Method used for optimizing neural network
       --log_offset          Offset size c when taking ln(x+c) for
                             zero-valued variables

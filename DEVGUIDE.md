@@ -293,6 +293,12 @@ conda update -n base -c conda-forge conda
 I used mambaforge (C++ implementation of conda [faster])
 ```
 brew install mambaforge
+```
+
+Might need to install boa
+```
+mamba install boa -c conda-forge
+```
 
 Ensure `anaconda` and `conda` are in PATH
 
@@ -315,10 +321,10 @@ Build sequence might take 15 minutes.
 
 ```
 cd ~/projects/phyddle/conda
-# need -c bioconda for dendropy
-conda build . -c bioconda
+# need -c bioconda for dendropy, and second -c pytorch
+conda build . -c bioconda -c pytorch
 # (optional) using mambabuild, faster
-conda mambabuild . -c bioconda
+conda mambabuild . -c bioconda -c pytorch
 ```
 
 Create anaconda account and login

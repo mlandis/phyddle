@@ -125,13 +125,13 @@ writing the simulator so design the code to generate the desired output.
 .. code-block:: R
 
     # label filenames
-    label_names = c("log10_birth_1",      # real value, estimated
-                    "log10_birth_2",      # real value, estimated
-                    "log10_death",        # real value, estimated
-                    "log10_state_rate",   # real value, estimated
-                    "log10_sample_frac",  # real value, known
-                    "model_type",         # categorical value, estimated
-                    "start_state")        # categorical value, estimated
+    label_names = c("log10_birth_1",      # numerical, estimated
+                    "log10_birth_2",      # numerical, estimated
+                    "log10_death",        # numerical, estimated
+                    "log10_state_rate",   # numerical, estimated
+                    "log10_sample_frac",  # numerical, known
+                    "model_type",         # categorical, estimated
+                    "start_state")        # categorical, estimated
 
 The next step is optional. We tell the simulator the number of species
 per tree the neural network expects, called the ``tree_width``. Providing
@@ -291,12 +291,12 @@ that become auxiliary data.
 
 .. note::
 
-    We recommend transforming numerical labels as real-valued variables
-    (i.e. they can be negative-, positive- or zero-valued). Non-negative
+    We recommend transforming numerical labels as numerical variables
+    (i.e. negative-, positive- or zero-valued real numbers). Non-negative
     valued labels, such as rate parameters, can be transformed into
-    real values through a log transformation, ``log(x)``. Bounded labels, such as
-    probabilities or proportions, can be transformed to real values using
-    the logit transformation, ``log(x / (1 - x))``. 
+    unbounded values through a log transformation, ``log(x)``. Doubly bounded
+    labels, such as probabilities or proportions, can be transformed to
+    unbounded values using the logit transformation, ``log(x / (1 - x))``. 
 
 .. code-block:: R
 
@@ -395,13 +395,13 @@ each batch of replicates will be simulated in parallel.
     'brlen_encode'      : 'height_brlen',   # how to encode phylo brlen? height_only or height_brlen
     'char_encode'       : 'integer',        # how to encode discrete states? one_hot or integer
     'param_est'         : {                 # model parameters to predict (labels)
-                           'log10_birth_1'     : 'real',
-                           'log10_birth_2'     : 'real',
-                           'log10_death'       : 'real',
-                           'log10_state_rate'  : 'real',
+                           'log10_birth_1'     : 'num',
+                           'log10_birth_2'     : 'num',
+                           'log10_death'       : 'num',
+                           'log10_state_rate'  : 'num',
                           },
     'param_data'        : {                 # model parameters that are known (aux. data)
-                           'sample_frac'       : 'real'
+                           'sample_frac'       : 'num'
                           },
     'tensor_format'     : 'hdf5',           # save as compressed HDF5 or raw csv
     'char_format'       : 'csv',
@@ -426,8 +426,8 @@ for internal and terminal branches. The ``char_encode`` setting causes
 phyddle to use one row with integer representation for our binary character.
 
 The ``param_est`` and ``param_data`` settings define how phyddle handles
-different model variables. We identify four real-valued training
-targets in ``param_est`` and one real-valued auxiliary data variable
+different model variables. We identify four numerical training
+targets in ``param_est`` and one numerical auxiliary data variable
 with ``param_data``. Any parameters that are not listed in
 ``param_est`` or ``param_data`` are treated as unknown nuisance
 parameters (i.e. part of the model, but not estimated or measured).
@@ -443,7 +443,7 @@ phyddle expects taxon character datasets are in ``csv`` format.
     #-------------------------------#
     'num_epochs'        : 20,               # number of training intervals (epochs)
     'trn_batch_size'    : 2048,             # number of samples in each training batch
-    'loss'              : 'mse',            # loss function to use
+    'loss_numerical'    : 'mse',            # loss function to use for numerical labels
     'cpi_coverage'      : 0.80,             # coverage level for CPIs
     'prop_test'         : 0.05,             # proportion of sims in test dataset
     'prop_val'          : 0.05,             # proportion of sims in validation dataset
@@ -463,8 +463,8 @@ calibration.
 
 The ``num_epochs`` setting indicates the Train step wil run for 20
 training intervals, with training batches of size 2048, as specified
-by ``trn_batch_size``. The ``loss`` configuration sets mean-squared
-error for the loss function on real-valued point estimates.
+by ``trn_batch_size``. The ``loss_numerical`` configuration sets mean-squared
+error for the loss function on numerical point estimates.
 determines how many training intervals are used. The ``cpi_coverage``
 value of ``0.80`` sets the coverage level for the calibrated
 prediction intervals (CPIs). That is, 80\% of CPIs under the training
@@ -640,31 +640,31 @@ Plotted results
 ---------------
 
 In this section, we look at some plots. The figures 
-named ``out.empirical_estimate_real_N.pdf`` show estimates for
+named ``out.empirical_estimate_num_N.pdf`` show estimates for
 empirical datasets, where ``N`` represents the `Nth` empirical
 replicate. Point estimates and calibrated prediction intervals are shown for
 each parameter.
 
-.. figure:: images/out.empirical_estimate_real_0.png
+.. figure:: images/out.empirical_estimate_num_0.png
   :width: 500
   :align: center
 
 |
 
-The figure ``out.train_density_labels_real.pdf`` shows the marginal
-density for real-valued training labels defined by ``param_est``.
+The figure ``out.train_density_labels_num.pdf`` shows the marginal
+density for numerical training labels defined by ``param_est``.
 
 
-.. figure:: images/out.train_density_labels_real.png
+.. figure:: images/out.train_density_labels_num.png
   :width: 500
   :align: center
 
 |
 
-The figure ``out.train_pca_labels_real.pdf`` shows joint density of
+The figure ``out.train_pca_labels_num.pdf`` shows joint density of
 the training labels as a PCA-transformed heatmap.
 
-.. figure:: images/out.train_pca_labels_real.png
+.. figure:: images/out.train_pca_labels_num.png
   :width: 500
   :align: center
 

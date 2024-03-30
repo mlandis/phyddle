@@ -371,6 +371,11 @@ def load_config(config_fn,
     # update steps
     if m['step'] == 'A':
         m['step'] = 'SFTEP'
+
+    # print header?
+    verbose = m['verbose']
+    if verbose:
+        print(phyddle_header('title'))
     
     # check arguments are valid
     check_args(m)
@@ -394,11 +399,6 @@ def load_config(config_fn,
     np.set_printoptions(floatmode='maxprec', precision=OUTPUT_PRECISION)
     pd.set_option('display.precision', OUTPUT_PRECISION)
     pd.set_option('display.float_format', lambda x: f'{x:,.6f}')
-
-    # print header?
-    verbose = m['verbose']
-    if verbose:
-        print(phyddle_header('title'))
     
     # return new args
     return m
@@ -465,37 +465,71 @@ def check_args(args):
     # links to user facing documentation
 
     # string values
-    assert all([s in 'ASFTEP' for s in args['step']])
-    assert args['sim_logging']       in ['clean', 'verbose', 'compress']
-    assert args['tree_encode']       in ['serial', 'extant']
-    assert args['brlen_encode']      in ['height_only', 'height_brlen']
-    assert args['char_encode']       in ['one_hot', 'integer', 'numeric']
-    assert args['tensor_format']     in ['csv', 'hdf5']
-    assert args['char_format']       in ['csv', 'nexus']
-    assert args['downsample_taxa']   in ['uniform']
-    
+    if not all([s in 'ASFTEP' for s in args['step']]):
+        print_err("step must contain only letters 'ASFTEP'", exit=True)
+    if args['sim_logging'] not in ['clean', 'verbose', 'compress']:
+        print_err("sim_logging must be 'clean', 'verbose', or 'compress'", exit=True)
+    if args['tree_encode'] not in ['serial', 'extant']:
+        print_err("tree_encode must be 'serial' or 'extant'", exit=True)
+    if args['brlen_encode'] not in ['height_only', 'height_brlen']:
+        print_err("brlen_encode must be 'height_only' or 'height_brlen'", exit=True)
+    if args['char_encode'] not in ['one_hot', 'integer', 'numeric']:
+        print_err("char_encode must be 'one_hot', 'integer', or 'numeric'", exit=True)
+    if args['tensor_format'] not in ['csv', 'hdf5']:
+        print_err("tensor_format must be 'csv' or 'hdf5'", exit=True)
+    if args['char_format'] not in ['csv', 'nexus']:
+        print_err("char_format must be 'csv' or 'nexus'", exit=True)
+    if args['downsample_taxa'] not in ['uniform']:
+        print_err("downsample_taxa must be 'uniform'", exit=True)
+        
     # numerical values
-    assert args['start_idx'] >= 0
-    assert args['end_idx'] >= 0
-    assert args['start_idx'] <= args['end_idx']
-    assert args['sim_more'] >= 0
-    assert args['min_num_taxa'] >= 0
-    assert args['max_num_taxa'] >= 0
-    assert args['min_num_taxa'] <= args['max_num_taxa']
-    assert args['num_states'] > 0
-    assert args['num_char'] > 0
-    assert args['num_epochs'] > 0
-    assert args['trn_batch_size'] > 0
-    assert args['sim_batch_size'] > 0
-    assert 0. <= args['cpi_coverage'] <= 1.
-    assert 0. <= args['prop_test'] <= 1.
-    assert 0. <= args['prop_val'] <= 1.
-    assert 0. <= args['prop_cal'] <= 1.
-    
+    if args['start_idx'] < 0:
+        print_err("start_idx must be >= 0", exit=True)
+    if args['end_idx'] < 0:
+        print_err("end_idx must be >= 0", exit=True)
+    if args['start_idx'] > args['end_idx']:
+        print_err("start_idx must be <= end_idx", exit=True)
+    if args['sim_more'] < 0:
+        print_err("sim_more must be >= 0", exit=True)
+    if args['min_num_taxa'] < 0:
+        print_err("min_num_taxa must be >= 0", exit=True)
+    if args['max_num_taxa'] < 0:
+        print_err("max_num_taxa must be >= 0", exit=True)
+    if args['min_num_taxa'] > args['max_num_taxa']:
+        print_err("min_num_taxa must be <= max_num_taxa", exit=True)
+    if args['tree_width'] < 0:
+        print_err("tree_width must be >= 0", exit=True)
+    if args['num_states'] < 0:
+        print_err("num_states must be >= 0", exit=True)
+    if args['num_char'] < 0:
+        print_err("num_char must be >= 0", exit=True)
+    if args['num_epochs'] < 0:
+        print_err("num_epochs must be >= 0", exit=True)
+    if args['num_early_stop'] < 0:
+        print_err("num_early_stop must be >= 0", exit=True)
+    if args['trn_batch_size'] <= 0:
+        print_err("trn_batch_size must be > 0", exit=True)
+    if args['sim_batch_size'] <= 0:
+        print_err("sim_batch_size must be > 0", exit=True)
+    if args['cpi_coverage'] < 0. or args['cpi_coverage'] > 1.:
+        print_err("cpi_coverage must be between 0 and 1", exit=True)
+    if args['prop_test'] < 0. or args['prop_test'] > 1.:
+        print_err("prop_test must be between 0 and 1", exit=True)
+    if args['prop_val'] < 0. or args['prop_val'] > 1.:
+        print_err("prop_val must be between 0 and 1", exit=True)
+    if args['prop_cal'] < 0. or args['prop_cal'] > 1.:
+        print_err("prop_cal must be between 0 and 1", exit=True)
+    if args['plot_pca_noise'] < 0.:
+        print_err("plot_pca_noise must be >= 0", exit=True)
+        
+    unused_args = []
     settings = settings_registry()
     for k,v in args.items():
         if k not in settings.keys():
-            print_warn(f"Setting '{k}' not in settings registry")
+            unused_args.append(k)
+    
+    if len(unused_args) > 0:
+        print_warn("These applied settings are unknown and will not be used: " + ' '.join(unused_args))
 
     # done
     return
@@ -1629,7 +1663,7 @@ def print_str(s, verbose=True, style=1, color=34):
         print(phyddle_str(s, style, color))
     return
 
-def print_err(s, verbose=True, style=1, color=34):
+def print_err(s, verbose=True, style=1, color=34, exit=False):
     """Prints a phyddle error to the standard output.
 
     Args:
@@ -1640,6 +1674,8 @@ def print_err(s, verbose=True, style=1, color=34):
 
     """
     print_str(f'ERROR: {s}', verbose, style, color)
+    if exit:
+        sys.exit()
     return
 
 def print_warn(s, verbose=True, style=1, color=34):
