@@ -397,8 +397,8 @@ class Plotter:
             self.make_plot_emp_ci()
 
         # bar plot for categorical in empirical dataset
-        # if self.has_emp_cat:
-            # self.make_plot_emp_cat()
+        if self.has_emp_cat:
+            self.make_plot_emp_cat()
 
         # training history stats
         self.make_plot_train_history()
