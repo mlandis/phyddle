@@ -711,19 +711,19 @@ are outliers.
 |
 
   
-The figure ``out.train_estimate_log10_birth_1.pdf`` shows trained
+The figure ``out.train_estimate_log_birth_1.pdf`` shows trained
 network predictions for the training dataset.
 
-.. figure:: images/out.train_estimate_log10_birth_1.png
+.. figure:: images/out.train_estimate_log_birth_1.png
   :width: 500
   :align: center
 
 |
   
-The figure ``out.test_estimate_log10_birth_1.pdf`` shows trained
+The figure ``out.test_estimate_log_birth_1.pdf`` shows trained
 network predictions for the test dataset (the data not used for training).
   
-.. figure:: images/out.test_estimate_log10_birth_1.png
+.. figure:: images/out.test_estimate_log_birth_1.png
   :width: 500
   :align: center
 
