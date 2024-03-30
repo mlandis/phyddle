@@ -135,8 +135,8 @@ class Trainer:
         self.TORCH_DEVICE_STR = (
             "cuda"
             if torch.cuda.is_available() and self.use_cuda
-            else "mps"
-            if torch.backends.mps.is_available()
+            # else "mps"
+            # if torch.backends.mps.is_available()
             else "cpu"
         )
         self.TORCH_DEVICE = torch.device(self.TORCH_DEVICE_STR)
