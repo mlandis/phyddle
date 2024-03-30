@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Updates &mdash; phyddle 0.2.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="_static/css/custom.css?v=d2c2efc5" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=938c9ccc"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="author" title="About these documents" href="about.html" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="About" href="about.html" />
+    <link rel="prev" title="Glossary" href="glossary.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html">
+            
+              <img src="_static/phyddle_logo.png" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                0.2.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pipeline.html">Pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workspace.html">Workspace</a></li>
+<li class="toctree-l1"><a class="reference internal" href="formats.html">Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tricks.html">Tricks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="glossary.html">Glossary</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="about.html">About</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">phyddle</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Updates</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/updates.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="updates">
+<h1>Updates<a class="headerlink" href="#updates" title="Link to this heading"></a></h1>
+<p>The complete commit history for phyddle is located here: <a class="reference external" href="https://github.com/mlandis/phyddle/commits/main">https://github.com/mlandis/phyddle/commits/main</a></p>
+<p><strong>phyddle v0.2.1</strong> – in progress</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Better warnings/errors for invalid settings</p></li>
+<li><p>Remove logit transformation from summary statistics for state frequencies (caused crash in some cases)</p></li>
+</ul>
+</div></blockquote>
+<p><strong>phyddle v0.2.0</strong> – 24.03.28</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>New support for categorical labels (e.g. model testing).</p></li>
+<li><p>New plots for categorical results.</p></li>
+<li><p>Add support for GPU + CUDA + PyTorch to accelerate Train and Estimate.</p></li>
+<li><p>Support for early stopping rule with Train.</p></li>
+<li><p>Improved printed feedback for all steps.</p></li>
+<li><p>Better plots for PCA and scatter plot results.</p></li>
+<li><p>Simpler default directory structure. Default phyddle configs, scripts, and outputs now share a proj directory in ./workspace.</p></li>
+<li><p>Better support for multiple project names within a workspace directory.</p></li>
+<li><p>Rewrote how Format/Estimate/Plot interact so simulated-test/empirical datasets are treated similarly.</p></li>
+<li><p>Better error checking and helpful messages for Simulate-Format config mismatches.</p></li>
+</ul>
+</div></blockquote>
+<p><strong>phyddle v0.1.1</strong> – 24.02.18</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Simpler directory settings for analyses</p></li>
+<li><p>Simpler settings application hierarchy</p></li>
+<li><p>Removed workspace and proj arguments</p></li>
+<li><p>Removed requirement for __config_default.py</p></li>
+<li><p>Repo directory restructuring, with clearer distinction between scripts and configs</p></li>
+<li><p>Added example simulation script for PhyloJunction</p></li>
+</ul>
+</div></blockquote>
+<p><strong>phyddle v0.1.0</strong> – 24.02.08</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Update minor version from v0.0.10 to v0.1.0 🥳</p></li>
+<li><p>Convert from Tensorflow to PyTorch on backend</p></li>
+<li><p>New support for scalable network architecture in Train</p></li>
+<li><p>New support for output precision for floating point output to files</p></li>
+<li><p>New summary csv report for Plot</p></li>
+<li><p>Better screen output for Train progress</p></li>
+<li><p>Better training history plot</p></li>
+<li><p>Better network architecture plot</p></li>
+<li><p>Better handling of cases where small tree size causes tree statistics to return 0/undefined/etc.</p></li>
+<li><p>Fix bug with non-sequential indices among simulated training examples</p></li>
+<li><p>Fix bug with Format for-loop to process summary statistics</p></li>
+<li><p>Switch summary statistics to log-scale</p></li>
+</ul>
+</div></blockquote>
+<p><strong>phyddle v0.0.10</strong> – 23.11.10</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Basic GitHub Action tests working</p></li>
+<li><p>Format step faster (removed extraneous and costly deepcopy calls)</p></li>
+<li><p>Convert config_R.py to BiSSE example using R + castor</p></li>
+<li><p>Add external validation for phyddle vs. castor</p></li>
+<li><p>Improve config support</p></li>
+<li><p>Cleaning and commenting code</p></li>
+<li><p>Clean and finish sphinx documentation</p></li>
+</ul>
+</div></blockquote>
+<p><strong>phyddle v0.0.9</strong> – 23.08.23</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Package now hosted through conda: <a class="reference external" href="https://anaconda.org/landismj/phyddle">https://anaconda.org/landismj/phyddle</a></p></li>
+<li><p>Better errors for missing files (configs, command, scripts, etc.)</p></li>
+<li><p>PyPI package installed through pip now autoinstalls dependencies</p></li>
+</ul>
+</div></blockquote>
+<p><strong>phyddle v0.0.8</strong> – 23.08.16</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Minor fixes following 0.0.7 update</p></li>
+<li><p>Documentation visuals fixed</p></li>
+</ul>
+</div></blockquote>
+<p><strong>phyddle v0.0.7</strong> – 23.08.16</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Format now splits training from test datasets.</p></li>
+<li><p>Estimate now applies trained model against test dataset.</p></li>
+<li><p>Steps now initialize using settings look-up table.</p></li>
+<li><p>Add PCA contour plot.</p></li>
+<li><p>Simplify filenames within projects for many steps.</p></li>
+<li><p>Timestamp step start/end/duration.</p></li>
+<li><p>Docs now hosted online at <a class="reference external" href="http://mlandis.github.io/phyddle">http://mlandis.github.io/phyddle</a></p></li>
+<li><p>Python package now hosted through pip at <a class="reference external" href="https://pypi.org/project/phyddle/">https://pypi.org/project/phyddle/</a></p></li>
+<li><p>Add bump2version supports</p></li>
+</ul>
+</div></blockquote>
+<p><strong>phyddle v0.0.6</strong> – 23.08.09</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Refreshed documentation, plus added setting tables and glossary.</p></li>
+<li><p>Centralize management of settings.</p></li>
+<li><p>Settings now automatically apply default config, then user config, then command line arguments.</p></li>
+<li><p>Format only enodes for a single tree width category now.</p></li>
+<li><p>Format now downsamples and stores raw num. taxa for each data point.</p></li>
+<li><p>Allow for “all-but-X” CPUs for multiprocessing.</p></li>
+<li><p>Simulate wth –sim_more option to add new replicates to training examples.</p></li>
+<li><p>Format encodes all detected datasets by default.</p></li>
+<li><p>Support to allow scripts to simulate batches (&gt;1) of replicates.</p></li>
+<li><p>Major overhaul of help docs, but not done.</p></li>
+</ul>
+</div></blockquote>
+<p><strong>phyddle v0.0.5</strong> – 23.07.30</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Pipeline steps renamed to: Simulate, Format, Train, Estimate, Plot</p></li>
+<li><p>Simulators now in scripts/sim/MASTER, scripts/sim/R, scripts/sim/Rev</p></li>
+<li><p>Streamlined handling of phyddle settings, internally</p></li>
+<li><p>Model configuration code moved outside phyddle</p></li>
+<li><p>MASTER simulator now outside phyddle, in scripts/sim/MASTER</p></li>
+<li><p>Complete source code reorg/rename</p></li>
+<li><p>Pipeline script now prints pipeline steps</p></li>
+<li><p>Support for granular management of flow of projects across pipeline steps</p></li>
+<li><p>Support asymmetric CPI calibration</p></li>
+<li><p>Better handling of FileNotFoundError related to Estimate step</p></li>
+<li><p>Much faster Formatting step (&gt;100x speedup)</p></li>
+<li><p>Pipeline steps now generate logs in <code class="docutils literal notranslate"><span class="pre">workspace/log/&lt;project_name&gt;</span></code> to track phyddle is used during a project analysis</p></li>
+<li><p>Tested against Apple M1. Not an easy install, because unsupported by Tensorflow. Thanks Albert and Sean!</p></li>
+</ul>
+</div></blockquote>
+<p><strong>phyddle v0.0.4</strong> – 23.07.09</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Simulating now supports command-line scripts</p></li>
+<li><p>Better backend support for alternative phylostate tensor encodings</p></li>
+<li><p>Simplified pipeline scripts and interface</p></li>
+<li><p>Docs improved to reflect current code design</p></li>
+<li><p>Tests now cover Simulating and Formatting</p></li>
+</ul>
+</div></blockquote>
+<p><strong>phyddle v0.0.3</strong> – 23.07.02</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Sphinx configuration for documentation</p></li>
+<li><p>TestPyPI configuration for package deployment</p></li>
+<li><p>GitHub Actions configuration for unit testing</p></li>
+</ul>
+</div></blockquote>
+<p><strong>phyddle v0.0.2</strong> – 23.06.25</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>(first internal working version)</p></li>
+<li><p>trained network generates parameter estimates and coverage-calibrated prediction intervals (CPIs) for input datasets</p></li>
+<li><p>provides several state-dependent birth-death model types and variants (more to come)</p></li>
+<li><p>parallelized simulating, formatting, and learning</p></li>
+<li><p>encoding of phylogenetic-state tensor from serial and extant-only input with multiple states (CBLV+S and CDV+S extensions)</p></li>
+<li><p>encoding of auxiliary data tensor from automatically computed summary statistics and “known” parameter (e.g. sampling rate)</p></li>
+<li><p>HDF5 with gzip compression for tensor data</p></li>
+<li><p>shuffles and splits input tensors into training, test, validation, and calibration datasets for supervised learning</p></li>
+<li><p>builds network with convolution, pooling, and dense layers that match input tensors</p></li>
+<li><p>trains network and saves history</p></li>
+<li><p>automatic figure generation with Matplotlib</p></li>
+</ul>
+</div></blockquote>
+<p><strong>phyddle v0.0.1</strong> – 23.03.16</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>(initial development version)</p></li>
+</ul>
+</div></blockquote>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="glossary.html" class="btn btn-neutral float-left" title="Glossary" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="about.html" class="btn btn-neutral float-right" title="About" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

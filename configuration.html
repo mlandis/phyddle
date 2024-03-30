@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Configuration &mdash; phyddle 0.2.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="_static/css/custom.css?v=d2c2efc5" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=938c9ccc"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="author" title="About these documents" href="about.html" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Pipeline" href="pipeline.html" />
+    <link rel="prev" title="Installation" href="installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html">
+            
+              <img src="_static/phyddle_logo.png" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                0.2.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#by-file">By file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#via-command-line">Via command line</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#table-summary">Table summary</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#details">Details</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#step">Step</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#step-directories">Step directories</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#step-prefixes">Step prefixes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#no-sim-and-no-emp"><code class="docutils literal notranslate"><span class="pre">no_sim</span></code> and <code class="docutils literal notranslate"><span class="pre">no_emp</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="pipeline.html">Pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workspace.html">Workspace</a></li>
+<li class="toctree-l1"><a class="reference internal" href="formats.html">Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tricks.html">Tricks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="updates.html">Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="about.html">About</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">phyddle</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Configuration</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/configuration.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="configuration">
+<span id="id1"></span><h1>Configuration<a class="headerlink" href="#configuration" title="Link to this heading"></a></h1>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This section describes how to configure settings for a phyddle analysis.
+Visit <a class="reference internal" href="pipeline.html#pipeline"><span class="std std-ref">Pipeline</span></a> to learn more about how settings determine the
+behavior of a phyddle analysis. Visit <a class="reference internal" href="glossary.html#glossary"><span class="std std-ref">Glossary</span></a> to learn more about
+how phyddle defines different terms.</p>
+</div>
+<p>There are two ways to configure the settings of a phyddle analysis: through a
+<a class="reference internal" href="#config-file"><span class="std std-ref">config file</span></a> or the <a class="reference internal" href="#config-cli"><span class="std std-ref">command line</span></a>.
+Command line settings outrank config file settings.</p>
+<section id="by-file">
+<span id="config-file"></span><h2>By file<a class="headerlink" href="#by-file" title="Link to this heading"></a></h2>
+<p>The phyddle config file is a Python dictionary of analysis arguments (<code class="docutils literal notranslate"><span class="pre">args</span></code>)
+that configure how phyddle pipeline steps behave. Because it’s a Python script,
+you can write code within the config file to specify your analysis, if you find
+that helpful. The below example defines settings into different blocks based on
+which pipeline step first needs a given setting. However, any setting might be
+used by different pipeline steps, so we concatenate all settings into a single
+dictionary called <code class="docutils literal notranslate"><span class="pre">args</span></code>, which is then used by all pipeline steps. Settings
+configured by file can be adjusted through the <a class="reference internal" href="#config-cli"><span class="std std-ref">command line</span></a>,
+if desired.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>By default, phyddle assumes you want to use the config file called
+<code class="docutils literal notranslate"><span class="pre">config.py</span></code>. Use a different config file by calling, e.g.
+<code class="docutils literal notranslate"><span class="pre">phyddle</span> <span class="pre">--cfg</span> <span class="pre">my_other_config.py</span></code></p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>phyddle maintains a number of example config files for different models
+and simulation methods. These are organized as project subdirectories
+within the <code class="docutils literal notranslate"><span class="pre">./workspace</span></code> directory. For example,
+<code class="docutils literal notranslate"><span class="pre">./workspace/bisse_r/config.py</span></code> simulates under a BiSSE model
+with the R simulation script <code class="docutils literal notranslate"><span class="pre">./workspace/bisse_r/sim_bisse.R</span></code>.</p>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1">#==============================================================================#</span>
+<span class="c1"># Config:       Example phyddle config file                                    #</span>
+<span class="c1"># Authors:      Michael Landis and Ammon Thompson                              #</span>
+<span class="c1"># Date:         230804                                                         #</span>
+<span class="c1"># Description:  Simple BiSSE model                                             #</span>
+<span class="c1">#==============================================================================#</span>
+
+<span class="n">work_dir</span> <span class="o">=</span> <span class="s1">&#39;./&#39;</span>                           <span class="c1"># Assumes config is run from local dir</span>
+<span class="n">args</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1">#-------------------------------#</span>
+    <span class="c1"># Basic                         #</span>
+    <span class="c1">#-------------------------------#</span>
+    <span class="s1">&#39;step&#39;</span>               <span class="p">:</span> <span class="s1">&#39;SFTEP&#39;</span><span class="p">,</span>        <span class="c1"># Pipeline step(s) defined with</span>
+                                           <span class="c1">#   (S)imulate, (F)ormat, (T)rain,</span>
+                                           <span class="c1">#   (E)stimate, (P)lot, or (A)ll</span>
+    <span class="s1">&#39;verbose&#39;</span>            <span class="p">:</span> <span class="s1">&#39;T&#39;</span><span class="p">,</span>            <span class="c1"># Verbose output to screen?</span>
+    <span class="s1">&#39;output_precision&#39;</span>   <span class="p">:</span> <span class="mi">16</span><span class="p">,</span>             <span class="c1"># Number of digits (precision)</span>
+                                           <span class="c1">#   for numbers in output files</span>
+
+    <span class="c1">#-------------------------------#</span>
+    <span class="c1"># Analysis                      #</span>
+    <span class="c1">#-------------------------------#</span>
+    <span class="s1">&#39;use_parallel&#39;</span>       <span class="p">:</span> <span class="s1">&#39;T&#39;</span><span class="p">,</span>            <span class="c1"># Use parallelization? (recommended)</span>
+    <span class="s1">&#39;num_proc&#39;</span>           <span class="p">:</span> <span class="o">-</span><span class="mi">2</span><span class="p">,</span>             <span class="c1"># Number of cores for multiprocessing</span>
+                                           <span class="c1">#   (-N for all but N)</span>
+
+    <span class="c1">#-------------------------------#</span>
+    <span class="c1"># Workspace                     #</span>
+    <span class="c1">#-------------------------------#</span>
+
+    <span class="s1">&#39;dir&#39;</span>                <span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">work_dir</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>           <span class="c1"># Base directory for all step directories</span>
+    <span class="s1">&#39;sim_dir&#39;</span>            <span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">work_dir</span><span class="si">}</span><span class="s1">/simulate&#39;</span><span class="p">,</span>  <span class="c1"># Directory for raw simulated data</span>
+    <span class="s1">&#39;emp_dir&#39;</span>            <span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">work_dir</span><span class="si">}</span><span class="s1">/empirical&#39;</span><span class="p">,</span> <span class="c1"># Directory for raw simulated data</span>
+    <span class="s1">&#39;fmt_dir&#39;</span>            <span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">work_dir</span><span class="si">}</span><span class="s1">/format&#39;</span><span class="p">,</span>    <span class="c1"># Directory for tensor-formatted simulated data</span>
+    <span class="s1">&#39;trn_dir&#39;</span>            <span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">work_dir</span><span class="si">}</span><span class="s1">/train&#39;</span><span class="p">,</span>     <span class="c1"># Directory for trained networks and training output</span>
+    <span class="s1">&#39;est_dir&#39;</span>            <span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">work_dir</span><span class="si">}</span><span class="s1">/estimate&#39;</span><span class="p">,</span>  <span class="c1"># Directory for new datasets and estimates</span>
+    <span class="s1">&#39;plt_dir&#39;</span>            <span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">work_dir</span><span class="si">}</span><span class="s1">/plot&#39;</span><span class="p">,</span>      <span class="c1"># Directory for plotted results</span>
+    <span class="s1">&#39;log_dir&#39;</span>            <span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">work_dir</span><span class="si">}</span><span class="s1">/log&#39;</span><span class="p">,</span>       <span class="c1"># Directory for logs of analysis metadata</span>
+    <span class="s1">&#39;prefix&#39;</span>             <span class="p">:</span> <span class="s1">&#39;out&#39;</span><span class="p">,</span>          <span class="c1"># Prefix for all output unless step prefix given</span>
+    <span class="s1">&#39;sim_prefix&#39;</span>         <span class="p">:</span> <span class="s1">&#39;out&#39;</span><span class="p">,</span>          <span class="c1"># Prefix for raw simulated data</span>
+    <span class="s1">&#39;emp_prefix&#39;</span>         <span class="p">:</span> <span class="s1">&#39;out&#39;</span><span class="p">,</span>          <span class="c1"># Prefix for raw empirical data</span>
+    <span class="s1">&#39;fmt_prefix&#39;</span>         <span class="p">:</span> <span class="s1">&#39;out&#39;</span><span class="p">,</span>          <span class="c1"># Prefix for tensor-formatted data</span>
+    <span class="s1">&#39;trn_prefix&#39;</span>         <span class="p">:</span> <span class="s1">&#39;out&#39;</span><span class="p">,</span>          <span class="c1"># Prefix for trained networks and training output</span>
+    <span class="s1">&#39;est_prefix&#39;</span>         <span class="p">:</span> <span class="s1">&#39;out&#39;</span><span class="p">,</span>          <span class="c1"># Prefix for new datasets and estimates</span>
+    <span class="s1">&#39;plt_prefix&#39;</span>         <span class="p">:</span> <span class="s1">&#39;out&#39;</span><span class="p">,</span>          <span class="c1"># Prefix for plotted results</span>
+
+    <span class="c1">#-------------------------------#</span>
+    <span class="c1"># Simulate                      #</span>
+    <span class="c1">#-------------------------------#</span>
+    <span class="s1">&#39;sim_command&#39;</span>        <span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;Rscript </span><span class="si">{</span><span class="n">work_dir</span><span class="si">}</span><span class="s1">/sim_bisse.R&#39;</span><span class="p">,</span> <span class="c1"># Simulation command to run single</span>
+                                                              <span class="c1">#   job (see documentation)</span>
+    <span class="s1">&#39;sim_logging&#39;</span>        <span class="p">:</span> <span class="s1">&#39;verbose&#39;</span><span class="p">,</span>                 <span class="c1"># Simulation logging style</span>
+    <span class="s1">&#39;start_idx&#39;</span>          <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>                         <span class="c1"># Start index for simulated training replicates</span>
+    <span class="s1">&#39;end_idx&#39;</span>            <span class="p">:</span> <span class="mi">1000</span><span class="p">,</span>                      <span class="c1"># End index for simulated training replicates</span>
+    <span class="s1">&#39;sim_batch_size&#39;</span>     <span class="p">:</span> <span class="mi">10</span><span class="p">,</span>                        <span class="c1"># Number of replicates per simulation command</span>
+
+    <span class="c1">#-------------------------------#</span>
+    <span class="c1"># Format                        #</span>
+    <span class="c1">#-------------------------------#</span>
+    <span class="s1">&#39;encode_all_sim&#39;</span>     <span class="p">:</span> <span class="s1">&#39;T&#39;</span><span class="p">,</span>                  <span class="c1"># Encode all simulated replicates into tensor?</span>
+    <span class="s1">&#39;num_char&#39;</span>           <span class="p">:</span> <span class="mi">1</span><span class="p">,</span>                    <span class="c1"># Number of characters</span>
+    <span class="s1">&#39;num_states&#39;</span>         <span class="p">:</span> <span class="mi">2</span><span class="p">,</span>                    <span class="c1"># Number of states per character</span>
+    <span class="s1">&#39;min_num_taxa&#39;</span>       <span class="p">:</span> <span class="mi">10</span><span class="p">,</span>                   <span class="c1"># Minimum number of taxa allowed when formatting</span>
+    <span class="s1">&#39;max_num_taxa&#39;</span>       <span class="p">:</span> <span class="mi">500</span><span class="p">,</span>                  <span class="c1"># Maximum number of taxa allowed when formatting</span>
+    <span class="s1">&#39;downsample_taxa&#39;</span>    <span class="p">:</span> <span class="s1">&#39;uniform&#39;</span><span class="p">,</span>            <span class="c1"># Downsampling strategy taxon count</span>
+    <span class="s1">&#39;tree_width&#39;</span>         <span class="p">:</span> <span class="mi">500</span><span class="p">,</span>                  <span class="c1"># Width of phylo-state tensor</span>
+    <span class="s1">&#39;tree_encode&#39;</span>        <span class="p">:</span> <span class="s1">&#39;extant&#39;</span><span class="p">,</span>             <span class="c1"># Encoding strategy for tree</span>
+    <span class="s1">&#39;brlen_encode&#39;</span>       <span class="p">:</span> <span class="s1">&#39;height_brlen&#39;</span><span class="p">,</span>       <span class="c1"># Encoding strategy for branch lengths</span>
+    <span class="s1">&#39;char_encode&#39;</span>        <span class="p">:</span> <span class="s1">&#39;integer&#39;</span><span class="p">,</span>            <span class="c1"># Encoding strategy for character data</span>
+    <span class="s1">&#39;param_est&#39;</span>          <span class="p">:</span> <span class="p">{</span>                     <span class="c1"># Unknown model parameters to estimate</span>
+        <span class="s1">&#39;log10_birth_1&#39;</span>      <span class="p">:</span> <span class="s1">&#39;num&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;log10_birth_2&#39;</span>      <span class="p">:</span> <span class="s1">&#39;num&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;log10_death&#39;</span>        <span class="p">:</span> <span class="s1">&#39;num&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;log10_state_rate&#39;</span>   <span class="p">:</span> <span class="s1">&#39;num&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;model_type&#39;</span>         <span class="p">:</span> <span class="s1">&#39;cat&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;root_state&#39;</span>         <span class="p">:</span> <span class="s1">&#39;cat&#39;</span>
+    <span class="p">],</span>
+    <span class="s1">&#39;param_data&#39;</span>        <span class="p">:</span> <span class="p">{</span>                      <span class="c1"># Known model parameters to treat as aux. data</span>
+        <span class="s1">&#39;sample_frac&#39;</span>        <span class="p">:</span> <span class="s1">&#39;num&#39;</span>
+    <span class="p">},</span>
+    <span class="s1">&#39;char_format&#39;</span>        <span class="p">:</span> <span class="s1">&#39;csv&#39;</span><span class="p">,</span>                <span class="c1"># File format for character data</span>
+    <span class="s1">&#39;tensor_format&#39;</span>      <span class="p">:</span> <span class="s1">&#39;hdf5&#39;</span><span class="p">,</span>               <span class="c1"># File format for training example tensors</span>
+    <span class="s1">&#39;save_phyenc_csv&#39;</span>    <span class="p">:</span> <span class="s1">&#39;F&#39;</span><span class="p">,</span>                  <span class="c1"># Save encoded phylogenetic tensor encoding to csv?</span>
+
+    <span class="c1">#-------------------------------#</span>
+    <span class="c1"># Train                         #</span>
+    <span class="c1">#-------------------------------#</span>
+    <span class="s1">&#39;num_epochs&#39;</span>         <span class="p">:</span> <span class="mi">20</span><span class="p">,</span>                   <span class="c1"># Number of training epochs</span>
+    <span class="s1">&#39;trn_batch_size&#39;</span>     <span class="p">:</span> <span class="mi">2048</span><span class="p">,</span>                 <span class="c1"># Training batch sizes</span>
+    <span class="s1">&#39;prop_test&#39;</span>          <span class="p">:</span> <span class="mf">0.05</span><span class="p">,</span>                 <span class="c1"># Proportion of data used as test examples</span>
+                                                 <span class="c1">#     (to assess trained network performance)</span>
+    <span class="s1">&#39;prop_val&#39;</span>           <span class="p">:</span> <span class="mf">0.05</span><span class="p">,</span>                 <span class="c1"># Proportion of data used as validation examples</span>
+                                                 <span class="c1">#     (to diagnose network overtraining)</span>
+    <span class="s1">&#39;prop_cal&#39;</span>           <span class="p">:</span> <span class="mf">0.2</span><span class="p">,</span>                  <span class="c1"># Proportion of data used as calibration examples</span>
+                                                 <span class="c1">#     (to calibrate CPIs)</span>
+    <span class="s1">&#39;cpi_coverage&#39;</span>       <span class="p">:</span> <span class="mf">0.95</span><span class="p">,</span>                 <span class="c1"># Expected coverage percent for calibrated</span>
+                                                 <span class="c1">#     prediction intervals (CPIs)</span>
+    <span class="s1">&#39;cpi_asymmetric&#39;</span>     <span class="p">:</span> <span class="s1">&#39;T&#39;</span><span class="p">,</span>                  <span class="c1"># Use asymmetric (True) or symmetric (False)</span>
+                                                 <span class="c1">#     adjustments for CPIs?</span>
+    <span class="s1">&#39;loss&#39;</span>               <span class="p">:</span> <span class="s1">&#39;mae&#39;</span><span class="p">,</span>                <span class="c1"># Loss function for optimization</span>
+    <span class="s1">&#39;optimizer&#39;</span>          <span class="p">:</span> <span class="s1">&#39;adam&#39;</span><span class="p">,</span>               <span class="c1"># Method used for optimizing neural network</span>
+    <span class="s1">&#39;phy_channel_plain&#39;</span>  <span class="p">:</span> <span class="p">[</span><span class="mi">64</span><span class="p">,</span> <span class="mi">96</span><span class="p">,</span> <span class="mi">128</span><span class="p">],</span>        <span class="c1"># Output channel sizes for plain convolutional</span>
+                                                 <span class="c1">#     layers for phylogenetic state input</span>
+    <span class="s1">&#39;phy_channel_stride&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="mi">64</span><span class="p">,</span> <span class="mi">96</span><span class="p">],</span>             <span class="c1"># Output channel sizes for stride convolutional</span>
+                                                 <span class="c1">#     layers for phylogenetic state input</span>
+    <span class="s1">&#39;phy_channel_dilate&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="mi">32</span><span class="p">,</span> <span class="mi">64</span><span class="p">],</span>             <span class="c1"># Output channel sizes for dilate convolutional</span>
+                                                 <span class="c1">#     layers for phylogenetic state input</span>
+    <span class="s1">&#39;aux_channel&#39;</span>        <span class="p">:</span> <span class="p">[</span><span class="mi">128</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">32</span><span class="p">],</span>        <span class="c1"># Output channel sizes for dense layers for</span>
+                                                 <span class="c1">#     auxiliary data input</span>
+    <span class="s1">&#39;lbl_channel&#39;</span>        <span class="p">:</span> <span class="p">[</span><span class="mi">128</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">32</span><span class="p">],</span>        <span class="c1"># Output channel sizes for dense layers for</span>
+                                                 <span class="c1">#     label outputs</span>
+    <span class="s1">&#39;phy_kernel_plain&#39;</span>   <span class="p">:</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">7</span><span class="p">],</span>            <span class="c1"># Kernel sizes for plain convolutional layers</span>
+                                                 <span class="c1">#     for phylogenetic state input</span>
+    <span class="s1">&#39;phy_kernel_stride&#39;</span>  <span class="p">:</span> <span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">9</span><span class="p">],</span>               <span class="c1"># Kernel sizes for stride convolutional layers</span>
+                                                 <span class="c1">#     for phylogenetic state input</span>
+    <span class="s1">&#39;phy_kernel_dilate&#39;</span>  <span class="p">:</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span>               <span class="c1"># Kernel sizes for dilate convolutional layers</span>
+                                                 <span class="c1">#     for phylogenetic state input</span>
+    <span class="s1">&#39;phy_stride_stride&#39;</span>  <span class="p">:</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span>               <span class="c1"># Stride sizes for stride convolutional layers</span>
+                                                 <span class="c1">#     for phylogenetic state input</span>
+    <span class="s1">&#39;phy_dilate_dilate&#39;</span>  <span class="p">:</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span>               <span class="c1"># Dilation sizes for dilate convolutional layers</span>
+                                                 <span class="c1">#     for phylogenetic state input</span>
+
+    <span class="c1">#-------------------------------#</span>
+    <span class="c1"># Estimate                      #</span>
+    <span class="c1">#-------------------------------#</span>
+    <span class="c1"># not currently used</span>
+
+    <span class="c1">#-------------------------------#</span>
+    <span class="c1"># Plot                          #</span>
+    <span class="c1">#-------------------------------#</span>
+    <span class="s1">&#39;plot_train_color&#39;</span>   <span class="p">:</span> <span class="s1">&#39;blue&#39;</span><span class="p">,</span>               <span class="c1"># Plotting color for training data elements</span>
+    <span class="s1">&#39;plot_label_color&#39;</span>   <span class="p">:</span> <span class="s1">&#39;orange&#39;</span><span class="p">,</span>             <span class="c1"># Plotting color for training label elements</span>
+    <span class="s1">&#39;plot_test_color&#39;</span>    <span class="p">:</span> <span class="s1">&#39;purple&#39;</span><span class="p">,</span>             <span class="c1"># Plotting color for test data elements</span>
+    <span class="s1">&#39;plot_val_color&#39;</span>     <span class="p">:</span> <span class="s1">&#39;red&#39;</span><span class="p">,</span>                <span class="c1"># Plotting color for validation data elements</span>
+    <span class="s1">&#39;plot_aux_color&#39;</span>     <span class="p">:</span> <span class="s1">&#39;green&#39;</span><span class="p">,</span>              <span class="c1"># Plotting color for auxiliary data elements</span>
+    <span class="s1">&#39;plot_emp_color&#39;</span>     <span class="p">:</span> <span class="s1">&#39;black&#39;</span><span class="p">,</span>              <span class="c1"># Plotting color for empirical elements</span>
+    <span class="s1">&#39;plot_num_scatter&#39;</span>   <span class="p">:</span> <span class="mi">50</span><span class="p">,</span>                   <span class="c1"># Number of examples in scatter plot</span>
+    <span class="s1">&#39;plot_min_emp&#39;</span>       <span class="p">:</span> <span class="mi">5</span><span class="p">,</span>                    <span class="c1"># Minimum number of empirical datasets to plot densities</span>
+    <span class="s1">&#39;plot_num_emp&#39;</span>       <span class="p">:</span> <span class="mi">10</span>                    <span class="c1"># Number of empirical results to plot</span>
+   <span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="via-command-line">
+<span id="config-cli"></span><h2>Via command line<a class="headerlink" href="#via-command-line" title="Link to this heading"></a></h2>
+<p>Settings applied through a <a class="reference internal" href="#config-file"><span class="std std-ref">config file</span></a> can be overwritten
+by setting options when running phyddle from the command line. The names of
+settings are the same for the command line options and in the config file.
+Using command line options makes it easy to adjust the behavior of pipeline
+steps without needing to edit the config file. List all settings that can be
+adjusted with the command line using the <code class="docutils literal notranslate"><span class="pre">--help</span></code> option:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    usage: phyddle [-h] [-c] [-s] [-v] [--make_cfg]
+               [--output_precision] [--use_parallel] [--num_proc]
+               [--no_emp] [--no_sim] [--dir] [--sim_dir]
+               [--emp_dir] [--fmt_dir] [--trn_dir] [--est_dir]
+               [--plt_dir] [--log_dir] [--prefix] [--sim_prefix]
+               [--emp_prefix] [--fmt_prefix] [--trn_prefix]
+               [--est_prefix] [--plt_prefix] [--sim_command]
+               [--sim_logging] [--start_idx] [--end_idx]
+               [--sim_more] [--sim_batch_size] [--encode_all_sim]
+               [--num_char] [--num_states] [--min_num_taxa]
+               [--max_num_taxa] [--downsample_taxa] [--tree_width]
+               [--tree_encode] [--brlen_encode] [--char_encode]
+               [--param_est] [--param_data] [--char_format]
+               [--tensor_format] [--save_phyenc_csv]
+               [--num_epochs] [--trn_batch_size] [--prop_test]
+               [--prop_val] [--prop_cal] [--cpi_coverage]
+               [--cpi_asymmetric] [--loss_numerical] [--optimizer]
+               [--log_offset] [--phy_channel_plain]
+               [--phy_channel_stride] [--phy_channel_dilate]
+               [--aux_channel] [--lbl_channel]
+               [--phy_kernel_plain] [--phy_kernel_stride]
+               [--phy_kernel_dilate] [--phy_stride_stride]
+               [--phy_dilate_dilate] [--plot_train_color]
+               [--plot_test_color] [--plot_val_color]
+               [--plot_label_color] [--plot_aux_color]
+               [--plot_emp_color] [--plot_num_scatter]
+               [--plot_min_emp] [--plot_num_emp]
+
+Software to fiddle around with deep learning for phylogenetic
+models
+
+options:
+  -h, --help            show this help message and exit
+  -c , --cfg            Config file name
+  -s , --step           Pipeline step(s) defined with (S)imulate,
+                        (F)ormat, (T)rain, (E)stimate, (P)lot, or
+                        (A)ll
+  -v , --verbose        Verbose output to screen?
+  --make_cfg            Write default config file to
+                        &#39;__config_default.py&#39;?
+  --output_precision    Number of digits (precision) for numbers
+                        in output files
+  --use_parallel        Use parallelization? (recommended)
+  --num_proc            Number of cores for multiprocessing (-N
+                        for all but N)
+  --no_emp              Disable Format/Estimate steps for
+                        empirical data?
+  --no_sim              Disable Format/Estimate steps for
+                        simulated data?
+  --dir                 Parent directory for all step directories
+                        unless step directory given
+  --sim_dir             Directory for raw simulated data
+  --emp_dir             Directory for raw empirical data
+  --fmt_dir             Directory for tensor-formatted data
+  --trn_dir             Directory for trained networks and
+                        training output
+  --est_dir             Directory for new datasets and estimates
+  --plt_dir             Directory for plotted results
+  --log_dir             Directory for logs of analysis metadata
+  --prefix              Prefix for all output unless step prefix
+                        given
+  --sim_prefix          Prefix for raw simulated data
+  --emp_prefix          Prefix for raw empirical data
+  --fmt_prefix          Prefix for tensor-formatted data
+  --trn_prefix          Prefix for trained networks and training
+                        output
+  --est_prefix          Prefix for estimate results
+  --plt_prefix          Prefix for plotted results
+  --sim_command         Simulation command to run single job (see
+                        documentation)
+  --sim_logging         Simulation logging style
+  --start_idx           Start replicate index for simulated
+                        training dataset
+  --end_idx             End replicate index for simulated training
+                        dataset
+  --sim_more            Add more simulations with auto-generated
+                        indices
+  --sim_batch_size      Number of replicates per simulation
+                        command
+  --encode_all_sim      Encode all simulated replicates into
+                        tensor?
+  --num_char            Number of characters
+  --num_states          Number of states per character
+  --min_num_taxa        Minimum number of taxa allowed when
+                        formatting
+  --max_num_taxa        Maximum number of taxa allowed when
+                        formatting
+  --downsample_taxa     Downsampling strategy taxon count
+  --tree_width          Width of phylo-state tensor
+  --tree_encode         Encoding strategy for tree
+  --brlen_encode        Encoding strategy for branch lengths
+  --char_encode         Encoding strategy for character data
+  --param_est           Model parameters and variables to estimate
+  --param_data          Model parameters and variables treated as
+                        data
+  --char_format         File format for character data
+  --tensor_format       File format for training example tensors
+  --save_phyenc_csv     Save encoded phylogenetic tensor encoding
+                        to csv?
+  --num_epochs          Number of training epochs
+  --trn_batch_size      Training batch sizes
+  --prop_test           Proportion of data used as test examples
+                        (assess trained network performance)
+  --prop_val            Proportion of data used as validation
+                        examples (diagnose network overtraining)
+  --prop_cal            Proportion of data used as calibration
+                        examples (calibrate CPIs)
+  --cpi_coverage        Expected coverage percent for calibrated
+                        prediction intervals (CPIs)
+  --cpi_asymmetric      Use asymmetric (True) or symmetric (False)
+                        adjustments for CPIs?
+  --loss_numerical      Loss function for numerical estimates
+  --optimizer           Method used for optimizing neural network
+  --log_offset          Offset size c when taking ln(x+c) for
+                        zero-valued variables
+  --phy_channel_plain   Output channel sizes for plain
+                        convolutional layers for phylogenetic
+                        state input
+  --phy_channel_stride
+                        Output channel sizes for stride
+                        convolutional layers for phylogenetic
+                        state input
+  --phy_channel_dilate
+                        Output channel sizes for dilate
+                        convolutional layers for phylogenetic
+                        state input
+  --aux_channel         Output channel sizes for dense layers for
+                        auxiliary data input
+  --lbl_channel         Output channel sizes for dense layers for
+                        label outputs
+  --phy_kernel_plain    Kernel sizes for plain convolutional
+                        layers for phylogenetic state input
+  --phy_kernel_stride   Kernel sizes for stride convolutional
+                        layers for phylogenetic state input
+  --phy_kernel_dilate   Kernel sizes for dilate convolutional
+                        layers for phylogenetic state input
+  --phy_stride_stride   Stride sizes for stride convolutional
+                        layers for phylogenetic state input
+  --phy_dilate_dilate   Dilation sizes for dilate convolutional
+                        layers for phylogenetic state input
+  --plot_train_color    Plotting color for training data elements
+  --plot_test_color     Plotting color for test data elements
+  --plot_val_color      Plotting color for validation data
+                        elements
+  --plot_label_color    Plotting color for label elements
+  --plot_aux_color      Plotting color for auxiliary data elements
+  --plot_emp_color      Plotting color for empirical elements
+  --plot_num_scatter    Number of examples in scatter plot
+  --plot_min_emp        Minimum number of empirical datasets to
+                        plot densities
+  --plot_num_emp        Number of empirical results to plot
+</pre></div>
+</div>
+</section>
+<section id="table-summary">
+<span id="setting-summary"></span><h2>Table summary<a class="headerlink" href="#table-summary" title="Link to this heading"></a></h2>
+<p>This section summarizes available settings
+in phyddle. The <cite>Setting</cite> column is the exact name of the string that appears in
+the configuration file and command-line argument list. The <cite>Step(s)</cite> identifies
+all steps that use the setting: [S]imulate, [F]ormat, [T]rain, [E]stimate, and
+[P]lot. The <cite>Type</cite> column is the Python variable type expected for the setting.
+The <cite>Description</cite> gives a brief description of what the setting does. Visit
+<a class="reference internal" href="pipeline.html#pipeline"><span class="std std-ref">Pipeline</span></a> to learn more about phyddle settings impact different pipeline
+analysis steps.</p>
+<table class="longtable docutils align-center" id="id2" style="width: 100%">
+<caption><span class="caption-text">phyddle settings</span><a class="headerlink" href="#id2" title="Link to this table"></a></caption>
+<colgroup>
+<col style="width: 10.0%" />
+<col style="width: 10.0%" />
+<col style="width: 10.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Setting</p></th>
+<th class="head"><p>Step(s)</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">cfg</span></code></p></td>
+<td><p>–––––</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Config file name</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">step</span></code></p></td>
+<td><p>SFTEP</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Pipeline step(s) defined with (S)imulate, (F)ormat, (T)rain, (E)stimate, (P)lot, or (A)ll</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">verbose</span></code></p></td>
+<td><p>SFTEP</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Verbose output to screen?</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">make_cfg</span></code></p></td>
+<td><p>–––––</p></td>
+<td><p>––</p></td>
+<td><p>Write default config file to ‘__config_default.py’?</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">output_precision</span></code></p></td>
+<td><p>SFTEP</p></td>
+<td><p><em>int</em></p></td>
+<td><p>Number of digits (precision) for numbers in output files</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">use_parallel</span></code></p></td>
+<td><p>SF–––</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Use parallelization? (recommended)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">num_proc</span></code></p></td>
+<td><p>SFT––</p></td>
+<td><p><em>int</em></p></td>
+<td><p>Number of cores for multiprocessing (-N for all but N)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">no_emp</span></code></p></td>
+<td><p>–––––</p></td>
+<td><p>––</p></td>
+<td><p>Disable Format/Estimate steps for empirical data?</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">no_sim</span></code></p></td>
+<td><p>–––––</p></td>
+<td><p>––</p></td>
+<td><p>Disable Format/Estimate steps for simulated data?</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">dir</span></code></p></td>
+<td><p>SFTEP</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Parent directory for all step directories unless step directory given</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sim_dir</span></code></p></td>
+<td><p>SF–––</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Directory for raw simulated data</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">emp_dir</span></code></p></td>
+<td><p>SF–––</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Directory for raw empirical data</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fmt_dir</span></code></p></td>
+<td><p>–FTEP</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Directory for tensor-formatted data</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">trn_dir</span></code></p></td>
+<td><p>–FTEP</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Directory for trained networks and training output</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">est_dir</span></code></p></td>
+<td><p>––TEP</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Directory for new datasets and estimates</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">plt_dir</span></code></p></td>
+<td><p>––––P</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Directory for plotted results</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">log_dir</span></code></p></td>
+<td><p>SFTEP</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Directory for logs of analysis metadata</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">prefix</span></code></p></td>
+<td><p>SFTEP</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Prefix for all output unless step prefix given</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sim_prefix</span></code></p></td>
+<td><p>SF–––</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Prefix for raw simulated data</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">emp_prefix</span></code></p></td>
+<td><p>SF–––</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Prefix for raw empirical data</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fmt_prefix</span></code></p></td>
+<td><p>–FTEP</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Prefix for tensor-formatted data</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">trn_prefix</span></code></p></td>
+<td><p>–FTEP</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Prefix for trained networks and training output</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">est_prefix</span></code></p></td>
+<td><p>––TEP</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Prefix for estimate results</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">plt_prefix</span></code></p></td>
+<td><p>––––P</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Prefix for plotted results</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sim_command</span></code></p></td>
+<td><p>S––––</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Simulation command to run single job (see documentation)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sim_logging</span></code></p></td>
+<td><p>S––––</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Simulation logging style</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">start_idx</span></code></p></td>
+<td><p>SF–––</p></td>
+<td><p><em>int</em></p></td>
+<td><p>Start replicate index for simulated training dataset</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">end_idx</span></code></p></td>
+<td><p>SF–––</p></td>
+<td><p><em>int</em></p></td>
+<td><p>End replicate index for simulated training dataset</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sim_more</span></code></p></td>
+<td><p>S––––</p></td>
+<td><p><em>int</em></p></td>
+<td><p>Add more simulations with auto-generated indices</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sim_batch_size</span></code></p></td>
+<td><p>S––––</p></td>
+<td><p><em>int</em></p></td>
+<td><p>Number of replicates per simulation command</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">encode_all_sim</span></code></p></td>
+<td><p>–F–––</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Encode all simulated replicates into tensor?</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">num_char</span></code></p></td>
+<td><p>–FTE–</p></td>
+<td><p><em>int</em></p></td>
+<td><p>Number of characters</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">num_states</span></code></p></td>
+<td><p>–FTE–</p></td>
+<td><p><em>int</em></p></td>
+<td><p>Number of states per character</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">min_num_taxa</span></code></p></td>
+<td><p>–F–––</p></td>
+<td><p><em>int</em></p></td>
+<td><p>Minimum number of taxa allowed when formatting</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">max_num_taxa</span></code></p></td>
+<td><p>–F–––</p></td>
+<td><p><em>int</em></p></td>
+<td><p>Maximum number of taxa allowed when formatting</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">downsample_taxa</span></code></p></td>
+<td><p>–FTE–</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Downsampling strategy taxon count</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">tree_width</span></code></p></td>
+<td><p>–FTEP</p></td>
+<td><p><em>int</em></p></td>
+<td><p>Width of phylo-state tensor</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">tree_encode</span></code></p></td>
+<td><p>–FTE–</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Encoding strategy for tree</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">brlen_encode</span></code></p></td>
+<td><p>–FTE–</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Encoding strategy for branch lengths</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">char_encode</span></code></p></td>
+<td><p>–FTE–</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Encoding strategy for character data</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">param_est</span></code></p></td>
+<td><p>–FTE–</p></td>
+<td><p><em>dict</em></p></td>
+<td><p>Model parameters and variables to estimate</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">param_data</span></code></p></td>
+<td><p>–FTE–</p></td>
+<td><p><em>dict</em></p></td>
+<td><p>Model parameters and variables treated as data</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">char_format</span></code></p></td>
+<td><p>–FTE–</p></td>
+<td><p><em>str</em></p></td>
+<td><p>File format for character data</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">tensor_format</span></code></p></td>
+<td><p>–FTEP</p></td>
+<td><p><em>str</em></p></td>
+<td><p>File format for training example tensors</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">save_phyenc_csv</span></code></p></td>
+<td><p>–F–––</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Save encoded phylogenetic tensor encoding to csv?</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">num_epochs</span></code></p></td>
+<td><p>––TEP</p></td>
+<td><p><em>int</em></p></td>
+<td><p>Number of training epochs</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">trn_batch_size</span></code></p></td>
+<td><p>––TEP</p></td>
+<td><p><em>int</em></p></td>
+<td><p>Training batch sizes</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">prop_test</span></code></p></td>
+<td><p>–FT––</p></td>
+<td><p><em>float</em></p></td>
+<td><p>Proportion of data used as test examples (assess trained network performance)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">prop_val</span></code></p></td>
+<td><p>––T––</p></td>
+<td><p><em>float</em></p></td>
+<td><p>Proportion of data used as validation examples (diagnose network overtraining)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">prop_cal</span></code></p></td>
+<td><p>––T––</p></td>
+<td><p><em>float</em></p></td>
+<td><p>Proportion of data used as calibration examples (calibrate CPIs)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">cpi_coverage</span></code></p></td>
+<td><p>––T––</p></td>
+<td><p><em>float</em></p></td>
+<td><p>Expected coverage percent for calibrated prediction intervals (CPIs)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">cpi_asymmetric</span></code></p></td>
+<td><p>––T––</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Use asymmetric (True) or symmetric (False) adjustments for CPIs?</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">loss_real</span></code></p></td>
+<td><p>––T––</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Loss function for real value estimates</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">optimizer</span></code></p></td>
+<td><p>––T––</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Method used for optimizing neural network</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">log_offset</span></code></p></td>
+<td><p>–FTEP</p></td>
+<td><p><em>float</em></p></td>
+<td><p>Offset size c when taking ln(x+c) for zero-valued variables</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">phy_channel_plain</span></code></p></td>
+<td><p>––T––</p></td>
+<td><p><em>int[]</em></p></td>
+<td><p>Output channel sizes for plain convolutional layers for phylogenetic state input</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">phy_channel_stride</span></code></p></td>
+<td><p>––T––</p></td>
+<td><p><em>int[]</em></p></td>
+<td><p>Output channel sizes for stride convolutional layers for phylogenetic state input</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">phy_channel_dilate</span></code></p></td>
+<td><p>––T––</p></td>
+<td><p><em>int[]</em></p></td>
+<td><p>Output channel sizes for dilate convolutional layers for phylogenetic state input</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">aux_channel</span></code></p></td>
+<td><p>––T––</p></td>
+<td><p><em>int[]</em></p></td>
+<td><p>Output channel sizes for dense layers for auxiliary data input</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">lbl_channel</span></code></p></td>
+<td><p>––T––</p></td>
+<td><p><em>int[]</em></p></td>
+<td><p>Output channel sizes for dense layers for label outputs</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">phy_kernel_plain</span></code></p></td>
+<td><p>––T––</p></td>
+<td><p><em>int[]</em></p></td>
+<td><p>Kernel sizes for plain convolutional layers for phylogenetic state input</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">phy_kernel_stride</span></code></p></td>
+<td><p>––T––</p></td>
+<td><p><em>int[]</em></p></td>
+<td><p>Kernel sizes for stride convolutional layers for phylogenetic state input</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">phy_kernel_dilate</span></code></p></td>
+<td><p>––T––</p></td>
+<td><p><em>int[]</em></p></td>
+<td><p>Kernel sizes for dilate convolutional layers for phylogenetic state input</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">phy_stride_stride</span></code></p></td>
+<td><p>––T––</p></td>
+<td><p><em>int[]</em></p></td>
+<td><p>Stride sizes for stride convolutional layers for phylogenetic state input</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">phy_dilate_dilate</span></code></p></td>
+<td><p>––T––</p></td>
+<td><p><em>int[]</em></p></td>
+<td><p>Dilation sizes for dilate convolutional layers for phylogenetic state input</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">plot_train_color</span></code></p></td>
+<td><p>––––P</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Plotting color for training data elements</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">plot_test_color</span></code></p></td>
+<td><p>––––P</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Plotting color for test data elements</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">plot_val_color</span></code></p></td>
+<td><p>––––P</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Plotting color for validation data elements</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">plot_label_color</span></code></p></td>
+<td><p>––––P</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Plotting color for label elements</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">plot_aux_color</span></code></p></td>
+<td><p>––––P</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Plotting color for auxiliary data elements</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">plot_emp_color</span></code></p></td>
+<td><p>––––P</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Plotting color for empirical elements</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">plot_num_scatter</span></code></p></td>
+<td><p>––––P</p></td>
+<td><p><em>int</em></p></td>
+<td><p>Number of examples in scatter plot</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">plot_min_emp</span></code></p></td>
+<td><p>––––P</p></td>
+<td><p><em>int</em></p></td>
+<td><p>Minimum number of empirical datasets to plot densities</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">plot_num_emp</span></code></p></td>
+<td><p>––––P</p></td>
+<td><p><em>int</em></p></td>
+<td><p>Number of empirical results to plot</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="details">
+<span id="special-settings"></span><h2>Details<a class="headerlink" href="#details" title="Link to this heading"></a></h2>
+<p>This section provides detailed descriptions for several settings that
+are not intuitive to specify, but very powerful when used correctly.</p>
+<section id="step">
+<span id="setting-description-step"></span><h3>Step<a class="headerlink" href="#step" title="Link to this heading"></a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">step</span></code> setting controls which steps should be applied.
+Each pipeline step is represented by a capital letter:
+<code class="docutils literal notranslate"><span class="pre">S</span></code> for <a class="reference internal" href="pipeline.html#simulate"><span class="std std-ref">Simulate</span></a>, <code class="docutils literal notranslate"><span class="pre">F</span></code> for <a class="reference internal" href="pipeline.html#format"><span class="std std-ref">Format</span></a>, <code class="docutils literal notranslate"><span class="pre">T</span></code> for <a class="reference internal" href="pipeline.html#train"><span class="std std-ref">Train</span></a>,
+<code class="docutils literal notranslate"><span class="pre">E</span></code> for <a class="reference internal" href="pipeline.html#estimate"><span class="std std-ref">Estimate</span></a>, <code class="docutils literal notranslate"><span class="pre">P</span></code> for <a class="reference internal" href="pipeline.html#plot"><span class="std std-ref">Plot</span></a>, and <code class="docutils literal notranslate"><span class="pre">A</span></code> for all steps.</p>
+<p>For example, the following two commands are equivalent</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>phyddle<span class="w"> </span>--step<span class="w"> </span>A
+phyddle<span class="w"> </span>-s<span class="w"> </span>SFTEP
+</pre></div>
+</div>
+<p>whereas calling</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>phyddle<span class="w"> </span>-s<span class="w"> </span>SF
+</pre></div>
+</div>
+<p>commands phyddle to perform the Simulate and Format steps, but not the Train,
+Estimate, or Plot steps.</p>
+</section>
+<section id="step-directories">
+<span id="setting-description-dir"></span><h3>Step directories<a class="headerlink" href="#step-directories" title="Link to this heading"></a></h3>
+<p>A standard phyddle analysis assumes all work is stored within a single
+project directory. Work from each step, however, is stored into different
+subdirectories.</p>
+<p>Customizing the input and output directories among steps allows users to
+quickly explore alternative pipeline designs while leaving previous
+pipeline results in place.</p>
+<p>The project directory can be set using <code class="docutils literal notranslate"><span class="pre">dir</span></code>. During analysis, phyddle will
+create subdirectories for each step using default names, as needed. For example,
+if <code class="docutils literal notranslate"><span class="pre">dir</span></code> is set to the local directory <code class="docutils literal notranslate"><span class="pre">./</span></code>, then a full phyddle analysis
+would use the following directories for the analysis:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>./simulate<span class="w">        </span><span class="c1"># default sim_dir</span>
+./empirical<span class="w">       </span><span class="c1"># default emp_dir</span>
+./format<span class="w">          </span><span class="c1"># default fmt_dir</span>
+./train<span class="w">           </span><span class="c1"># default trn_dir</span>
+./estimate<span class="w">        </span><span class="c1"># default est_dir</span>
+./plot<span class="w">            </span><span class="c1"># default plt_dir</span>
+./log<span class="w">             </span><span class="c1"># default log_dir</span>
+</pre></div>
+</div>
+<p>Individual step directories can be overriden with custom directory locations.
+For example, setting <code class="docutils literal notranslate"><span class="pre">dir</span></code> to <code class="docutils literal notranslate"><span class="pre">./</span></code> but setting <code class="docutils literal notranslate"><span class="pre">emp_dir</span></code> to
+<code class="docutils literal notranslate"><span class="pre">/Users/mlandis/datasets/viburnum</span></code> and <code class="docutils literal notranslate"><span class="pre">plt_dir</span></code> to
+<code class="docutils literal notranslate"><span class="pre">/Users/mlandis/projects/viburnum/results</span></code> would cause
+phyddle to use the following directories:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>./simulate<span class="w">                                </span><span class="c1"># default sim_dir</span>
+/Users/mlandis/datasets/viburnum<span class="w">          </span><span class="c1"># custom emp_dir</span>
+./format<span class="w">                                  </span><span class="c1"># default fmt_dir</span>
+./train<span class="w">                                   </span><span class="c1"># default trn_dir</span>
+./estimate<span class="w">                                </span><span class="c1"># default est_dir</span>
+/Users/mlandis/projects/viburnum/results<span class="w">  </span><span class="c1"># custom plt_dir</span>
+./log<span class="w">                                     </span><span class="c1"># default log_dir</span>
+</pre></div>
+</div>
+</section>
+<section id="step-prefixes">
+<span id="setting-description-prefix"></span><h3>Step prefixes<a class="headerlink" href="#step-prefixes" title="Link to this heading"></a></h3>
+<p>Standard phyddle analyses assume that the files generated by each pipeline
+step begin with the filename prefix <code class="docutils literal notranslate"><span class="pre">'out'</span></code>.</p>
+<p>The filename prefix for all pipeline steps can be changed using the <code class="docutils literal notranslate"><span class="pre">prefix</span></code>
+settings. Changing the filename prefix allows you to generate alternative
+pipeline filesets without overwriting previous results.</p>
+<p>As with the pipeline directory settings (above), prefixes for individual
+pipeline steps can be overridden with custom prefixes. This allows you to compare
+pipeline performance using different settings, while saving previous work. For
+example,</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>phyddle<span class="w"> </span>-c<span class="w"> </span>config.py<span class="w"> </span><span class="se">\ </span><span class="w">               </span><span class="c1"># load config</span>
+<span class="w">        </span>-s<span class="w"> </span>TE<span class="w"> </span><span class="se">\ </span><span class="w">                      </span><span class="c1"># run Train and Estimate steps</span>
+<span class="w">        </span>--prefix<span class="w"> </span>new<span class="w"> </span><span class="se">\ </span><span class="w">               </span><span class="c1"># T &amp; E output has prefix &#39;new&#39;</span>
+<span class="w">        </span>--fmt_prefix<span class="w"> </span>out<span class="w"> </span><span class="se">\ </span><span class="w">           </span><span class="c1"># Format input has prefix &#39;out&#39;</span>
+<span class="w">        </span>--num_epochs<span class="w"> </span><span class="m">50</span><span class="w"> </span><span class="se">\ </span><span class="w">            </span><span class="c1"># Train for 50 epochs</span>
+<span class="w">        </span>--trn_batch_size<span class="w"> </span><span class="m">4096</span><span class="w">         </span><span class="c1"># Use batch sizes of 4096 samples</span>
+</pre></div>
+</div>
+</section>
+<section id="no-sim-and-no-emp">
+<span id="setting-description-nosim-noemp"></span><h3><code class="docutils literal notranslate"><span class="pre">no_sim</span></code> and <code class="docutils literal notranslate"><span class="pre">no_emp</span></code><a class="headerlink" href="#no-sim-and-no-emp" title="Link to this heading"></a></h3>
+<p>By default the <a class="reference internal" href="pipeline.html#format"><span class="std std-ref">Format</span></a> and <a class="reference internal" href="pipeline.html#estimate"><span class="std std-ref">Estimate</span></a> steps run in a greedy manner,
+against the simulated datasets identified by <code class="docutils literal notranslate"><span class="pre">dir</span></code> (or <code class="docutils literal notranslate"><span class="pre">sim_dir</span></code>) and
+<code class="docutils literal notranslate"><span class="pre">prefix</span></code> (or <code class="docutils literal notranslate"><span class="pre">sim_prefix</span></code>), and against the empirical datasets identified
+by <code class="docutils literal notranslate"><span class="pre">dir</span></code> (or <code class="docutils literal notranslate"><span class="pre">emp_dir</span></code>) and <code class="docutils literal notranslate"><span class="pre">prefix</span></code> (or <code class="docutils literal notranslate"><span class="pre">emp_prefix</span></code>), should those
+datasets exist.</p>
+<p>Setting <code class="docutils literal notranslate"><span class="pre">--no_sim</span></code> during a command-line run will instruct phyddle to skip
+the Format and Estimate steps for the simulated datasets (i.e. the train and
+test datasets).</p>
+<p>Setting <code class="docutils literal notranslate"><span class="pre">--no_emp</span></code> during a command-line run will instruct phyddle to skip
+the Format and Estimate steps for the empirical datasets.</p>
+<p>In particular, the <code class="docutils literal notranslate"><span class="pre">--no_sim</span></code> flag in particular is useful when you only
+need to format new empirical datasets, but do not need to reformat existing
+simulated (i.e. training/test) datasets. The flag helps eliminate redundant
+formatting tasks during pipeline development.</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="installation.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="pipeline.html" class="btn btn-neutral float-right" title="Pipeline" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
