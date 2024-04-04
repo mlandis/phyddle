@@ -218,6 +218,7 @@ class ParameterEstimationNetwork(nn.Module):
         # standard conv + pool layers
         x_std = phy_dat
         for i in range(len(self.phy_std)-1):
+            # AMT: Segfault when using Tesla T4 GPU. Occures on next line, second pass of the loop 
             x_std = func.relu(self.phy_std[i](x_std))
         x_std = self.phy_std[-1](x_std)
         
