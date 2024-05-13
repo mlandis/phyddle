@@ -264,6 +264,7 @@ class CnnTrainer(Trainer):
         self.train_label_cat_est = None
         self.train_label_cat_true = None
         self.train_label_num_est_calib = None
+        self.train_label_index = None
         self.calib_phy_data_tensor = None
         self.train_history = None       # init with train()
         self.train_label_true = None    # init with load_input()
@@ -353,12 +354,14 @@ class CnnTrainer(Trainer):
         path_prefix = f'{self.fmt_dir}/{self.fmt_prefix}.train'
         input_phy_data_fn = f'{path_prefix}.phy_data.csv'
         input_aux_data_fn = f'{path_prefix}.aux_data.csv'
-        input_labels_fn = f'{path_prefix}.labels.csv'
+        input_labels_fn   = f'{path_prefix}.labels.csv'
+        input_idx_data_fn = f'{path_prefix}.index.csv'
         input_hdf5_fn = f'{path_prefix}.hdf5'
         
         # read phy. data, aux. data, and labels
         full_phy_data = None
         full_aux_data = None
+        full_idx_data = None
         full_labels   = None
         if self.tensor_format == 'csv':
             full_phy_data = pd.read_csv(input_phy_data_fn, header=None,
@@ -367,8 +370,11 @@ class CnnTrainer(Trainer):
                                         on_bad_lines='skip').to_numpy()
             full_labels   = pd.read_csv(input_labels_fn, header=None,
                                         on_bad_lines='skip').to_numpy()
-            self.aux_data_names = full_aux_data[0,:]
-            self.label_names    = full_labels[0,:]
+            full_idx_data = pd.read_csv(input_idx_data_fn,
+                                        on_bad_lines='skip').to_numpy()
+            # extract headers
+            self.aux_data_names = full_aux_data[0,:].tolist()
+            self.label_names    = full_labels[0,:].tolist()
             full_aux_data       = full_aux_data[1:,:].astype('float64')
             full_labels         = full_labels[1:,:].astype('float64')
 
@@ -378,9 +384,12 @@ class CnnTrainer(Trainer):
             self.label_names    = [ s.decode() for s in hdf5_file['label_names'][0,:] ]
             full_phy_data       = pd.DataFrame(hdf5_file['phy_data']).to_numpy()
             full_aux_data       = pd.DataFrame(hdf5_file['aux_data']).to_numpy()
+            full_idx_data       = pd.DataFrame(hdf5_file['idx']).to_numpy()
             full_labels         = pd.DataFrame(hdf5_file['labels']).to_numpy()
             hdf5_file.close()
-            
+
+        print(full_idx_data)
+        
         # separate labels for categorical param_est targets
         full_labels_num, full_labels_cat = self.separate_labels(full_labels)
         
@@ -394,8 +403,9 @@ class CnnTrainer(Trainer):
         randomized_idx     = np.random.permutation(full_phy_data.shape[0])
         full_phy_data      = full_phy_data[randomized_idx,:]
         full_aux_data      = full_aux_data[randomized_idx,:]
-        full_labels_num   = full_labels_num[randomized_idx,:]
+        full_labels_num    = full_labels_num[randomized_idx,:]
         full_labels_cat    = full_labels_cat[randomized_idx,:]
+        full_idx_data      = full_idx_data[randomized_idx]
 
         # reshape phylogenetic tensor data based on CPV+S
         full_phy_data.shape = (num_sample, -1, self.num_data_col)
@@ -406,6 +416,7 @@ class CnnTrainer(Trainer):
         
         # save original training input
         self.train_label_true = full_labels[train_idx,:]
+        self.train_label_index = full_idx_data[train_idx]
 
         # normalize auxiliary data
         norm_train_aux_data, train_aux_data_means, train_aux_data_sd = util.normalize(full_aux_data[train_idx,:])
@@ -433,17 +444,25 @@ class CnnTrainer(Trainer):
         val_labels_cat = full_labels_cat[val_idx,:]
         calib_labels_cat = full_labels_cat[calib_idx,:]
         
+        # create index tensors
+        train_idx_tensor = full_idx_data[train_idx,:]
+        val_idx_tensor = full_idx_data[val_idx,:]
+        calib_idx_tensor = full_idx_data[calib_idx,:]
+        
         # torch datasets
         self.train_dataset = network.Dataset(train_phy_data_tensor,
                                              norm_train_aux_data,
+                                             train_idx_tensor,
                                              norm_train_labels_num,
                                              train_labels_cat)
         self.calib_dataset = network.Dataset(self.calib_phy_data_tensor,
                                              norm_calib_aux_data,
+                                             calib_idx_tensor,
                                              self.norm_calib_labels_num,
                                              calib_labels_cat)
         self.val_dataset   = network.Dataset(val_phy_data_tensor,
                                              norm_val_aux_data,
+                                             val_idx_tensor,
                                              norm_val_labels_num,
                                              val_labels_cat)
 
@@ -482,6 +501,7 @@ class CnnTrainer(Trainer):
                 
             elif v == 'num':
                 self.has_label_num = True
+                # print(self.label_names)
                 idx_num.append( self.label_names.index(k) )
                 self.param_num_names.append(k)
                 
@@ -557,7 +577,8 @@ class CnnTrainer(Trainer):
         # validation dataset
         val_phy_dat  = torch.Tensor(self.val_dataset.phy_data).to(self.TORCH_DEVICE)
         val_aux_dat  = torch.Tensor(self.val_dataset.aux_data).to(self.TORCH_DEVICE)
-        val_lbl_num = torch.Tensor(self.val_dataset.labels_num).to(self.TORCH_DEVICE)
+        val_idx_dat  = torch.Tensor(self.val_dataset.idx_data).to(self.TORCH_DEVICE)
+        val_lbl_num  = torch.Tensor(self.val_dataset.labels_num).to(self.TORCH_DEVICE)
         val_lbl_cat  = torch.LongTensor(self.val_dataset.labels_cat).to(self.TORCH_DEVICE)
         val_bad_count = 0
 
@@ -608,7 +629,7 @@ class CnnTrainer(Trainer):
             trn_mae_value = 0.
 
             train_msg = f'Training epoch {i+1} of {self.num_epochs}'
-            for j, (phy_dat, aux_dat, lbl_num, lbl_cat) in tqdm(enumerate(train_loader),
+            for j, (phy_dat, aux_dat, idx_dat, lbl_num, lbl_cat) in tqdm(enumerate(train_loader),
                                                                  total=num_batches,
                                                                  desc=train_msg,
                                                                  smoothing=0):
@@ -620,6 +641,7 @@ class CnnTrainer(Trainer):
                 # send labels to device
                 phy_dat = phy_dat.to(self.TORCH_DEVICE)
                 aux_dat = aux_dat.to(self.TORCH_DEVICE)
+                idx_dat = idx_dat.to(self.TORCH_DEVICE)
                 lbl_num = lbl_num.to(self.TORCH_DEVICE)
                 lbl_cat = lbl_cat.to(self.TORCH_DEVICE)
                 
@@ -786,6 +808,7 @@ class CnnTrainer(Trainer):
         calib_phy_dat, calib_aux_dat = calib_batch[0], calib_batch[1]
         calib_phy_dat = calib_phy_dat.to('cpu')
         calib_aux_dat = calib_aux_dat.to('cpu')
+        # calib_idx_dat = calib_batch[2]
         
         # get calib estimates
         calib_label_est = self.model(calib_phy_dat, calib_aux_dat)
@@ -819,27 +842,45 @@ class CnnTrainer(Trainer):
         train_loader = torch.utils.data.DataLoader(dataset=self.train_dataset,
                                                    batch_size=num_train_examples)
         train_batch = next(iter(train_loader))
-        train_phy_dat, train_aux_dat, train_labels_num, train_labels_cat = train_batch
+        train_phy_dat, train_aux_dat, train_idx_dat, train_labels_num, train_labels_cat = train_batch
         train_phy_dat = train_phy_dat.to(self.TORCH_DEVICE)
         train_aux_dat = train_aux_dat.to(self.TORCH_DEVICE)
         train_labels_num = train_labels_num.to(self.TORCH_DEVICE)
         train_labels_cat = train_labels_cat.to(self.TORCH_DEVICE)
-
+        # NOTE: train_idx[0:1000] will be equal to self.train_label_index[0:1000,:]
+        #       because DataLoader batches are indexed in same order
+        
         # get train estimates
         label_est = self.model(train_phy_dat, train_aux_dat)
         
         # numerical vs. cat estimates
         labels_num_est = label_est[0:3]
         labels_num_est = torch.stack(labels_num_est).cpu().detach().numpy()
-        labels_cat_est  = label_est[3]
+        labels_cat_est = label_est[3]
 
         if self.has_label_num:
             train_labels_num = train_labels_num.cpu().detach().numpy()
             self.train_label_num_true = train_labels_num
             
             # uncalibrated training estimates of numerical labels
-            self.train_label_num_est = util.denormalize(labels_num_est.copy(),
-                                                         self.train_labels_num_mean_sd)
+            self.train_label_num_est = labels_num_est.copy()
+            # self.train_label_num_est = util.denormalize(labels_num_est.copy(),
+            #                                             self.train_labels_num_mean_sd)
+            
+            # self.train_label_num_est = util.denormalize(self.train_label_num_est.copy(),
+            
+            # # TODO: something is wrong with de/normalizing labels??
+            # print(labels_num_est.shape)
+            # pn = labels_num_est[0,:,0]
+            # pu = self.train_label_num_est[0,:,0]
+            # mm = self.train_labels_num_mean_sd[0][0]
+            # ss = self.train_labels_num_mean_sd[1][0]
+            # print('pn=',pn)
+            # print('pu=',pu)
+            # print('mean=',mm)
+            # print('sd=',ss)
+            # print( pu * ss + mm )
+            #print(self.train_label_num_est)
 
             # generate calibration factors
             self.perform_cpi_calibration()
@@ -917,6 +958,9 @@ class CnnTrainer(Trainer):
                                     'sd':self.train_aux_data_mean_sd[1]})
         df_aux_data.to_csv(train_aux_data_norm_fn, index=False, sep=',',
                            float_format=util.PANDAS_FLOAT_FMT_STR)
+        
+        # training example index
+        df_train_label_idx = pd.DataFrame(self.train_label_index[0:max_idx,:], columns=['idx'])
  
         if self.has_label_num:
             # save label names, means, sd for new test dataset normalization
@@ -939,15 +983,32 @@ class CnnTrainer(Trainer):
             
             # save true values for train numerical labels
             df_train_label_num_true = df_train_label_true[self.param_num_names]
+            df_train_label_num_true = util.denormalize(df_train_label_num_true.copy(),
+                                                        self.train_labels_num_mean_sd)
+            df_train_label_num_true = pd.concat([df_train_label_idx,
+                                                 df_train_label_num_true], axis=1 )
+            
             df_train_label_num_true.to_csv(train_label_num_true_fn,
                                             index=False, sep=',',
                                             float_format=util.PANDAS_FLOAT_FMT_STR)
             
             # save train numerical label estimates
+            self.train_label_num_est = util.denormalize(self.train_label_num_est,
+                                                        self.train_labels_num_mean_sd)
+            self.train_label_num_est_calib = util.denormalize(self.train_label_num_est_calib,
+                                                              self.train_labels_num_mean_sd)
             df_train_label_num_est_nocalib = util.make_param_VLU_mtx(self.train_label_num_est[0:max_idx,:],
                                                                       self.param_num_names )
             df_train_label_num_est_calib   = util.make_param_VLU_mtx(self.train_label_num_est_calib[0:max_idx,:],
                                                                       self.param_num_names )
+            df_train_label_num_est_calib = pd.concat([df_train_label_idx,
+                                                     df_train_label_num_est_calib], axis=1 )
+            df_train_label_num_est_nocalib = pd.concat([df_train_label_idx,
+                                                        df_train_label_num_est_nocalib], axis=1 )
+            # print('true')
+            # print(df_train_label_num_true.head(n=5))
+            # print('est')
+            # print(df_train_label_num_est_calib.head(n=5))
     
             # convert to csv and save
             df_train_label_num_est_nocalib.to_csv(train_label_est_nocalib_fn,
@@ -961,13 +1022,18 @@ class CnnTrainer(Trainer):
             # save true values for train categ. labels
             df_train_label_cat_true = pd.DataFrame(self.train_label_cat_true[0:max_idx,:],
                                                    columns=self.param_cat_names )
+            df_train_label_cat_true = pd.concat([df_train_label_idx, df_train_label_cat_true], axis=1 )
             df_train_label_cat_true.to_csv(train_label_cat_true_fn,
                                            index=False, sep=',')
     
             # save train categorical label estimates
-            self.train_label_cat_est.to_csv(train_label_cat_est_fn,
-                                            index=False, sep=',',
-                                            float_format=util.PANDAS_FLOAT_FMT_STR)
+            #print(self.train_label_cat_est)
+            df_train_label_cat_est = self.train_label_cat_est #pd.DataFrame(self.train_label_cat_est[0:max_idx,:],
+            #                                      columns=self.param_cat_names )
+            df_train_label_cat_est = pd.concat([df_train_label_idx, df_train_label_cat_est], axis=1 )
+            df_train_label_cat_est.to_csv(train_label_cat_est_fn,
+                                          index=False, sep=',',
+                                          float_format=util.PANDAS_FLOAT_FMT_STR)
 
         return
 

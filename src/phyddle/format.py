@@ -275,9 +275,13 @@ class Formatter:
             has_lbl = os.path.exists(f'{dat_dir}/{f}.labels.csv')
             
             # no labels needed for empirical datasets with no param_data
+            # print(self.param_data)
+            # print(mode, len(self.param_data))
             if mode == 'emp' and len(self.param_data) == 0:
                 has_lbl = True
-            
+            elif mode == 'emp' and len(self.param_data) > 0 and not has_lbl:
+                print(f'No labels found for {f}.')
+                return False
             # if the 2-3 files exist, then we have 1+ valid datasets
             if has_dat and has_tre and has_lbl:
                 return True
@@ -379,8 +383,10 @@ class Formatter:
             files = []
             if mode == 'sim':
                 files = os.listdir(f'{self.sim_dir}')
+                # files = [ f for f in files if f.startswith(self.sim_prefix) ]
             elif mode == 'emp':
                 files = os.listdir(f'{self.emp_dir}')
+                # files = [ f for f in files if f.startswith(self.emp_prefix) ]
             files = [ f for f in files if '.dat.' in f ]
             
             for f in files:
@@ -406,7 +412,7 @@ class Formatter:
         num_samples = len(rep_idx)
         
         # shuffle examples
-        np.random.shuffle(rep_idx)
+        # np.random.shuffle(rep_idx)
         
         # split examples
         num_test = int(num_samples * self.prop_test)
@@ -548,7 +554,7 @@ class Formatter:
         # output csv filepaths
         out_prefix    = f'{self.fmt_dir}/{self.fmt_prefix}.{data_str}'
         in_prefix     = f'{self.sim_dir}/{self.sim_prefix}'
-        out_idx_fn    = f'{out_prefix}.idx.csv'
+        out_idx_fn    = f'{out_prefix}.index.csv'
         out_phy_fn    = f'{out_prefix}.phy_data.csv'
         out_aux_fn    = f'{out_prefix}.aux_data.csv'
         out_lbl_fn    = f'{out_prefix}.labels.csv'
@@ -568,18 +574,21 @@ class Formatter:
                 s = ''
                 if is_first:
                     s += ','.join(aux_data_names) + '\n'
+                    is_first = False
                 s += util.ndarray_to_flat_str(x.to_numpy()) + '\n'
                 outfile.write(s)
                     
         # labels tensor
         with open(out_lbl_fn, 'w') as outfile:
             is_first = True
-            x = self.rep_data[idx]['lbl']
-            s = ''
-            if is_first:
-                s += ','.join(par_est_names) + '\n'
-            s += util.ndarray_to_flat_str(x.to_numpy()) + '\n'
-            outfile.write(s)
+            for idx in rep_idx:
+                x = self.rep_data[idx]['lbl']
+                s = ''
+                if is_first:
+                    s += ','.join(par_est_names) + '\n'
+                    is_first = False
+                s += util.ndarray_to_flat_str(x.to_numpy()) + '\n'
+                outfile.write(s)
             
         # replicate index
         df_idx = pd.DataFrame(rep_idx, columns=['idx'])
@@ -770,11 +779,16 @@ class Formatter:
             num_taxa                  = len(phy.leaf_nodes())
             node_ages                 = phy.internal_node_ages(ultrametricity_precision=False)
             root_age                  = phy.seed_node.age
+            tree_height               = root_age
+            if phy.seed_node.edge.length is not None:
+                tree_height           += phy.seed_node.edge.length
             branch_lengths            = [ nd.edge.length for nd in phy.nodes() if nd != phy.seed_node ]
             
             # tree statistics
             summ_stats['log10_tree_length'] = np.log10( phy.length() )
             summ_stats['log10_root_age']    = np.log10( root_age )
+            if root_age != tree_height:
+                summ_stats['log10_tree_height'] = np.log10( tree_height )
             summ_stats['log10_brlen_mean']  = np.log10( np.mean(branch_lengths) )
             summ_stats['log10_age_mean']    = np.log10( np.mean(node_ages) )
             summ_stats['log10_B1']          = np.log10( dp.calculate.treemeasure.B1(phy) )

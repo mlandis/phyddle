@@ -117,10 +117,11 @@ class Estimator:
 
         # initialized later
         self.train_aux_data_mean_sd     = None       # init in load_train_input()
-        self.train_labels_num_mean_sd  = None       # init in load_train_input()
+        self.train_labels_num_mean_sd   = None       # init in load_train_input()
         self.cpi_adjustments            = None       # init in load_train_input()
         self.phy_data                   = None       # init in load_format_input()
         self.aux_data                   = None       # init in load_format_input()
+        self.idx_data                   = None       # init in load_format_input()
         self.true_labels_num           = None       # init in load_format_input()
         self.true_labels_cat            = None       # init in load_format_input()
         self.mymodel                    = None       # init in make_results()
@@ -324,12 +325,14 @@ class Estimator:
         # simulated test datasets for csv or hdf5
         phy_data_fn = f'{path_prefix}.phy_data.csv'
         aux_data_fn = f'{path_prefix}.aux_data.csv'
+        idx_data_fn = f'{path_prefix}.index.csv'
         labels_fn = f'{path_prefix}.labels.csv'
         hdf5_fn = f'{path_prefix}.hdf5'
         
         # load all the test dataset
         phy_data = None
         aux_data = None
+        idx_data = None
         labels = None
         label_names = None
         if self.tensor_format == 'csv':
@@ -337,17 +340,21 @@ class Estimator:
                                         on_bad_lines='skip').to_numpy()
             aux_data = pd.read_csv(aux_data_fn, header=None,
                                         on_bad_lines='skip').to_numpy()
+            idx_data = pd.read_csv(idx_data_fn,
+                                        on_bad_lines='skip')
             if mode == 'sim':
                 labels = pd.read_csv(labels_fn, header=None,
                                             on_bad_lines='skip').to_numpy()
+                label_names = labels[0,:]
+                labels = labels[1:,:].astype('float64')
             aux_data = aux_data[1:,:].astype('float64')
-            labels = labels[1:,:].astype('float64')
-            label_names = labels[0,:]
 
         elif self.tensor_format == 'hdf5':
             hdf5_file = h5py.File(hdf5_fn, 'r')
             phy_data = pd.DataFrame(hdf5_file['phy_data']).to_numpy()
             aux_data = pd.DataFrame(hdf5_file['aux_data']).to_numpy()
+            idx_data = pd.DataFrame(hdf5_file['idx'], columns=['idx'])
+            # idx_data = idx_data[:,:].astype('int')
             if mode == 'sim':
                 labels = pd.DataFrame(hdf5_file['labels']).to_numpy()
             label_names = [ s.decode() for s in hdf5_file['label_names'][0,:] ]
@@ -365,17 +372,20 @@ class Estimator:
         assert aux_data.shape[0] == num_sample
         self.aux_data = util.normalize(aux_data, self.train_aux_data_mean_sd)
 
-        # real vs. cat labels
-        label_num_idx = list()
-        label_cat_idx = list()
-        for i,p in enumerate(label_names):
-            if p in self.label_num_names:
-                label_num_idx.append(i)
-            if p in self.label_cat_names:
-                label_cat_idx.append(i)
-                
+        # dataset index
+        self.idx_data = idx_data
+
         # running against test sim?
         if mode == 'sim':
+            # real vs. cat labels
+            label_num_idx = list()
+            label_cat_idx = list()
+            for i,p in enumerate(label_names):
+                if p in self.label_num_names:
+                    label_num_idx.append(i)
+                if p in self.label_cat_names:
+                    label_cat_idx.append(i)
+            
             assert labels.shape[0] == num_sample
             self.true_labels_num = labels[:,label_num_idx]
             self.true_labels_cat = labels[:,label_cat_idx]
@@ -441,16 +451,18 @@ class Estimator:
             denorm_est_labels_num = util.denormalize(labels_est_num,
                                                       self.train_labels_num_mean_sd,
                                                       exp=False)
-    
+
             # save label real estimates
             df_est_labels_num = util.make_param_VLU_mtx(denorm_est_labels_num,
                                                          self.label_num_names)
+            df_est_labels_num = pd.concat( [self.idx_data, df_est_labels_num], axis=1 )
             df_est_labels_num.to_csv(out_est_labels_num_fn, index=False, sep=',',
                                       float_format=util.PANDAS_FLOAT_FMT_STR)
         
         # save label cat estimates
         if self.has_label_cat:
             df_est_labels_cat = self.format_label_cat(labels_est_cat)
+            df_est_labels_cat = pd.concat( [self.idx_data, df_est_labels_cat], axis=1 )
             df_est_labels_cat.to_csv(out_est_labels_cat_fn, index=False, sep=',',
                                      float_format=util.PANDAS_FLOAT_FMT_STR)
             
@@ -460,10 +472,12 @@ class Estimator:
         if mode == 'sim':
             if self.has_label_num:
                 df_true_labels_num = pd.DataFrame(self.true_labels_num, columns=self.label_num_names)
+                df_true_labels_num = pd.concat( [self.idx_data, df_true_labels_num], axis=1 )
                 df_true_labels_num.to_csv(out_true_labels_num_fn, index=False, sep=',', float_format=util.PANDAS_FLOAT_FMT_STR)
             
             if self.has_label_cat:
                 df_true_labels_cat = pd.DataFrame(self.true_labels_cat, columns=self.label_cat_names, dtype='int')
+                df_true_labels_cat = pd.concat( [self.idx_data, df_true_labels_cat], axis=1)
                 df_true_labels_cat.to_csv(out_true_labels_cat_fn, index=False, sep=',')
         
         # done

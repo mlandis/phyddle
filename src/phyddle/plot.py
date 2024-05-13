@@ -292,21 +292,21 @@ class Plotter:
         self.model = self.model.to('cpu')
         
         # training true/estimated labels
-        self.train_est_num  = util.read_csv_as_pandas(self.train_est_num_fn)
-        self.train_true_num = util.read_csv_as_pandas(self.train_true_num_fn)
-        self.train_est_cat   = util.read_csv_as_pandas(self.train_est_cat_fn)
-        self.train_true_cat  = util.read_csv_as_pandas(self.train_true_cat_fn)
+        self.train_est_num   = util.read_csv_as_pandas(self.train_est_num_fn).drop(columns=['idx'])
+        self.train_true_num  = util.read_csv_as_pandas(self.train_true_num_fn).drop(columns=['idx'])
+        self.train_est_cat   = util.read_csv_as_pandas(self.train_est_cat_fn).drop(columns=['idx'])
+        self.train_true_cat  = util.read_csv_as_pandas(self.train_true_cat_fn).drop(columns=['idx'])
         
         # test true/estimated labels
-        self.test_est_num   = util.read_csv_as_pandas(self.test_est_num_fn)
-        self.test_true_num  = util.read_csv_as_pandas(self.test_true_num_fn)
-        self.test_est_cat    = util.read_csv_as_pandas(self.test_est_cat_fn)
-        self.test_true_cat   = util.read_csv_as_pandas(self.test_true_cat_fn)
+        self.test_est_num    = util.read_csv_as_pandas(self.test_est_num_fn).drop(columns=['idx'])
+        self.test_true_num   = util.read_csv_as_pandas(self.test_true_num_fn).drop(columns=['idx'])
+        self.test_est_cat    = util.read_csv_as_pandas(self.test_est_cat_fn).drop(columns=['idx'])
+        self.test_true_cat   = util.read_csv_as_pandas(self.test_true_cat_fn).drop(columns=['idx'])
         
         # empirical estimated labels
-        self.emp_est_num = util.read_csv_as_pandas(self.emp_est_num_fn)
-        self.emp_est_cat  = util.read_csv_as_pandas(self.emp_est_cat_fn)
-        
+        self.emp_est_num     = util.read_csv_as_pandas(self.emp_est_num_fn).drop(columns=['idx'])
+        self.emp_est_cat     = util.read_csv_as_pandas(self.emp_est_cat_fn).drop(columns=['idx'])
+                
         # check what datasets we have
         if self.test_est_num is not None and self.test_true_num is not None:
             self.has_test_num = True
@@ -1345,6 +1345,7 @@ class Plotter:
         files_unsorted.sort()
         files = []
     
+        
         for f in files_unsorted:
             tok = f.split('.')
             has_prefix = self.plt_prefix == tok[0]
@@ -1352,7 +1353,12 @@ class Plotter:
             has_pdf = 'pdf' == tok[-1]
             if all([has_pdf, has_prefix, has_all_not]):
                 files.append(f)
-    
+
+        # delete all existing pdfs in plot
+        # if self.clear_plots:
+        #    for f in files:
+        #        os.remove(f)
+
         # get files for different categories
         files_emp_num   = self.filter_files(files, 'empirical_estimate_num')
         files_emp_cat    = self.filter_files(files, 'empirical_estimate_cat')

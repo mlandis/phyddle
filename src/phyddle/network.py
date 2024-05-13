@@ -32,16 +32,17 @@ class Dataset(torch.utils.data.Dataset):
     phylogenetic-state tensors, auxiliary data tensors, and labels.
     """
     # Constructor
-    def __init__(self, phy_data, aux_data, labels_num, labels_cat):
+    def __init__(self, phy_data, aux_data, idx_data, labels_num, labels_cat):
         self.phy_data    = np.transpose(phy_data, axes=[0,2,1]).astype('float32')
         self.aux_data    = aux_data.astype('float32')
-        self.labels_num = labels_num.astype('float32')
+        self.idx_data    = idx_data.astype('int')
+        self.labels_num  = labels_num.astype('float32')
         self.labels_cat  = labels_cat.astype('int')
         self.len         = self.labels_num.shape[0]
 
     # Getting the dataq
     def __getitem__(self, index):
-        return (self.phy_data[index], self.aux_data[index],
+        return (self.phy_data[index], self.aux_data[index], self.idx_data[index],
                 self.labels_num[index], self.labels_cat[index])
     
     # Getting length of the data
