@@ -66,8 +66,8 @@ args = {
     'combine_test_val'  : 'F',            # combine test and validation data?
     'cpi_coverage'      : 0.95,             # coverage level for CPIs
     'cpi_asymmetric'    : 'T',             # upper/lower ('T') or symmetric ('F') CPI adjustments
-    'batch_size'        : 128,              # number of samples in each training batch
-    'loss'              : 'mse',            # loss function for learning
+    'trn_batch_size'    : 128,              # number of samples in each training batch
+    'loss_numerical'    : 'mse',            # loss function for learning
     'optimizer'         : 'adam',           # optimizer for network weight/bias parameters
 
     #-------------------------------#
