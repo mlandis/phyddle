@@ -204,7 +204,7 @@ class Formatter:
             # collecting empirical files
             util.print_str('▪ Collecting empirical data', verbose)
             self.rep_idx = self.get_rep_idx(mode='emp')
-        
+
             # encode each dataset into individual tensors
             util.print_str('▪ Encoding empirical data as tensors', verbose)
             self.encode_all(mode='emp')
@@ -498,6 +498,9 @@ class Formatter:
                                            dtype='f', compression='gzip')
 
         # Each entry is a dictionary of phylo-state, aux. data, and label
+        # AT note: This is potentially problematic for empirical datasets where
+        # it appears that empty trees cause a key mismatch in between
+        # rep_data and rep_idx.
         res = [ self.rep_data[idx] for idx in rep_idx ]
         
         # store all numerical data into hdf5)
