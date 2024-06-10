@@ -377,29 +377,28 @@ class Formatter:
         # procedure assumes the simulate directory only contains the target set
         # of files which is an unsafe assumption, in general
         # find all rep index
-        all_idx = []
-        if self.encode_all_sim:
-            all_idx = set()
-            files = []
-            if mode == 'sim':
-                files = os.listdir(f'{self.sim_dir}')
-                # files = [ f for f in files if f.startswith(self.sim_prefix) ]
-            elif mode == 'emp':
-                files = os.listdir(f'{self.emp_dir}')
-                # files = [ f for f in files if f.startswith(self.emp_prefix) ]
-            files = [ f for f in files if '.dat.' in f ]
+        all_idx = set()
+        files = []
+        if mode == 'sim':
+            files = os.listdir(f'{self.sim_dir}')
+            # files = [ f for f in files if f.startswith(self.sim_prefix) ]
+        elif mode == 'emp':
+            files = os.listdir(f'{self.emp_dir}')
+            # files = [ f for f in files if f.startswith(self.emp_prefix) ]
+        
+        files = [ f for f in files if '.dat.' in f ]
+
+        for f in files:
+            s_idx = f.split('.')[1]
+            try:
+                all_idx.add(int(s_idx))
+            except ValueError:
+                print(f'Skipping invalid filename {f}.')
+                pass
             
-            for f in files:
-                s_idx = f.split('.')[1]
-                try:
-                    all_idx.add(int(s_idx))
-                except ValueError:
-                    print(f'Skipping invalid filename {f}.')
-                    pass
-                
-            all_idx = sorted(list(all_idx))
-        elif self.encode_all_sim:
-            all_idx = list(range(self.start_idx, self.end_idx))
+        all_idx = sorted(list(all_idx))
+        # elif self.encode_all_sim:
+        #     all_idx = list(range(self.start_idx, self.end_idx))
             
         return all_idx
 
@@ -466,6 +465,7 @@ class Formatter:
         
         # analysis info
         rep_idx               = self.split_idx[data_str]
+        rep_idx               = np.array([ idx for idx in rep_idx if idx in self.rep_data ])
         first_aux_data_values = list(self.rep_data.values())[0]['aux']
         first_par_est_values  = list(self.rep_data.values())[0]['lbl']
         aux_data_names        = first_aux_data_values.columns.to_list()
@@ -504,9 +504,6 @@ class Formatter:
                                            dtype='f', compression='gzip')
 
         # Each entry is a dictionary of phylo-state, aux. data, and label
-        # AT note: This is potentially problematic for empirical datasets where
-        # it appears that empty trees cause a key mismatch in between
-        # rep_data and rep_idx.
         res = [ self.rep_data[idx] for idx in rep_idx ]
         
         # store all numerical data into hdf5)
@@ -539,6 +536,7 @@ class Formatter:
         
         # analysis info
         rep_idx               = self.split_idx[data_str]
+        rep_idx               = np.array([ idx for idx in rep_idx if idx in self.rep_data ])
         first_aux_data_values = list(self.rep_data.values())[0]['aux']
         first_par_est_values  = list(self.rep_data.values())[0]['lbl']
         aux_data_names        = first_aux_data_values.columns.to_list()
