@@ -292,34 +292,44 @@ class Plotter:
         self.model = self.model.to('cpu')
         
         # training true/estimated labels
-        self.train_est_num   = util.read_csv_as_pandas(self.train_est_num_fn).drop(columns=['idx'])
-        self.train_true_num  = util.read_csv_as_pandas(self.train_true_num_fn).drop(columns=['idx'])
-        self.train_est_cat   = util.read_csv_as_pandas(self.train_est_cat_fn).drop(columns=['idx'])
-        self.train_true_cat  = util.read_csv_as_pandas(self.train_true_cat_fn).drop(columns=['idx'])
+        self.train_est_num   = util.read_csv_as_pandas(self.train_est_num_fn)
+        self.train_true_num  = util.read_csv_as_pandas(self.train_true_num_fn)
+        self.train_est_cat   = util.read_csv_as_pandas(self.train_est_cat_fn)
+        self.train_true_cat  = util.read_csv_as_pandas(self.train_true_cat_fn)
         
         # test true/estimated labels
-        self.test_est_num    = util.read_csv_as_pandas(self.test_est_num_fn).drop(columns=['idx'])
-        self.test_true_num   = util.read_csv_as_pandas(self.test_true_num_fn).drop(columns=['idx'])
-        self.test_est_cat    = util.read_csv_as_pandas(self.test_est_cat_fn).drop(columns=['idx'])
-        self.test_true_cat   = util.read_csv_as_pandas(self.test_true_cat_fn).drop(columns=['idx'])
+        self.test_est_num    = util.read_csv_as_pandas(self.test_est_num_fn)
+        self.test_true_num   = util.read_csv_as_pandas(self.test_true_num_fn)
+        self.test_est_cat    = util.read_csv_as_pandas(self.test_est_cat_fn)
+        self.test_true_cat   = util.read_csv_as_pandas(self.test_true_cat_fn)
         
         # empirical estimated labels
-        self.emp_est_num     = util.read_csv_as_pandas(self.emp_est_num_fn).drop(columns=['idx'])
-        self.emp_est_cat     = util.read_csv_as_pandas(self.emp_est_cat_fn).drop(columns=['idx'])
-                
+        self.emp_est_num     = util.read_csv_as_pandas(self.emp_est_num_fn)
+        self.emp_est_cat     = util.read_csv_as_pandas(self.emp_est_cat_fn)
+        
         # check what datasets we have
         if self.test_est_num is not None and self.test_true_num is not None:
             self.has_test_num = True
+            self.test_est_num = self.test_est_num.drop(columns=['idx'])
+            self.test_true_num = self.test_true_num.drop(columns=['idx'])
         if self.test_est_cat is not None and self.test_true_cat is not None:
             self.has_test_cat = True
+            self.test_est_cat = self.test_est_cat.drop(columns=['idx'])
+            self.test_true_cat = self.test_true_cat.drop(columns=['idx'])
         if self.train_est_num is not None and self.train_true_num is not None:
             self.has_train_num = True
+            self.train_est_num = self.train_est_num.drop(columns=['idx'])
+            self.train_true_num = self.train_true_num.drop(columns=['idx'])
         if self.train_est_cat is not None and self.train_true_cat is not None:
             self.has_train_cat = True
+            self.train_est_cat = self.train_est_cat.drop(columns=['idx'])
+            self.train_true_cat = self.train_true_cat.drop(columns=['idx'])
         if self.emp_est_num is not None:
             self.has_emp_num = True
+            self.emp_est_num = self.emp_est_num.drop(columns=['idx'])
         if self.emp_est_cat is not None:
             self.has_emp_cat = True
+            self.emp_est_cat = self.emp_est_cat.drop(columns=['idx'])
         
         # training history for network
         self.history_table   = util.read_csv_as_pandas(self.history_fn)
