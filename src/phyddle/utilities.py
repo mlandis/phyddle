@@ -16,10 +16,13 @@ import argparse
 #import copy
 import os
 import pkg_resources
+import shutil
+import tarfile
 import platform
 import re
 import sys
 import time
+import glob
 from datetime import datetime
 
 # external packages
@@ -104,11 +107,14 @@ def settings_registry():
     """
     settings = {
         # basic phyddle options
-        'cfg'              : { 'step':'',      'type':str,  'section':'Basic', 'default':'config.py',  'help':'Config file name', 'opt':'c' },
-        'step'             : { 'step':'SFTEP', 'type':str,  'section':'Basic', 'default':'SFTEP',      'help':'Pipeline step(s) defined with (S)imulate, (F)ormat, (T)rain, (E)stimate, (P)lot, or (A)ll', 'opt':'s' },
-        'verbose'          : { 'step':'SFTEP', 'type':str,  'section':'Basic', 'default':'T',          'help':'Verbose output to screen?', 'bool':True, 'opt':'v' },
-        'make_cfg'         : { 'step':'',      'type':None, 'section':'Basic', 'default':None,         'help':"Write default config file to '__config_default.py'?" },
-        'output_precision' : { 'step':'SFTEP', 'type':int,  'section':'Basic', 'default':16,           'help':'Number of digits (precision) for numbers in output files' },
+        'cfg'              : { 'step':'',      'type':str,  'section':'Basic', 'default':'config.py',     'help':'Config file name', 'opt':'c' },
+        'step'             : { 'step':'SFTEP', 'type':str,  'section':'Basic', 'default':'SFTEP',         'help':'Pipeline step(s) defined with (S)imulate, (F)ormat, (T)rain, (E)stimate, (P)lot, or (A)ll', 'opt':'s' },
+        'verbose'          : { 'step':'SFTEP', 'type':str,  'section':'Basic', 'default':'T',             'help':'Verbose output to screen?', 'bool':True, 'opt':'v' },
+        'make_cfg'         : { 'step':'',      'type':str,  'section':'Basic', 'default':'__no_value__',  'help':"Write default config file",               'const':CONFIG_DEFAULT_FN },
+        'save_proj'        : { 'step':'',      'type':str,  'section':'Basic', 'default':'__no_value__',  'help':"Save and zip a project for sharing",      'const':'project.tar.gz' },
+        'load_proj'        : { 'step':'',      'type':str,  'section':'Basic', 'default':'__no_value__',  'help':"Unzip a shared project",                  'const':'project.tar.gz' },
+        'clean_proj'       : { 'step':'',      'type':str,  'section':'Basic', 'default':'__no_value__',  'help':"Remove step directories for a project",   'const':'.' },
+        'output_precision' : { 'step':'SFTEP', 'type':int,  'section':'Basic', 'default':16,              'help':'Number of digits (precision) for numbers in output files' },
         
         # analysis options
         'use_parallel'     : { 'step':'SF',  'type':str,  'section':'Analysis', 'default':'T',    'help':'Use parallelization? (recommended)', 'bool':True },
@@ -118,29 +124,29 @@ def settings_registry():
         'no_sim'           : { 'step':'',    'type':None, 'section':'Analysis', 'default':False,  'help':'Disable Format/Estimate steps for simulated data?' },
         
         # directories
-        'dir'              : { 'step':'SFTEP', 'type':str, 'section':'Workspace', 'default':'./workspace/project',        'help':'Parent directory for all step directories unless step directory given'},
-        'sim_dir'          : { 'step':'SF',    'type':str, 'section':'Workspace', 'default':None,                         'help':'Directory for raw simulated data' },
-        'emp_dir'          : { 'step':'SF',    'type':str, 'section':'Workspace', 'default':None,                         'help':'Directory for raw empirical data' },
-        'fmt_dir'          : { 'step':'FTEP',  'type':str, 'section':'Workspace', 'default':None,                         'help':'Directory for tensor-formatted data' },
-        'trn_dir'          : { 'step':'FTEP',  'type':str, 'section':'Workspace', 'default':None,                         'help':'Directory for trained networks and training output' },
-        'est_dir'          : { 'step':'TEP',   'type':str, 'section':'Workspace', 'default':None,                         'help':'Directory for new datasets and estimates' },
-        'plt_dir'          : { 'step':'P',     'type':str, 'section':'Workspace', 'default':None,                         'help':'Directory for plotted results' },
-        'log_dir'          : { 'step':'SFTEP', 'type':str, 'section':'Workspace', 'default':None,                         'help':'Directory for logs of analysis metadata' },
-        'prefix'           : { 'step':'SFTEP', 'type':str, 'section':'Workspace', 'default':'out',                        'help':'Prefix for all output unless step prefix given' },
-        'sim_prefix'       : { 'step':'SF',    'type':str, 'section':'Workspace', 'default':None,                         'help':'Prefix for raw simulated data' },
-        'emp_prefix'       : { 'step':'SF',    'type':str, 'section':'Workspace', 'default':None,                         'help':'Prefix for raw empirical data' },
-        'fmt_prefix'       : { 'step':'FTEP',  'type':str, 'section':'Workspace', 'default':None,                         'help':'Prefix for tensor-formatted data' },
-        'trn_prefix'       : { 'step':'FTEP',  'type':str, 'section':'Workspace', 'default':None,                         'help':'Prefix for trained networks and training output' },
-        'est_prefix'       : { 'step':'TEP',   'type':str, 'section':'Workspace', 'default':None,                         'help':'Prefix for estimate results' },
-        'plt_prefix'       : { 'step':'P',     'type':str, 'section':'Workspace', 'default':None,                         'help':'Prefix for plotted results' },
+        'dir'              : { 'step':'SFTEP', 'type':str, 'section':'Workspace', 'default':'./', 'help':'Parent directory for all step directories unless step directory given'},
+        'sim_dir'          : { 'step':'SF',    'type':str, 'section':'Workspace', 'default':None, 'help':'Directory for raw simulated data' },
+        'emp_dir'          : { 'step':'SF',    'type':str, 'section':'Workspace', 'default':None, 'help':'Directory for raw empirical data' },
+        'fmt_dir'          : { 'step':'FTEP',  'type':str, 'section':'Workspace', 'default':None, 'help':'Directory for tensor-formatted data' },
+        'trn_dir'          : { 'step':'FTEP',  'type':str, 'section':'Workspace', 'default':None, 'help':'Directory for trained networks and training output' },
+        'est_dir'          : { 'step':'TEP',   'type':str, 'section':'Workspace', 'default':None, 'help':'Directory for new datasets and estimates' },
+        'plt_dir'          : { 'step':'P',     'type':str, 'section':'Workspace', 'default':None, 'help':'Directory for plotted results' },
+        'log_dir'          : { 'step':'SFTEP', 'type':str, 'section':'Workspace', 'default':None, 'help':'Directory for logs of analysis metadata' },
+        'prefix'           : { 'step':'SFTEP', 'type':str, 'section':'Workspace', 'default':'out','help':'Prefix for all output unless step prefix given' },
+        'sim_prefix'       : { 'step':'SF',    'type':str, 'section':'Workspace', 'default':None, 'help':'Prefix for raw simulated data' },
+        'emp_prefix'       : { 'step':'SF',    'type':str, 'section':'Workspace', 'default':None, 'help':'Prefix for raw empirical data' },
+        'fmt_prefix'       : { 'step':'FTEP',  'type':str, 'section':'Workspace', 'default':None, 'help':'Prefix for tensor-formatted data' },
+        'trn_prefix'       : { 'step':'FTEP',  'type':str, 'section':'Workspace', 'default':None, 'help':'Prefix for trained networks and training output' },
+        'est_prefix'       : { 'step':'TEP',   'type':str, 'section':'Workspace', 'default':None, 'help':'Prefix for estimate results' },
+        'plt_prefix'       : { 'step':'P',     'type':str, 'section':'Workspace', 'default':None, 'help':'Prefix for plotted results' },
 
         # simulation options
-        'sim_command'      : { 'step':'S',  'type':str, 'section':'Simulate', 'default':None,    'help':'Simulation command to run single job (see documentation)' },
-        'sim_logging'      : { 'step':'S',  'type':str, 'section':'Simulate', 'default':'clean', 'help':'Simulation logging style', 'choices':['clean', 'compress', 'verbose'] },
-        'start_idx'        : { 'step':'SF', 'type':int, 'section':'Simulate', 'default':0,       'help':'Start replicate index for simulated training dataset' },
-        'end_idx'          : { 'step':'SF', 'type':int, 'section':'Simulate', 'default':1000,    'help':'End replicate index for simulated training dataset' },
-        'sim_more'         : { 'step':'S',  'type':int, 'section':'Simulate', 'default':0,       'help':'Add more simulations with auto-generated indices' },
-        'sim_batch_size'   : { 'step':'S',  'type':int, 'section':'Simulate', 'default':1,       'help':'Number of replicates per simulation command' },
+        'sim_command'      : { 'step':'S',  'type':str, 'section':'Simulate', 'default':None,     'help':'Simulation command to run single job (see documentation)' },
+        'sim_logging'      : { 'step':'S',  'type':str, 'section':'Simulate', 'default':'clean',  'help':'Simulation logging style', 'choices':['clean', 'compress', 'verbose'] },
+        'start_idx'        : { 'step':'SF', 'type':int, 'section':'Simulate', 'default':0,        'help':'Start replicate index for simulated training dataset' },
+        'end_idx'          : { 'step':'SF', 'type':int, 'section':'Simulate', 'default':1000,     'help':'End replicate index for simulated training dataset' },
+        'sim_more'         : { 'step':'S',  'type':int, 'section':'Simulate', 'default':0,        'help':'Add more simulations with auto-generated indices' },
+        'sim_batch_size'   : { 'step':'S',  'type':int, 'section':'Simulate', 'default':1,        'help':'Number of replicates per simulation command' },
 
         # formatting options
         'encode_all_sim'   : { 'step':'F',    'type':str,   'section':'Format', 'default':'T',            'help':'Encode all simulated replicates into tensor?', 'bool':True },
@@ -173,7 +179,7 @@ def settings_registry():
         'loss_numerical'   : { 'step':'T',   'type':str,   'section':'Train', 'default':'mse',         'help':'Loss function for real value estimates', 'choices':['mse', 'mae']},
         'optimizer'        : { 'step':'T',   'type':str,   'section':'Train', 'default':'adam',        'help':'Method used for optimizing neural network', 'choices':['adam'] },
         # 'metrics'          : { 'step':'T',   'type':list,  'section':'Train', 'default':['mae','acc'], 'help':'Recorded training metrics' },
-        'log_offset'       : { 'step':'FTEP', 'type':float, 'section':'Train', 'default':1.0,          'help':'Offset size c when taking ln(x+c) for zero-valued variables' },
+        'log_offset'       : { 'step':'FTEP', 'type':float, 'section':'Train', 'default':1.0,            'help':'Offset size c when taking ln(x+c) for zero-valued variables' },
         'phy_channel_plain'  : { 'step':'T',   'type':list,  'section':'Train', 'default':[64,96,128],   'help':'Output channel sizes for plain convolutional layers for phylogenetic state input' },
         'phy_channel_stride' : { 'step':'T',   'type':list,  'section':'Train', 'default':[64,96],       'help':'Output channel sizes for stride convolutional layers for phylogenetic state input' },
         'phy_channel_dilate' : { 'step':'T',   'type':list,  'section':'Train', 'default':[32,64],       'help':'Output channel sizes for dilate convolutional layers for phylogenetic state input' },
@@ -297,9 +303,15 @@ def load_config(config_fn,
         arg_opt.append(f'--{k}')
         arg_help = v['help']
         arg_type = v['type']
+        arg_const = None
+        if 'const' in v:
+            arg_const = v['const']
         
         if arg_type is None:
             parser.add_argument(*arg_opt, action='store_true', help=arg_help)
+        elif arg_const is not None:
+            # used for special flags, --save_proj, --load_proj, --clean_proj
+            parser.add_argument( *arg_opt, nargs='?', const=arg_const, default=v['default'], type=arg_type, help=arg_help)
         else:
             if 'choices' in v:
                 arg_choices = v['choices']
@@ -312,11 +324,19 @@ def load_config(config_fn,
    
     # COMMAND LINE SETTINGS
     args = parser.parse_args(args)
-
+    
+    # CHECK IF IN RUN MODE OR TOOL MODE
+    run_mode = True
+    if args.make_cfg != '__no_value__' or \
+            args.save_proj != '__no_value__' or \
+            args.load_proj != '__no_value__' or \
+            args.clean_proj != '__no_value__':
+        run_mode = False
+    
     # DEFAULT CONFIG FILE SETTINGS
     # make/overwrite default config, if requested
-    if args.make_cfg:
-        make_config_fn = CONFIG_DEFAULT_FN
+    if args.make_cfg != '__no_value__':
+        make_config_fn = args.make_cfg
         if arg_overwrite and args.cfg is not None:
             make_config_fn = args.cfg
         make_default_config(make_config_fn)
@@ -343,7 +363,10 @@ def load_config(config_fn,
     # PROJECT CONFIG FILE SETTINGS
     if arg_overwrite and args.cfg is not None:
         config_fn = args.cfg
-    if not os.path.exists(config_fn):
+
+    namespace = { 'args': {} }
+    
+    if run_mode and not os.path.exists(config_fn):
         msg = (f"Project config file '{config_fn}' not found. If you have a "
                 "project config file, please verify access to the file. There "
                 "are two easy ways to create a user config file: (1) copy the "
@@ -352,19 +375,19 @@ def load_config(config_fn,
                 "https://github.com/mlandis/phyddle/tree/main/scripts." )
         print_err(msg)
         sys.exit()
-
-    namespace = {}
-    with open(config_fn) as file:
-        code = file.read()
-        exec(code, namespace)
+    elif os.path.exists(config_fn):
+        # namespace = {}
+        with open(config_fn) as file:
+            code = file.read()
+            exec(code, namespace)
 
     # move imported args into local variable
     file_args = namespace['args']
     
     # MERGE SETTINGS
     # merge default, user_file, and user_cmd settings
-    m = reconcile_settings(settings, default_args, file_args, args, k)
-
+    m = reconcile_settings(settings, default_args, file_args, args)
+    
     # fix convert string-valued bool to true bool
     m = fix_arg_bool(m)
 
@@ -378,7 +401,8 @@ def load_config(config_fn,
         print(phyddle_header('title'))
     
     # check arguments are valid
-    check_args(m)
+    if run_mode:
+        check_args(m)
     
     # handle project prefix
     m = set_step_args(m)
@@ -399,7 +423,54 @@ def load_config(config_fn,
     np.set_printoptions(floatmode='maxprec', precision=OUTPUT_PRECISION)
     pd.set_option('display.precision', OUTPUT_PRECISION)
     pd.set_option('display.float_format', lambda x: f'{x:,.6f}')
-    
+
+    # PROJECT MANAGEMENT
+    # save project
+    if args.save_proj != '__no_value__':
+        print_str(f"Saving project as '{args.save_proj}'...")
+        tarball = tarfile.open(args.save_proj, 'w:gz')
+        tarball.add(config_fn)
+        for tok in m['sim_command'].split(' '):
+            if os.path.exists(tok):
+                tarball.add(tok)
+        if os.path.isdir(m['emp_dir']):
+            tarball.add(m['emp_dir'])
+        if os.path.isdir(m['trn_dir']):
+            tarball.add(m['trn_dir'])
+        if os.path.isdir(m['est_dir']):
+            tarball.add(m['est_dir'])
+        tarball.close()
+        print_str("... done!")
+        sys.exit()
+        
+    # load project
+    if args.load_proj != '__no_value__':
+        print_str(f"Loading project '{args.load_proj}'...")
+        tarball = tarfile.open(args.load_proj, 'r:gz')
+        for f in tarball:
+            try:
+                tarball.extract(f)
+            except IOError as e:
+                os.remove(f.name)
+                tarball.extract(f)
+            finally:
+                os.chmod(f.name, f.mode)
+        tarball.close()
+        print_str("... done!")
+        sys.exit()
+        
+    # clean project
+    if args.clean_proj != '__no_value__':
+        print_str(f"Cleaning project in directory '{args.clean_proj}'...")
+        for d in ['sim_dir','fmt_dir','trn_dir','est_dir','plt_dir']:
+            if os.path.isdir(m[d]):
+                shutil.rmtree(m[d])
+        print_str("... done!")
+        sys.exit()
+        
+    if not run_mode:
+        sys.exit()
+        
     # return new args
     return m
 
@@ -712,7 +783,7 @@ def make_default_config(config_fn):
     return
 
 # update arguments from defaults, when provided
-def reconcile_settings(settings_args, default_args, file_args, cmd_args, var):
+def reconcile_settings(settings_args, default_args, file_args, cmd_args): #, var):
         """Reconciles settings from all sources.
 
         Settings are applied and overwritten in this order:
