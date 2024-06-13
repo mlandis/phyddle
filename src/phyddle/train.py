@@ -388,8 +388,6 @@ class CnnTrainer(Trainer):
             full_labels         = pd.DataFrame(hdf5_file['labels']).to_numpy()
             hdf5_file.close()
 
-        print(full_idx_data)
-        
         # separate labels for categorical param_est targets
         full_labels_num, full_labels_cat = self.separate_labels(full_labels)
         
