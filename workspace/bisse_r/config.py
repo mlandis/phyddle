@@ -54,7 +54,7 @@ args = {
                             'start_state'     : 'cat',
                           },
     'param_data'        : {                 # model parameters that are known (aux. data)
-                            'logit_sample_frac' : 'num'
+                            'log_sample_frac' : 'num'
                           },
     'tensor_format'     : 'hdf5',           # save as compressed HDF5 or raw csv
     'char_format'       : 'csv',
@@ -70,7 +70,7 @@ args = {
     'prop_cal'          : 0.20,             # proportion of sims in CPI calibration dataset
     'cpi_coverage'      : 0.80,             # coverage level for CPIs
     'cpi_asymmetric'    : 'T',              # upper/lower ('T') or symmetric ('F') CPI adjustments
-    'trn_batch_size'    : 2048,             # number of samples in each training batch
+    'trn_batch_size'    : 4096,             # number of samples in each training batch
     'loss_numerical'    : 'mae',            # loss function for learning (real-valued) targets
     'optimizer'         : 'adam',           # optimizer for network weight/bias parameters
 

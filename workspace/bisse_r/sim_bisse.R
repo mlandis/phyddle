@@ -30,7 +30,7 @@ lbl_fn = paste0(tmp_fn, ".labels.csv")        # csv of labels (e.g. params)
 num_states = 2
 symm_Q_mtx = TRUE
 tree_width = 500
-label_names = c( paste0("log_birth_",1:num_states), "log_death", "log_state_rate", "logit_sample_frac", "model_type", "start_state")
+label_names = c( paste0("log_birth_",1:num_states), "log_death", "log_state_rate", "log_sample_frac", "model_type", "start_state")
 
 # simulate each replicate
 for (i in 1:num_rep) {
@@ -49,7 +49,7 @@ for (i in 1:num_rep) {
         if (max_taxa > tree_width) {
             sample_frac = tree_width / max_taxa
         }
-        logit_sample_frac = log( sample_frac/(1-sample_frac), base=10 )
+        log_sample_frac = log(sample_frac, base=10)
 
         # simulate parameters
         model_type = sample(0:1, size=1)
@@ -102,7 +102,7 @@ for (i in 1:num_rep) {
     write.csv(df_state, file=dat_fn[i], row.names=F, quote=F)
 
     # save learned labels (e.g. estimated data-generating parameters)
-    label_sim = c( log_birth[1], log_birth[2], log_death[1], log_state_rate, logit_sample_frac, model_type, start_state-1)
+    label_sim = c( log_birth[1], log_birth[2], log_death[1], log_state_rate, log_sample_frac, model_type, start_state-1)
     names(label_sim) = label_names
     df_label = data.frame(t(label_sim))
     write.csv(df_label, file=lbl_fn[i], row.names=F, quote=F)

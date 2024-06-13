@@ -1,5 +1,6 @@
 library(castor)
 library(nloptr)
+library(scales)
 
 bisse_mle = function(x) {
     
@@ -38,20 +39,20 @@ bisse_mle = function(x) {
             first_guess = list(
                 birth_rates = birth,
                 death_rates = death,
-                transition_matrix = exp(Q )
+                transition_matrix = Q
             )
             
             # bounds
             lower=list(
-                birth_rates=0,
-                death_rates=0,
-                transition_matrix=0
+                birth_rates=0.0,
+                death_rates=0.0,
+                transition_matrix=0.0
             )
             
             upper=list(
                 birth_rates=1,
                 death_rates=1,
-                transition_matrix=0.1
+                transition_matrix=1
             )
             
             # get MLE
@@ -84,8 +85,8 @@ bisse_mle = function(x) {
         # save MLEs
         out_mle = c( par_mle$birth_rates, par_mle$death_rates[1], par_mle$transition_matrix[1,2])
     }
-    x$par_mle = out_mle
-    names(x$par_mle) = names(x$par_cnn) = names(x$par_true) = param_names
+    x$par_mle = log( out_mle, base=10 )
+    names(x$par_mle) = names(x$par_cnn_point) = names(x$par_cnn_lower) = names(x$par_cnn_upper) = names(x$par_true) = param_names
     return(x)
 }
 
@@ -118,12 +119,12 @@ do_compare = function(x, y, par_names=NA) {
 make_compare_table = function(x) {
     
     par_true = x$par_true
-    par_cnn  = x$par_cnn
+    par_cnn_point  = x$par_cnn_point
     par_mle  = x$par_mle
 
-    res_cnn_true = do_compare(par_cnn, par_true)
+    res_cnn_true = do_compare(par_cnn_point, par_true)
     res_mle_true = do_compare(par_mle, par_true)
-    res_cnn_mle = do_compare(par_cnn, par_mle)
+    res_cnn_mle = do_compare(par_cnn_point, par_mle)
 
     ret=list(
         cnn_true=res_cnn_true,
@@ -135,23 +136,35 @@ make_compare_table = function(x) {
 }
 
 
-make_input_table = function(x) {
+make_input_table = function(x, unlog=T) {
 
     
     # create result matrices
-    par_true = matrix( unlist(lapply(x, function(y) { y$par_true })), ncol=4, byrow=T )
-    par_cnn  = matrix( unlist(lapply(x, function(y) { y$par_cnn })), ncol=4, byrow=T )
-    par_mle  = matrix( unlist(lapply(x, function(y) { y$par_mle })), ncol=4, byrow=T )
+    par_true       = matrix( unlist(lapply(x, function(y) { y$par_true })), ncol=4, byrow=T )
+    par_cnn_point  = matrix( unlist(lapply(x, function(y) { y$par_cnn_point })), ncol=4, byrow=T )
+    par_cnn_lower  = matrix( unlist(lapply(x, function(y) { y$par_cnn_lower })), ncol=4, byrow=T )
+    par_cnn_upper  = matrix( unlist(lapply(x, function(y) { y$par_cnn_upper })), ncol=4, byrow=T )
+    par_mle        = matrix( unlist(lapply(x, function(y) { y$par_mle })), ncol=4, byrow=T )
 
+    if (unlog) {
+        par_true      = 10^par_true
+        par_cnn_point = 10^par_cnn_point
+        par_cnn_lower = 10^par_cnn_lower
+        par_cnn_upper = 10^par_cnn_upper
+        par_mle       = 10^par_mle
+    }
+    
     # assign parameter names
     par_names = x[[1]]$param_names
-    colnames(par_true)=colnames(par_cnn)=colnames(par_mle)=par_names
+    colnames(par_true)=colnames(par_cnn_point)=colnames(par_cnn_lower)=colnames(par_cnn_upper)=colnames(par_mle)=par_names
     
     # return results
     ret=list(
         par_true=par_true,
         par_mle=par_mle,
-        par_cnn=par_cnn
+        par_cnn_point=par_cnn_point,
+        par_cnn_lower=par_cnn_lower,
+        par_cnn_upper=par_cnn_upper
     )
     
     return(ret)
@@ -175,26 +188,54 @@ plot_comparison = function(dat, stat, out_fn="validate_bisse.pdf") {
     for (i in 1:num_param) {
         vmax[i] = max(rbind(dat$par_true, dat$par_cnn, dat$par_mle)[,i] )
     }
+    vmin = c()
+    for (i in 1:num_param) {
+        vmin[i] = min(rbind(dat$par_true, dat$par_cnn, dat$par_mle)[,i] )
+    }
+    
+    alpha = 0.5
+    alpha_blue = alpha("blue", alpha)
+    alpha_gray = alpha("darkgray", alpha)
+    alpha_red = alpha("red", alpha)
+    alpha_gold = alpha("gold2", alpha)
     
     for (i in 1:num_param) {
-        plot(dat$par_true[,i], dat$par_cnn[,i], xlab="true", ylab="CNN", col="blue", main=param_names[i], xlim=c(0,vmax[i]), ylim=c(0,vmax[i]))
-        text(x=0, y=vmax[i], adj=c(0,1), label=paste("R^2:", round(stat$cnn_true$r2[i], digits=2)))
+        #is_covered = (dat$par_cnn_lower[,i] <= dat$par_true[,i] & dat$par_cnn_upper[,i] >= dat$par_true[,i])
+        # covg = round(sum(is_covered) / length(is_covered), digits = 2) * 100
+        is_covered = rep(T, nrow(dat$par_true))
+        plot(dat$par_true[is_covered,i], dat$par_cnn_point[is_covered,i], xlab="true", ylab="CNN",
+            col=alpha_blue, pch=16, alpha=0.5, main=param_names[i],
+            xlim=c(vmin[i],vmax[i]), ylim=c(vmin[i],vmax[i]))
+        points(dat$par_true[!is_covered,i], dat$par_cnn_point[!is_covered,i],
+               col=alpha_gray, pch=16, alpha=0.5)
+        # segments(x0=dat$par_true[is_covered,i], x1=dat$par_true[is_covered,i],
+        #          y0=dat$par_cnn_lower[is_covered,i], y1=dat$par_cnn_upper[is_covered,i],
+        #          col=alpha_blue, alpha=0.5, lwd=0.5)
+        # segments(x0=dat$par_true[!is_covered,i], x1=dat$par_true[!is_covered,i],
+        #          y0=dat$par_cnn_lower[!is_covered,i], y1=dat$par_cnn_upper[!is_covered,i],
+        #          col=alpha_gray, alpha=0.5, lwd=0.5)
+        text(x=vmin[i], y=vmax[i]*1.0, adj=c(0.0, 1.0), label=paste("R^2:", round(stat$cnn_true$r2[i], digits=2)))
+        # text(x=vmin[i], y=vmax[i]*0.95, adj=c(0.0, 1.0), label=paste("covg:", round(sum(is_covered) / length(is_covered), digits=2)))
         abline(a=0,b=1,col="black",lwd=1)
         abline(a=stat$cnn_true$intercept[i], b=stat$cnn_true$slope[i], col="blue",lwd=1, lty=1)
     }
     
     for (i in 1:num_param) {
-        plot(dat$par_true[,i], dat$par_mle[,i], xlab="true", ylab="MLE", col="red", main=param_names[i], xlim=c(0,vmax[i]), ylim=c(0,vmax[i]))
-        text(x=0, y=vmax[i], adj=c(0,1), label=paste("R^2:",round(stat$mle_true$r2[i], digits=2)))
+        plot(dat$par_true[,i], dat$par_mle[,i], xlab="true", ylab="MLE",
+            col=alpha_red, pch=16, alpha=0.5, main=param_names[i],
+            xlim=c(vmin[i],vmax[i]), ylim=c(vmin[i],vmax[i]))
+        text(x=vmin[i], y=vmax[i], adj=c(0,1), label=paste("R^2:",round(stat$mle_true$r2[i], digits=2)))
         abline(a=0,b=1,col="black",lwd=1)
         abline(a=stat$mle_true$intercept[i], b=stat$mle_true$slope[i], col="red",lwd=1, lty=1)
     }
     
     for (i in 1:num_param) {
-        plot(dat$par_cnn[,i], dat$par_mle[,i], xlab="CNN", ylab="MLE", col="goldenrod", main=param_names[i], xlim=c(0,vmax[i]), ylim=c(0,vmax[i]))
-        text(x=0, y=vmax[i], adj=c(0,1), label=paste("R^2:",round(stat$cnn_mle$r2[i], digits=2)))
+        plot(dat$par_cnn_point[,i], dat$par_mle[,i], xlab="CNN", ylab="MLE",
+            col=alpha_gold, pch=16, alpha=0.5, main=param_names[i],
+            xlim=c(vmin[i],vmax[i]), ylim=c(vmin[i],vmax[i]))
+        text(x=vmin[i], y=vmax[i], adj=c(0,1), label=paste("R^2:",round(stat$cnn_mle$r2[i], digits=2)))
         abline(a=0,b=1,col="black",lwd=1)
-        abline(a=stat$cnn_mle$intercept[i], b=stat$cnn_mle$slope[i], col="goldenrod",lwd=1, lty=1)
+        abline(a=stat$cnn_mle$intercept[i], b=stat$cnn_mle$slope[i], col="gold2",lwd=1, lty=1)
     }
     
     # done!
@@ -204,6 +245,6 @@ plot_comparison = function(dat, stat, out_fn="validate_bisse.pdf") {
 save_tables = function(x) {
     write.csv(x=x$par_true, file="./bisse_par_true.csv", sep=",", quote=F, row.names=F)
     write.csv(x=x$par_mle, file="./bisse_par_mle.csv", sep=",", quote=F, row.names=F)
-    write.csv(x=x$par_cnn, file="./bisse_par_cnn.csv", sep=",", quote=F, row.names=F)
+    write.csv(x=x$par_cnn_point, file="./bisse_par_cnn.csv", sep=",", quote=F, row.names=F)
     return
 }
