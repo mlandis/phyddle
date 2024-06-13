@@ -46,8 +46,8 @@ args = {
     'brlen_encode'      : 'height_brlen',   # how to encode phylo brlen? height_only or height_brlen
     'char_encode'       : 'integer',        # how to encode discrete states? one_hot or integer
     'param_est'         : {                 # model parameters to predict (labels)
-                           'log10_birth_rate0_t0':'real', 
-                           'log10_birth_rate0_t1':'real',
+                           'log10_birth_rate0_t0':'num', 
+                           'log10_birth_rate0_t1':'num',
                           },
     'param_data'        : {                 # model parameters that are known (aux. data)
                           },
@@ -62,11 +62,10 @@ args = {
     'prop_test'         : 0.05,             # proportion of sims in test dataset
     'prop_val'          : 0.05,             # proportion of sims in validation dataset
     'prop_cal'          : 0.20,             # proportion of sims in CPI calibration dataset
-    'combine_test_val'  : 'T',
     'cpi_coverage'      : 0.95,             # coverage level for CPIs
     'cpi_asymmetric'    : 'T',              # upper/lower ('T') or symmetric ('F') CPI adjustments
-    'batch_size'        : 1024,             # number of samples in each training batch
-    'loss'              : 'mse',            # loss function for learning
+    'trn_batch_size'    : 1024,             # number of samples in each training batch
+    'loss_numerical'    : 'mse',            # loss function for learning
     'optimizer'         : 'adam',           # optimizer for network weight/bias parameters
     'log_offset'        : 1.0,
 
@@ -82,6 +81,6 @@ args = {
     'plot_val_color'        : 'red',        # plot color for validation data
     'plot_aux_color'        : 'green',      # plot color for input auxiliary data
     'plot_label_color'      : 'orange',     # plot color for labels (params)
-    'plot_est_color'        : 'black'       # plot color for estimated data/values
+    'plot_emp_color'        : 'black'       # plot color for estimated data/values
 
 }
