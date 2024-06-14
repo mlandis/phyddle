@@ -387,8 +387,6 @@ class CnnTrainer(Trainer):
             full_idx_data       = pd.DataFrame(hdf5_file['idx']).to_numpy()
             full_labels         = pd.DataFrame(hdf5_file['labels']).to_numpy()
             hdf5_file.close()
-
-        print(full_idx_data)
         
         # separate labels for categorical param_est targets
         full_labels_num, full_labels_cat = self.separate_labels(full_labels)
@@ -504,7 +502,10 @@ class CnnTrainer(Trainer):
                 # print(self.label_names)
                 idx_num.append( self.label_names.index(k) )
                 self.param_num_names.append(k)
-                
+        
+        if not self.has_label_num and not self.has_label_cat:
+            util.print_err(f"No training labels found.", exit=True)
+               
         # get data subsets
         labels_num = labels[:,idx_num].copy()
         labels_cat = labels[:,idx_cat].copy()

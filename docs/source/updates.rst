@@ -5,8 +5,10 @@ The complete commit history for phyddle is located here: https://github.com/mlan
 
 **phyddle v0.2.1** -- in progress
 
-  * Better warnings/errors for invalid settings
-  * Remove logit transformation from summary statistics for state frequencies (caused crash in some cases)
+  * New support to save, load, and clean projects. Nice for collaborations! |:handshake:|
+  * Improve detection of replicate indexing in Simulate/Format.
+  * Better warnings/errors for invalid settings.
+  * Remove logit transformation from summary statistics for state frequencies (caused crash in some cases).
 
 
 **phyddle v0.2.0** -- 24.03.28

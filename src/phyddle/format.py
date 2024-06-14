@@ -729,6 +729,14 @@ class Formatter:
         param_est = labels[self.param_est]
         param_data = labels[self.param_data]
         
+        # check label matching
+        for k in self.param_est:
+            if k not in param_est.columns:
+                util.print_warn(f"Estimated parameter '{k}' missing in labels. Skipped.")
+        for k in self.param_data:
+            if k not in param_data.columns:
+                util.print_warn(f"Data parameter '{k}' missing in labels. Skipped.")
+        
         # record summ stat data
         summ_stat = self.make_summ_stat(phy, dat)
         summ_stat['num_taxa'] = [ num_taxa_orig ]
