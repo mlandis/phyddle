@@ -666,14 +666,6 @@ class Formatter:
                                                   self.num_char,
                                                   self.num_states)
         
-        if dat.shape[0] != expected_char_dim:
-            # improve message with more details later
-            msg = (f'The numbers of characters and states in the character data'
-                   f' file {dat_fn} do not match the config file settings for'
-                   f' num_char, num_states, and char_encode.')
-            util.print_err(msg)
-            # program quits
-            
         # get tree file
         phy = util.read_tree(tre_fn)
 
@@ -684,6 +676,14 @@ class Formatter:
         if phy is None:
             self.logger.write_log('fmt', f'Cannot process {tre_fn}')
             return
+
+        if dat.shape[0] != expected_char_dim:
+            # improve message with more details later
+            msg = (f'The numbers of characters and states in the character data'
+                   f' file {dat_fn} do not match the config file settings for'
+                   f' num_char, num_states, and char_encode.')
+            util.print_err(msg)
+            # program quits
 
         # prune tree, if needed
         if self.tree_encode == 'extant':
