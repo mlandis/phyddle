@@ -7,20 +7,20 @@ num_taxa ~ unif(n=n_batches, min=10, max=500)
 
 # constant-node variable ('birth_rate0_t0') assignment
 # first epoch (old)
-birth_rate0_t0 ~ unif(n=n_batches, min=0.5, max=1.0)
-death_rate0_t0 <- 0.5
-birth_rate1_t0 <- 1.5
-death_rate1_t0 <- 1.0
-trans_rate01_t0 <- 0.5
-trans_rate10_t0 <- 0.4
+birth_rate0_t0 ~ unif(n=n_batches, min=0.50, max=1.00)
+death_rate0_t0 <- 0.1
+birth_rate1_t0 <- 0.5
+death_rate1_t0 <- 0.1
+trans_rate01_t0 <- 0.2
+trans_rate10_t0 <- 0.2
 
 # second epoch (young)
 birth_rate0_t1 ~ unif(n=n_batches, min=0.25, max=0.50)
-death_rate0_t1 <- 0.25
-birth_rate1_t1 <- 1.0
-death_rate1_t1 <- 0.5
-trans_rate01_t1 <- 0.6
-trans_rate10_t1 <- 0.8
+death_rate0_t1 <- 0.1
+birth_rate1_t1 <- 0.5
+death_rate1_t1 <- 0.1
+trans_rate01_t1 <- 0.2
+trans_rate10_t1 <- 0.2
 
 # deterministic-node variable ('det_birth_rate0_t0') assignment
 # second epoch (old)

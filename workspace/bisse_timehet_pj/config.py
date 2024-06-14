@@ -58,16 +58,15 @@ args = {
     #-------------------------------#
     # Train Step settings           #
     #-------------------------------#
-    'num_epochs'        : 10,               # number of training intervals (epochs)
+    'num_epochs'        : 50,               # number of training intervals (epochs)
     'prop_test'         : 0.05,             # proportion of sims in test dataset
     'prop_val'          : 0.05,             # proportion of sims in validation dataset
     'prop_cal'          : 0.20,             # proportion of sims in CPI calibration dataset
-    'cpi_coverage'      : 0.95,             # coverage level for CPIs
+    'cpi_coverage'      : 0.80,             # coverage level for CPIs
     'cpi_asymmetric'    : 'T',              # upper/lower ('T') or symmetric ('F') CPI adjustments
-    'trn_batch_size'    : 1024,             # number of samples in each training batch
+    'trn_batch_size'    : 4096,             # number of samples in each training batch
     'loss_numerical'    : 'mse',            # loss function for learning
     'optimizer'         : 'adam',           # optimizer for network weight/bias parameters
-    'log_offset'        : 1.0,
 
     #-------------------------------#
     # Estimate Step settings        #
