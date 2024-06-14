@@ -5,12 +5,9 @@ import subprocess
 from natsort import natsorted
 import pandas as pd
 
-__author__ = "Fabio K. Mendes"
-__email__ = "f.mendes@wustl.edu"
-
-
 # from scripts/
 # $ sudo python3 sim/PhyloJunction/sim_one.py sim/PhyloJunction/bisse_timehet.pj trs sim/PhyloJunction/ 1 10
+# $ python3 sim_bisse_timehet.py bisse_timehet.pj trs ./simulate out 0 1
 
 def parse_PJ_tree_tsv(out_path,
                       prefix,

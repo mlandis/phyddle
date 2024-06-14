@@ -127,7 +127,15 @@ class Simulator:
             rep_idx = set()
             files = os.listdir(f'{self.sim_dir}')
             for f in files:
-                rep_idx.add(int(f.split('.')[1]))
+                idx = None
+                try:
+                    idx = int(f.split('.')[1])
+                except ValueError:
+                    pass
+                if idx is not None:
+                    rep_idx.add(idx)
+
+                #rep_idx.add(int(f.split('.')[1]))
             
             if len(list(rep_idx)) > 0:
                 max_rep_idx = max(list(rep_idx))
