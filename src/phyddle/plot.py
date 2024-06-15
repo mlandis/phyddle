@@ -196,6 +196,7 @@ class Plotter:
         self.has_test_cat = False
         self.has_emp_num = False
         self.has_emp_cat = False
+        self.has_train_fmt = False
         
         # analysis info
         self.history_table = None          # init with load_input()
@@ -267,28 +268,32 @@ class Plotter:
         # load input from Format step
         train_labels = None
         if self.tensor_format == 'csv':
-            # csv tensor format
-            self.train_aux_data = util.read_csv_as_pandas( self.train_aux_data_fn )
-            train_labels = util.read_csv_as_pandas( self.train_labels_fn )
-            
+            try:
+                # csv tensor format
+                self.train_aux_data = util.read_csv_as_pandas( self.train_aux_data_fn )
+                train_labels = util.read_csv_as_pandas( self.train_labels_fn )
+                self.has_train_fmt = True
+            except FileNotFoundError:
+                pass
+                
         elif self.tensor_format == 'hdf5':
-            # hdf5 tensor format
-            hdf5_file = h5py.File(self.train_hdf5_fn, 'r')
-            train_aux_data_names = [ s.decode() for s in hdf5_file['aux_data_names'][0,:] ]
-            self.train_aux_data = pd.DataFrame( hdf5_file['aux_data'][:,:], columns=train_aux_data_names )
-            train_label_names = [ s.decode() for s in hdf5_file['label_names'][0,:] ]
-            train_labels = pd.DataFrame( hdf5_file['labels'][:,:], columns=train_label_names)
-            hdf5_file.close()
-
-        # split training labels from format into real/cat
-        self.train_labels_num = train_labels[ self.param_name_num ]
-        self.train_labels_cat = train_labels[ self.param_name_cat ]
-
-        # aux data column names
-        self.aux_data_names = self.train_aux_data.columns.to_list()
+            try:
+                # hdf5 tensor format
+                hdf5_file = h5py.File(self.train_hdf5_fn, 'r')
+                train_aux_data_names = [ s.decode() for s in hdf5_file['aux_data_names'][0,:] ]
+                self.train_aux_data = pd.DataFrame( hdf5_file['aux_data'][:,:], columns=train_aux_data_names )
+                train_label_names = [ s.decode() for s in hdf5_file['label_names'][0,:] ]
+                train_labels = pd.DataFrame( hdf5_file['labels'][:,:], columns=train_label_names)
+                hdf5_file.close()
+                self.has_train_fmt = True
+            except FileNotFoundError:
+                pass
+        
+        if not self.has_train_fmt:
+            util.print_str('▪ No training data found', verbose=self.verbose)
 
         # trained model
-        self.model = torch.load(self.model_arch_fn)
+        self.model = torch.load(self.model_arch_fn, map_location=torch.device('cpu'))
         self.model = self.model.to('cpu')
         
         # training true/estimated labels
@@ -330,7 +335,15 @@ class Plotter:
         if self.emp_est_cat is not None:
             self.has_emp_cat = True
             self.emp_est_cat = self.emp_est_cat.drop(columns=['idx'])
-        
+
+        if self.has_train_fmt:
+            # split training labels from format into real/cat
+            self.train_labels_num = train_labels[ self.param_name_num ]
+            self.train_labels_cat = train_labels[ self.param_name_cat ]
+    
+            # aux data column names
+            self.aux_data_names = self.train_aux_data.columns.to_list()
+
         # training history for network
         self.history_table   = util.read_csv_as_pandas(self.history_fn)
 
@@ -371,19 +384,21 @@ class Plotter:
         """
         
         # Densities for aux. data and labels
-        self.make_plot_stat_density('train', 'aux_data')
-        if self.has_train_num:
+        if self.has_train_fmt:
+            self.make_plot_stat_density('train', 'aux_data')
+        if self.has_train_num and self.has_train_fmt:
             self.make_plot_stat_density('train', 'labels')
 
-        if self.num_empirical >= self.plot_min_emp:
+        if self.num_empirical >= self.plot_min_emp and self.has_train_fmt:
             self.make_plot_stat_density('empirical', 'aux_data')
         if self.num_empirical >= self.plot_min_emp and self.has_emp_num:
             self.make_plot_stat_density('empirical', 'labels')
 
         # PCA-contours for aux. data and labels
-        aux_pca_model = self.make_plot_pca_hexbin('train', 'aux_data')
+        if self.has_train_fmt:
+            aux_pca_model = self.make_plot_pca_hexbin('train', 'aux_data')
         lbl_pca_model = None
-        if self.has_train_num:
+        if self.has_train_num and self.has_train_fmt:
             lbl_pca_model = self.make_plot_pca_hexbin('train', 'labels')
         # if self.num_empirical >= self.min_num_emp_density:
         #     self.make_plot_pca_contour('empirical', 'aux_data', pca_model=aux_pca_model)
