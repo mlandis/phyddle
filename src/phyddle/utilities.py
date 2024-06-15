@@ -428,16 +428,46 @@ def load_config(config_fn,
     if args.save_proj != '__no_value__':
         print_str(f"Saving project as '{args.save_proj}'...")
         tarball = tarfile.open(args.save_proj, 'w:gz')
+        print_str(f"  ▪ {config_fn}")
         tarball.add(config_fn)
         for tok in m['sim_command'].split(' '):
             if os.path.exists(tok):
+                print_str(f"  ▪ {tok}")
                 tarball.add(tok)
+        if os.path.isdir(m['sim_dir']):
+            sim_files = sorted_nicely( os.listdir(m['sim_dir']) )
+            eg_files = [ f for f in sim_files if f.endswith('.labels.csv') ]
+            eg_files = eg_files[0:5]
+            for f in eg_files:
+                tok = f.split('.')
+                idx_files = [ f for f in sim_files if f.startswith('.'.join(tok[0:2])+'.') ]
+                for g in idx_files:
+                    tarball.add(f'{m["sim_dir"]}/{g}')
+            if len(eg_files) > 0:
+                print_str(f"  ▪ {m['sim_dir']}   [num. examples: {len(eg_files)}]")
+        if os.path.isdir(m['fmt_dir']):
+            for f in os.listdir(m['fmt_dir']):
+                f_tok = f.split('.')
+                has_empirical = (f_tok[1] == 'empirical')
+                has_test = (f_tok[1] == 'test')
+                valid_prefix = f_tok[0] == m['fmt_prefix']
+                valid_ext = f_tok[-1] == 'csv' or f_tok[-1] == 'hdf5'
+                valid_data = has_test or has_empirical
+                if valid_prefix and valid_data and valid_ext:
+                    tarball.add(f'{m["fmt_dir"]}/{f}')
+            print_str(f"  ▪ {m['fmt_dir']}     [test & emp. only]")
         if os.path.isdir(m['emp_dir']):
             tarball.add(m['emp_dir'])
+            print_str(f"  ▪ {m['emp_dir']}")
         if os.path.isdir(m['trn_dir']):
             tarball.add(m['trn_dir'])
+            print_str(f"  ▪ {m['trn_dir']}")
         if os.path.isdir(m['est_dir']):
             tarball.add(m['est_dir'])
+            print_str(f"  ▪ {m['est_dir']}")
+        if os.path.isdir(m['plt_dir']):
+            tarball.add(m['plt_dir'])
+            print_str(f"  ▪ {m['plt_dir']}")
         tarball.close()
         print_str("... done!")
         sys.exit()
@@ -1035,6 +1065,12 @@ def append_row(df, row):
     df.loc[len(df)] = row
     return df
 
+
+def sorted_nicely(l):
+    """ Sort the given iterable in the way that humans expect."""
+    convert = lambda text: int(text) if text.isdigit() else text
+    alphanum_key = lambda key: [ convert(c) for c in re.split('([0-9]+)', key) ]
+    return sorted(l, key=alphanum_key)
 
 ##################################################
 
@@ -1637,8 +1673,8 @@ def make_clean_phyenc_str(x):
         else:
             return NUMPY_FLOAT_FMT_STR.format(y)
 
-    s = np.array2string(x, separator=',', max_line_width=int(1e200),
-                        threshold=int(1e200), edgeitems=int(1e200),
+    s = np.array2string(x, separator=',', max_line_width=1e200,
+                        threshold=1e200, edgeitems=1e200,
                         floatmode='maxprec',
                         formatter={'float_kind': numpy_formatter})
 
@@ -1659,8 +1695,8 @@ def ndarray_to_flat_str(x):
             return NUMPY_FLOAT_FMT_STR.format(y)
 
     # convert ndarray to formatted string
-    s = np.array2string(x, separator=',', max_line_width=int(1e200),
-                        threshold=int(1e200), edgeitems=int(1e200),
+    s = np.array2string(x, separator=',', max_line_width=1e200,
+                        threshold=1e200, edgeitems=1e200,
                         floatmode='maxprec',
                         formatter={'float_kind': numpy_formatter})
     # remove brackets, whitespace
