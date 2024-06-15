@@ -114,6 +114,8 @@ def settings_registry():
         'save_proj':         {'step': '',       'type': str,  'section': 'Basic',  'default': '__no_value__',  'help': "Save and zip a project for sharing", 'const': 'project.tar.gz'},
         'load_proj':         {'step': '',       'type': str,  'section': 'Basic',  'default': '__no_value__',  'help': "Unzip a shared project", 'const': 'project.tar.gz'},
         'clean_proj':        {'step': '',       'type': str,  'section': 'Basic',  'default': '__no_value__',  'help': "Remove step directories for a project", 'const': '.'},
+        'save_num_sim':      {'step': '',       'type': int,  'section': 'Basic',  'default': 10,              'help': 'Number of simulated examples to save with --save_proj'},
+        'save_train_fmt':    {'step': '',       'type': str,  'section': 'Basic',  'default': 'F',             'help': 'Save formatted training examples with --save_proj? (not recommended)', 'bool': False},
         'output_precision':  {'step': 'SFTEP',  'type': int,  'section': 'Basic',  'default': 16,              'help': 'Number of digits (precision) for numbers in output files'},
 
         # analysis options
@@ -426,75 +428,17 @@ def load_config(config_fn,
     # PROJECT MANAGEMENT
     # save project
     if args.save_proj != '__no_value__':
-        print_str(f"Saving project as '{args.save_proj}'...")
-        tarball = tarfile.open(args.save_proj, 'w:gz')
-        print_str(f"  ▪ {config_fn}")
-        tarball.add(config_fn)
-        for tok in m['sim_command'].split(' '):
-            if os.path.exists(tok):
-                print_str(f"  ▪ {tok}")
-                tarball.add(tok)
-        if os.path.isdir(m['sim_dir']):
-            sim_files = sorted_nicely( os.listdir(m['sim_dir']) )
-            eg_files = [ f for f in sim_files if f.endswith('.labels.csv') ]
-            eg_files = eg_files[0:5]
-            for f in eg_files:
-                tok = f.split('.')
-                idx_files = [ f for f in sim_files if f.startswith('.'.join(tok[0:2])+'.') ]
-                for g in idx_files:
-                    tarball.add(f'{m["sim_dir"]}/{g}')
-            if len(eg_files) > 0:
-                print_str(f"  ▪ {m['sim_dir']}   [num. examples: {len(eg_files)}]")
-        if os.path.isdir(m['fmt_dir']):
-            for f in os.listdir(m['fmt_dir']):
-                f_tok = f.split('.')
-                has_empirical = (f_tok[1] == 'empirical')
-                has_test = (f_tok[1] == 'test')
-                valid_prefix = f_tok[0] == m['fmt_prefix']
-                valid_ext = f_tok[-1] == 'csv' or f_tok[-1] == 'hdf5'
-                valid_data = has_test or has_empirical
-                if valid_prefix and valid_data and valid_ext:
-                    tarball.add(f'{m["fmt_dir"]}/{f}')
-            print_str(f"  ▪ {m['fmt_dir']}     [test & emp. only]")
-        if os.path.isdir(m['emp_dir']):
-            tarball.add(m['emp_dir'])
-            print_str(f"  ▪ {m['emp_dir']}")
-        if os.path.isdir(m['trn_dir']):
-            tarball.add(m['trn_dir'])
-            print_str(f"  ▪ {m['trn_dir']}")
-        if os.path.isdir(m['est_dir']):
-            tarball.add(m['est_dir'])
-            print_str(f"  ▪ {m['est_dir']}")
-        if os.path.isdir(m['plt_dir']):
-            tarball.add(m['plt_dir'])
-            print_str(f"  ▪ {m['plt_dir']}")
-        tarball.close()
-        print_str("... done!")
+        save_project(m, args, config_fn)
         sys.exit()
 
     # load project
     if args.load_proj != '__no_value__':
-        print_str(f"Loading project '{args.load_proj}'...")
-        tarball = tarfile.open(args.load_proj, 'r:gz')
-        for f in tarball:
-            try:
-                tarball.extract(f)
-            except IOError:
-                os.remove(f.name)
-                tarball.extract(f)
-            finally:
-                os.chmod(f.name, f.mode)
-        tarball.close()
-        print_str("... done!")
+        load_project(args)
         sys.exit()
 
     # clean project
     if args.clean_proj != '__no_value__':
-        print_str(f"Cleaning project in directory '{args.clean_proj}'...")
-        for d in ['sim_dir', 'fmt_dir', 'trn_dir', 'est_dir', 'plt_dir']:
-            if os.path.isdir(m[d]):
-                shutil.rmtree(m[d])
-        print_str("... done!")
+        clean_project(m, args)
         sys.exit()
 
     if not run_mode:
@@ -502,6 +446,88 @@ def load_config(config_fn,
 
     # return new args
     return m
+
+
+def save_project(m, args, config_fn):
+    """Save a project as a tarball for sharing."""
+    print_str(f"Saving project as '{args.save_proj}'...")
+    tarball = tarfile.open(args.save_proj, 'w:gz')
+    print_str(f"  ▪ {config_fn}")
+    tarball.add(config_fn)
+    for tok in m['sim_command'].split(' '):
+        if os.path.exists(tok):
+            print_str(f"  ▪ {tok}")
+            tarball.add(tok)
+    if os.path.isdir(m['sim_dir']):
+        sim_files = os.listdir(m['sim_dir'])
+        sim_files = sorted_nicely(sim_files)
+        eg_files = [ f for f in sim_files if f.endswith('.labels.csv') ]
+        num_save_sim = m['save_num_sim']
+        eg_files = eg_files[:num_save_sim]
+        for f in eg_files:
+            tok = f.split('.')
+            idx_files = [ f for f in sim_files if f.startswith('.'.join(tok[0:2])+'.') ]
+            for g in idx_files:
+                tarball.add(f'{m["sim_dir"]}/{g}')
+        if len(eg_files) > 0:
+            print_str(f"  ▪ {m['sim_dir']}   [num. examples: {len(eg_files)}]")
+    if os.path.isdir(m['fmt_dir']):
+        for f in os.listdir(m['fmt_dir']):
+            f_tok = f.split('.')
+            has_empirical = (f_tok[1] == 'empirical')
+            has_test = (f_tok[1] == 'test')
+            has_train = (f_tok[1] == 'train') and m['save_train_fmt']
+            valid_prefix = f_tok[0] == m['fmt_prefix']
+            valid_ext = f_tok[-1] == 'csv' or f_tok[-1] == 'hdf5'
+            valid_data = has_test or has_empirical or has_train
+            if valid_prefix and valid_data and valid_ext:
+                tarball.add(f'{m["fmt_dir"]}/{f}')
+        if not m['save_train_fmt']:
+            print_str(f"  ▪ {m['fmt_dir']}     [train not saved]")
+        else:
+            print_str(f"  ▪ {m['fmt_dir']}")
+    if os.path.isdir(m['emp_dir']):
+        tarball.add(m['emp_dir'])
+        print_str(f"  ▪ {m['emp_dir']}")
+    if os.path.isdir(m['trn_dir']):
+        tarball.add(m['trn_dir'])
+        print_str(f"  ▪ {m['trn_dir']}")
+    if os.path.isdir(m['est_dir']):
+        tarball.add(m['est_dir'])
+        print_str(f"  ▪ {m['est_dir']}")
+    if os.path.isdir(m['plt_dir']):
+        tarball.add(m['plt_dir'])
+        print_str(f"  ▪ {m['plt_dir']}")
+    tarball.close()
+    print_str("... done!")
+    return
+
+
+def load_project(args):
+    """Load a project from a tarball."""
+    print_str(f"Loading project '{args.load_proj}'...")
+    tarball = tarfile.open(args.load_proj, 'r:gz')
+    for f in tarball:
+        try:
+            tarball.extract(f)
+        except IOError:
+            os.remove(f.name)
+            tarball.extract(f)
+        finally:
+            os.chmod(f.name, f.mode)
+    tarball.close()
+    print_str("... done!")
+    return
+
+
+def clean_project(m, args):
+    """Clean a project."""
+    print_str(f"Cleaning project in directory '{args.clean_proj}'...")
+    for d in ['sim_dir', 'fmt_dir', 'trn_dir', 'est_dir', 'plt_dir']:
+        if os.path.isdir(m[d]):
+            shutil.rmtree(m[d])
+    print_str("... done!")
+    return
 
 
 def fix_arg_bool(m):
