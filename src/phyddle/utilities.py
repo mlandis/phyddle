@@ -110,10 +110,10 @@ def settings_registry():
         'cfg':               {'step': '',       'type': str,  'section': 'Basic',  'default': 'config.py',     'help': 'Config file name', 'opt': 'c'},
         'step':              {'step': 'SFTEP',  'type': str,  'section': 'Basic',  'default': 'SFTEP',         'help': 'Pipeline step(s) defined with (S)imulate, (F)ormat, (T)rain, (E)stimate, (P)lot, or (A)ll', 'opt': 's'},
         'verbose':           {'step': 'SFTEP',  'type': str,  'section': 'Basic',  'default': 'T',             'help': 'Verbose output to screen?', 'bool': True, 'opt': 'v'},
-        'make_cfg':          {'step': '',       'type': str,  'section': 'Basic',  'default': '__no_value__',  'help': "Write default config file", 'const': CONFIG_DEFAULT_FN},
-        'save_proj':         {'step': '',       'type': str,  'section': 'Basic',  'default': '__no_value__',  'help': "Save and zip a project for sharing", 'const': 'project.tar.gz'},
-        'load_proj':         {'step': '',       'type': str,  'section': 'Basic',  'default': '__no_value__',  'help': "Unzip a shared project", 'const': 'project.tar.gz'},
-        'clean_proj':        {'step': '',       'type': str,  'section': 'Basic',  'default': '__no_value__',  'help': "Remove step directories for a project", 'const': '.'},
+        'make_cfg':          {'step': '',       'type': str,  'section': 'Basic',  'default': '__no_value__',  'help': 'Write default config file', 'const': CONFIG_DEFAULT_FN},
+        'save_proj':         {'step': '',       'type': str,  'section': 'Basic',  'default': '__no_value__',  'help': 'Save and zip a project for sharing', 'const': 'project.tar.gz'},
+        'load_proj':         {'step': '',       'type': str,  'section': 'Basic',  'default': '__no_value__',  'help': 'Unzip a shared project', 'const': 'project.tar.gz'},
+        'clean_proj':        {'step': '',       'type': str,  'section': 'Basic',  'default': '__no_value__',  'help': 'Remove step directories for a project', 'const': '.'},
         'save_num_sim':      {'step': '',       'type': int,  'section': 'Basic',  'default': 10,              'help': 'Number of simulated examples to save with --save_proj'},
         'save_train_fmt':    {'step': '',       'type': str,  'section': 'Basic',  'default': 'F',             'help': 'Save formatted training examples with --save_proj? (not recommended)', 'bool': False},
         'output_precision':  {'step': 'SFTEP',  'type': int,  'section': 'Basic',  'default': 16,              'help': 'Number of digits (precision) for numbers in output files'},
@@ -206,10 +206,28 @@ def settings_registry():
     }
 
     # Developer note: uncomment to export settings to file
-    # export_settings_to_sphinx_table(settings)
+    export_settings_to_sphinx_table(settings)
 
     return settings
 
+
+class CustomHelpFormatter(argparse.HelpFormatter):
+    """Replaces default argparse help formatter
+    This is modified ChatGPT code designed to suppress arguments with the const
+    field set (e.g. make_cfg, load_proj, etc.) from displaying useless
+    option/flag arguments when calling phyddle --help."""
+    def _format_action_invocation(self, action):
+        if not action.option_strings:
+            return super(CustomHelpFormatter, self)._format_action_invocation(action)
+
+        # Custom handling for actions with `const` values
+        if action.const is not None:
+            # This is where make_cfg, load_proj, etc. help tags are cleaned
+            return ', '.join(action.option_strings)
+        
+        default = self._get_default_metavar_for_optional(action)
+        args_string = self._format_args(action, default)
+        return ', '.join(action.option_strings) + ' ' + args_string
 
 def export_settings_to_sphinx_table(settings, csv_fn='phyddle_settings.csv'):
     """Writes all phyddle settings to file as Sphinx-formatted table """
@@ -289,8 +307,10 @@ def load_config(config_fn,
         args = sys.argv[1:]
 
     # argument parsing
-    desc = 'Software to fiddle around with deep learning for phylogenetic models'
-    parser = argparse.ArgumentParser(description=desc)
+    desc = ('Software to fiddle around with deep learning for phylogenetic '
+            'models. Visit https://mlandis.github.io/phyddle for documentation.')
+    parser = argparse.ArgumentParser(description=desc,
+                                     formatter_class=CustomHelpFormatter)
 
     # read settings registry and populate argument parser
     settings = settings_registry()
@@ -311,14 +331,14 @@ def load_config(config_fn,
         elif arg_const is not None:
             # used for special flags, --save_proj, --load_proj, --clean_proj
             parser.add_argument(*arg_opt, nargs='?', const=arg_const,
-                                default=v['default'], type=arg_type,
+                                default=v['default'], type=arg_type, metavar='',
                                 help=arg_help)
         else:
             if 'choices' in v:
                 arg_choices = v['choices']
                 parser.add_argument(*arg_opt, dest=arg_dest,
                                     type=arg_type, choices=arg_choices,
-                                    help=arg_help, metavar='')
+                                    help=arg_help, metavar=None)
             else:
                 parser.add_argument(*arg_opt, dest=arg_dest,
                                     type=arg_type, help=arg_help, metavar='')
