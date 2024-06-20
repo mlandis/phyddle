@@ -118,13 +118,6 @@ def settings_registry():
         'save_train_fmt':    {'step': '',       'type': str,  'section': 'Basic',  'default': 'F',             'help': 'Save formatted training examples with --save_proj? (not recommended)', 'bool': False},
         'output_precision':  {'step': 'SFTEP',  'type': int,  'section': 'Basic',  'default': 16,              'help': 'Number of digits (precision) for numbers in output files'},
 
-        # analysis options
-        'use_parallel':  {'step': 'SF',   'type': str,   'section': 'Analysis',  'default': 'T',    'help': 'Use parallelization? (recommended)', 'bool': True},
-        'use_cuda':      {'step': 'TE',   'type': str,   'section': 'Analysis',  'default': 'T',    'help': 'Use CUDA parallelization? (recommended; requires Nvidia GPU)', 'bool': True},
-        'num_proc':      {'step': 'SFT',  'type': int,   'section': 'Analysis',  'default': -2,     'help': 'Number of cores for multiprocessing (-N for all but N)'},
-        'no_emp':        {'step': '',     'type': None,  'section': 'Analysis',  'default': False,  'help': 'Disable Format/Estimate steps for empirical data?'},
-        'no_sim':        {'step': '',     'type': None,  'section': 'Analysis',  'default': False,  'help': 'Disable Format/Estimate steps for simulated data?'},
-
         # directories
         'dir':         {'step': 'SFTEP',  'type': str,  'section': 'Workspace',  'default': './',   'help': 'Parent directory for all step directories unless step directory given'},
         'sim_dir':     {'step': 'SF',     'type': str,  'section': 'Workspace',  'default': None,   'help': 'Directory for raw simulated data'},
@@ -141,6 +134,13 @@ def settings_registry():
         'trn_prefix':  {'step': 'FTEP',   'type': str,  'section': 'Workspace',  'default': None,   'help': 'Prefix for trained networks and training output'},
         'est_prefix':  {'step': 'TEP',    'type': str,  'section': 'Workspace',  'default': None,   'help': 'Prefix for estimate results'},
         'plt_prefix':  {'step': 'P',      'type': str,  'section': 'Workspace',  'default': None,   'help': 'Prefix for plotted results'},
+
+        # analysis options
+        'use_parallel':  {'step': 'SF',   'type': str,   'section': 'Analysis',  'default': 'T',    'help': 'Use parallelization? (recommended)', 'bool': True},
+        'use_cuda':      {'step': 'TE',   'type': str,   'section': 'Analysis',  'default': 'T',    'help': 'Use CUDA parallelization? (recommended; requires Nvidia GPU)', 'bool': True},
+        'num_proc':      {'step': 'SFT',  'type': int,   'section': 'Analysis',  'default': -2,     'help': 'Number of cores for multiprocessing (-N for all but N)'},
+        'no_emp':        {'step': '',     'type': None,  'section': 'Analysis',  'default': False,  'help': 'Disable Format/Estimate steps for empirical data?'},
+        'no_sim':        {'step': '',     'type': None,  'section': 'Analysis',  'default': False,  'help': 'Disable Format/Estimate steps for simulated data?'},
 
         # simulation options
         'sim_command':     {'step': 'S',   'type': str,  'section': 'Simulate',  'default': None,      'help': 'Simulation command to run single job (see documentation)'},
@@ -168,7 +168,7 @@ def settings_registry():
         'save_phyenc_csv':  {'step': 'F',     'type': str,   'section': 'Format',  'default': 'F',             'help': 'Save encoded phylogenetic tensor encoding to csv?', 'bool': True},
 
         # training options
-        'num_epochs':           {'step': 'TEP',    'type': int,    'section': 'Train','  default': 20,             'help': 'Number of training epochs'},
+        'num_epochs':           {'step': 'TEP',    'type': int,    'section': 'Train',  'default': 50,             'help': 'Number of training epochs'},
         'num_early_stop':       {'step': 'TEP',    'type': int,    'section': 'Train',  'default': 3,              'help': 'Number of consecutive validation loss gains before early stopping'},
         'trn_batch_size':       {'step': 'TEP',    'type': int,    'section': 'Train',  'default': 512,            'help': 'Training batch sizes'},
         'prop_test':            {'step': 'FT',     'type': float,  'section': 'Train',  'default': 0.05,           'help': 'Proportion of data used as test examples (assess trained network performance)'},
@@ -780,8 +780,9 @@ def make_default_config(config_fn):
 
     # order sections
     section_settings = dict()
-    section_settings['Workspace'] = {}
+    section_settings['Basic'] = {}
     section_settings['Analysis'] = {}
+    section_settings['Workspace'] = {}
     section_settings['Simulate'] = {}
     section_settings['Format'] = {}
     section_settings['Train'] = {}

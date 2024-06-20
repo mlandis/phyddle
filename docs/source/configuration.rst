@@ -52,7 +52,6 @@ if desired.
     # Description:  Simple BiSSE model                                             #
     #==============================================================================#
 
-    work_dir = './'                           # Assumes config is run from local dir
     args = {
         #-------------------------------#
         # Basic                         #
@@ -61,8 +60,6 @@ if desired.
                                                #   (S)imulate, (F)ormat, (T)rain,
                                                #   (E)stimate, (P)lot, or (A)ll
         'verbose'            : 'T',            # Verbose output to screen?
-        'output_precision'   : 16,             # Number of digits (precision)
-                                               #   for numbers in output files
 
         #-------------------------------#
         # Analysis                      #
@@ -70,31 +67,20 @@ if desired.
         'use_parallel'       : 'T',            # Use parallelization? (recommended)
         'num_proc'           : -2,             # Number of cores for multiprocessing 
                                                #   (-N for all but N)
-
+        'use_cuda'           : 'T',            # Use CUDA parallelization?
+                                               #   (recommended; requires Nvidia GPU)
+                                               
         #-------------------------------#
         # Workspace                     #
         #-------------------------------#
         
-        'dir'                : f'{work_dir}',           # Base directory for all step directories
-        'sim_dir'            : f'{work_dir}/simulate',  # Directory for raw simulated data
-        'emp_dir'            : f'{work_dir}/empirical', # Directory for raw simulated data
-        'fmt_dir'            : f'{work_dir}/format',    # Directory for tensor-formatted simulated data
-        'trn_dir'            : f'{work_dir}/train',     # Directory for trained networks and training output
-        'est_dir'            : f'{work_dir}/estimate',  # Directory for new datasets and estimates
-        'plt_dir'            : f'{work_dir}/plot',      # Directory for plotted results
-        'log_dir'            : f'{work_dir}/log',       # Directory for logs of analysis metadata
-        'prefix'             : 'out',          # Prefix for all output unless step prefix given
-        'sim_prefix'         : 'out',          # Prefix for raw simulated data
-        'emp_prefix'         : 'out',          # Prefix for raw empirical data
-        'fmt_prefix'         : 'out',          # Prefix for tensor-formatted data
-        'trn_prefix'         : 'out',          # Prefix for trained networks and training output
-        'est_prefix'         : 'out',          # Prefix for new datasets and estimates
-        'plt_prefix'         : 'out',          # Prefix for plotted results
+        'dir'                : './',           # Base directory for all step directories
+        'prefix'             : 'out',                   # Prefix for all output unless step prefix given
 
         #-------------------------------#
         # Simulate                      #
         #-------------------------------#
-        'sim_command'        : f'Rscript {work_dir}/sim_bisse.R', # Simulation command to run single
+        'sim_command'        : f'Rscript ./sim_bisse.R', # Simulation command to run single
                                                                   #   job (see documentation)
         'sim_logging'        : 'verbose',                 # Simulation logging style
         'start_idx'          : 0,                         # Start index for simulated training replicates
@@ -127,7 +113,6 @@ if desired.
         },
         'char_format'        : 'csv',                # File format for character data
         'tensor_format'      : 'hdf5',               # File format for training example tensors
-        'save_phyenc_csv'    : 'F',                  # Save encoded phylogenetic tensor encoding to csv?
 
         #-------------------------------#
         # Train                         #
