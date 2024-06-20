@@ -2,9 +2,15 @@ Setting|Step(s)|Type|Description
 ``cfg``|–––––|*str*|Config file name
 ``step``|SFTEP|*str*|Pipeline step(s) defined with (S)imulate, (F)ormat, (T)rain, (E)stimate, (P)lot, or (A)ll
 ``verbose``|SFTEP|*str*|Verbose output to screen?
-``make_cfg``|–––––|––|Write default config file to '__config_default.py'?
+``make_cfg``|–––––|*str*|Write default config file
+``save_proj``|–––––|*str*|Save and zip a project for sharing
+``load_proj``|–––––|*str*|Unzip a shared project
+``clean_proj``|–––––|*str*|Remove step directories for a project
+``save_num_sim``|–––––|*int*|Number of simulated examples to save with --save_proj
+``save_train_fmt``|–––––|*str*|Save formatted training examples with --save_proj? (not recommended)
 ``output_precision``|SFTEP|*int*|Number of digits (precision) for numbers in output files
 ``use_parallel``|SF–––|*str*|Use parallelization? (recommended)
+``use_cuda``|––TE–|*str*|Use CUDA parallelization? (recommended; requires Nvidia GPU)
 ``num_proc``|SFT––|*int*|Number of cores for multiprocessing (-N for all but N)
 ``no_emp``|–––––|––|Disable Format/Estimate steps for empirical data?
 ``no_sim``|–––––|––|Disable Format/Estimate steps for simulated data?
@@ -45,13 +51,14 @@ Setting|Step(s)|Type|Description
 ``tensor_format``|–FTEP|*str*|File format for training example tensors
 ``save_phyenc_csv``|–F–––|*str*|Save encoded phylogenetic tensor encoding to csv?
 ``num_epochs``|––TEP|*int*|Number of training epochs
+``num_early_stop``|––TEP|*int*|Number of consecutive validation loss gains before early stopping
 ``trn_batch_size``|––TEP|*int*|Training batch sizes
 ``prop_test``|–FT––|*float*|Proportion of data used as test examples (assess trained network performance)
 ``prop_val``|––T––|*float*|Proportion of data used as validation examples (diagnose network overtraining)
 ``prop_cal``|––T––|*float*|Proportion of data used as calibration examples (calibrate CPIs)
 ``cpi_coverage``|––T––|*float*|Expected coverage percent for calibrated prediction intervals (CPIs)
 ``cpi_asymmetric``|––T––|*str*|Use asymmetric (True) or symmetric (False) adjustments for CPIs?
-``loss_real``|––T––|*str*|Loss function for real value estimates
+``loss_numerical``|––T––|*str*|Loss function for real value estimates
 ``optimizer``|––T––|*str*|Method used for optimizing neural network
 ``log_offset``|–FTEP|*float*|Offset size c when taking ln(x+c) for zero-valued variables
 ``phy_channel_plain``|––T––|*int[]*|Output channel sizes for plain convolutional layers for phylogenetic state input
@@ -73,3 +80,4 @@ Setting|Step(s)|Type|Description
 ``plot_num_scatter``|––––P|*int*|Number of examples in scatter plot
 ``plot_min_emp``|––––P|*int*|Minimum number of empirical datasets to plot densities
 ``plot_num_emp``|––––P|*int*|Number of empirical results to plot
+``plot_pca_noise``|––––P|*float*|Scale of Gaussian noise to add to PCA plot
