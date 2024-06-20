@@ -206,7 +206,7 @@ def settings_registry():
     }
 
     # Developer note: uncomment to export settings to file
-    export_settings_to_sphinx_table(settings)
+    # export_settings_to_sphinx_table(settings)
 
     return settings
 

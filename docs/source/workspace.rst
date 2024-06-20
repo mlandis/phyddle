@@ -71,10 +71,55 @@ work into these directories:
 	./estimate       # output of Estimate step
 	./plot           # output of Plot step
 	./log            # logs for phyddle analyses
-	
-Next, we give an overview of the standard files and formats corresponding to
-each pipeline directory.
 
+Soon, we give an overview of the standard files and formats corresponding to
+each pipeline directory. First, we describe a commands that help with workspace
+management.
+
+You can easily save and share your project workspace with the following command:
+
+.. code-block:: shell
+
+	cd workspace/example                         # current directory is root of
+	                                             #     example project directory
+
+	phyddle --save_proj example_lite.tar.gz      # save project workspace, but
+	                                             #     skip simulated training data
+                                                 #     (faster, smaller)
+
+The resulting zip file (tarball) will contain the config file, the simulation script,
+and all workspace directories for pipeline steps. Note, the raw and formatted
+simulated training example datasets tend to be very large, and require substantial
+time and storage to archive, so they are not fully saved by default. To fully save
+all workspace project data, add the following options:
+
+.. code-block:: shell
+
+    phyddle --save_proj example_full.tar.gz \    # save full project, and
+            --save_train_fmt T \                 #     include simulated training data
+            --save_num_sim 1000000               #     (slower, larger)
+
+If you share the project with a collaborator or save it on a server, you can load
+the project for use with the command:
+
+.. code-block:: shell
+
+    mkdir -p ~/new_workspace/new_project         # create new project directory
+    cd ~/new_workspace/new_project               # enter new project directory
+    phyddle --load_proj example_lite.tar.gz      # load project in directory
+    phyddle -s S --sim_more 10000                # (e.g.) simulate 10,000 training examples
+
+Lastly, you can quickly remove all existing workspace directories, while preserving
+the config file and simulation scripts, with the following command:
+
+.. code-block:: shell
+
+    cd workspace/example                         # enter directory to clean
+    phyddle --clean_proj                         # remove all local workspace directories
+
+These are powerful commands, so be careful when using them. They can remove
+or overwrite files that you want to keep. Master these commands in a safe test
+directory before applying them to important workspace projects.
 
 ``simulate``
 ------------
