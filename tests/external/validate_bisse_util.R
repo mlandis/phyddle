@@ -156,6 +156,9 @@ make_input_table = function(x, unlog=T) {
     
     # assign parameter names
     par_names = x[[1]]$param_names
+    if (unlog) {
+        par_names = gsub("^log_","",par_names)
+    }
     colnames(par_true)=colnames(par_cnn_point)=colnames(par_cnn_lower)=colnames(par_cnn_upper)=colnames(par_mle)=par_names
     
     # return results
@@ -173,8 +176,8 @@ make_input_table = function(x, unlog=T) {
 
 plot_comparison = function(dat, stat, out_fn="validate_bisse.pdf") {
 
-    param_name = colnames(dat$par_true)
-    num_param = length(param_name)
+    param_names = colnames(dat$par_true)
+    num_param = length(param_names)
     
     pdf(out_fn, width=10, height=7)
     

@@ -52,7 +52,6 @@ if desired.
     # Description:  Simple BiSSE model                                             #
     #==============================================================================#
 
-    work_dir = './'                           # Assumes config is run from local dir
     args = {
         #-------------------------------#
         # Basic                         #
@@ -61,8 +60,6 @@ if desired.
                                                #   (S)imulate, (F)ormat, (T)rain,
                                                #   (E)stimate, (P)lot, or (A)ll
         'verbose'            : 'T',            # Verbose output to screen?
-        'output_precision'   : 16,             # Number of digits (precision)
-                                               #   for numbers in output files
 
         #-------------------------------#
         # Analysis                      #
@@ -70,31 +67,20 @@ if desired.
         'use_parallel'       : 'T',            # Use parallelization? (recommended)
         'num_proc'           : -2,             # Number of cores for multiprocessing 
                                                #   (-N for all but N)
-
+        'use_cuda'           : 'T',            # Use CUDA parallelization?
+                                               #   (recommended; requires Nvidia GPU)
+                                               
         #-------------------------------#
         # Workspace                     #
         #-------------------------------#
         
-        'dir'                : f'{work_dir}',           # Base directory for all step directories
-        'sim_dir'            : f'{work_dir}/simulate',  # Directory for raw simulated data
-        'emp_dir'            : f'{work_dir}/empirical', # Directory for raw simulated data
-        'fmt_dir'            : f'{work_dir}/format',    # Directory for tensor-formatted simulated data
-        'trn_dir'            : f'{work_dir}/train',     # Directory for trained networks and training output
-        'est_dir'            : f'{work_dir}/estimate',  # Directory for new datasets and estimates
-        'plt_dir'            : f'{work_dir}/plot',      # Directory for plotted results
-        'log_dir'            : f'{work_dir}/log',       # Directory for logs of analysis metadata
-        'prefix'             : 'out',          # Prefix for all output unless step prefix given
-        'sim_prefix'         : 'out',          # Prefix for raw simulated data
-        'emp_prefix'         : 'out',          # Prefix for raw empirical data
-        'fmt_prefix'         : 'out',          # Prefix for tensor-formatted data
-        'trn_prefix'         : 'out',          # Prefix for trained networks and training output
-        'est_prefix'         : 'out',          # Prefix for new datasets and estimates
-        'plt_prefix'         : 'out',          # Prefix for plotted results
+        'dir'                : './',           # Base directory for all step directories
+        'prefix'             : 'out',                   # Prefix for all output unless step prefix given
 
         #-------------------------------#
         # Simulate                      #
         #-------------------------------#
-        'sim_command'        : f'Rscript {work_dir}/sim_bisse.R', # Simulation command to run single
+        'sim_command'        : f'Rscript ./sim_bisse.R', # Simulation command to run single
                                                                   #   job (see documentation)
         'sim_logging'        : 'verbose',                 # Simulation logging style
         'start_idx'          : 0,                         # Start index for simulated training replicates
@@ -127,7 +113,6 @@ if desired.
         },
         'char_format'        : 'csv',                # File format for character data
         'tensor_format'      : 'hdf5',               # File format for training example tensors
-        'save_phyenc_csv'    : 'F',                  # Save encoded phylogenetic tensor encoding to csv?
 
         #-------------------------------#
         # Train                         #
@@ -200,157 +185,152 @@ adjusted with the command line using the ``--help`` option:
 
 .. code-block::
 
-	usage: phyddle [-h] [-c] [-s] [-v] [--make_cfg]
-                   [--output_precision] [--use_parallel] [--num_proc]
-                   [--no_emp] [--no_sim] [--dir] [--sim_dir]
-                   [--emp_dir] [--fmt_dir] [--trn_dir] [--est_dir]
-                   [--plt_dir] [--log_dir] [--prefix] [--sim_prefix]
-                   [--emp_prefix] [--fmt_prefix] [--trn_prefix]
-                   [--est_prefix] [--plt_prefix] [--sim_command]
-                   [--sim_logging] [--start_idx] [--end_idx]
-                   [--sim_more] [--sim_batch_size] [--encode_all_sim]
-                   [--num_char] [--num_states] [--min_num_taxa]
-                   [--max_num_taxa] [--downsample_taxa] [--tree_width]
-                   [--tree_encode] [--brlen_encode] [--char_encode]
-                   [--param_est] [--param_data] [--char_format]
-                   [--tensor_format] [--save_phyenc_csv]
-                   [--num_epochs] [--trn_batch_size] [--prop_test]
-                   [--prop_val] [--prop_cal] [--cpi_coverage]
-                   [--cpi_asymmetric] [--loss_numerical] [--optimizer]
-                   [--log_offset] [--phy_channel_plain]
-                   [--phy_channel_stride] [--phy_channel_dilate]
-                   [--aux_channel] [--lbl_channel]
-                   [--phy_kernel_plain] [--phy_kernel_stride]
-                   [--phy_kernel_dilate] [--phy_stride_stride]
-                   [--phy_dilate_dilate] [--plot_train_color]
-                   [--plot_test_color] [--plot_val_color]
-                   [--plot_label_color] [--plot_aux_color]
-                   [--plot_emp_color] [--plot_num_scatter]
-                   [--plot_min_emp] [--plot_num_emp]
-    
-    Software to fiddle around with deep learning for phylogenetic
-    models
+	usage: phyddle [-h] [-c] [-s] [-v] [--make_cfg ] [--save_proj ] [--load_proj ]
+               [--clean_proj ] [--save_num_sim] [--save_train_fmt]
+               [--output_precision] [--use_parallel] [--use_cuda] [--num_proc]
+               [--no_emp] [--no_sim] [--dir] [--sim_dir] [--emp_dir]
+               [--fmt_dir] [--trn_dir] [--est_dir] [--plt_dir] [--log_dir]
+               [--prefix] [--sim_prefix] [--emp_prefix] [--fmt_prefix]
+               [--trn_prefix] [--est_prefix] [--plt_prefix] [--sim_command]
+               [--sim_logging {clean,compress,verbose}] [--start_idx]
+               [--end_idx] [--sim_more] [--sim_batch_size] [--encode_all_sim]
+               [--num_char] [--num_states] [--min_num_taxa] [--max_num_taxa]
+               [--downsample_taxa {uniform}] [--tree_width]
+               [--tree_encode {extant,serial}]
+               [--brlen_encode {height_only,height_brlen}]
+               [--char_encode {one_hot,integer,numeric}] [--param_est]
+               [--param_data] [--char_format {csv,nexus}]
+               [--tensor_format {csv,hdf5}] [--save_phyenc_csv] [--num_epochs]
+               [--num_early_stop] [--trn_batch_size] [--prop_test]
+               [--prop_val] [--prop_cal] [--cpi_coverage] [--cpi_asymmetric]
+               [--loss_numerical {mse,mae}] [--optimizer {adam}]
+               [--log_offset] [--phy_channel_plain] [--phy_channel_stride]
+               [--phy_channel_dilate] [--aux_channel] [--lbl_channel]
+               [--phy_kernel_plain] [--phy_kernel_stride]
+               [--phy_kernel_dilate] [--phy_stride_stride]
+               [--phy_dilate_dilate] [--plot_train_color] [--plot_test_color]
+               [--plot_val_color] [--plot_label_color] [--plot_aux_color]
+               [--plot_emp_color] [--plot_num_scatter] [--plot_min_emp]
+               [--plot_num_emp] [--plot_pca_noise]
+
+    Software to fiddle around with deep learning for phylogenetic models
     
     options:
       -h, --help            show this help message and exit
-      -c , --cfg            Config file name
-      -s , --step           Pipeline step(s) defined with (S)imulate,
-                            (F)ormat, (T)rain, (E)stimate, (P)lot, or
-                            (A)ll
-      -v , --verbose        Verbose output to screen?
-      --make_cfg            Write default config file to
-                            '__config_default.py'?
-      --output_precision    Number of digits (precision) for numbers
-                            in output files
+      -c, --cfg             Config file name
+      -s, --step            Pipeline step(s) defined with (S)imulate, (F)ormat,
+                            (T)rain, (E)stimate, (P)lot, or (A)ll
+      -v, --verbose         Verbose output to screen?
+      --make_cfg            Write default config file
+      --save_proj           Save and zip a project for sharing
+      --load_proj           Unzip a shared project
+      --clean_proj          Remove step directories for a project
+      --save_num_sim        Number of simulated examples to save with --save_proj
+      --save_train_fmt      Save formatted training examples with --save_proj?
+                            (not recommended)
+      --output_precision    Number of digits (precision) for numbers in output
+                            files
       --use_parallel        Use parallelization? (recommended)
-      --num_proc            Number of cores for multiprocessing (-N
-                            for all but N)
-      --no_emp              Disable Format/Estimate steps for
-                            empirical data?
-      --no_sim              Disable Format/Estimate steps for
-                            simulated data?
-      --dir                 Parent directory for all step directories
-                            unless step directory given
+      --use_cuda            Use CUDA parallelization? (recommended; requires
+                            Nvidia GPU)
+      --num_proc            Number of cores for multiprocessing (-N for all but N)
+      --no_emp              Disable Format/Estimate steps for empirical data?
+      --no_sim              Disable Format/Estimate steps for simulated data?
+      --dir                 Parent directory for all step directories unless step
+                            directory given
       --sim_dir             Directory for raw simulated data
       --emp_dir             Directory for raw empirical data
       --fmt_dir             Directory for tensor-formatted data
-      --trn_dir             Directory for trained networks and
-                            training output
+      --trn_dir             Directory for trained networks and training output
       --est_dir             Directory for new datasets and estimates
       --plt_dir             Directory for plotted results
       --log_dir             Directory for logs of analysis metadata
-      --prefix              Prefix for all output unless step prefix
-                            given
+      --prefix              Prefix for all output unless step prefix given
       --sim_prefix          Prefix for raw simulated data
       --emp_prefix          Prefix for raw empirical data
       --fmt_prefix          Prefix for tensor-formatted data
-      --trn_prefix          Prefix for trained networks and training
-                            output
+      --trn_prefix          Prefix for trained networks and training output
       --est_prefix          Prefix for estimate results
       --plt_prefix          Prefix for plotted results
-      --sim_command         Simulation command to run single job (see
-                            documentation)
-      --sim_logging         Simulation logging style
-      --start_idx           Start replicate index for simulated
-                            training dataset
-      --end_idx             End replicate index for simulated training
-                            dataset
-      --sim_more            Add more simulations with auto-generated
-                            indices
-      --sim_batch_size      Number of replicates per simulation
-                            command
-      --encode_all_sim      Encode all simulated replicates into
-                            tensor?
+      --sim_command         Simulation command to run single job (see documentation)
+      --sim_logging {clean,compress,verbose}
+                            Simulation logging style
+      --start_idx           Start replicate index for simulated training dataset
+      --end_idx             End replicate index for simulated training dataset
+      --sim_more            Add more simulations with auto-generated indices
+      --sim_batch_size      Number of replicates per simulation command
+      --encode_all_sim      Encode all simulated replicates into tensor?
       --num_char            Number of characters
       --num_states          Number of states per character
-      --min_num_taxa        Minimum number of taxa allowed when
-                            formatting
-      --max_num_taxa        Maximum number of taxa allowed when
-                            formatting
-      --downsample_taxa     Downsampling strategy taxon count
+      --min_num_taxa        Minimum number of taxa allowed when formatting
+      --max_num_taxa        Maximum number of taxa allowed when formatting
+      --downsample_taxa {uniform}
+                            Downsampling strategy taxon count
       --tree_width          Width of phylo-state tensor
-      --tree_encode         Encoding strategy for tree
-      --brlen_encode        Encoding strategy for branch lengths
-      --char_encode         Encoding strategy for character data
+      --tree_encode {extant,serial}
+                            Encoding strategy for tree
+      --brlen_encode {height_only,height_brlen}
+                            Encoding strategy for branch lengths
+      --char_encode {one_hot,integer,numeric}
+                            Encoding strategy for character data
       --param_est           Model parameters and variables to estimate
-      --param_data          Model parameters and variables treated as
-                            data
-      --char_format         File format for character data
-      --tensor_format       File format for training example tensors
-      --save_phyenc_csv     Save encoded phylogenetic tensor encoding
-                            to csv?
+      --param_data          Model parameters and variables treated as data
+      --char_format {csv,nexus}
+                            File format for character data
+      --tensor_format {csv,hdf5}
+                            File format for training example tensors
+      --save_phyenc_csv     Save encoded phylogenetic tensor encoding to csv?
       --num_epochs          Number of training epochs
+      --num_early_stop      Number of consecutive validation loss gains before
+                            early stopping
       --trn_batch_size      Training batch sizes
-      --prop_test           Proportion of data used as test examples
-                            (assess trained network performance)
-      --prop_val            Proportion of data used as validation
-                            examples (diagnose network overtraining)
-      --prop_cal            Proportion of data used as calibration
-                            examples (calibrate CPIs)
-      --cpi_coverage        Expected coverage percent for calibrated
-                            prediction intervals (CPIs)
-      --cpi_asymmetric      Use asymmetric (True) or symmetric (False)
-                            adjustments for CPIs?
-      --loss_numerical      Loss function for numerical estimates
-      --optimizer           Method used for optimizing neural network
-      --log_offset          Offset size c when taking ln(x+c) for
-                            zero-valued variables
-      --phy_channel_plain   Output channel sizes for plain
-                            convolutional layers for phylogenetic
-                            state input
+      --prop_test           Proportion of data used as test examples (assess
+                            trained network performance)
+      --prop_val            Proportion of data used as validation examples
+                            (diagnose network overtraining)
+      --prop_cal            Proportion of data used as calibration examples
+                            (calibrate CPIs)
+      --cpi_coverage        Expected coverage percent for calibrated prediction
+                            intervals (CPIs)
+      --cpi_asymmetric      Use asymmetric (True) or symmetric (False) adjustments
+                            for CPIs?
+      --loss_numerical {mse,mae}
+                            Loss function for real value estimates
+      --optimizer {adam}    Method used for optimizing neural network
+      --log_offset          Offset size c when taking ln(x+c) for zero-valued
+                            variables
+      --phy_channel_plain   Output channel sizes for plain convolutional layers
+                            for phylogenetic state input
       --phy_channel_stride
-                            Output channel sizes for stride
-                            convolutional layers for phylogenetic
-                            state input
+                            Output channel sizes for stride convolutional layers
+                            for phylogenetic state input
       --phy_channel_dilate
-                            Output channel sizes for dilate
-                            convolutional layers for phylogenetic
-                            state input
-      --aux_channel         Output channel sizes for dense layers for
-                            auxiliary data input
-      --lbl_channel         Output channel sizes for dense layers for
-                            label outputs
-      --phy_kernel_plain    Kernel sizes for plain convolutional
-                            layers for phylogenetic state input
-      --phy_kernel_stride   Kernel sizes for stride convolutional
-                            layers for phylogenetic state input
-      --phy_kernel_dilate   Kernel sizes for dilate convolutional
-                            layers for phylogenetic state input
-      --phy_stride_stride   Stride sizes for stride convolutional
-                            layers for phylogenetic state input
-      --phy_dilate_dilate   Dilation sizes for dilate convolutional
-                            layers for phylogenetic state input
+                            Output channel sizes for dilate convolutional layers
+                            for phylogenetic state input
+      --aux_channel         Output channel sizes for dense layers for auxiliary
+                            data input
+      --lbl_channel         Output channel sizes for dense layers for label
+                            outputs
+      --phy_kernel_plain    Kernel sizes for plain convolutional layers for
+                            phylogenetic state input
+      --phy_kernel_stride   Kernel sizes for stride convolutional layers for
+                            phylogenetic state input
+      --phy_kernel_dilate   Kernel sizes for dilate convolutional layers for
+                            phylogenetic state input
+      --phy_stride_stride   Stride sizes for stride convolutional layers for
+                            phylogenetic state input
+      --phy_dilate_dilate   Dilation sizes for dilate convolutional layers for
+                            phylogenetic state input
       --plot_train_color    Plotting color for training data elements
       --plot_test_color     Plotting color for test data elements
-      --plot_val_color      Plotting color for validation data
-                            elements
+      --plot_val_color      Plotting color for validation data elements
       --plot_label_color    Plotting color for label elements
       --plot_aux_color      Plotting color for auxiliary data elements
       --plot_emp_color      Plotting color for empirical elements
       --plot_num_scatter    Number of examples in scatter plot
-      --plot_min_emp        Minimum number of empirical datasets to
-                            plot densities
+      --plot_min_emp        Minimum number of empirical datasets to plot densities
       --plot_num_emp        Number of empirical results to plot
+      --plot_pca_noise      Scale of Gaussian noise to add to PCA plot
 
 .. _Setting_Summary:
 
