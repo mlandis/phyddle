@@ -2,7 +2,6 @@
 n_batches <- 1
 
 # origin time
-ori <- 100000
 num_taxa ~ unif(n=n_batches, min=10, max=500)
 
 # constant-node variable ('birth_rate0_t0') assignment
