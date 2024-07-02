@@ -4,6 +4,9 @@ library(statmod)
 library(castor)
 library(ape)
 
+source("levy_pruning_sim.r")
+source("levy_pruning_tools.r")
+
 # disable warnings
 options(warn = -1)
 
@@ -28,7 +31,7 @@ dat_fn = paste0(tmp_fn, ".dat.csv")           # csv of data
 lbl_fn = paste0(tmp_fn, ".labels.csv")        # csv of labels (e.g. params)
 
 # dataset setup
-tree_width = 500
+tree_width = 300
 label_names = c("log10_process_var",
                 "log10_process_kurt",
                 "log10_sigma_tip",
@@ -47,22 +50,23 @@ for (i in 1:num_rep) {
 
     # rejection sample
     num_taxa = 0
-    min_taxa = 10
+    min_taxa = 100
     while (num_taxa < min_taxa) {
         
         # simulation conditions
-        max_taxa = runif(1, 50, 1000)
-        max_time = runif(1, 0.1, 2)
+        max_taxa = runif(1, 100, 300) # 1000)
+        max_time = runif(1, 1, 5)
         sample_frac = 1.0
         if (max_taxa > tree_width) {
             sample_frac = tree_width / max_taxa
         }
 
         # model type
-        model_names = c("BM","OU","EB","JN","NIG","BMJN","BMNIG")
+        model_names = c("BM","OU","EB","NIG") # ,"NIG","BMJN","BMNIG")
         num_models = length(model_names)
         model_type = sample(0:(num_models-1), size=1)
-        model_type = 3
+        #print(model_type)
+        # model_type = 3
 
         # birth-death parameters
         birth = runif(1, 1, 5)
@@ -82,10 +86,10 @@ for (i in 1:num_rep) {
 
         # Levy parameters
         trait_orig = rnorm(1, 0, 2)
-        process_var = rexp(1, 1)
-        sigma_tip = rexp(1, 5)
-        halflife = rgamma(1, 15, 2)
-        decay = -rgamma(1, 15, 2)
+        process_var = rgamma(1, 1, 2)
+        sigma_tip = rgamma(1, 5, 100) 
+        halflife = rgamma(1, 4, 2)
+        decay = -rgamma(1, 2, 2)
         if (model_type == 0) {
             # BM-only
             model = "BM"
@@ -105,22 +109,22 @@ for (i in 1:num_rep) {
             # JN-only
             model = "JN"
             frac_of_var = rbeta(1, 10000, 1)  # all JN
-            process_kurt = rgamma(1, 4, 0.4)    # ~8 kurtosis
+            process_kurt = rgamma(1, 3, 2)    # ~8 kurtosis
         } else if (model_type == 4) {
             # NIG-only
             model = "NIG"
             frac_of_var = rbeta(1, 10000, 1)  # all NIG
-            process_kurt = rgamma(1, 4, 0.4)  # ~8 kurtosis
+            process_kurt = rgamma(1, 3, 2)  # ~8 kurtosis
         } else if (model_type == 5) {
             # BM+JN
             model = "BMJN"
             frac_of_var = rbeta(1, 6, 2)      # 25/75 BM/JN
-            process_kurt = rgamma(1, 4, 0.4)  # ~8 kurtosis
+            process_kurt = rgamma(1, 3, 2)  # ~8 kurtosis
         } else if (model_type == 6) {
             # BM+NIG
             model = "BMNIG"
             frac_of_var = rbeta(1, 6, 2)      # 25/75 BM/NIG
-            process_kurt = rgamma(1, 4, 0.4)  # ~8 kurtosis
+            process_kurt = rgamma(1, 3, 2)  # ~8 kurtosis
         }
         params = pulsR::get_params_for_var(process_var=process_var,
                                            process_kurt=process_kurt,
@@ -144,6 +148,7 @@ for (i in 1:num_rep) {
         traits = traits + trait_orig
         trait_min = min(traits)
         trait_max = max(traits)
+        #print(traits)
         if (trait_min != trait_max) {
             traits = (traits - trait_min) / (trait_max - trait_min)
         } else {
