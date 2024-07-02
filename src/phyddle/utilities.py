@@ -308,7 +308,7 @@ def load_config(config_fn,
 
     # argument parsing
     desc = ('Software to fiddle around with deep learning for phylogenetic '
-            'models. Visit https://mlandis.github.io/phyddle for documentation.')
+            'models. Visit https://phyddle.org for documentation.')
     parser = argparse.ArgumentParser(description=desc,
                                      formatter_class=CustomHelpFormatter)
 
