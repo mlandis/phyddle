@@ -21,6 +21,7 @@ import platform
 import re
 import sys
 import time
+import dateutil
 from datetime import datetime
 
 # external packages
