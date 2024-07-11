@@ -5,7 +5,7 @@ phyddle
 
 	**This beta version of phyddle is still under development.** Feedback is appreciated! michael.landis@wustl.edu
 
-**phyddle** is software for fiddling around with phylogenetic models and deep learning. As a command-line tool and/or as a Python package, phyddle is designed for simulation-based supervised learning to train neural networks for phylogenetic model estimation tasks.
+**phyddle** is software for phylogenetic model exploration with deep learning. As a command-line tool and/or as a Python package, phyddle is designed for simulation-based supervised learning to train neural networks for phylogenetic model estimation tasks.
 
 A standard phyddle analysis performs the following tasks for you:
 
