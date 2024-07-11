@@ -319,7 +319,10 @@ an account with anaconda.org.
 Build sequence might take 15 minutes.
 
 ```
+# enter conda dir
 cd ~/projects/phyddle/conda
+# conda env
+conda activate base
 # need -c bioconda for dendropy, and second -c pytorch
 conda build . -c bioconda -c pytorch
 # (optional) using mambabuild, faster

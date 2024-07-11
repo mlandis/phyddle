@@ -4,9 +4,9 @@ Tutorial
 ========
 
 This tutorial walks through a phyddle analysis for a binary-state
-speciation-extinction model (BiSSE) using an R-based simulator. It
-assumes that you have access to the ``./workspace`` example projects
-bundled with the phyddle repository.
+speciation-extinction model (BiSSE) using an R-based simulator. It assumes
+that you have access to the ``./workspace`` example projects bundled
+with the phyddle repository.
 
 This tutorial explains how to:
 
@@ -20,8 +20,19 @@ This tutorial explains how to:
 An analysis, now!
 -----------------
 
-You need a result and you need it now! To run a phyddle analysis for
-``bisse_r`` using 25000 training examples, type: 
+You need a result and you need it now!
+
+This project will use ``R``, ``ape``, and ``castor`` to simulate training
+datasets. Make sure they are installed:
+
+.. code-block:: shell
+
+   # install R packages
+   Rscript -e 'install.packages(c("ape", "castor), repos="https://cloud.r-project.org")'
+  
+
+Then, to run a phyddle analysis for ``bisse_r`` using 25000
+training examples, type: 
 
 .. code-block:: shell
 

@@ -41,6 +41,7 @@ requirements:
     - scipy >=1.11
     - pytorch
     - torchvision
+    - torchview
     - tqdm
 
 test:
