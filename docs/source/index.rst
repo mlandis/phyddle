@@ -20,7 +20,7 @@ A standard phyddle analysis performs the following tasks for you:
 * **Estimate** produces model estimates for a new dataset with the trained network.
 * **Plot** generates figures that summarize the training data (*Format*), the network and its training (*Train*), and any estimates for new datasets (*Estimate*).
 
-In addition, phyddle is distributed with example scripts to simulate phylogenetic training datasets using `RevBayes <http://revbayes.com>`_, `R <https://www.r-project.org/>`_, and `MASTER <https://tgvaughan.github.io/MASTER/>`_.
+In addition, phyddle is distributed with example scripts to simulate phylogenetic training datasets using `R <https://www.r-project.org/>`_, `Python <https://www.python.org/>`_, `RevBayes <http://revbayes.com>`_, `PhyloJunction <https://phylojunction.org/build/html/index.html>`_ and `MASTER <https://tgvaughan.github.io/MASTER/>`_.
 
 To learn how to use phyddle, we recommend exploring the topics from top-to-bottom as listed on the left-hand side of this page.
 Visit the :ref:`Quick_Start` and :ref:`Installation` pages to get started.
