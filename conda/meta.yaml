@@ -7,8 +7,8 @@ package:
 
 source:
   # get URL & SHA for new version from: https://pypi.org/project/phyddle/#modal-close
-  url: https://files.pythonhosted.org/packages/d1/c8/a13269d5e2dd3ee7c2a5322c05be0272ee0286a658a52dcf6b91321a7daf/phyddle-0.2.1.tar.gz
-  sha: f1f0b11a9f3066b94091b2cade62bbed94a68f566839c6e72a5563dd98ff3c55
+  url: https://files.pythonhosted.org/packages/f5/74/6c1c0f0ac499c3d0feb651a33f0086969382959ebf4c2f457949ed7b96cd/phyddle-0.2.1.tar.gz
+  sha: 4dae584f0fe6bd2d413176aac4727f1d85f12cb58d1d3d6b134142de7dc910d8
 
 build:
   noarch: generic
