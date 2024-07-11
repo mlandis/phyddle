@@ -3,7 +3,7 @@ Updates
 
 The complete commit history for phyddle is located here: https://github.com/mlandis/phyddle/commits/main
 
-**phyddle v0.2.1** -- in progress
+**phyddle v0.2.1** -- 24.07.11
 
   * New support to save, load, and clean projects. Nice for collaborations! |:handshake:|
   * Improve detection of replicate indexing in Simulate/Format.
