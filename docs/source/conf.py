@@ -46,6 +46,7 @@ html_theme_options = {
 html_static_path = ['_static']
 html_css_files = ['css/custom.css']
 html_baseurl = 'phyddle.org'
+html_extra_path = ['CNAME']
 
 # -- Options for EPUB output
 epub_show_urls = 'footnote'
