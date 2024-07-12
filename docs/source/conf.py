@@ -24,8 +24,12 @@ extensions = [
     'sphinx.ext.intersphinx',
     'sphinx.ext.napoleon',
 	'sphinx.ext.viewcode',
-    'sphinxemoji.sphinxemoji'
+    'sphinxemoji.sphinxemoji',
 ]
+
+if os.getenv("GITHUB_ACTIONS"):
+    extensions.append("sphinxcontrib.googleanalytics")
+    googleanalytics_id = "G-KW8RTLPKH4"
 
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3/', None),
