@@ -1,11 +1,9 @@
 # phyddle 0.2.1
 
-#### Phylogenetic model exploration with deep learning
-
-> *NOTE: This beta version of phyddle is still under development.*
+Phylogenetic model exploration with deep learning.
 
 ## User guide
-Visit https://mlandis.github.io/phyddle to learn more about phyddle.
+Visit https://phyddle.org to learn how to use the software.
 
 ## Overview
 
