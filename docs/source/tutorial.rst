@@ -28,7 +28,7 @@ datasets. Make sure they are installed:
 .. code-block:: shell
 
    # install R packages
-   Rscript -e 'install.packages(c("ape", "castor), repos="https://cloud.r-project.org")'
+   Rscript -e 'install.packages(c("ape", "castor"), repos="https://cloud.r-project.org")'
   
 
 Then, to run a phyddle analysis for ``bisse_r`` using 25000
