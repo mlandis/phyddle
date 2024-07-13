@@ -17,7 +17,7 @@ Pipeline
     how phyddle defines different terms
 
 .. image:: images/phyddle_pipeline.png
-  :scale: 18%
+  :width: 350
   :align: right
 
 A phyddle pipeline analysis has five steps: :ref:`Simulate`, :ref:`Format`,

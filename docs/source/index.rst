@@ -10,7 +10,7 @@ phyddle
 A standard phyddle analysis performs the following tasks for you:
 
 .. image:: images/phyddle_pipeline.png
-	:scale: 13%
+	:width: 350
 	:align: right
 
 * **Pipeline configuration** applies analysis settings provided through a config file and/or command line arguments.
