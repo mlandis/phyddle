@@ -43,10 +43,10 @@ args = {
     'brlen_encode'      : 'height_brlen',   # how to encode phylo brlen? height_only or height_brlen
     'char_encode'       : 'integer',        # how to encode discrete states? one_hot or integer
     'param_est'         : {                 # model parameters to estimate (labels)
-                           'log10_w_0':'real',
-                           'log10_e_0':'real',
-                           'log10_d_0_1':'real',
-                           'log10_b_0_1':'real'
+                           'log10_w_0':'num',
+                           'log10_e_0':'num',
+                           'log10_d_0_1':'num',
+                           'log10_b_0_1':'num'
                            },
     'param_data'        : { },               # model parameters that are known (aux. data)
     'tensor_format'     : 'hdf5',           # save as compressed HDF5 or raw csv
@@ -77,7 +77,7 @@ args = {
     'plot_val_color'        : 'red',        # plot color for validation data
     'plot_aux_color'        : 'green',      # plot color for input auxiliary data
     'plot_label_color'      : 'orange',     # plot color for labels (params)
-    'plot_est_color'        : 'black'       # plot color for estimated data/values
+    'plot_emp_color'        : 'black'       # plot color for estimated data/values
 
 }
 

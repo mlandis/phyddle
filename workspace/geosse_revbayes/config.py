@@ -41,13 +41,13 @@ args = {
     'brlen_encode'      : 'height_brlen',   # how to encode phylo brlen? height_only or height_brlen
     'char_encode'       : 'one_hot',        # how to encode discrete states? one_hot or integer 
     'param_est'        : {                  # model parameters to predict (labels)
-        'log10_rho_w':'real',
-        'log10_rho_d':'real',
-        'log10_rho_e':'real',
-        'log10_rho_b':'real'
+        'log10_rho_w':'num',
+        'log10_rho_d':'num',
+        'log10_rho_e':'num',
+        'log10_rho_b':'num'
     },
     'param_data'        : {                 # model parameters that are known (aux. data)
-        'sample_frac':'real'
+        'sample_frac':'num'
     },               
     'tensor_format'     : 'hdf5',           # save as compressed HDF5 or raw csv
     'char_format'       : 'nexus',          # expect character data is in nexus or csv format
@@ -56,7 +56,7 @@ args = {
     #-------------------------------#
     # Train settings                #
     #-------------------------------#
-    'num_epochs'        : 20,               # number of training intervals (epochs)
+    'num_epochs'        : 200,              # number of training intervals (epochs)
     'prop_test'         : 0.05,             # proportion of sims in test dataset
     'prop_val'          : 0.05,             # proportion of sims in validation dataset
     'prop_cal'          : 0.20,             # proportion of sims in CPI calibration dataset 
@@ -79,7 +79,7 @@ args = {
     'plot_val_color'        : 'red',        # plot color for validation data
     'plot_aux_color'        : 'green',      # plot color for input auxiliary data
     'plot_label_color'      : 'orange',     # plot color for labels (params)
-    'plot_est_color'        : 'black',      # plot color for predictions
+    'plot_emp_color'        : 'black',      # plot color for predictions
 
 }
 
