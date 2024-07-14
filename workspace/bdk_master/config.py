@@ -43,9 +43,9 @@ args = {
   'brlen_encode'       : 'height_brlen',       # Encoding strategy for branch lengths
   'char_encode'        : 'integer',            # Encoding strategy for character data
   'param_est'          : {
-      'BirthConst_0':'real',
-      'DeathConst_0':'real',
-      'DeathDensity_0':'real'
+      'BirthConst_0':'num',
+      'DeathConst_0':'num',
+      'DeathDensity_0':'num'
     },          # Model parameters to estimate   
   'param_data'         : { },          # Model parameters treated as data
   'char_format'        : 'nexus',              # File format for character data 
@@ -55,14 +55,14 @@ args = {
   #-------------------------------#
   # Train                         #
   #-------------------------------#
-  'num_epochs'         : 20,                   # Number of training epochs      
+  'num_epochs'         : 200,                  # Number of training epochs      
   'trn_batch_size'     : 512,                  # Training batch sizes           
   'prop_test'          : 0.05,                 # Proportion of data used as test examples (assess trained network performance)
   'prop_val'           : 0.05,                 # Proportion of data used as validation examples (diagnose network overtraining)
   'prop_cal'           : 0.2,                  # Proportion of data used as calibration examples (calibrate CPIs)
   'cpi_coverage'       : 0.95,                 # Expected coverage percent for calibrated prediction intervals (CPIs)
   'cpi_asymmetric'     : 'T',                  # Use asymmetric (True) or symmetric (False) adjustments for CPIs?
-  'loss'               : 'mse',                # Loss function for optimization 
+  'loss_numerical'     : 'mse',                # Loss function for optimization 
   'optimizer'          : 'adam',               # Method used for optimizing neural network
   'phy_channel_plain'  : [32, 64],        # Output channel sizes for plain convolutional layers for phylogenetic state input
   'phy_channel_stride' : [32, 64],             # Output channel sizes for stride convolutional layers for phylogenetic state input
@@ -88,6 +88,6 @@ args = {
   'plot_test_color'    : 'purple',             # Plotting color for test data elements
   'plot_val_color'     : 'red',                # Plotting color for validation data elements
   'plot_aux_color'     : 'green',              # Plotting color for auxiliary data elements
-  'plot_est_color'     : 'black',              # Plotting color for new estimation elements
+  'plot_emp_color'     : 'black',              # Plotting color for new estimation elements
 
 }
