@@ -2,6 +2,7 @@
 ---
 
 Workspace projects for the following models and simulation methods:
+- `example`          : contains example phyddle directories and output (no model)
 - `bisse_r`          : BiSSE model (R, castor)
 - `bisse_r_basic`    : BiSSE model, minimal config file (R, castor)
 - `levy_r`           : Levy model (R, pulsR)
