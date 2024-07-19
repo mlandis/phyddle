@@ -7,7 +7,7 @@ Visit https://phyddle.org to learn how to use the software.
 
 ## Overview
 
-<img align="right" src="https://github.com/landislab/landislab.github.io/blob/5bb4685a12ebf4c99dd773de6d87b44cc3c47090/assets/research/img/phyddle_pipeline.png?raw=true" width="35%">
+<img align="right" src="https://phyddle.org/_images/phyddle_pipeline.png" width="35%">
 
 A standard phyddle analysis performs the following tasks for you:
 
