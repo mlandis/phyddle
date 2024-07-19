@@ -75,15 +75,6 @@ conda activate phyddle_env
 phyddle
 ```
 
-The newest development version of phyddle must be manually installed through a local build:
-```shell
-git clone git@github.com:mlandis/phyddle.git
-cd phyddle
-git checkout development
-git pull
-./build.sh
-```
-
 phyddle uses third-party simulators to generate training datasets. Example workflows assume that [R](https://cran.r-project.org), [RevBayes](https://revbayes.github.io), [Phylojunction](https://phylojunction.org/build/html/index.html), or [BEAST](https://www.beast2.org/) with [MASTER](https://github.com/tgvaughan/MASTER) (plugin) is installed on your machine and can be executed as a command from terminal. The documentation explains how to configure R for use with phyddle.
 
 ## Note on code stability
