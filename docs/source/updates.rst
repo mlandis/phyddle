@@ -3,6 +3,10 @@ Updates
 
 The complete commit history for phyddle is located here: https://github.com/mlandis/phyddle/commits/main
 
+**phyddle v0.2.2** -- 24.07.19
+
+  * Fix bug that caused lower CPI bound to be slightly misestimated.
+
 **phyddle v0.2.1** -- 24.07.11
 
   * New support to save, load, and clean projects. Nice for collaborations! |:handshake:|
