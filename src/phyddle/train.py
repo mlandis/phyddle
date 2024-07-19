@@ -888,7 +888,7 @@ class CnnTrainer(Trainer):
 
             # calibrate original estimates
             labels_num_est_calib = labels_num_est.copy()
-            labels_num_est_calib[1,:,:] = labels_num_est_calib[1,:,:] - self.cpi_adjustments[0,:]
+            labels_num_est_calib[1,:,:] = labels_num_est_calib[1,:,:] + self.cpi_adjustments[0,:]
             labels_num_est_calib[2,:,:] = labels_num_est_calib[2,:,:] + self.cpi_adjustments[1,:]
             
             # denormalize calibrated estimates
