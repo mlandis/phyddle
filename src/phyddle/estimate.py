@@ -444,7 +444,7 @@ class Estimator:
             
             if labels_est_num.ndim == 2:
                 labels_est_num.shape = (labels_est_num.shape[0], 1, labels_est_num.shape[1])
-            labels_est_num[1,:,:] = labels_est_num[1,:,:] - self.cpi_adjustments[0,:]
+            labels_est_num[1,:,:] = labels_est_num[1,:,:] + self.cpi_adjustments[0,:]
             labels_est_num[2,:,:] = labels_est_num[2,:,:] + self.cpi_adjustments[1,:]
             
             # denormalize test label estimates
