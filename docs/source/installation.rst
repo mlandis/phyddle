@@ -49,6 +49,11 @@ the `repository <https://github.com/mlandis/phyddle>`_
 
 Note, that newer experimental features are stored on the development branch.
 
+.. code-block:: shell
+
+    git checkout development
+    git pull
+
 You can also `download <https://github.com/mlandis/phyddle/archive/refs/heads/main.zip>`_ 
 and unzip the current version of the main branch
 
@@ -62,7 +67,7 @@ Once cloned, you can build phyddle into a local Python package
 .. code-block:: shell
 
   cd ~/projects/phyddle
-  pip install .
+  python3 -m pip install -e .
   # ... install ...
   phyddle
 
