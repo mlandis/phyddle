@@ -1090,10 +1090,11 @@ class Plotter:
             # set axes
             xlim = plt.xlim()
             ylim = plt.ylim()
-            minlim = min(xlim[0], ylim[0])
-            maxlim = max(xlim[1], ylim[1])
-            plt.xlim([minlim, maxlim])
-            plt.ylim([minlim, maxlim])
+            minlim = min([ min(lbl_lower), min(lbl_true) ])  # min(xlim[0], ylim[0])
+            maxlim = max([ max(lbl_upper), max(lbl_true) ])  # max(xlim[1], ylim[1])
+            dxy = (maxlim - minlim) * 0.05
+            plt.xlim([minlim-dxy, maxlim+dxy])
+            plt.ylim([minlim-dxy, maxlim+dxy])
             
             # write text
             dx = 0.03
@@ -1104,7 +1105,7 @@ class Plotter:
             
             for j,s in enumerate(stat_str):
                 plt.annotate(s, xy=(0.01,0.99-j*dx), xycoords='axes fraction',
-                             fontsize=10, horizontalalignment='left',
+                             fontsize=8, horizontalalignment='left',
                              verticalalignment='top', color='black')
 
             # cosmetics
@@ -1274,9 +1275,9 @@ class Plotter:
     
         # done
         return
-    
+
     def plot_train_history(self, history, prefix, train_color='blue',
-                           val_color='red'):
+                            val_color='red'):
         """Plot training history for network.
 
         This function plots trained network performance metrics as a time-series
@@ -1297,61 +1298,57 @@ class Plotter:
         metric_names  = sorted(np.unique(history['metric']))
         # num_datasets  = len(dataset_names)
         num_metrics   = len(metric_names)
- 
+
         # figure dimensions
         fig_width = 6
-        fig_height = int(np.ceil(1.5*num_metrics))
+        fig_height = 6 # int(np.ceil(1.5*num_metrics))
 
         # figure colors
         colors = { 'train': train_color,
                    'validation': val_color }
 
-        # plot for all parameters
-        fig, axs = plt.subplots(nrows=num_metrics, ncols=1, sharex=True,
-                                figsize=(fig_width, fig_height))
-        
         # plot for all metrics
         for j,v2 in enumerate(metric_names):
 
             # plot training example metrics
             legend_handles = []
             legend_labels = []
+            
+            # plot for all parameters
+            fig, ax = plt.subplots(nrows=1, ncols=1,
+                                   figsize=(fig_width, fig_height))
+            
             for k,v3 in enumerate(dataset_names):
                 df = history.loc[ (history.metric == v2) &
                                   (history.dataset == v3) ]
 
-                lines_train, = axs[j].plot(epochs, df.value,
-                                             color=colors[v3],
-                                             label=v2)
-                axs[j].scatter(epochs, df.value,
-                                 color=colors[v3],
-                                 label=v2,
-                                 zorder=3)
+                lines_train, = ax.plot(epochs, df.value,
+                                       color=colors[v3],
+                                       label=v2)
                 
-                axs[j].set(ylabel=metric_names[j])
-                
+                ax.scatter(epochs, df.value,
+                           color=colors[v3],
+                           label=v2,
+                           zorder=3,
+                           s=5)
+
+                ax.set(ylabel=metric_names[j], xlabel='Epochs')
+
                 legend_handles.append( lines_train )
                 legend_labels.append( v3.capitalize() )
 
-            # plot legend
-            if j == 0:
-                axs[j].legend(handles=legend_handles,
-                              labels=legend_labels,
-                              loc='upper right' )
-        
-        fig.supxlabel('Epochs')
-        fig.supylabel('Metrics')
-        fig.suptitle('Training history')
-        fig.tight_layout()
+                ax.legend(handles=legend_handles,
+                          labels=legend_labels,
+                          loc='upper right' )
 
-        # save figure
-        save_fn = f'{prefix}.pdf'
+            # save figure
+            save_fn = f'{prefix}_{v2}.pdf'
+    
+            # print(save_fn)
+            plt.savefig(save_fn, format='pdf', dpi=300, bbox_inches='tight')
+            plt.clf()
+            plt.close()
 
-        # print(save_fn)
-        plt.savefig(save_fn, format='pdf', dpi=300, bbox_inches='tight')
-        plt.clf()
-        plt.close()
-        
         # done
         return
 
