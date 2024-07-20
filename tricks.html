@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-KW8RTLPKH4"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-KW8RTLPKH4');
+    </script>
+    
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tricks &mdash; phyddle 0.2.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="_static/css/custom.css?v=d2c2efc5" />
+
+  
+    <link rel="canonical" href="phyddle.org/tricks.html" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=000c92bf"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="author" title="About these documents" href="about.html" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Glossary" href="glossary.html" />
+    <link rel="prev" title="Formats" href="formats.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html">
+            
+              <img src="_static/phyddle_logo.png" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                0.2.2
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pipeline.html">Pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workspace.html">Workspace</a></li>
+<li class="toctree-l1"><a class="reference internal" href="formats.html">Formats</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Tricks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="updates.html">Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="about.html">About</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">phyddle</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Tricks</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/tricks.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="tricks">
+<span id="id1"></span><h1>Tricks<a class="headerlink" href="#tricks" title="Link to this heading"></a></h1>
+<p>Here are a few tricks for using phyddle using a Unix-based terminal. These
+commands assume a standard phyddle workspace directory structure.</p>
+<p><strong>Make a new config file</strong></p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create and modify new config file</span>
+phyddle<span class="w"> </span>--make_cfg
+
+<span class="c1"># Rename new config</span>
+mv<span class="w"> </span>config_default.py<span class="w"> </span>my_new_config.py
+
+<span class="c1"># Design new config</span>
+edit<span class="w"> </span>my_new_config.py
+
+<span class="c1"># Run using new config</span>
+phyddle<span class="w"> </span>-c<span class="w"> </span>my_new_config.py
+</pre></div>
+</div>
+<p><strong>Run a pipeline with modified command-line settings</strong></p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Run full pipeline while changing calibration and validation proportions</span>
+phyddle<span class="w"> </span>-c<span class="w"> </span>config.py<span class="w"> </span>--cal_prop<span class="w"> </span><span class="m">0</span>.10<span class="w"> </span>--val_prop<span class="w"> </span><span class="m">0</span>.10
+</pre></div>
+</div>
+<p><strong>Re-run part of the pipeline with modified command-line settings</strong></p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Re-run pipeline Train, Estimate, and Plot steps with new training settings</span>
+phyddle<span class="w"> </span>-c<span class="w"> </span>config.py<span class="w"> </span>-s<span class="w"> </span>TEP<span class="w"> </span>--num_epoch<span class="w"> </span><span class="m">10</span><span class="w"> </span>--trn_batch_size<span class="w"> </span><span class="m">64</span>
+</pre></div>
+</div>
+<p><strong>Redirect input/output across pipeline steps</strong></p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Run full pipeline</span>
+phyddle<span class="w"> </span>-c<span class="w"> </span>config.py
+
+<span class="c1"># Re-run Train, Estimate, Plot steps with new settings, saved to other_project</span>
+phyddle<span class="w"> </span>-c<span class="w"> </span>config.py<span class="w"> </span><span class="se">\</span>
+<span class="w">        </span>-s<span class="w"> </span>TEP<span class="w"> </span><span class="se">\</span>
+<span class="w">        </span>--trn_dir<span class="w"> </span>../other_project/train<span class="w"> </span><span class="se">\</span>
+<span class="w">        </span>--est_dir<span class="w"> </span>../other_project/estimate<span class="w"> </span><span class="se">\</span>
+<span class="w">        </span>--plt_dir<span class="w"> </span>../other_project/plot<span class="w"> </span><span class="se">\</span>
+<span class="w">        </span>--num_epochs<span class="w"> </span><span class="m">40</span><span class="w"> </span><span class="se">\</span>
+<span class="w">        </span>--trn_batch_size<span class="w"> </span><span class="m">512</span>
+
+<span class="c1"># Alternatively, point `dir` to other project point Format to this project</span>
+<span class="w">  </span>phyddle<span class="w"> </span>-c<span class="w"> </span>config.py<span class="w"> </span><span class="se">\</span>
+<span class="w">          </span>-s<span class="w"> </span>TEP<span class="w"> </span><span class="se">\</span>
+<span class="w">          </span>--dir<span class="w"> </span>../other_project<span class="w"> </span><span class="se">\</span>
+<span class="w">          </span>--fmt_dir<span class="w"> </span>./format<span class="w"> </span><span class="se">\</span>
+<span class="w">          </span>--num_epochs<span class="w"> </span><span class="m">40</span><span class="w"> </span><span class="se">\</span>
+<span class="w">          </span>--trn_batch_size<span class="w"> </span><span class="m">512</span>
+</pre></div>
+</div>
+<p><strong>Simulate new training examples</strong></p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Simulate training examples 0 to 999, storing results</span>
+<span class="c1"># workspace/simulate/my_project</span>
+phyddle<span class="w"> </span>-s<span class="w"> </span>S<span class="w"> </span>-c<span class="w"> </span>config.py<span class="w"> </span>--start_idx<span class="w"> </span><span class="m">0</span><span class="w"> </span>--end_idx<span class="w"> </span><span class="m">1000</span>
+
+<span class="c1"># Simulate 4000 more training examples, 0 to 4999</span>
+phyddle<span class="w"> </span>-s<span class="w"> </span>S<span class="w"> </span>-c<span class="w"> </span>config.py<span class="w"> </span>--sim_more<span class="w"> </span><span class="m">4000</span>
+
+<span class="c1"># Perform remaining Format, Train, Estimate, Plot steps</span>
+phyddle<span class="w"> </span>-s<span class="w"> </span>FTEP<span class="w"> </span>-c<span class="w"> </span>config.py
+
+<span class="c1"># ...or, to Simulate more and re-run all steps</span>
+phyddle<span class="w"> </span>-c<span class="w"> </span>config.py<span class="w"> </span>--sim_more<span class="w"> </span><span class="m">4000</span>
+</pre></div>
+</div>
+<p><strong>Quick access to workspace directories from console via GUI</strong></p>
+<p>On Mac OS X, you can press the Option key and click a directory path to open
+a Finder window to that directory.</p>
+<a class="reference internal image-reference" href="_images/click_directory.png"><img alt="_images/click_directory.png" class="align-center" src="_images/click_directory.png" style="width: 497.4px; height: 354.0px;" /></a>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="formats.html" class="btn btn-neutral float-left" title="Formats" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="glossary.html" class="btn btn-neutral float-right" title="Glossary" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
