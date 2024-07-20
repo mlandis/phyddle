@@ -8,6 +8,7 @@ The complete commit history for phyddle is located here: https://github.com/mlan
   * Fix bug that caused lower CPI bound to be slightly misestimated.
   * Improve scatter/coverage and training history plots.
 
+
 **phyddle v0.2.1** -- 24.07.11
 
   * New support to save, load, and clean projects. Nice for collaborations! |:handshake:|
