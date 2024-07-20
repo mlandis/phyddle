@@ -58,3 +58,5 @@ line-length = 400
 # skip unused variable rules (`F841`)
 extend-ignore = ["F841"]
 
+[tool.hatch.build]
+exclude = ["conda/**", "docs/**", "scripts/**", "tests/**", "workspace/**"]

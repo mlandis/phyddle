@@ -5,6 +5,7 @@ The complete commit history for phyddle is located here: https://github.com/mlan
 
 **phyddle v0.2.2** -- 24.07.19
 
+  * Reduce pypi package size from 100MB to 75kB.
   * Fix bug that caused lower CPI bound to be slightly misestimated.
   * Improve scatter/coverage and training history plots.
 
