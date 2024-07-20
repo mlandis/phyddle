@@ -500,7 +500,7 @@ def check_plt():
         'out.train_pca_aux_data.pdf',
         'out.train_pca_labels_num.pdf',
         'out.summary.pdf',
-        'out.train_history.pdf'
+        'out.train_history_loss_combined.pdf'
     ]
     
     # verify all test output files exist
