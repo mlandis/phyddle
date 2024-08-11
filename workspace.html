@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-KW8RTLPKH4"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-KW8RTLPKH4');
+    </script>
+    
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Workspace &mdash; phyddle 0.2.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="_static/css/custom.css?v=d2c2efc5" />
+
+  
+    <link rel="canonical" href="phyddle.org/workspace.html" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=000c92bf"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="author" title="About these documents" href="about.html" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Formats" href="formats.html" />
+    <link rel="prev" title="Pipeline" href="pipeline.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html">
+            
+              <img src="_static/phyddle_logo.png" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                0.2.2
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pipeline.html">Pipeline</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Workspace</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#simulate"><code class="docutils literal notranslate"><span class="pre">simulate</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#format"><code class="docutils literal notranslate"><span class="pre">format</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#train"><code class="docutils literal notranslate"><span class="pre">train</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#estimate"><code class="docutils literal notranslate"><span class="pre">estimate</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#plot"><code class="docutils literal notranslate"><span class="pre">plot</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#empirical"><code class="docutils literal notranslate"><span class="pre">empirical</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#log"><code class="docutils literal notranslate"><span class="pre">log</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="formats.html">Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tricks.html">Tricks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="updates.html">Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="about.html">About</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">phyddle</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Workspace</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/workspace.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="workspace">
+<span id="id1"></span><h1>Workspace<a class="headerlink" href="#workspace" title="Link to this heading"></a></h1>
+<p>This section describes how phyddle organizes files and directories in its
+workspace. Visit <a class="reference internal" href="formats.html#formats"><span class="std std-ref">Formats</span></a> to learn more about file formats. Visit
+<a class="reference internal" href="configuration.html#configuration"><span class="std std-ref">Configuration</span></a> to learn more about managing directories and projects
+within a workspace.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>We strongly recommend that beginning users follow this general workspace
+filesystem design. Advanced users should find it is easy to customize
+locations for config files, simulation scripts, and output directories.</p>
+</div>
+<p>We recommend using the default directory structure for new projects
+to simplify project management. By default, <code class="docutils literal notranslate"><span class="pre">dir</span></code> is set to <code class="docutils literal notranslate"><span class="pre">./</span></code> and
+<code class="docutils literal notranslate"><span class="pre">prefix</span></code> is set to <code class="docutils literal notranslate"><span class="pre">out</span></code>. Output for each step is then stored in a
+subdirectory named after the step and beginning with the appropriate prefix.</p>
+<p>For example, results from <a class="reference internal" href="pipeline.html#simulate"><span class="std std-ref">Simulate</span></a> are stored in the
+<code class="docutils literal notranslate"><span class="pre">simulate</span></code> subdirectory of the <code class="docutils literal notranslate"><span class="pre">dir`</span></code> directory. If the <code class="docutils literal notranslate"><span class="pre">sim_dir</span></code>
+setting is provided, <a class="reference internal" href="pipeline.html#simulate"><span class="std std-ref">Simulate</span></a> results are stored into that exact
+directory. For example, if <code class="docutils literal notranslate"><span class="pre">dir</span></code> is set to the local directory <code class="docutils literal notranslate"><span class="pre">./</span></code>,
+then <a class="reference internal" href="pipeline.html#simulate"><span class="std std-ref">Simulate</span></a> results are saved to <code class="docutils literal notranslate"><span class="pre">./simulate</span></code>. If <code class="docutils literal notranslate"><span class="pre">sim_dir</span></code> is
+set to <code class="docutils literal notranslate"><span class="pre">../new_project/new_simulations</span></code> then <a class="reference internal" href="pipeline.html#simulate"><span class="std std-ref">Simulate</span></a> results are
+stored there regardless of the <code class="docutils literal notranslate"><span class="pre">dir</span></code> setting.</p>
+<p>Similarly, if <code class="docutils literal notranslate"><span class="pre">prefix</span></code> is set to <code class="docutils literal notranslate"><span class="pre">out</span></code>, then all
+simulated datasets begin with the prefix <code class="docutils literal notranslate"><span class="pre">out</span></code>. If the setting <code class="docutils literal notranslate"><span class="pre">sim_prefix</span></code>
+is set to <code class="docutils literal notranslate"><span class="pre">sim</span></code>, then files generated by <a class="reference internal" href="pipeline.html#simulate"><span class="std std-ref">Simulate</span></a> begin with the
+prefix <code class="docutils literal notranslate"><span class="pre">sim</span></code>.</p>
+<p>Briefly, the <code class="docutils literal notranslate"><span class="pre">workspace</span></code> directory of a typical phyddle project contains
+two important files</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">config.py</span></code> that specifies default settings for phyddle analyses in this project</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sim_one.R</span></code> (or a similar name) that defines a valid <a class="reference internal" href="pipeline.html#simulate"><span class="std std-ref">simulation</span></a> script</p></li>
+</ul>
+<p>and seven subdirectories for the pipeline analysis</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">simulate</span></code> contains raw data generated by simulation</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">format</span></code> contains data formatted into tensors for training networks</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">train</span></code> contains trained networks and diagnostics</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">estimate</span></code> contains new test datasets their estimations</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">plot</span></code> contains figures of training and validation procedures</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">empirical</span></code> contains raw data for your empirical analysis</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">log</span></code> contains runtime logs for a phyddle project</p></li>
+</ul>
+<p>This section will assume all steps are using the <code class="docutils literal notranslate"><span class="pre">example</span></code> project
+bundled with phyddle was generated using the command <code class="docutils literal notranslate"><span class="pre">phyddle</span> <span class="pre">--make_cfg</span></code>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">phyddle</span> <span class="o">-</span><span class="n">c</span> <span class="o">./</span><span class="n">workspace</span><span class="o">/</span><span class="n">example</span><span class="o">/</span><span class="n">config</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">end_idx</span> <span class="mi">25000</span>
+</pre></div>
+</div>
+<p>This corresponds to a 3-region equal-rates GeoSSE model. All directories have
+the complete file set, except <code class="docutils literal notranslate"><span class="pre">./simulate</span></code> contains only
+20 original examples.</p>
+<p>A standard configuration for a project named <code class="docutils literal notranslate"><span class="pre">example</span></code> would store pipeline
+work into these directories:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>./simulate<span class="w">       </span><span class="c1"># output of Simulate step</span>
+./empirical<span class="w">      </span><span class="c1"># your empirical dataset</span>
+./format<span class="w">         </span><span class="c1"># output of Format step</span>
+./train<span class="w">          </span><span class="c1"># output of Train step</span>
+./estimate<span class="w">       </span><span class="c1"># output of Estimate step</span>
+./plot<span class="w">           </span><span class="c1"># output of Plot step</span>
+./log<span class="w">            </span><span class="c1"># logs for phyddle analyses</span>
+</pre></div>
+</div>
+<p>Soon, we give an overview of the standard files and formats corresponding to
+each pipeline directory. First, we describe a commands that help with workspace
+management.</p>
+<p>You can easily save and share your project workspace with the following command:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>workspace/example<span class="w">                         </span><span class="c1"># current directory is root of</span>
+<span class="w">                                             </span><span class="c1">#     example project directory</span>
+
+phyddle<span class="w"> </span>--save_proj<span class="w"> </span>example_lite.tar.gz<span class="w">      </span><span class="c1"># save project workspace, but</span>
+<span class="w">                                             </span><span class="c1">#     skip simulated training data</span>
+<span class="w">                                         </span><span class="c1">#     (faster, smaller)</span>
+</pre></div>
+</div>
+<p>The resulting zip file (tarball) will contain the config file, the simulation script,
+and all workspace directories for pipeline steps. Note, the raw and formatted
+simulated training example datasets tend to be very large, and require substantial
+time and storage to archive, so they are not fully saved by default. To fully save
+all workspace project data, add the following options:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>phyddle<span class="w"> </span>--save_proj<span class="w"> </span>example_full.tar.gz<span class="w"> </span><span class="se">\ </span><span class="w">   </span><span class="c1"># save full project, and</span>
+<span class="w">        </span>--save_train_fmt<span class="w"> </span>T<span class="w"> </span><span class="se">\ </span><span class="w">                </span><span class="c1">#     include simulated training data</span>
+<span class="w">        </span>--save_num_sim<span class="w"> </span><span class="m">1000000</span><span class="w">               </span><span class="c1">#     (slower, larger)</span>
+</pre></div>
+</div>
+<p>If you share the project with a collaborator or save it on a server, you can load
+the project for use with the command:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>mkdir<span class="w"> </span>-p<span class="w"> </span>~/new_workspace/new_project<span class="w">         </span><span class="c1"># create new project directory</span>
+<span class="nb">cd</span><span class="w"> </span>~/new_workspace/new_project<span class="w">               </span><span class="c1"># enter new project directory</span>
+phyddle<span class="w"> </span>--load_proj<span class="w"> </span>example_lite.tar.gz<span class="w">      </span><span class="c1"># load project in directory</span>
+phyddle<span class="w"> </span>-s<span class="w"> </span>S<span class="w"> </span>--sim_more<span class="w"> </span><span class="m">10000</span><span class="w">                </span><span class="c1"># (e.g.) simulate 10,000 training examples</span>
+</pre></div>
+</div>
+<p>Lastly, you can quickly remove all existing workspace directories, while preserving
+the config file and simulation scripts, with the following command:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>workspace/example<span class="w">                         </span><span class="c1"># enter directory to clean</span>
+phyddle<span class="w"> </span>--clean_proj<span class="w">                         </span><span class="c1"># remove all local workspace directories</span>
+</pre></div>
+</div>
+<p>These are powerful commands, so be careful when using them. They can remove
+or overwrite files that you want to keep. Master these commands in a safe test
+directory before applying them to important workspace projects.</p>
+<section id="simulate">
+<h2><code class="docutils literal notranslate"><span class="pre">simulate</span></code><a class="headerlink" href="#simulate" title="Link to this heading"></a></h2>
+<p>The <a class="reference internal" href="pipeline.html#simulate"><span class="std std-ref">Simulate</span></a> step generates raw data from a simulating model that cannot
+yet be fed to the neural network for training. A typical simulation will
+produce the following files</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>./sim.0.tre<span class="w">              </span><span class="c1"># tree file</span>
+./sim.0.dat.csv<span class="w">          </span><span class="c1"># data file</span>
+./sim.0.labels.csv<span class="w">       </span><span class="c1"># data-generating params</span>
+</pre></div>
+</div>
+<p>Each tree file contains a simple Newick string. Each data file contains state
+data either in Nexus format (<cite>.dat.nex</cite>) or simple comma-separated value format
+(<cite>.dat.csv</cite>) depending on the setting for <code class="docutils literal notranslate"><span class="pre">char_format</span></code>.</p>
+</section>
+<section id="format">
+<h2><code class="docutils literal notranslate"><span class="pre">format</span></code><a class="headerlink" href="#format" title="Link to this heading"></a></h2>
+<p>Applying <a class="reference internal" href="pipeline.html#format"><span class="std std-ref">Format</span></a> to a directory of simulated datasets will output
+tensors containing the entire set of training examples, stored to, e.g.
+<code class="docutils literal notranslate"><span class="pre">./format</span></code>. If the <code class="docutils literal notranslate"><span class="pre">tensor_format</span></code> setting is <code class="docutils literal notranslate"><span class="pre">'csv'</span></code>
+(Comma-Separated Value, or CSV format), the formatted files are:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>./out.empirical.phy_data.csv
+./out.empirical.aux_data.csv
+./out.empirical.labels.csv
+./out.test.phy_data.csv
+./out.test.aux_data.csv
+./out.test.labels.csv
+./out.train.phy_data.csv
+./out.train.aux_data.csv
+./out.train.labels.csv
+</pre></div>
+</div>
+<p>where the <cite>phy_data.csv</cite> files contain one flattened Compact Phylogenetic Vector +
+States (CPV+S) entry per row, the <cite>aux_data.csv</cite> files contain one vector of
+auxiliary data (summary statistics and known parameters) values per row, and
+<cite>labels.csv</cite> contains one vector of label (estimated parameters) per row. Each
+row for each of the CSV files will correspond to a single, matched simulated
+training example. All files are stored in standard comma-separated value
+format, making them easily read by standard CSV-reading functions.</p>
+<p>If the <code class="docutils literal notranslate"><span class="pre">tensor_format</span></code> setting is <code class="docutils literal notranslate"><span class="pre">'hdf5'</span></code>, the resulting files are:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>./out.test.hdf5
+./out.train.hdf5
+./out.empirical.hdf5
+</pre></div>
+</div>
+<p>where each HDF5 file contains all phylogenetic-state (CPV+S) data, auxiliary
+data, and label data. Individual simulated training examples share the same
+set of ordered examples across three internal datasets stored in the file. HDF5
+format is not as easily readable as CSV format. However, phyddle uses gzip
+to automatically (de)compress records, which often leads to files that are
+over twenty times smaller than equivalent uncompressed CSV formatted tensors.</p>
+</section>
+<section id="train">
+<h2><code class="docutils literal notranslate"><span class="pre">train</span></code><a class="headerlink" href="#train" title="Link to this heading"></a></h2>
+<p>Training a network creates the following files in the <code class="docutils literal notranslate"><span class="pre">workspace/example/train</span></code>
+directory:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>./out.cpi_adjustments.csv
+./out.train_aux_data_norm.csv
+./out.train_est.labels.csv
+./out.train_history.csv
+./out.train_label_est_nocalib.csv
+./out.train_label_norm.csv
+./out.train_true.labels.csv
+./out.trained_model.pkl
+</pre></div>
+</div>
+<p>Descriptions of the files are as follows, with the prefix omitted for brevity:
+* <code class="docutils literal notranslate"><span class="pre">trained_model.pkl</span></code>: a saved file containing the trained PyTorch model
+* <code class="docutils literal notranslate"><span class="pre">train_label_norm.csv</span></code> and <code class="docutils literal notranslate"><span class="pre">train_aux_data_norm.csv</span></code>: the location-scale values from the training dataset to (de)normalize the labels and auxiliary data from any dataset
+* <code class="docutils literal notranslate"><span class="pre">train_true.labels.csv</span></code>: the true values of labels for the training and test datasets, where columns correspond to estimated labels (e.g. model parameters)
+* <code class="docutils literal notranslate"><span class="pre">train_est.labels.csv</span></code>: the trained network estimates of labels for the training and test datasets, with calibrated prediction intervals, where columns correspond to point estimates and estimates for lower CPI and upper CPI bounds for each named label (e.g. model parameter)
+* <code class="docutils literal notranslate"><span class="pre">train_label_est_nocalib.csv</span></code>: the trained network estimates of labels for the training and test datasets, with uncalibrated prediction intervals
+* <code class="docutils literal notranslate"><span class="pre">train_history.csv</span></code>: the metrics across training epochs monitored during network training
+* <code class="docutils literal notranslate"><span class="pre">cpi_adjustments.csv</span></code>: calibrated prediction interval adjustments, where columns correspond to parameters, the first row contains lower bound adjustments, and the second row contains upper bound adjustments</p>
+</section>
+<section id="estimate">
+<h2><code class="docutils literal notranslate"><span class="pre">estimate</span></code><a class="headerlink" href="#estimate" title="Link to this heading"></a></h2>
+<p>The <a class="reference internal" href="pipeline.html#estimate"><span class="std std-ref">Estimate</span></a> step will load empirical and simulated test datasets
+generated by the <a class="reference internal" href="pipeline.html#format"><span class="std std-ref">Format</span></a> step, and then make new predictions using
+the network trained during the <a class="reference internal" href="pipeline.html#train"><span class="std std-ref">Train</span></a> step. Estimation will produce
+the following estimates, so long as the formatted input datasets can
+be opened in the filesystem:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>./out.empirical_est.labels.csv<span class="w">  </span><span class="c1"># output: estimated labels for empirical data</span>
+./out.test_est.labels.csv<span class="w">       </span><span class="c1"># output: estimated labels for test data</span>
+./out.test_true.labels.csv<span class="w">      </span><span class="c1"># output: true labels for test data</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">out.empirical_est_labels.csv</span></code> and <code class="docutils literal notranslate"><span class="pre">out.test_est.labels.csv</span></code> files
+report the point estimates and lower and upper calibrated prediction
+intervals (CPIs) for all parameters targeted by the <code class="docutils literal notranslate"><span class="pre">param_est</span></code> setting.
+Estimates for parameters appear across columns, where columns are grouped
+first by label (e.g. parameter) and then statistic (e.g. value, lower-bound,
+upper-bound). For example:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>cat<span class="w"> </span>out.empirical_est.labels.csv
+w_0_value,w_0_lower,w_0_upper,e_0_value,e_0_lower,e_0_upper,d_0_1_value,d_0_1_lower,d_0_1_upper,b_0_1_value,b_0_1_lower,b_0_1_upper
+<span class="m">0</span>.2867125345651129,0.1937433853918723,0.45733220552078013,0.02445545359384659,0.002880695707341881,0.10404499205878459,0.4502031713887769,0.1966340488593367,0.5147956690178682,0.06199703190510973,0.0015074254823161301,0.27544015163806645
+</pre></div>
+</div>
+<p>The <cite>test_est.labels.csv</cite> and <cite>test_true.labels.csv</cite> files contain estimated
+and true label values for the simulated test dataset that were left aside
+during training. It is crucial that estimation accuracy against the test
+dataset is not used to inform the training process. If you view the test
+results and use it to modify <a class="reference internal" href="pipeline.html#train"><span class="std std-ref">Train</span></a> settings, you should first
+randomly re-sample the training and test datasets from the <a class="reference internal" href="pipeline.html#format"><span class="std std-ref">Format</span></a> step.
+This helps prevent overfitting and ensures that the test dataset is truly
+independent of the training procedure.</p>
+</section>
+<section id="plot">
+<h2><code class="docutils literal notranslate"><span class="pre">plot</span></code><a class="headerlink" href="#plot" title="Link to this heading"></a></h2>
+<p>The <a class="reference internal" href="pipeline.html#plot"><span class="std std-ref">Plot</span></a> step generates visualizations for results previously generated
+by <a class="reference internal" href="pipeline.html#format"><span class="std std-ref">Format</span></a>, <a class="reference internal" href="pipeline.html#train"><span class="std std-ref">Train</span></a>, and (when available) <a class="reference internal" href="pipeline.html#estimate"><span class="std std-ref">Estimate</span></a>.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>./est_CPI.pdf<span class="w">                       </span><span class="c1"># results from Estimate step</span>
+./density_labels.pdf<span class="w">                </span><span class="c1"># label densities from Simulate/Format steps</span>
+./density_aux_data.pdf<span class="w">              </span><span class="c1"># aux. data densities from Simulate/Format steps</span>
+./pca_contour_labels.pdf<span class="w">            </span><span class="c1"># label PCA of Simulate/Format steps</span>
+./pca_contour_aux_data.pdf<span class="w">          </span><span class="c1"># aux. dataPCA of Simulate/Format steps</span>
+./estimate_test_<span class="o">{</span>label<span class="o">}</span>.pdf<span class="w">         </span><span class="c1"># estimation accuracy on train dataset</span>
+./estimate_train_<span class="o">{</span>label<span class="o">}</span>.pdf<span class="w">        </span><span class="c1"># estimation accuracy on test dataset</span>
+./history.pdf<span class="w">                       </span><span class="c1"># training history for entire network</span>
+./network_architecture.pdf<span class="w">          </span><span class="c1"># neural network architecture</span>
+./summary.pdf<span class="w">                       </span><span class="c1"># compiled report with all figures</span>
+./summary.csv<span class="w">                       </span><span class="c1"># compiled text file with numerical results</span>
+</pre></div>
+</div>
+</section>
+<section id="empirical">
+<h2><code class="docutils literal notranslate"><span class="pre">empirical</span></code><a class="headerlink" href="#empirical" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">empirical</span></code> directory is used to store raw data for empirical analyses.
+The network from <a class="reference internal" href="pipeline.html#train"><span class="std std-ref">Train</span></a> is only trained to make accurate predictions
+for datasets with the same format as the <code class="docutils literal notranslate"><span class="pre">simulate</span></code> directory. That means
+empirical datasets must have the same file types and formats as entries in
+the <code class="docutils literal notranslate"><span class="pre">simulate</span></code> directory. One difference is that empirical <code class="docutils literal notranslate"><span class="pre">labels.csv</span></code>
+files will only contain entries for “known” parameters, as specified by
+<code class="docutils literal notranslate"><span class="pre">param_data</span></code> in the configuration; they will not contain the “unknown”
+parameters to be estimated, specified by <code class="docutils literal notranslate"><span class="pre">param_est</span></code>.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>./empirical/viburnum.0.tre<span class="w">         </span><span class="c1"># tree file</span>
+./empirical/viburnum.0.dat.csv<span class="w">     </span><span class="c1"># data file</span>
+./empirical/viburnum.0.labels.csv<span class="w">  </span><span class="c1"># data-generating params</span>
+</pre></div>
+</div>
+</section>
+<section id="log">
+<h2><code class="docutils literal notranslate"><span class="pre">log</span></code><a class="headerlink" href="#log" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">log</span></code> directory contains logs for each phyddle analysis. Log files
+are named according to the date and time of the analysis, and contain
+runtime information that may be useful for debugging or reproducing results.</p>
+<p>Visit <a class="reference internal" href="pipeline.html#pipeline"><span class="std std-ref">Pipeline</span></a> to learn more about the files.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="pipeline.html" class="btn btn-neutral float-left" title="Pipeline" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="formats.html" class="btn btn-neutral float-right" title="Formats" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
