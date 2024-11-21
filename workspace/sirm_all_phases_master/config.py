@@ -8,7 +8,7 @@ args = {
   #-------------------------------#
   'dir'                : '.',  # Parent directory for all step directories unless step directory given
   'sim_dir'            : None,                  # Directory for raw simulated data
-  'emp_dir'            : NOne,                  # Directory for raw empirical data
+  'emp_dir'            : None,                  # Directory for raw empirical data
   'fmt_dir'            : None,                  # Directory for tensor-formatted data
   'trn_dir'            : None,                  # Directory for trained networks and training output
   'est_dir'            : None,                  # Directory for new datasets and estimates
@@ -74,7 +74,7 @@ args = {
   #-------------------------------#
   'num_epochs'         : 200,                  # Number of training epochs      
   'trn_batch_size'     : 512,                  # Training batch sizes           
-  'prop_test'          : 0.005,                # Proportion of data used as test examples (assess trained network performance)
+  'prop_test'          : 0.05,                # Proportion of data used as test examples (assess trained network performance)
   'prop_val'           : 0.05,                 # Proportion of data used as validation examples (diagnose network overtraining)
   'prop_cal'           : 0.1,                  # Proportion of data used as calibration examples (calibrate CPIs)
   'cpi_coverage'       : 0.95,                 # Expected coverage percent for calibrated prediction intervals (CPIs)
