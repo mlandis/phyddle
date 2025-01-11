@@ -969,12 +969,14 @@ class Formatter:
         for nd in phy.inorder_node_iter():
             
             if nd.is_leaf():
-                heights[height_idx,1] = nd.edge.length
+                if tree_encode_type == 'height_brlen':
+                    heights[height_idx,1] = nd.edge.length
                 states[state_idx,:]   = dat[nd.taxon.label].to_list()
                 state_idx += 1
             else:
                 heights[height_idx,0] = nd.root_distance
-                heights[height_idx,2] = nd.edge.length
+                if tree_encode_type == 'height_brlen':
+                    heights[height_idx,2] = nd.edge.length
                 height_idx += 1
 
         # stack the phylo and states tensors
@@ -1042,12 +1044,14 @@ class Formatter:
         for nd in phy.inorder_node_iter():
             if nd.is_leaf():
                 heights[height_idx,0] = nd.root_distance - last_int_node.root_distance
-                heights[height_idx,2] = nd.edge.length
+                if tree_encode_type == 'height_brlen':
+                    heights[height_idx,2] = nd.edge.length
                 states[state_idx,:]   = dat[nd.taxon.label].to_list()
                 state_idx += 1
             else:
                 heights[height_idx+1,1] = nd.root_distance
-                heights[height_idx+1,3] = nd.edge.length
+                if tree_encode_type == 'height_brlen':
+                    heights[height_idx+1,3] = nd.edge.length
                 last_int_node = nd
                 height_idx += 1
 
