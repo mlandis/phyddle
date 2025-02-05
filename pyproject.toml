@@ -28,6 +28,7 @@ dependencies = [
   "scipy",
   "torch",
   "torchvision",
+  "torchview",
   "tqdm"
 ]
 
