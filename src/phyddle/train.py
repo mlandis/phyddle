@@ -106,6 +106,9 @@ class Trainer:
         self.loss_numerical     = str(args['loss_numerical'])
         self.use_cuda           = bool(args['use_cuda'])
         self.num_early_stop     = int(args['num_early_stop'])
+        self.learning_rate      = float(args['learning_rate'])
+        self.activation_func    = str(args['activation_func'])
+        self.optimizer          = str(args['optimizer'])
 
         # initialized later
         self.phy_tensors        = dict()   # init with encode_all()
@@ -595,16 +598,28 @@ class CnnTrainer(Trainer):
         loss_lower_func = network.QuantileLoss(alpha=q_lower)
         loss_upper_func = network.QuantileLoss(alpha=q_upper)
         loss_categ_func = network.CrossEntropyLoss()
-
+        
         # optimizer
-        optimizer = torch.optim.Adam(self.model.parameters())
+        optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
+        if self.optimizer == 'adam':
+            optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
+        if self.optimizer == 'adamw':
+            optimizer = torch.optim.AdamW(self.model.parameters(), lr=self.learning_rate)
+        elif self.optimizer == 'adagrad':
+            optimizer = torch.optim.Adagrad(self.model.parameters(), lr=self.learning_rate)
+        elif self.optimizer == 'adadelta':
+            optimizer = torch.optim.Adadelta(self.model.parameters(), lr=self.learning_rate)
+        elif self.optimizer == 'rmsprop':
+            optimizer = torch.optim.RMSprop(self.model.parameters(), lr=self.learning_rate)
+        elif self.optimizer == 'sgd':
+            optimizer = torch.optim.SGD(self.model.parameters(), lr=self.learning_rate)
+            
         # optimizer = torch.optim.Adam(self.model.parameters(),
         #                              lr=0.001,
         #                              weight_decay = 0.002)
         # optimizer = torch.optim.AdamW(self.model.parameters(), lr=0.001,
         #                               betas=(0.9, 0.999), eps=1e-08,
         #                               weight_decay=0.01, ams_grad=False)
-
         # lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer,
         #                                             step_size = 50,
         #                                             gamma = 0.1)
