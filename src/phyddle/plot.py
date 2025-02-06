@@ -402,12 +402,7 @@ class Plotter:
             self.make_plot_stat_density('train', 'aux_data')
         if self.has_train_num and self.has_train_fmt:
             self.make_plot_stat_density('train', 'labels')
-        # 
-        # if self.num_empirical >= self.plot_min_emp and self.has_train_fmt:
-        #     self.make_plot_stat_density('empirical', 'aux_data')
-        # if self.num_empirical >= self.plot_min_emp and self.has_emp_num:
-        #     self.make_plot_stat_density('empirical', 'labels')
-        # 
+
         # PCA hex bins for aux. data and labels
         if self.has_train_fmt:
             aux_pca_model = self.make_plot_pca_hexbin('train', 'aux_data')
@@ -415,31 +410,31 @@ class Plotter:
         if self.has_train_num and self.has_train_fmt:
             lbl_pca_model = self.make_plot_pca_hexbin('train', 'labels')
 
-        # # scatter accuracy
-        # if self.has_train_num:
-        #     self.make_plot_scatter_accuracy('train')
-        # if self.has_test_num:
-        #     self.make_plot_scatter_accuracy('test')
-        # 
-        # # confusion matrix
-        # if self.has_train_cat:
-        #     self.make_plot_confusion_matrix('train')
-        # if self.has_test_cat:
-        #     self.make_plot_confusion_matrix('test')
-        # 
-        # # point estimates and CPIs in empirical dataset
-        # if self.has_emp_num:
-        #     self.make_plot_emp_ci()
-        # 
-        # # bar plot for categorical in empirical dataset
-        # if self.has_emp_cat:
-        #     self.make_plot_emp_cat()
-        # 
-        # # training history stats
-        # self.make_plot_train_history()
-        # 
-        # # network architecture
-        # self.make_plot_network_architecture()
+        # scatter accuracy
+        if self.has_train_num:
+            self.make_plot_scatter_accuracy('train')
+        if self.has_test_num:
+            self.make_plot_scatter_accuracy('test')
+
+        # confusion matrix
+        if self.has_train_cat:
+            self.make_plot_confusion_matrix('train')
+        if self.has_test_cat:
+            self.make_plot_confusion_matrix('test')
+
+        # point estimates and CPIs in empirical dataset
+        if self.has_emp_num:
+            self.make_plot_emp_ci()
+
+        # bar plot for categorical in empirical dataset
+        if self.has_emp_cat:
+            self.make_plot_emp_cat()
+
+        # training history stats
+        self.make_plot_train_history()
+
+        # network architecture
+        self.make_plot_network_architecture()
 
         # done
         return
@@ -448,7 +443,7 @@ class Plotter:
 
     def make_plot_stat_density(self, dataset_name, dataset_type):
         """Calls plot_stat_density with arguments."""
-        assert dataset_name in ['train', 'empirical']
+        assert dataset_name in ['train'] #, 'empirical']
         assert dataset_type in ['aux_data', 'labels']
 
         train_aux_data = None
@@ -465,32 +460,32 @@ class Plotter:
             emp_est_num = self.emp_est_num.copy()
 
         if dataset_name == 'train' and dataset_type == 'aux_data':
-            self.plot_stat_density2(save_fn=self.save_train_density_aux_fn,
+            self.plot_stat_density(save_fn=self.save_train_density_aux_fn,
                                    dist_values=train_aux_data,
                                    point_values=emp_aux_data,
                                    color=self.plot_aux_color,
                                    title='training aux. data')
 
         elif dataset_name == 'train' and dataset_type == 'labels':
-            self.plot_stat_density2(save_fn=self.save_train_density_label_fn,
+            self.plot_stat_density(save_fn=self.save_train_density_label_fn,
                                    dist_values=train_labels_num,
                                    point_values=emp_est_num,
                                    color=self.plot_label_color,
                                    title='training labels')
 
-        elif dataset_name == 'empirical' and dataset_type == 'aux_data':
-            self.plot_stat_density(save_fn=self.save_emp_density_aux_fn,
-                                   dist_values=emp_aux_data,
-                                   point_values=None,
-                                   color=self.plot_aux_color,
-                                   title='empirical aux. data')
-
-        elif dataset_name == 'empirical' and dataset_type == 'labels':
-            self.plot_stat_density(save_fn=self.save_emp_density_label_fn,
-                                   dist_values=emp_est_num,
-                                   point_values=None,
-                                   color=self.plot_label_color,
-                                   title='empirical labels')
+        # elif dataset_name == 'empirical' and dataset_type == 'aux_data':
+        #     self.plot_stat_density(save_fn=self.save_emp_density_aux_fn,
+        #                            dist_values=emp_aux_data,
+        #                            point_values=None,
+        #                            color=self.plot_aux_color,
+        #                            title='empirical aux. data')
+        # 
+        # elif dataset_name == 'empirical' and dataset_type == 'labels':
+        #     self.plot_stat_density(save_fn=self.save_emp_density_label_fn,
+        #                            dist_values=emp_est_num,
+        #                            point_values=None,
+        #                            color=self.plot_label_color,
+        #                            title='empirical labels')
 
         # done
         return
@@ -709,130 +704,7 @@ class Plotter:
 
     ##################################################
 
-    # def plot_stat_density(self, save_fn, dist_values, point_values=None,
-    #                       title='', ncol_plot=3, color='blue'):
-    #     """Plots histograms.
-    # 
-    #     This function plots the histograms (KDEs) for simulated training
-    #     examples, e.g. aux. data or labels. The function will also plot
-    #     values from the new dataset if it is available (est_values != None).
-    # 
-    #     Args:
-    #         save_fn (str): Filename to save plot.
-    #         dist_values (numpy.array): Simulated values from training examples.
-    #         point_values (numpy.array): Estimated values from new dataset.
-    #         title (str): Plot title.
-    #         ncol_plot (int): Number of columns in plot
-    #         color (str): Color of histograms
-    # 
-    #     """
-    # 
-    #     # data dimensions
-    #     col_names = sorted(dist_values.columns)
-    #     num_aux = len(col_names)
-    #     nrow = int(np.ceil(num_aux / ncol_plot))
-    # 
-    #     # figure dimensions
-    #     fig_width = 9
-    #     fig_height = 1 + int(np.ceil(2 * nrow))
-    # 
-    #     # basic figure structure
-    #     fig, axes = plt.subplots(ncols=ncol_plot, nrows=nrow, squeeze=False,
-    #                              figsize=(fig_width, fig_height))
-    #     fig.tight_layout()
-    # 
-    #     # fill in plot
-    #     i = 0
-    #     for i_row, ax_row in enumerate(axes):
-    #         for j_col, ax in enumerate(ax_row):
-    #             if i >= num_aux:
-    #                 axes[i_row, j_col].axis('off')
-    #                 continue
-    # 
-    #             # input data
-    #             p = col_names[i]
-    #             x = sorted(dist_values[p])
-    #             if np.var(x) == 0.0:
-    #                 x = sp.stats.norm.rvs(size=len(x), loc=x, scale=x[0] * 1e-3)
-    # 
-    #             mn = np.min(x)
-    #             mx = np.max(x)
-    #             xs = np.linspace(mn, mx, 300)
-    # 
-    #             kde = sp.stats.gaussian_kde(x)
-    #             ys = kde.pdf(xs)
-    #             ax.plot(xs, ys, label="PDF", color=color)
-    # 
-    #             # plot quantiles
-    #             left, middle, right = np.percentile(x, [2.5, 50, 97.5])
-    #             ax.vlines(middle, 0, np.interp(middle, xs, ys), color=color,
-    #                       ls=':')
-    #             ax.fill_between(xs, 0, kde(xs),
-    #                             where=(left <= xs) & (xs <= right),
-    #                             facecolor=color, alpha=0.2)
-    # 
-    #             if middle - mn < mx - middle:
-    #                 ha = 'right'
-    #                 x_pos = 0.99
-    #             else:
-    #                 ha = 'left'
-    #                 x_pos = 0.01
-    #             y_pos = 0.98
-    #             dy_pos = 0.10
-    #             aux_median_str = "M={:.2f}".format(middle)
-    #             aux_lower_str = "L={:.2f}".format(left)
-    #             aux_upper_str = "U={:.2f}".format(right)
-    # 
-    #             ax.annotate(aux_median_str, xy=(x_pos, y_pos - 0 * dy_pos),
-    #                         xycoords='axes fraction', fontsize=10,
-    #                         horizontalalignment=ha, verticalalignment='top')
-    #             ax.annotate(aux_lower_str, xy=(x_pos, y_pos - 1 * dy_pos),
-    #                         xycoords='axes fraction', fontsize=10,
-    #                         horizontalalignment=ha, verticalalignment='top')
-    #             ax.annotate(aux_upper_str, xy=(x_pos, y_pos - 2 * dy_pos),
-    #                         xycoords='axes fraction', fontsize=10,
-    #                         horizontalalignment=ha, verticalalignment='top')
-    # 
-    #             p_point = p
-    #             if point_values is not None and p not in point_values:
-    #                 p_point = f'{p}_value'
-    # 
-    #             if point_values is not None and p_point in point_values:
-    #                 x_data = point_values[p_point][0]
-    #                 y_data = kde(x_data)
-    #                 q_true = np.sum(x < x_data) / len(x)
-    #                 ax.vlines(x_data, 0, y_data, color='red')
-    #                 lbl_est_val_str = "X={:.2f}".format(x_data)
-    #                 lbl_est_quant_str = f'Q={int(q_true * 100)}%'
-    #                 ax.annotate(lbl_est_val_str, xy=(x_pos, y_pos - 3 * dy_pos),
-    #                             xycoords='axes fraction', fontsize=10,
-    #                             horizontalalignment=ha, verticalalignment='top',
-    #                             color='red')
-    #                 ax.annotate(lbl_est_quant_str,
-    #                             xy=(x_pos, y_pos - 4 * dy_pos),
-    #                             xycoords='axes fraction', fontsize=10,
-    #                             horizontalalignment=ha, verticalalignment='top',
-    #                             color='red')
-    # 
-    #             # cosmetics
-    #             ax.title.set_text(col_names[i])
-    #             ax.yaxis.set_visible(False)
-    #             i = i + 1
-    # 
-    #     # add labels to superplot axes
-    #     fig.supxlabel('Data')
-    #     fig.supylabel('Density')
-    # 
-    #     fig.suptitle(f'Density: {title}')
-    #     fig.tight_layout(rect=[0, 0.03, 1, 0.98])
-    #     plt.savefig(fname=save_fn, format='pdf', dpi=300, bbox_inches='tight')
-    #     plt.clf()
-    #     plt.close()
-    # 
-    #     # done
-    #     return
-
-    def plot_stat_density2(self, save_fn, dist_values, point_values=None,
+    def plot_stat_density(self, save_fn, dist_values, point_values=None,
                           title='', ncol_plot=3, color='blue'):
         """Plots histograms.
     
@@ -898,11 +770,6 @@ class Plotter:
     
                 # plot quantiles
                 left, middle, right = np.percentile(x, [2.5, 50, 97.5])
-                # ax.vlines(middle, 0, np.interp(middle, xs, ys), color=color,
-                #           ls=':')
-                # ax.fill_between(xs, 0, kde(xs),
-                #                 where=(left <= xs) & (xs <= right),
-                #                 facecolor=color, alpha=0.2)
     
                 if middle - mn < mx - middle:
                     ha = 'right'
@@ -931,36 +798,7 @@ class Plotter:
                     ax.annotate(emp_str, xy=(x_pos, y_pos - 1 * dy_pos),
                             xycoords='axes fraction', fontsize=8,
                             horizontalalignment=ha, verticalalignment='top', color='red')
-                # ax.annotate(aux_median_str, xy=(x_pos, y_pos - 0 * dy_pos),
-                #             xycoords='axes fraction', fontsize=10,
-                #             horizontalalignment=ha, verticalalignment='top')
-                # ax.annotate(aux_lower_str, xy=(x_pos, y_pos - 1 * dy_pos),
-                #             xycoords='axes fraction', fontsize=10,
-                #             horizontalalignment=ha, verticalalignment='top')
-                # ax.annotate(aux_upper_str, xy=(x_pos, y_pos - 2 * dy_pos),
-                #             xycoords='axes fraction', fontsize=10,
-                #             horizontalalignment=ha, verticalalignment='top')
-    
-                # p_point = p
-                # if point_values is not None and p not in point_values:
-                #     p_point = f'{p}_value'
-                # 
-                # if point_values is not None and p_point in point_values:
-                #     # x_data = point_values[p_point][0]
-                #     # y_data = kde(x_data)
-                #     q_true = np.sum(x < x_data) / len(x)
-                #     # ax.vlines(x_data, 0, y_data, color='red')
-                #     lbl_est_val_str = "X={:.2f}".format(x_data)
-                #     lbl_est_quant_str = f'Q={int(q_true * 100)}%'
-                #     ax.annotate(lbl_est_val_str, xy=(x_pos, y_pos - 3 * dy_pos),
-                #                 xycoords='axes fraction', fontsize=10,
-                #                 horizontalalignment=ha, verticalalignment='top',
-                #                 color='red')
-                #     ax.annotate(lbl_est_quant_str,
-                #                 xy=(x_pos, y_pos - 4 * dy_pos),
-                #                 xycoords='axes fraction', fontsize=10,
-                #                 horizontalalignment=ha, verticalalignment='top',
-                #                 color='red')
+                
     
                 # cosmetics
                 ax.title.set_text(col_names[i])
@@ -1005,16 +843,6 @@ class Plotter:
         fig_width = 8
         fig_height = 8
 
-        # drop lower/upper values
-        # dist_values_names = [ p.replace('_value','') for p in dist_values.columns if p.endswith('_value') ]
-        # dist_values_names = [ p for p in dist_values_names if not p.endswith('_lower') and not p.endswith('_upper') ]
-        # dist_values.columns = [ p.replace('_value','') for p in dist_values.columns ]
-        # dist_values = dist_values[ dist_values_names ]
-        # if point_values is not None:
-        #     point_values_names = [ p.replace('_value','') for p in point_values.columns if '_value' in p ]
-        #     point_values.columns = [ p.replace('_value','') for p in point_values.columns ]
-        #     point_values = point_values[ point_values_names ]
-
         # reduce num components if needed
         num_comp = min(dist_values.shape[1], num_comp)
 
@@ -1028,7 +856,7 @@ class Plotter:
 
         # apply PCA to sim_values
         if pca_model is None:
-            pca_model = PCA(n_components=num_comp)
+            pca_model = PCA(n_components=num_comp, whiten=True)
             pca = pca_model.fit_transform(x)
         else:
             pca = pca_model.transform(x)
@@ -1170,7 +998,7 @@ class Plotter:
 
             # accuracy stats
             stat_mae = np.mean(np.abs(lbl_est - lbl_true))
-            stat_mape = 100 * np.mean(np.abs(lbl_est - lbl_true) / lbl_true)
+            stat_mape = 100 * np.mean(np.abs((lbl_est - lbl_true) / lbl_true))
             stat_mse = np.mean(np.power(lbl_est - lbl_true, 2))
             stat_rmse = np.sqrt(stat_mse)
 
