@@ -16,6 +16,7 @@ import os
 
 # external imports
 import numpy as np
+import scipy as sp
 import pandas as pd
 import h5py
 import torch
@@ -88,6 +89,11 @@ class Estimator:
         self.log_offset         = float(args['log_offset'])
         self.use_cuda           = bool(args['use_cuda'])
         
+        # error checking
+        self.outlier_percentile = float(args['outlier_percentile'])
+        self.est_aux_data_raw    = None
+        self.est_labels_num_raw  = None
+        
         # get size of CPV+S tensors
         self.num_tree_col = util.get_num_tree_col(self.tree_encode,
                                                   self.brlen_encode)
@@ -122,8 +128,10 @@ class Estimator:
         self.phy_data                   = None       # init in load_format_input()
         self.aux_data                   = None       # init in load_format_input()
         self.idx_data                   = None       # init in load_format_input()
-        self.true_labels_num           = None       # init in load_format_input()
+        self.aux_data_names             = None       # init in load_format_input()
+        self.true_labels_num            = None       # init in load_format_input()
         self.true_labels_cat            = None       # init in load_format_input()
+        self.est_labels_num             = None       # init in make_results()
         self.mymodel                    = None       # init in make_results()
         
         # done
@@ -208,6 +216,9 @@ class Estimator:
             # make estimates
             util.print_str('▪ Making empirical estimates', verbose)
             self.make_results(mode='emp')
+            
+            # check inputs/outputs
+            self.check_empirical_results()
 
             # done
             found_emp = True
@@ -348,6 +359,7 @@ class Estimator:
                 label_names = labels[0,:]
                 labels = labels[1:,:].astype('float64')
             aux_data = aux_data[1:,:].astype('float64')
+            aux_data_names = aux_data[0,:]
 
         elif self.tensor_format == 'hdf5':
             hdf5_file = h5py.File(hdf5_fn, 'r')
@@ -358,6 +370,7 @@ class Estimator:
             if mode == 'sim':
                 labels = pd.DataFrame(hdf5_file['labels']).to_numpy()
             label_names = [ s.decode() for s in hdf5_file['label_names'][0,:] ]
+            aux_data_names = [ s.decode() for s in hdf5_file['aux_data_names'][0,:] ]
             hdf5_file.close()
         
         # get number of samples
@@ -371,7 +384,8 @@ class Estimator:
         # test dataset normalization
         assert aux_data.shape[0] == num_sample
         self.aux_data = util.normalize(aux_data, self.train_aux_data_mean_sd)
-
+        self.aux_data_names = aux_data_names
+        
         # dataset index
         self.idx_data = idx_data
 
@@ -394,7 +408,10 @@ class Estimator:
             for idx in range(self.true_labels_cat.shape[1]):
                 unique_cats, encoded_cats = np.unique(self.true_labels_cat[:,idx],
                                                       return_inverse=True)
-                self.true_labels_cat[:,idx] = encoded_cats
+                self.true_labels_cat[:,idx] = encoded_cats                    
+                # num_outliers = np.sum(np.abs(self.aux_data[:, i]) > bound)
+                # if num_outliers > num_expected:
+                # util.print_warn(f'Outlier detected in column {i} of aux_data')
             
         # done
         return
@@ -480,6 +497,15 @@ class Estimator:
                 df_true_labels_cat = pd.concat( [self.idx_data, df_true_labels_cat], axis=1)
                 df_true_labels_cat.to_csv(out_true_labels_cat_fn, index=False, sep=',')
         
+        if mode == 'emp':
+            # self.est_labels_num_raw = denorm_est_labels_num
+            self.est_aux_data_raw = util.denormalize(self.aux_data,
+                                                     self.train_aux_data_mean_sd,
+                                                     exp=False)
+            self.est_labels_num_raw = util.denormalize(labels_est_num,
+                                                      self.train_labels_num_mean_sd,
+                                                      exp=False)[0,:,:]
+        
         # done
         return
     
@@ -499,4 +525,47 @@ class Estimator:
 
         return pd.concat(df_list, axis=1)
     
+    
+    def check_empirical_results(self):
+
+        
+        # settings
+        std_bound = sp.stats.norm.ppf(1.0 - self.outlier_percentile/2, loc=0, scale=1)
+
+        # check for outliers in aux_data
+        aux_data = util.normalize(self.est_aux_data_raw, self.train_aux_data_mean_sd)
+        for i in range(aux_data.shape[1]):
+            outlier_fail = np.abs(aux_data[:, i]) > std_bound
+            mu = self.train_aux_data_mean_sd[0][i]
+            sd = self.train_aux_data_mean_sd[1][i]
+            raw_lower = mu - std_bound * sd
+            raw_upper = mu + std_bound * sd
+            outlier_idx = np.where(outlier_fail)[0]
+            outliers = self.est_aux_data_raw[outlier_fail, i]
+            if outliers.shape[0] > 0:
+                util.print_warn(f'Outlier(s) detected in empirical aux. data: {self.aux_data_names[i]}')
+                util.print_warn(f'  Values outside {(1.0 - self.outlier_percentile)*100}% interval from {raw_lower} to {raw_upper}')
+                util.print_warn(f'  Detected outlier(s):')
+                for j in range(outliers.shape[0]):
+                    util.print_warn(f'    index {outlier_idx[j]} : value {outliers[j]}')
+        
+        # check for outliers in labels
+        if self.has_label_num:
+            est_labels_num = util.normalize(self.est_labels_num_raw, self.train_labels_num_mean_sd)
+            
+            for i in range(est_labels_num.shape[1]):
+                outlier_fail = np.abs(est_labels_num[:, i]) > std_bound
+                mu = self.train_labels_num_mean_sd[0][i]
+                sd = self.train_labels_num_mean_sd[1][i]
+                raw_lower = mu - std_bound * sd
+                raw_upper = mu + std_bound * sd
+                outlier_idx = np.where(outlier_fail)[0]
+                outliers = self.est_labels_num_raw[outlier_fail, i]
+                if outliers.shape[0] > 0:
+                    util.print_warn(f'Outlier(s) detected in empirical labels: {self.aux_data_names[i]}')
+                    util.print_warn(f'  Values outside {(1.0 - self.outlier_percentile)*100}% interval from {raw_lower} to {raw_upper}')
+                    util.print_warn(f'  Detected outlier(s):')
+                    for j in range(outliers.shape[0]):
+                        util.print_warn(f'    index {outlier_idx[j]} : value {outliers[j]}')
+        
 ##################################################
