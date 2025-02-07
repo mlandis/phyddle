@@ -27,7 +27,7 @@ from datetime import datetime
 # external packages
 import dendropy as dp
 import numpy as np
-import pandas as pd
+import pandas as pdq
 
 # phyddle imports
 import __main__ as main
@@ -194,6 +194,8 @@ def settings_registry():
         'phy_dilate_dilate':    {'step': 'T',      'type': list,   'section': 'Train',  'default': [3, 5],         'help': 'Dilation sizes for dilate convolutional layers for phylogenetic state input'},
 
         # estimating options
+        'warn_aux_outlier':     {'step': 'FEP',    'type': float,  'section': 'Estimate',  'default': 0.0001,      'help': 'Percentile to detect extreme empirical auxiliary (abs.) values.'},
+        'warn_lbl_outlier':     {'step': 'FEP',    'type': float,  'section': 'Estimate',  'default': 0.01,        'help': 'Percentile to detect extreme empirical label (abs.) values.'},
 
         # plotting options
         'plot_train_color'  : {'step': 'P', 'type': str,    'section': 'Plot', 'default': 'blue',    'help': 'Plotting color for training data elements'},
@@ -668,6 +670,10 @@ def check_args(args):
         print_err("sim_batch_size must be > 0", exit=True)
     if args['cpi_coverage'] < 0. or args['cpi_coverage'] > 1.:
         print_err("cpi_coverage must be between 0 and 1", exit=True)
+    if args['warn_aux_outlier'] < 0. or args['warn_aux_outlier'] > 1.:
+        print_err("warn_aux_outlier must be between 0 and 1", exit=True)
+    if args['warn_lbl_outlier'] < 0. or args['warn_lbl_outlier'] > 1.:
+        print_err("warn_lbl_outlier must be between 0 and 1", exit=True)
     if args['prop_test'] < 0. or args['prop_test'] > 1.:
         print_err("prop_test must be between 0 and 1", exit=True)
     if args['prop_val'] < 0. or args['prop_val'] > 1.:

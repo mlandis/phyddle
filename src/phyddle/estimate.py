@@ -90,9 +90,10 @@ class Estimator:
         self.use_cuda           = bool(args['use_cuda'])
         
         # error checking
-        self.outlier_percentile = float(args['outlier_percentile'])
-        self.est_aux_data_raw    = None
-        self.est_labels_num_raw  = None
+        self.warn_aux_outlier   = float(args['warn_aux_outlier'])
+        self.warn_lbl_outlier   = float(args['warn_lbl_outlier'])
+        self.est_aux_data_raw   = None
+        self.est_labels_num_raw = None
         
         # get size of CPV+S tensors
         self.num_tree_col = util.get_num_tree_col(self.tree_encode,
@@ -528,44 +529,45 @@ class Estimator:
     
     def check_empirical_results(self):
 
-        
-        # settings
-        std_bound = sp.stats.norm.ppf(1.0 - self.outlier_percentile/2, loc=0, scale=1)
-
         # check for outliers in aux_data
         aux_data = util.normalize(self.est_aux_data_raw, self.train_aux_data_mean_sd)
+        aux_std_bound = np.round(sp.stats.norm.ppf(1.0 - self.warn_aux_outlier/2, loc=0, scale=1), 2)
         for i in range(aux_data.shape[1]):
-            outlier_fail = np.abs(aux_data[:, i]) > std_bound
+            outlier_fail = np.abs(aux_data[:, i]) > aux_std_bound
             mu = self.train_aux_data_mean_sd[0][i]
             sd = self.train_aux_data_mean_sd[1][i]
-            raw_lower = mu - std_bound * sd
-            raw_upper = mu + std_bound * sd
+            raw_lower = "{:.2e}".format(mu - aux_std_bound * sd)
+            raw_upper = "{:.2e}".format(mu + aux_std_bound * sd)
+            percent = 100*(1.0 - self.warn_aux_outlier)
             outlier_idx = np.where(outlier_fail)[0]
             outliers = self.est_aux_data_raw[outlier_fail, i]
             if outliers.shape[0] > 0:
                 util.print_warn(f'Outlier(s) detected in empirical aux. data: {self.aux_data_names[i]}')
-                util.print_warn(f'  Values outside {(1.0 - self.outlier_percentile)*100}% interval from {raw_lower} to {raw_upper}')
-                util.print_warn(f'  Detected outlier(s):')
+                # util.print_str(f'           Values outside {(1.0 - self.warn_aux_outlier)*100}% interval of [{raw_lower}, {raw_upper}]')
+                util.print_str(f'         - Values outside ± {aux_std_bound}sd ({percent}%) interval of [{raw_lower}, {raw_upper}]')
+                util.print_str(f'         - Detected outlier(s):')
                 for j in range(outliers.shape[0]):
-                    util.print_warn(f'    index {outlier_idx[j]} : value {outliers[j]}')
+                    util.print_str(f'             index {outlier_idx[j]} : value {outliers[j]}')
         
         # check for outliers in labels
         if self.has_label_num:
             est_labels_num = util.normalize(self.est_labels_num_raw, self.train_labels_num_mean_sd)
-            
+            lbl_std_bound = np.round(sp.stats.norm.ppf(1.0 - self.warn_lbl_outlier/2, loc=0, scale=1), 2)
             for i in range(est_labels_num.shape[1]):
-                outlier_fail = np.abs(est_labels_num[:, i]) > std_bound
+                outlier_fail = np.abs(est_labels_num[:, i]) > lbl_std_bound
                 mu = self.train_labels_num_mean_sd[0][i]
                 sd = self.train_labels_num_mean_sd[1][i]
-                raw_lower = mu - std_bound * sd
-                raw_upper = mu + std_bound * sd
+                raw_lower = "{:.2e}".format(mu - lbl_std_bound * sd)
+                raw_upper = "{:.2e}".format(mu + lbl_std_bound * sd)
+                percent = 100*(1.0 - self.warn_lbl_outlier)
                 outlier_idx = np.where(outlier_fail)[0]
                 outliers = self.est_labels_num_raw[outlier_fail, i]
                 if outliers.shape[0] > 0:
-                    util.print_warn(f'Outlier(s) detected in empirical labels: {self.aux_data_names[i]}')
-                    util.print_warn(f'  Values outside {(1.0 - self.outlier_percentile)*100}% interval from {raw_lower} to {raw_upper}')
-                    util.print_warn(f'  Detected outlier(s):')
+                    util.print_warn(f'Outlier(s) detected in empirical labels: {self.label_num_names[i]}')
+                    # util.print_str(f'           Values outside {(1.0 - self.warn_lbl_outlier*100)}% interval of [{raw_lower}, {raw_upper}]')
+                    util.print_str(f'         - Values outside ± {lbl_std_bound}sd ({percent}%) interval of [{raw_lower}, {raw_upper}]')
+                    util.print_str(f'         - Detected outlier(s):')
                     for j in range(outliers.shape[0]):
-                        util.print_warn(f'    index {outlier_idx[j]} : value {outliers[j]}')
+                        util.print_str(f'             index {outlier_idx[j]} : value {outliers[j]}')
         
 ##################################################
