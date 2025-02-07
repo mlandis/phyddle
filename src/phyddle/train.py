@@ -631,7 +631,7 @@ class CnnTrainer(Trainer):
 
         # training
         metric_names = ['loss_lower', 'loss_upper', 'loss_value',
-                        'loss_combined', 'mse_value', 'mae_value', 'mape_value']
+                        'loss_combined', 'mse_value', 'mae_value', 'medape_value']
         prev_trn_loss_combined = None
         prev_val_loss_combined = None
         for i in range(self.num_epochs):
@@ -684,9 +684,9 @@ class CnnTrainer(Trainer):
                     trn_loss_value    += loss_value.item() / num_batches
                     trn_loss_lower    += loss_lower.item() / num_batches
                     trn_loss_upper    += loss_upper.item() / num_batches
-                    trn_mse_value     += ( torch.mean((lbl_num - lbls_hat[0])**2) ).item() / num_batches
-                    trn_mae_value     += ( torch.mean(torch.abs(lbl_num - lbls_hat[0])) ).item() / num_batches
-                    trn_mape_value    += ( torch.mean(torch.abs((lbl_num - lbls_hat[0]) / lbl_num)) ).item() / num_batches
+                    trn_mse_value     += (torch.mean((lbl_num - lbls_hat[0])**2)).item() / num_batches
+                    trn_mae_value     += (torch.mean(torch.abs(lbl_num - lbls_hat[0]))).item() / num_batches
+                    trn_mape_value    += 100. * (torch.median(torch.abs((lbl_num - lbls_hat[0])/lbl_num))).item() / num_batches
                 trn_loss_combined += loss_combined.item() / num_batches
                 
                 # backward pass to update gradients
@@ -724,9 +724,9 @@ class CnnTrainer(Trainer):
             val_mae_value = 0.
             val_mape_value = 0.
             if self.has_label_num:
-                val_mse_value      = ( torch.mean((val_lbl_num - val_lbls_hat[0])**2) ).item()
-                val_mae_value      = ( torch.mean(torch.abs(val_lbl_num - val_lbls_hat[0])) ).item()
-                val_mape_value     = ( torch.mean(torch.abs((val_lbl_num - val_lbls_hat[0]) / val_lbl_num)) ).item()
+                val_mse_value      = (torch.mean((val_lbl_num - val_lbls_hat[0])**2)).item()
+                val_mae_value      = (torch.mean(torch.abs(val_lbl_num - val_lbls_hat[0]))).item()
+                val_mape_value     = 100. * (torch.median(torch.abs((val_lbl_num - val_lbls_hat[0]) / val_lbl_num))).item()
                 
             val_metric_vals = [ val_loss_value, val_loss_lower, val_loss_upper,
                                 val_loss_combined, val_mse_value, val_mae_value,
@@ -763,7 +763,6 @@ class CnnTrainer(Trainer):
                 else:
                     val_bad_count = 0
 
-                
             prev_trn_loss_combined = trn_loss_combined
             prev_val_loss_combined = val_loss_combined
 

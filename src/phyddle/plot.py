@@ -405,10 +405,9 @@ class Plotter:
 
         # PCA hex bins for aux. data and labels
         if self.has_train_fmt:
-            aux_pca_model = self.make_plot_pca_hexbin('train', 'aux_data')
-        lbl_pca_model = None
+            self.make_plot_pca_hexbin('train', 'aux_data')
         if self.has_train_num and self.has_train_fmt:
-            lbl_pca_model = self.make_plot_pca_hexbin('train', 'labels')
+            self.make_plot_pca_hexbin('train', 'labels')
 
         # scatter accuracy
         if self.has_train_num:
@@ -998,10 +997,11 @@ class Plotter:
 
             # accuracy stats
             stat_mae = np.mean(np.abs(lbl_est - lbl_true))
-            stat_mape = 100 * np.mean(np.abs((lbl_est - lbl_true) / lbl_true))
+            # stat_mape = 100 * np.mean(np.abs((lbl_est - lbl_true) / np.abs(lbl_true)))
+            stat_mape = 100 * np.median(np.abs((lbl_true - lbl_est) / lbl_true))
             stat_mse = np.mean(np.power(lbl_est - lbl_true, 2))
             stat_rmse = np.sqrt(stat_mse)
-
+            
             # coverage stats
             stat_cover = np.logical_and(lbl_lower < lbl_true,
                                         lbl_upper > lbl_true)
@@ -1079,7 +1079,7 @@ class Plotter:
 
             # write text
             dx = 0.03
-            stat_str = [f'MAE: {s_mae}', f'MAPE: {s_mape}', f'MSE: {s_mse}',
+            stat_str = [f'MAE: {s_mae}', f'medAPE: {s_mape}', f'MSE: {s_mse}',
                         f'RMSE: {s_rmse}', f'Intercept: {s_intercept}',
                         f'Slope: {s_slope}', f'Coverage: {s_cover}',
                         f'Coverage target: {s_cover_target}']

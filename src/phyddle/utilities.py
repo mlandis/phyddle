@@ -27,7 +27,7 @@ from datetime import datetime
 # external packages
 import dendropy as dp
 import numpy as np
-import pandas as pdq
+import pandas as pd
 
 # phyddle imports
 import __main__ as main
