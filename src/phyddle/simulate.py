@@ -92,6 +92,8 @@ class Simulator:
         self.end_idx            = int(args['end_idx'])
         self.sim_more           = int(args['sim_more'])
         self.sim_batch_size     = int(args['sim_batch_size'])
+        self.num_char           = int(args['num_char'])
+        self.num_trees          = int(args['num_trees'])
         self.verbose            = bool(args['verbose'])
         
         # validate sim_command
@@ -346,10 +348,11 @@ class Simulator:
         valid_dat = []
         valid_all = []
         for idx in sim_idx:
+            
             # check if replicate has tree, labels, and data files
             tmp_fn = f'{self.sim_dir}/{self.sim_prefix}.{idx}'
             has_phy = os.path.exists(f'{tmp_fn}.tre')
-            if has_phy:
+            if has_phy and self.num_trees > 0:
                 valid_phy.append(idx)
                 
             has_lbl = os.path.exists(f'{tmp_fn}.labels.csv')
@@ -358,12 +361,13 @@ class Simulator:
                 
             has_dat = os.path.exists(f'{tmp_fn}.dat.csv') or \
                       os.path.exists(f'{tmp_fn}.dat.nex')
-            if has_dat:
+            
+            if has_dat and self.num_char > 0:
                 valid_dat.append(idx)
             
-            # replicate is valid if it has all three files
-            if has_phy and has_lbl and has_dat:
-                valid_all.append(int(idx))
+            # # replicate is valid if it has all three files
+            # if has_phy and has_lbl and has_dat:
+            #     valid_all.append(int(idx))
 
         # check files
         n_phy = len(valid_phy)
@@ -375,10 +379,16 @@ class Simulator:
         util.print_str(f'  ▪ ' + str(n_dat).rjust(num_rjust) + ' data files', self.verbose)
         util.print_str(f'  ▪ ' + str(n_lbl).rjust(num_rjust) + ' labels files', self.verbose)
         
-        if len(valid_all) == 0:
+        # report any detected issues
+        fail_phy = (len(valid_phy) == 0 and self.num_trees > 0)
+        fail_dat = (len(valid_dat) == 0 and self.num_char > 0)
+        if fail_phy or fail_dat:
             print('')
-            util.print_warn(f'{self.sim_dir} contains no valid simulations. '
-                            f'Verify that simulation command:\n\n'
+            if fail_phy:
+                util.print_warn(f'{self.sim_dir} contains no phylogeny files, but num_tree > 0.')
+            if fail_dat:
+                util.print_warn(f'{self.sim_dir} contains no data files, but num_char > 0.')
+            util.print_warn(f'Verify that simulation command:\n\n'
                             f'    {self.sim_command} {self.sim_dir} {self.sim_prefix} 0 1\n\n'
                             f'works as intended with the provided configuration.'
                             '\n')

@@ -153,8 +153,9 @@ def settings_registry():
 
         # formatting options
         'encode_all_sim':   {'step': 'F',     'type': str,   'section': 'Format',  'default': 'T',             'help': 'Encode all simulated replicates into tensor?', 'bool': True},
-        'num_char':         {'step': 'FTE',   'type': int,   'section': 'Format',  'default': None,            'help': 'Number of characters'},
+        'num_char':         {'step': 'SFTE',  'type': int,   'section': 'Format',  'default': None,            'help': 'Number of characters'},
         'num_states':       {'step': 'FTE',   'type': int,   'section': 'Format',  'default': None,            'help': 'Number of states per character'},
+        'num_trees':        {'step': 'SFTE',  'type': int,   'section': 'Format',  'default': 1,               'help': 'Number of trees per dataset'},
         'min_num_taxa':     {'step': 'F',     'type': int,   'section': 'Format',  'default': 10,              'help': 'Minimum number of taxa allowed when formatting'},
         'max_num_taxa':     {'step': 'F',     'type': int,   'section': 'Format',  'default': 1000,            'help': 'Maximum number of taxa allowed when formatting'},
         'downsample_taxa':  {'step': 'FTE',   'type': str,   'section': 'Format',  'default': 'uniform',       'help': 'Downsampling strategy taxon count', 'choices': ['uniform']},
@@ -660,6 +661,8 @@ def check_args(args):
         print_err("num_states must be >= 0", exit=True)
     if args['num_char'] < 0:
         print_err("num_char must be >= 0", exit=True)
+    if args['num_trees'] < 0 or args['num_trees'] > 1:
+        print_err("num_trees must be 0 or 1", exit=True)
     if args['num_epochs'] < 0:
         print_err("num_epochs must be >= 0", exit=True)
     if args['num_early_stop'] < 0:

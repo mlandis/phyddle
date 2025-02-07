@@ -98,6 +98,7 @@ class Formatter:
         # dataset dimensions
         self.num_char           = int(args['num_char'])
         self.num_states         = int(args['num_states'])
+        self.num_trees          = int(args['num_trees'])
         self.min_num_taxa       = int(args['min_num_taxa'])
         self.max_num_taxa       = int(args['max_num_taxa'])
         self.tree_width         = int(args['tree_width'])
@@ -121,6 +122,12 @@ class Formatter:
         # set number of processors
         if self.num_proc <= 0:
             self.num_proc = cpu_count() + self.num_proc
+
+        # are input characters, trees, or labels used?
+        self.use_input_dat = (self.num_char > 0)
+        self.use_input_tree = (self.num_trees > 0)
+        self.use_input_lbl = (len(self.param_data) > 0)
+        assert(self.use_input_dat or self.use_input_tree or self.use_input_lbl)
 
         # get size of CPV+S tensors
         num_tree_col = util.get_num_tree_col(self.tree_encode,
@@ -170,7 +177,7 @@ class Formatter:
         os.makedirs(self.fmt_dir, exist_ok=True)
 
         # start time
-        start_time,start_time_str = util.get_time()
+        start_time, start_time_str = util.get_time()
         util.print_str(f'▪ Start time of {start_time_str}', verbose)
 
         found_sim = False
@@ -282,8 +289,8 @@ class Formatter:
             elif mode == 'emp' and len(self.param_data) > 0 and not has_lbl:
                 print(f'No labels found for {f}.')
                 return False
-            # if the 2-3 files exist, then we have 1+ valid datasets
-            if has_dat and has_tre and has_lbl:
+            # if the 1-3 files exist, then we have 1+ valid datasets
+            if (has_dat or not self.use_input_dat) and (has_tre or self.use_input_tre) and has_lbl:
                 return True
     
         return False
@@ -386,7 +393,10 @@ class Formatter:
             files = os.listdir(f'{self.emp_dir}')
             # files = [ f for f in files if f.startswith(self.emp_prefix) ]
         
-        files = [ f for f in files if '.dat.' in f ]
+        if self.use_input_dat:
+            files = [ f for f in files if '.dat.' in f ]
+        elif self.use_input_tree:
+            files = [ f for f in files if '.tre' in f ]
 
         for f in files:
             s_idx = f.split('.')[1]
@@ -399,7 +409,7 @@ class Formatter:
         all_idx = sorted(list(all_idx))
         # elif self.encode_all_sim:
         #     all_idx = list(range(self.start_idx, self.end_idx))
-            
+        
         return all_idx
 
     def split_examples(self):
