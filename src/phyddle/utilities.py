@@ -181,7 +181,7 @@ def settings_registry():
         'loss_numerical':       {'step': 'T',      'type': str,    'section': 'Train',  'default': 'mse',          'help': 'Loss function for real value estimates', 'choices': ['mse', 'mae']},
         'optimizer':            {'step': 'T',      'type': str,    'section': 'Train',  'default': 'adam',         'help': 'Method used for optimizing neural network', 'choices': ['adam', 'adadelta', 'adagrad', 'adamw', 'rmsprop', 'sgd']},
         'learning_rate':        {'step': 'T',      'type': float,  'section': 'Train',  'default': 0.001,          'help': 'Learning rate for optimizer'},
-        'activation_func':      {'step': 'T',      'type': float,  'section': 'Train',  'default': 'relu',         'help': 'Activation function for all internal layers', 'choices': ['relu', 'leaky_relu', 'prelu', 'elu', 'tanh', 'sigmoid']}, 
+        'activation_func':      {'step': 'T',      'type': str,    'section': 'Train',  'default': 'relu',         'help': 'Activation function for all internal layers', 'choices': ['relu', 'leaky_relu', 'elu', 'tanh', 'sigmoid']}, 
         'log_offset':           {'step': 'FTEP',   'type': float,  'section': 'Train',  'default': 1.0,            'help': 'Offset size c when taking ln(x+c) for zero-valued variables'},
         'phy_channel_plain':    {'step': 'T',      'type': list,   'section': 'Train',  'default': [64, 96, 128],  'help': 'Output channel sizes for plain convolutional layers for phylogenetic state input'},
         'phy_channel_stride':   {'step': 'T',      'type': list,   'section': 'Train',  'default': [64, 96],       'help': 'Output channel sizes for stride convolutional layers for phylogenetic state input'},
