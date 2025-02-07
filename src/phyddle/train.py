@@ -598,6 +598,7 @@ class CnnTrainer(Trainer):
         loss_lower_func = network.QuantileLoss(alpha=q_lower)
         loss_upper_func = network.QuantileLoss(alpha=q_upper)
         loss_categ_func = network.CrossEntropyLoss()
+        loss_aggregation = 'sum'
         
         # optimizer
         optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
@@ -677,7 +678,14 @@ class CnnTrainer(Trainer):
                 if self.has_label_cat:
                     loss_categ = loss_categ_func(lbls_hat[3], lbl_cat)
                     loss_list += [ loss_categ ]
-                loss_combined = torch.stack(loss_list).sum()
+                # loss_combined = torch.stack(loss_list).sum()
+                
+                if loss_aggregation == 'sum':
+                    loss_combined = torch.stack(loss_list).sum()
+                elif loss_aggregation == 'geometric':
+                    loss_combined = torch.exp(torch.mean(torch.log(torch.stack(loss_list))))
+                elif loss_aggretation == 'median':
+                    loss_combined = torch.median(torch.stack(loss_list))
 
                 # collect history stats
                 if self.has_label_num:
@@ -718,7 +726,16 @@ class CnnTrainer(Trainer):
                 val_loss_categ = loss_categ_func(val_lbls_hat[3], val_lbl_cat).item()
                 val_loss_list += [ val_loss_categ ]
             
-            val_loss_combined = sum(val_loss_list)
+            # val_loss_combined = sum(val_loss_list)
+            if loss_aggregation == 'sum':
+                # val_loss_combined = torch.stack(val_loss_list).sum()
+                val_loss_combined = np.sum(val_loss_list)
+            elif loss_aggregation == 'geometric':
+                val_loss_combined = np.exp(np.mean(np.log(val_loss_list)))
+                # val_loss_combined = torch.exp(torch.mean(torch.log(torch.stack(val_loss_list))))
+            elif loss_aggretation == 'median':
+                # val_loss_combined = torch.median(torch.stack(val_loss_list))
+                val_loss_combined = np.median(val_loss_list)
                 
             val_mse_value = 0.
             val_mae_value = 0.
