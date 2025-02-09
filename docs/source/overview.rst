@@ -1694,16 +1694,34 @@ To diagnose this issue, run the *Plot* step. Verify that the training history
 plot does not show evidence for overtraining or undertraining. Next, verify
 the network has poor prediction accuracy for the training and test datasets.
 
-To solve the problem, simulate twice as many datasets, retrain the network,
+To fix the issue, simulate twice as many datasets, retrain the network,
 and then assess whether accuracy improved. If it does, continue simulating
 data until prediction accuracy for the training and test datasets stabilizes.
 
 
-Bad network architecture
-^^^^^^^^^^^^^^^^^^^^^^^^
+Suboptimal network size
+^^^^^^^^^^^^^^^^^^^^^^^
+Neural networks are composed of layers of nodes that are interconnected
+through series of activation functions that are optimized during training.
+In general, increasing network depth (more layers) and width (more nodes)
+allows a network to easily express a broader variety of relationships between
+inputs and outputs (higher capacity), which can increase accuracy when
+properly trained. However, because larger networks have more parameters
+to optimize, they are also prone to overtraining.
 
-Add more layers, nodes.
+To diagnose issues with network size, run the *Plot* step. If the network
+is too small, the network will underperform across all prediction tasks. 
+The training history plot will show rapid convergence towards
+the optimal loss score, but the final loss score will be higher than expected.
+In addition, prediction accuracy for the training and test datasets will be
+in agreement. If the network is too large, then the training history will
+show evidence of overtraining, and the prediction accuracy for the training
+dataset will be high, with degraded accuracy for the test dataset.
 
+To fix the issue, compare the prediction accuracy of networks trained with
+different depths and widths. To do this, modify the numbers of layers and nodes
+through the configuration file, train the new network, and compare differences
+in accuracy and training time with other network designs.
 
 
 Out-of-distribution examples
@@ -1774,18 +1792,42 @@ Model design
 There are many subtle factors related to model design that can impact
 the performance of estimation tasks. For example, models with
 non-identifiable parameters can be difficult or impossible
-to estimate; for example, consider estimating compound parameters for
+to estimate -- e.g. estimating compound parameters for
 evolutionary distance rather than separate parameters for rate and time.
 In other cases, the parameterization of the model can impact learning
-efficiency; for example, using birth and death rates versus diversification
+efficiency -- e.g. using birth and death rates versus diversification
 and turnover parameters is known to influence how easily maximum likelihood
 methods estimate birth-death model parameters.
 
+There are far too many issues related to model design to describe here.
 In general, it is safe to assume that deep learning methods will face
 similar difficulties as likelihood-based methods for standard model
 estimation tasks. If theory shows that a model is non-identifiable, neither
 method would precisely estimate all of that model's parameters.
 
+Designing models is complicated and benefits from mathematical expertise
+and experience. We recommend that biologists who are creating novel models
+for the first time consult with theoreticians identify potential flaws
+in the model design.
+
+
+Sensible results
+^^^^^^^^^^^^^^^^
+
+When applying a statistical model or inference method to analyze an
+empirical dataset, it's critical to verify that the results are sensible.
+Models and methods cannot put the results it finds into a broader
+scientific context. For example, inferring a net diversification rate of
+1000 species per species per Myr for a bird clade might be an
+earth-shattering result that changes our understanding of vertebrate evolution.
+Or perhaps the model is poorly designed. Or perhaps the
+simulator contained a bug. Or perhaps the network was overtrained. 
+Or perhaps the dataset contained an error.
+
+We urge biologists to use their knowledge of the empirical system
+and the model properties to interpret results. Do not hesitate to question
+the results of any statistical analysis, with phyddle or otherwise, if
+they cannot be explained clearly and convincingly.
 
 
 .. _Tricks:
