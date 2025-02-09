@@ -1019,7 +1019,7 @@ class Plotter:
                                          lbl_true.reshape(-1, 1))
             stat_slope = reg.coef_[0][0]
             stat_intercept = reg.intercept_[0]
-
+            
             # convert to strings
             s_mae = '{:.2E}'.format(stat_mae)
             s_mse = '{:.2E}'.format(stat_mse)
@@ -1029,6 +1029,13 @@ class Plotter:
             s_intercept = '{:.2E}'.format(stat_intercept)
             s_cover = '{:.1f}%'.format(f_stat_cover)
             s_cover_target = '{:.1f}%'.format(f_stat_cover_target)
+
+            bad_slope_str = '<' if stat_slope < 1.0 else '>'
+            bad_cover_str = '<' if f_stat_cover < f_stat_cover_target else '>'
+            if np.abs(np.log(stat_slope + 1e-12)) > 0.1:
+                util.print_warn(f'{title} estimate accuracy for {p} is low   [slope {round(stat_slope, 2)} {bad_slope_str} 1.00]')
+            if np.abs(np.log(f_stat_cover/f_stat_cover_target)) > 0.1:
+                util.print_warn(f'{title} estimate coverage for {p} is bad   [coverage {s_cover} {bad_cover_str} {s_cover_target}]')
 
             # covered points
             alpha = 0.5
