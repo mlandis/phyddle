@@ -1626,8 +1626,27 @@ results when irresponsibly. Below, we describe several issues that newcomers
 to deep learning might encounter, along with how to diagnose and solve them.
 
 
+Poor accuracy or coverage
+^^^^^^^^^^^^^^^^^^^^^^^^^
+Neural networks are trained to make accurate predictions, such as point
+estimates and prediction intervals. Poor accuracy or coverage is a
+common problem and easily detected, but it can arise for many reasons.
+
+To diagnose poor accuracy or coverage, run the *Plot* step. Review the
+scatter plots of true versus estimated labels for the Train and Test datasets.
+Accurate predictions for numerical labels should fall along the 1:1 line, with
+a slope close to 1.0. Coverage levels should be close to the target level.
+For categorical variables, the confusion matrix should show high values along
+the diagonal and small values elsewhere. phyddle will print warnings if
+accuracy or coverage is poor in the Training or Test datasets.
+
+To correct the issue, undertraining, overtraining, small
+training datasets, poor network architecture, or other issues may be
+at play. The following sections provide ideas to fix the issue.
+
+
 Undertraining
-~~~~~~~~~~~~~
+^^^^^^^^^^^^^
 An undertrained network will not make accurate predictions for training, test,
 or validation datasets. This is because the optimizer was not able to
 learn the optimal network parameters before training concluded.
@@ -1641,7 +1660,7 @@ batch sizes of training examples.
 
 
 Overtraining
-~~~~~~~~~~~~
+^^^^^^^^^^^^
 The loss score for the training dataset will typically decrease as the
 number of training epochs increases. This is because typically neural networks
 have thousands of weight and bias parameters to adjust, and small adjustments
@@ -1662,7 +1681,7 @@ training when the validation loss score increases for 3 consecutive epochs.
 
 
 Small training datasets
-~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^
 Supervised learning requires large training datasets to train networks to
 perform accurately. Most of the workspace examples are designed to work
 well with ~50,0000 training examples. Small training datasets do not contain
@@ -1680,8 +1699,15 @@ and then assess whether accuracy improved. If it does, continue simulating
 data until prediction accuracy for the training and test datasets stabilizes.
 
 
+Bad network architecture
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Add more layers, nodes.
+
+
+
 Out-of-distribution examples
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Supervised learning uses large datasets, composed of pairs of input (features)
 and output (labels), to train neural networks to accurately predict labels from
 new datasets. Properly trained network should perform well at making predictions
@@ -1711,7 +1737,7 @@ million years in height.
 
 
 Simulator errors
-~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^
 phyddle uses simulated examples to train neural networks. This means
 that the quality of the training data is only as good as the simulator
 that generates it. Untested simulators often contain coding or mathematical
@@ -1743,7 +1769,7 @@ is correct.
 
 
 Model design
-~~~~~~~~~~~~
+^^^^^^^^^^^^
 
 There are many subtle factors related to model design that can impact
 the performance of estimation tasks. For example, models with
