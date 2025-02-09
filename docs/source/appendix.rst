@@ -19,9 +19,9 @@ This section defines terms used by phyddle:
    :class: longtable
 
 
-.. _Setting_Summary:
+.. _setting_summary:
 
-Table of settings
+Table of Settings
 -----------------
 
 This table summarizes all settings currently available in phyddle.

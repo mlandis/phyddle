@@ -3,19 +3,14 @@
 
 Overview
 ========
-..
-    This guide provides phyddle users with an overview for how the pipeline
-    toolkit works, where it stores files, and how to interpret files and
-    figures. Learn how to configure phyddle analyses by reading the
-    :ref:`Configuration` documentation. 
 
 .. note:: 
     
-    This section describes how a standard phyddle pipeline analysis is
-    configured and how settings determine the behavior of a phyddle analysis.
-    Visit :ref:`Configuration` to learn how to assign settings for a phyddle
-    analysis. Visit :ref:`Glossary` to learn more about
-    how phyddle defines different terms
+    This page describes how a standard phyddle pipeline analysis is
+    configured and how settings determine software behavior.
+    Main sections: :ref:`Configuration`, :ref:`Pipeline`, :ref:`Workspace`,
+    :ref:`Formats`, and :ref:`Safe_Usage`. Visit :ref:`Glossary` to learn
+    more about how phyddle defines different terms.
 
 .. image:: images/phyddle_pipeline.png
   :width: 350
@@ -23,13 +18,13 @@ Overview
 
 A phyddle pipeline analysis has five steps: :ref:`Simulate`, :ref:`Format`,
 :ref:`Train`, :ref:`Estimate`, and :ref:`Plot`. Standard analyses run all
-steps, in order for a single batch of settings. That said, steps can be run
-multiple times under different settings and orders, which is useful for
-exploratory and advanced analyses. Visit :ref:`Tricks` to learn how to use
-phyddle to its fullest potential.
+steps, in order, based on the analysis :ref:`Configuration`. Steps
+can also be run individually and/or multiple times under different
+settings and orders, which is useful for exploratory and advanced analyses.
 
-All pipeline steps create output files. All pipeline (except :ref:`Simulate`)
-also require input files corresponding to at least one other pipeline step.
+All pipeline steps create output files, which are stored in the
+:ref:`Workspace` directories. All pipeline (except :ref:`Simulate`) also
+require input files corresponding to at least one other pipeline step.
 A full phyddle analysis for a *project* will automatically generate the
 input files for downstream pipeline steps and store them in a predictable
 *project directory*.
@@ -41,8 +36,8 @@ formats that can be used for supervised learning with neural networks.
 These simulated files can either be generated through phyddle with
 the :ref:`Simulate` step or outside of phyddle entirely.
 
-Below is the project directory structure that a standard phyddle analysis
-would use. In this section, we assume the project ``dir`` is 
+Below is the standard :ref:`Workspace` directory structure that a standard
+phyddle project would use. In this section, we assume the project ``dir`` is 
 ``./workspace/example``:
 
 .. code-block:: shell
@@ -76,16 +71,15 @@ would use. In this section, we assume the project ``dir`` is
 Configuration
 -------------
 
-.. note:: 
-    
-    This section describes how to configure settings for a phyddle analysis.
-    Visit :ref:`Overview` to learn more about how settings determine the
-    behavior of a phyddle analysis. Visit :ref:`Glossary` to learn more about
-    how phyddle defines different terms.
-
 There are two ways to configure the settings of a phyddle analysis: through a
 :ref:`config file <config_file>` or the :ref:`command line <config_cli>`.
-Command line settings outrank config file settings.
+Command line settings take precedence over config file settings. 
+
+.. note::
+
+    The :ref:`Appendix` contains a :ref:`setting_summary` that summarizes all
+    available settings.
+
 
 .. _config_file:
 
@@ -424,14 +418,8 @@ whereas calling
 
     phyddle -s SF
 
-commands phyddle to perform the Simulate and Format steps, but not the Train,
-Estimate, or Plot steps.
-
-
-Table summary
-^^^^^^^^^^^^^
-
-The `Appendix` contains a table that summarizes all available settings.
+commands phyddle to perform the *Simulate* and *Format* steps, but not the *Train*,
+*Estimate*, and *Plot* steps.
 
 
 
@@ -440,12 +428,15 @@ The `Appendix` contains a table that summarizes all available settings.
 Pipeline
 --------
 
+A standard phyddle analysis runs five steps -- *Simulate*, *Format*, *Train*,
+*Estimate*, and *Plot* -- in order.
+
 .. _setting_description_dir:
 
 Step directories
 ^^^^^^^^^^^^^^^^
 
-A standard phyddle analysis assumes all work is stored within a single
+In general, each phyddle analysis will store all work within a single
 project directory. Work from each step, however, is stored into different
 subdirectories.
 
@@ -511,11 +502,6 @@ example,
           --num_epochs 50 \             # Train for 50 epochs
           --trn_batch_size 4096         # Use batch sizes of 4096 samples
 
-
-.. _setting_description_nosim_noemp:
-
-``no_sim`` and ``no_emp``
-~~~~~~~~~~~~~~~~~~~~~~~~~
 
 By default the :ref:`Format` and :ref:`Estimate` steps run in a greedy manner,
 against the simulated datasets identified by ``dir`` (or ``sim_dir``) and
@@ -951,9 +937,11 @@ requires larger numbers of calibration examples, determined through
 The network is trained iteratively for ``num_epoch`` training cycles using
 batch stochastic gradient descent, with batch sizes given by ``trn_batch_size``.
 Different optimizers can be used to update network weight and bias
-parameters (e.g. ``optimizer == 'adam'``; Tensorflow-supported string
-or function). Network performance is also evaluated against validation data
-set aside with ``prop_val`` that are not used for minimizing the loss function.
+parameters (e.g. ``optimizer == 'adam'``). Network performance is also
+evaluated against validation data set aside with ``prop_val`` that
+are not used for minimizing the loss function. Early-stopping rules are
+enabled by default, preventing the network from being overtrained (see
+:ref:`Safe_Usage`).
 
 Number of layers and numbers of nodes per layer can be adjusted using
 configuration settings. For example, setting ``phy_channel_plain`` to
@@ -991,6 +979,11 @@ skip processing the empirical and simulated datasets, respectively. In
 addition, :ref:`Estimate` will report that it is skipping the empirical and
 simulated datasets if they do not exist.
 
+When :ref:`Estimate` is involves empirical data, the step will report
+any input datasets our output estimates that have unusually extreme
+values relative to the training dataset. This is useful for identifying
+out-of-distribution errors (see :ref:`Safe_Usage`).
+
 
 .. _Plot:
 
@@ -1002,6 +995,10 @@ Plot
 results from :ref:`Estimate` are available, the step will integrate it into
 other figures to contextualize where that input dataset and estimated
 labels fall with respect to the training dataset.
+
+Importantly, Plot will report instances where training, test, and empirical
+input datasets and output estimates are unusually different. This informs
+users of poor network behavior (see :ref:`Safe_Usage`).
 
 Plots are stored within ``plot_dir``.
 Colors for plot elements can be modified with ``plot_train_color``,
@@ -1036,9 +1033,7 @@ Workspace
 ---------
 
 This section describes how phyddle organizes files and directories in its
-workspace. Visit :ref:`Formats` to learn more about file formats. Visit
-:ref:`Configuration` to learn more about managing directories and projects
-within a workspace.
+workspace.
 
 .. note:: 
     
@@ -1224,11 +1219,13 @@ directory:
 
     ./out.cpi_adjustments.csv
     ./out.train_aux_data_norm.csv
-    ./out.train_est.labels.csv
+    ./out.train_est.labels_cat.csv
+    ./out.train_est.labels_num.csv
     ./out.train_history.csv
     ./out.train_label_est_nocalib.csv
     ./out.train_label_norm.csv
-    ./out.train_true.labels.csv
+    ./out.train_true.labels_cat.csv
+    ./out.train_true.labels_num.csv
     ./out.trained_model.pkl
 
 Descriptions of the files are as follows, with the prefix omitted for brevity:
@@ -1252,9 +1249,12 @@ be opened in the filesystem:
 
 .. code-block:: shell
 
-    ./out.empirical_est.labels.csv  # output: estimated labels for empirical data
-    ./out.test_est.labels.csv       # output: estimated labels for test data
-    ./out.test_true.labels.csv      # output: true labels for test data
+    ./out.empirical_est.labels_num.csv   # output: estimated labels for empirical data
+    ./out.empirical_est.labels_cat.csv   # output: estimated labels for empirical data
+    ./out.test_est.labels_cat.csv            # output: estimated labels for test data
+    ./out.test_est.labels_num.csv            # output: estimated labels for test data
+    ./out.test_true.labels_cat.csv           # output: true labels for test data
+    ./out.test_true.labels_num.csv           # output: true labels for test data
 
 The ``out.empirical_est_labels.csv`` and ``out.test_est.labels.csv`` files
 report the point estimates and lower and upper calibrated prediction
@@ -1288,17 +1288,18 @@ by :ref:`Format`, :ref:`Train`, and (when available) :ref:`Estimate`.
 
 .. code-block:: shell
     
-    ./est_CPI.pdf                       # results from Estimate step
-    ./density_labels.pdf                # label densities from Simulate/Format steps
-    ./density_aux_data.pdf              # aux. data densities from Simulate/Format steps
-    ./pca_contour_labels.pdf            # label PCA of Simulate/Format steps
-    ./pca_contour_aux_data.pdf          # aux. dataPCA of Simulate/Format steps
-    ./estimate_test_{label}.pdf         # estimation accuracy on train dataset     
-    ./estimate_train_{label}.pdf        # estimation accuracy on test dataset
-    ./history.pdf                       # training history for entire network
-    ./network_architecture.pdf          # neural network architecture
-    ./summary.pdf                       # compiled report with all figures
-    ./summary.csv                       # compiled text file with numerical results
+    ./out.empirical_estimate_cat_{i}.pdf  # categorical estimates for empirical data
+    ./out.empirical_estimate_num_{i}.pdf  # numerical estimates for empirical data
+    ./out.test_estimate_{param}           # estimation accuracy for test dataset
+    ./out.train_estimate_{param}          # estimation accuracy for training dataset
+    ./out.train_density_aux_data.pdf      # aux. data densities from Simulate/Format steps
+    ./out.train_density_labels.pdf        # label densities from Simulate/Format steps
+    ./out.train_pca_labels_num.pdf        # label PCA of Simulate/Format steps
+    ./out.train_aux_data.pdf              # aux. data PCA of Simulate/Format steps
+    ./out.train_history_{stat}.pdf        # training history for entire network
+    ./out.network_architecture.pdf        # neural network architecture
+    ./out.summary.pdf                     # compiled report with all figures
+    ./out.summary.csv                     # compiled text file with numerical results
 
 
 
@@ -1334,12 +1335,6 @@ Visit :ref:`Overview` to learn more about the files.
 
 Formats
 -------
-
-.. note::
-
-    (incomplete) Important: This section assume the project name is 'example'
-    while actual projects will likely use different names. Visit
-    :ref:`Glossary` to learn more about how phyddle defines different terms.
 
 This page describes different internal datatype formats and file formats used
 by phyddle.
@@ -1615,7 +1610,7 @@ phylogenetic SIR analysis.
 
 
 
-.. _Safety_features:
+.. _Safe_Usage:
 
 Safe usage
 ----------
@@ -1811,23 +1806,26 @@ for the first time consult with theoreticians identify potential flaws
 in the model design.
 
 
-Sensible results
-^^^^^^^^^^^^^^^^
+Nonsensical results
+^^^^^^^^^^^^^^^^^^^
 
 When applying a statistical model or inference method to analyze an
 empirical dataset, it's critical to verify that the results are sensible.
 Models and methods cannot put the results it finds into a broader
 scientific context. For example, inferring a net diversification rate of
-1000 species per species per Myr for a bird clade might be an
-earth-shattering result that changes our understanding of vertebrate evolution.
-Or perhaps the model is poorly designed. Or perhaps the
-simulator contained a bug. Or perhaps the network was overtrained. 
-Or perhaps the dataset contained an error.
+1,000 species per species per Myr for a bird clade might be an
+earth-shattering result that fundamentally changes our understanding
+of vertebrate evolution. Or perhaps the model is poorly designed.
+Or perhaps the simulator contained a bug. Or perhaps the network was
+overtrained. Or perhaps the dataset contained an error.
 
 We urge biologists to use their knowledge of the empirical system
 and the model properties to interpret results. Do not hesitate to question
-the results of any statistical analysis, with phyddle or otherwise, if
-they cannot be explained clearly and convincingly.
+the results of any statistical analysis, with phyddle or otherwise, especially
+if they cannot be explained clearly and convincingly. If you suspect your
+results cannot be trusted, explore whether results are robust to adjustments
+in the dataset or analysis settings, and to what extent the results can
+be replicated with other methods.
 
 
 .. _Tricks:
