@@ -562,7 +562,7 @@ Making a trained network
 ------------------------
 
 Now that we understand how the simulation script and config file work, we can
-train a dataset.
+train our network to make predictions about BiSSE models:
 
 .. code-block:: shell
 
@@ -646,8 +646,16 @@ Interpreting results
 --------------------
 
 In this section, we look at some plots. Exactly which figures are generated 
-depends on how phyddle was configured. The figures 
-named ``out.empirical_estimate_num_N.pdf`` show estimates for
+depends on how phyddle was configured. 
+
+.. note::
+
+    We note that phyddle is designed to be easy to use. However, its misuse
+    can easily lead to untrustworthy results. We urge users to carefully read
+    :ref:`Overview` and :ref:`Safe_Usage` to learn how to use phyddle
+    responsibly.
+
+The figures named ``out.empirical_estimate_num_N.pdf`` show estimates for
 empirical datasets, where ``N`` represents the `Nth` empirical
 replicate. Point estimates and calibrated prediction intervals are shown for
 each parameter.
@@ -814,7 +822,6 @@ does not result in good performance for their modeling problem.
 
 |
 
-We note that phyddle is designed to be easy to use. However, its misuse
-can easily lead to untrustworthy results. We urge users to carefully read
-:ref:`Overview` and :ref:`Safe_Usage` to learn how to use phyddle
-responsibly.
+This marks the end of the tutorial! Explore the :ref:`Overview` documentation
+and other workspace project examples to learn more about phyddle's
+capabilities and how to use them effectively.
