@@ -31,8 +31,8 @@ datasets. Make sure they are installed:
    Rscript -e 'install.packages(c("ape", "castor"), repos="https://cloud.r-project.org")'
   
 
-Then, to run a phyddle analysis for ``bisse_r`` using 25000
-training examples, type: 
+Then, to run a phyddle analysis for ``bisse_r`` using 25,000
+simulated training examples, type: 
 
 .. code-block:: shell
 
@@ -48,14 +48,14 @@ training examples, type:
   # view results summary
   open plot/out.summary.pdf
 
-We did it! ... but, what did we do!? We need to view the config file
+We did it! ...but, what did we do!? We need to view the config file
 and simulation script to understand what analysis we ran and
 how to interpret the results.
 
 Project setup
 -------------
 
-A phyddle project will generally need two key files to proceed:
+A phyddle project generally needs two key files to proceed:
 a :ref:`Configuration` file to specify how to run phyddle, and a script
 to :ref:`Simulate` training examples. 
 
@@ -72,16 +72,12 @@ regarding a typical project directory structure.
 The simulation script
 ---------------------
 
-We begin with the simulation script because is the foundation of a phyddle
-analysis. The script defines the phylogenetic model that the neural
-network will learn to fit. Designing a simulator requires a basic
-understanding for how model parameters shape data patterns. It is important
-to test simulator behavior and output exhaustively before running
-phyddle analyses.
-
-In this section, we examine how ``sim_bisse.R`` is designed to work
-as a simulator for the ``config.py`` file and phyddle. Visit the
-:ref:`Simulate` page for additional information on requirements. 
+We begin with the simulation script because it is the foundation of a phyddle
+analysis. The script defines the phylogenetic scenarios that the neural
+network will learn to model. It also must generate output files with
+particular names and formats. This section provides a brief overview
+for how the simulation script works; the :ref:`Simulate` page explains
+requirements for the script in greater detail.
 
 The simulation script ``sim_bisse.R`` needs to accept four command-line
 arguments: the output directory, the output filename prefix, the start
@@ -89,15 +85,19 @@ index for the batch of simulated replicates, and the number of simulated
 replicates. For example, calling
 
 .. code-block:: shell
-
+  
   Rscript sim_bisse.R ./simulate out 1000 100
   
-expects that the script will generate simulated datasets 1000 through
-1099, saving them to the directory ``./simulate`` with the filename
+expects that the script will call the command ``Rscript sim_bisse.R``
+with four arguments (``./simulate``, ``out``, ``1000``, and ``100``) to 
+generate 100 simulated datasets, indexed 1000 through 1099,
+saving them to the directory ``./simulate`` with the filename
 prefix ``out``.
 
-First, in ``sim_bisse.R``, we load any libraries we want to
-use for our simulation.R
+Let's look at the source code for ``sim_bisse.R``. You can view the full
+contents of the script here: https://github.com/mlandis/phyddle/blob/main/workspace/bisse_r/sim_bisse.R.
+
+First, we load any libraries we want to use for our simulation.
 
 .. code-block:: R
 
@@ -198,7 +198,7 @@ SSE model for how the simulation loop works:
                         
     }
     
-    # done !
+    # done!
 
 Now we'll look at each part of the simulation loop. First, we will define
 the maximum clade size and time the simulator can run. This is the
@@ -299,15 +299,6 @@ We also save the simulated character data to file in csv format:
 Lastly, we save the model parameters to file in csv format. This file is
 later parsed into "unknown" parameters to estimate vs. "known" parameters
 that become auxiliary data.  
-
-.. note::
-
-    We recommend transforming numerical labels as numerical variables
-    (i.e. negative-, positive- or zero-valued real numbers). Non-negative
-    valued labels, such as rate parameters, can be transformed into
-    unbounded values through a log transformation, ``log(x)``. Doubly bounded
-    labels, such as probabilities or proportions, can be transformed to
-    unbounded values using the logit transformation, ``log(x / (1 - x))``. 
 
 .. code-block:: R
 
@@ -502,6 +493,8 @@ simulator behaves as intended and is properly interfaced with phyddle.
     simulation script is modeling the the biological system
     accurately.
 
+    See :ref:`Safe_Usage` for more information.
+
 To validate the interface, run a small batch of simulations and inspect
 the output. For example, to simulate 10 datasets starting at index 0,
 type:
@@ -649,10 +642,11 @@ network to make new predictions, and finally :ref:`Plot` the results.
     open ./plot/out.summary.pdf
 
 
-Plotted results
----------------
+Interpreting results
+--------------------
 
-In this section, we look at some plots. The figures 
+In this section, we look at some plots. Exactly which figures are generated 
+depends on how phyddle was configured. The figures 
 named ``out.empirical_estimate_num_N.pdf`` show estimates for
 empirical datasets, where ``N`` represents the `Nth` empirical
 replicate. Point estimates and calibrated prediction intervals are shown for
@@ -675,33 +669,19 @@ categories per variable.
 
 |
 
-The figure ``out.train_density_labels_num.pdf`` shows the marginal
-density for numerical training labels defined by ``param_est``.
-The red line corresponds to an empirical estimate to help determine
-if it is an outlier with respect to the simulated labels.
-
-
-.. figure:: images/out.train_density_labels_num.png
-  :width: 500
-  :align: center
-
-|
-
-The figure ``out.train_pca_labels_num.pdf`` shows joint density of
-the training labels as a PCA-transformed heatmap. The red dots correspond to
-a subsample of the empirical estimates to determine if they are outliers.
-
-.. figure:: images/out.train_pca_labels_num.png
-  :width: 500
-  :align: center
-
-|
 
 The figure ``out.train_density_aux_data.pdf`` shows the marginal
 density for all summary statistics generated by :ref:`Format`, plus the
-parameters defined by ``param_data``. The red line corresponds to
-the summary statistics for an empirical estimate to help determine
-if it is an outlier with respect to the simulated labels.
+parameters defined by ``param_data``. Green bars represent the 
+distribution of training examples, while red bars represent
+empirical examples. Any empirical datasets that are outliers with
+respect to the training data potentially represent out-of-distribution errors
+that will result in untrustworthy estimates. This issue can often
+be repaired by simulating a training dataset that represents a wider
+range of evolutionary scenarios (e.g. fewer and more taxa,
+faster and slower rates), and then repeating the pipeline analysis. See
+:ref:`Safe_Usage` for more information.
+
 
 .. figure:: images/out.train_density_aux_data.png
   :width: 500
@@ -713,7 +693,8 @@ if it is an outlier with respect to the simulated labels.
 The figure ``out.train_pca_aux_data.pdf`` shows joint density of
 the auxiliary data as a PCA-transformed heatmap. The red dots correspond to
 a subsample of the empirical summary statistics to determine if they
-are outliers.
+are outliers. Red dots that fall far outside the green density potentially
+represent out-of-distribution errors (see above).
 
 .. figure:: images/out.train_pca_aux_data.png
   :width: 500
@@ -721,9 +702,42 @@ are outliers.
 
 |
 
+The figure ``out.train_density_labels_num.pdf`` shows the marginal
+density for numerical training labels defined by ``param_est``.
+Orange bars represent the distribution of training examples, while 
+red bars represent empirical examples. Any empirical estimates that
+are outliers with respect to the training data potentially 
+represent out-of-distribution errors (see above).
+
+
+.. figure:: images/out.train_density_labels_num.png
+  :width: 500
+  :align: center
+
+|
+
+The figure ``out.train_pca_labels_num.pdf`` shows joint density of
+the training labels as a PCA-transformed heatmap. Red dots that fall far 
+outside the orange density potentially represent
+out-of-distribution errors (see above).
+
+.. figure:: images/out.train_pca_labels_num.png
+  :width: 500
+  :align: center
+
+|
   
 The figure ``out.train_estimate_log_birth_1.pdf`` shows trained
-network predictions for the training dataset.
+network predictions for the training dataset. True values (x-axis) and
+predicted values (y-axis) should fall along the 1:1 line when accuracy is
+perfect. In addition, an analysis targetting 80% coverage should have
+roughly 80% of all intervals covering the truth (i.e. cover the 1:1 line).
+Performance statistics -- such as mean squared error, mean absolute error, root
+mean squared error, median absolute percentage error, and coverage of
+prediction intervals -- are reported in text. If performance for the training
+data is poor (e.g. estimated values are not correlated with the truth)
+then predictions from the network should not be trusted. See :ref:`Safe_Usage`
+for more information.
 
 .. figure:: images/out.train_estimate_log_birth_1.png
   :width: 500
@@ -733,6 +747,12 @@ network predictions for the training dataset.
   
 The figure ``out.test_estimate_log_birth_1.pdf`` shows trained
 network predictions for the test dataset (the data not used for training).
+The performance should be similar to those for the training
+data (see previous figure) if the network was trained properly. If performance
+is markedly worse for the test data compared to the training data, then the
+predictions from the network should not be trusted. See :ref:`Safe_Usage`
+for more information.
+
   
 .. figure:: images/out.test_estimate_log_birth_1.png
   :width: 500
@@ -742,7 +762,14 @@ network predictions for the test dataset (the data not used for training).
 
  
 The figure ``out.train_estimate_model_type.png`` shows trained network
-predictions for the model type variable in the training dataset.
+predictions for the model type variable in the training dataset. This is
+a confusion matrix, comparing the truth (x-axis) to estimates (y-axis).
+A properly trained network that makes accurate predictions will produce
+a diagonal matrix, where as a poor-performing network will make
+off-diagonal estimates. If performance for the training
+data is poor (e.g. estimated values are not correlated with the truth)
+then predictions from the network should not be trusted. See :ref:`Safe_Usage`
+for more information.
 
 .. figure:: images/out.train_estimate_model_type.png
   :width: 500
@@ -751,7 +778,11 @@ predictions for the model type variable in the training dataset.
 |
 
 The figure ``out.test_estimate_model_type.png`` shows trained network
-predictions for the model type variable in the test dataset.
+predictions for the model type variable in the test dataset. The performance 
+should be similar to those for the training data (see previous figure) 
+if the network was trained properly. If performance is markedly worse for
+the test data compared to the training data, then the predictions from
+the network should not be trusted. See :ref:`Safe_Usage` for more information.
 
 .. figure:: images/out.test_estimate_model_type.png
   :width: 500
@@ -759,8 +790,23 @@ predictions for the model type variable in the test dataset.
  
 |
 
+The figure ``out.train_history_{stat}.pdf`` reports how the network
+performed for a particular metric (y-axis) against the training dataset (blue)
+and the validation dataset (red) across training epochs (x-axis). The figure
+for ``loss_combined`` is the metric used to optimize the network. A properly
+trained network will show that the loss score for the training and validation
+datasets both decrease over time. However, even as the training dataset's 
+score continually decreases, the validation loss score should eventually
+stabilize and then slowly begin to increase. If the validation loss score
+never stabilizes or it increases radically, that might indicate that
+the network is not properly trained. See :ref:`Safe_Usage` for more information.
+
+
 This figure ``out.network_architecture.pdf`` represents the network
-architecture used for training.
+architecture used for training. The architecture is described in detail in
+:ref:`Train`. The numbers of layers and nodes can be modified through
+the :ref:`Configuration` file, should the user find the default architecture
+does not result in good performance for their modeling problem.
   
 .. figure:: images/out.network_architecture.png
   :width: 500
@@ -768,5 +814,7 @@ architecture used for training.
 
 |
 
-Exactly which figures are generated depends on how phyddle was configured.
-
+We note that phyddle is designed to be easy to use. However, its misuse
+can easily lead to untrustworthy results. We urge users to carefully read
+:ref:`Overview` and :ref:`Safe_Usage` to learn how to use phyddle
+responsibly.
