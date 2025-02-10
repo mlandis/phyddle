@@ -152,22 +152,23 @@ def settings_registry():
         'sim_batch_size':  {'step': 'S',   'type': int,  'section': 'Simulate',  'default': 1,         'help': 'Number of replicates per simulation command'},
 
         # formatting options
-        'encode_all_sim':   {'step': 'F',     'type': str,   'section': 'Format',  'default': 'T',             'help': 'Encode all simulated replicates into tensor?', 'bool': True},
-        'num_char':         {'step': 'SFTE',  'type': int,   'section': 'Format',  'default': None,            'help': 'Number of characters'},
-        'num_states':       {'step': 'FTE',   'type': int,   'section': 'Format',  'default': None,            'help': 'Number of states per character'},
-        'num_trees':        {'step': 'SFTE',  'type': int,   'section': 'Format',  'default': 1,               'help': 'Number of trees per dataset'},
-        'min_num_taxa':     {'step': 'F',     'type': int,   'section': 'Format',  'default': 10,              'help': 'Minimum number of taxa allowed when formatting'},
-        'max_num_taxa':     {'step': 'F',     'type': int,   'section': 'Format',  'default': 1000,            'help': 'Maximum number of taxa allowed when formatting'},
-        'downsample_taxa':  {'step': 'FTE',   'type': str,   'section': 'Format',  'default': 'uniform',       'help': 'Downsampling strategy taxon count', 'choices': ['uniform']},
-        'tree_width':       {'step': 'FTEP',  'type': int,   'section': 'Format',  'default': 500,             'help': 'Width of phylo-state tensor'},
-        'tree_encode':      {'step': 'FTE',   'type': str,   'section': 'Format',  'default': 'extant',        'help': 'Encoding strategy for tree', 'choices': ['extant', 'serial']},
-        'brlen_encode':     {'step': 'FTE',   'type': str,   'section': 'Format',  'default': 'height_brlen',  'help': 'Encoding strategy for branch lengths', 'choices': ['height_only', 'height_brlen']},
-        'char_encode':      {'step': 'FTE',   'type': str,   'section': 'Format',  'default': 'one_hot',       'help': 'Encoding strategy for character data', 'choices': ['one_hot', 'integer', 'numeric']},
-        'param_est':        {'step': 'FTE',   'type': dict,  'section': 'Format',  'default': dict(),          'help': 'Model parameters and variables to estimate'},
-        'param_data':       {'step': 'FTE',   'type': dict,  'section': 'Format',  'default': dict(),          'help': 'Model parameters and variables treated as data'},
-        'char_format':      {'step': 'FTE',   'type': str,   'section': 'Format',  'default': 'nexus',         'help': 'File format for character data', 'choices': ['csv', 'nexus']},
-        'tensor_format':    {'step': 'FTEP',  'type': str,   'section': 'Format',  'default': 'hdf5',          'help': 'File format for training example tensors', 'choices': ['csv', 'hdf5']},
-        'save_phyenc_csv':  {'step': 'F',     'type': str,   'section': 'Format',  'default': 'F',             'help': 'Save encoded phylogenetic tensor encoding to csv?', 'bool': True},
+        'encode_all_sim':      {'step': 'F',     'type': str,   'section': 'Format',  'default': 'T',             'help': 'Encode all simulated replicates into tensor?', 'bool': True},
+        'num_char':            {'step': 'SFTE',  'type': int,   'section': 'Format',  'default': None,            'help': 'Number of characters'},
+        'num_states':          {'step': 'FTE',   'type': int,   'section': 'Format',  'default': None,            'help': 'Number of states per character'},
+        'num_trees':           {'step': 'SFTE',  'type': int,   'section': 'Format',  'default': 1,               'help': 'Number of trees per dataset'},
+        'min_num_taxa':        {'step': 'F',     'type': int,   'section': 'Format',  'default': 10,              'help': 'Minimum number of taxa allowed when formatting'},
+        'max_num_taxa':        {'step': 'F',     'type': int,   'section': 'Format',  'default': 1000,            'help': 'Maximum number of taxa allowed when formatting'},
+        'downsample_taxa':     {'step': 'FTE',   'type': str,   'section': 'Format',  'default': 'uniform',       'help': 'Downsampling strategy taxon count', 'choices': ['uniform']},
+        'rel_extant_age_tol':  {'step': 'FTE',  'type': float, 'section': 'Format',  'default': 1E-10,          'help': 'Relative tolerance to determine if terminal taxa are extant (rel. age < tol).'},
+        'tree_width':          {'step': 'FTEP',  'type': int,   'section': 'Format',  'default': 500,             'help': 'Width of phylo-state tensor'},
+        'tree_encode':         {'step': 'FTE',   'type': str,   'section': 'Format',  'default': 'extant',        'help': 'Encoding strategy for tree', 'choices': ['extant', 'serial']},
+        'brlen_encode':        {'step': 'FTE',   'type': str,   'section': 'Format',  'default': 'height_brlen',  'help': 'Encoding strategy for branch lengths', 'choices': ['height_only', 'height_brlen']},
+        'char_encode':         {'step': 'FTE',   'type': str,   'section': 'Format',  'default': 'one_hot',       'help': 'Encoding strategy for character data', 'choices': ['one_hot', 'integer', 'numeric']},
+        'param_est':           {'step': 'FTE',   'type': dict,  'section': 'Format',  'default': dict(),          'help': 'Model parameters and variables to estimate'},
+        'param_data':          {'step': 'FTE',   'type': dict,  'section': 'Format',  'default': dict(),          'help': 'Model parameters and variables treated as data'},
+        'char_format':         {'step': 'FTE',   'type': str,   'section': 'Format',  'default': 'nexus',         'help': 'File format for character data', 'choices': ['csv', 'nexus']},
+        'tensor_format':       {'step': 'FTEP',  'type': str,   'section': 'Format',  'default': 'hdf5',          'help': 'File format for training example tensors', 'choices': ['csv', 'hdf5']},
+        'save_phyenc_csv':     {'step': 'F',     'type': str,   'section': 'Format',  'default': 'F',             'help': 'Save encoded phylogenetic tensor encoding to csv?', 'bool': True},
 
         # training options
         'num_epochs':           {'step': 'TEP',    'type': int,    'section': 'Train',  'default': 50,             'help': 'Number of training epochs'},
@@ -1589,16 +1590,13 @@ def encode_cpvs(phy, dat, tree_width, tree_type,
     """
     # taxon labels must match for each phy and dat replicate
     phy_labels = set([ n.taxon.label for n in phy.leaf_nodes() ])
-    dat_labels = set(dat.columns.to_list())
+    dat_labels = set( dat.columns.to_list()[1:] )   # skip first element 'taxa'
     phy_missing = phy_labels.difference(dat_labels)
+
     if len(phy_missing) != 0:
         phy_missing = sorted(list(phy_missing))
-        # dat_missing = sorted(list(set(dat_labels).difference(set(phy_labels))))
         err_msg = f'Missing taxon labels in dat but not in phy for replicate {idx}: '
-        # if len(phy_missing) > 0:
         err_msg += ' '.join(phy_missing)
-        # if len(dat_missing) > 0:
-        #    err_msg += f' Missing from dat: {' '.join(dat_missing)}.'
         raise ValueError(err_msg)
 
     cpvs = None
@@ -1764,7 +1762,7 @@ def encode_cblvs(phy, dat, tree_width, tree_encode_type, rescale=True):
     return phylo_tensor
 
 
-def make_prune_phy(phy, prune_fn):
+def make_prune_phy(phy, prune_fn, rel_extant_age_tol=1e-10):
     """Prunes a phylogenetic tree by removing non-extant taxa and writes the
     pruned tree to a file.
 
@@ -1789,7 +1787,7 @@ def make_prune_phy(phy, prune_fn):
     # find tree height (max root-to-node distance)
     tree_height = np.max(root_distances)
     # tips are considered "at present" if age is within 0.0001 * tree_height
-    tol = tree_height * 1e-5
+    tol = tree_height * rel_extant_age_tol
     # create empty dictionary
     d = {}
     # loop through all leaf nodes

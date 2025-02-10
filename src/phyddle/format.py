@@ -108,6 +108,7 @@ class Formatter:
         self.start_idx          = int(args['start_idx'])
         self.end_idx            = int(args['end_idx'])
         self.downsample_taxa    = str(args['downsample_taxa'])
+        self.rel_extant_age_tol = float(args['rel_extant_age_tol'])
         self.tree_encode        = str(args['tree_encode'])
         self.char_encode        = str(args['char_encode'])
         self.brlen_encode       = str(args['brlen_encode'])
@@ -697,7 +698,7 @@ class Formatter:
 
         # prune tree, if needed
         if self.tree_encode == 'extant':
-            phy = util.make_prune_phy(phy, prune_fn)
+            phy = util.make_prune_phy(phy, prune_fn, self.rel_extant_age_tol)
             if phy is None:
                 # abort, no valid pruned tree
                 self.logger.write_log('fmt', f'Invalid pruned tree for {tre_fn}')
@@ -812,7 +813,7 @@ class Formatter:
             summ_stats['log10_age_mean']    = np.log10( np.mean(node_ages) )
             summ_stats['log10_B1']          = np.log10( dp.calculate.treemeasure.B1(phy) )
             try:
-                summ_stats['colless'] = np.log10( dp.calculate.treemeasure.colless_tree_imbalance(phy) )
+                summ_stats['colless'] = np.log10( dp.calculate.treemeasure.colless_tree_imbalance(phy) + zero_offset )
             except ZeroDivisionError:
                 summ_stats['colless'] = np.log10(zero_offset)
             summ_stats['age_var']     = np.log10( np.var(node_ages) )

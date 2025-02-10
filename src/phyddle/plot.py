@@ -1032,9 +1032,10 @@ class Plotter:
 
             bad_slope_str = '<' if stat_slope < 1.0 else '>'
             bad_cover_str = '<' if f_stat_cover < f_stat_cover_target else '>'
-            if np.abs(np.log(stat_slope + 1e-12)) > 0.1:
+            
+            if stat_slope < 0.0 or np.abs(np.log(stat_slope + 1e-12)) > 0.1:
                 util.print_warn(f'{title} estimate accuracy for {p} is low   [slope {round(stat_slope, 2)} {bad_slope_str} 1.00]')
-            if np.abs(np.log(f_stat_cover/f_stat_cover_target)) > 0.1:
+            if f_stat_cover/f_stat_cover_target < 0.0 or np.abs(np.log(f_stat_cover/f_stat_cover_target)) > 0.1:
                 util.print_warn(f'{title} estimate coverage for {p} is bad   [coverage {s_cover} {bad_cover_str} {s_cover_target}]')
 
             # covered points
