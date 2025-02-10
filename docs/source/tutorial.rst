@@ -1,4 +1,4 @@
-.. _Tutorials:
+.. _Tutorial:
 
 Tutorial
 ========
@@ -15,6 +15,10 @@ This tutorial explains how to:
 - Run a phyddle analysis to :ref:`Train` a neural network
 - Make a new :ref:`Estimate` with a trained network
 - Interpret results from :ref:`Plot`
+
+The :ref:`Overview` page provides detailed explanations for how phyddle
+works and how to use it responsibly. The :ref:`Appendix` page contains
+a glossary of terms and a table of all phyddle settings.
 
 
 An analysis, now!
@@ -64,13 +68,25 @@ The directory ``./workspace/bisse_r/`` contains:
 - ``sim_bisse.R``, a simulation script written in R
 - ``config.py``, a phyddle config file designed to work with ``sim_bisse.R``
 
-Files and directories for results from phyddle pipeline steps will
-be generated automatically. See :ref:`Workspace` for more details
-regarding a typical project directory structure.
+Results from each phyddle pipeline step will be stored into a directory
+with the corresponding name:
+
+.. code-block:: shell
+    
+  ./simulate/    # raw data
+  ./format/      # formatted data
+  ./train/       # trained network
+  ./estimate/    # estimated parameters
+  ./plot/        # plots and summaries
+  ./empirical/   # empirical data (optional, see below)
+  ./log/         # log files
+
+See :ref:`Workspace` for more details regarding a typical project
+directory structure.
 
 
-The simulation script
----------------------
+Design the simulator
+--------------------
 
 We begin with the simulation script because it is the foundation of a phyddle
 analysis. The script defines the phylogenetic scenarios that the neural
@@ -318,8 +334,8 @@ models and programming languages.
  
   
   
-The config file
----------------
+Configure the pipeline
+----------------------
 
 Let's inspect important settings defined in ``config.py``, one block at
 a time. You can view the contents of ``config.py`` here: 
@@ -477,8 +493,8 @@ dataset are expected to contain the true value of the target variable.
 There are no important settings for :ref:`Estimate` or :ref:`Plot` to
 discuss for this beginning tutorial.
 
-Validating the simulator
-------------------------
+Interface the simulator
+-----------------------
 
 Before launching a full analysis, it is important to validate the
 simulator behaves as intended and is properly interfaced with phyddle.
@@ -558,8 +574,8 @@ still best to personally validate the simulator for the specific
 version and part of parameter space you will use with phyddle.
 
 
-Making a trained network
-------------------------
+Train the network
+-----------------
 
 Now that we understand how the simulation script and config file work, we can
 train our network to make predictions about BiSSE models:
@@ -569,8 +585,8 @@ train our network to make predictions about BiSSE models:
   # enter bisse_r project directory
   cd workspace/bisse_r
   
-  # run phyddle analysis
-  phyddle -c config.py --end_idx 25000
+  # run all phyddle steps (SFTEP) using 25,000 simulated examples
+  phyddle -c config.py -s SFTEP --end_idx 25000
   
   # analysis runs
   # ...
@@ -578,9 +594,6 @@ train our network to make predictions about BiSSE models:
   # view results summary
   open plot/out.summary.pdf
 
-
-Sharing a trained network
--------------------------
 
 To share a trained network, you need to share these files and directory
 structure:
@@ -616,37 +629,58 @@ You can then share the tarball how you please. Transfer it from a server
 to your laptop, email it to a colleague, or publish it as supplemental data
 so others can re-use your work. 
 
-Making new estimates
---------------------
-
-Once you have the trained network tarball, uncompress and unarchive
+If you receive a tarball with a trained network, decompress and unarchive
 the files
 
 .. code-block:: shell
 
-
     # uncompress the tarball
     tar -xzf phyddle_bisse_r.tar.gz
+
+
+Make new estimates
+------------------
     
-Then, you can use the trained network make predictions against new datasets.
-First, :ref:`Format` your data, then :ref:`Estimate` with the trained
-network to make new predictions, and finally :ref:`Plot` the results. 
+You can use a trained network make predictions against new empirical datasets.
+Note, your new data must follow the same dimensionality, scale, and formatting
+as the training data. In general, this will be done correctly through the
+:ref:`Format` step, provided the new datasets are (for example) measured in
+the same units of times and record states in the same way as the simulator.
+
+To make new estimates, create an directory for your new empirical data:
 
 .. code-block:: shell
 
-    # run Format, Estimate, and Plot
-    # ... don't process simulated data (if it exists)
+    # create a new directory for empirical data
+    mkdir -p ./empirical
+    
+    # copy your empirical dataset(s) to the new directory
+    cp ~/data/psychotria.tre ./emprical/out.0.tre
+    cp ~/data/psychotria.dat.csv ./empirical/out.0.dat.csv
+    cp ~/data/kadua.tre ./empirical/out.1.tre
+    cp ~/data/kadua.dat.csv ./empirical/out.1.dat.csv
+
+    # run Format, Estimate, and Plot the new empirical data
+    # ... don't reformat simulated data (if it exists)
     phyddle -c config.py -s FEP --no_sim
 
     # view results
     open ./plot/out.summary.pdf
 
+This process should be quite fast, as it requires no new simulations or
+training. Note, phyddle will report potential issues with the empirical analysis
+as text warnings in the console. In addition, confirm that the outputted plots
+do not contain indicators of poor training or performance. Read the
+:ref:`Safe_Usage` section for more information on how to diagnose and fix
+typical problems that afflict phyddle analyses.
 
-Interpreting results
---------------------
 
-In this section, we look at some plots. Exactly which figures are generated 
-depends on how phyddle was configured. 
+
+Interpret the results
+---------------------
+
+In this section, we review standard phyddle plots and how to interpret them.
+Exactly which figures are generated depends on how phyddle was configured. 
 
 .. note::
 
@@ -658,10 +692,12 @@ depends on how phyddle was configured.
 The figures named ``out.empirical_estimate_num_N.pdf`` show estimates for
 empirical datasets, where ``N`` represents the `Nth` empirical
 replicate. Point estimates and calibrated prediction intervals are shown for
-each parameter.
+each parameter. The prediction interval represents the range of estimates that
+would likely contain the true model parameter value under a specified coverage
+level (e.g. 80% coverage means that ~80% of CPIs contain the true value).
 
 .. figure:: images/out.empirical_estimate_num_0.png
-  :width: 500
+  :width: 300
   :align: center
 
 |
@@ -669,10 +705,11 @@ each parameter.
 Categorical estimates for the `Nth` empirical datasets are shown in the
 figure named ``out.empirical_estimate_cat_N.pdf``. These figures are
 simple bar plots reporting the probabilities across possible
-categories per variable.
+categories per variable. Higher probability means the network is more certain
+of the value of the variable.
 
 .. figure:: images/out.empirical_estimate_cat_0.png
-  :width: 500
+  :width: 300
   :align: center
 
 |
@@ -748,7 +785,7 @@ then predictions from the network should not be trusted. See :ref:`Safe_Usage`
 for more information.
 
 .. figure:: images/out.train_estimate_log_birth_1.png
-  :width: 500
+  :width: 400
   :align: center
 
 |
@@ -763,7 +800,7 @@ for more information.
 
   
 .. figure:: images/out.test_estimate_log_birth_1.png
-  :width: 500
+  :width: 400
   :align: center
 
 |
@@ -780,7 +817,7 @@ then predictions from the network should not be trusted. See :ref:`Safe_Usage`
 for more information.
 
 .. figure:: images/out.train_estimate_model_type.png
-  :width: 500
+  :width: 400
   :align: center
  
 |
@@ -793,7 +830,7 @@ the test data compared to the training data, then the predictions from
 the network should not be trusted. See :ref:`Safe_Usage` for more information.
 
 .. figure:: images/out.test_estimate_model_type.png
-  :width: 500
+  :width: 400
   :align: center
  
 |
@@ -809,6 +846,10 @@ stabilize and then slowly begin to increase. If the validation loss score
 never stabilizes or it increases radically, that might indicate that
 the network is not properly trained. See :ref:`Safe_Usage` for more information.
 
+.. figure:: images/out.train_history_loss_combined.png
+  :width: 500
+  :align: center
+
 
 This figure ``out.network_architecture.pdf`` represents the network
 architecture used for training. The architecture is described in detail in
@@ -822,6 +863,6 @@ does not result in good performance for their modeling problem.
 
 |
 
-This marks the end of the tutorial! Explore the :ref:`Overview` documentation
+This concludes the tutorial! Explore the :ref:`Overview` documentation
 and other workspace project examples to learn more about phyddle's
 capabilities and how to use them effectively.

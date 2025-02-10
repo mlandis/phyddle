@@ -1027,6 +1027,9 @@ names supported by `Matplotlib <https://matplotlib.org/stable/gallery/color/name
 - ``empirical_estimate_cat_<N>.pdf`` - simple bar plot for each empirical dataset
 - ``network_architecture.pdf`` - visualization of Tensorflow architecture
 
+The :ref:`Tutorial` and :ref:`Safe_Usage` pages display examples of figures
+and explain how to interpret them.
+
 .. _Workspace:
 
 Workspace
@@ -1301,7 +1304,8 @@ by :ref:`Format`, :ref:`Train`, and (when available) :ref:`Estimate`.
     ./out.summary.pdf                     # compiled report with all figures
     ./out.summary.csv                     # compiled text file with numerical results
 
-
+The :ref:`Tutorial` and :ref:`Safe_Usage` pages display examples of figures
+and explain how to interpret them.
 
 ``empirical``
 ^^^^^^^^^^^^^
@@ -1612,7 +1616,7 @@ phylogenetic SIR analysis.
 
 .. _Safe_Usage:
 
-Safe usage
+Safe Usage
 ----------
 
 We designed phyddle to be user-friendly. However, we caution users that
@@ -1639,40 +1643,78 @@ To correct the issue, undertraining, overtraining, small
 training datasets, poor network architecture, or other issues may be
 at play. The following sections provide ideas to fix the issue.
 
+.. subfigure:: AB|CD
+  :gap: 8px
+  :subcaptions: below
+  :name: poor_accuracy_covg
+  :align: center
+  :class-grid: outline
 
-Undertraining
-^^^^^^^^^^^^^
-An undertrained network will not make accurate predictions for training, test,
-or validation datasets. This is because the optimizer was not able to
-learn the optimal network parameters before training concluded.
+  .. image:: images/out.train_estimate_log_birth_1.png
+    :height: 200px
+    :alt: Accurate numerical estimates
+  .. image:: images/out.train_estimate_log_birth_1_bad.png
+    :height: 200px
+    :alt: Inaccurate numerical estimates
+  .. image:: images/out.train_estimate_model_type.png
+    :height: 200px
+    :alt: Accurate categorical estimates
+  .. image:: images/out.train_estimate_model_type_bad.png
+    :height: 200px
+    :alt: Inaccurate categorical estimates
 
-To diagnose undertraining, review the training history plot. If the loss score
-for both the training and validation datasets is still decreasing by
-the end of the training period, then the network is undertrained.
-
-To correct the issue, double the number of training epochs or use larger
-batch sizes of training examples.
+|
 
 
-Overtraining
-^^^^^^^^^^^^
+Undertraining and overtraining
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 The loss score for the training dataset will typically decrease as the
 number of training epochs increases. This is because typically neural networks
 have thousands of weight and bias parameters to adjust, and small adjustments
-can easily squeeze at marginal improvements to the loss score. However, despite
-continued improvements to the training loss score, an overtrained network will
-eventually lose its ability to make accurate predictions against non-training
-datasets, such as the test and validation datasets.
+can easily squeeze at marginal improvements to the loss score. 
+
+An undertrained network will not make accurate predictions for training, test,
+or validation datasets. This is because the optimizer was not able to
+learn the optimal network parameters before training concluded.
+On the other hand, an overtrained network will only make accurate predictions
+for the training dataset, while making inaccurate predictions against
+non-training datasets, such as the test and validation datasets.
+
+To diagnose undertraining problems, review the training history plot. If the
+loss score for both the training and validation datasets is still decreasing by
+the end of the training period, then the network is undertrained.
+
+To correct for undertraining, double the number of training epochs or use larger
+batch sizes of training examples.
 
 To diagnose overtraining problems, run the *Plot* step. Review the training
 history plot. If you see that the loss score for the training dataset 
 continuously decreases while the loss score for the validation dataset
 increases (making a 'U' shape) then the network is overtrained.
 
-To correct the issue, you can either specify a shorter number of training 
+To correct for overtraining, you can either specify a shorter number of training 
 epochs, decrease the training batch sizes, or use stronger early stopping
 rules. To prevent overtraining, the  default behavior in phyddle is to stop
 training when the validation loss score increases for 3 consecutive epochs.
+
+.. subfigure:: ABC
+  :gap: 8px
+  :subcaptions: below
+  :name: undertraining
+  :align: center
+  :class-grid: outline
+
+  .. image:: images/out.train_history_loss_combined.png
+    :height: 200px
+    :alt: Good training
+  .. image:: images/out.train_history_loss_combined_undertrain.png
+    :height: 200px
+    :alt: Undertraining
+  .. image:: images/out.train_history_loss_combined.png
+    :height: 200px
+    :alt: Overtraining
+
+|
 
 
 Small training datasets
@@ -1747,6 +1789,29 @@ include the range of expected input and output variables from the empirical
 data. For example, if your empirical trees are roughly 20 to 50 million years
 in height, consider simulating training trees that are between 5 and 100
 million years in height.
+
+.. subfigure:: AB|CD
+  :gap: 8px
+  :subcaptions: below
+  :name: out_of_distribution_aux
+  :align: center
+  :class-grid: outline
+
+  .. image:: images/out.train_pca_aux_data.png
+    :height: 200px
+    :alt: Within-distribution
+  .. image:: images/out.train_pca_aux_data.png
+    :height: 200px
+    :alt: Out-of-distribution
+  .. image:: images/out.train_density_aux_data.png
+    :height: 200px
+    :alt: Within-distribution
+  .. image:: images/out.train_density_aux_data.png
+    :height: 200px
+    :alt: Out-of-distribution
+
+|
+
 
 
 Simulator errors
