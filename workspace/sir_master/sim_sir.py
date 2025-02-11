@@ -39,7 +39,8 @@ args = {
         'S0'             : sp.stats.uniform.rvs,
         'Stop_time'      : sp.stats.uniform.rvs,
         'nSampled_tips'  : sp.stats.randint.rvs,
-        'Time_before_present' : sp.stats.expon.rvs
+        'Time_before_present' : sp.stats.expon.rvs,
+	'Time_of_interest': sp.stats.uniform.rvs,
     },
     'rv_arg'                : {                # loc/scale/shape for param dists
         'R0'                : { 'loc' : 1.0,     'scale' : 7.0   }, 
@@ -48,8 +49,9 @@ args = {
         'S0'                : { 'loc' : 10000.,   'scale' : 90000. }, # 1000 to 10000 ind. in population
         'Stop_time'         : { 'loc' : 20,      'scale' : 200   },  # between 10 days and 1 year
         'nSampled_tips'     : { 'low' : 50.0,    'high' : 450.   },   # subsample samples
-        'Time_before_present' : { 'loc' : 0,     'scale' : 30}
-    }
+        'Time_before_present' : { 'loc' : 0,     'scale' : 30},
+    	'Time_of_interest'  : { 'loc' : 0,       'scale' : 10},
+	}
 }
 
 # filesystem paths

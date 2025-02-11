@@ -44,7 +44,6 @@ args = {
     'num_states'         : 5,               # number of states per character
     'num_hidden_char'    : 1,               # number of hidden states
     'num_exposed_cat'    : 1,               # number of infected Exposed stages (>1)
-#    'stop_time'          : None,            # time to stop simulation 
     'min_num_taxa'       : 20,             # min number of taxa for valid sim
     'max_num_taxa'       : 500,             # max number of taxa for valid sim
     'max_num_unsampled_lineages' : 100,      # max_num_taxa * max_num_unsampled_lineages == stopping condition
@@ -128,8 +127,7 @@ else:
     proportion_sample_in_tree = [0.]
 
 # if no extant samples then reject sim by exiting
-#print(my_model.params['Stop_time'], sim_stats['actual_sim_time'], most_recent_tip_age)
-if my_model.params['Stop_time'][0] != sim_stats['actual_sim_time'][0] or most_recent_tip_age != 0:
+if my_model.params['Stop_time'][0] != sim_stats['actual_sim_time'][0] or np.round(most_recent_tip_age, decimals=6) != 0:
     os.remove(dat_json_fn)
     os.remove(phy_nex_fn)
     os.remove(phy_nwk_fn)
