@@ -24,7 +24,6 @@ extensions = [
     'sphinx.ext.intersphinx',
     'sphinx.ext.napoleon',
 	'sphinx.ext.viewcode',
-    'sphinxcontrib.images',
     'sphinx_subfigure',
     'sphinxemoji.sphinxemoji',
 ]
