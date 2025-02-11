@@ -1644,6 +1644,7 @@ training datasets, poor network architecture, or other issues may be
 at play. The following sections provide ideas to fix the issue.
 
 .. subfigure:: AB|CD
+  :layout-sm: A|B|C|D
   :gap: 8px
   :subcaptions: below
   :name: poor_accuracy_covg
@@ -1651,16 +1652,16 @@ at play. The following sections provide ideas to fix the issue.
   :class-grid: outline
 
   .. image:: images/out.train_estimate_log_birth_1.png
-    :height: 200px
+    :height: 300px
     :alt: Accurate numerical estimates
   .. image:: images/out.train_estimate_log_birth_1_bad.png
-    :height: 200px
+    :height: 300px
     :alt: Inaccurate numerical estimates
   .. image:: images/out.train_estimate_model_type.png
-    :height: 200px
+    :height: 300px
     :alt: Accurate categorical estimates
   .. image:: images/out.train_estimate_model_type_bad.png
-    :height: 200px
+    :height: 300px
     :alt: Inaccurate categorical estimates
 
 |
@@ -1791,6 +1792,7 @@ in height, consider simulating training trees that are between 5 and 100
 million years in height.
 
 .. subfigure:: AB|CD
+  :layout-sm: A|B|C|D
   :gap: 8px
   :subcaptions: below
   :name: out_of_distribution_aux
@@ -1798,16 +1800,16 @@ million years in height.
   :class-grid: outline
 
   .. image:: images/out.train_pca_aux_data.png
-    :height: 200px
+    :height: 300px
     :alt: Within-distribution
   .. image:: images/out.train_pca_aux_data_bad.png
-    :height: 200px
+    :height: 300px
     :alt: Out-of-distribution
   .. image:: images/out.train_density_aux_data.png
-    :height: 200px
+    :height: 300px
     :alt: Within-distribution
   .. image:: images/out.train_density_aux_data_bad.png
-    :height: 200px
+    :height: 300px
     :alt: Out-of-distribution
 
 |
