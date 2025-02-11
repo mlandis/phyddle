@@ -1,7 +1,16 @@
-Updates
-=======
+**phyddle v0.3.0** -- 25.02.xx
 
-The complete commit history for phyddle is located here: https://github.com/mlandis/phyddle/commits/main
+  * Estimate now warns user if empirical input/labels are out-of-distribution
+  * Plot improved to make it easier to notice out-of-distribution empirical input/labels
+  * Replace mean APE scores for training and accuracy diagnostics with median APE scores
+  * Support to choose optimizer: adam, adamw, adagrad, adadelta, rmsprop, sgd
+  * Support to choose activation functions: relu, elu, leaky_relu, tanh, sigmoid
+  * Support to set learning rate
+  * Add torchvision to dependency list
+  * Replace deprecated PdfMerger with PdfWriter
+  * Reorganize documentation
+  * Tutorial now gives clear examples for valid/invalid results from phyddle
+
 
 **phyddle v0.2.2** -- 24.07.19
 
@@ -108,6 +117,7 @@ The complete commit history for phyddle is located here: https://github.com/mlan
   * Support to allow scripts to simulate batches (>1) of replicates.
   * Major overhaul of help docs, but not done.
 
+
 **phyddle v0.0.5** -- 23.07.30
 
   * Pipeline steps renamed to: Simulate, Format, Train, Estimate, Plot
@@ -159,4 +169,3 @@ The complete commit history for phyddle is located here: https://github.com/mlan
 **phyddle v0.0.1** -- 23.03.16
 
   * (initial development version)
-

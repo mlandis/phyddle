@@ -98,6 +98,7 @@ class Formatter:
         # dataset dimensions
         self.num_char           = int(args['num_char'])
         self.num_states         = int(args['num_states'])
+        self.num_trees          = int(args['num_trees'])
         self.min_num_taxa       = int(args['min_num_taxa'])
         self.max_num_taxa       = int(args['max_num_taxa'])
         self.tree_width         = int(args['tree_width'])
@@ -107,6 +108,7 @@ class Formatter:
         self.start_idx          = int(args['start_idx'])
         self.end_idx            = int(args['end_idx'])
         self.downsample_taxa    = str(args['downsample_taxa'])
+        self.rel_extant_age_tol = float(args['rel_extant_age_tol'])
         self.tree_encode        = str(args['tree_encode'])
         self.char_encode        = str(args['char_encode'])
         self.brlen_encode       = str(args['brlen_encode'])
@@ -121,6 +123,12 @@ class Formatter:
         # set number of processors
         if self.num_proc <= 0:
             self.num_proc = cpu_count() + self.num_proc
+
+        # are input characters, trees, or labels used?
+        self.use_input_dat = (self.num_char > 0)
+        self.use_input_tree = (self.num_trees > 0)
+        self.use_input_lbl = (len(self.param_data) > 0)
+        assert(self.use_input_dat or self.use_input_tree or self.use_input_lbl)
 
         # get size of CPV+S tensors
         num_tree_col = util.get_num_tree_col(self.tree_encode,
@@ -170,7 +178,7 @@ class Formatter:
         os.makedirs(self.fmt_dir, exist_ok=True)
 
         # start time
-        start_time,start_time_str = util.get_time()
+        start_time, start_time_str = util.get_time()
         util.print_str(f'▪ Start time of {start_time_str}', verbose)
 
         found_sim = False
@@ -282,8 +290,8 @@ class Formatter:
             elif mode == 'emp' and len(self.param_data) > 0 and not has_lbl:
                 print(f'No labels found for {f}.')
                 return False
-            # if the 2-3 files exist, then we have 1+ valid datasets
-            if has_dat and has_tre and has_lbl:
+            # if the 1-3 files exist, then we have 1+ valid datasets
+            if (has_dat or not self.use_input_dat) and (has_tre or self.use_input_tre) and has_lbl:
                 return True
     
         return False
@@ -386,7 +394,10 @@ class Formatter:
             files = os.listdir(f'{self.emp_dir}')
             # files = [ f for f in files if f.startswith(self.emp_prefix) ]
         
-        files = [ f for f in files if '.dat.' in f ]
+        if self.use_input_dat:
+            files = [ f for f in files if '.dat.' in f ]
+        elif self.use_input_tree:
+            files = [ f for f in files if '.tre' in f ]
 
         for f in files:
             s_idx = f.split('.')[1]
@@ -399,7 +410,7 @@ class Formatter:
         all_idx = sorted(list(all_idx))
         # elif self.encode_all_sim:
         #     all_idx = list(range(self.start_idx, self.end_idx))
-            
+        
         return all_idx
 
     def split_examples(self):
@@ -687,7 +698,7 @@ class Formatter:
 
         # prune tree, if needed
         if self.tree_encode == 'extant':
-            phy = util.make_prune_phy(phy, prune_fn)
+            phy = util.make_prune_phy(phy, prune_fn, self.rel_extant_age_tol)
             if phy is None:
                 # abort, no valid pruned tree
                 self.logger.write_log('fmt', f'Invalid pruned tree for {tre_fn}')
@@ -712,7 +723,7 @@ class Formatter:
             return
 
         # create compact phylo-state vector, CPV+S = {CBLV+S, CDV+S}
-        cpvs_data = self.encode_cpvs(phy, dat, tree_width=self.tree_width,
+        cpvs_data = util.encode_cpvs(phy, dat, tree_width=self.tree_width,
                                      tree_encode_type=self.brlen_encode,
                                      tree_type=self.tree_encode, idx=idx)
 
@@ -802,7 +813,7 @@ class Formatter:
             summ_stats['log10_age_mean']    = np.log10( np.mean(node_ages) )
             summ_stats['log10_B1']          = np.log10( dp.calculate.treemeasure.B1(phy) )
             try:
-                summ_stats['colless'] = np.log10( dp.calculate.treemeasure.colless_tree_imbalance(phy) )
+                summ_stats['colless'] = np.log10( dp.calculate.treemeasure.colless_tree_imbalance(phy) + zero_offset )
             except ZeroDivisionError:
                 summ_stats['colless'] = np.log10(zero_offset)
             summ_stats['age_var']     = np.log10( np.var(node_ages) )
@@ -869,7 +880,7 @@ class Formatter:
                     tree_encode_type, idx, rescale=True):
         """
         Encode Compact Phylogenetic Vector + States (CPV+S) array
-        
+
         This function encodes the dataset into Compact Bijective Ladderized
         Vector + States (CBLV+S) when tree_type is 'serial' or Compact
         Diversity-Reordered Vector + States (CDV+S) when tree_type is 'extant'.
@@ -888,31 +899,37 @@ class Formatter:
         Returns:
             cpvs (numpy.array):      CPV+S encoded tensor
         """
-        # taxon labels must match for each phy and dat replicate
-        phy_labels = set([ n.taxon.label for n in phy.leaf_nodes() ])
-        dat_labels = set(dat.columns.to_list())
-        phy_missing = phy_labels.difference(dat_labels)
-        if len(phy_missing) != 0:
-            phy_missing = sorted(list(phy_missing))
-            # dat_missing = sorted(list(set(dat_labels).difference(set(phy_labels))))
-            err_msg = f'Missing taxon labels in dat but not in phy for replicate {idx}: '
-            # if len(phy_missing) > 0:
-            err_msg += ' '.join(phy_missing)
-            # if len(dat_missing) > 0:
-            #    err_msg += f' Missing from dat: {' '.join(dat_missing)}.'
-            raise ValueError(err_msg)
         
-        cpvs = None
-        if tree_type == 'serial':
-            cpvs = self.encode_cblvs(phy, dat, tree_width,
-                                     tree_encode_type, rescale)
-        elif tree_type == 'extant':
-            cpvs = self.encode_cdvs(phy, dat, tree_width,
-                                    tree_encode_type, rescale)
-        else:
-            ValueError(f'Unrecognized {tree_type}')
+        cpvs = util.encode_cpvs(phy, dat, tree_width, tree_type,
+                                tree_encode_type, idx, rescale)
         return cpvs
-
+    
+    
+    #     # taxon labels must match for each phy and dat replicate
+    #     phy_labels = set([ n.taxon.label for n in phy.leaf_nodes() ])
+    #     dat_labels = set(dat.columns.to_list())
+    #     phy_missing = phy_labels.difference(dat_labels)
+    #     if len(phy_missing) != 0:
+    #         phy_missing = sorted(list(phy_missing))
+    #         # dat_missing = sorted(list(set(dat_labels).difference(set(phy_labels))))
+    #         err_msg = f'Missing taxon labels in dat but not in phy for replicate {idx}: '
+    #         # if len(phy_missing) > 0:
+    #         err_msg += ' '.join(phy_missing)
+    #         # if len(dat_missing) > 0:
+    #         #    err_msg += f' Missing from dat: {' '.join(dat_missing)}.'
+    #         raise ValueError(err_msg)
+    #     
+    #     cpvs = None
+    #     if tree_type == 'serial':
+    #         cpvs = self.encode_cblvs(phy, dat, tree_width,
+    #                                  tree_encode_type, rescale)
+    #     elif tree_type == 'extant':
+    #         cpvs = self.encode_cdvs(phy, dat, tree_width,
+    #                                 tree_encode_type, rescale)
+    #     else:
+    #         ValueError(f'Unrecognized {tree_type}')
+    #     return cpvs
+    # 
     def encode_cdvs(self, phy, dat, tree_width, tree_encode_type, rescale=True):
         """
         Encode Compact Diversity-reordered Vector + States (CDV+S) array
@@ -923,7 +940,7 @@ class Formatter:
         # 1:  leaf node branch length
         # 2:  internal node branch length
         # 3+: state encoding
-        
+
         Arguments:
             phy (dendropy.Tree):     phylogenetic tree
             dat (numpy.array):       character data
@@ -936,54 +953,60 @@ class Formatter:
         Returns:
             numpy.ndarray: The encoded CDV+S tensor.
         """
-        
-        # data dimensions
-        num_tree_col = 0
-        num_char_col = dat.shape[0]
-        if tree_encode_type == 'height_only':
-            num_tree_col = 1
-        elif tree_encode_type == 'height_brlen':
-            num_tree_col = 3
 
-        # initialize workspace
-        phy.calc_node_root_distances(return_leaf_distances_only=False)
-        heights    = np.zeros( (tree_width, num_tree_col) )
-        states     = np.zeros( (tree_width, num_char_col) )
-        state_idx  = 0
-        height_idx = 0
-
-        # postorder traversal to rotate nodes by clade-length
-        for nd in phy.postorder_node_iter():
-            if nd.is_leaf():
-                nd.treelen = 0.
-            else:
-                children           = nd.child_nodes()
-                ch_treelen         = [ (ch.edge.length + ch.treelen) for ch in children ]
-                nd.treelen         = sum(ch_treelen)
-                ch_treelen_rank    = np.argsort( ch_treelen )[::-1]
-                children_reordered = [ children[i] for i in ch_treelen_rank ]
-                nd.set_children(children_reordered)
-
-        # inorder traversal to fill matrix
-        phy.seed_node.edge.length = 0
-        for nd in phy.inorder_node_iter():
-            
-            if nd.is_leaf():
-                heights[height_idx,1] = nd.edge.length
-                states[state_idx,:]   = dat[nd.taxon.label].to_list()
-                state_idx += 1
-            else:
-                heights[height_idx,0] = nd.root_distance
-                heights[height_idx,2] = nd.edge.length
-                height_idx += 1
-
-        # stack the phylo and states tensors
-        if rescale:
-            heights = heights / np.max(heights)
-        phylo_tensor = np.hstack( [heights, states] )
-
-        return phylo_tensor
-
+        cdvs = util.encode_cdvs(phy, dat, tree_width,
+                                tree_encode_type, rescale)
+        return cdvs
+    #     
+    #     # data dimensions
+    #     num_tree_col = 0
+    #     num_char_col = dat.shape[0]
+    #     if tree_encode_type == 'height_only':
+    #         num_tree_col = 1
+    #     elif tree_encode_type == 'height_brlen':
+    #         num_tree_col = 3
+    # 
+    #     # initialize workspace
+    #     phy.calc_node_root_distances(return_leaf_distances_only=False)
+    #     heights    = np.zeros( (tree_width, num_tree_col) )
+    #     states     = np.zeros( (tree_width, num_char_col) )
+    #     state_idx  = 0
+    #     height_idx = 0
+    # 
+    #     # postorder traversal to rotate nodes by clade-length
+    #     for nd in phy.postorder_node_iter():
+    #         if nd.is_leaf():
+    #             nd.treelen = 0.
+    #         else:
+    #             children           = nd.child_nodes()
+    #             ch_treelen         = [ (ch.edge.length + ch.treelen) for ch in children ]
+    #             nd.treelen         = sum(ch_treelen)
+    #             ch_treelen_rank    = np.argsort( ch_treelen )[::-1]
+    #             children_reordered = [ children[i] for i in ch_treelen_rank ]
+    #             nd.set_children(children_reordered)
+    # 
+    #     # inorder traversal to fill matrix
+    #     phy.seed_node.edge.length = 0
+    #     for nd in phy.inorder_node_iter():
+    #         
+    #         if nd.is_leaf():
+    #             if tree_encode_type == 'height_brlen':
+    #                 heights[height_idx,1] = nd.edge.length
+    #             states[state_idx,:]   = dat[nd.taxon.label].to_list()
+    #             state_idx += 1
+    #         else:
+    #             heights[height_idx,0] = nd.root_distance
+    #             if tree_encode_type == 'height_brlen':
+    #                 heights[height_idx,2] = nd.edge.length
+    #             height_idx += 1
+    # 
+    #     # stack the phylo and states tensors
+    #     if rescale:
+    #         heights = heights / np.max(heights)
+    #     phylo_tensor = np.hstack( [heights, states] )
+    # 
+    #     return phylo_tensor
+    # 
     def encode_cblvs(self, phy, dat, tree_width, tree_encode_type, rescale=True):
         """
         Encode Compact Bijective Ladderized Vector + States (CBLV+S) array
@@ -1008,54 +1031,60 @@ class Formatter:
         Returns:
             numpy.ndarray: The encoded CBLV+S tensor.
         """
-
-        # data dimensions
-        num_tree_col = 0
-        num_char_col = dat.shape[0]
-        if tree_encode_type == 'height_only':
-            num_tree_col = 2
-        elif tree_encode_type == 'height_brlen':
-            num_tree_col = 4
-
-        # initialize workspace
-        phy.calc_node_root_distances(return_leaf_distances_only=False)
-        heights    = np.zeros( (tree_width, num_tree_col) )
-        states     = np.zeros( (tree_width, num_char_col) )
-        state_idx  = 0
-        height_idx = 0
-
-        # postorder traversal to rotate nodes by max-root-distance
-        for nd in phy.postorder_node_iter():
-            if nd.is_leaf():
-                nd.max_root_distance = nd.root_distance
-            else:
-                children                  = nd.child_nodes()
-                ch_max_root_distance      = [ ch.max_root_distance for ch in children ]
-                ch_max_root_distance_rank = np.argsort( ch_max_root_distance )[::-1]  # [0,1] or [1,0]
-                children_reordered        = [ children[i] for i in ch_max_root_distance_rank ]
-                nd.max_root_distance      = max(ch_max_root_distance)
-                nd.set_children(children_reordered)
-
-        # inorder traversal to fill matrix
-        last_int_node = phy.seed_node
-        last_int_node.edge.length = 0
-        for nd in phy.inorder_node_iter():
-            if nd.is_leaf():
-                heights[height_idx,0] = nd.root_distance - last_int_node.root_distance
-                heights[height_idx,2] = nd.edge.length
-                states[state_idx,:]   = dat[nd.taxon.label].to_list()
-                state_idx += 1
-            else:
-                heights[height_idx+1,1] = nd.root_distance
-                heights[height_idx+1,3] = nd.edge.length
-                last_int_node = nd
-                height_idx += 1
-
-        # stack the phylo and states tensors
-        if rescale:
-            heights = heights / np.max(heights)
-        phylo_tensor = np.hstack( [heights, states] )
-
-        return phylo_tensor
+        
+        cblvs = util.encode_cblvs(phy, dat, tree_width, tree_encode_type, rescale)
+        return cblvs
+    
+    # 
+    #     # data dimensions
+    #     num_tree_col = 0
+    #     num_char_col = dat.shape[0]
+    #     if tree_encode_type == 'height_only':
+    #         num_tree_col = 2
+    #     elif tree_encode_type == 'height_brlen':
+    #         num_tree_col = 4
+    # 
+    #     # initialize workspace
+    #     phy.calc_node_root_distances(return_leaf_distances_only=False)
+    #     heights    = np.zeros( (tree_width, num_tree_col) )
+    #     states     = np.zeros( (tree_width, num_char_col) )
+    #     state_idx  = 0
+    #     height_idx = 0
+    # 
+    #     # postorder traversal to rotate nodes by max-root-distance
+    #     for nd in phy.postorder_node_iter():
+    #         if nd.is_leaf():
+    #             nd.max_root_distance = nd.root_distance
+    #         else:
+    #             children                  = nd.child_nodes()
+    #             ch_max_root_distance      = [ ch.max_root_distance for ch in children ]
+    #             ch_max_root_distance_rank = np.argsort( ch_max_root_distance )[::-1]  # [0,1] or [1,0]
+    #             children_reordered        = [ children[i] for i in ch_max_root_distance_rank ]
+    #             nd.max_root_distance      = max(ch_max_root_distance)
+    #             nd.set_children(children_reordered)
+    # 
+    #     # inorder traversal to fill matrix
+    #     last_int_node = phy.seed_node
+    #     last_int_node.edge.length = 0
+    #     for nd in phy.inorder_node_iter():
+    #         if nd.is_leaf():
+    #             heights[height_idx,0] = nd.root_distance - last_int_node.root_distance
+    #             if tree_encode_type == 'height_brlen':
+    #                 heights[height_idx,2] = nd.edge.length
+    #             states[state_idx,:]   = dat[nd.taxon.label].to_list()
+    #             state_idx += 1
+    #         else:
+    #             heights[height_idx+1,1] = nd.root_distance
+    #             if tree_encode_type == 'height_brlen':
+    #                 heights[height_idx+1,3] = nd.edge.length
+    #             last_int_node = nd
+    #             height_idx += 1
+    # 
+    #     # stack the phylo and states tensors
+    #     if rescale:
+    #         heights = heights / np.max(heights)
+    #     phylo_tensor = np.hstack( [heights, states] )
+    # 
+    #     return phylo_tensor
 
 ##################################################

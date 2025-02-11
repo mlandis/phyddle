@@ -106,6 +106,9 @@ class Trainer:
         self.loss_numerical     = str(args['loss_numerical'])
         self.use_cuda           = bool(args['use_cuda'])
         self.num_early_stop     = int(args['num_early_stop'])
+        self.learning_rate      = float(args['learning_rate'])
+        self.activation_func    = str(args['activation_func'])
+        self.optimizer          = str(args['optimizer'])
 
         # initialized later
         self.phy_tensors        = dict()   # init with encode_all()
@@ -595,16 +598,29 @@ class CnnTrainer(Trainer):
         loss_lower_func = network.QuantileLoss(alpha=q_lower)
         loss_upper_func = network.QuantileLoss(alpha=q_upper)
         loss_categ_func = network.CrossEntropyLoss()
-
+        loss_aggregation = 'sum'
+        
         # optimizer
-        optimizer = torch.optim.Adam(self.model.parameters())
+        optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
+        if self.optimizer == 'adam':
+            optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
+        if self.optimizer == 'adamw':
+            optimizer = torch.optim.AdamW(self.model.parameters(), lr=self.learning_rate)
+        elif self.optimizer == 'adagrad':
+            optimizer = torch.optim.Adagrad(self.model.parameters(), lr=self.learning_rate)
+        elif self.optimizer == 'adadelta':
+            optimizer = torch.optim.Adadelta(self.model.parameters(), lr=self.learning_rate)
+        elif self.optimizer == 'rmsprop':
+            optimizer = torch.optim.RMSprop(self.model.parameters(), lr=self.learning_rate)
+        elif self.optimizer == 'sgd':
+            optimizer = torch.optim.SGD(self.model.parameters(), lr=self.learning_rate)
+            
         # optimizer = torch.optim.Adam(self.model.parameters(),
         #                              lr=0.001,
         #                              weight_decay = 0.002)
         # optimizer = torch.optim.AdamW(self.model.parameters(), lr=0.001,
         #                               betas=(0.9, 0.999), eps=1e-08,
         #                               weight_decay=0.01, ams_grad=False)
-
         # lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer,
         #                                             step_size = 50,
         #                                             gamma = 0.1)
@@ -616,7 +632,7 @@ class CnnTrainer(Trainer):
 
         # training
         metric_names = ['loss_lower', 'loss_upper', 'loss_value',
-                        'loss_combined', 'mse_value', 'mae_value', 'mape_value']
+                        'loss_combined', 'mse_value', 'mae_value', 'medape_value']
         prev_trn_loss_combined = None
         prev_val_loss_combined = None
         for i in range(self.num_epochs):
@@ -662,16 +678,23 @@ class CnnTrainer(Trainer):
                 if self.has_label_cat:
                     loss_categ = loss_categ_func(lbls_hat[3], lbl_cat)
                     loss_list += [ loss_categ ]
-                loss_combined = torch.stack(loss_list).sum()
+                # loss_combined = torch.stack(loss_list).sum()
+                
+                if loss_aggregation == 'sum':
+                    loss_combined = torch.stack(loss_list).sum()
+                elif loss_aggregation == 'geometric':
+                    loss_combined = torch.exp(torch.mean(torch.log(torch.stack(loss_list))))
+                elif loss_aggretation == 'median':
+                    loss_combined = torch.median(torch.stack(loss_list))
 
                 # collect history stats
                 if self.has_label_num:
                     trn_loss_value    += loss_value.item() / num_batches
                     trn_loss_lower    += loss_lower.item() / num_batches
                     trn_loss_upper    += loss_upper.item() / num_batches
-                    trn_mse_value     += ( torch.mean((lbl_num - lbls_hat[0])**2) ).item() / num_batches
-                    trn_mae_value     += ( torch.mean(torch.abs(lbl_num - lbls_hat[0])) ).item() / num_batches
-                    trn_mape_value    += ( torch.mean(torch.abs((lbl_num - lbls_hat[0]) / lbl_num)) ).item() / num_batches
+                    trn_mse_value     += (torch.mean((lbl_num - lbls_hat[0])**2)).item() / num_batches
+                    trn_mae_value     += (torch.mean(torch.abs(lbl_num - lbls_hat[0]))).item() / num_batches
+                    trn_mape_value    += 100. * (torch.median(torch.abs((lbl_num - lbls_hat[0])/lbl_num))).item() / num_batches
                 trn_loss_combined += loss_combined.item() / num_batches
                 
                 # backward pass to update gradients
@@ -703,15 +726,24 @@ class CnnTrainer(Trainer):
                 val_loss_categ = loss_categ_func(val_lbls_hat[3], val_lbl_cat).item()
                 val_loss_list += [ val_loss_categ ]
             
-            val_loss_combined = sum(val_loss_list)
+            # val_loss_combined = sum(val_loss_list)
+            if loss_aggregation == 'sum':
+                # val_loss_combined = torch.stack(val_loss_list).sum()
+                val_loss_combined = np.sum(val_loss_list)
+            elif loss_aggregation == 'geometric':
+                val_loss_combined = np.exp(np.mean(np.log(val_loss_list)))
+                # val_loss_combined = torch.exp(torch.mean(torch.log(torch.stack(val_loss_list))))
+            elif loss_aggretation == 'median':
+                # val_loss_combined = torch.median(torch.stack(val_loss_list))
+                val_loss_combined = np.median(val_loss_list)
                 
             val_mse_value = 0.
             val_mae_value = 0.
             val_mape_value = 0.
             if self.has_label_num:
-                val_mse_value      = ( torch.mean((val_lbl_num - val_lbls_hat[0])**2) ).item()
-                val_mae_value      = ( torch.mean(torch.abs(val_lbl_num - val_lbls_hat[0])) ).item()
-                val_mape_value     = ( torch.mean(torch.abs((val_lbl_num - val_lbls_hat[0]) / val_lbl_num)) ).item()
+                val_mse_value      = (torch.mean((val_lbl_num - val_lbls_hat[0])**2)).item()
+                val_mae_value      = (torch.mean(torch.abs(val_lbl_num - val_lbls_hat[0]))).item()
+                val_mape_value     = 100. * (torch.median(torch.abs((val_lbl_num - val_lbls_hat[0]) / val_lbl_num))).item()
                 
             val_metric_vals = [ val_loss_value, val_loss_lower, val_loss_upper,
                                 val_loss_combined, val_mse_value, val_mae_value,
@@ -748,7 +780,6 @@ class CnnTrainer(Trainer):
                 else:
                     val_bad_count = 0
 
-                
             prev_trn_loss_combined = trn_loss_combined
             prev_val_loss_combined = val_loss_combined
 

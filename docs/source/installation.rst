@@ -6,9 +6,10 @@ Installation
 This page describes how to download and install phyddle and its dependencies.
 
 
+.. raw:: html
 
-Python package
---------------
+   <h2>Python package</h2>
+
 
 phyddle is available as a `PyPI package <https://pypi.org/project/phyddle/>`_ 
 and can be installed using ``pip``.
@@ -20,8 +21,9 @@ and can be installed using ``pip``.
   phyddle
 
 
-Conda package
--------------
+.. raw:: html
+
+   <h2>Conda package</h2>
 
 phyddle is also available as a `conda package <https://anaconda.org/landismj/phyddle>`_,
 and can be installed with the following commands:
@@ -35,8 +37,9 @@ and can be installed with the following commands:
     phyddle
 
 
-GitHub repository
------------------
+.. raw:: html
+
+   <h2>GitHub repository</h2>
 
 To download the phyddle source code to your computer, you can either clone 
 the `repository <https://github.com/mlandis/phyddle>`_
@@ -72,8 +75,10 @@ Once cloned, you can build phyddle into a local Python package
   phyddle
 
 
-System configuration
---------------------
+.. raw:: html
+
+   <h2>System configuration</h2>
+
 
 phyddle is regularly tested on Mac OS X 14.2.1 (Intel CPU) and Python
 3.11.7 (installed with homebrew). phyddle is also intermittently tested 

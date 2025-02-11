@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.abspath('../phyddle/src'))
 # -- Project information
 
 project = 'phyddle'
-copyright = '2024'
+copyright = '2025'
 author = 'Michael Landis, Ammon Thompson'
 
 release = '0.2.2'
@@ -24,6 +24,8 @@ extensions = [
     'sphinx.ext.intersphinx',
     'sphinx.ext.napoleon',
 	'sphinx.ext.viewcode',
+    'sphinxcontrib.images',
+    'sphinx_subfigure',
     'sphinxemoji.sphinxemoji',
 ]
 
@@ -71,3 +73,6 @@ napoleon_use_rtype = True
 napoleon_preprocess_types = False
 napoleon_type_aliases = None
 napoleon_attr_annotations = True
+
+# -- Subfigure settings
+numfig = True

@@ -152,21 +152,23 @@ def settings_registry():
         'sim_batch_size':  {'step': 'S',   'type': int,  'section': 'Simulate',  'default': 1,         'help': 'Number of replicates per simulation command'},
 
         # formatting options
-        'encode_all_sim':   {'step': 'F',     'type': str,   'section': 'Format',  'default': 'T',             'help': 'Encode all simulated replicates into tensor?', 'bool': True},
-        'num_char':         {'step': 'FTE',   'type': int,   'section': 'Format',  'default': None,            'help': 'Number of characters'},
-        'num_states':       {'step': 'FTE',   'type': int,   'section': 'Format',  'default': None,            'help': 'Number of states per character'},
-        'min_num_taxa':     {'step': 'F',     'type': int,   'section': 'Format',  'default': 10,              'help': 'Minimum number of taxa allowed when formatting'},
-        'max_num_taxa':     {'step': 'F',     'type': int,   'section': 'Format',  'default': 1000,            'help': 'Maximum number of taxa allowed when formatting'},
-        'downsample_taxa':  {'step': 'FTE',   'type': str,   'section': 'Format',  'default': 'uniform',       'help': 'Downsampling strategy taxon count', 'choices': ['uniform']},
-        'tree_width':       {'step': 'FTEP',  'type': int,   'section': 'Format',  'default': 500,             'help': 'Width of phylo-state tensor'},
-        'tree_encode':      {'step': 'FTE',   'type': str,   'section': 'Format',  'default': 'extant',        'help': 'Encoding strategy for tree', 'choices': ['extant', 'serial']},
-        'brlen_encode':     {'step': 'FTE',   'type': str,   'section': 'Format',  'default': 'height_brlen',  'help': 'Encoding strategy for branch lengths', 'choices': ['height_only', 'height_brlen']},
-        'char_encode':      {'step': 'FTE',   'type': str,   'section': 'Format',  'default': 'one_hot',       'help': 'Encoding strategy for character data', 'choices': ['one_hot', 'integer', 'numeric']},
-        'param_est':        {'step': 'FTE',   'type': dict,  'section': 'Format',  'default': dict(),          'help': 'Model parameters and variables to estimate'},
-        'param_data':       {'step': 'FTE',   'type': dict,  'section': 'Format',  'default': dict(),          'help': 'Model parameters and variables treated as data'},
-        'char_format':      {'step': 'FTE',   'type': str,   'section': 'Format',  'default': 'nexus',         'help': 'File format for character data', 'choices': ['csv', 'nexus']},
-        'tensor_format':    {'step': 'FTEP',  'type': str,   'section': 'Format',  'default': 'hdf5',          'help': 'File format for training example tensors', 'choices': ['csv', 'hdf5']},
-        'save_phyenc_csv':  {'step': 'F',     'type': str,   'section': 'Format',  'default': 'F',             'help': 'Save encoded phylogenetic tensor encoding to csv?', 'bool': True},
+        'encode_all_sim':      {'step': 'F',     'type': str,   'section': 'Format',  'default': 'T',             'help': 'Encode all simulated replicates into tensor?', 'bool': True},
+        'num_char':            {'step': 'SFTE',  'type': int,   'section': 'Format',  'default': None,            'help': 'Number of characters'},
+        'num_states':          {'step': 'FTE',   'type': int,   'section': 'Format',  'default': None,            'help': 'Number of states per character'},
+        'num_trees':           {'step': 'SFTE',  'type': int,   'section': 'Format',  'default': 1,               'help': 'Number of trees per dataset'},
+        'min_num_taxa':        {'step': 'F',     'type': int,   'section': 'Format',  'default': 10,              'help': 'Minimum number of taxa allowed when formatting'},
+        'max_num_taxa':        {'step': 'F',     'type': int,   'section': 'Format',  'default': 1000,            'help': 'Maximum number of taxa allowed when formatting'},
+        'downsample_taxa':     {'step': 'FTE',   'type': str,   'section': 'Format',  'default': 'uniform',       'help': 'Downsampling strategy taxon count', 'choices': ['uniform']},
+        'rel_extant_age_tol':  {'step': 'FTE',  'type': float, 'section': 'Format',  'default': 1E-10,          'help': 'Relative tolerance to determine if terminal taxa are extant (rel. age < tol).'},
+        'tree_width':          {'step': 'FTEP',  'type': int,   'section': 'Format',  'default': 500,             'help': 'Width of phylo-state tensor'},
+        'tree_encode':         {'step': 'FTE',   'type': str,   'section': 'Format',  'default': 'extant',        'help': 'Encoding strategy for tree', 'choices': ['extant', 'serial']},
+        'brlen_encode':        {'step': 'FTE',   'type': str,   'section': 'Format',  'default': 'height_brlen',  'help': 'Encoding strategy for branch lengths', 'choices': ['height_only', 'height_brlen']},
+        'char_encode':         {'step': 'FTE',   'type': str,   'section': 'Format',  'default': 'one_hot',       'help': 'Encoding strategy for character data', 'choices': ['one_hot', 'integer', 'numeric']},
+        'param_est':           {'step': 'FTE',   'type': dict,  'section': 'Format',  'default': dict(),          'help': 'Model parameters and variables to estimate'},
+        'param_data':          {'step': 'FTE',   'type': dict,  'section': 'Format',  'default': dict(),          'help': 'Model parameters and variables treated as data'},
+        'char_format':         {'step': 'FTE',   'type': str,   'section': 'Format',  'default': 'nexus',         'help': 'File format for character data', 'choices': ['csv', 'nexus']},
+        'tensor_format':       {'step': 'FTEP',  'type': str,   'section': 'Format',  'default': 'hdf5',          'help': 'File format for training example tensors', 'choices': ['csv', 'hdf5']},
+        'save_phyenc_csv':     {'step': 'F',     'type': str,   'section': 'Format',  'default': 'F',             'help': 'Save encoded phylogenetic tensor encoding to csv?', 'bool': True},
 
         # training options
         'num_epochs':           {'step': 'TEP',    'type': int,    'section': 'Train',  'default': 50,             'help': 'Number of training epochs'},
@@ -178,7 +180,9 @@ def settings_registry():
         'cpi_coverage':         {'step': 'T',      'type': float,  'section': 'Train',  'default': 0.95,           'help': 'Expected coverage percent for calibrated prediction intervals (CPIs)'},
         'cpi_asymmetric':       {'step': 'T',      'type': str,    'section': 'Train',  'default': 'T',            'help': 'Use asymmetric (True) or symmetric (False) adjustments for CPIs?', 'bool': True},
         'loss_numerical':       {'step': 'T',      'type': str,    'section': 'Train',  'default': 'mse',          'help': 'Loss function for real value estimates', 'choices': ['mse', 'mae']},
-        'optimizer':            {'step': 'T',      'type': str,    'section': 'Train',  'default': 'adam',         'help': 'Method used for optimizing neural network', 'choices': ['adam']},
+        'optimizer':            {'step': 'T',      'type': str,    'section': 'Train',  'default': 'adam',         'help': 'Method used for optimizing neural network', 'choices': ['adam', 'adadelta', 'adagrad', 'adamw', 'rmsprop', 'sgd']},
+        'learning_rate':        {'step': 'T',      'type': float,  'section': 'Train',  'default': 0.001,          'help': 'Learning rate for optimizer'},
+        'activation_func':      {'step': 'T',      'type': str,    'section': 'Train',  'default': 'relu',         'help': 'Activation function for all internal layers', 'choices': ['relu', 'leaky_relu', 'elu', 'tanh', 'sigmoid']}, 
         'log_offset':           {'step': 'FTEP',   'type': float,  'section': 'Train',  'default': 1.0,            'help': 'Offset size c when taking ln(x+c) for zero-valued variables'},
         'phy_channel_plain':    {'step': 'T',      'type': list,   'section': 'Train',  'default': [64, 96, 128],  'help': 'Output channel sizes for plain convolutional layers for phylogenetic state input'},
         'phy_channel_stride':   {'step': 'T',      'type': list,   'section': 'Train',  'default': [64, 96],       'help': 'Output channel sizes for stride convolutional layers for phylogenetic state input'},
@@ -192,6 +196,8 @@ def settings_registry():
         'phy_dilate_dilate':    {'step': 'T',      'type': list,   'section': 'Train',  'default': [3, 5],         'help': 'Dilation sizes for dilate convolutional layers for phylogenetic state input'},
 
         # estimating options
+        'warn_aux_outlier':     {'step': 'FEP',    'type': float,  'section': 'Estimate',  'default': 0.0001,      'help': 'Percentile to detect extreme empirical auxiliary (abs.) values.'},
+        'warn_lbl_outlier':     {'step': 'FEP',    'type': float,  'section': 'Estimate',  'default': 0.01,        'help': 'Percentile to detect extreme empirical label (abs.) values.'},
 
         # plotting options
         'plot_train_color'  : {'step': 'P', 'type': str,    'section': 'Plot', 'default': 'blue',    'help': 'Plotting color for training data elements'},
@@ -656,6 +662,8 @@ def check_args(args):
         print_err("num_states must be >= 0", exit=True)
     if args['num_char'] < 0:
         print_err("num_char must be >= 0", exit=True)
+    if args['num_trees'] < 0 or args['num_trees'] > 1:
+        print_err("num_trees must be 0 or 1", exit=True)
     if args['num_epochs'] < 0:
         print_err("num_epochs must be >= 0", exit=True)
     if args['num_early_stop'] < 0:
@@ -666,6 +674,10 @@ def check_args(args):
         print_err("sim_batch_size must be > 0", exit=True)
     if args['cpi_coverage'] < 0. or args['cpi_coverage'] > 1.:
         print_err("cpi_coverage must be between 0 and 1", exit=True)
+    if args['warn_aux_outlier'] < 0. or args['warn_aux_outlier'] > 1.:
+        print_err("warn_aux_outlier must be between 0 and 1", exit=True)
+    if args['warn_lbl_outlier'] < 0. or args['warn_lbl_outlier'] > 1.:
+        print_err("warn_lbl_outlier must be between 0 and 1", exit=True)
     if args['prop_test'] < 0. or args['prop_test'] > 1.:
         print_err("prop_test must be between 0 and 1", exit=True)
     if args['prop_val'] < 0. or args['prop_val'] > 1.:
@@ -1553,7 +1565,204 @@ END;
     return s
 
 
-def make_prune_phy(phy, prune_fn):
+def encode_cpvs(phy, dat, tree_width, tree_type,
+                tree_encode_type, idx, rescale=True):
+    """
+    Encode Compact Phylogenetic Vector + States (CPV+S) array
+
+    This function encodes the dataset into Compact Bijective Ladderized
+    Vector + States (CBLV+S) when tree_type is 'serial' or Compact
+    Diversity-Reordered Vector + States (CDV+S) when tree_type is 'extant'.
+
+    Arguments:
+        phy (dendropy.Tree):     phylogenetic tree
+        dat (numpy.array):       character data
+        tree_width (int):        number of columns (max. num. taxa)
+                                 in CPVS array
+        tree_type (str):         type of the tree ('serial' or 'extant')
+        tree_encode_type (str):  type of tree encoding ('height_only' or
+                                 'height_brlen')
+        idx (int):               replicate index
+        rescale (bool):          set tree height to 1 then encode, if True
+
+    Returns:
+        cpvs (numpy.array):      CPV+S encoded tensor
+    """
+    # taxon labels must match for each phy and dat replicate
+    phy_labels = set([ n.taxon.label for n in phy.leaf_nodes() ])
+    dat_labels = set( dat.columns.to_list()[1:] )   # skip first element 'taxa'
+    phy_missing = phy_labels.difference(dat_labels)
+
+    if len(phy_missing) != 0:
+        phy_missing = sorted(list(phy_missing))
+        err_msg = f'Missing taxon labels in dat but not in phy for replicate {idx}: '
+        err_msg += ' '.join(phy_missing)
+        raise ValueError(err_msg)
+
+    cpvs = None
+    if tree_type == 'serial':
+        cpvs = encode_cblvs(phy, dat, tree_width,
+                            tree_encode_type, rescale)
+    elif tree_type == 'extant':
+        cpvs = encode_cdvs(phy, dat, tree_width,
+                           tree_encode_type, rescale)
+    else:
+        ValueError(f'Unrecognized {tree_type}')
+
+    return cpvs
+
+def encode_cdvs(phy, dat, tree_width, tree_encode_type, rescale=True):
+    """
+    Encode Compact Diversity-reordered Vector + States (CDV+S) array
+
+    # num columns equals tree_width, 0-padding
+    # returns tensor with following rows
+    # 0:  internal node root-distance
+    # 1:  leaf node branch length
+    # 2:  internal node branch length
+    # 3+: state encoding
+
+    Arguments:
+        phy (dendropy.Tree):     phylogenetic tree
+        dat (numpy.array):       character data
+        tree_width (int):        number of columns (max. num. taxa)
+                                 in CPVS array
+        tree_encode_type (str):  type of tree encoding ('height_only' or
+                                 'height_brlen')
+        rescale:                 set tree height to 1 then encode, if True
+
+    Returns:
+        numpy.ndarray: The encoded CDV+S tensor.
+    """
+
+    # data dimensions
+    num_tree_col = 0
+    num_char_col = dat.shape[0]
+    if tree_encode_type == 'height_only':
+        num_tree_col = 1
+    elif tree_encode_type == 'height_brlen':
+        num_tree_col = 3
+
+    # initialize workspace
+    phy.calc_node_root_distances(return_leaf_distances_only=False)
+    heights    = np.zeros( (tree_width, num_tree_col) )
+    states     = np.zeros( (tree_width, num_char_col) )
+    state_idx  = 0
+    height_idx = 0
+
+    # postorder traversal to rotate nodes by clade-length
+    for nd in phy.postorder_node_iter():
+        if nd.is_leaf():
+            nd.treelen = 0.
+        else:
+            children           = nd.child_nodes()
+            ch_treelen         = [ (ch.edge.length + ch.treelen) for ch in children ]
+            nd.treelen         = sum(ch_treelen)
+            ch_treelen_rank    = np.argsort( ch_treelen )[::-1]
+            children_reordered = [ children[i] for i in ch_treelen_rank ]
+            nd.set_children(children_reordered)
+
+    # inorder traversal to fill matrix
+    phy.seed_node.edge.length = 0
+    for nd in phy.inorder_node_iter():
+
+        if nd.is_leaf():
+            if tree_encode_type == 'height_brlen':
+                heights[height_idx,1] = nd.edge.length
+            states[state_idx,:]   = dat[nd.taxon.label].to_list()
+            state_idx += 1
+        else:
+            heights[height_idx,0] = nd.root_distance
+            if tree_encode_type == 'height_brlen':
+                heights[height_idx,2] = nd.edge.length
+            height_idx += 1
+
+    # stack the phylo and states tensors
+    if rescale:
+        heights = heights / np.max(heights)
+    phylo_tensor = np.hstack( [heights, states] )
+
+    return phylo_tensor
+
+
+def encode_cblvs(phy, dat, tree_width, tree_encode_type, rescale=True):
+    """
+    Encode Compact Bijective Ladderized Vector + States (CBLV+S) array
+
+    # num columns equals tree_width, 0-padding
+    # returns tensor with following rows
+    # 0:  leaf node-to-last internal node distance
+    # 1:  internal node root-distance
+    # 2:  leaf node branch length
+    # 3:  internal node branch length
+    # 4+: state encoding
+
+    Arguments:
+        phy (dendropy.Tree):     phylogenetic tree
+        dat (numpy.array):       character data
+        tree_width (int):        number of columns (max. num. taxa)
+                                 in CPVS array
+        tree_encode_type (str):  type of tree encoding ('height_only' or
+                                 'height_brlen')
+        rescale:                 set tree height to 1 then encode, if True
+
+    Returns:
+        numpy.ndarray: The encoded CBLV+S tensor.
+    """
+
+    # data dimensions
+    num_tree_col = 0
+    num_char_col = dat.shape[0]
+    if tree_encode_type == 'height_only':
+        num_tree_col = 2
+    elif tree_encode_type == 'height_brlen':
+        num_tree_col = 4
+
+    # initialize workspace
+    phy.calc_node_root_distances(return_leaf_distances_only=False)
+    heights    = np.zeros( (tree_width, num_tree_col) )
+    states     = np.zeros( (tree_width, num_char_col) )
+    state_idx  = 0
+    height_idx = 0
+
+    # postorder traversal to rotate nodes by max-root-distance
+    for nd in phy.postorder_node_iter():
+        if nd.is_leaf():
+            nd.max_root_distance = nd.root_distance
+        else:
+            children                  = nd.child_nodes()
+            ch_max_root_distance      = [ ch.max_root_distance for ch in children ]
+            ch_max_root_distance_rank = np.argsort( ch_max_root_distance )[::-1]  # [0,1] or [1,0]
+            children_reordered        = [ children[i] for i in ch_max_root_distance_rank ]
+            nd.max_root_distance      = max(ch_max_root_distance)
+            nd.set_children(children_reordered)
+
+    # inorder traversal to fill matrix
+    last_int_node = phy.seed_node
+    last_int_node.edge.length = 0
+    for nd in phy.inorder_node_iter():
+        if nd.is_leaf():
+            heights[height_idx,0] = nd.root_distance - last_int_node.root_distance
+            if tree_encode_type == 'height_brlen':
+                heights[height_idx,2] = nd.edge.length
+            states[state_idx,:]   = dat[nd.taxon.label].to_list()
+            state_idx += 1
+        else:
+            heights[height_idx+1,1] = nd.root_distance
+            if tree_encode_type == 'height_brlen':
+                heights[height_idx+1,3] = nd.edge.length
+            last_int_node = nd
+            height_idx += 1
+
+    # stack the phylo and states tensors
+    if rescale:
+        heights = heights / np.max(heights)
+    phylo_tensor = np.hstack( [heights, states] )
+
+    return phylo_tensor
+
+
+def make_prune_phy(phy, prune_fn, rel_extant_age_tol=1e-10):
     """Prunes a phylogenetic tree by removing non-extant taxa and writes the
     pruned tree to a file.
 
@@ -1578,7 +1787,7 @@ def make_prune_phy(phy, prune_fn):
     # find tree height (max root-to-node distance)
     tree_height = np.max(root_distances)
     # tips are considered "at present" if age is within 0.0001 * tree_height
-    tol = tree_height * 1e-5
+    tol = tree_height * rel_extant_age_tol
     # create empty dictionary
     d = {}
     # loop through all leaf nodes
