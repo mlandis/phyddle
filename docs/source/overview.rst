@@ -1710,7 +1710,7 @@ training when the validation loss score increases for 3 consecutive epochs.
   .. image:: images/out.train_history_loss_combined_undertrain.png
     :height: 200px
     :alt: Undertraining
-  .. image:: images/out.train_history_loss_combined.png
+  .. image:: images/out.train_history_loss_combined_overtrain.png
     :height: 200px
     :alt: Overtraining
 
@@ -1800,13 +1800,13 @@ million years in height.
   .. image:: images/out.train_pca_aux_data.png
     :height: 200px
     :alt: Within-distribution
-  .. image:: images/out.train_pca_aux_data.png
+  .. image:: images/out.train_pca_aux_data_bad.png
     :height: 200px
     :alt: Out-of-distribution
   .. image:: images/out.train_density_aux_data.png
     :height: 200px
     :alt: Within-distribution
-  .. image:: images/out.train_density_aux_data.png
+  .. image:: images/out.train_density_aux_data_bad.png
     :height: 200px
     :alt: Out-of-distribution
 
