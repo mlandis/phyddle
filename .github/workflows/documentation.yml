@@ -10,7 +10,7 @@ jobs:
       - uses: actions/setup-python@v3
       - name: Install dependencies
         run: |
-          pip install sphinx sphinx_rtd_theme sphinxemoji sphinxcontrib-googleanalytics
+          pip install sphinx sphinx_rtd_theme sphinxemoji sphinxcontrib-googleanalytics sphinxcontrib.images sphinx_subfigure
       - name: Sphinx build
         run: |
           sphinx-build docs/source _build
