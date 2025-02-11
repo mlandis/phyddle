@@ -124,7 +124,7 @@ else:
 
 # if no extant samples then reject sim by exiting
 #print(my_model.params['Stop_time'], sim_stats['actual_sim_time'], most_recent_tip_age)
-if my_model.params['Stop_time'][0] != sim_stats['actual_sim_time'][0] or most_recent_tip_age != 0:
+if my_model.params['Stop_time'][0] != sim_stats['actual_sim_time'][0] or np.round(most_recent_tip_age, decimals=6) != 0:
     os.remove(dat_json_fn)
     os.remove(phy_nex_fn)
     os.remove(phy_nwk_fn)

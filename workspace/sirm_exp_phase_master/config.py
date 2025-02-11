@@ -74,7 +74,7 @@ args = {
   #-------------------------------#
   'num_epochs'         : 200,                  # Number of training epochs      
   'trn_batch_size'     : 512,                  # Training batch sizes           
-  'prop_test'          : 0.005,                # Proportion of data used as test examples (assess trained network performance)
+  'prop_test'          : 0.05,                # Proportion of data used as test examples (assess trained network performance)
   'prop_val'           : 0.05,                 # Proportion of data used as validation examples (diagnose network overtraining)
   'prop_cal'           : 0.05,                 # Proportion of data used as calibration examples (calibrate CPIs)
   'cpi_coverage'       : 0.95,                 # Expected coverage percent for calibrated prediction intervals (CPIs)

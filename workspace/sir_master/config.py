@@ -51,7 +51,7 @@ args = {
                           },
     'param_data'        : {                 # model parameters that are known (aux. data)
                            'log10_Recover_0':'num',
-                           'log10_S0_0_0':'num'
+                           'log10_S0_0_0_0':'num'
                           },
     'tensor_format'     : 'hdf5',           # save as compressed HDF5 or raw csv
     'save_phyenc_csv'   : 'F',            # save intermediate phylo-state vectors to file
