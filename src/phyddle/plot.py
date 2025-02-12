@@ -981,24 +981,20 @@ class Plotter:
             y_label = f'{p} {axis_labels[1]}'
 
             # estimates (x) and true values (y)
+            lbl_true = labels[p][:].to_numpy()
+            zero_true_idx = np.where(lbl_true == 0.0)
+            if len(zero_true_idx) > 0:
+                tiny_val = np.max(lbl_true - np.min(lbl_true)) * 1E-6
+                lbl_true[zero_true_idx] = tiny_val
             lbl_est = ests[f'{p}_value'][:].to_numpy()
             lbl_lower = ests[f'{p}_lower'][:].to_numpy()
             lbl_upper = ests[f'{p}_upper'][:].to_numpy()
             lbl_true = labels[p][:].to_numpy()
 
-            # only_positive = np.all(lbl_true >= 0.)
-            # if only_positive and plot_log:
-            #     lbl_est = np.log(lbl_est)
-            #     lbl_lower = np.log(lbl_lower)
-            #     lbl_upper = np.log(lbl_upper)
-            #     lbl_true = np.log(lbl_true)
-            #     x_label = f'ln {p} {axis_labels[0]}'
-            #     y_label = f'ln {p} {axis_labels[1]}'
-
             # accuracy stats
             stat_mae = np.mean(np.abs(lbl_est - lbl_true))
             # stat_mape = 100 * np.mean(np.abs((lbl_est - lbl_true) / np.abs(lbl_true)))
-            stat_mape = 100 * np.median(np.abs((lbl_true - lbl_est) / lbl_true))
+            # stat_mape = 100 * np.median(np.abs((lbl_true - lbl_est) / lbl_true))
             stat_mse = np.mean(np.power(lbl_est - lbl_true, 2))
             stat_rmse = np.sqrt(stat_mse)
             
@@ -1024,7 +1020,7 @@ class Plotter:
             s_mae = '{:.2E}'.format(stat_mae)
             s_mse = '{:.2E}'.format(stat_mse)
             s_rmse = '{:.2E}'.format(stat_rmse)
-            s_mape = '{:.1f}%'.format(stat_mape)
+            # s_mape = '{:.1f}%'.format(stat_mape)
             s_slope = '{:.2E}'.format(stat_slope)
             s_intercept = '{:.2E}'.format(stat_intercept)
             s_cover = '{:.1f}%'.format(f_stat_cover)
@@ -1087,7 +1083,7 @@ class Plotter:
 
             # write text
             dx = 0.03
-            stat_str = [f'MAE: {s_mae}', f'medAPE: {s_mape}', f'MSE: {s_mse}',
+            stat_str = [f'MAE: {s_mae}', f'MSE: {s_mse}',
                         f'RMSE: {s_rmse}', f'Intercept: {s_intercept}',
                         f'Slope: {s_slope}', f'Coverage: {s_cover}',
                         f'Coverage target: {s_cover_target}']
