@@ -1973,6 +1973,16 @@ commands assume a standard phyddle workspace directory structure.
             --num_epochs 40 \
             --trn_batch_size 512
 
+**Process alternative empirical data using previously trained network**
+
+.. code-block:: shell
+
+  # Run full pipeline 
+  phyddle -c config.py
+  
+  # Format, Estimate, and Plot empirical data against trained network
+  phyddle --no_sim -c config.py -s FEP --emp_dir ../other_project/empirical
+
 **Simulate new training examples**
 
 .. code-block:: shell
