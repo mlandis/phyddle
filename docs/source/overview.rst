@@ -920,10 +920,24 @@ is a simplified schematic of the network architecture:
 
 
 
-Parameter point estimates use a loss function (e.g. ``loss`` set to ``'mse'``;
-Tensorflow-supported string or function) while lower/upper quantile estimates
-use a pinball loss function (hard-coded). Each categorical parameter is trained
-using a separate cross-entropy loss function.
+The number of layers (depth) and nodes (width) can be controlled through the
+``phy_channel_plain``, ``phy_channel_stride``, ``phy_channel_dilate``,
+``aux_channel``, and ``lbl_channel`` settings. For example, the default
+value for ``lbl_channel`` is ``[128, 64, 32],``, which creates three dense
+layers with 128, 64, and 32 output channels, in that order. The default value
+for ``phy_channel_plain`` is ``[64, 96, 128]``, which creates three
+sets of convolutional and average-pooling layers with 64, 96, and 128
+output channels. Stride, dilation, and sizes for convolutional kernels can
+be adjusted using ``phy_kernel_plain``, ``phy_kernel_stride``,
+``phy_kernel_dilate``, ``phy_stride_stride``, and ``phy_dilate_dilate``.
+
+Parameter point estimates use a loss function (e.g. ``loss_numerical``
+set to ``'mse'``). Lower and upper quantile estimates for numerical labels
+are hard-coded to use a pinball loss function. Categorical label estimates are
+hard-coded to use the cross-entropy loss function (one per cat. label).
+Most layers share the the activation function defined by ``activation_func``,
+which uses  rectified linear units (ReLUs) by default. The output channels
+for each categorical variable uses a softmax activation function.
 
 Calibrated prediction intervals (CPIs) are estimated using the conformalized
 quantile regression technique of Romano et al. (2019). CPIs target a
@@ -937,16 +951,14 @@ requires larger numbers of calibration examples, determined through
 The network is trained iteratively for ``num_epoch`` training cycles using
 batch stochastic gradient descent, with batch sizes given by ``trn_batch_size``.
 Different optimizers can be used to update network weight and bias
-parameters (e.g. ``optimizer == 'adam'``). Network performance is also
-evaluated against validation data set aside with ``prop_val`` that
-are not used for minimizing the loss function. Early-stopping rules are
-enabled by default, preventing the network from being overtrained (see
+parameters (e.g. ``optimizer == 'adam'``). The initial learning rate can be
+adjusted with ``learning_rate``. Network performance is also
+evaluated against a validation dataset, which contains ``prop_val`` of
+all training examples, and not used for minimizing the loss function.
+To prevent overtraining, phyddle will terminate training if the validation
+loss does not improve for ``num_early_stop`` consecutive epochs (see
 :ref:`Safe_Usage`).
 
-Number of layers and numbers of nodes per layer can be adjusted using
-configuration settings. For example, setting ``phy_channel_plain`` to
-``[64,96,128]`` will construct three convolutional layers with 64, 96, and 128
-output channels, respectively.
 
 Training is automatically parallelized using CPUs and GPUs, dependent on
 how Tensorflow was installed and system hardware. Output files are stored
