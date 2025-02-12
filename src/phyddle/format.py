@@ -288,7 +288,7 @@ class Formatter:
             if mode == 'emp' and len(self.param_data) == 0:
                 has_lbl = True
             elif mode == 'emp' and len(self.param_data) > 0 and not has_lbl:
-                print(f'No labels found for {f}.')
+                util.print_warn(f'Cannot find \'{dat_dir}/{f}.labels.csv\' but len(param_data) > 0.')
                 return False
             # if the 1-3 files exist, then we have 1+ valid datasets
             if (has_dat or not self.use_input_dat) and (has_tre or self.use_input_tre) and has_lbl:
@@ -326,7 +326,7 @@ class Formatter:
         
         args = []
         for idx in self.rep_idx:
-            args.append((f'{encode_path}.{idx}', idx))
+            args.append((f'{encode_path}.{idx}', idx, mode))
         
         # visit each replicate, encode it, and return result
         if self.use_parallel:
@@ -612,7 +612,7 @@ class Formatter:
         """Wrapper for encode_one w/ unpacked args"""
         return self.encode_one(*args)
 
-    def encode_one(self, tmp_fn, idx, save_phyenc_csv=False):
+    def encode_one(self, tmp_fn, idx, mode, save_phyenc_csv=False):
         """
         Encode a single simulated raw dataset into tensor format.
          
@@ -628,6 +628,7 @@ class Formatter:
         Arguments:
             tmp_fn (str):            prefix for individual dataset
             idx (int):               replicate index for simulation
+            mode (str):              specifies 'sim' or 'emp' dataset
             save_phyenc_csv (bool):  save phylogenetic state tensor as csv?
 
         Returns:
@@ -658,6 +659,9 @@ class Formatter:
             return
         if not os.path.exists(tre_fn):
             self.logger.write_log('fmt', f'Cannot find {tre_fn}')
+            return
+        if not os.path.exists(lbl_fn) and mode == 'sim':
+            self.logger.write_log('fmt', f'Cannot find {lbl_fn}')
             return
         
         # read in nexus data file as numpy array
@@ -733,21 +737,37 @@ class Formatter:
             cpsv_str = util.ndarray_to_flat_str(cpvs_data.flatten()) + '\n'
             util.write_to_file(cpsv_str, cpsv_fn)
 
-        # read in raw labels file
-        labels = pd.read_csv(lbl_fn, header=0)
-        
-        # split raw labels into est vs. data
-        param_est = labels[self.param_est]
-        param_data = labels[self.param_data]
-        
-        # check label matching
-        for k in self.param_est:
-            if k not in param_est.columns:
-                util.print_warn(f"Estimated parameter '{k}' missing in labels. Skipped.")
-        for k in self.param_data:
-            if k not in param_data.columns:
-                util.print_warn(f"Data parameter '{k}' missing in labels. Skipped.")
-        
+        # read in labels file
+        labels = None
+        if mode == 'sim' or len(self.param_data) > 0:
+            labels = pd.read_csv(lbl_fn, header=0)
+            
+        # process parameters to estimate
+        param_est = pd.DataFrame()
+        if mode == 'sim':
+            # split raw labels into est vs. data
+            param_est = labels[self.param_est]
+            
+            # check label matching
+            for k in self.param_est:
+                if k not in param_est.columns:
+                    util.print_warn(f"Estimated parameter '{k}' missing in labels. Skipped.")
+            
+            # save param_est
+            param_est.to_csv(par_est_fn, index=False, float_format=util.PANDAS_FLOAT_FMT_STR)
+    
+            # set empty param dataframes as None
+            if len(param_est.columns) == 0:
+                param_est = None
+
+        # process parameters that are data
+        param_data = pd.DataFrame()
+        if mode == 'sim' or len(self.param_data) > 0:
+            param_data = labels[self.param_data]
+            for k in self.param_data:
+                if k not in param_data.columns:
+                    util.print_warn(f"Data parameter '{k}' missing in labels. Skipped.")
+
         # record summ stat data
         summ_stat = self.make_summ_stat(phy, dat)
         summ_stat['num_taxa'] = [ num_taxa_orig ]
@@ -759,13 +779,6 @@ class Formatter:
         # save summ. stats.
         aux_data.to_csv(aux_fn, index=False, float_format=util.PANDAS_FLOAT_FMT_STR)
         
-        # save param_est
-        param_est.to_csv(par_est_fn, index=False, float_format=util.PANDAS_FLOAT_FMT_STR)
-
-        # set empty param dataframes as None
-        if len(param_est.columns) == 0:
-            param_est = None
-
         # done!
         return idx, cpvs_data, aux_data, param_est
     
