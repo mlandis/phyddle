@@ -305,7 +305,8 @@ class Plotter:
 
         # trained model
         self.model = torch.load(self.model_arch_fn,
-                                map_location=torch.device('cpu'))
+                                map_location=torch.device('cpu'),
+                                weights_only=False)
         self.model = self.model.to('cpu')
 
         # training true/estimated labels
