@@ -1,15 +1,21 @@
 **phyddle v0.3.0** -- 25.02.xx
 
   * Estimate now warns user if empirical input/labels are out-of-distribution
+  * Estimate/Format no longer require labels file for empirical analyses unless param_data used
   * Plot improved to make it easier to notice out-of-distribution empirical input/labels
-  * Replace mean APE scores for training and accuracy diagnostics with median APE scores
+  * Replace mean APE scores for training diagnostics with median APE scores
   * Support to choose optimizer: adam, adamw, adagrad, adadelta, rmsprop, sgd
   * Support to choose activation functions: relu, elu, leaky_relu, tanh, sigmoid
   * Support to set learning rate
+  * Fix issue where Format reported divide-by-zero warning for summ. stat. with perfectly balanced trees
+  * Fix issue where large serial trees were not correctly converted to downsampled extant-only trees
+  * Add settings/warnings to prevent nearly-zero-aged tips in extant-only from being treated as extinct
   * Add torchvision to dependency list
   * Replace deprecated PdfMerger with PdfWriter
+  * Support to use 2+ GPUs
   * Reorganize documentation
-  * Tutorial now gives clear examples for valid/invalid results from phyddle
+  * Documentation now has Overview -> Safe Usage section
+  * Documentation tutorial now contains better explanations of figures
 
 
 **phyddle v0.2.2** -- 24.07.19
