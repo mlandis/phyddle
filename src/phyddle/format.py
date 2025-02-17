@@ -338,7 +338,7 @@ class Formatter:
                 # - list acts as a finalizer for the pool.imap work
                 # Have not benchmarked imap/imap_unordered, chunksize, etc.
                 res = list(tqdm(pool.imap(self.encode_one_star,
-                                          args, chunksize=5),
+                                          arge, chunksize=5),
                                 total=len(args),
                                 desc='Encoding',
                                 smoothing=0))
@@ -355,10 +355,10 @@ class Formatter:
         util.print_str(f'Encoding found {num_valid} of {num_total} valid examples.')
         if num_valid == 0:
             # exits
-            util.print_err('Format cannot proceed without valid examples. '
-                           'Verify the simulation script generates '
-                           'valid examples that are compatible with '
-                           'the configuration (e.g. min_taxa_size setting).')
+            util.print_err('Format cannot proceed without valid examples.\n'
+                           '       Verify the simulation script generates \n'
+                           '       valid examples that are compatible with \n'
+                           '       the configuration.\n')
             sys.exit()
             
         # save all replicate output by index
@@ -663,7 +663,7 @@ class Formatter:
         if not os.path.exists(lbl_fn) and mode == 'sim':
             self.logger.write_log('fmt', f'Cannot find {lbl_fn}')
             return
-        
+       
         # read in nexus data file as numpy array
         dat = None
         if self.char_format == 'nexus':
@@ -701,6 +701,7 @@ class Formatter:
             # program quits
 
         # prune tree, if needed
+        num_taxa_before_prune = len(phy.leaf_nodes())
         if self.tree_encode == 'extant':
             phy = util.make_prune_phy(phy, prune_fn, self.rel_extant_age_tol)
             if phy is None:
@@ -717,12 +718,23 @@ class Formatter:
 
         # get tree size
         num_taxa = len(phy.leaf_nodes())
+
+        # tree size error checking
+        if num_taxa < num_taxa_before_prune and mode == 'emp' and self.tree_encode == 'extant':
+            tol = self.rel_extant_age_tol
+            util.print_warn(f'Difficulty processing {tre_fn}.\n'
+                            f'         Original empirical tree should contain {num_taxa_before_prune} extant taxa,\n'
+                            f'         but Format detected {(num_taxa_before_prune-num_taxa)} non-extant taxa.\n' 
+                            f'         Node ages might not be close enough to the value 0.\n'
+                            f'         Try using larger value for --rel_extant_age_tol to convert\n'
+                            f'         nodes with near-zero ages to zero (curr. val {tol})\n')
         if num_taxa > self.tree_width:
             # abort, too many taxa
             self.logger.write_log('fmt', f'Too many taxa {tre_fn} has too many taxa')
             return
         if num_taxa < self.min_num_taxa or num_taxa < 0:
-            # abort, too few taxa
+            # report special warning for empirical + extant analyses
+            # always log warning when too few taxa
             self.logger.write_log('fmt', f'Too few taxa (<{self.min_num_taxa}) for {tre_fn}')
             return
 

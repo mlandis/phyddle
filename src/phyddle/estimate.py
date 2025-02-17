@@ -443,7 +443,7 @@ class Estimator:
         out_true_labels_cat_fn = f'{path_prefix}_true.labels_cat.csv'
     
         # load model
-        self.mymodel = torch.load(model_arch_fn, map_location=self.TORCH_DEVICE)
+        self.mymodel = torch.load(model_arch_fn, map_location=self.TORCH_DEVICE, weights_only=False)
         self.mymodel.to(self.TORCH_DEVICE)
 
         # get estimates

@@ -535,6 +535,9 @@ class CnnTrainer(Trainer):
         self.model.aux_dat_shape = (self.num_aux_data,)
 
         # print(self.model)
+        #self.model = CreateModel()
+        if self.use_cuda:
+            self.model = torch.nn.DataParallel(self.model)
         self.model.to(self.TORCH_DEVICE)
 
         return
