@@ -6,7 +6,7 @@ Defines classes for neural networks, loss functions, and datasets using
 PyTorch.
 
 Authors:   Michael Landis and Ammon Thompson
-Copyright: (c) 2022-2023, Michael Landis and Ammon Thompson
+Copyright: (c) 2022-2025, Michael Landis and Ammon Thompson
 License:   MIT
 """
 

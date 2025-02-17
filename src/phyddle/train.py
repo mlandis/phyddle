@@ -6,7 +6,7 @@ Defines classes and methods for the Training step, which builds and trains a
 network using the tensor data from the Formatting step.
 
 Authors:   Michael Landis and Ammon Thompson
-Copyright: (c) 2022-2023, Michael Landis and Ammon Thompson
+Copyright: (c) 2022-2025, Michael Landis and Ammon Thompson
 License:   MIT
 """
 

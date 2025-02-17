@@ -7,7 +7,7 @@ from the Simulate, Train, and Estimate steps. Generates figures for previous
 pipeline steps, then compiles them into a standard pdf report.
 
 Authors:   Michael Landis and Ammon Thompson
-Copyright: (c) 2022-2023, Michael Landis and Ammon Thompson
+Copyright: (c) 2022-2025, Michael Landis and Ammon Thompson
 License:   MIT
 """
 
