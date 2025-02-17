@@ -39,9 +39,9 @@ def run():
     if 'E' in step:
         import phyddle.format as fmt
         import phyddle.estimate as est
-        est_prefix = f"{my_args['est_dir']}/{my_args['est_prefix']}"
-        my_fmt = fmt.load(my_args)
-        my_fmt.encode_one(tmp_fn=est_prefix, idx=-1, save_phyenc_csv=True)
+        # est_prefix = f"{my_args['est_dir']}/{my_args['est_prefix']}"
+        # my_fmt = fmt.load(my_args)
+        # my_fmt.encode_one(tmp_fn=est_prefix, idx=-1, mode='emp', save_phyenc_csv=True)
         my_est = est.load(my_args)
         my_est.run()
 

@@ -84,7 +84,4 @@ args = {
     'plot_aux_color'        : 'green',      # plot color for input auxiliary data
     'plot_label_color'      : 'orange',     # plot color for labels (params)
     'plot_emp_color'        : 'black',      # plot color for estimated data/values
-    'plot_scatter_log'      : 'T',          # Use log values for scatter plots when possible?
-    'plot_contour_log'      : 'T',          # Use log values for scatter plots when possible?
-    'plot_density_log'      : 'T'           # Use log values for scatter plots when possible?
 }

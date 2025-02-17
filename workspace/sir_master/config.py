@@ -45,13 +45,13 @@ args = {
     'brlen_encode'      : 'height_brlen',   # how to encode phylo brlen? height_only or height_brlen
     'char_encode'       : 'one_hot',        # how to encode discrete states? one_hot or integer
     'param_est'         : {                 # model parameters to estimate (labels)
-                           'log10_R0_0':'real',
-                           'log10_Sample_0':'real',
-                           'log10_Infect_0':'real'
+                           'log10_R0_0':'num',
+                           'log10_Sample_0':'num',
+                           'log10_Infect_0':'num'
                           },
     'param_data'        : {                 # model parameters that are known (aux. data)
-                           'log10_Recover_0':'real',
-                           'log10_S0_0_0':'real'
+                           'log10_Recover_0':'num',
+                           'log10_S0_0_0_0':'num'
                           },
     'tensor_format'     : 'hdf5',           # save as compressed HDF5 or raw csv
     'save_phyenc_csv'   : 'F',            # save intermediate phylo-state vectors to file
@@ -60,13 +60,12 @@ args = {
     #-------------------------------#
     # Train Step settings           #
     #-------------------------------#
-    'num_epochs'        : 20,               # number of training intervals (epochs)
+    'num_epochs'        : 200,              # number of training intervals (epochs)
     'prop_val'          : 0.05,             # proportion of sims in validation dataset
     'prop_cal'          : 0.20,             # proportion of sims in CPI calibration dataset 
-    'combine_test_val'  : 'F',            # combine test and validation data?
     'cpi_coverage'      : 0.95,             # coverage level for CPIs
-    'cpi_asymmetric'    : 'T',             # upper/lower ('T') or symmetric ('F') CPI adjustments
-    'trn_batch_size'    : 128,              # number of samples in each training batch
+    'cpi_asymmetric'    : 'T',              # upper/lower ('T') or symmetric ('F') CPI adjustments
+    'trn_batch_size'    : 2048,             # number of samples in each training batch
     'loss_numerical'    : 'mse',            # loss function for learning
     'optimizer'         : 'adam',           # optimizer for network weight/bias parameters
 
@@ -82,7 +81,7 @@ args = {
     'plot_val_color'        : 'red',        # plot color for validation data
     'plot_aux_color'        : 'green',      # plot color for input auxiliary data
     'plot_label_color'      : 'orange',     # plot color for labels (params)
-    'plot_est_color'        : 'black'       # plot color for estimated data/values
+    'plot_emp_color'        : 'black'       # plot color for estimated data/values
 
 }
 

@@ -1,15 +1,13 @@
-# phyddle 0.2.0
+# phyddle 0.2.2
 
-#### Software to fiddle around with deep learning for phylogenetic models
-
-> *NOTE: This beta version of phyddle is still under development.*
+Phylogenetic model exploration with deep learning.
 
 ## User guide
-Visit https://mlandis.github.io/phyddle to learn more about phyddle.
+Visit https://phyddle.org to learn how to use the software.
 
 ## Overview
 
-<img align="right" src="https://github.com/landislab/landislab.github.io/blob/5bb4685a12ebf4c99dd773de6d87b44cc3c47090/assets/research/img/phyddle_pipeline.png?raw=true" width="35%">
+<img align="right" src="https://phyddle.org/_images/phyddle_pipeline.png" width="35%">
 
 A standard phyddle analysis performs the following tasks for you:
 
@@ -75,15 +73,6 @@ conda create -n phyddle_env -c bioconda -c landismj phyddle
 # ... install ...
 conda activate phyddle_env
 phyddle
-```
-
-The newest development version of phyddle must be manually installed through a local build:
-```shell
-git clone git@github.com:mlandis/phyddle.git
-cd phyddle
-git checkout development
-git pull
-./build.sh
 ```
 
 phyddle uses third-party simulators to generate training datasets. Example workflows assume that [R](https://cran.r-project.org), [RevBayes](https://revbayes.github.io), [Phylojunction](https://phylojunction.org/build/html/index.html), or [BEAST](https://www.beast2.org/) with [MASTER](https://github.com/tgvaughan/MASTER) (plugin) is installed on your machine and can be executed as a command from terminal. The documentation explains how to configure R for use with phyddle.

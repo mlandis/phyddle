@@ -33,6 +33,9 @@ workspace/bisse_timehet_pj/bisse_timehet_*_parsed.pj
 # Ignore extras in tests
 #tests/workspace/*
 
+# Ignore documentation files
+docs/source/images/*.pdf
+
 # Ignore phyddle accessory dirs
 sandbox/
 paper/

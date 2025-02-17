@@ -8,11 +8,11 @@ sys.path.insert(0, os.path.abspath('../phyddle/src'))
 # -- Project information
 
 project = 'phyddle'
-copyright = '2024'
+copyright = '2025'
 author = 'Michael Landis, Ammon Thompson'
 
-release = '0.2.0'
-version = '0.2.0'
+release = '0.2.2'
+version = '0.2.2'
 
 # -- General configuration
 
@@ -24,8 +24,13 @@ extensions = [
     'sphinx.ext.intersphinx',
     'sphinx.ext.napoleon',
 	'sphinx.ext.viewcode',
-    'sphinxemoji.sphinxemoji'
+    'sphinx_subfigure',
+    'sphinxemoji.sphinxemoji',
 ]
+
+if os.getenv("GITHUB_ACTIONS"):
+    extensions.append("sphinxcontrib.googleanalytics")
+    googleanalytics_id = "G-KW8RTLPKH4"
 
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3/', None),
@@ -45,6 +50,8 @@ html_theme_options = {
 }
 html_static_path = ['_static']
 html_css_files = ['css/custom.css']
+html_baseurl = 'phyddle.org'
+html_extra_path = ['CNAME']
 
 # -- Options for EPUB output
 epub_show_urls = 'footnote'
@@ -65,3 +72,6 @@ napoleon_use_rtype = True
 napoleon_preprocess_types = False
 napoleon_type_aliases = None
 napoleon_attr_annotations = True
+
+# -- Subfigure settings
+numfig = True

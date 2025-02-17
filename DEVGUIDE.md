@@ -51,12 +51,11 @@ twine upload dist/phyddle-x.x.x.*
 # build conda project
 mamba build . -c bioconda
 
-# authenticate with anaconda
+# authenticate with anaconda (not always necessary)
 anaconda login
 
-# upload to anaconda
-anaconda upload \
-    /Users/mlandis/anaconda3/conda-bld/osx-64/phyddle-x.x.x-py311_0.tar.bz2
+# upload to anaconda (get this from build output)
+anaconda upload /Users/mlandis/miniconda3/conda-bld/noarch/phyddle-x.x.x-py312_0.tar.bz2
 
 # done!
 
@@ -320,7 +319,10 @@ an account with anaconda.org.
 Build sequence might take 15 minutes.
 
 ```
+# enter conda dir
 cd ~/projects/phyddle/conda
+# conda env
+conda activate base
 # need -c bioconda for dendropy, and second -c pytorch
 conda build . -c bioconda -c pytorch
 # (optional) using mambabuild, faster

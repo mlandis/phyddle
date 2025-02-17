@@ -78,10 +78,14 @@ x = subprocess.run(['beast', xml_fn], capture_output=True)
 
 #masterpy.make_extant_phy(phy_nwk_fn)
 
+# get nexus tree string
+with open(phy_nex_fn, "r") as f:
+    phy_nex_tree_str = f.read()
+
 # create dat.phy.nex file if stochastic sim
-#if my_model.model_stochastic:
-#    phy_state_dat = masterpy.convert_phy2dat_nex(phy_nex_fn, my_model.num_states)
-#    masterpy.write_to_file(phy_state_dat, dat_nex_fn)
+if my_model.model_stochastic:
+    phy_state_dat = masterpy.convert_phy2dat_nex(phy_nex_tree_str, my_model.num_states, tip_type="Extant")
+    masterpy.write_to_file(phy_state_dat, dat_nex_fn)
 
 # include sim stats such as prevalence at time pt of interest and 
 # cumulative number of samples

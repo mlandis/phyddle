@@ -3,7 +3,7 @@
 Run all tests from the base of the phyddle project directory by calling
 
 ```
-pytest -s tests
+python3 -m pytest -s tests
 ```
 
 The `pytest` command will execute all Python functions with names that begin with 

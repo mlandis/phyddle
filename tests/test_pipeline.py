@@ -16,6 +16,7 @@ import phyddle.train as trn
 import phyddle.estimate as est
 import phyddle.plot as plt
 
+import dateutil
 import pandas as pd
 import numpy as np
 import torch
@@ -26,7 +27,7 @@ import os
 
 
 # NOTE: Set ENABLE_TEST = False to bypass the check_foo() validation tests
-ENABLE_TEST = not True
+ENABLE_TEST = True
 
 # NOTE: Set ERROR_TOL to an acceptable amount of difference in results between
 #       the test and validation examples. Even though RNG seeds are set
@@ -116,19 +117,19 @@ def check_sim():
     valid_dir = work_dir + '/valid/simulate'
 
     # confirm test and valid tree match
-    phy_test = util.read_tree(test_dir + '/sim.0.tre')
-    phy_valid = util.read_tree(valid_dir + '/sim.0.tre')
+    phy_test = util.read_tree(test_dir + '/out.0.tre')
+    phy_valid = util.read_tree(valid_dir + '/out.0.tre')
     assert( phy_test.length() == phy_valid.length() )
     assert( str(phy_test) == str(phy_valid) )
 
     # confirm test and valid data match
-    dat_valid = util.convert_csv_to_array(valid_dir + '/sim.0.dat.csv', 'integer', 2)
-    dat_test = util.convert_csv_to_array(test_dir + '/sim.0.dat.csv', 'integer', 2)
+    dat_valid = util.convert_csv_to_array(valid_dir + '/out.0.dat.csv', 'integer', 2)
+    dat_test = util.convert_csv_to_array(test_dir + '/out.0.dat.csv', 'integer', 2)
     assert(np.array_equal(dat_valid, dat_test))
 
     # confirm test and valid params match
-    param_valid = util.convert_csv_to_array(valid_dir + '/sim.0.labels.csv', 'numeric', 2)
-    param_test = util.convert_csv_to_array(test_dir + '/sim.0.labels.csv', 'numeric', 2)
+    param_valid = util.convert_csv_to_array(valid_dir + '/out.0.labels.csv', 'numeric', 2)
+    param_test = util.convert_csv_to_array(test_dir + '/out.0.labels.csv', 'numeric', 2)
     assert(np.array_equal(param_valid, param_test))
 
     # success
@@ -303,10 +304,10 @@ def check_trn():
     valid_dir = work_dir + '/valid/train'
 
     # load test output for Train
-    lbl_test_fn = test_dir + '/out.train_est.labels.csv'
+    lbl_test_fn = test_dir + '/out.train_est.labels_num.csv'
     cpi_test_fn = test_dir + '/out.cpi_adjustments.csv'
-    aux_norm_test_fn = test_dir + '/out.train_aux_data_norm.csv'
-    lbl_norm_test_fn = test_dir + '/out.train_label_norm.csv'
+    aux_norm_test_fn = test_dir + '/out.train_norm.aux_data.csv'
+    lbl_norm_test_fn = test_dir + '/out.train_norm.labels_num.csv'
 
     lbl_test = pd.read_csv(lbl_test_fn, header=0).iloc[:,1:].to_numpy()
     cpi_test = pd.read_csv(cpi_test_fn, header=0).to_numpy()
@@ -314,10 +315,10 @@ def check_trn():
     lbl_norm_test = pd.read_csv(lbl_norm_test_fn, header=0).iloc[:,1:].to_numpy()
     
     # load valid output for Train
-    lbl_valid_fn = valid_dir + '/out.train_est.labels.csv'
+    lbl_valid_fn = valid_dir + '/out.train_est.labels_num.csv'
     cpi_valid_fn = valid_dir + '/out.cpi_adjustments.csv'
-    aux_norm_valid_fn = valid_dir + '/out.train_aux_data_norm.csv'
-    lbl_norm_valid_fn = valid_dir + '/out.train_label_norm.csv'
+    aux_norm_valid_fn = valid_dir + '/out.train_norm.aux_data.csv'
+    lbl_norm_valid_fn = valid_dir + '/out.train_norm.labels_num.csv'
 
     lbl_valid = pd.read_csv(lbl_valid_fn, header=0).iloc[:,1:].to_numpy()
     cpi_valid = pd.read_csv(cpi_valid_fn, header=0).to_numpy()
@@ -329,13 +330,13 @@ def check_trn():
     cpi_error = np.max(np.abs(cpi_test - cpi_valid))
     aux_norm_error = np.max(np.abs(aux_norm_test - aux_norm_valid))
     lbl_norm_error = np.max(np.abs(lbl_norm_test - lbl_norm_valid))
-    if lbl_error < ERROR_TOL:
+    if lbl_error > ERROR_TOL:
         print('lbl_error < ERROR_TOL: ', lbl_error)
-    if cpi_error < ERROR_TOL:
+    if cpi_error > ERROR_TOL:
         print('cpi_error < ERROR_TOL: ', cpi_error)
-    if aux_norm_error < ERROR_TOL:
+    if aux_norm_error > ERROR_TOL:
         print('aux_norm_error < ERROR_TOL: ', aux_norm_error)
-    if lbl_norm_error < ERROR_TOL:
+    if lbl_norm_error > ERROR_TOL:
         print('lbl_norm_error < ERROR_TOL: ', lbl_norm_error)
     assert( lbl_error < ERROR_TOL )
     assert( cpi_error < ERROR_TOL )
@@ -407,11 +408,11 @@ def check_est():
     valid_dir = work_dir + '/valid/estimate'
 
     # load test output for Estimate
-    est_lbl_test_fn = test_dir + f'/out.test_est.labels.csv'
+    est_lbl_test_fn = test_dir + f'/out.test_est.labels_num.csv'
     est_lbl_test = pd.read_csv(est_lbl_test_fn, header=0).to_numpy()
 
     # load valid output for Estimate
-    est_lbl_valid_fn = valid_dir + f'/out.test_est.labels.csv'
+    est_lbl_valid_fn = valid_dir + f'/out.test_est.labels_num.csv'
     est_lbl_valid = pd.read_csv(est_lbl_valid_fn, header=0).to_numpy()
 
     # compare test and valid estimate labels
@@ -421,11 +422,11 @@ def check_est():
     assert( lbl_error < ERROR_TOL)
 
     # load test output for Estimate
-    est_lbl_test_fn = test_dir + f'/out.empirical_est.labels.csv'
+    est_lbl_test_fn = test_dir + f'/out.empirical_est.labels_num.csv'
     est_lbl_test = pd.read_csv(est_lbl_test_fn, header=0).to_numpy()
 
     # load valid output for Estimate
-    est_lbl_valid_fn = valid_dir + f'/out.empirical_est.labels.csv'
+    est_lbl_valid_fn = valid_dir + f'/out.empirical_est.labels_num.csv'
     est_lbl_valid = pd.read_csv(est_lbl_valid_fn, header=0).to_numpy()
 
     # compare test and valid estimate labels
@@ -494,12 +495,12 @@ def check_plt():
 	# verify output
     out_files = [
         'out.train_density_aux_data.pdf',
-        'out.train_density_labels.pdf',
+        'out.train_density_labels_num.pdf',
         'out.network_architecture.pdf',
-        'out.train_pca_contour_aux_data.pdf',
-        'out.train_pca_contour_labels.pdf',
+        'out.train_pca_aux_data.pdf',
+        'out.train_pca_labels_num.pdf',
         'out.summary.pdf',
-        'out.train_history.pdf'
+        'out.train_history_loss_combined.pdf'
     ]
     
     # verify all test output files exist

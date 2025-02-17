@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "phyddle"
-version = "0.2.0"
+version = "0.2.2"
 authors = [
   { name="Michael Landis", email="michael.landis@wustl.edu" },
   { name="Ammon Thompson", email="ammonthompson@gmail.com" },
@@ -28,6 +28,7 @@ dependencies = [
   "scipy",
   "torch",
   "torchvision",
+  "torchview",
   "tqdm"
 ]
 
@@ -58,3 +59,5 @@ line-length = 400
 # skip unused variable rules (`F841`)
 extend-ignore = ["F841"]
 
+[tool.hatch.build]
+exclude = ["conda/**", "docs/**", "scripts/**", "tests/**", "workspace/**"]

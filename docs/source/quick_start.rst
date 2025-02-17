@@ -30,7 +30,7 @@ resulting from an analysis. For example, you can run an analysis for the
   # run phyddle with project config
   phyddle -c config.py
 
-This will run an analysis using the default settings for all :ref:`Pipeline`
+This will run an analysis using the default settings for all :ref:`Overview`
 steps. As the first step, :ref:`Simulate` will execute the command string
 stored under ``sim_command``  in the config file. For ``./workspace/bisse_r/config.py``
 this command is 
@@ -73,7 +73,7 @@ with the following command:
   phyddle -c ./new_config.py
 
 Provide phyddle with command-line options to customize how each pipeline step
-is executed. Visit :ref:`Pipeline` and :ref:`Workspace` to learn more about
+is executed. Visit :ref:`Overview` and :ref:`Workspace` to learn more about
 managing phyddle analyses.
 
 In practice, you'll want to generate a larger training dataset with anywhere

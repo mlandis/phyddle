@@ -63,7 +63,7 @@ args = {
     #-------------------------------#
     # Train Step settings           #
     #-------------------------------#
-    'num_epochs'        : 50,               # number of training intervals (epochs)
+    'num_epochs'        : 200,              # number of training intervals (epochs)
     'num_early_stop'    : 3,
     'prop_test'         : 0.05,             # proportion of sims in test dataset
     'prop_val'          : 0.05,             # proportion of sims in validation dataset
@@ -88,4 +88,4 @@ args = {
     'plot_label_color'      : 'orange',     # plot color for labels (params)
     'plot_emp_color'        : 'black',      # plot color for estimated data/values
     'plot_pca_noise'        : 0.01          # Add noise to PCA plot to dampen contrast from point values
-}
+ }
