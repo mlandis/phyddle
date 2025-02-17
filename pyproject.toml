@@ -27,7 +27,6 @@ dependencies = [
   "scikit-learn",
   "scipy",
   "torch",
-  "torchvision",
   "torchview",
   "tqdm"
 ]
