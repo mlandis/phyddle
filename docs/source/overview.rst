@@ -1981,7 +1981,12 @@ commands assume a standard phyddle workspace directory structure.
   phyddle -c config.py
   
   # Format, Estimate, and Plot empirical data against trained network
-  phyddle --no_sim -c config.py -s FEP --emp_dir ../other_project/empirical
+  phyddle -c config.py \
+          -s FEP \
+          --no_sim \
+          --emp_dir ../other_project/empirical \
+          --est_dir ./new_estimate \
+          --plt_dir ./new_plot
 
 **Simulate new training examples**
 
