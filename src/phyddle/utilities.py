@@ -1804,13 +1804,14 @@ def make_prune_phy(phy, prune_fn, rel_extant_age_tol=1e-10):
         taxon_name = taxon_name.replace(' ', '_')
         d[taxon_name] = age
     # determine what to drop
-    drop_taxon_labels = [k for k, v in d.items() if v > 1e-12]
+    drop_taxon_labels = [k for k, v in d.items() if v > tol ]
     # inform user if pruning yields valid tree
     if len(leaf_nodes) - len(drop_taxon_labels) < 2:
         return None
     else:
         # prune non-extant taxa
         phy_.prune_taxa_with_labels(drop_taxon_labels)
+        phy_.purge_taxon_namespace()
         # write pruned tree
         phy_.write(path=prune_fn, schema='newick')
         return phy_
@@ -1837,29 +1838,28 @@ def make_uniform_downsample_phy(phy, down_fn, max_taxa):
     # if downsampling is needed
     if num_taxa > max_taxa:
 
-        # drop_taxon_labels = [ str(nd.taxon).strip("'").replace(' ','_') for nd in leaf_nodes ]
-        # np.random.shuffle(drop_taxon_labels)
-        # drop_taxon_labels = drop_taxon_labels[max_taxa:]
         # MJL: note, Format bottleneck with large trees. It should be possible
         #      to write faster code when we don't care about taxon labels or
         #      downstream use of the dendropy object?
         # https://dendropy.org/_modules/dendropy/datamodel/treemodel/_tree#Tree.prune_taxa_with_labels
-        # phy_.prune_taxa_with_labels( drop_taxon_labels )
 
         # shuffle taxa indices
         rand_idx = list(range(num_taxa))
         np.random.shuffle(rand_idx)
+        
+        # clean old namespace
+        phy_.purge_taxon_namespace()
 
         # get all taxa beyond max_taxa threshold
         drop_taxa = []
         for i in rand_idx[max_taxa:]:
-            drop_taxa.append(phy.taxon_namespace[i])
+            drop_taxa.append(phy_.taxon_namespace[i])
 
         # drop those taxa
-        phy.prune_taxa(drop_taxa)
+        phy_.prune_taxa(drop_taxa)
 
         # verify resultant tree size
-        assert (len(phy.leaf_nodes()) == max_taxa)
+        assert (len(phy_.leaf_nodes()) == max_taxa)
 
     # save downsampled tree
     phy_.write(path=down_fn, schema='newick')
