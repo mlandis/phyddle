@@ -406,45 +406,44 @@ class Plotter:
         datasets, and colors.
 
         """
-        if False:
-            # Densities for aux. data and labels
-            if self.has_train_fmt:
-                self.make_plot_stat_density('train', 'aux_data')
-            if self.has_train_num and self.has_train_fmt:
-                self.make_plot_stat_density('train', 'labels')
-
-            # PCA hex bins for aux. data and labels
-            if self.has_train_fmt:
-                self.make_plot_pca_hexbin('train', 'aux_data')
-            if self.has_train_num and self.has_train_fmt:
-                self.make_plot_pca_hexbin('train', 'labels')
-
-            # scatter accuracy
-            if self.has_train_num:
-                self.make_plot_scatter_accuracy('train')
-            if self.has_test_num:
-                self.make_plot_scatter_accuracy('test')
-
-            # confusion matrix
-            if self.has_train_cat:
-                self.make_plot_confusion_matrix('train')
-            if self.has_test_cat:
-                self.make_plot_confusion_matrix('test')
-
-            # point estimates and CPIs in empirical dataset
-            if self.has_emp_num:
-                self.make_plot_emp_ci()
-
-            # bar plot for categorical in empirical dataset
-            if self.has_emp_cat:
-                self.make_plot_emp_cat()
-
-            # training history stats
-            self.make_plot_train_history()
-
+        # Densities for aux. data and labels
+        if self.has_train_fmt:
+        	self.make_plot_stat_density('train', 'aux_data')
+        if self.has_train_num and self.has_train_fmt:
+        	self.make_plot_stat_density('train', 'labels')
+        
+        # PCA hex bins for aux. data and labels
+        if self.has_train_fmt:
+        	self.make_plot_pca_hexbin('train', 'aux_data')
+        if self.has_train_num and self.has_train_fmt:
+        	self.make_plot_pca_hexbin('train', 'labels')
+        
+        # scatter accuracy
+        if self.has_train_num:
+        	self.make_plot_scatter_accuracy('train')
+        if self.has_test_num:
+        	self.make_plot_scatter_accuracy('test')
+        
+        # confusion matrix
+        if self.has_train_cat:
+        	self.make_plot_confusion_matrix('train')
+        if self.has_test_cat:
+        	self.make_plot_confusion_matrix('test')
+        
+        # point estimates and CPIs in empirical dataset
+        if self.has_emp_num:
+        	self.make_plot_emp_ci()
+        
+        # bar plot for categorical in empirical dataset
+        if self.has_emp_cat:
+        	self.make_plot_emp_cat()
+        
+        # training history stats
+        self.make_plot_train_history()
+        
         # network architecture
         self.make_plot_network_architecture()
-
+        
         # done
         return
 
