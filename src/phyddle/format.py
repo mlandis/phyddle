@@ -338,7 +338,7 @@ class Formatter:
                 # - list acts as a finalizer for the pool.imap work
                 # Have not benchmarked imap/imap_unordered, chunksize, etc.
                 res = list(tqdm(pool.imap(self.encode_one_star,
-                                          arge, chunksize=5),
+                                          args, chunksize=5),
                                 total=len(args),
                                 desc='Encoding',
                                 smoothing=0))
