@@ -13,6 +13,7 @@ License:   MIT
 
 # standard imports
 import os
+from collections import OrderedDict
 
 # external imports
 import h5py
@@ -307,7 +308,15 @@ class Plotter:
         self.model = torch.load(self.model_arch_fn,
                                 map_location=torch.device('cpu'),
                                 weights_only=False)
-        self.model = self.model.to('cpu')
+        if isinstance(self.model, torch.nn.DataParallel):
+            self.model = self.model.module
+
+        self.model = self.model.cpu()
+        self.model.eval()
+        #self.model = self.model.to('cpu')
+
+        # for p in self.model.parameters():
+        #    p = p.to('cpu')
 
         # training true/estimated labels
         self.train_est_num = util.read_csv_as_pandas(self.train_est_num_fn)
@@ -397,41 +406,41 @@ class Plotter:
         datasets, and colors.
 
         """
+        if False:
+            # Densities for aux. data and labels
+            if self.has_train_fmt:
+                self.make_plot_stat_density('train', 'aux_data')
+            if self.has_train_num and self.has_train_fmt:
+                self.make_plot_stat_density('train', 'labels')
 
-        # Densities for aux. data and labels
-        if self.has_train_fmt:
-            self.make_plot_stat_density('train', 'aux_data')
-        if self.has_train_num and self.has_train_fmt:
-            self.make_plot_stat_density('train', 'labels')
+            # PCA hex bins for aux. data and labels
+            if self.has_train_fmt:
+                self.make_plot_pca_hexbin('train', 'aux_data')
+            if self.has_train_num and self.has_train_fmt:
+                self.make_plot_pca_hexbin('train', 'labels')
 
-        # PCA hex bins for aux. data and labels
-        if self.has_train_fmt:
-            self.make_plot_pca_hexbin('train', 'aux_data')
-        if self.has_train_num and self.has_train_fmt:
-            self.make_plot_pca_hexbin('train', 'labels')
+            # scatter accuracy
+            if self.has_train_num:
+                self.make_plot_scatter_accuracy('train')
+            if self.has_test_num:
+                self.make_plot_scatter_accuracy('test')
 
-        # scatter accuracy
-        if self.has_train_num:
-            self.make_plot_scatter_accuracy('train')
-        if self.has_test_num:
-            self.make_plot_scatter_accuracy('test')
+            # confusion matrix
+            if self.has_train_cat:
+                self.make_plot_confusion_matrix('train')
+            if self.has_test_cat:
+                self.make_plot_confusion_matrix('test')
 
-        # confusion matrix
-        if self.has_train_cat:
-            self.make_plot_confusion_matrix('train')
-        if self.has_test_cat:
-            self.make_plot_confusion_matrix('test')
+            # point estimates and CPIs in empirical dataset
+            if self.has_emp_num:
+                self.make_plot_emp_ci()
 
-        # point estimates and CPIs in empirical dataset
-        if self.has_emp_num:
-            self.make_plot_emp_ci()
+            # bar plot for categorical in empirical dataset
+            if self.has_emp_cat:
+                self.make_plot_emp_cat()
 
-        # bar plot for categorical in empirical dataset
-        if self.has_emp_cat:
-            self.make_plot_emp_cat()
-
-        # training history stats
-        self.make_plot_train_history()
+            # training history stats
+            self.make_plot_train_history()
 
         # network architecture
         self.make_plot_network_architecture()
@@ -680,11 +689,17 @@ class Plotter:
 
     def make_plot_network_architecture(self):
         """Calls torchview.draw_graph with arguments."""
+
+        # make fake dataset
         n_fake = 10
-        phy_dat_fake = torch.zeros([n_fake] + list(self.model.phy_dat_shape),
+        phy_dat_shape = self.model.phy_dat_shape
+        aux_dat_shape = self.model.aux_dat_shape
+
+        phy_dat_fake = torch.zeros([n_fake] + list(phy_dat_shape),
                                    dtype=torch.float32)
-        aux_dat_fake = torch.zeros([n_fake] + list(self.model.aux_dat_shape),
+        aux_dat_fake = torch.zeros([n_fake] + list(aux_dat_shape),
                                    dtype=torch.float32)
+
         lbl_fake = self.model(phy_dat_fake, aux_dat_fake)
 
         # save as png
