@@ -96,6 +96,7 @@ class Plotter:
         self.tensor_format = str(args['tensor_format'])
         self.param_est = dict(args['param_est'])
         self.plot_aux_color = str(args['plot_aux_color'])
+        self.plot_phy_color = str(args['plot_phy_color'])
         self.plot_label_color = str(args['plot_label_color'])
         self.plot_train_color = str(args['plot_train_color'])
         self.plot_test_color = str(args['plot_test_color'])
@@ -108,6 +109,13 @@ class Plotter:
         self.plot_num_emp = int(args['plot_num_emp'])
         self.plot_pca_noise = float(args['plot_pca_noise'])
 
+        # phy data dimension
+        self.tree_width = int(args['tree_width'])
+        self.brlen_encode = str(args['brlen_encode'])
+        self.tree_encode = str(args['tree_encode'])
+        self.num_tree_col = util.get_num_tree_col(self.tree_encode,
+                                                  self.brlen_encode)
+
         # prefixes
         fmt_proj_prefix = f'{self.fmt_dir}/{self.fmt_prefix}'
         trn_proj_prefix = f'{self.trn_dir}/{self.trn_prefix}'
@@ -116,6 +124,7 @@ class Plotter:
 
         # train dataset, main dataset
         self.train_hdf5_fn = f'{fmt_proj_prefix}.train.hdf5'
+        self.train_phy_data_fn = f'{fmt_proj_prefix}.train.phy_data.csv'
         self.train_aux_data_fn = f'{fmt_proj_prefix}.train.aux_data.csv'
         self.train_labels_fn = f'{fmt_proj_prefix}.train.labels.csv'
 
@@ -134,6 +143,7 @@ class Plotter:
         # empirical dataset tensors
         self.emp_hdf5_fn = f'{fmt_proj_prefix}.empirical.hdf5'
         self.emp_aux_data_fn = f'{fmt_proj_prefix}.empirical.aux_data.csv'
+        self.emp_phy_data_fn = f'{fmt_proj_prefix}.empirical.phy_data.csv'
         self.emp_est_num_fn = f'{est_proj_prefix}.empirical_est.labels_num.csv'
         self.emp_est_cat_fn = f'{est_proj_prefix}.empirical_est.labels_cat.csv'
 
@@ -145,6 +155,7 @@ class Plotter:
         self.save_cpi_est_fn = f'{plt_proj_prefix}.empirical_estimate'
 
         # PCA plotting output
+        self.save_train_pca_phy_data_fn = f'{plt_proj_prefix}.train_pca_phy_data.pdf'
         self.save_train_pca_aux_data_fn = f'{plt_proj_prefix}.train_pca_aux_data.pdf'
         self.save_train_pca_labels_fn = f'{plt_proj_prefix}.train_pca_labels_num.pdf'
         # self.save_emp_pca_aux_data_fn    = f'{plt_proj_prefix}.empirical_pca_contour_aux_data.pdf'
@@ -175,9 +186,11 @@ class Plotter:
                                v == 'cat']
 
         # initialized later
+        self.train_phy_data = None
         self.train_aux_data = None  # init with load_input()
         self.train_labels_num = None  # init with load_input()
         self.train_labels_cat = None  # init with load_input()
+        self.emp_phy_data = None # init with load_input()
         self.emp_aux_data = None  # init with load_input()
         self.aux_data_names = None  # init with load_input()
         self.model = None  # init with load_input()
@@ -208,7 +221,7 @@ class Plotter:
         self.num_empirical = int(0)  # init with load_input()
         self.sim_test_valid = False
         self.sim_train_valid = False
-
+        
         return
 
     def run(self):
@@ -278,6 +291,8 @@ class Plotter:
                 # csv tensor format
                 self.train_aux_data = util.read_csv_as_pandas(
                     self.train_aux_data_fn)
+                self.train_phy_data = util.read_csv_as_pandas(
+                    self.train_phy_data_fn)
                 train_labels = util.read_csv_as_pandas(self.train_labels_fn)
                 self.has_train_fmt = True
             except FileNotFoundError:
@@ -291,6 +306,7 @@ class Plotter:
                                         hdf5_file['aux_data_names'][0, :]]
                 self.train_aux_data = pd.DataFrame(hdf5_file['aux_data'][:, :],
                                                    columns=train_aux_data_names)
+                self.train_phy_data = pd.DataFrame(hdf5_file['phy_data'][:, :])
                 train_label_names = [s.decode() for s in
                                      hdf5_file['label_names'][0, :]]
                 train_labels = pd.DataFrame(hdf5_file['labels'][:, :],
@@ -362,8 +378,10 @@ class Plotter:
 
         # load empirical aux. data, if they exist
         self.emp_aux_data = None
+        self.emp_phy_data = None
         if self.tensor_format == 'csv':
             self.emp_aux_data = pd.read_csv(self.emp_aux_data_fn)
+            self.emp_phy_data = pd.read_csv(self.emp_phy_data_fn)
 
         elif self.tensor_format == 'hdf5' and \
                 os.path.isfile(self.emp_hdf5_fn):
@@ -372,10 +390,14 @@ class Plotter:
                                   hdf5_file['aux_data_names'][0, :]]
             self.emp_aux_data = pd.DataFrame(hdf5_file['aux_data'][:, :],
                                              columns=emp_aux_data_names)
+            self.emp_phy_data = pd.DataFrame(hdf5_file['phy_data'][:, :])
             hdf5_file.close()
 
         if self.emp_aux_data is not None:
             self.num_empirical = self.emp_aux_data.shape[0]
+
+        # dataset dimensions
+            
 
         # done
         return
@@ -407,8 +429,10 @@ class Plotter:
         # PCA hex bins for aux. data and labels
         if self.has_train_fmt:
             self.make_plot_pca_hexbin('train', 'aux_data')
+            self.make_plot_pca_hexbin('train', 'phy_data')
         if self.has_train_num and self.has_train_fmt:
             self.make_plot_pca_hexbin('train', 'labels')
+            
 
         # scatter accuracy
         if self.has_train_num:
@@ -473,19 +497,6 @@ class Plotter:
                                    color=self.plot_label_color,
                                    title='training labels')
 
-        # elif dataset_name == 'empirical' and dataset_type == 'aux_data':
-        #     self.plot_stat_density(save_fn=self.save_emp_density_aux_fn,
-        #                            dist_values=emp_aux_data,
-        #                            point_values=None,
-        #                            color=self.plot_aux_color,
-        #                            title='empirical aux. data')
-        # 
-        # elif dataset_name == 'empirical' and dataset_type == 'labels':
-        #     self.plot_stat_density(save_fn=self.save_emp_density_label_fn,
-        #                            dist_values=emp_est_num,
-        #                            point_values=None,
-        #                            color=self.plot_label_color,
-        #                            title='empirical labels')
 
         # done
         return
@@ -604,12 +615,16 @@ class Plotter:
     def make_plot_pca_hexbin(self, dataset_name, dataset_type, pca_model=None):
         """Calls plot_pca_hexbin with arguments."""
         assert dataset_name in ['train', 'empirical']
-        assert dataset_type in ['aux_data', 'labels']
+        assert dataset_type in ['aux_data', 'labels', 'phy_data']
 
+        train_phy_data = None
         train_aux_data = None
         train_labels_num = None
+        emp_phy_data = None
         emp_aux_data = None
         emp_est_num = None
+        if self.train_phy_data is not None:
+            train_phy_data = self.train_phy_data.copy()
         if self.train_aux_data is not None:
             train_aux_data = self.train_aux_data.copy()
         if self.train_true_num is not None:
@@ -618,6 +633,8 @@ class Plotter:
             emp_aux_data = self.emp_aux_data.copy()
         if self.emp_est_num is not None:
             emp_est_num = self.emp_est_num.copy()
+        if self.emp_phy_data is not None:
+            emp_phy_data = self.emp_phy_data.copy()
 
         mdl = None
         num_comp = 4
@@ -626,9 +643,20 @@ class Plotter:
                                        dist_values=train_aux_data,
                                        point_values=emp_aux_data,
                                        pca_model=pca_model,
+                                       dataset_type=dataset_type,
                                        num_comp=num_comp,
                                        color=self.plot_aux_color,
                                        title='training aux. data')
+            
+        if dataset_name == 'train' and dataset_type == 'phy_data':
+            mdl = self.plot_pca_hexbin(save_fn=self.save_train_pca_phy_data_fn,
+                                       dist_values=train_phy_data,
+                                       point_values=emp_phy_data,
+                                       pca_model=pca_model,
+                                       dataset_type=dataset_type,
+                                       num_comp=num_comp,
+                                       color=self.plot_phy_color,
+                                       title='training phy. data')
 
         elif dataset_name == 'train' and dataset_type == 'labels':
             if train_labels_num.shape[1] <= 1:
@@ -637,6 +665,7 @@ class Plotter:
                                        dist_values=train_labels_num,
                                        point_values=emp_est_num,
                                        pca_model=pca_model,
+                                       dataset_type=dataset_type,
                                        num_comp=num_comp,
                                        color=self.plot_label_color,
                                        title='training labels')
@@ -766,7 +795,8 @@ class Plotter:
                     ax.hist(x, color=color)
                 else:
                     x2 = sorted(point_values[p_point])
-                    ax.hist([x, x2], density=True, cumulative=False, rwidth=1/2, bins=25, color=[color, 'red'], alpha=0.8)
+                    ax.hist([x, x2], density=True, cumulative=False,
+                            rwidth=1/2, bins=25, color=[color, 'red'], alpha=0.8)
     
                 # plot quantiles
                 left, middle, right = np.percentile(x, [2.5, 50, 97.5])
@@ -820,7 +850,7 @@ class Plotter:
 
 
     def plot_pca_hexbin(self, save_fn, dist_values, point_values=None,
-                        pca_model=None, num_comp=4, color='blue', title=''):
+                        pca_model=None, dataset_type='', num_comp=4, color='blue', title=''):
         """
         Plots PCA Hexbin Plot.
 
@@ -843,6 +873,20 @@ class Plotter:
         fig_width = 8
         fig_height = 8
 
+        # clean up phy_data before PCA
+        if dataset_type == 'phy_data':
+            num_element = dist_values.shape[1]
+            num_row = int(num_element / self.tree_width)
+            
+            # only keep brlen entries
+            keep_idx = []
+            for i in range(self.num_tree_col):
+                keep_idx += list(range(i, num_element, num_row))
+            keep_idx = np.array(sorted(keep_idx))
+            dist_values = dist_values[dist_values.columns[keep_idx]]
+            if point_values is not None:
+                point_values = point_values[point_values.columns[keep_idx]]
+            
         # reduce num components if needed
         num_comp = min(dist_values.shape[1], num_comp)
 
@@ -868,9 +912,10 @@ class Plotter:
         # project est_values on to PCA space
         pca_est = None
         if point_values is not None:
-            point_values.columns = [p.replace('_value', '') for p in
-                                    point_values.columns]
-            point_values = point_values[dist_values.columns]
+            if dataset_type == 'labels' or dataset_type == 'aux_data':
+                point_values.columns = [p.replace('_value', '') for p in
+                                        point_values.columns]
+                point_values = point_values[dist_values.columns]
             # point_values = np.log(point_values + self.log_offset)
             point_values = scaler.transform(point_values)
             if self.plot_pca_noise != 0.0:
@@ -888,11 +933,11 @@ class Plotter:
                                                              ['white', color])
         
         # get min/max values
-        vmin = np.min(pca, axis=0)
-        vmax = np.max(pca, axis=0)
-        if point_values is not None:
-            vmin = np.min([vmin, np.min(pca_est, axis=0)])
-            vmax = np.max([vmax, np.max(pca_est, axis=0)])
+        # vmin = np.min(pca, axis=0)
+        # vmax = np.max(pca, axis=0)
+        # if point_values is not None:
+        #     vmin = np.min([vmin, np.min(pca_est, axis=0)])
+        #     vmax = np.max([vmax, np.max(pca_est, axis=0)])
         
         # generate PCA subplots
         for i in range(0, num_comp - 1):
@@ -904,7 +949,7 @@ class Plotter:
             for j in range(0, i + 1):
                 
                 # contours
-                x = pca[:, j] #i + 1]
+                x = pca[:, j]
                 y = pca[:, i + 1]
                
                 # hex bin plot
@@ -914,12 +959,12 @@ class Plotter:
                 axs[i, j].set_visible(True)
 
                 if pca_est is not None:
+                    # axs[i, j].scatter(pca_est[:, j], pca_est[:, i+1],
+                    #                   alpha=1.0, color='white',
+                    #                   edgecolor='black', s=80, zorder=2.1)
                     axs[i, j].scatter(pca_est[:, j], pca_est[:, i+1],
-                                      alpha=1.0, color='white',
-                                      edgecolor='black', s=80, zorder=2.1)
-                    axs[i, j].scatter(pca_est[:, j], pca_est[:, i+1],
-                                      alpha=1.0, color='red',
-                                      edgecolor='white', s=40, zorder=2.1)
+                                      alpha=1.0, color='red', facecolors='none',
+                                      edgecolor='red', s=40, zorder=2.1)
                 # # axes
                 if j == 0:
                     idx = str(i + 2)
@@ -932,10 +977,19 @@ class Plotter:
                     xlabel = f'PC{idx} ({var}%)'
                     axs[i, j].set_xlabel(xlabel, fontsize=12)
 
-                # not needed
-                # axs[i, j].set_ylim(vmin[i], vmax[i])
-                # axs[i, j].set_xlim(vmin[j], vmax[j])
+            # plot bar plot of variance explained by PCA components
+            y_var = np.append(pca_var, [1.0 - sum(pca_var)])
+            y_var_str = [str(x+1) for x in range(len(y_var)-1)] + [f'{len(y_var)}+']
+            axs[0, num_comp-2].axis('on')
+            axs[0, num_comp-2].bar(range(len(y_var)), y_var, width=0.5,
+                                   linewidth=0.5, facecolor='darkgray',
+                                   edgecolor='black')
+            axs[0, num_comp-2].set_xticks(range(len(y_var)), y_var_str)
+            axs[0, num_comp-2].set_ylabel('% variance', fontsize=12)
+            axs[0, num_comp-2].set_xlabel('PC', fontsize=12)
+            axs[0, num_comp-2].set_ylim(0, 1)
 
+        # add figure plot info
         fig.suptitle(f'PCA: {title}')
         fig.tight_layout(rect=[0, 0.03, 1, 0.98])
         plt.savefig(save_fn, format='pdf', dpi=300, bbox_inches='tight')
@@ -944,6 +998,144 @@ class Plotter:
 
         # done
         return pca_model
+
+    # def plot_pca_hexbin_phy(self, save_fn, dist_values, point_values=None,
+    #                         pca_model=None, num_comp=4, color='blue', title=''):
+    #     """
+    #     Plots PCA Hexbin Plot.
+    # 
+    #     This function plots the PCA for simulated training aux. data examples.
+    #     The function plots a grid of pairs of principal components. It will also
+    #     plot values from the new dataset, when variable (est_values != None).
+    # 
+    #     Args:
+    #         save_fn (str): Filename to save plot.
+    #         dist_values (numpy.array): Simulated values from training examples.
+    #         point_values (numpy.array): Estimated values from new dataset.
+    #         pca_model (PCA): Fitted PCA model to use (default None)
+    #         num_comp (int): Number of components to plot (default 4)
+    #         color (str): Color of histograms
+    #         title (str): Plot title
+    # 
+    #     """
+    # 
+    #     # figure size
+    #     fig_width = 8
+    #     fig_height = 8
+    #     
+    #     keep_idx = [x-1 for x in range(dist_values.shape[1]) if x % 4 != 0]
+    #     # dist_values = dist_values[:,keep_idx]
+    #     dist_values = dist_values[ dist_values.columns[keep_idx] ]
+    #     print(dist_values)
+    #     print(dist_values.shape)
+    # 
+    #     # reduce num components if needed
+    #     num_comp = min(dist_values.shape[1], num_comp)
+    # 
+    #     # rescale input data
+    #     # dist_values = np.log(dist_values + self.log_offset)
+    #     scaler = StandardScaler()
+    #     x = scaler.fit_transform(dist_values)
+    #     if self.plot_pca_noise != 0.0:
+    #         x = x + sp.stats.norm.rvs(size=x.shape, loc=0,
+    #                                   scale=self.plot_pca_noise)
+    # 
+    #     # apply PCA to sim_values
+    #     if pca_model is None:
+    #         pca_model = PCA(n_components=num_comp, whiten=True)
+    #         pca = pca_model.fit_transform(x)
+    #     else:
+    #         pca = pca_model.transform(x)
+    # 
+    #     pca_var = pca_model.explained_variance_ratio_
+    #     pca_coef = np.transpose(pca_model.components_)
+    #     plot_pca_loadings = False
+    # 
+    #     # project est_values on to PCA space
+    #     pca_est = None
+    #     if point_values is not None:
+    #         point_values = point_values[ point_values.columns[keep_idx] ]
+    #         # point_values = np.log(point_values + self.log_offset)
+    #         point_values = scaler.transform(point_values)
+    #         if self.plot_pca_noise != 0.0:
+    #             point_values = point_values + sp.stats.norm.rvs(
+    #                 size=point_values.shape, loc=0, scale=self.plot_pca_noise)
+    #         pca_est = pca_model.transform(point_values)
+    #         print(pca_est)
+    # 
+    #     # figure dimensions
+    #     fig, axs = plt.subplots(num_comp - 1, num_comp - 1, squeeze=False,
+    #                             sharex=False, sharey=False,
+    #                             figsize=(fig_width, fig_height))
+    # 
+    #     # color map
+    #     cmap0 = mpl.colors.LinearSegmentedColormap.from_list('white2col',
+    #                                                          ['white', color])
+    # 
+    #     # get min/max values
+    #     vmin = np.min(pca, axis=0)
+    #     vmax = np.max(pca, axis=0)
+    #     if point_values is not None:
+    #         vmin = np.min([vmin, np.min(pca_est, axis=0)])
+    #         vmax = np.max([vmax, np.max(pca_est, axis=0)])
+    # 
+    #     # generate PCA subplots
+    #     for i in range(0, num_comp - 1):
+    # 
+    #         # disable x,y axes for all plots, later turned on for some
+    #         for j in range(i + 1, num_comp - 1):
+    #             axs[i, j].axis('off')
+    # 
+    #         for j in range(0, i + 1):
+    # 
+    #             # contours
+    #             x = pca[:, j] #i + 1]
+    #             y = pca[:, i + 1]
+    # 
+    #             # hex bin plot
+    #             hb = axs[i, j].hexbin(x, y, gridsize=(19, 13), bins=10,
+    #                                   cmap=cmap0, linewidths=0.1, )
+    # 
+    #             axs[i, j].set_visible(True)
+    # 
+    #             if pca_est is not None:
+    #                 # axs[i, j].scatter(pca_est[:, j], pca_est[:, i+1],
+    #                 #                   alpha=1.0, color='white',
+    #                 #                   edgecolor='black', s=80, zorder=2.1)
+    #                 axs[i, j].scatter(pca_est[:, j], pca_est[:, i+1],
+    #                                   alpha=1.0, color='red', facecolors='none',
+    #                                   edgecolor='red', s=40, zorder=2.1)
+    #             # # axes
+    #             if j == 0:
+    #                 idx = str(i + 2)
+    #                 var = int(100 * round(pca_var[i + 1], ndigits=2))
+    #                 ylabel = f'PC{idx} ({var}%)'
+    #                 axs[i, j].set_ylabel(ylabel, fontsize=12)
+    #             if i == (num_comp - 2):
+    #                 idx = str(j + 1)
+    #                 var = int(100 * round(pca_var[j], ndigits=2))
+    #                 xlabel = f'PC{idx} ({var}%)'
+    #                 axs[i, j].set_xlabel(xlabel, fontsize=12)
+    #     
+    #     # plot bar plot of variance explained by PCA components
+    #     y_var = np.append(pca_var, [1.0 - sum(pca_var)])
+    #     y_var_str = [str(x+1) for x in range(len(y_var)-1)] + [f'{len(y_var)}+']
+    #     pca_var_col = 'darkgray'
+    #     axs[0, num_comp-2].axis('on')
+    #     axs[0, num_comp-2].bar(range(len(y_var)), y_var, color=pca_var_col)
+    #     axs[0, num_comp-2].set_xticks(range(len(y_var)), y_var_str)
+    #     axs[0, num_comp-2].set_ylabel('% variance', fontsize=12)
+    #     axs[0, num_comp-2].set_xlabel('PC', fontsize=12)
+    # 
+    #     # add figure info
+    #     fig.suptitle(f'PCA: {title}')
+    #     fig.tight_layout(rect=[0, 0.03, 1, 0.98])
+    #     plt.savefig(save_fn, format='pdf', dpi=300, bbox_inches='tight')
+    #     plt.clf()
+    #     plt.close()
+    # 
+    #     # done
+    #     return pca_model
 
     def plot_scatter_accuracy(self, ests, labels, prefix,
                               color="blue", axis_labels=("truth", "estimate"),
