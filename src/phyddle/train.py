@@ -833,7 +833,7 @@ class CnnTrainer(Trainer):
         """
 
         # temporarily switch to CPU
-        self.model.to('cpu')
+        # self.model.to('cpu')
 
         # make initial CPI estimates
         num_calib_examples = self.calib_phy_data_tensor.shape[0]
@@ -841,9 +841,8 @@ class CnnTrainer(Trainer):
                                                    batch_size=num_calib_examples)
         calib_batch = next(iter(calib_loader))
         calib_phy_dat, calib_aux_dat = calib_batch[0], calib_batch[1]
-        calib_phy_dat = calib_phy_dat.to('cpu')
-        calib_aux_dat = calib_aux_dat.to('cpu')
-        # calib_idx_dat = calib_batch[2]
+        # calib_phy_dat = calib_phy_dat.to('cpu')
+        # calib_aux_dat = calib_aux_dat.to('cpu')
         
         # get calib estimates
         calib_label_est = self.model(calib_phy_dat, calib_aux_dat)
@@ -858,7 +857,9 @@ class CnnTrainer(Trainer):
         self.cpi_adjustments = np.array(self.cpi_adjustments).reshape((2,-1))
 
         # restore device
-        self.model.to(self.TORCH_DEVICE)
+        # if self.use_cuda:
+        #     self.model = torch.nn.DataParallel(self.model)
+        # self.model.to(self.TORCH_DEVICE)
 
         # done
         return
