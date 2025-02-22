@@ -1860,6 +1860,39 @@ datasets (e.g. 3 species, 2 characters) are sufficient to show the simulator
 is correct.
 
 
+Unintended signal
+^^^^^^^^^^^^^^^^^
+
+Neural networks are designed to learn patterns from data, which means they can
+also learn unintended patterns. In particular, phyddle networks are only
+expected to make accurate predictions for new empirical datasets that follow
+the same format as the simulated datasets. Unless handled carefully by the
+analyst, simulated and empirical datasets might differ in terms of scale
+(e.g. thousands vs. billions of years for tree height), transformation
+(e.g. log vs. linear trait measurements), character encoding
+(e.g. the simulator sorts nucleotide sites by variability, but the empirical
+preserves its ordering), state encoding (e.g. the simulator uses state 0, but
+the empirical data uses state 1 to represent a widespread species in regions A
+and B), or other ways. While phyddle will internally rescale traits and tree
+heights internally to mitigate some issues, it cannot automatically correct
+for biases that might arise due to encodings or transformations.
+
+To diagnose the issue, run the *Estimate* and *Plot* steps with the empirical
+data included. If the data representation is grossly mismatched, the issue
+may appear as an out-of-distribution error, and you may see that the empirical
+data are outliers in the PCA plots and/or histograms. Identifying the issue
+for subtle differences in data representation may require a deep understanding
+of the model and the data.
+
+To correct the issue, you need to ensure that the empirical data are
+represented in the same way as the simulated data. For example, if your
+simulator log-transforms traits before saving the simulation to file, you
+must do the same for your empirical dataset. A good strategy for this is to
+write code for necessary data adjustments (e.g. log-transformations,
+shuffling character order) and that same code for both the simulated and
+empirical data.
+
+
 Model design
 ^^^^^^^^^^^^
 
@@ -2004,6 +2037,30 @@ commands assume a standard phyddle workspace directory structure.
 
   # ...or, to Simulate more and re-run all steps
   phyddle -c config.py --sim_more 4000
+
+
+**Run an analysis for a tree without character data**
+
+To analyze a model that only generates trees but not character data (e.g.
+a birth-death process), design your simulator to write to file a character
+matrix with the same taxon set, but with zeroes for all character state
+information. When training, only the trees will contain variation
+that can be used to estimate model parameters. Future versions of phyddle
+will allow for the direct analysis of trees without character data, without
+needing this workaround.
+
+**Run an analysis for data without a tree**
+
+To analyze a model that only generates data but no tree (e.g. a normal
+distribution), design your simulator to write a two-taxon tree
+(``(A:1,B:1);``) to the tree file, a two-taxon character matrix with zeroes
+for states to the character matrix file (see above), and all data of actual
+interest into the labels file. Then, identify all variables of interst in
+``param_data``. When training, only the known parameters will contain
+variation that can be used to estimate model parameters. Future versions of
+phyddle will allow for the direct analysis of data without trees and
+character data, without needing this workaround.
+
 
 **Quick access to workspace directories from console via GUI**
 
