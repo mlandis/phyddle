@@ -992,6 +992,7 @@ class Plotter:
 
             # plot bar plot of variance explained by PCA components
             y_var = np.append(pca_var, [1.0 - sum(pca_var)])
+            y_var = y_var * 100
             y_var_str = [str(x+1) for x in range(len(y_var)-1)] + [f'{len(y_var)}+']
             axs[0, num_comp-2].axis('on')
             axs[0, num_comp-2].bar(range(len(y_var)), y_var, width=0.5,
@@ -1000,7 +1001,7 @@ class Plotter:
             axs[0, num_comp-2].set_xticks(range(len(y_var)), y_var_str)
             axs[0, num_comp-2].set_ylabel('% variance', fontsize=12)
             axs[0, num_comp-2].set_xlabel('PC', fontsize=12)
-            axs[0, num_comp-2].set_ylim(0, 1)
+            axs[0, num_comp-2].set_ylim(0, 100)
 
         # add figure plot info
         fig.suptitle(f'PCA: {title}')
