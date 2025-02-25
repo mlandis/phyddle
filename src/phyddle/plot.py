@@ -30,6 +30,7 @@ from pypdf import PdfWriter
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LinearRegression
+from sklearn.neighbors import LocalOutlierFactor
 
 # phyddle imports
 from phyddle import utilities as util
@@ -433,11 +434,11 @@ class Plotter:
         	self.make_plot_stat_density('train', 'aux_data')
         if self.has_train_num and self.has_train_fmt:
         	self.make_plot_stat_density('train', 'labels')
-        
+
         # PCA hex bins for aux. data and labels
         if self.has_train_fmt:
-            self.make_plot_pca_hexbin('train', 'aux_data')
             self.make_plot_pca_hexbin('train', 'phy_data')
+            self.make_plot_pca_hexbin('train', 'aux_data')
         if self.has_train_num and self.has_train_fmt:
             self.make_plot_pca_hexbin('train', 'labels')
 
@@ -446,24 +447,24 @@ class Plotter:
         	self.make_plot_scatter_accuracy('train')
         if self.has_test_num:
         	self.make_plot_scatter_accuracy('test')
-        
+
         # confusion matrix
         if self.has_train_cat:
         	self.make_plot_confusion_matrix('train')
         if self.has_test_cat:
         	self.make_plot_confusion_matrix('test')
-        
+
         # point estimates and CPIs in empirical dataset
         if self.has_emp_num:
         	self.make_plot_emp_ci()
-        
+
         # bar plot for categorical in empirical dataset
         if self.has_emp_cat:
         	self.make_plot_emp_cat()
-        
+
         # training history stats
         self.make_plot_train_history()
-        
+
         # network architecture
         self.make_plot_network_architecture()
         
@@ -899,7 +900,7 @@ class Plotter:
             dist_values = dist_values[dist_values.columns[keep_idx]]
             if point_values is not None:
                 point_values = point_values[point_values.columns[keep_idx]]
-            
+                
         # reduce num components if needed
         num_comp = min(dist_values.shape[1], num_comp)
 
@@ -935,6 +936,16 @@ class Plotter:
                 point_values = point_values + sp.stats.norm.rvs(
                     size=point_values.shape, loc=0, scale=self.plot_pca_noise)
             pca_est = pca_model.transform(point_values)
+            lof = LocalOutlierFactor(n_neighbors=20, novelty=True)
+            lof_train = lof.fit(pca)
+            lof_est = lof.predict(pca_est)
+            if len([x for x in lof_est if x == -1]) > 0:
+                util.print_warn(f'Outlier(s) detected in empirical {dataset_type} PCA:')
+                util.print_str('         - Detected outlier(s)')
+                lof_decision = lof.decision_function(pca_est)
+                for i in range(len(lof_est)):
+                    if lof_est[i] == -1:
+                        util.print_str(f'             index {i} : score {lof_decision[i]}')
 
         # figure dimensions
         fig, axs = plt.subplots(num_comp - 1, num_comp - 1, squeeze=False,
@@ -944,13 +955,6 @@ class Plotter:
         # color map
         cmap0 = mpl.colors.LinearSegmentedColormap.from_list('white2col',
                                                              ['white', color])
-        
-        # get min/max values
-        # vmin = np.min(pca, axis=0)
-        # vmax = np.max(pca, axis=0)
-        # if point_values is not None:
-        #     vmin = np.min([vmin, np.min(pca_est, axis=0)])
-        #     vmax = np.max([vmax, np.max(pca_est, axis=0)])
         
         # generate PCA subplots
         for i in range(0, num_comp - 1):
@@ -972,13 +976,17 @@ class Plotter:
                 axs[i, j].set_visible(True)
 
                 if pca_est is not None:
-                    # axs[i, j].scatter(pca_est[:, j], pca_est[:, i+1],
-                    #                   alpha=1.0, color='white',
-                    #                   edgecolor='black', s=80, zorder=2.1)
+                    lof_col_base = ['red', 'blue']
+                    lof_col = [lof_col_base[int(x+1/2)] for x in lof_est]
                     axs[i, j].scatter(pca_est[:, j], pca_est[:, i+1],
-                                      alpha=1.0, color='red', facecolors='none',
-                                      edgecolor='red', s=40, zorder=2.1)
-                # # axes
+                                      facecolors='none', edgecolor=lof_col,
+                                      s=40, marker='o', zorder=2.1)
+                    # text_str = [ str(k) for k in range(pca_est.shape[0]) ]
+                    # for k in range(pca_est.shape[0]):
+                    #     axs[i, j].text(pca_est[k, j], pca_est[k, i+1], text_str[k], fontsize=10,
+                    #                    alpha=1.0, color=lof_col[k], zorder=2.1)
+                    
+                # axes
                 if j == 0:
                     idx = str(i + 2)
                     var = int(100 * round(pca_var[i + 1], ndigits=2))
@@ -1012,144 +1020,6 @@ class Plotter:
 
         # done
         return pca_model
-
-    # def plot_pca_hexbin_phy(self, save_fn, dist_values, point_values=None,
-    #                         pca_model=None, num_comp=4, color='blue', title=''):
-    #     """
-    #     Plots PCA Hexbin Plot.
-    # 
-    #     This function plots the PCA for simulated training aux. data examples.
-    #     The function plots a grid of pairs of principal components. It will also
-    #     plot values from the new dataset, when variable (est_values != None).
-    # 
-    #     Args:
-    #         save_fn (str): Filename to save plot.
-    #         dist_values (numpy.array): Simulated values from training examples.
-    #         point_values (numpy.array): Estimated values from new dataset.
-    #         pca_model (PCA): Fitted PCA model to use (default None)
-    #         num_comp (int): Number of components to plot (default 4)
-    #         color (str): Color of histograms
-    #         title (str): Plot title
-    # 
-    #     """
-    # 
-    #     # figure size
-    #     fig_width = 8
-    #     fig_height = 8
-    #     
-    #     keep_idx = [x-1 for x in range(dist_values.shape[1]) if x % 4 != 0]
-    #     # dist_values = dist_values[:,keep_idx]
-    #     dist_values = dist_values[ dist_values.columns[keep_idx] ]
-    #     print(dist_values)
-    #     print(dist_values.shape)
-    # 
-    #     # reduce num components if needed
-    #     num_comp = min(dist_values.shape[1], num_comp)
-    # 
-    #     # rescale input data
-    #     # dist_values = np.log(dist_values + self.log_offset)
-    #     scaler = StandardScaler()
-    #     x = scaler.fit_transform(dist_values)
-    #     if self.plot_pca_noise != 0.0:
-    #         x = x + sp.stats.norm.rvs(size=x.shape, loc=0,
-    #                                   scale=self.plot_pca_noise)
-    # 
-    #     # apply PCA to sim_values
-    #     if pca_model is None:
-    #         pca_model = PCA(n_components=num_comp, whiten=True)
-    #         pca = pca_model.fit_transform(x)
-    #     else:
-    #         pca = pca_model.transform(x)
-    # 
-    #     pca_var = pca_model.explained_variance_ratio_
-    #     pca_coef = np.transpose(pca_model.components_)
-    #     plot_pca_loadings = False
-    # 
-    #     # project est_values on to PCA space
-    #     pca_est = None
-    #     if point_values is not None:
-    #         point_values = point_values[ point_values.columns[keep_idx] ]
-    #         # point_values = np.log(point_values + self.log_offset)
-    #         point_values = scaler.transform(point_values)
-    #         if self.plot_pca_noise != 0.0:
-    #             point_values = point_values + sp.stats.norm.rvs(
-    #                 size=point_values.shape, loc=0, scale=self.plot_pca_noise)
-    #         pca_est = pca_model.transform(point_values)
-    #         print(pca_est)
-    # 
-    #     # figure dimensions
-    #     fig, axs = plt.subplots(num_comp - 1, num_comp - 1, squeeze=False,
-    #                             sharex=False, sharey=False,
-    #                             figsize=(fig_width, fig_height))
-    # 
-    #     # color map
-    #     cmap0 = mpl.colors.LinearSegmentedColormap.from_list('white2col',
-    #                                                          ['white', color])
-    # 
-    #     # get min/max values
-    #     vmin = np.min(pca, axis=0)
-    #     vmax = np.max(pca, axis=0)
-    #     if point_values is not None:
-    #         vmin = np.min([vmin, np.min(pca_est, axis=0)])
-    #         vmax = np.max([vmax, np.max(pca_est, axis=0)])
-    # 
-    #     # generate PCA subplots
-    #     for i in range(0, num_comp - 1):
-    # 
-    #         # disable x,y axes for all plots, later turned on for some
-    #         for j in range(i + 1, num_comp - 1):
-    #             axs[i, j].axis('off')
-    # 
-    #         for j in range(0, i + 1):
-    # 
-    #             # contours
-    #             x = pca[:, j] #i + 1]
-    #             y = pca[:, i + 1]
-    # 
-    #             # hex bin plot
-    #             hb = axs[i, j].hexbin(x, y, gridsize=(19, 13), bins=10,
-    #                                   cmap=cmap0, linewidths=0.1, )
-    # 
-    #             axs[i, j].set_visible(True)
-    # 
-    #             if pca_est is not None:
-    #                 # axs[i, j].scatter(pca_est[:, j], pca_est[:, i+1],
-    #                 #                   alpha=1.0, color='white',
-    #                 #                   edgecolor='black', s=80, zorder=2.1)
-    #                 axs[i, j].scatter(pca_est[:, j], pca_est[:, i+1],
-    #                                   alpha=1.0, color='red', facecolors='none',
-    #                                   edgecolor='red', s=40, zorder=2.1)
-    #             # # axes
-    #             if j == 0:
-    #                 idx = str(i + 2)
-    #                 var = int(100 * round(pca_var[i + 1], ndigits=2))
-    #                 ylabel = f'PC{idx} ({var}%)'
-    #                 axs[i, j].set_ylabel(ylabel, fontsize=12)
-    #             if i == (num_comp - 2):
-    #                 idx = str(j + 1)
-    #                 var = int(100 * round(pca_var[j], ndigits=2))
-    #                 xlabel = f'PC{idx} ({var}%)'
-    #                 axs[i, j].set_xlabel(xlabel, fontsize=12)
-    #     
-    #     # plot bar plot of variance explained by PCA components
-    #     y_var = np.append(pca_var, [1.0 - sum(pca_var)])
-    #     y_var_str = [str(x+1) for x in range(len(y_var)-1)] + [f'{len(y_var)}+']
-    #     pca_var_col = 'darkgray'
-    #     axs[0, num_comp-2].axis('on')
-    #     axs[0, num_comp-2].bar(range(len(y_var)), y_var, color=pca_var_col)
-    #     axs[0, num_comp-2].set_xticks(range(len(y_var)), y_var_str)
-    #     axs[0, num_comp-2].set_ylabel('% variance', fontsize=12)
-    #     axs[0, num_comp-2].set_xlabel('PC', fontsize=12)
-    # 
-    #     # add figure info
-    #     fig.suptitle(f'PCA: {title}')
-    #     fig.tight_layout(rect=[0, 0.03, 1, 0.98])
-    #     plt.savefig(save_fn, format='pdf', dpi=300, bbox_inches='tight')
-    #     plt.clf()
-    #     plt.close()
-    # 
-    #     # done
-    #     return pca_model
 
     def plot_scatter_accuracy(self, ests, labels, prefix,
                               color="blue", axis_labels=("truth", "estimate"),
@@ -1613,9 +1483,18 @@ class Plotter:
     def make_report(self):
         """Makes CSV of main results."""
 
-        df = pd.DataFrame(columns=['id1', 'id2', 'metric', 'variable', 'value'])
+        df = pd.DataFrame(columns=['id1', 'id2', 'id3', 'metric', 'variable', 'value'])
 
         # TODO: dataset sizes
+        # df.loc[len(df)] = ['tree_width', '', '', 'tree_width', self.tree_width]
+        # df.loc[len(df)] = ['num_char', '', '', 'num_char', self.num_char]
+        # df.loc[len(df)] = ['num_states', '', '', 'num_states', self.num_states]
+        # df.loc[len(df)] = ['num_char_col', '', '', 'num_char_col', self.num_char_col]
+        # df.loc[len(df)] = ['num_brlen_col', '', '', 'num_brlen_col', self.num_brlen_col]
+        # df.loc[len(df)] = ['num_total_col', '', '', 'num_total_col', self.num_total_col]
+        # df.loc[len(df)] = ['num_train', '', '', 'num_train', self.num_train]
+        # df.loc[len(df)] = ['num_test', '', '', 'num_test', self.num_test]
+
         # - num examples in train/test/val/cal
         # - tree width
         # - num char col
@@ -1623,22 +1502,29 @@ class Plotter:
         # - num total col
 
         # prediction stats
-        test_train = []
+        test_train_lbl = []
+        test_train_aux = []
+        # emp_lbl = []
+        # emp_aux = []
+        if self.has_train_num or self.has_train_cat:
+            test_train_aux.append(('train', self.train_aux_data))
         if self.has_train_num:
-            test_train.append(
+            test_train_lbl.append(
                 ('train', self.train_true_num, self.train_est_num))
         if self.has_test_num:
-            test_train.append(('test', self.test_true_num, self.test_est_num))
+            test_train_lbl.append(('test', self.test_true_num, self.test_est_num))
         if self.has_train_cat:
             pass
         if self.has_test_cat:
             pass
-        if self.has_emp_num:
-            pass
-        if self.has_emp_cat:
-            pass
+        # if self.emp_aux_data is not None:
+        #     emp_aux.append(('empirical', self.emp_aux_data))
+        # if self.emp_est_num is not None:
+        #     emp_lbl.append(('empirical', self.emp_est_num))
+        # if self.has_emp_cat is not None:
+        #     emp_lbl_cat.append(('empirical', self.emp_est_cat))
 
-        for name, lbl, est in test_train:
+        for name, lbl, est in test_train_lbl:
             for col in lbl:
                 # get stats
                 mae = np.mean(np.abs(lbl[col] - est[col + '_value']))
@@ -1650,38 +1536,62 @@ class Plotter:
                 ci_width = est[col + '_upper'] - est[col + '_lower']
                 rel_ci_width = np.divide(ci_width, est[col + '_value'])
                 # store stats
-                df.loc[len(df)] = [name, 'true', 'mean', col, np.mean(lbl[col])]
-                df.loc[len(df)] = [name, 'true', 'var', col, np.var(lbl[col])]
-                df.loc[len(df)] = [name, 'true', 'lower95', col,
+                df.loc[len(df)] = [name, 'true', 'label', 'mean', col, np.mean(lbl[col])]
+                df.loc[len(df)] = [name, 'true', 'label', 'var', col, np.var(lbl[col])]
+                df.loc[len(df)] = [name, 'true', 'label', 'lower95', col,
                                    np.quantile(lbl[col], 0.025)]
-                df.loc[len(df)] = [name, 'true', 'upper95', col,
+                df.loc[len(df)] = [name, 'true', 'label', 'upper95', col,
                                    np.quantile(lbl[col], 0.975)]
-                df.loc[len(df)] = [name, 'est', 'mean', col,
+                df.loc[len(df)] = [name, 'est', 'label', 'mean', col,
                                    np.mean(est[col + '_value'])]
-                df.loc[len(df)] = [name, 'est', 'var', col,
+                df.loc[len(df)] = [name, 'est', 'label', 'var', col,
                                    np.var(est[col + '_value'])]
-                df.loc[len(df)] = [name, 'est', 'lower95', col,
+                df.loc[len(df)] = [name, 'est', 'label', 'lower95', col,
                                    np.quantile(est[col + '_value'], 0.025)]
-                df.loc[len(df)] = [name, 'est', 'upper95', col,
+                df.loc[len(df)] = [name, 'est', 'label', 'upper95', col,
                                    np.quantile(est[col + '_value'], 0.975)]
-                df.loc[len(df)] = [name, 'est', 'mae', col, mae]
-                df.loc[len(df)] = [name, 'est', 'mse', col, mse]
-                df.loc[len(df)] = [name, 'est', 'mape', col, mape]
-                df.loc[len(df)] = [name, 'est', 'coverage', col, cov]
-                df.loc[len(df)] = [name, 'est', 'mean_CI_width', col,
+                df.loc[len(df)] = [name, 'est', 'label', 'mae', col, mae]
+                df.loc[len(df)] = [name, 'est', 'label', 'mse', col, mse]
+                df.loc[len(df)] = [name, 'est', 'label', 'mape', col, mape]
+                df.loc[len(df)] = [name, 'est', 'label', 'coverage', col, cov]
+                df.loc[len(df)] = [name, 'est', 'label', 'mean_CI_width', col,
                                    np.mean(ci_width)]
-                df.loc[len(df)] = [name, 'est', 'mean_rel_CI_width', col,
+                df.loc[len(df)] = [name, 'est', 'label', 'mean_rel_CI_width', col,
                                    np.mean(rel_ci_width)]
 
-        # TODO: auxiliary data
-        # - similar stuff as prediction for aux data
+        # auxiliary data
+        for name, aux in test_train_aux:
+            for col in aux:
+                # get stats
+                df.loc[len(df)] = [name, 'true', 'aux_data', 'mean', col, np.mean(aux[col])]
+                df.loc[len(df)] = [name, 'true', 'aux_data', 'var', col, np.var(aux[col])]
+                df.loc[len(df)] = [name, 'true', 'aux_data', 'lower95', col,
+                                   np.quantile(aux[col], 0.025)]
+                df.loc[len(df)] = [name, 'true', 'aux_data', 'upper95', col,
+                                   np.quantile(aux[col], 0.975)]
+                
 
-        # TODO: empirical estimate
-        # - values against empirical datasets
-        # - quantile against training/test datasets
-
-        # TODO: training stats
-        # - best epoch
+        # # empirical data
+        # for name, aux in emp_aux:
+        #     for col in aux:
+        #         # get stats
+        #         df.loc[len(df)] = [name, 'true', 'aux_data', 'mean', col, np.mean(aux[col])]
+        #         df.loc[len(df)] = [name, 'true', 'aux_data', 'var', col, np.var(aux[col])]
+        #         df.loc[len(df)] = [name, 'true', 'aux_data', 'lower95', col,
+        #                            np.quantile(aux[col], 0.025)]
+        #         df.loc[len(df)] = [name, 'true', 'aux_data', 'upper95', col,
+        #                            np.quantile(aux[col], 0.975)]
+        #         
+        # # empirical labels
+        # for name, lbl in emp_lbl:
+        #     for col in lbl:
+        #         # get stats
+        #         df.loc[len(df)] = [name, 'true', 'label', 'mean', col, np.mean(lbl[col])]
+        #         df.loc[len(df)] = [name, 'true', 'label', 'var', col, np.var(lbl[col])]
+        #         df.loc[len(df)] = [name, 'true', 'label', 'lower95', col,
+        #                            np.quantile(lbl[col], 0.025)]
+        #         df.loc[len(df)] = [name, 'true', 'label', 'upper95', col,
+        #                            np.quantile(lbl[col], 0.975)]
 
         # save results
         df.to_csv(self.save_report_fn, index=False,

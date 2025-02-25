@@ -159,7 +159,7 @@ def settings_registry():
         'min_num_taxa':        {'step': 'F',     'type': int,   'section': 'Format',  'default': 10,              'help': 'Minimum number of taxa allowed when formatting'},
         'max_num_taxa':        {'step': 'F',     'type': int,   'section': 'Format',  'default': 1000,            'help': 'Maximum number of taxa allowed when formatting'},
         'downsample_taxa':     {'step': 'FTE',   'type': str,   'section': 'Format',  'default': 'uniform',       'help': 'Downsampling strategy taxon count', 'choices': ['uniform']},
-        'rel_extant_age_tol':  {'step': 'FTE',   'type': float, 'section': 'Format',  'default': 1E-10,          'help': 'Relative tolerance to determine if terminal taxa are extant (rel. age < tol).'},
+        'rel_extant_age_tol':  {'step': 'FTE',   'type': float, 'section': 'Format',  'default': 1E-5,            'help': 'Relative tolerance to determine if terminal taxa are extant (rel. age < tol).'},
         'tree_width':          {'step': 'FTEP',  'type': int,   'section': 'Format',  'default': 500,             'help': 'Width of phylo-state tensor'},
         'tree_encode':         {'step': 'FTEP',  'type': str,   'section': 'Format',  'default': 'extant',        'help': 'Encoding strategy for tree', 'choices': ['extant', 'serial']},
         'brlen_encode':        {'step': 'FTEP',  'type': str,   'section': 'Format',  'default': 'height_brlen',  'help': 'Encoding strategy for branch lengths', 'choices': ['height_only', 'height_brlen']},
