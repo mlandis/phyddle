@@ -1,4 +1,4 @@
-# phyddle 0.2.2
+# phyddle 0.3.0
 
 Phylogenetic model exploration with deep learning.
 
