@@ -1,8 +1,10 @@
 **phyddle v0.3.0** -- 25.02.xx
 
+  * Includes new safety features, settings, bug fixes, and documentation
   * Estimate now warns user if empirical input/labels are out-of-distribution
   * Estimate/Format no longer require labels file for empirical analyses unless param_data used
   * Plot improved to make it easier to notice out-of-distribution empirical input/labels
+  * Plot now makes PCA of encoded trees to help with out-of-distribution detection
   * Replace mean APE scores for training diagnostics with median APE scores
   * Support to choose optimizer: adam, adamw, adagrad, adadelta, rmsprop, sgd
   * Support to choose activation functions: relu, elu, leaky_relu, tanh, sigmoid
