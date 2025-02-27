@@ -12,23 +12,22 @@ authors = [
 description = "Software for phylogenetic model exploration with deep learning"
 readme = "README.md"
 
-requires-python = ">=3.7"
+requires-python = ">=3.12"
 
 dependencies = [
-  "dendropy",
-  "graphviz",
-  "h5py",
-  "keras",
-  "matplotlib",
-  "numpy",
-  "pandas",
-  "pydot",
-  "pypdf",
-  "scikit-learn",
-  "scipy",
-  "torch",
-  "torchview",
-  "tqdm"
+  "dendropy>=4.6.0",
+  "graphviz>=0.20.0",
+  "h5py>=3.10.0",
+  "matplotlib>=3.8.2",
+  "numpy>=1.26.4",
+  "pandas>=2.2.0",
+  "pydot>=2.0.0",
+  "pypdf>=4.0.0",
+  "scikit-learn>=1.4.0",
+  "scipy>=1.14.0",
+  "torch>=2.2.0",
+  "torchview>=0.2.6",
+  "tqdm>=4.66.1"
 ]
 
 classifiers = [
