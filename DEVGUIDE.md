@@ -221,7 +221,8 @@ Upload to distribution to TestPyPI
     python3 -m twine upload --repository --skip-existing testpypi dist/*
 
     # verify TestPyPI install works (e.g. for x.x.x => v0.0.7)
-    python3 -m pip install --index-url https://test.pypi.org/simple/ --no-deps phyddle-x.x.x.*
+    ## python3 -m pip install --index-url https://test.pypi.org/simple/ --no-deps phyddle-x.x.x.*    # does not work as of 250227
+    python3 -m pip install -i https://test.pypi.org/simple/ phyddle==x.x.x
 
     # should be able to import within Python session now, e.g.
     # >>> from phyddle import command_line
@@ -237,6 +238,7 @@ Upload distribution to PyPI (similar to above)
 
     # verify PyPI install works
     python3 -m pip install phyddle
+    python3 -m pip install phyddle==x.x.x
 
     # should be able to import within Python session now, e.g.
     # >>> from phyddle import command_line
