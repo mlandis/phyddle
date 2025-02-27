@@ -1,4 +1,4 @@
-**phyddle v0.3.0** -- 25.02.xx
+**phyddle v0.3.0** -- 25.02.27
 
   * Includes new safety features, settings, bug fixes, and documentation
   * Estimate now warns user if empirical input/labels are out-of-distribution
