@@ -36,13 +36,14 @@ ENABLE_TEST = True
 #       which can cause minor numerical errors to accumulate in different ways.
 # 
 #       ... still difference of ~0.035 for CPI, seems too large
-ERROR_TOL = 5E-1 # 1E-2
+ERROR_TOL = 1E-2
 
 #-----------------------------------------------------------------------------#
 
 # single-thread session
+torch.manual_seed(0)
 torch.set_deterministic_debug_mode(debug_mode='warn')
-#torch.use_deterministic_algorithms(mode=True)
+torch.use_deterministic_algorithms(mode=True)
 
 #-----------------------------------------------------------------------------#
 
