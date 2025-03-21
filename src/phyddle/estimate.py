@@ -178,10 +178,10 @@ class Estimator:
         device_info = ''
         if self.TORCH_DEVICE_STR == 'cuda':
             device_info = '  ▪ using CUDA + GPU'
-            device_info += ' [device: ' + torch.cuda.get_device_properties(0).name + ']'
+            device_info += '  [device: ' + torch.cuda.get_device_properties(0).name + ']'
         elif self.TORCH_DEVICE_STR == 'cpu':
             num_cpu = os.cpu_count()
-            device_info = '  ▪ using CPUs [num: ' + str(num_cpu) + ']'
+            device_info = '  ▪ using CPUs  [num: ' + str(num_cpu) + ']'
         if device_info != '':
             util.print_str(device_info, verbose)
 
@@ -453,7 +453,12 @@ class Estimator:
         # real vs. cat estimates
         labels_est_num = label_est[0:3]
         labels_est_cat = label_est[3]
-        
+
+        # force categorical dimensionality (had problems for categ)
+        for k,v in labels_est_cat.items():
+            labels_est_cat[k] = torch.reshape(input=labels_est_cat[k],
+                                              shape=(self.phy_data.shape[0],-1))
+
         # point estimates & CPIs for test labels
         if self.has_label_num:
             
@@ -503,9 +508,10 @@ class Estimator:
             self.est_aux_data_raw = util.denormalize(self.aux_data,
                                                      self.train_aux_data_mean_sd,
                                                      exp=False)
-            self.est_labels_num_raw = util.denormalize(labels_est_num,
-                                                      self.train_labels_num_mean_sd,
-                                                      exp=False)[0,:,:]
+            if self.has_label_num:
+                self.est_labels_num_raw = util.denormalize(labels_est_num,
+                                                          self.train_labels_num_mean_sd,
+                                                          exp=False)[0,:,:]
         
         # done
         return
