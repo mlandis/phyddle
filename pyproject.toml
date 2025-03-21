@@ -23,6 +23,7 @@ dependencies = [
   "pandas>=2.2.0",
   "pydot>=2.0.0",
   "pypdf>=4.0.0",
+  "Pillow>=11.0.0",
   "scikit-learn>=1.4.0",
   "scipy>=1.14.0",
   "torch>=2.2.0",
