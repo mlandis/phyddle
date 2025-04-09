@@ -1868,6 +1868,50 @@ def make_uniform_downsample_phy(phy, down_fn, max_taxa):
     # done
     return phy_
 
+def make_ltt(phy, num_times=20):
+    """Make lineage through time (LTT) plot data."""
+    
+    # Code adapted from:
+    # https://jeetsukumaran.github.io/DendroPy/primer/treestats.html 
+    
+    # get tree height
+    max_time = phy.max_distance_from_root()
+  
+    # get LTT sampling times
+    sampling_times = np.linspace(0.0, 1.0, num_times+1)
+    sampling_times = sampling_times[1:]
+    sampling_times[-1] = sampling_times[-1]
+    
+    # get num lineages for each sampling time (scaled to height)
+    num_lineages = [0]*num_times
+    for i, t in enumerate(sampling_times):
+        tt = t * max_time
+        if i == (len(sampling_times)-1):
+            tt -= 1e-6
+        num_lineages[i] = (phy.num_lineages_at(tt),)
+        
+    # # print(phy.as_string(schema='newick'))
+    # print(sampling_times)
+    # print(num_lineages)
+    # print(max_time)
+    # # Get the final number of lineages
+    # # Note: may not be the same as the number of tips if the tree has extinct
+    # # tips/taxa; though, if this were the case, we would not be dealing with an
+    # # ultrametric tree.
+    # # if current_time < max_time:
+    # #    num_lineages.append(tree.num_lineages_at(max_time))
+        
+    # data frame
+    time_labels = ['nLTT_' + str(int(i*100)) for i in sampling_times]
+    #print(time_labels)
+    #print(num_lineages)
+    #print(dict(zip(time_labels,num_lineages)))
+    #df = pd.DataFrame()
+    #print(df)
+    ret = dict(zip(time_labels, num_lineages))
+    
+    return ret
+
 
 # make matrix with parameter values, lower-bounds, upper-bounds: 3D->2D
 def make_param_VLU_mtx(A, param_names):

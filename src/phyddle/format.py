@@ -839,6 +839,10 @@ class Formatter:
             if phy.seed_node.edge.length is not None:
                 tree_height           += phy.seed_node.edge.length
             branch_lengths            = [ nd.edge.length for nd in phy.nodes() if nd != phy.seed_node ]
+
+            num_lineages_through_time = util.make_ltt(phy, num_times=20)
+            for k,v in num_lineages_through_time.items():
+                summ_stats[k] = v
             
             # tree statistics
             summ_stats['log10_tree_length'] = np.log10( phy.length() )
