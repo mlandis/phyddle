@@ -1,0 +1,215 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-KW8RTLPKH4"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-KW8RTLPKH4');
+    </script>
+    
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quick start &mdash; phyddle 0.3.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/css/custom.css?v=d2c2efc5" />
+
+  
+    <link rel="canonical" href="phyddle.org/quick_start.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=e259d695"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Installation" href="installation.html" />
+    <link rel="prev" title="phyddle" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html">
+            
+              <img src="_static/phyddle_logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Quick start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix.html">Appendix</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">phyddle</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Quick start</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/quick_start.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="quick-start">
+<span id="id1"></span><h1>Quick start<a class="headerlink" href="#quick-start" title="Link to this heading"></a></h1>
+<p>Visit the <a class="reference internal" href="installation.html#installation"><span class="std std-ref">Installation</span></a> page to install phyddle.</p>
+<p>Download a copy of the phyddle repository to your workstation either as <a class="reference external" href="https://github.com/mlandis/phyddle/archive/refs/heads/main.zip">.zip
+file</a> or by
+cloning the <a class="reference external" href="https://github.com/mlandis/phyddle.git">git repository</a>.</p>
+<p>To run a phyddle analysis enter your new directory, e.g.:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># enter phyddle directory</span>
+<span class="nb">cd</span><span class="w"> </span>~/projects/phyddle
+</pre></div>
+</div>
+<p>Several example phyddle analyses are stored in the <code class="docutils literal notranslate"><span class="pre">./workspace</span></code> subdirectory.
+Each project directory contains a <a class="reference internal" href="overview.html#configuration"><span class="std std-ref">Configuration</span></a> file, a
+<a class="reference internal" href="overview.html#simulate"><span class="std std-ref">Simulation</span></a> script, and will contain directories for output
+resulting from an analysis. For example, you can run an analysis for the
+<code class="docutils literal notranslate"><span class="pre">bisse_r</span></code> project using the commands:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># enter project directory</span>
+<span class="nb">cd</span><span class="w"> </span>./workspace/bisse_r
+
+<span class="c1"># run phyddle with project config</span>
+phyddle<span class="w"> </span>-c<span class="w"> </span>config.py
+</pre></div>
+</div>
+<p>This will run an analysis using the default settings for all <a class="reference internal" href="overview.html#overview"><span class="std std-ref">Overview</span></a>
+steps. As the first step, <a class="reference internal" href="overview.html#simulate"><span class="std std-ref">Simulate</span></a> will execute the command string
+stored under <code class="docutils literal notranslate"><span class="pre">sim_command</span></code>  in the config file. For <code class="docutils literal notranslate"><span class="pre">./workspace/bisse_r/config.py</span></code>
+this command is</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># phyddle runs this R script to simulate</span>
+<span class="n">Rscript</span> <span class="o">./</span><span class="n">sim_bisse</span><span class="o">.</span><span class="n">R</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You must be able to run the simulation script from command line without
+administrative privileges. This means must install the required software
+for each project. The above script requires R and the packages <code class="docutils literal notranslate"><span class="pre">ape</span></code>
+and <code class="docutils literal notranslate"><span class="pre">castor</span></code> to run.</p>
+</div>
+<p>Eventually, you will want to write your own config file. There are two easy
+ways to create your own config file. One option is to copy and modify an
+existing script. Another option is to create a new blank config with
+<code class="docutils literal notranslate"><span class="pre">phyddle</span> <span class="pre">--make_cfg</span></code> and then modify the new file</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># create a default config file</span>
+phyddle<span class="w"> </span>--make_cfg
+
+<span class="c1"># rename the config file</span>
+mv<span class="w"> </span>config_default.py<span class="w"> </span>new_config.py
+
+<span class="c1"># update the config file</span>
+edit<span class="w"> </span>new_config.py
+</pre></div>
+</div>
+<p>Now, let’s assume <code class="docutils literal notranslate"><span class="pre">new_config.py</span></code> specifies a phyddle analysis with 1000 simulated
+training examples, using R for simulation. Run phyddle against the new config
+with the following command:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># run phyddle with new config file</span>
+phyddle<span class="w"> </span>-c<span class="w"> </span>./new_config.py
+</pre></div>
+</div>
+<p>Provide phyddle with command-line options to customize how each pipeline step
+is executed. Visit <a class="reference internal" href="overview.html#overview"><span class="std std-ref">Overview</span></a> and <a class="reference internal" href="overview.html#workspace"><span class="std std-ref">Workspace</span></a> to learn more about
+managing phyddle analyses.</p>
+<p>In practice, you’ll want to generate a larger training dataset with anywhere
+from 10k to 1M examples, depending on the model. To add new examples to your
+training set, for example:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># enter project directory</span>
+<span class="nb">cd</span><span class="w"> </span>workspace/my_project
+
+<span class="c1"># [S]imulate new training examples, stored in</span>
+<span class="c1"># ./simulate subdirectory</span>
+phyddle<span class="w"> </span>-s<span class="w"> </span>S<span class="w"> </span>-c<span class="w"> </span>config.py<span class="w"> </span>--sim_more<span class="w"> </span><span class="m">14000</span>
+
+<span class="c1"># [F]ormat all raw_data examples as tensors,</span>
+<span class="c1"># stored in ./format subdirectory</span>
+phyddle<span class="w"> </span>-s<span class="w"> </span>F<span class="w"> </span>-c<span class="w"> </span>config.py
+
+<span class="c1"># [T]rain network with tensor_data, but override batch size,</span>
+<span class="c1"># stored in ./train subdirectory</span>
+phyddle<span class="w"> </span>-s<span class="w"> </span>T<span class="w"> </span>-c<span class="w"> </span>config.py<span class="w"> </span>--trn_batch_size<span class="w"> </span><span class="m">256</span>
+
+<span class="c1"># [E]stimate parameters for biological dataset, with results</span>
+<span class="c1"># stored in ./estimate subdirectory; and then [P]lot</span>
+<span class="c1"># figures, storing them in ./plot subdirectory</span>
+phyddle<span class="w"> </span>-s<span class="w"> </span>EP<span class="w"> </span>-c<span class="w"> </span>config.py
+</pre></div>
+</div>
+<p>Visit <a class="reference internal" href="overview.html#configuration"><span class="std std-ref">Configuration</span></a> to learn more about currently supported phyddle
+settings. View supported command-line options with:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># see help for phyddle</span>
+phyddle<span class="w"> </span>--help
+</pre></div>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="phyddle" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="installation.html" class="btn btn-neutral float-right" title="Installation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

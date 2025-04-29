@@ -1,0 +1,195 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-KW8RTLPKH4"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-KW8RTLPKH4');
+    </script>
+    
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Installation &mdash; phyddle 0.3.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/css/custom.css?v=d2c2efc5" />
+
+  
+    <link rel="canonical" href="phyddle.org/installation.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=e259d695"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Tutorial" href="tutorial.html" />
+    <link rel="prev" title="Quick start" href="quick_start.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html">
+            
+              <img src="_static/phyddle_logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick start</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix.html">Appendix</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">phyddle</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Installation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/installation.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="installation">
+<span id="id1"></span><h1>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h1>
+<p>This page describes how to download and install phyddle and its dependencies.</p>
+<h2>Python package</h2><p>phyddle is available as a <a class="reference external" href="https://pypi.org/project/phyddle/">PyPI package</a>
+and can be installed using <code class="docutils literal notranslate"><span class="pre">pip</span></code>.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>phyddle
+<span class="c1"># ... install ...</span>
+phyddle
+</pre></div>
+</div>
+<h2>Conda package</h2><p>phyddle is also available as a <a class="reference external" href="https://anaconda.org/landismj/phyddle">conda package</a>,
+and can be installed with the following commands:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>create<span class="w"> </span>-n<span class="w"> </span>phyddle<span class="w"> </span>-c<span class="w"> </span>bioconda<span class="w"> </span>-c<span class="w"> </span>pytorch<span class="w"> </span>-c<span class="w"> </span>landismj<span class="w"> </span>phyddle
+conda<span class="w"> </span>install<span class="w"> </span>-c<span class="w"> </span>bioconda<span class="w"> </span>-c<span class="w"> </span>pytorch<span class="w"> </span>-c<span class="w"> </span>landismj<span class="w"> </span>phyddle
+<span class="c1"># ... install ...</span>
+conda<span class="w"> </span>activate<span class="w"> </span>phyddle
+phyddle
+</pre></div>
+</div>
+<h2>GitHub repository</h2><p>To download the phyddle source code to your computer, you can either clone
+the <a class="reference external" href="https://github.com/mlandis/phyddle">repository</a></p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>git@github.com:mlandis/phyddle.git<span class="w">       </span><span class="c1"># using SSH</span>
+git<span class="w"> </span>clone<span class="w"> </span>https://github.com/mlandis/phyddle.git<span class="w">   </span><span class="c1"># using HTTPS</span>
+gh<span class="w"> </span>repo<span class="w"> </span>clone<span class="w"> </span>mlandis/phyddle<span class="w">                      </span><span class="c1"># using GitHub CLI</span>
+</pre></div>
+</div>
+<p>Note, that newer experimental features are stored on the development branch.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>checkout<span class="w"> </span>development
+git<span class="w"> </span>pull
+</pre></div>
+</div>
+<p>You can also <a class="reference external" href="https://github.com/mlandis/phyddle/archive/refs/heads/main.zip">download</a>
+and unzip the current version of the main branch</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>wget<span class="w"> </span>https://github.com/mlandis/phyddle/archive/refs/heads/main.zip
+unzip<span class="w"> </span>main.zip
+</pre></div>
+</div>
+<p>Once cloned, you can build phyddle into a local Python package</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>~/projects/phyddle
+python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+<span class="c1"># ... install ...</span>
+phyddle
+</pre></div>
+</div>
+<h2>System configuration</h2><p>phyddle is regularly tested on Mac OS X 14.2.1 (Intel CPU) and Python
+3.11.7 (installed with homebrew). phyddle is also intermittently tested
+on a 64-core Ubuntu LTS 22.04 server using Python 3.xx.xx (aptitude) and
+similar package versions.</p>
+<p>To install required Python packages</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>ensurepip<span class="w"> </span>--upgrade
+python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--upgrade<span class="w"> </span>pip
+python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>dendropy<span class="w"> </span>graphviz<span class="w"> </span>h5py<span class="w"> </span>keras<span class="w"> </span>matplotlib<span class="w"> </span>numpy<span class="w"> </span>pandas<span class="w"> </span>Pillow<span class="w"> </span>pydot_ng<span class="w"> </span>pypdf<span class="w"> </span>scikit-learn<span class="w"> </span>scipy<span class="w"> </span>torch<span class="w"> </span>torchview<span class="w"> </span>tqdm
+</pre></div>
+</div>
+<p>Last tested Python package versions are</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>dendropy<span class="w"> </span><span class="m">4</span>.5.2
+graphviz<span class="w"> </span><span class="m">0</span>.20.1
+h5py<span class="w"> </span><span class="m">3</span>.8.0
+keras<span class="w"> </span><span class="m">2</span>.12.0
+matplotlib<span class="w"> </span><span class="m">3</span>.7.1
+numpy<span class="w"> </span><span class="m">1</span>.23.5
+pandas<span class="w"> </span><span class="m">2</span>.0.0
+Pillow<span class="w"> </span><span class="m">10</span>.1.0
+pydot_ng<span class="w"> </span><span class="m">2</span>.0.2
+pypdf<span class="w"> </span><span class="m">3</span>.12.0
+scikit-learn<span class="w"> </span><span class="m">1</span>.2.2
+scipy<span class="w"> </span><span class="m">1</span>.11.4
+torch<span class="w"> </span><span class="m">2</span>.0.0
+torchview<span class="w"> </span><span class="m">0</span>.2.6
+tqdm<span class="w"> </span><span class="m">4</span>.65.0
+</pre></div>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="quick_start.html" class="btn btn-neutral float-left" title="Quick start" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="tutorial.html" class="btn btn-neutral float-right" title="Tutorial" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
