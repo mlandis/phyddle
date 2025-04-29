@@ -1462,6 +1462,9 @@ determines if the tree is a ``'serial'`` tree encoded with CBLV+S or an
 ``char_encode`` alter how information is stored into the
 phylogenetic-state tensor.
 
+A simple Python script showing how phyddle encodes phylogenetic trees and data into
+the CBLV+S and CDV+S formats below is available here: https://raw.githubusercontent.com/mlandis/phyddle/refs/heads/main/docs/example/make_cpvs.py.
+
 CBLV+S
 ~~~~~~
 
@@ -1533,7 +1536,7 @@ and like this when ``brlen_encode`` is set to ``'height_brlen'``:
       1,1,0,1,0,0,0,0,0,0  # character 1
       0,0,1,1,1,0,0,0,0,0  # character 2
 
-By default, all branch length entries are rescaled from 0 to 1 as proportion
+By default, all branch length-related entries are rescaled from 0 to 1 as proportion
 to tree height (formatted to ease reading):
 
 .. code-block:: shell
@@ -1578,12 +1581,24 @@ yields the following CDV+S tensor:
     #       meaning rows correspond to taxa, and columns correspond to branch
     #       length information.
 
-    # C,D,A,B,E,-,-,-,-,-  
-      0,4,1,2,0,0,0,0,0,0  # node-to-root distance
-      3,2,2,1,2,0,0,0,0,0  # tip edge length
-      0,3,1,1,0,0,0,0,0,0  # node edge length
-      1,1,0,1,0,0,0,0,0,0  # character 1
-      0,0,1,1,1,0,0,0,0,0  # character 2
+    # B,A,C,D,E,-,-,-,-,-  
+      2,1,4,0,0,0,0,0,0,0  # node-to-root distance
+      5,5,3,3,7,0,0,0,0,0  # tip edge length
+      1,1,3,0,0,0,0,0,0,0  # node edge length
+      1,0,1,1,0,0,0,0,0,0  # character 1
+      1,1,0,0,1,0,0,0,0,0  # character 2
+
+By default, all branch length-related entries are rescaled from 0 to 1 as proportion
+to tree height (formatted to ease reading):
+
+.. code-block:: shell
+
+    #    B,   A,   C,   D,   E,-,-,-,-,-  
+      0.29,0.14,0.57,0.00,0.00,0,0,0,0,0  # node-to-root distance
+      0.71,0.71,0.43,0.43,1.00,0,0,0,0,0  # tip edge length
+      0.14,0.14,0.43,0.00,0.00,0,0,0,0,0  # node edge length
+         1,   0,   1,   1,   0,0,0,0,0,0  # character 1
+         1,   1,   0,   0,   1,0,0,0,0,0  # character 2
 
 
 Auxiliary data
