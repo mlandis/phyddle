@@ -1462,8 +1462,8 @@ determines if the tree is a ``'serial'`` tree encoded with CBLV+S or an
 ``char_encode`` alter how information is stored into the
 phylogenetic-state tensor.
 
-A simple Python script showing how phyddle encodes phylogenetic trees and data into
-the CBLV+S and CDV+S formats below is available here: https://raw.githubusercontent.com/mlandis/phyddle/refs/heads/main/docs/example/make_cpvs.py.
+A phyddle code data to produce the examples below is available here:
+`link <https://github.com/mlandis/phyddle/blob/main/docs/source/code/cpvs_example>`_.
 
 CBLV+S
 ~~~~~~
