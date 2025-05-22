@@ -83,6 +83,7 @@ Visit the [Discussions](https://github.com/mlandis/phyddle/discussions) page to 
 ## Citation
 If you used phyddle, please cite:
 > MJ Landis, A Thompson. 2025. phyddle: software for exploring phylogenetic models with deep learning. Systematic Biology (in press). doi:10.1093/sysbio/syaf036.<br>
+
 > A Thompson, B Liebeskind, EJ Scully, MJ Landis. 2024. Deep learning and likelihood approaches for viral phylogeography converge on the same answers whether the inference model is right or wrong. Systematic Biology 73:183-206. 
 
 ## Note on code stability
