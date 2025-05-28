@@ -22,8 +22,6 @@ import numpy as np
 import pandas as pd
 from multiprocessing import Pool, set_start_method, cpu_count
 from tqdm import tqdm
-from sklearn.decomposition import PCA
-from sklearn.preprocessing import StandardScaler
 
 # phyddle imports
 from phyddle import utilities as util
@@ -118,6 +116,7 @@ class Formatter:
         self.tensor_format      = str(args['tensor_format'])
         self.param_est          = list(args['param_est'])
         self.param_data         = list(args['param_data'])
+        self.asr_est            = bool(args['asr_est'])
         self.prop_test          = float(args['prop_test'])
         self.log_offset         = float(args['log_offset'])
         self.save_phyenc_csv    = bool(args['save_phyenc_csv'])
@@ -206,10 +205,10 @@ class Formatter:
 
             # clear out object data (improves multiprocessing.Pool speed)
             self.rep_data = None
-            
+
             # working on PCA pre-check
             # self.make_pca()
-            
+
             # done
             found_sim = True
 
@@ -229,9 +228,10 @@ class Formatter:
             util.print_str('▪ Combining and writing empirical data as tensors', verbose)
             self.split_idx = { 'empirical' : np.array(self.rep_idx) }
             self.write_tensor(mode='emp')
-            
+
             # clear out object data (improves multiprocessing.Pool speed)
             self.rep_data = None
+
             
             # done
             found_emp = True
@@ -292,6 +292,7 @@ class Formatter:
                       os.path.exists(f'{dat_dir}/{f}.dat.nex')
             has_tre = os.path.exists(f'{dat_dir}/{f}.tre')
             has_lbl = os.path.exists(f'{dat_dir}/{f}.labels.csv')
+            # ANNA need to add path
             
             # no labels needed for empirical datasets with no param_data
             # print(self.param_data)
@@ -405,6 +406,7 @@ class Formatter:
             files = os.listdir(f'{self.emp_dir}')
             # files = [ f for f in files if f.startswith(self.emp_prefix) ]
         
+        # ANNA ? 
         if self.use_input_dat:
             files = [ f for f in files if '.dat.' in f ]
         elif self.use_input_tree:
@@ -433,7 +435,7 @@ class Formatter:
         num_samples = len(rep_idx)
         
         # shuffle examples
-        np.random.shuffle(rep_idx)
+        # np.random.shuffle(rep_idx)
         
         # split examples
         num_test = int(num_samples * self.prop_test)
@@ -663,6 +665,8 @@ class Formatter:
         aux_fn     = tmp_fn + '.aux_data.csv'
         lbl_fn     = tmp_fn + '.labels.csv'
         par_est_fn = tmp_fn + '.param_est.csv'
+        asr_est_fn = tmp_fn + '.anc_state.csv'
+        node_labels_fn = tmp_fn + '.node_labels.csv'
         
         # check if key files exist
         if not os.path.exists(dat_fn):
@@ -691,6 +695,15 @@ class Formatter:
         expected_char_dim = util.get_num_char_col(self.char_encode,
                                                   self.num_char,
                                                   self.num_states)
+        #  read in ancestral state data
+        if self.asr_est:
+            dat_asr = util.convert_csv_to_array(asr_est_fn, 
+                                                 self.char_encode,
+                                                 self.num_states)
+        else:
+            dat_asr = pd.DataFrame()
+            #ANNA Need to read in number of states, error checking on data dimensions
+
         
         # get tree file
         phy = util.read_tree(tre_fn)
@@ -710,6 +723,11 @@ class Formatter:
                    f' num_char, num_states, and char_encode.')
             util.print_err(msg)
             # program quits
+
+        # ANNA need error message for character data
+
+        # ANNA check internal node information,
+        # ANNA Chek if downsampling or temporarily add error
 
         # prune tree, if needed
         num_taxa_before_prune = len(phy.leaf_nodes())
@@ -750,15 +768,22 @@ class Formatter:
             return
 
         # create compact phylo-state vector, CPV+S = {CBLV+S, CDV+S}
-        cpvs_data = util.encode_cpvs(phy, dat, tree_width=self.tree_width,
+        cpvs_data_all = util.encode_cpvs(phy, dat, dat_asr, tree_width=self.tree_width,
                                      tree_encode_type=self.brlen_encode,
                                      tree_type=self.tree_encode, idx=idx)
+        cpvs_data = cpvs_data_all[0]
+        cpvs_data_asr = cpvs_data_all[1]
+        cpvs_names = cpvs_data_all[2]
 
         # save CPVS
         save_phyenc_csv_ = self.save_phyenc_csv or save_phyenc_csv
         if save_phyenc_csv_ and cpvs_data is not None:
             cpsv_str = util.ndarray_to_flat_str(cpvs_data.flatten()) + '\n'
             util.write_to_file(cpsv_str, cpsv_fn)
+
+        # Encode and save ancestral states
+        if not dat_asr.empty:
+            cpvs_names.to_csv(node_labels_fn, index = False)
 
         # read in labels file
         labels = None
@@ -776,8 +801,14 @@ class Formatter:
                 if k not in param_est.columns:
                     util.print_warn(f"Estimated parameter '{k}' missing in labels. Skipped.")
             
+            if dat_asr.empty:
+                param_est.to_csv(par_est_fn, index=False, float_format=util.PANDAS_FLOAT_FMT_STR)
+            else : 
+                asr_df = pd.DataFrame(cpvs_data_asr).T.add_prefix('asr_')
+                all_est = pd.concat([param_est.T,asr_df.T]).T
+                all_est.to_csv(par_est_fn, index=False, float_format=util.PANDAS_FLOAT_FMT_STR)
+                param_est = all_est
             # save param_est
-            param_est.to_csv(par_est_fn, index=False, float_format=util.PANDAS_FLOAT_FMT_STR)
     
             # set empty param dataframes as None
             if len(param_est.columns) == 0:

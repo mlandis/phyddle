@@ -83,6 +83,7 @@ class Trainer:
         self.num_char           = int(args['num_char'])
         self.num_states         = int(args['num_states'])
         self.tree_width         = int(args['tree_width'])
+        self.asr_est            = bool(args['asr_est'])
         
         # dataset processing
         self.tree_encode        = str(args['tree_encode'])
@@ -115,6 +116,10 @@ class Trainer:
         self.train_dataset      = None     # init with load_input()
         self.val_dataset        = None     # init with load_input()
         self.calib_dataset      = None     # init with load_input()
+
+        if self.asr_est:
+            for i in range(self.tree_width-1):
+                self.param_est["asr_" + str(i)] =  "cat"
         
         # set CPUs
         if self.num_proc <= 0:
@@ -391,6 +396,7 @@ class CnnTrainer(Trainer):
             full_labels         = pd.DataFrame(hdf5_file['labels']).to_numpy()
             hdf5_file.close()
         
+
         # separate labels for categorical param_est targets
         full_labels_num, full_labels_cat = self.separate_labels(full_labels)
         
@@ -489,6 +495,7 @@ class CnnTrainer(Trainer):
         idx_num = list()
         idx_cat = list()
         
+
         for k,v in self.param_est.items():
             if v == 'cat':
                 self.has_label_cat = True

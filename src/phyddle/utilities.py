@@ -166,6 +166,7 @@ def settings_registry():
         'char_encode':         {'step': 'FTE',   'type': str,   'section': 'Format',  'default': 'one_hot',       'help': 'Encoding strategy for character data', 'choices': ['one_hot', 'integer', 'numeric']},
         'param_est':           {'step': 'FTE',   'type': dict,  'section': 'Format',  'default': dict(),          'help': 'Model parameters and variables to estimate'},
         'param_data':          {'step': 'FTE',   'type': dict,  'section': 'Format',  'default': dict(),          'help': 'Model parameters and variables treated as data'},
+        'asr_est':             {'step': 'FTE',   'type': str,   'section': 'Format',  'default': 'F',          'help': 'Infer ancestral states', 'bool': True},
         'char_format':         {'step': 'FTE',   'type': str,   'section': 'Format',  'default': 'nexus',         'help': 'File format for character data', 'choices': ['csv', 'nexus']},
         'tensor_format':       {'step': 'FTEP',  'type': str,   'section': 'Format',  'default': 'hdf5',          'help': 'File format for training example tensors', 'choices': ['csv', 'hdf5']},
         'save_phyenc_csv':     {'step': 'F',     'type': str,   'section': 'Format',  'default': 'F',             'help': 'Save encoded phylogenetic tensor encoding to csv?', 'bool': True},
@@ -687,6 +688,7 @@ def check_args(args):
         print_err("prop_cal must be between 0 and 1", exit=True)
     if args['plot_pca_noise'] < 0.:
         print_err("plot_pca_noise must be >= 0", exit=True)
+       # ANNA error checking
         
     for k in args['param_est'].keys():
         if k in args['param_data']:
@@ -1566,7 +1568,7 @@ END;
     return s
 
 
-def encode_cpvs(phy, dat, tree_width, tree_type,
+def encode_cpvs(phy, dat, dat_asr, tree_width, tree_type,
                 tree_encode_type, idx, rescale=True):
     """
     Encode Compact Phylogenetic Vector + States (CPV+S) array
@@ -1592,7 +1594,11 @@ def encode_cpvs(phy, dat, tree_width, tree_type,
     # taxon labels must match for each phy and dat replicate
     phy_labels = set([ n.taxon.label for n in phy.leaf_nodes() ])
     dat_labels = set( dat.columns.to_list()[1:] )   # skip first element 'taxa'
+
+    if not dat_asr.empty:
+        dat_asr_labels = set( dat.columns.to_list()[1:] )   # skip first element 'taxa'
     phy_missing = phy_labels.difference(dat_labels)
+
 
     if len(phy_missing) != 0:
         phy_missing = sorted(list(phy_missing))
@@ -1601,18 +1607,19 @@ def encode_cpvs(phy, dat, tree_width, tree_type,
         raise ValueError(err_msg)
 
     cpvs = None
+    # ANNA need to do for both of these
     if tree_type == 'serial':
-        cpvs = encode_cblvs(phy, dat, tree_width,
+        cpvs = encode_cblvs(phy, dat, dat_asr, tree_width,
                             tree_encode_type, rescale)
     elif tree_type == 'extant':
-        cpvs = encode_cdvs(phy, dat, tree_width,
+        cpvs = encode_cdvs(phy, dat, dat_asr, tree_width,
                            tree_encode_type, rescale)
     else:
         ValueError(f'Unrecognized {tree_type}')
 
     return cpvs
 
-def encode_cdvs(phy, dat, tree_width, tree_encode_type, rescale=True):
+def encode_cdvs(phy, dat, dat_asr, tree_width, tree_encode_type, rescale=True):
     """
     Encode Compact Diversity-reordered Vector + States (CDV+S) array
 
@@ -1648,7 +1655,19 @@ def encode_cdvs(phy, dat, tree_width, tree_encode_type, rescale=True):
     phy.calc_node_root_distances(return_leaf_distances_only=False)
     heights    = np.zeros( (tree_width, num_tree_col) )
     states     = np.zeros( (tree_width, num_char_col) )
+
+    # ANNA need to have a different number of characters
+    if not dat_asr.empty :
+        anc_states     = np.zeros( (tree_width-1, num_char_col) )
+        anc_names = pd.DataFrame(columns=['original', 'new'])
+
+        #anc_names = pd.DataFrame().reindex(index=range(phy.__len__()- 1), columns=range(2)) 
+    else : 
+        anc_states = np.empty((0))
+        anc_names = pd.DataFrame()
+
     state_idx  = 0
+    anc_state_idx  = 0
     height_idx = 0
 
     # postorder traversal to rotate nodes by clade-length
@@ -1677,16 +1696,22 @@ def encode_cdvs(phy, dat, tree_width, tree_encode_type, rescale=True):
             if tree_encode_type == 'height_brlen':
                 heights[height_idx,2] = nd.edge.length
             height_idx += 1
+            if not dat_asr.empty: 
+                anc_states[anc_state_idx,:]   = dat_asr[nd.label].to_list()
+                anc_names.loc[anc_state_idx,'original'] = nd.label
+                anc_names.loc[anc_state_idx,'new'] = str(anc_state_idx)
+                anc_state_idx += 1
+
 
     # stack the phylo and states tensors
     if rescale:
         heights = heights / np.max(heights)
     phylo_tensor = np.hstack( [heights, states] )
 
-    return phylo_tensor
+    return phylo_tensor, anc_states, anc_names
 
 
-def encode_cblvs(phy, dat, tree_width, tree_encode_type, rescale=True):
+def encode_cblvs(phy, dat, dat_asr, tree_width, tree_encode_type, rescale=True):
     """
     Encode Compact Bijective Ladderized Vector + States (CBLV+S) array
 
@@ -1754,6 +1779,7 @@ def encode_cblvs(phy, dat, tree_width, tree_encode_type, rescale=True):
                 heights[height_idx+1,3] = nd.edge.length
             last_int_node = nd
             height_idx += 1
+        # ANNA need to add ancestral states
 
     # stack the phylo and states tensors
     if rescale:

@@ -111,12 +111,16 @@ class Plotter:
         self.plot_num_emp = int(args['plot_num_emp'])
         self.plot_pca_noise = float(args['plot_pca_noise'])
 
+        self.asr_est            = bool(args['asr_est'])
+
         # phy data dimension
         self.tree_width = int(args['tree_width'])
         self.brlen_encode = str(args['brlen_encode'])
         self.tree_encode = str(args['tree_encode'])
         self.num_tree_col = util.get_num_tree_col(self.tree_encode,
                                                   self.brlen_encode)
+
+
 
         # prefixes
         fmt_proj_prefix = f'{self.fmt_dir}/{self.fmt_prefix}'
@@ -182,6 +186,10 @@ class Plotter:
         self.save_report_fn = f'{plt_proj_prefix}.summary.csv'
 
         # cat vs. real parameter names
+        if self.asr_est:
+            for i in range(self.tree_width-1):
+                self.param_est["asr_" + str(i)] =  "cat"
+
         self.param_name_num = [k for k, v in self.param_est.items() if
                                v == 'num']
         self.param_name_cat = [k for k, v in self.param_est.items() if
@@ -569,7 +577,7 @@ class Plotter:
         # loop over cat. parameters
         for p in self.param_name_cat:
             # get true/est values
-            est_cats_p = [x for x in ests.columns if p in x]
+            est_cats_p = [x for x in ests.columns if (p + "_") in x]
             lbls_p = labels[p].copy()
             ests_p = ests[est_cats_p].copy()
 
@@ -790,15 +798,19 @@ class Plotter:
                 # input data
                 p = col_names[i]
                 x = sorted(dist_values[p])
-                if np.var(x) == 0.0:
-                    x = sp.stats.norm.rvs(size=len(x), loc=x, scale=x[0] * 1e-3)
+
+                #if np.var(x) == 0.0:
+                #   x = sp.stats.norm.rvs(size=len(x), loc=x, scale=abs(x[0]) * 1e-3)
     
                 mn = np.min(x)
                 mx = np.max(x)
-                xs = np.linspace(mn, mx, 300)
+                if mn == mx: 
+                    xs = np.linspace(mn- mn*.01, mx + mx * .01, 300)
+                else:
+                    xs = np.linspace(mn, mx, 300)
 
-                kde = sp.stats.gaussian_kde(x)
-                ys = kde.pdf(xs)
+                #kde = sp.stats.gaussian_kde(x)
+                #ys = kde.pdf(xs)
                 # ax.plot(xs, ys, label="PDF", color=color)
 
                 p_point = p

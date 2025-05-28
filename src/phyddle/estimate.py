@@ -88,6 +88,9 @@ class Estimator:
         self.param_est          = dict(args['param_est'])
         self.log_offset         = float(args['log_offset'])
         self.use_cuda           = bool(args['use_cuda'])
+
+        self.asr_est            = bool(args['asr_est'])
+        self.tree_width         = int(args['tree_width'])
         
         # error checking
         self.warn_aux_outlier   = float(args['warn_aux_outlier'])
@@ -114,6 +117,10 @@ class Estimator:
         self.TORCH_DEVICE = torch.device(self.TORCH_DEVICE_STR)
 
         # cat vs. real parameter names
+        if self.asr_est:
+            for i in range(self.tree_width-1):
+                self.param_est["asr_" + str(i)] =  "cat"
+
         self.label_num_names = [ k for k,v in self.param_est.items() if v == 'num' ]
         self.label_cat_names = [ k for k,v in self.param_est.items() if v == 'cat' ]
         self.has_label_num = len(self.label_num_names) > 0
@@ -454,6 +461,7 @@ class Estimator:
         labels_est_num = label_est[0:3]
         labels_est_cat = label_est[3]
 
+#ANNA
         # force categorical dimensionality (had problems for categ)
         for k,v in labels_est_cat.items():
             labels_est_cat[k] = torch.reshape(input=labels_est_cat[k],
@@ -508,11 +516,12 @@ class Estimator:
             self.est_aux_data_raw = util.denormalize(self.aux_data,
                                                      self.train_aux_data_mean_sd,
                                                      exp=False)
+            #ANNA
             if self.has_label_num:
                 self.est_labels_num_raw = util.denormalize(labels_est_num,
                                                           self.train_labels_num_mean_sd,
                                                           exp=False)[0,:,:]
-        
+
         # done
         return
     
