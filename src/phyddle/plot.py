@@ -790,17 +790,17 @@ class Plotter:
                 # input data
                 p = col_names[i]
                 x = sorted(dist_values[p])
-                if np.var(x) == 0.0:
-                    x = sp.stats.norm.rvs(size=len(x), loc=x, scale=x[0] * 1e-3)
-                if np.var(x) == 0.0:
-                    x = sp.stats.norm.rvs(size=len(x), loc=x, scale=1e-9)
+                # if np.var(x) == 0.0:
+                #     x = sp.stats.norm.rvs(size=len(x), loc=x, scale=x[0] * 1e-3)
+                # if np.var(x) == 0.0:
+                #     x = sp.stats.norm.rvs(size=len(x), loc=x, scale=1e-9)
                 
                 mn = np.min(x)
                 mx = np.max(x)
-                xs = np.linspace(mn, mx, 300)
+                # xs = np.linspace(mn, mx, 300)
 
-                kde = sp.stats.gaussian_kde(x)
-                ys = kde.pdf(xs)
+                # kde = sp.stats.gaussian_kde(x)
+                # ys = kde.pdf(xs)
                 # ax.plot(xs, ys, label="PDF", color=color)
 
                 p_point = p
