@@ -792,7 +792,9 @@ class Plotter:
                 x = sorted(dist_values[p])
                 if np.var(x) == 0.0:
                     x = sp.stats.norm.rvs(size=len(x), loc=x, scale=x[0] * 1e-3)
-    
+                if np.var(x) == 0.0:
+                    x = sp.stats.norm.rvs(size=len(x), loc=x, scale=1e-9)
+                
                 mn = np.min(x)
                 mx = np.max(x)
                 xs = np.linspace(mn, mx, 300)
