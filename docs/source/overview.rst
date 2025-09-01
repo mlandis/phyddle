@@ -643,7 +643,8 @@ will be provided runtime arguments (``args```) to generate filenames and to
 determine how many simulated datasets will be generated when the script is run
 (more details in next paragraph). Third, output for the Newick string is stored
 into a ``.tre`` file, for the character matrix data into a ``.dat.csv`` file,
-and for the training labels into a comma-separated ``.csv`` file.
+and for the training labels into a comma-separated ``.csv`` file. Visit
+:ref:`fmt_input_files` to learn more about input format requirements.
 
 Now that we understand the script, we need to configure phyddle to call it
 properly. This is done by setting the ``sim_command`` argument equal to a
@@ -707,9 +708,11 @@ tensors and one output tensor:
   the compact diversity-reordered vector (**CDV**) format of
   Lambert et al. (2022) that incorporates tip states (**CBLV+S** and **CDV+S**)
   using the technique described in Thompson et al. (2022).
+  Visit :ref:`Tensor_formats` to learn more.
 - The second input is the **auxiliary data tensor**. This tensor contains
   summary statistics for the phylogeny and character data matrix and "known"
-  parameters for the data generating process.
+  parameters for the data generating process. Visit :ref:`Aux_data` to learn
+  more.
 - The output tensor reports **labels** that are generally unknown data
   generating parameters to be estimated using the neural network. Depending on
   the estimation task, all or only some model parameters might be treated as
@@ -1180,6 +1183,8 @@ Each tree file contains a simple Newick string. Each data file contains state
 data either in Nexus format (`.dat.nex`) or simple comma-separated value format
 (`.dat.csv`) depending on the setting for ``char_format``.
 
+Visit the :ref:`fmt_input_files` section to learn about the exact format for these files.
+
 ``format``
 ^^^^^^^^^^
 
@@ -1222,6 +1227,8 @@ set of ordered examples across three internal datasets stored in the file. HDF5
 format is not as easily readable as CSV format. However, phyddle uses gzip
 to automatically (de)compress records, which often leads to files that are
 over twenty times smaller than equivalent uncompressed CSV formatted tensors.
+
+Visit :ref:`Tensor_Formats` and :ref:`Aux_data` sections to learn more about how these data are formatted.
 
 
 ``train``
@@ -1409,6 +1416,7 @@ example:
 .. code-block:: shell
 
     $ cat ./simulate/out.0.dat.nex
+    taxa,char1,char2,char3
     1,0,0,1
     2,0,1,0
     3,1,0,0
@@ -1418,6 +1426,10 @@ example:
     7,1,0,0
     8,0,1,0
 
+This would represent a character matrix with 8 taxa and 3 characters with 2 states
+per character. phyddle will warn the user if there is a mismatch between the
+number of characters and states present in the character matrix and the numbers
+specified in the config file.
 
 Some models will accept "known" data-generating parameters as input. For example,
 if not all taxa were included in the phylogeny, a model might accept a sampling
@@ -1461,6 +1473,9 @@ determines if the tree is a ``'serial'`` tree encoded with CBLV+S or an
 ``'extant'`` tree encoded with CDV+S. Setting ``brlen_encode`` and
 ``char_encode`` alter how information is stored into the
 phylogenetic-state tensor.
+
+A phyddle code data to produce the examples below is available here:
+`link <https://github.com/mlandis/phyddle/blob/main/docs/source/code/cpvs_example>`_.
 
 CBLV+S
 ~~~~~~
@@ -1533,7 +1548,7 @@ and like this when ``brlen_encode`` is set to ``'height_brlen'``:
       1,1,0,1,0,0,0,0,0,0  # character 1
       0,0,1,1,1,0,0,0,0,0  # character 2
 
-By default, all branch length entries are rescaled from 0 to 1 as proportion
+By default, all branch length-related entries are rescaled from 0 to 1 as proportion
 to tree height (formatted to ease reading):
 
 .. code-block:: shell
@@ -1578,44 +1593,58 @@ yields the following CDV+S tensor:
     #       meaning rows correspond to taxa, and columns correspond to branch
     #       length information.
 
-    # C,D,A,B,E,-,-,-,-,-  
-      0,4,1,2,0,0,0,0,0,0  # node-to-root distance
-      3,2,2,1,2,0,0,0,0,0  # tip edge length
-      0,3,1,1,0,0,0,0,0,0  # node edge length
-      1,1,0,1,0,0,0,0,0,0  # character 1
-      0,0,1,1,1,0,0,0,0,0  # character 2
+    # B,A,C,D,E,-,-,-,-,-  
+      2,1,4,0,0,0,0,0,0,0  # node-to-root distance
+      5,5,3,3,7,0,0,0,0,0  # tip edge length
+      1,1,3,0,0,0,0,0,0,0  # node edge length
+      1,0,1,1,0,0,0,0,0,0  # character 1
+      1,1,0,0,1,0,0,0,0,0  # character 2
 
+By default, all branch length-related entries are rescaled from 0 to 1 as proportion
+to tree height (formatted to ease reading):
+
+.. code-block:: shell
+
+    #    B,   A,   C,   D,   E,-,-,-,-,-  
+      0.29,0.14,0.57,0.00,0.00,0,0,0,0,0  # node-to-root distance
+      0.71,0.71,0.43,0.43,1.00,0,0,0,0,0  # tip edge length
+      0.14,0.14,0.43,0.00,0.00,0,0,0,0,0  # node edge length
+         1,   0,   1,   1,   0,0,0,0,0,0  # character 1
+         1,   1,   0,   0,   1,0,0,0,0,0  # character 2
+
+
+.. _Aux_Data:
 
 Auxiliary data
 ^^^^^^^^^^^^^^
 
 The auxiliary data tensor contains a panel of summary statistics extracted
-from the inputted phylogeny and character data matrix for a given dataset.
+from the inputted phylogeny and character data matrix for a given dataset:
 Currently, phyddle generates the following summary statistics:
 
 .. code-block::
 
-    tree_length       # sum of branch lengths
-    num_taxa          # number of terminal taxa in tree/data
-    root_age          # longest root-to-tip distance
-    brlen_mean        # mean of branch lengths
-    brlen_var         # variance of branch lengths
-    brlen_skew        # skewness of branch lengths
-    age_mean          # mean of internal node ages
-    age_var           # variance of internal node ages
-    age_skew          # skewness of internal node ages
-    B1                # B1 tree measure (Dendropy)
-    N_bar             # N_bar tree measure (Dendropy)
-    colless           # Colless tree measure (Dendropy)
-    treeness          # treeness measure (Dendropy)
-    f_dat_0           # frequency of taxa with character in state 0
-    f_dat_1           # frequency of taxa with character in state 1
+    log10_tree_length       # sum of branch lengths
+    log10_root_age          # longest root-to-tip distance
+    log10_brlen_mean        # mean of branch lengths
+    log10_age_mean          # mean of internal node ages
+    age_var                 # variance of internal node ages
+    brlen_var               # variance of branch lengths
+    log10_B1                # B1 tree measure (Dendropy)
+    colless                 # Colless tree measure (Dendropy)
+    treeness                # treeness measure (Dendropy)
+    N_bar                   # N_bar tree measure (Dendropy)
+    f_dat_0                 # frequency of taxa with character in state 0
+    f_dat_1                 # frequency of taxa with character in state 1
+    n_dat_0                 # count of taxa with character in state 0
+    n_dat_1                 # count of taxa with character in state 0
+    num_taxa                # number of terminal taxa in tree/data
+    prop_taxa               # proportion of taxa retained after downsampling to tree_width
     ...
 
 
-
-The auxiliary data tensor also contains any parameter values that shape the
-data-generating process, but can be treated as "known" rather than needing to
+The auxiliary data tensor can also contain specified parameter values that shape the
+data-generating process and can be treated as "known" rather than needing to
 be estimated. For example, the epidemiologists may assume they know the rate of
 infection recovery (gamma) based on public health or clinical data. Parameters
 may be treated as data by providing the labels for those parameters in the
