@@ -111,8 +111,13 @@ test,est,label,mape,log10_state_rate,1.835695635514e-01
 test,est,label,coverage,log10_state_rate,7.000000000000e-01
 test,est,label,mean_CI_width,log10_state_rate,5.659858044431e-01
 test,est,label,mean_rel_CI_width,log10_state_rate,-3.962352953484e-01
+<<<<<<< HEAD
 train,true,aux_data,mean,log10_tree_length,3.078753948212e+00
 train,true,aux_data,var,log10_tree_length,2.166950255632e-01
+=======
+train,true,aux_data,mean,log10_tree_length,3.061413288116e+00
+train,true,aux_data,var,log10_tree_length,2.261621654034e-01
+>>>>>>> f8a4ddb (refresh files)
 train,true,aux_data,lower95,log10_tree_length,1.907805776596e+00
 train,true,aux_data,upper95,log10_tree_length,3.706327319145e+00
 train,true,aux_data,mean,log10_root_age,1.225079655647e+00
