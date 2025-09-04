@@ -53,23 +53,25 @@ References
 
 EE Goldberg, LT Lancaster, RH Ree. 2011. Phylogenetic inference of reciprocal
 effects between geographic range evolution and diversification. Syst
-Biol 60:451-465. doi: https://doi.org/10.1093/sysbio/syr046
+Biol 60:451-465.
+doi: https://doi.org/10.1093/sysbio/syr046
 
 S Lambert, J Voznica, H Morlon. 2022. Deep learning from phylogenies for
-diversification analyses. bioRxiv. 2022.09.27.509667.
-doi: https://doi.org/10.1101/2022.09.27.509667 
+diversification analyses. Syst Biol 72:1262–1279.
+doi: https://doi.org/10.1093/sysbio/syad044
 
 MJ Landis, A Thompson. 2024. phyddle: software for phylogenetic model
-exploration with deep learning. bioRxiv 2024.08.06.606717.
+exploration with deep learning. Syst Biol (in press).
+doi: https://doi.org/10.1093/sysbio/syaf036
 
 Y Romano, E Patterson, E Candes. Conformalized quantile regression.
 Adv NIPS, 32, 2019.
 doi: https://doi.org/10.1101/2024.08.06.606717
 
-A Thompson, B Liebeskind, EJ Scully, MJ Landis. 2023. Deep learning approaches
+A Thompson, B Liebeskind, EJ Scully, MJ Landis. 2024. Deep learning approaches
 to viral phylogeography are fast and as robust as likelihood methods
-to model misspecification. bioRxiv 2023.02.08.527714.
-doi: https://doi.org/10.1101/2023.02.08.527714 
+to model misspecification. Syst Biol 73:183-206.
+doi: https://doi.org/10.1093/sysbio/syad074
 
 TG Vaughan, AJ Drummond. 2013. A stochastic simulator of birth–death
 master equations with application to phylodynamics. Mol Biol Evol 30:1480–1493.
@@ -88,7 +90,7 @@ About
 
 Thanks for your interest in phyddle. The phyddle project emerged from a
 phylogenetic deep learning study led by Ammon Thompson
-(`paper <https://www.biorxiv.org/content/10.1101/2023.02.08.527714v2>`_).
+(`paper <https://doi.org/10.1093/sysbio/syad074>`_).
 The goal of phyddle is to provide its users with a generalizable pipeline
 workflow for phylogenetic modeling and deep learning. This hopefully will make
 it easier for phylogenetic model enthusiasts and developers to explore and
