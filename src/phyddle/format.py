@@ -22,6 +22,8 @@ import numpy as np
 import pandas as pd
 from multiprocessing import Pool, set_start_method, cpu_count
 from tqdm import tqdm
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
 
 # phyddle imports
 from phyddle import utilities as util
@@ -201,6 +203,12 @@ class Formatter:
             # write tensors across all examples to file
             util.print_str('▪ Combining and writing simulated data as tensors', verbose)
             self.write_tensor(mode='sim')
+
+            # clear out object data (improves multiprocessing.Pool speed)
+            self.rep_data = None
+            
+            # working on PCA pre-check
+            # self.make_pca()
             
             # done
             found_sim = True
@@ -221,6 +229,9 @@ class Formatter:
             util.print_str('▪ Combining and writing empirical data as tensors', verbose)
             self.split_idx = { 'empirical' : np.array(self.rep_idx) }
             self.write_tensor(mode='emp')
+            
+            # clear out object data (improves multiprocessing.Pool speed)
+            self.rep_data = None
             
             # done
             found_emp = True
@@ -422,7 +433,7 @@ class Formatter:
         num_samples = len(rep_idx)
         
         # shuffle examples
-        # np.random.shuffle(rep_idx)
+        np.random.shuffle(rep_idx)
         
         # split examples
         num_test = int(num_samples * self.prop_test)
@@ -1112,4 +1123,123 @@ class Formatter:
     # 
     #     return phylo_tensor
 
+    def make_pca(self):
+        """
+        Make PCA of simulated dataset.
+        """
+
+        # load data
+        self.sim_data = self.load_data(mode='sim')
+        # emp_data = self.load_data(mode='emp')
+        
+        # for each dataset type
+        self.scaler = {}
+        self.pca = {}
+        for s in ['phy_data', 'aux_data', 'labels']:
+            
+            # data
+            sim_dat = self.sim_data[s]
+            # emp_dat = emp_data[s]
+            
+            # scaler
+            self.scaler[s] = StandardScaler()
+            sim_scaler = self.scaler[s].fit_transform(sim_dat)
+            # emp_scaler = scaler[s].transform(emp_dat)
+
+            # pca
+            num_comp = min(sim_dat.shape)
+            # print(sim_dat.shape)
+            # print(sim_scaler)
+            self.pca[s] = PCA(n_components=num_comp, whiten=True)
+            sim_pca = self.pca[s].fit_transform(sim_dat)
+            # emp_pca = pca[s].transform(emp_dat)
+        
+        return
+    
+    def check_pca(self, mode):
+        # load data
+        self.emp_data = self.load_data(mode='emp')
+
+        # for each dataset type
+        self.scaler = {}
+        self.pca = {}
+        for s in ['phy_data', 'aux_data', 'labels']:
+
+            # data
+            sim_dat = self.sim_data[s]
+            emp_dat = self.emp_data[s]
+
+            # scaler
+            self.scaler[s] = StandardScaler()
+            sim_scaler = self.scaler[s].fit_transform(sim_dat)
+            # emp_scaler = scaler[s].transform(emp_dat)
+
+            # pca
+            num_comp = min(sim_dat.shape)
+            self.pca[s] = PCA(n_components=num_comp, whiten=True)
+            sim_pca = self.pca[s].fit_transform(sim_dat)
+            # emp_pca = pca[s].transform(emp_dat)
+
+        return
+
+    def load_data(self, mode):
+        """Load in full dataset for given filename prefix."""
+        # This should probably be put into utilities and reused
+        # in all other steps.
+
+        # initialize variables
+        phy_data = None
+        aux_data = None
+        idx_data = None
+        labels = None
+        label_names = None
+        aux_data_names = None
+
+        # simulated test datasets for csv or hdf5
+        path_prefix = ''
+        if mode == 'sim':
+            path_prefix = f'{self.fmt_dir}/{self.fmt_prefix}.test'
+        elif mode == 'emp':
+            path_prefix = f'{self.fmt_dir}/{self.fmt_prefix}.empirical'
+        phy_data_fn = f'{path_prefix}.phy_data.csv'
+        aux_data_fn = f'{path_prefix}.aux_data.csv'
+        idx_data_fn = f'{path_prefix}.index.csv'
+        labels_fn = f'{path_prefix}.labels.csv'
+        hdf5_fn = f'{path_prefix}.hdf5'
+
+        # read data
+        if self.tensor_format == 'csv':
+            phy_data = pd.read_csv(phy_data_fn, header=None,
+                                   on_bad_lines='skip').to_numpy()
+            aux_data = pd.read_csv(aux_data_fn, header=None,
+                                   on_bad_lines='skip').to_numpy()
+            idx_data = pd.read_csv(idx_data_fn,
+                                   on_bad_lines='skip')
+            labels = pd.read_csv(labels_fn, header=None,
+                                 on_bad_lines='skip').to_numpy()
+            label_names = labels[0,:]
+            labels = labels[1:,:].astype('float64')
+            aux_data = aux_data[1:,:].astype('float64')
+            aux_data_names = aux_data[0,:]
+        elif self.tensor_format == 'hdf5':
+            hdf5_file = h5py.File(hdf5_fn, 'r')
+            phy_data = pd.DataFrame(hdf5_file['phy_data']).to_numpy()
+            aux_data = pd.DataFrame(hdf5_file['aux_data']).to_numpy()
+            idx_data = pd.DataFrame(hdf5_file['idx'], columns=['idx'])
+            labels = pd.DataFrame(hdf5_file['labels']).to_numpy()
+            label_names = [ s.decode() for s in hdf5_file['label_names'][0,:] ]
+            aux_data_names = [ s.decode() for s in hdf5_file['aux_data_names'][0,:] ]
+            hdf5_file.close()
+        
+        ret = {
+            'phy_data': phy_data,
+            'aux_data': aux_data,
+            'idx_data': idx_data,
+            'labels': labels,
+            'label_names': label_names,
+            'aux_data_names': aux_data_names
+        }
+        
+        return ret
+        
 ##################################################

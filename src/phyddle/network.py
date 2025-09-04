@@ -90,6 +90,14 @@ class ParameterEstimationNetwork(nn.Module):
         self.aux_out_size           = list(args['aux_channel'])
         self.lbl_channel            = list(args['lbl_channel'])
         self.activation_func        = args['activation_func']
+        self.use_cuda               = args['use_cuda']
+
+        self.TORCH_DEVICE_STR = (
+            "cuda"
+            if torch.cuda.is_available() and self.use_cuda
+            else "cpu"
+        )
+        self.TORCH_DEVICE = torch.device(self.TORCH_DEVICE_STR)
 
         # define activation function
         self.fwd_func = func.relu
@@ -104,7 +112,7 @@ class ParameterEstimationNetwork(nn.Module):
         elif self.activation_func == 'sigmoid':
             self.fwd_func = func.sigmoid
 
-# standard convolution and pooling layers for CPV+S
+        # standard convolution and pooling layers for CPV+S
         self.phy_std_in_size = [ self.phy_dat_width ] + self.phy_std_out_size[:-1]
         assert len(self.phy_std_out_size) == len(self.phy_std_kernel_size)
 
@@ -277,9 +285,13 @@ class ParameterEstimationNetwork(nn.Module):
                 x_upper = self.fwd_func(self.upper_ffnn[i](x_upper))
             x_upper = self.upper_ffnn[-1](x_upper)
         else:
-            x_point = torch.empty((num_sample,0))
-            x_lower = torch.empty((num_sample,0))
-            x_upper = torch.empty((num_sample,0))
+            # DataParallel and CUDA apparently require that torch.empty structures
+            # that appear inside the training loop are explicitly placed on
+            # the CUDA device
+            # see: https://discuss.pytorch.org/t/assertionerror-gather-function-not-implemented-for-cpu-tensors/142088/2
+            x_point = torch.empty((num_sample,0), device=self.TORCH_DEVICE)
+            x_lower = torch.empty((num_sample,0), device=self.TORCH_DEVICE)
+            x_upper = torch.empty((num_sample,0), device=self.TORCH_DEVICE)
 
         x_categ = dict()
         if self.has_param_cat:

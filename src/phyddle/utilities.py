@@ -1591,7 +1591,27 @@ def encode_cpvs(phy, dat, tree_width, tree_type,
     """
     # taxon labels must match for each phy and dat replicate
     phy_labels = set([ n.taxon.label for n in phy.leaf_nodes() ])
-    dat_labels = set( dat.columns.to_list()[1:] )   # skip first element 'taxa'
+
+    # OLD
+    #dat_labels = set( dat.columns.to_list()[1:] )   # skip first element 'taxa'
+    
+    # For some datasets, the first element in dat.columns is the colum label "taxa".
+    # Check and remove. 
+    if dat.columns.to_list()[0] == "taxa":
+        dat_labels = set(dat.columns.to_list()[1:])
+    else:
+        dat_labels = set(dat.columns.to_list())
+
+# this alternative, more general, approach might be slow for large datasets
+#    try:
+#        int(dat.columns.to_list()[0])
+#        # If no error caught, first element is a taxon label so keep
+#        dat_labels = set(dat.columns.to_list())
+#    except ValueError:
+#        # If conversion fails because first element is "taxa" etc. then remove
+#        dat_labels = set(dat.columns.to_list()[1:])
+
+
     phy_missing = phy_labels.difference(dat_labels)
 
     if len(phy_missing) != 0:

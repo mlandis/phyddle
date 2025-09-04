@@ -1,9 +1,6 @@
 phyddle
 =======
 
-.. note::
-
-	**This beta version of phyddle is still under development.** Feedback is appreciated! michael.landis@wustl.edu
 
 **phyddle** is software for phylogenetic model exploration with deep learning. As a command-line tool and/or as a Python package, phyddle is designed for simulation-based supervised learning to train neural networks for phylogenetic model estimation tasks.
 
@@ -26,6 +23,13 @@ To learn how to use phyddle, we recommend exploring the topics from top-to-botto
 Visit the :ref:`Quick_Start` and :ref:`Installation` pages to get started.
 
 Visit the `GitHub Discussions <https://github.com/mlandis/phyddle/discussions>`_ page to interact with other phyddle users and receive help.
+
+.. admonition:: Please cite
+
+   | **[1]** MJ Landis and A Thompson. 2025. phyddle: software for exploring phylogenetic models with deep learning. *Systematic Biology* (in press).
+   | **[2]** Thompson, B Liebeskind, EJ Scully, MJ Landis. 2024. Deep learning and likelihood approaches for viral phylogeography converge on the same answers whether the inference model is right or wrong. *Systematic Biology* 73:183-206. 
+
+
 
 .. toctree::
     :hidden:
