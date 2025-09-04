@@ -25,6 +25,8 @@ In addition, phyddle is distributed with example scripts to simulate phylogeneti
 To learn how to use phyddle, we recommend exploring the topics from top-to-bottom as listed on the left-hand side of this page.
 Visit the :ref:`Quick_Start` and :ref:`Installation` pages to get started.
 
+Visit the `GitHub Discussions <https://github.com/mlandis/phyddle/discussions>`_ page to interact with other phyddle users and receive help.
+
 .. toctree::
     :hidden:
 
