@@ -166,7 +166,10 @@ def settings_registry():
         'char_encode':         {'step': 'FTE',   'type': str,   'section': 'Format',  'default': 'one_hot',       'help': 'Encoding strategy for character data', 'choices': ['one_hot', 'integer', 'numeric']},
         'param_est':           {'step': 'FTE',   'type': dict,  'section': 'Format',  'default': dict(),          'help': 'Model parameters and variables to estimate'},
         'param_data':          {'step': 'FTE',   'type': dict,  'section': 'Format',  'default': dict(),          'help': 'Model parameters and variables treated as data'},
-        'asr_est':             {'step': 'FTE',   'type': str,   'section': 'Format',  'default': 'F',          'help': 'Infer ancestral states', 'bool': True},
+        'asr_est':             {'step': 'FTE',   'type': str,   'section': 'Format',  'default': 'F',             'help': 'Infer ancestral states', 'bool': True},
+        'asr_one':             {'step': 'FTE',   'type': str,   'section': 'Format',  'default': 'F',             'help': 'Infer ancestral states', 'bool': True},
+        'asr_1_cat':           {'step': 'FTE',   'type': str,   'section': 'Format',  'default': 'F',             'help': 'Infer ancestral states', 'bool': True},
+        'max_asr_est':         {'step': 'FTE',   'type': int,   'section': 'Format',  'default': -1,             'help': 'Infer ancestral states', 'int': -1},
         'char_format':         {'step': 'FTE',   'type': str,   'section': 'Format',  'default': 'nexus',         'help': 'File format for character data', 'choices': ['csv', 'nexus']},
         'tensor_format':       {'step': 'FTEP',  'type': str,   'section': 'Format',  'default': 'hdf5',          'help': 'File format for training example tensors', 'choices': ['csv', 'hdf5']},
         'save_phyenc_csv':     {'step': 'F',     'type': str,   'section': 'Format',  'default': 'F',             'help': 'Save encoded phylogenetic tensor encoding to csv?', 'bool': True},
@@ -1172,6 +1175,8 @@ def write_to_file(s, fn):
 
     f = open(fn, 'w')
     f.write(s)
+    f.flush()
+    os.fsync(f.fileno())
     f.close()
     return
 
@@ -1197,7 +1202,7 @@ def read_tree(tre_fn):
     phy = None
     for schema in ['newick', 'nexus']:
         try:
-            phy_tmp = dp.Tree.get(path=tre_fn, schema=schema)
+            phy_tmp = dp.Tree.get(path=tre_fn, schema=schema, preserve_underscores=True)
         except:
             phy_tmp = None
 
@@ -1568,7 +1573,7 @@ END;
     return s
 
 
-def encode_cpvs(phy, dat, dat_asr, tree_width, tree_type,
+def encode_cpvs(phy, dat, dat_asr, node_name, asr_est, tree_width, tree_type,
                 tree_encode_type, idx, rescale=True):
     """
     Encode Compact Phylogenetic Vector + States (CPV+S) array
@@ -1609,17 +1614,17 @@ def encode_cpvs(phy, dat, dat_asr, tree_width, tree_type,
     cpvs = None
     # ANNA need to do for both of these
     if tree_type == 'serial':
-        cpvs = encode_cblvs(phy, dat, dat_asr, tree_width,
+        cpvs = encode_cblvs(phy, dat, dat_asr, asr_est, tree_width,
                             tree_encode_type, rescale)
     elif tree_type == 'extant':
-        cpvs = encode_cdvs(phy, dat, dat_asr, tree_width,
-                           tree_encode_type, rescale)
+        cpvs = encode_cdvs(phy, dat, dat_asr, node_name, asr_est, tree_width,
+                           tree_encode_type, idx, rescale)
     else:
         ValueError(f'Unrecognized {tree_type}')
 
     return cpvs
 
-def encode_cdvs(phy, dat, dat_asr, tree_width, tree_encode_type, rescale=True):
+def encode_cdvs(phy, dat, dat_asr, node_name, asr_est, tree_width, tree_encode_type, idx, rescale=True):
     """
     Encode Compact Diversity-reordered Vector + States (CDV+S) array
 
@@ -1657,18 +1662,19 @@ def encode_cdvs(phy, dat, dat_asr, tree_width, tree_encode_type, rescale=True):
     states     = np.zeros( (tree_width, num_char_col) )
 
     # ANNA need to have a different number of characters
-    if not dat_asr.empty :
-        anc_states     = np.zeros( (tree_width-1, num_char_col) )
-        anc_names = pd.DataFrame(columns=['original', 'new'])
-
-        #anc_names = pd.DataFrame().reindex(index=range(phy.__len__()- 1), columns=range(2)) 
-    else : 
+    if not dat_asr.empty:
+        anc_states     = np.zeros((tree_width - 1, 1))
+    else: 
         anc_states = np.empty((0))
+    if asr_est: 
+        anc_names = pd.DataFrame(columns=['original', 'new'])
+    else : 
         anc_names = pd.DataFrame()
 
     state_idx  = 0
     anc_state_idx  = 0
     height_idx = 0
+    node_index = -1
 
     # postorder traversal to rotate nodes by clade-length
     for nd in phy.postorder_node_iter():
@@ -1681,9 +1687,17 @@ def encode_cdvs(phy, dat, dat_asr, tree_width, tree_encode_type, rescale=True):
             ch_treelen_rank    = np.argsort( ch_treelen )[::-1]
             children_reordered = [ children[i] for i in ch_treelen_rank ]
             nd.set_children(children_reordered)
+            reorder = 0
+            if children != children_reordered:
+                reorder = 1
+            nd.annotations.add_new(name="reordered", value=reorder)
+
+    name="simulate/sim." + f'{idx}' + ".form.tre"
+    phy.write_to_path(name, schema="newick")
 
     # inorder traversal to fill matrix
     phy.seed_node.edge.length = 0
+    switch = 0
     for nd in phy.inorder_node_iter():
 
         if nd.is_leaf():
@@ -1697,21 +1711,51 @@ def encode_cdvs(phy, dat, dat_asr, tree_width, tree_encode_type, rescale=True):
                 heights[height_idx,2] = nd.edge.length
             height_idx += 1
             if not dat_asr.empty: 
-                anc_states[anc_state_idx,:]   = dat_asr[nd.label].to_list()
+                switch = nd.annotations[0]._value
+                
+                # Check to make sure there are the right number of columns (3 = state, parent1, parent 2) 
+
+                # Figure out what the new label should be 
+                # ANNA: This is right now going to be model specific
+                # Model specific: rotation matters
+                if dat_asr[nd.label][1] > 2:
+                    if dat_asr[nd.label][1] % 2 == 0: 
+                        anc_states[anc_state_idx,:] = dat_asr[nd.label][1] - switch
+                    else:
+                        anc_states[anc_state_idx,:] = dat_asr[nd.label][1] + switch
+                # Model specific: rotation doesn't matters
+                else:
+                    anc_states[anc_state_idx,:] = dat_asr[nd.label].to_list()[0]
+
+    # ANNA something about this doesnt' like node names that are numbers
+    # Here-ish is where you need to change the numbers depending on the daughters
+
+            # ANNA make sure wont crash without this
+            if (node_name != ""):
+                # This may break with a single state? I'm confused
+            #if (node_name != "").any():
+                # node_name is if you are estimating a single node at a time
+                if not dat_asr.empty:
+                    if str(nd.label) == str(node_name[0]):
+                        node_index = anc_state_idx
+                    anc_state_idx += 1
+
+            if asr_est: 
                 anc_names.loc[anc_state_idx,'original'] = nd.label
                 anc_names.loc[anc_state_idx,'new'] = str(anc_state_idx)
+                # This should only get increased once as you either estimate a
+                # single node or all of them, not both together
                 anc_state_idx += 1
-
 
     # stack the phylo and states tensors
     if rescale:
         heights = heights / np.max(heights)
     phylo_tensor = np.hstack( [heights, states] )
 
-    return phylo_tensor, anc_states, anc_names
+    return phylo_tensor, anc_states, anc_names, node_index
 
 
-def encode_cblvs(phy, dat, dat_asr, tree_width, tree_encode_type, rescale=True):
+def encode_cblvs(phy, dat, dat_asr, asr_est, tree_width, tree_encode_type, rescale=True):
     """
     Encode Compact Bijective Ladderized Vector + States (CBLV+S) array
 

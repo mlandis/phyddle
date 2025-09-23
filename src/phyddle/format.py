@@ -117,6 +117,11 @@ class Formatter:
         self.param_est          = list(args['param_est'])
         self.param_data         = list(args['param_data'])
         self.asr_est            = bool(args['asr_est'])
+        self.asr_1_cat          = bool(args['asr_1_cat'])
+        self.asr_one            = bool(args['asr_one'])
+        self.max_asr_est        = int(args['max_asr_est'])
+        if self.max_asr_est == -1: 
+            self.max_asr_est = self.tree_width - 1
         self.prop_test          = float(args['prop_test'])
         self.log_offset         = float(args['log_offset'])
         self.save_phyenc_csv    = bool(args['save_phyenc_csv'])
@@ -295,8 +300,6 @@ class Formatter:
             # ANNA need to add path
             
             # no labels needed for empirical datasets with no param_data
-            # print(self.param_data)
-            # print(mode, len(self.param_data))
             if mode == 'emp' and len(self.param_data) == 0:
                 has_lbl = True
             elif mode == 'emp' and len(self.param_data) > 0 and not has_lbl:
@@ -526,7 +529,6 @@ class Formatter:
         dat_lbl = hdf5_file.create_dataset('labels',
                                            (num_samples, num_par_est),
                                            dtype='f', compression='gzip')
-
         # Each entry is a dictionary of phylo-state, aux. data, and label
         res = [ self.rep_data[idx] for idx in rep_idx ]
         
@@ -695,11 +697,12 @@ class Formatter:
         expected_char_dim = util.get_num_char_col(self.char_encode,
                                                   self.num_char,
                                                   self.num_states)
-        #  read in ancestral state data
-        if self.asr_est:
+
+        #  read in ancestral state data for simulations
+        if self.asr_est and mode == "sim" :
             dat_asr = util.convert_csv_to_array(asr_est_fn, 
-                                                 self.char_encode,
-                                                 self.num_states)
+                                                 self.char_encode)#,
+                                                 #self.num_states)
         else:
             dat_asr = pd.DataFrame()
             #ANNA Need to read in number of states, error checking on data dimensions
@@ -728,6 +731,7 @@ class Formatter:
 
         # ANNA check internal node information,
         # ANNA Chek if downsampling or temporarily add error
+        
 
         # prune tree, if needed
         num_taxa_before_prune = len(phy.leaf_nodes())
@@ -747,6 +751,9 @@ class Formatter:
 
         # get tree size
         num_taxa = len(phy.leaf_nodes())
+        if self.asr_est and num_taxa < num_taxa_orig: 
+            util.print_warn(f'Difficulty processing {tre_fn}.\n')
+            util.print_warn(f"Downsampling not implemented with ancestral state reconstruction")
 
         # tree size error checking
         if num_taxa < num_taxa_before_prune and mode == 'emp' and self.tree_encode == 'extant':
@@ -767,14 +774,53 @@ class Formatter:
             self.logger.write_log('fmt', f'Too few taxa (<{self.min_num_taxa}) for {tre_fn}')
             return
 
+        # read in labels file
+        labels = None
+        if mode == 'sim' or len(self.param_data) > 0:
+            labels = pd.read_csv(lbl_fn, header=0)
+
+        # Find node name- this is for doing one node at a time
+        if self.asr_one: 
+            node_name = labels["asr_node_label"]
+        else: 
+            node_name = ""
+    
+        
         # create compact phylo-state vector, CPV+S = {CBLV+S, CDV+S}
-        cpvs_data_all = util.encode_cpvs(phy, dat, dat_asr, tree_width=self.tree_width,
+        cpvs_data_all = util.encode_cpvs(phy, dat, dat_asr, node_name, self.asr_est, tree_width=self.tree_width, 
                                      tree_encode_type=self.brlen_encode,
                                      tree_type=self.tree_encode, idx=idx)
         cpvs_data = cpvs_data_all[0]
         cpvs_data_asr = cpvs_data_all[1]
         cpvs_names = cpvs_data_all[2]
+        cpvs_node_index = cpvs_data_all[3]
 
+        if self.asr_one: 
+            labels.loc[0, "asr_node_label"] =cpvs_node_index
+
+        asr_1_cat = np.array(-1)
+
+        # ANNA: Model specific
+        if self.asr_1_cat:
+            #for i in range(np.size(cpvs_data_asr.size)):
+            row = cpvs_data_asr[0:3].T
+            if (row == np.array([0,0,0])).all():
+                asr_1_cat = 0
+            elif (row == np.array([0,0,1])).all():
+                asr_1_cat = 1
+            elif (row == np.array([0,1,0])).all():
+                asr_1_cat = 2
+            elif (row == np.array([0,1,1])).all():
+                asr_1_cat = 3
+            elif (row == np.array([1,0,0])).all():
+                asr_1_cat = 4
+            elif (row == np.array([1,0,1])).all():
+                asr_1_cat = 5
+            elif (row == np.array([1,1,0])).all():
+                asr_1_cat = 6
+            elif (row == np.array([1,1,1])).all():
+                asr_1_cat = 7
+            
         # save CPVS
         save_phyenc_csv_ = self.save_phyenc_csv or save_phyenc_csv
         if save_phyenc_csv_ and cpvs_data is not None:
@@ -782,13 +828,9 @@ class Formatter:
             util.write_to_file(cpsv_str, cpsv_fn)
 
         # Encode and save ancestral states
-        if not dat_asr.empty:
+        if (not dat_asr.empty) or (self.asr_est and mode == 'emp' ) :
             cpvs_names.to_csv(node_labels_fn, index = False)
 
-        # read in labels file
-        labels = None
-        if mode == 'sim' or len(self.param_data) > 0:
-            labels = pd.read_csv(lbl_fn, header=0)
             
         # process parameters to estimate
         param_est = pd.DataFrame()
@@ -803,7 +845,13 @@ class Formatter:
             
             if dat_asr.empty:
                 param_est.to_csv(par_est_fn, index=False, float_format=util.PANDAS_FLOAT_FMT_STR)
-            else : 
+            elif self.asr_1_cat: 
+                # ANNA i'm a little confused by what is the value vs the name
+                asr_df = pd.DataFrame([asr_1_cat]).T.add_prefix('asr_')
+                all_est = pd.concat([param_est.T, asr_df.T]).T
+                all_est.to_csv(par_est_fn, index=False, float_format=util.PANDAS_FLOAT_FMT_STR)
+                param_est = all_est
+            else:
                 asr_df = pd.DataFrame(cpvs_data_asr).T.add_prefix('asr_')
                 all_est = pd.concat([param_est.T,asr_df.T]).T
                 all_est.to_csv(par_est_fn, index=False, float_format=util.PANDAS_FLOAT_FMT_STR)

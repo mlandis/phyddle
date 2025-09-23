@@ -84,6 +84,11 @@ class Trainer:
         self.num_states         = int(args['num_states'])
         self.tree_width         = int(args['tree_width'])
         self.asr_est            = bool(args['asr_est'])
+        self.asr_1_cat            = bool(args['asr_1_cat'])
+        self.max_asr_est        = int(args['max_asr_est'])
+        if self.max_asr_est == -1: 
+            self.max_asr_est = self.tree_width - 1
+
         
         # dataset processing
         self.tree_encode        = str(args['tree_encode'])
@@ -118,8 +123,13 @@ class Trainer:
         self.calib_dataset      = None     # init with load_input()
 
         if self.asr_est:
-            for i in range(self.tree_width-1):
-                self.param_est["asr_" + str(i)] =  "cat"
+            if self.asr_1_cat:
+                for i in range(1):
+                    self.param_est["asr_" + str(i)] =  "cat"
+                    #self.param_est["asr_0"] =  "cat"
+            else:
+                for i in range(self.max_asr_est):
+                    self.param_est["asr_" + str(i)] =  "cat"
         
         # set CPUs
         if self.num_proc <= 0:
@@ -494,8 +504,6 @@ class CnnTrainer(Trainer):
 
         idx_num = list()
         idx_cat = list()
-        
-
         for k,v in self.param_est.items():
             if v == 'cat':
                 self.has_label_cat = True
@@ -509,7 +517,6 @@ class CnnTrainer(Trainer):
                 
             elif v == 'num':
                 self.has_label_num = True
-                # print(self.label_names)
                 idx_num.append( self.label_names.index(k) )
                 self.param_num_names.append(k)
         

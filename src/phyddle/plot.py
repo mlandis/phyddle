@@ -111,7 +111,12 @@ class Plotter:
         self.plot_num_emp = int(args['plot_num_emp'])
         self.plot_pca_noise = float(args['plot_pca_noise'])
 
+        self.tree_width         = int(args['tree_width'])
         self.asr_est            = bool(args['asr_est'])
+        self.asr_1_cat            = bool(args['asr_1_cat'])
+        self.max_asr_est        = int(args['max_asr_est'])
+        if self.max_asr_est == -1: 
+            self.max_asr_est = self.tree_width - 1
 
         # phy data dimension
         self.tree_width = int(args['tree_width'])
@@ -187,8 +192,11 @@ class Plotter:
 
         # cat vs. real parameter names
         if self.asr_est:
-            for i in range(self.tree_width-1):
-                self.param_est["asr_" + str(i)] =  "cat"
+            if not self.asr_1_cat:
+                for i in range(self.max_asr_est):
+                    self.param_est["asr_" + str(i)] =  "cat"
+            else: 
+                    self.param_est["asr_0"] =  "cat"
 
         self.param_name_num = [k for k, v in self.param_est.items() if
                                v == 'num']
