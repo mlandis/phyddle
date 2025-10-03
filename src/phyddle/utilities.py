@@ -1740,27 +1740,11 @@ def encode_cdvs(phy, dat, dat_asr, node_name, asr_est, asr_rotate, tree_width, t
                 else:
                     anc_states[anc_state_idx,:] = dat_asr[nd.label].to_list()[0]
 
-                # ANNA: This is right now going to be model specific
-                # Model specific: rotation matters
-                #if dat_asr[nd.label][1] > 2:
-                #    if dat_asr[nd.label][1] % 2 == 0: 
-                #        anc_states[anc_state_idx,:] = dat_asr[nd.label][1] - switch
-                #    else:
-                #        anc_states[anc_state_idx,:] = dat_asr[nd.label][1] + switch
-                ## Model specific: rotation doesn't matters
-                #else:
-                #    anc_states[anc_state_idx,:] = dat_asr[nd.label].to_list()[0]
 
             # ANNA Require node names not be integers
-
-            # ANNA make sure wont crash without this
-            #print(type(node_name))
+            # If there is a node name for the single node ASR
             if (node_name != ""):
-                # This may break with a single state? I'm confused
-            #if (node_name != "").any():
-                # node_name is if you are estimating a single node at a time
                 if dat_asr.empty:
-                #if not dat_asr.empty:
                     if str(nd.label) == node_name:
                         node_index = anc_state_idx
                     anc_state_idx += 1
