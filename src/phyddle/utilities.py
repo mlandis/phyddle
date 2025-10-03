@@ -22,6 +22,7 @@ import re
 import sys
 import time
 import dateutil
+import itertools
 from datetime import datetime
 
 # external packages
@@ -170,6 +171,7 @@ def settings_registry():
         'asr_one':             {'step': 'FTE',   'type': str,   'section': 'Format',  'default': 'F',             'help': 'Infer ancestral states', 'bool': True},
         'asr_1_cat':           {'step': 'FTE',   'type': str,   'section': 'Format',  'default': 'F',             'help': 'Infer ancestral states', 'bool': True},
         'max_asr_est':         {'step': 'FTE',   'type': int,   'section': 'Format',  'default': -1,             'help': 'Infer ancestral states', 'int': -1},
+        'asr_rotate':          {'step': 'FTE',   'type': dict,  'section': 'Format',  'default': dict(),          'help': 'States that are equivalent if daughters are rotated'},
         'char_format':         {'step': 'FTE',   'type': str,   'section': 'Format',  'default': 'nexus',         'help': 'File format for character data', 'choices': ['csv', 'nexus']},
         'tensor_format':       {'step': 'FTEP',  'type': str,   'section': 'Format',  'default': 'hdf5',          'help': 'File format for training example tensors', 'choices': ['csv', 'hdf5']},
         'save_phyenc_csv':     {'step': 'F',     'type': str,   'section': 'Format',  'default': 'F',             'help': 'Save encoded phylogenetic tensor encoding to csv?', 'bool': True},
@@ -1573,7 +1575,7 @@ END;
     return s
 
 
-def encode_cpvs(phy, dat, dat_asr, node_name, asr_est, tree_width, tree_type,
+def encode_cpvs(phy, dat, dat_asr, node_name, asr_est, asr_rotate, tree_width, tree_type,
                 tree_encode_type, idx, rescale=True):
     """
     Encode Compact Phylogenetic Vector + States (CPV+S) array
@@ -1617,14 +1619,14 @@ def encode_cpvs(phy, dat, dat_asr, node_name, asr_est, tree_width, tree_type,
         cpvs = encode_cblvs(phy, dat, dat_asr, asr_est, tree_width,
                             tree_encode_type, rescale)
     elif tree_type == 'extant':
-        cpvs = encode_cdvs(phy, dat, dat_asr, node_name, asr_est, tree_width,
+        cpvs = encode_cdvs(phy, dat, dat_asr, node_name, asr_est, asr_rotate, tree_width,
                            tree_encode_type, idx, rescale)
     else:
         ValueError(f'Unrecognized {tree_type}')
 
     return cpvs
 
-def encode_cdvs(phy, dat, dat_asr, node_name, asr_est, tree_width, tree_encode_type, idx, rescale=True):
+def encode_cdvs(phy, dat, dat_asr, node_name, asr_est, asr_rotate, tree_width, tree_encode_type, idx, rescale=True):
     """
     Encode Compact Diversity-reordered Vector + States (CDV+S) array
 
@@ -1692,14 +1694,30 @@ def encode_cdvs(phy, dat, dat_asr, node_name, asr_est, tree_width, tree_encode_t
                 reorder = 1
             nd.annotations.add_new(name="reordered", value=reorder)
 
+
+   # # Order the tips when both sisters are tips based on the state
+   # for parent in phy.internal_nodes():
+   #     children = parent.child_nodes()
+   #     if children[0].is_leaf() and children[1].is_leaf():
+   #         child0_dat = dat[children[0].taxon.label].to_list()
+   #         child1_dat = dat[children[1].taxon.label].to_list()
+
+   #         # This is list
+   #         if (child0_dat > child1_dat):
+   #             # Rotate the node
+   #             parent.set_child_nodes([children[1], children[0]])
+
+   #             # Keep track of how to change ancestral state
+   #             parent.annotations[0]._value += 1
+   #             parent.annotations[0]._value = parent.annotations[0]._value % 2 
+
     name="simulate/sim." + f'{idx}' + ".form.tre"
     phy.write_to_path(name, schema="newick")
 
     # inorder traversal to fill matrix
     phy.seed_node.edge.length = 0
-    switch = 0
-    for nd in phy.inorder_node_iter():
 
+    for nd in phy.inorder_node_iter():
         if nd.is_leaf():
             if tree_encode_type == 'height_brlen':
                 heights[height_idx,1] = nd.edge.length
@@ -1711,32 +1729,39 @@ def encode_cdvs(phy, dat, dat_asr, node_name, asr_est, tree_width, tree_encode_t
                 heights[height_idx,2] = nd.edge.length
             height_idx += 1
             if not dat_asr.empty: 
+
+                # This equals zero if the nodes are not rotated
                 switch = nd.annotations[0]._value
                 
                 # Check to make sure there are the right number of columns (3 = state, parent1, parent 2) 
-
-                # Figure out what the new label should be 
-                # ANNA: This is right now going to be model specific
-                # Model specific: rotation matters
-                if dat_asr[nd.label][1] > 2:
-                    if dat_asr[nd.label][1] % 2 == 0: 
-                        anc_states[anc_state_idx,:] = dat_asr[nd.label][1] - switch
-                    else:
-                        anc_states[anc_state_idx,:] = dat_asr[nd.label][1] + switch
-                # Model specific: rotation doesn't matters
+                # Change label based on rotation
+                if switch > 0 and dat_asr[nd.label][1] in asr_rotate: 
+                    anc_states[anc_state_idx:] = asr_rotate[dat_asr[nd.label][1]]
                 else:
                     anc_states[anc_state_idx,:] = dat_asr[nd.label].to_list()[0]
 
-    # ANNA something about this doesnt' like node names that are numbers
-    # Here-ish is where you need to change the numbers depending on the daughters
+                # ANNA: This is right now going to be model specific
+                # Model specific: rotation matters
+                #if dat_asr[nd.label][1] > 2:
+                #    if dat_asr[nd.label][1] % 2 == 0: 
+                #        anc_states[anc_state_idx,:] = dat_asr[nd.label][1] - switch
+                #    else:
+                #        anc_states[anc_state_idx,:] = dat_asr[nd.label][1] + switch
+                ## Model specific: rotation doesn't matters
+                #else:
+                #    anc_states[anc_state_idx,:] = dat_asr[nd.label].to_list()[0]
+
+            # ANNA Require node names not be integers
 
             # ANNA make sure wont crash without this
+            #print(type(node_name))
             if (node_name != ""):
                 # This may break with a single state? I'm confused
             #if (node_name != "").any():
                 # node_name is if you are estimating a single node at a time
-                if not dat_asr.empty:
-                    if str(nd.label) == str(node_name[0]):
+                if dat_asr.empty:
+                #if not dat_asr.empty:
+                    if str(nd.label) == node_name:
                         node_index = anc_state_idx
                     anc_state_idx += 1
 
@@ -2448,6 +2473,28 @@ class Logger:
             s += f'{k}\t{v}\n'
 
         return s
+
+def generate_combinations_matrix(elements, m):
+    """
+    Generates a matrix where each row represents a unique combination
+    of 'm' elements chosen from 'elements' with replacement.
+
+    Args:
+        elements (list): A list of distinct elements to choose from.
+        m (int): The length of each combination (number of columns in the matrix).
+
+    Returns:
+        list of lists: A matrix where each sublist is a combination.
+    """
+    if not elements:
+        return []
+
+    # Generate all combinations with replacement
+    all_combinations = list(itertools.product(elements, repeat=m))
+
+    # Convert the combinations into a matrix (list of lists)
+    matrix = [list(combo) for combo in all_combinations]
+    return matrix
 
 ##################################################
 

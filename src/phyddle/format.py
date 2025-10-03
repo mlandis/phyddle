@@ -122,6 +122,7 @@ class Formatter:
         self.max_asr_est        = int(args['max_asr_est'])
         if self.max_asr_est == -1: 
             self.max_asr_est = self.tree_width - 1
+        self.asr_rotate         = dict(args['asr_rotate'])
         self.prop_test          = float(args['prop_test'])
         self.log_offset         = float(args['log_offset'])
         self.save_phyenc_csv    = bool(args['save_phyenc_csv'])
@@ -781,13 +782,13 @@ class Formatter:
 
         # Find node name- this is for doing one node at a time
         if self.asr_one: 
-            node_name = labels["asr_node_label"]
+            node_name = str(labels["asr_node_label"][0])
         else: 
             node_name = ""
     
         
         # create compact phylo-state vector, CPV+S = {CBLV+S, CDV+S}
-        cpvs_data_all = util.encode_cpvs(phy, dat, dat_asr, node_name, self.asr_est, tree_width=self.tree_width, 
+        cpvs_data_all = util.encode_cpvs(phy, dat, dat_asr, node_name, self.asr_est, self.asr_rotate, tree_width=self.tree_width, 
                                      tree_encode_type=self.brlen_encode,
                                      tree_type=self.tree_encode, idx=idx)
         cpvs_data = cpvs_data_all[0]
@@ -796,30 +797,30 @@ class Formatter:
         cpvs_node_index = cpvs_data_all[3]
 
         if self.asr_one: 
-            labels.loc[0, "asr_node_label"] =cpvs_node_index
+            labels.loc[0, "asr_node_label"] = cpvs_node_index
+            labels['asr_node_label'] = labels['asr_node_label'].astype(float)
 
         asr_1_cat = np.array(-1)
 
         # ANNA: Model specific
         if self.asr_1_cat:
-            #for i in range(np.size(cpvs_data_asr.size)):
-            row = cpvs_data_asr[0:3].T
-            if (row == np.array([0,0,0])).all():
-                asr_1_cat = 0
-            elif (row == np.array([0,0,1])).all():
-                asr_1_cat = 1
-            elif (row == np.array([0,1,0])).all():
-                asr_1_cat = 2
-            elif (row == np.array([0,1,1])).all():
-                asr_1_cat = 3
-            elif (row == np.array([1,0,0])).all():
-                asr_1_cat = 4
-            elif (row == np.array([1,0,1])).all():
-                asr_1_cat = 5
-            elif (row == np.array([1,1,0])).all():
-                asr_1_cat = 6
-            elif (row == np.array([1,1,1])).all():
-                asr_1_cat = 7
+            n_anc_state = self.max_num_taxa - 1
+            n_states = pow(self.num_states, 1/n_anc_state)
+
+            if n_states % 1 != 0: 
+                self.logger.write_log('fmt', f'The number of states ({self.num_states}) for inferring asr_1_cat should be equal to the  maximum number of tip{self.max_num_taxa } to the power of the number of possible tip states')
+                raise Exception('The number of states ({num_states}) for inferring asr_1_cat should be equal to the  maximum number of tip{self.max_num_taxa } to the power of the number of possible tip states', )
+                 #raise Exception('error in find_tree_width()', num_taxa, max_taxa)
+                    
+            anc_state_comb = util.generate_combinations_matrix(range(int(n_states)), n_anc_state)
+            
+            for i in range(self.num_states):
+                row = cpvs_data_asr[0:n_anc_state].T
+                if (row == anc_state_comb[i]).all():
+                    asr_1_cat = i
+            if asr_1_cat  == -1:  
+                self.logger.write_log('fmt', f'Problem converting to 1 categorical variable for ancestral states. Check max tree size and number of num_states')
+                    
             
         # save CPVS
         save_phyenc_csv_ = self.save_phyenc_csv or save_phyenc_csv

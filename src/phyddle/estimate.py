@@ -90,7 +90,8 @@ class Estimator:
         self.use_cuda           = bool(args['use_cuda'])
 
         self.asr_est            = bool(args['asr_est'])
-        self.asr_1_cat          = bool(args['asr_one'])
+        self.asr_1_cat          = bool(args['asr_1_cat'])
+        self.asr_one            = bool(args['asr_one'])
         self.tree_width         = int(args['tree_width'])
         self.max_asr_est        = int(args['max_asr_est'])
         if self.max_asr_est == -1: 
@@ -126,7 +127,7 @@ class Estimator:
                 for i in range(self.max_asr_est):
                     self.param_est["asr_" + str(i)] =  "cat"
             else: 
-                    self.param_est["asr_0"] =  "cat"
+                self.param_est["asr_0"] =  "cat"
 
         self.label_num_names = [ k for k,v in self.param_est.items() if v == 'num' ]
         self.label_cat_names = [ k for k,v in self.param_est.items() if v == 'cat' ]
