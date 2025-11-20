@@ -1,0 +1,740 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-KW8RTLPKH4"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-KW8RTLPKH4');
+    </script>
+    
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Appendix &mdash; phyddle 0.3.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/css/custom.css?v=d2c2efc5" />
+
+  
+    <link rel="canonical" href="phyddle.org/appendix.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=e259d695"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Examples" href="examples.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html">
+            
+              <img src="_static/phyddle_logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Appendix</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#glossary">Glossary</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#table-of-settings">Table of Settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#references">References</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#about">About</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#issues-feedback">Issues &amp; Feedback</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">phyddle</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Appendix</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/appendix.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="appendix">
+<span id="id1"></span><h1>Appendix<a class="headerlink" href="#appendix" title="Link to this heading"></a></h1>
+<section id="glossary">
+<h2>Glossary<a class="headerlink" href="#glossary" title="Link to this heading"></a></h2>
+<p>This section defines terms used by phyddle:</p>
+<table class="longtable docutils align-center" style="width: 100%">
+<colgroup>
+<col style="width: 20.0%" />
+<col style="width: 80.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Term</p></th>
+<th class="head"><p>Definition</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><em>accuracy</em></p></td>
+<td><p>How well the neural network predicts the training example labels. Accuracy for categorical data is the frequency that the predicted label matches the true example label.</p></td>
+</tr>
+<tr class="row-odd"><td><p><em>calibration dataset</em></p></td>
+<td><p>Used to calibrate the prediction intervals obtained with conformalized quantile regression to attain desired coverage properties. A subset of examples withheld from the training examples.</p></td>
+</tr>
+<tr class="row-even"><td><p><em>calibration prediction interval (CPI)</em></p></td>
+<td><p>Predicted intervals calibrated to have desired the exact coverage properties (e.g. coverage of p=0.95) by fine-tuning uncalibrated prediction intervals with a dataset of calibration training examples, not used during the training procedure itself. See Romano et al. (2019).</p></td>
+</tr>
+<tr class="row-odd"><td><p><em>compact bijective ladderized vector (CBLV or CBLV+S)</em></p></td>
+<td><p>A compact representation for a phylogenetic tree of serially sampled taxa. CBLV ladderizes the vector elements based on whichever clade contains the taxon with the youngest age, and records 2N elements corresponding to node heights. See Voznica et al. (2022).</p></td>
+</tr>
+<tr class="row-even"><td><p><em>compact diversity-reordered vector (CDV or CDV+S)</em></p></td>
+<td><p>A compact representation for a phylogenetic tree of extant-only taxa. CDV ladderizes the vector elements based on whichever clade contains the greatest clade-length (sum of branch lengths), and records N elements corresponding to internal node heights. See Lambert et al. (2022). Note: the original CDV formulation includes a second row for integer-encoded tip-state data for a single binary character. We have replaced this row with the generalizable +S extension for multiple characters/states as described in Thompson et al. (2022).</p></td>
+</tr>
+<tr class="row-odd"><td><p><em>compact phylogenetic vector (CPV or CPV+S)</em></p></td>
+<td><p>A compact representation for a phylogenetic tree, encoded either using CBLV or CDV criteria. See Voznica et al. (2022) and Lambert et al. (2022). Any CPV may also include states, yielding CPV+S format. See Thompson et al. (2022).</p></td>
+</tr>
+<tr class="row-even"><td><p><em>conformalized quantile regression</em></p></td>
+<td><p>A machine learning technique for estimating the lower and upper bounds of a prediction interval at a given confidence interval (e.g. p=0.95) that contain the true parameter value with frequency p over the entire dataset of training examples. See Romano et al. (2019).</p></td>
+</tr>
+<tr class="row-odd"><td><p><em>convolutional neural network (CNN)</em></p></td>
+<td><p>A neural network with multiple layers designed to summarize spatial information in the data patterns using convolution and pooling transformations. CNNs are specialized for extracting information from translation invariant data patterns, such as images or [in our case] phylogenetic state tensors.</p></td>
+</tr>
+<tr class="row-even"><td><p><em>coverage</em></p></td>
+<td><p>The coverage interval for a new dataset will contain the true parameter value with a given probability (e.g. p=0.95). Assumes relevant datasets were generated under the assumed model.</p></td>
+</tr>
+<tr class="row-odd"><td><p><em>epoch</em></p></td>
+<td><p>One training interval for minimizing the loss function. An epoch may contain multiple smaller steps, including stochastic batch sampling.</p></td>
+</tr>
+<tr class="row-even"><td><p><em>feed forward neural network (FFNN)</em></p></td>
+<td><p>A neural network with multiple layers designed to extract information from highly structured data, such as numbers in a data table or [in our case] summary statistics.</p></td>
+</tr>
+<tr class="row-odd"><td><p><em>integer encoding</em></p></td>
+<td><p>Representing the value of a K-state categorical variable with a single integer. This representation requires little space but implies an ordering among categories.</p></td>
+</tr>
+<tr class="row-even"><td><p><em>label</em></p></td>
+<td><p>A value to be predicted from a dataset patten by a neural network. Labels may be training examples in the <a class="reference internal" href="overview.html#train"><span class="std std-ref">Train</span></a> step or they may be estimated quantities in the <a class="reference internal" href="overview.html#estimate"><span class="std std-ref">Estimate</span></a> step.</p></td>
+</tr>
+<tr class="row-odd"><td><p><em>loss function</em></p></td>
+<td><p>The function that computes the average distance between the actual label and predicted label values in a training example. Mean squared error (MSE) and mean absolute error (MAE) are commonly used.</p></td>
+</tr>
+<tr class="row-even"><td><p><em>loss</em></p></td>
+<td><p>The value being minimized during training, computed with the loss function.</p></td>
+</tr>
+<tr class="row-odd"><td><p><em>mean absolute error</em></p></td>
+<td><p>The mean over all absolute errors between each training example label and the predicted label from the network.</p></td>
+</tr>
+<tr class="row-even"><td><p><em>mean squared error</em></p></td>
+<td><p>The mean over all squared errors between each training example label and the predicted label from the network.</p></td>
+</tr>
+<tr class="row-odd"><td><p><em>neural network</em></p></td>
+<td><p>A graphical model composed of extremely large numbers of nodes and vertices with a predictable structure. The structure generally involves a series of layers with dense connectivity between nodes from adjacent layers and no connectivity with nodes in the same layer or non-adjacent layers.</p></td>
+</tr>
+<tr class="row-even"><td><p><em>one-hot encoding</em></p></td>
+<td><p>Representing the value of a K-state categorical variable with K binary values, where only a single one-hot variable marked as 1 while all other one-hot variables are marked as 0. This representation requires more space but eliminates and ordering among categories.</p></td>
+</tr>
+<tr class="row-odd"><td><p><em>overtraining</em></p></td>
+<td><p>When the neural network prediction accuracy continues to increase for the training dataset while seeing no improvement in accuracy for the the validation and/or test datasets.</p></td>
+</tr>
+<tr class="row-even"><td><p><em>phylogenetic model</em></p></td>
+<td><p>A stochastic model that defines a set of evolutionary events and rates that can generate (1) a phylogeny, (2) character data, or (3) both (1) and (2).</p></td>
+</tr>
+<tr class="row-odd"><td><p><em>phylogenetic-state tensor</em></p></td>
+<td><p>The tensor containing all compact phylogenetic vector + states data.</p></td>
+</tr>
+<tr class="row-even"><td><p><em>project</em></p></td>
+<td><p>Directories sharing information across pipeline stages for a single phyddle analysis.</p></td>
+</tr>
+<tr class="row-odd"><td><p><em>simulated replicate</em></p></td>
+<td><p>The dataset generated from a single run of a simulator.</p></td>
+</tr>
+<tr class="row-even"><td><p><em>simulator</em></p></td>
+<td><p>A program that can generate new datasets under a fully specified model.</p></td>
+</tr>
+<tr class="row-odd"><td><p><em>step</em></p></td>
+<td><p>A major set of tasks for a phyddle pipeline analysis. The steps are: <a class="reference internal" href="overview.html#simulate"><span class="std std-ref">Simulate</span></a>, <a class="reference internal" href="overview.html#format"><span class="std std-ref">Format</span></a>, <a class="reference internal" href="overview.html#train"><span class="std std-ref">Train</span></a>, <a class="reference internal" href="overview.html#estimate"><span class="std std-ref">Estimate</span></a>, and <a class="reference internal" href="overview.html#plot"><span class="std std-ref">Plot</span></a>.</p></td>
+</tr>
+<tr class="row-even"><td><p><em>supervised learning</em></p></td>
+<td><p>A method for training a neural network by providing it training examples for how label values are correlated with data values.</p></td>
+</tr>
+<tr class="row-odd"><td><p><em>test dataset</em></p></td>
+<td><p>Used to test network prediction accuracy. A subset of examples withheld from the training examples.</p></td>
+</tr>
+<tr class="row-even"><td><p><em>training dataset</em></p></td>
+<td><p>Used to train the network. Includes all remaining training examples that were not used for test, validation, or calibration datasets, and is usually much larger than the other three datasets.</p></td>
+</tr>
+<tr class="row-odd"><td><p><em>training examples</em></p></td>
+<td><p>The collected examples of data patterns and corresponding labels used to train the network for its prediction task.</p></td>
+</tr>
+<tr class="row-even"><td><p><em>training</em></p></td>
+<td><p>Minimizing the loss function for a given neural network and training dataset.</p></td>
+</tr>
+<tr class="row-odd"><td><p><em>tree width</em></p></td>
+<td><p>The number of columns in a phylogenetic-state tensor.</p></td>
+</tr>
+<tr class="row-even"><td><p><em>undertraining</em></p></td>
+<td><p>When the neural network prediction accuracy can be improved for both the training dataset and other validation and/or test datasets.</p></td>
+</tr>
+<tr class="row-odd"><td><p><em>validation dataset</em></p></td>
+<td><p>Used to validate network performance, namely to diagnose overtraining of the network. A subset of examples withheld from the training examples.</p></td>
+</tr>
+<tr class="row-even"><td><p><em>workspace</em></p></td>
+<td><p>Directory that organizes files across all steps, analyses, and projects.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="table-of-settings">
+<span id="setting-summary"></span><h2>Table of Settings<a class="headerlink" href="#table-of-settings" title="Link to this heading"></a></h2>
+<p>This table summarizes all settings currently available in phyddle.
+The <cite>Setting</cite> column is the exact name of the string that appears in
+the configuration file and command-line argument list. The <cite>Step(s)</cite> identifies
+all steps that use the setting: [S]imulate, [F]ormat, [T]rain, [E]stimate, and
+[P]lot. The <cite>Type</cite> column is the Python variable type expected for the setting.
+The <cite>Description</cite> gives a brief description of what the setting does. Visit
+<a class="reference internal" href="overview.html#overview"><span class="std std-ref">Overview</span></a> to learn more about phyddle settings impact different pipeline
+analysis steps.</p>
+<table class="longtable docutils align-center" id="id5" style="width: 100%">
+<caption><span class="caption-number">Table 1 </span><span class="caption-text">phyddle settings</span><a class="headerlink" href="#id5" title="Link to this table"></a></caption>
+<colgroup>
+<col style="width: 10.0%" />
+<col style="width: 10.0%" />
+<col style="width: 10.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Setting</p></th>
+<th class="head"><p>Step(s)</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">cfg</span></code></p></td>
+<td><p>–––––</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Config file name</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">step</span></code></p></td>
+<td><p>SFTEP</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Pipeline step(s) defined with (S)imulate, (F)ormat, (T)rain, (E)stimate, (P)lot, or (A)ll</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">verbose</span></code></p></td>
+<td><p>SFTEP</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Verbose output to screen?</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">make_cfg</span></code></p></td>
+<td><p>–––––</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Write default config file</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">save_proj</span></code></p></td>
+<td><p>–––––</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Save and zip a project for sharing</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">load_proj</span></code></p></td>
+<td><p>–––––</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Unzip a shared project</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">clean_proj</span></code></p></td>
+<td><p>–––––</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Remove step directories for a project</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">save_num_sim</span></code></p></td>
+<td><p>–––––</p></td>
+<td><p><em>int</em></p></td>
+<td><p>Number of simulated examples to save with –save_proj</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">save_train_fmt</span></code></p></td>
+<td><p>–––––</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Save formatted training examples with –save_proj? (not recommended)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">output_precision</span></code></p></td>
+<td><p>SFTEP</p></td>
+<td><p><em>int</em></p></td>
+<td><p>Number of digits (precision) for numbers in output files</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">use_parallel</span></code></p></td>
+<td><p>SF–––</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Use parallelization? (recommended)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">use_cuda</span></code></p></td>
+<td><p>––TE–</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Use CUDA parallelization? (recommended; requires Nvidia GPU)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">num_proc</span></code></p></td>
+<td><p>SFT––</p></td>
+<td><p><em>int</em></p></td>
+<td><p>Number of cores for multiprocessing (-N for all but N)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">no_emp</span></code></p></td>
+<td><p>–––––</p></td>
+<td><p>––</p></td>
+<td><p>Disable Format/Estimate steps for empirical data?</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">no_sim</span></code></p></td>
+<td><p>–––––</p></td>
+<td><p>––</p></td>
+<td><p>Disable Format/Estimate steps for simulated data?</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">dir</span></code></p></td>
+<td><p>SFTEP</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Parent directory for all step directories unless step directory given</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sim_dir</span></code></p></td>
+<td><p>SF–––</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Directory for raw simulated data</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">emp_dir</span></code></p></td>
+<td><p>SF–––</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Directory for raw empirical data</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fmt_dir</span></code></p></td>
+<td><p>–FTEP</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Directory for tensor-formatted data</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">trn_dir</span></code></p></td>
+<td><p>–FTEP</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Directory for trained networks and training output</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">est_dir</span></code></p></td>
+<td><p>––TEP</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Directory for new datasets and estimates</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">plt_dir</span></code></p></td>
+<td><p>––––P</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Directory for plotted results</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">log_dir</span></code></p></td>
+<td><p>SFTEP</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Directory for logs of analysis metadata</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">prefix</span></code></p></td>
+<td><p>SFTEP</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Prefix for all output unless step prefix given</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sim_prefix</span></code></p></td>
+<td><p>SF–––</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Prefix for raw simulated data</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">emp_prefix</span></code></p></td>
+<td><p>SF–––</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Prefix for raw empirical data</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fmt_prefix</span></code></p></td>
+<td><p>–FTEP</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Prefix for tensor-formatted data</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">trn_prefix</span></code></p></td>
+<td><p>–FTEP</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Prefix for trained networks and training output</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">est_prefix</span></code></p></td>
+<td><p>––TEP</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Prefix for estimate results</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">plt_prefix</span></code></p></td>
+<td><p>––––P</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Prefix for plotted results</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sim_command</span></code></p></td>
+<td><p>S––––</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Simulation command to run single job (see documentation)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sim_logging</span></code></p></td>
+<td><p>S––––</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Simulation logging style</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">start_idx</span></code></p></td>
+<td><p>SF–––</p></td>
+<td><p><em>int</em></p></td>
+<td><p>Start replicate index for simulated training dataset</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">end_idx</span></code></p></td>
+<td><p>SF–––</p></td>
+<td><p><em>int</em></p></td>
+<td><p>End replicate index for simulated training dataset</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sim_more</span></code></p></td>
+<td><p>S––––</p></td>
+<td><p><em>int</em></p></td>
+<td><p>Add more simulations with auto-generated indices</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sim_batch_size</span></code></p></td>
+<td><p>S––––</p></td>
+<td><p><em>int</em></p></td>
+<td><p>Number of replicates per simulation command</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">encode_all_sim</span></code></p></td>
+<td><p>–F–––</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Encode all simulated replicates into tensor?</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">num_char</span></code></p></td>
+<td><p>–FTE–</p></td>
+<td><p><em>int</em></p></td>
+<td><p>Number of characters</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">num_states</span></code></p></td>
+<td><p>–FTE–</p></td>
+<td><p><em>int</em></p></td>
+<td><p>Number of states per character</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">min_num_taxa</span></code></p></td>
+<td><p>–F–––</p></td>
+<td><p><em>int</em></p></td>
+<td><p>Minimum number of taxa allowed when formatting</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">max_num_taxa</span></code></p></td>
+<td><p>–F–––</p></td>
+<td><p><em>int</em></p></td>
+<td><p>Maximum number of taxa allowed when formatting</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">downsample_taxa</span></code></p></td>
+<td><p>–FTE–</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Downsampling strategy taxon count</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">tree_width</span></code></p></td>
+<td><p>–FTEP</p></td>
+<td><p><em>int</em></p></td>
+<td><p>Width of phylo-state tensor</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">tree_encode</span></code></p></td>
+<td><p>–FTE–</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Encoding strategy for tree</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">brlen_encode</span></code></p></td>
+<td><p>–FTE–</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Encoding strategy for branch lengths</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">char_encode</span></code></p></td>
+<td><p>–FTE–</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Encoding strategy for character data</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">param_est</span></code></p></td>
+<td><p>–FTE–</p></td>
+<td><p><em>dict</em></p></td>
+<td><p>Model parameters and variables to estimate</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">param_data</span></code></p></td>
+<td><p>–FTE–</p></td>
+<td><p><em>dict</em></p></td>
+<td><p>Model parameters and variables treated as data</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">char_format</span></code></p></td>
+<td><p>–FTE–</p></td>
+<td><p><em>str</em></p></td>
+<td><p>File format for character data</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">tensor_format</span></code></p></td>
+<td><p>–FTEP</p></td>
+<td><p><em>str</em></p></td>
+<td><p>File format for training example tensors</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">save_phyenc_csv</span></code></p></td>
+<td><p>–F–––</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Save encoded phylogenetic tensor encoding to csv?</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">num_epochs</span></code></p></td>
+<td><p>––TEP</p></td>
+<td><p><em>int</em></p></td>
+<td><p>Number of training epochs</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">num_early_stop</span></code></p></td>
+<td><p>––TEP</p></td>
+<td><p><em>int</em></p></td>
+<td><p>Number of consecutive validation loss gains before early stopping</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">trn_batch_size</span></code></p></td>
+<td><p>––TEP</p></td>
+<td><p><em>int</em></p></td>
+<td><p>Training batch sizes</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">prop_test</span></code></p></td>
+<td><p>–FT––</p></td>
+<td><p><em>float</em></p></td>
+<td><p>Proportion of data used as test examples (assess trained network performance)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">prop_val</span></code></p></td>
+<td><p>––T––</p></td>
+<td><p><em>float</em></p></td>
+<td><p>Proportion of data used as validation examples (diagnose network overtraining)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">prop_cal</span></code></p></td>
+<td><p>––T––</p></td>
+<td><p><em>float</em></p></td>
+<td><p>Proportion of data used as calibration examples (calibrate CPIs)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">cpi_coverage</span></code></p></td>
+<td><p>––T––</p></td>
+<td><p><em>float</em></p></td>
+<td><p>Expected coverage percent for calibrated prediction intervals (CPIs)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">cpi_asymmetric</span></code></p></td>
+<td><p>––T––</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Use asymmetric (True) or symmetric (False) adjustments for CPIs?</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">loss_numerical</span></code></p></td>
+<td><p>––T––</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Loss function for real value estimates</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">optimizer</span></code></p></td>
+<td><p>––T––</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Method used for optimizing neural network</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">log_offset</span></code></p></td>
+<td><p>–FTEP</p></td>
+<td><p><em>float</em></p></td>
+<td><p>Offset size c when taking ln(x+c) for zero-valued variables</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">phy_channel_plain</span></code></p></td>
+<td><p>––T––</p></td>
+<td><p><em>int[]</em></p></td>
+<td><p>Output channel sizes for plain convolutional layers for phylogenetic state input</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">phy_channel_stride</span></code></p></td>
+<td><p>––T––</p></td>
+<td><p><em>int[]</em></p></td>
+<td><p>Output channel sizes for stride convolutional layers for phylogenetic state input</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">phy_channel_dilate</span></code></p></td>
+<td><p>––T––</p></td>
+<td><p><em>int[]</em></p></td>
+<td><p>Output channel sizes for dilate convolutional layers for phylogenetic state input</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">aux_channel</span></code></p></td>
+<td><p>––T––</p></td>
+<td><p><em>int[]</em></p></td>
+<td><p>Output channel sizes for dense layers for auxiliary data input</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">lbl_channel</span></code></p></td>
+<td><p>––T––</p></td>
+<td><p><em>int[]</em></p></td>
+<td><p>Output channel sizes for dense layers for label outputs</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">phy_kernel_plain</span></code></p></td>
+<td><p>––T––</p></td>
+<td><p><em>int[]</em></p></td>
+<td><p>Kernel sizes for plain convolutional layers for phylogenetic state input</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">phy_kernel_stride</span></code></p></td>
+<td><p>––T––</p></td>
+<td><p><em>int[]</em></p></td>
+<td><p>Kernel sizes for stride convolutional layers for phylogenetic state input</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">phy_kernel_dilate</span></code></p></td>
+<td><p>––T––</p></td>
+<td><p><em>int[]</em></p></td>
+<td><p>Kernel sizes for dilate convolutional layers for phylogenetic state input</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">phy_stride_stride</span></code></p></td>
+<td><p>––T––</p></td>
+<td><p><em>int[]</em></p></td>
+<td><p>Stride sizes for stride convolutional layers for phylogenetic state input</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">phy_dilate_dilate</span></code></p></td>
+<td><p>––T––</p></td>
+<td><p><em>int[]</em></p></td>
+<td><p>Dilation sizes for dilate convolutional layers for phylogenetic state input</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">plot_train_color</span></code></p></td>
+<td><p>––––P</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Plotting color for training data elements</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">plot_test_color</span></code></p></td>
+<td><p>––––P</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Plotting color for test data elements</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">plot_val_color</span></code></p></td>
+<td><p>––––P</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Plotting color for validation data elements</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">plot_label_color</span></code></p></td>
+<td><p>––––P</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Plotting color for label elements</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">plot_aux_color</span></code></p></td>
+<td><p>––––P</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Plotting color for auxiliary data elements</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">plot_emp_color</span></code></p></td>
+<td><p>––––P</p></td>
+<td><p><em>str</em></p></td>
+<td><p>Plotting color for empirical elements</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">plot_num_scatter</span></code></p></td>
+<td><p>––––P</p></td>
+<td><p><em>int</em></p></td>
+<td><p>Number of examples in scatter plot</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">plot_min_emp</span></code></p></td>
+<td><p>––––P</p></td>
+<td><p><em>int</em></p></td>
+<td><p>Minimum number of empirical datasets to plot densities</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">plot_num_emp</span></code></p></td>
+<td><p>––––P</p></td>
+<td><p><em>int</em></p></td>
+<td><p>Number of empirical results to plot</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">plot_pca_noise</span></code></p></td>
+<td><p>––––P</p></td>
+<td><p><em>float</em></p></td>
+<td><p>Scale of Gaussian noise to add to PCA plot</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="references">
+<span id="id2"></span><h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
+<p>EE Goldberg, LT Lancaster, RH Ree. 2011. Phylogenetic inference of reciprocal
+effects between geographic range evolution and diversification. Syst
+Biol 60:451-465.
+doi: <a class="reference external" href="https://doi.org/10.1093/sysbio/syr046">https://doi.org/10.1093/sysbio/syr046</a></p>
+<p>S Lambert, J Voznica, H Morlon. 2022. Deep learning from phylogenies for
+diversification analyses. Syst Biol 72:1262–1279.
+doi: <a class="reference external" href="https://doi.org/10.1093/sysbio/syad044">https://doi.org/10.1093/sysbio/syad044</a></p>
+<p>MJ Landis, A Thompson. 2024. phyddle: software for phylogenetic model
+exploration with deep learning. Syst Biol (in press).
+doi: <a class="reference external" href="https://doi.org/10.1093/sysbio/syaf036">https://doi.org/10.1093/sysbio/syaf036</a></p>
+<p>Y Romano, E Patterson, E Candes. Conformalized quantile regression.
+Adv NIPS, 32, 2019.
+doi: <a class="reference external" href="https://doi.org/10.1101/2024.08.06.606717">https://doi.org/10.1101/2024.08.06.606717</a></p>
+<p>A Thompson, B Liebeskind, EJ Scully, MJ Landis. 2024. Deep learning approaches
+to viral phylogeography are fast and as robust as likelihood methods
+to model misspecification. Syst Biol 73:183-206.
+doi: <a class="reference external" href="https://doi.org/10.1093/sysbio/syad074">https://doi.org/10.1093/sysbio/syad074</a></p>
+<p>TG Vaughan, AJ Drummond. 2013. A stochastic simulator of birth–death
+master equations with application to phylodynamics. Mol Biol Evol 30:1480–1493.
+doi: <a class="reference external" href="https://doi.org/10.1093/molbev/mst057">https://doi.org/10.1093/molbev/mst057</a></p>
+<p>J Voznica, A Zhukova, V Boskova, E Saulnier, F Lemoine, M Moslonka-Lefebvre,
+O Gascuel. 2022. Deep learning from phylogenies to uncover the epidemiological
+dynamics of outbreaks. Nat Commun 13:3896.
+doi: <a class="reference external" href="https://doi.org/10.1038/s41467-022-31511-0">https://doi.org/10.1038/s41467-022-31511-0</a></p>
+</section>
+<section id="about">
+<span id="id3"></span><h2>About<a class="headerlink" href="#about" title="Link to this heading"></a></h2>
+<p>Thanks for your interest in phyddle. The phyddle project emerged from a
+phylogenetic deep learning study led by Ammon Thompson
+(<a class="reference external" href="https://doi.org/10.1093/sysbio/syad074">paper</a>).
+The goal of phyddle is to provide its users with a generalizable pipeline
+workflow for phylogenetic modeling and deep learning. This hopefully will make
+it easier for phylogenetic model enthusiasts and developers to explore and
+apply models that do not have tractable likelihood functions. It’s also
+intended for use by methods developers who want to characterize how deep
+learning methods perform under different conditions for standard phylogenetic
+estimation tasks.</p>
+<p>The phyddle project is developed by <a class="reference external" href="https://landislab.org">Michael Landis</a>
+and <a class="reference external" href="https://scholar.google.com/citations?user=_EpmmTwAAAAJ&amp;hl=en&amp;oi=ao">Ammon Thompson</a>.</p>
+</section>
+<section id="issues-feedback">
+<span id="id4"></span><h2>Issues &amp; Feedback<a class="headerlink" href="#issues-feedback" title="Link to this heading"></a></h2>
+<p>Please use <a class="reference external" href="https://github.com/mlandis/phyddle/issues">Issues</a> to report
+bugs or request features that require modifying phyddle source code. Please
+contact <a class="reference external" href="mailto:michael&#46;landis&#37;&#52;&#48;wustl&#46;edu">Michael Landis</a> to request
+troubleshooting support using phyddle.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="examples.html" class="btn btn-neutral float-left" title="Examples" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

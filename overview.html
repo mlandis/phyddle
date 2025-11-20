@@ -1,0 +1,2140 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-KW8RTLPKH4"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-KW8RTLPKH4');
+    </script>
+    
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Overview &mdash; phyddle 0.3.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/css/custom.css?v=d2c2efc5" />
+
+  
+    <link rel="canonical" href="phyddle.org/overview.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=e259d695"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Examples" href="examples.html" />
+    <link rel="prev" title="Tutorial" href="tutorial.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html">
+            
+              <img src="_static/phyddle_logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Overview</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#by-file">By file</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#via-command-line">Via command line</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#pipeline">Pipeline</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#step-directories">Step directories</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#step-prefixes">Step prefixes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#simulate">Simulate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#format">Format</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#train">Train</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#estimate">Estimate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#plot">Plot</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#workspace">Workspace</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id10"><code class="docutils literal notranslate"><span class="pre">simulate</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id11"><code class="docutils literal notranslate"><span class="pre">format</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id12"><code class="docutils literal notranslate"><span class="pre">train</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id13"><code class="docutils literal notranslate"><span class="pre">estimate</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id14"><code class="docutils literal notranslate"><span class="pre">plot</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#empirical"><code class="docutils literal notranslate"><span class="pre">empirical</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#log"><code class="docutils literal notranslate"><span class="pre">log</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#formats">Formats</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#input-datasets">Input datasets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tensor-formats">Tensor formats</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#cblv-s">CBLV+S</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#cdv-s">CDV+S</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#auxiliary-data">Auxiliary data</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#safe-usage">Safe Usage</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#poor-accuracy-or-coverage">Poor accuracy or coverage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#undertraining-and-overtraining">Undertraining and overtraining</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#small-training-datasets">Small training datasets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#suboptimal-network-size">Suboptimal network size</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#out-of-distribution-examples">Out-of-distribution examples</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#simulator-errors">Simulator errors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#unintended-signal">Unintended signal</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#model-design">Model design</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#nonsensical-results">Nonsensical results</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#assorted-tricks">Assorted tricks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#example-run">Example run</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix.html">Appendix</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">phyddle</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Overview</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/overview.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+<style>
+  .ss-layout-default-AB_CD { grid-template-areas: 'A B' 'C D'; }
+  .ss-layout-default-ABC { grid-template-areas: 'A B C'; }
+@media (max-width: 576px) {
+  .ss-layout-sm-A_B_C_D { grid-template-areas: 'A' 'B' 'C' 'D'; }
+}
+</style>
+<section id="overview">
+<span id="id1"></span><h1>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h1>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This page describes how a standard phyddle pipeline analysis is
+configured and how settings determine software behavior.
+Main sections: <a class="reference internal" href="#configuration"><span class="std std-ref">Configuration</span></a>, <a class="reference internal" href="#pipeline"><span class="std std-ref">Pipeline</span></a>, <a class="reference internal" href="#workspace"><span class="std std-ref">Workspace</span></a>,
+<a class="reference internal" href="#formats"><span class="std std-ref">Formats</span></a>, and <a class="reference internal" href="#safe-usage"><span class="std std-ref">Safe Usage</span></a>. Visit <a class="reference external" href="https://www.sphinx-doc.org/en/master/glossary.html#glossary" title="(in Sphinx v8.3.0)"><span>Glossary</span></a> to learn
+more about how phyddle defines different terms.</p>
+</div>
+<a class="reference internal image-reference" href="_images/phyddle_pipeline.png"><img alt="_images/phyddle_pipeline.png" class="align-right" src="_images/phyddle_pipeline.png" style="width: 350px;" />
+</a>
+<p>A phyddle pipeline analysis has five steps: <a class="reference internal" href="#simulate"><span class="std std-ref">Simulate</span></a>, <a class="reference internal" href="#format"><span class="std std-ref">Format</span></a>,
+<a class="reference internal" href="#train"><span class="std std-ref">Train</span></a>, <a class="reference internal" href="#estimate"><span class="std std-ref">Estimate</span></a>, and <a class="reference internal" href="#plot"><span class="std std-ref">Plot</span></a>. Standard analyses run all
+steps, in order, based on the analysis <a class="reference internal" href="#configuration"><span class="std std-ref">Configuration</span></a>. Steps
+can also be run individually and/or multiple times under different
+settings and orders, which is useful for exploratory and advanced analyses.</p>
+<p>All pipeline steps create output files, which are stored in the
+<a class="reference internal" href="#workspace"><span class="std std-ref">Workspace</span></a> directories. All pipeline (except <a class="reference internal" href="#simulate"><span class="std std-ref">Simulate</span></a>) also
+require input files corresponding to at least one other pipeline step.
+A full phyddle analysis for a <em>project</em> will automatically generate the
+input files for downstream pipeline steps and store them in a predictable
+<em>project directory</em>.</p>
+<p>Users may also elect to use phyddle for only some steps in their analysis, and
+produce files for other steps by different means. For example, <a class="reference internal" href="#format"><span class="std std-ref">Format</span></a>
+expects to format and combine large numbers of simulated datasets into tensor
+formats that can be used for supervised learning with neural networks.
+These simulated files can either be generated through phyddle with
+the <a class="reference internal" href="#simulate"><span class="std std-ref">Simulate</span></a> step or outside of phyddle entirely.</p>
+<p>Below is the standard <a class="reference internal" href="#workspace"><span class="std std-ref">Workspace</span></a> directory structure that a standard
+phyddle project would use. In this section, we assume the project <code class="docutils literal notranslate"><span class="pre">dir</span></code> is
+<code class="docutils literal notranslate"><span class="pre">./workspace/example</span></code>:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>Simulate
+-<span class="w"> </span>input:<span class="w">   </span>None
+-<span class="w"> </span>output:<span class="w">  </span>./workspace/example/simulate<span class="w">  </span><span class="c1"># simulated datasets</span>
+
+Format
+-<span class="w"> </span>input:<span class="w">   </span>./workspace/example/simulate<span class="w">  </span><span class="c1"># simulated datasets</span>
+<span class="w">           </span>./workspace/example/empirical<span class="w"> </span><span class="c1"># empirical datasets</span>
+-<span class="w"> </span>output:<span class="w">  </span>./workspace/example/format<span class="w">    </span><span class="c1"># formatted datasets</span>
+
+Train
+-<span class="w"> </span>input:<span class="w">   </span>./workspace/example/format<span class="w">    </span><span class="c1"># simulated training dataset</span>
+-<span class="w"> </span>output:<span class="w">  </span>./workspace/example/train<span class="w">     </span><span class="c1"># trained network + train results</span>
+
+Estimate
+-<span class="w"> </span>input:<span class="w">   </span>./workspace/example/format<span class="w">    </span><span class="c1"># simulated test + empirical datasets</span>
+<span class="w">           </span>./workspace/example/train<span class="w">     </span><span class="c1"># trained network</span>
+-<span class="w"> </span>output:<span class="w">  </span>./workspace/example/estimate<span class="w">  </span><span class="c1"># test + empirical results</span>
+
+Plot
+-<span class="w"> </span>input:<span class="w">   </span>./workspace/example/format<span class="w">    </span><span class="c1"># simulated training dataset</span>
+<span class="w">           </span>./workspace/example/train<span class="w">     </span><span class="c1"># trained network and output</span>
+<span class="w">           </span>./workspace/example/estimate<span class="w">  </span><span class="c1"># simulated + empirical estimates</span>
+-<span class="w"> </span>output:<span class="w">  </span>./workspace/example/plot<span class="w">      </span><span class="c1"># analysis figures</span>
+</pre></div>
+</div>
+<section id="configuration">
+<span id="id2"></span><h2>Configuration<a class="headerlink" href="#configuration" title="Link to this heading"></a></h2>
+<p>There are two ways to configure the settings of a phyddle analysis: through a
+<a class="reference internal" href="#config-file"><span class="std std-ref">config file</span></a> or the <a class="reference internal" href="#config-cli"><span class="std std-ref">command line</span></a>.
+Command line settings take precedence over config file settings.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <a class="reference internal" href="appendix.html#appendix"><span class="std std-ref">Appendix</span></a> contains a <a class="reference internal" href="appendix.html#setting-summary"><span class="std std-ref">Table of Settings</span></a> that summarizes all
+available settings.</p>
+</div>
+<section id="by-file">
+<span id="config-file"></span><h3>By file<a class="headerlink" href="#by-file" title="Link to this heading"></a></h3>
+<p>The phyddle config file is a Python dictionary of analysis arguments (<code class="docutils literal notranslate"><span class="pre">args</span></code>)
+that configure how phyddle pipeline steps behave. Because it’s a Python script,
+you can write code within the config file to specify your analysis, if you find
+that helpful. The below example defines settings into different blocks based on
+which pipeline step first needs a given setting. However, any setting might be
+used by different pipeline steps, so we concatenate all settings into a single
+dictionary called <code class="docutils literal notranslate"><span class="pre">args</span></code>, which is then used by all pipeline steps. Settings
+configured by file can be adjusted through the <a class="reference internal" href="#config-cli"><span class="std std-ref">command line</span></a>,
+if desired.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>By default, phyddle assumes you want to use the config file called
+<code class="docutils literal notranslate"><span class="pre">config.py</span></code>. Use a different config file by calling, e.g.
+<code class="docutils literal notranslate"><span class="pre">phyddle</span> <span class="pre">--cfg</span> <span class="pre">my_other_config.py</span></code></p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>phyddle maintains a number of example config files for different models
+and simulation methods. These are organized as project subdirectories
+within the <code class="docutils literal notranslate"><span class="pre">./workspace</span></code> directory. For example,
+<code class="docutils literal notranslate"><span class="pre">./workspace/bisse_r/config.py</span></code> simulates under a BiSSE model
+with the R simulation script <code class="docutils literal notranslate"><span class="pre">./workspace/bisse_r/sim_bisse.R</span></code>.</p>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1">#==============================================================================#</span>
+<span class="c1"># Config:       Example phyddle config file                                    #</span>
+<span class="c1"># Authors:      Michael Landis and Ammon Thompson                              #</span>
+<span class="c1"># Date:         230804                                                         #</span>
+<span class="c1"># Description:  Simple BiSSE model                                             #</span>
+<span class="c1">#==============================================================================#</span>
+
+<span class="n">args</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1">#-------------------------------#</span>
+    <span class="c1"># Basic                         #</span>
+    <span class="c1">#-------------------------------#</span>
+    <span class="s1">&#39;step&#39;</span>               <span class="p">:</span> <span class="s1">&#39;SFTEP&#39;</span><span class="p">,</span>        <span class="c1"># Pipeline step(s) defined with</span>
+                                           <span class="c1">#   (S)imulate, (F)ormat, (T)rain,</span>
+                                           <span class="c1">#   (E)stimate, (P)lot, or (A)ll</span>
+    <span class="s1">&#39;verbose&#39;</span>            <span class="p">:</span> <span class="s1">&#39;T&#39;</span><span class="p">,</span>            <span class="c1"># Verbose output to screen?</span>
+
+    <span class="c1">#-------------------------------#</span>
+    <span class="c1"># Analysis                      #</span>
+    <span class="c1">#-------------------------------#</span>
+    <span class="s1">&#39;use_parallel&#39;</span>       <span class="p">:</span> <span class="s1">&#39;T&#39;</span><span class="p">,</span>            <span class="c1"># Use parallelization? (recommended)</span>
+    <span class="s1">&#39;num_proc&#39;</span>           <span class="p">:</span> <span class="o">-</span><span class="mi">2</span><span class="p">,</span>             <span class="c1"># Number of cores for multiprocessing</span>
+                                           <span class="c1">#   (-N for all but N)</span>
+    <span class="s1">&#39;use_cuda&#39;</span>           <span class="p">:</span> <span class="s1">&#39;T&#39;</span><span class="p">,</span>            <span class="c1"># Use CUDA parallelization?</span>
+                                           <span class="c1">#   (recommended; requires Nvidia GPU)</span>
+
+    <span class="c1">#-------------------------------#</span>
+    <span class="c1"># Workspace                     #</span>
+    <span class="c1">#-------------------------------#</span>
+
+    <span class="s1">&#39;dir&#39;</span>                <span class="p">:</span> <span class="s1">&#39;./&#39;</span><span class="p">,</span>           <span class="c1"># Base directory for all step directories</span>
+    <span class="s1">&#39;prefix&#39;</span>             <span class="p">:</span> <span class="s1">&#39;out&#39;</span><span class="p">,</span>                   <span class="c1"># Prefix for all output unless step prefix given</span>
+
+    <span class="c1">#-------------------------------#</span>
+    <span class="c1"># Simulate                      #</span>
+    <span class="c1">#-------------------------------#</span>
+    <span class="s1">&#39;sim_command&#39;</span>        <span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;Rscript ./sim_bisse.R&#39;</span><span class="p">,</span> <span class="c1"># Simulation command to run single</span>
+                                                              <span class="c1">#   job (see documentation)</span>
+    <span class="s1">&#39;sim_logging&#39;</span>        <span class="p">:</span> <span class="s1">&#39;verbose&#39;</span><span class="p">,</span>                 <span class="c1"># Simulation logging style</span>
+    <span class="s1">&#39;start_idx&#39;</span>          <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>                         <span class="c1"># Start index for simulated training replicates</span>
+    <span class="s1">&#39;end_idx&#39;</span>            <span class="p">:</span> <span class="mi">1000</span><span class="p">,</span>                      <span class="c1"># End index for simulated training replicates</span>
+    <span class="s1">&#39;sim_batch_size&#39;</span>     <span class="p">:</span> <span class="mi">10</span><span class="p">,</span>                        <span class="c1"># Number of replicates per simulation command</span>
+
+    <span class="c1">#-------------------------------#</span>
+    <span class="c1"># Format                        #</span>
+    <span class="c1">#-------------------------------#</span>
+    <span class="s1">&#39;encode_all_sim&#39;</span>     <span class="p">:</span> <span class="s1">&#39;T&#39;</span><span class="p">,</span>                  <span class="c1"># Encode all simulated replicates into tensor?</span>
+    <span class="s1">&#39;num_char&#39;</span>           <span class="p">:</span> <span class="mi">1</span><span class="p">,</span>                    <span class="c1"># Number of characters</span>
+    <span class="s1">&#39;num_states&#39;</span>         <span class="p">:</span> <span class="mi">2</span><span class="p">,</span>                    <span class="c1"># Number of states per character</span>
+    <span class="s1">&#39;min_num_taxa&#39;</span>       <span class="p">:</span> <span class="mi">10</span><span class="p">,</span>                   <span class="c1"># Minimum number of taxa allowed when formatting</span>
+    <span class="s1">&#39;max_num_taxa&#39;</span>       <span class="p">:</span> <span class="mi">500</span><span class="p">,</span>                  <span class="c1"># Maximum number of taxa allowed when formatting</span>
+    <span class="s1">&#39;downsample_taxa&#39;</span>    <span class="p">:</span> <span class="s1">&#39;uniform&#39;</span><span class="p">,</span>            <span class="c1"># Downsampling strategy taxon count</span>
+    <span class="s1">&#39;tree_width&#39;</span>         <span class="p">:</span> <span class="mi">500</span><span class="p">,</span>                  <span class="c1"># Width of phylo-state tensor</span>
+    <span class="s1">&#39;tree_encode&#39;</span>        <span class="p">:</span> <span class="s1">&#39;extant&#39;</span><span class="p">,</span>             <span class="c1"># Encoding strategy for tree</span>
+    <span class="s1">&#39;brlen_encode&#39;</span>       <span class="p">:</span> <span class="s1">&#39;height_brlen&#39;</span><span class="p">,</span>       <span class="c1"># Encoding strategy for branch lengths</span>
+    <span class="s1">&#39;char_encode&#39;</span>        <span class="p">:</span> <span class="s1">&#39;integer&#39;</span><span class="p">,</span>            <span class="c1"># Encoding strategy for character data</span>
+    <span class="s1">&#39;param_est&#39;</span>          <span class="p">:</span> <span class="p">{</span>                     <span class="c1"># Unknown model parameters to estimate</span>
+        <span class="s1">&#39;log10_birth_1&#39;</span>      <span class="p">:</span> <span class="s1">&#39;num&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;log10_birth_2&#39;</span>      <span class="p">:</span> <span class="s1">&#39;num&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;log10_death&#39;</span>        <span class="p">:</span> <span class="s1">&#39;num&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;log10_state_rate&#39;</span>   <span class="p">:</span> <span class="s1">&#39;num&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;model_type&#39;</span>         <span class="p">:</span> <span class="s1">&#39;cat&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;root_state&#39;</span>         <span class="p">:</span> <span class="s1">&#39;cat&#39;</span>
+    <span class="p">],</span>
+    <span class="s1">&#39;param_data&#39;</span>        <span class="p">:</span> <span class="p">{</span>                      <span class="c1"># Known model parameters to treat as aux. data</span>
+        <span class="s1">&#39;sample_frac&#39;</span>        <span class="p">:</span> <span class="s1">&#39;num&#39;</span>
+    <span class="p">},</span>
+    <span class="s1">&#39;char_format&#39;</span>        <span class="p">:</span> <span class="s1">&#39;csv&#39;</span><span class="p">,</span>                <span class="c1"># File format for character data</span>
+    <span class="s1">&#39;tensor_format&#39;</span>      <span class="p">:</span> <span class="s1">&#39;hdf5&#39;</span><span class="p">,</span>               <span class="c1"># File format for training example tensors</span>
+
+    <span class="c1">#-------------------------------#</span>
+    <span class="c1"># Train                         #</span>
+    <span class="c1">#-------------------------------#</span>
+    <span class="s1">&#39;num_epochs&#39;</span>         <span class="p">:</span> <span class="mi">20</span><span class="p">,</span>                   <span class="c1"># Number of training epochs</span>
+    <span class="s1">&#39;trn_batch_size&#39;</span>     <span class="p">:</span> <span class="mi">2048</span><span class="p">,</span>                 <span class="c1"># Training batch sizes</span>
+    <span class="s1">&#39;prop_test&#39;</span>          <span class="p">:</span> <span class="mf">0.05</span><span class="p">,</span>                 <span class="c1"># Proportion of data used as test examples</span>
+                                                 <span class="c1">#     (to assess trained network performance)</span>
+    <span class="s1">&#39;prop_val&#39;</span>           <span class="p">:</span> <span class="mf">0.05</span><span class="p">,</span>                 <span class="c1"># Proportion of data used as validation examples</span>
+                                                 <span class="c1">#     (to diagnose network overtraining)</span>
+    <span class="s1">&#39;prop_cal&#39;</span>           <span class="p">:</span> <span class="mf">0.2</span><span class="p">,</span>                  <span class="c1"># Proportion of data used as calibration examples</span>
+                                                 <span class="c1">#     (to calibrate CPIs)</span>
+    <span class="s1">&#39;cpi_coverage&#39;</span>       <span class="p">:</span> <span class="mf">0.95</span><span class="p">,</span>                 <span class="c1"># Expected coverage percent for calibrated</span>
+                                                 <span class="c1">#     prediction intervals (CPIs)</span>
+    <span class="s1">&#39;cpi_asymmetric&#39;</span>     <span class="p">:</span> <span class="s1">&#39;T&#39;</span><span class="p">,</span>                  <span class="c1"># Use asymmetric (True) or symmetric (False)</span>
+                                                 <span class="c1">#     adjustments for CPIs?</span>
+    <span class="s1">&#39;loss&#39;</span>               <span class="p">:</span> <span class="s1">&#39;mae&#39;</span><span class="p">,</span>                <span class="c1"># Loss function for optimization</span>
+    <span class="s1">&#39;optimizer&#39;</span>          <span class="p">:</span> <span class="s1">&#39;adam&#39;</span><span class="p">,</span>               <span class="c1"># Method used for optimizing neural network</span>
+    <span class="s1">&#39;phy_channel_plain&#39;</span>  <span class="p">:</span> <span class="p">[</span><span class="mi">64</span><span class="p">,</span> <span class="mi">96</span><span class="p">,</span> <span class="mi">128</span><span class="p">],</span>        <span class="c1"># Output channel sizes for plain convolutional</span>
+                                                 <span class="c1">#     layers for phylogenetic state input</span>
+    <span class="s1">&#39;phy_channel_stride&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="mi">64</span><span class="p">,</span> <span class="mi">96</span><span class="p">],</span>             <span class="c1"># Output channel sizes for stride convolutional</span>
+                                                 <span class="c1">#     layers for phylogenetic state input</span>
+    <span class="s1">&#39;phy_channel_dilate&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="mi">32</span><span class="p">,</span> <span class="mi">64</span><span class="p">],</span>             <span class="c1"># Output channel sizes for dilate convolutional</span>
+                                                 <span class="c1">#     layers for phylogenetic state input</span>
+    <span class="s1">&#39;aux_channel&#39;</span>        <span class="p">:</span> <span class="p">[</span><span class="mi">128</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">32</span><span class="p">],</span>        <span class="c1"># Output channel sizes for dense layers for</span>
+                                                 <span class="c1">#     auxiliary data input</span>
+    <span class="s1">&#39;lbl_channel&#39;</span>        <span class="p">:</span> <span class="p">[</span><span class="mi">128</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">32</span><span class="p">],</span>        <span class="c1"># Output channel sizes for dense layers for</span>
+                                                 <span class="c1">#     label outputs</span>
+    <span class="s1">&#39;phy_kernel_plain&#39;</span>   <span class="p">:</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">7</span><span class="p">],</span>            <span class="c1"># Kernel sizes for plain convolutional layers</span>
+                                                 <span class="c1">#     for phylogenetic state input</span>
+    <span class="s1">&#39;phy_kernel_stride&#39;</span>  <span class="p">:</span> <span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">9</span><span class="p">],</span>               <span class="c1"># Kernel sizes for stride convolutional layers</span>
+                                                 <span class="c1">#     for phylogenetic state input</span>
+    <span class="s1">&#39;phy_kernel_dilate&#39;</span>  <span class="p">:</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span>               <span class="c1"># Kernel sizes for dilate convolutional layers</span>
+                                                 <span class="c1">#     for phylogenetic state input</span>
+    <span class="s1">&#39;phy_stride_stride&#39;</span>  <span class="p">:</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span>               <span class="c1"># Stride sizes for stride convolutional layers</span>
+                                                 <span class="c1">#     for phylogenetic state input</span>
+    <span class="s1">&#39;phy_dilate_dilate&#39;</span>  <span class="p">:</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span>               <span class="c1"># Dilation sizes for dilate convolutional layers</span>
+                                                 <span class="c1">#     for phylogenetic state input</span>
+
+    <span class="c1">#-------------------------------#</span>
+    <span class="c1"># Estimate                      #</span>
+    <span class="c1">#-------------------------------#</span>
+    <span class="c1"># not currently used</span>
+
+    <span class="c1">#-------------------------------#</span>
+    <span class="c1"># Plot                          #</span>
+    <span class="c1">#-------------------------------#</span>
+    <span class="s1">&#39;plot_train_color&#39;</span>   <span class="p">:</span> <span class="s1">&#39;blue&#39;</span><span class="p">,</span>               <span class="c1"># Plotting color for training data elements</span>
+    <span class="s1">&#39;plot_label_color&#39;</span>   <span class="p">:</span> <span class="s1">&#39;orange&#39;</span><span class="p">,</span>             <span class="c1"># Plotting color for training label elements</span>
+    <span class="s1">&#39;plot_test_color&#39;</span>    <span class="p">:</span> <span class="s1">&#39;purple&#39;</span><span class="p">,</span>             <span class="c1"># Plotting color for test data elements</span>
+    <span class="s1">&#39;plot_val_color&#39;</span>     <span class="p">:</span> <span class="s1">&#39;red&#39;</span><span class="p">,</span>                <span class="c1"># Plotting color for validation data elements</span>
+    <span class="s1">&#39;plot_aux_color&#39;</span>     <span class="p">:</span> <span class="s1">&#39;green&#39;</span><span class="p">,</span>              <span class="c1"># Plotting color for auxiliary data elements</span>
+    <span class="s1">&#39;plot_emp_color&#39;</span>     <span class="p">:</span> <span class="s1">&#39;black&#39;</span><span class="p">,</span>              <span class="c1"># Plotting color for empirical elements</span>
+    <span class="s1">&#39;plot_num_scatter&#39;</span>   <span class="p">:</span> <span class="mi">50</span><span class="p">,</span>                   <span class="c1"># Number of examples in scatter plot</span>
+    <span class="s1">&#39;plot_min_emp&#39;</span>       <span class="p">:</span> <span class="mi">5</span><span class="p">,</span>                    <span class="c1"># Minimum number of empirical datasets to plot densities</span>
+    <span class="s1">&#39;plot_num_emp&#39;</span>       <span class="p">:</span> <span class="mi">10</span>                    <span class="c1"># Number of empirical results to plot</span>
+   <span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="via-command-line">
+<span id="config-cli"></span><h3>Via command line<a class="headerlink" href="#via-command-line" title="Link to this heading"></a></h3>
+<p>Settings applied through a <a class="reference internal" href="#config-file"><span class="std std-ref">config file</span></a> can be overwritten
+by setting options when running phyddle from the command line. The names of
+settings are the same for the command line options and in the config file.
+Using command line options makes it easy to adjust the behavior of pipeline
+steps without needing to edit the config file. List all settings that can be
+adjusted with the command line using the <code class="docutils literal notranslate"><span class="pre">--help</span></code> option:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    usage: phyddle [-h] [-c] [-s] [-v] [--make_cfg ] [--save_proj ] [--load_proj ]
+           [--clean_proj ] [--save_num_sim] [--save_train_fmt]
+           [--output_precision] [--use_parallel] [--use_cuda] [--num_proc]
+           [--no_emp] [--no_sim] [--dir] [--sim_dir] [--emp_dir]
+           [--fmt_dir] [--trn_dir] [--est_dir] [--plt_dir] [--log_dir]
+           [--prefix] [--sim_prefix] [--emp_prefix] [--fmt_prefix]
+           [--trn_prefix] [--est_prefix] [--plt_prefix] [--sim_command]
+           [--sim_logging {clean,compress,verbose}] [--start_idx]
+           [--end_idx] [--sim_more] [--sim_batch_size] [--encode_all_sim]
+           [--num_char] [--num_states] [--min_num_taxa] [--max_num_taxa]
+           [--downsample_taxa {uniform}] [--tree_width]
+           [--tree_encode {extant,serial}]
+           [--brlen_encode {height_only,height_brlen}]
+           [--char_encode {one_hot,integer,numeric}] [--param_est]
+           [--param_data] [--char_format {csv,nexus}]
+           [--tensor_format {csv,hdf5}] [--save_phyenc_csv] [--num_epochs]
+           [--num_early_stop] [--trn_batch_size] [--prop_test]
+           [--prop_val] [--prop_cal] [--cpi_coverage] [--cpi_asymmetric]
+           [--loss_numerical {mse,mae}] [--optimizer {adam}]
+           [--log_offset] [--phy_channel_plain] [--phy_channel_stride]
+           [--phy_channel_dilate] [--aux_channel] [--lbl_channel]
+           [--phy_kernel_plain] [--phy_kernel_stride]
+           [--phy_kernel_dilate] [--phy_stride_stride]
+           [--phy_dilate_dilate] [--plot_train_color] [--plot_test_color]
+           [--plot_val_color] [--plot_label_color] [--plot_aux_color]
+           [--plot_emp_color] [--plot_num_scatter] [--plot_min_emp]
+           [--plot_num_emp] [--plot_pca_noise]
+
+Software to fiddle around with deep learning for phylogenetic models
+
+options:
+  -h, --help            show this help message and exit
+  -c, --cfg             Config file name
+  -s, --step            Pipeline step(s) defined with (S)imulate, (F)ormat,
+                        (T)rain, (E)stimate, (P)lot, or (A)ll
+  -v, --verbose         Verbose output to screen?
+  --make_cfg            Write default config file
+  --save_proj           Save and zip a project for sharing
+  --load_proj           Unzip a shared project
+  --clean_proj          Remove step directories for a project
+  --save_num_sim        Number of simulated examples to save with --save_proj
+  --save_train_fmt      Save formatted training examples with --save_proj?
+                        (not recommended)
+  --output_precision    Number of digits (precision) for numbers in output
+                        files
+  --use_parallel        Use parallelization? (recommended)
+  --use_cuda            Use CUDA parallelization? (recommended; requires
+                        Nvidia GPU)
+  --num_proc            Number of cores for multiprocessing (-N for all but N)
+  --no_emp              Disable Format/Estimate steps for empirical data?
+  --no_sim              Disable Format/Estimate steps for simulated data?
+  --dir                 Parent directory for all step directories unless step
+                        directory given
+  --sim_dir             Directory for raw simulated data
+  --emp_dir             Directory for raw empirical data
+  --fmt_dir             Directory for tensor-formatted data
+  --trn_dir             Directory for trained networks and training output
+  --est_dir             Directory for new datasets and estimates
+  --plt_dir             Directory for plotted results
+  --log_dir             Directory for logs of analysis metadata
+  --prefix              Prefix for all output unless step prefix given
+  --sim_prefix          Prefix for raw simulated data
+  --emp_prefix          Prefix for raw empirical data
+  --fmt_prefix          Prefix for tensor-formatted data
+  --trn_prefix          Prefix for trained networks and training output
+  --est_prefix          Prefix for estimate results
+  --plt_prefix          Prefix for plotted results
+  --sim_command         Simulation command to run single job (see documentation)
+  --sim_logging {clean,compress,verbose}
+                        Simulation logging style
+  --start_idx           Start replicate index for simulated training dataset
+  --end_idx             End replicate index for simulated training dataset
+  --sim_more            Add more simulations with auto-generated indices
+  --sim_batch_size      Number of replicates per simulation command
+  --encode_all_sim      Encode all simulated replicates into tensor?
+  --num_char            Number of characters
+  --num_states          Number of states per character
+  --min_num_taxa        Minimum number of taxa allowed when formatting
+  --max_num_taxa        Maximum number of taxa allowed when formatting
+  --downsample_taxa {uniform}
+                        Downsampling strategy taxon count
+  --tree_width          Width of phylo-state tensor
+  --tree_encode {extant,serial}
+                        Encoding strategy for tree
+  --brlen_encode {height_only,height_brlen}
+                        Encoding strategy for branch lengths
+  --char_encode {one_hot,integer,numeric}
+                        Encoding strategy for character data
+  --param_est           Model parameters and variables to estimate
+  --param_data          Model parameters and variables treated as data
+  --char_format {csv,nexus}
+                        File format for character data
+  --tensor_format {csv,hdf5}
+                        File format for training example tensors
+  --save_phyenc_csv     Save encoded phylogenetic tensor encoding to csv?
+  --num_epochs          Number of training epochs
+  --num_early_stop      Number of consecutive validation loss gains before
+                        early stopping
+  --trn_batch_size      Training batch sizes
+  --prop_test           Proportion of data used as test examples (assess
+                        trained network performance)
+  --prop_val            Proportion of data used as validation examples
+                        (diagnose network overtraining)
+  --prop_cal            Proportion of data used as calibration examples
+                        (calibrate CPIs)
+  --cpi_coverage        Expected coverage percent for calibrated prediction
+                        intervals (CPIs)
+  --cpi_asymmetric      Use asymmetric (True) or symmetric (False) adjustments
+                        for CPIs?
+  --loss_numerical {mse,mae}
+                        Loss function for real value estimates
+  --optimizer {adam}    Method used for optimizing neural network
+  --log_offset          Offset size c when taking ln(x+c) for zero-valued
+                        variables
+  --phy_channel_plain   Output channel sizes for plain convolutional layers
+                        for phylogenetic state input
+  --phy_channel_stride
+                        Output channel sizes for stride convolutional layers
+                        for phylogenetic state input
+  --phy_channel_dilate
+                        Output channel sizes for dilate convolutional layers
+                        for phylogenetic state input
+  --aux_channel         Output channel sizes for dense layers for auxiliary
+                        data input
+  --lbl_channel         Output channel sizes for dense layers for label
+                        outputs
+  --phy_kernel_plain    Kernel sizes for plain convolutional layers for
+                        phylogenetic state input
+  --phy_kernel_stride   Kernel sizes for stride convolutional layers for
+                        phylogenetic state input
+  --phy_kernel_dilate   Kernel sizes for dilate convolutional layers for
+                        phylogenetic state input
+  --phy_stride_stride   Stride sizes for stride convolutional layers for
+                        phylogenetic state input
+  --phy_dilate_dilate   Dilation sizes for dilate convolutional layers for
+                        phylogenetic state input
+  --plot_train_color    Plotting color for training data elements
+  --plot_test_color     Plotting color for test data elements
+  --plot_val_color      Plotting color for validation data elements
+  --plot_label_color    Plotting color for label elements
+  --plot_aux_color      Plotting color for auxiliary data elements
+  --plot_emp_color      Plotting color for empirical elements
+  --plot_num_scatter    Number of examples in scatter plot
+  --plot_min_emp        Minimum number of empirical datasets to plot densities
+  --plot_num_emp        Number of empirical results to plot
+  --plot_pca_noise      Scale of Gaussian noise to add to PCA plot
+</pre></div>
+</div>
+<p>Note: the <code class="docutils literal notranslate"><span class="pre">step</span></code> setting controls which steps should be applied.
+Each pipeline step is represented by a capital letter:
+<code class="docutils literal notranslate"><span class="pre">S</span></code> for <a class="reference internal" href="#simulate"><span class="std std-ref">Simulate</span></a>, <code class="docutils literal notranslate"><span class="pre">F</span></code> for <a class="reference internal" href="#format"><span class="std std-ref">Format</span></a>, <code class="docutils literal notranslate"><span class="pre">T</span></code> for <a class="reference internal" href="#train"><span class="std std-ref">Train</span></a>,
+<code class="docutils literal notranslate"><span class="pre">E</span></code> for <a class="reference internal" href="#estimate"><span class="std std-ref">Estimate</span></a>, <code class="docutils literal notranslate"><span class="pre">P</span></code> for <a class="reference internal" href="#plot"><span class="std std-ref">Plot</span></a>, and <code class="docutils literal notranslate"><span class="pre">A</span></code> for all steps.</p>
+<p>For example, the following two commands are equivalent</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>phyddle<span class="w"> </span>--step<span class="w"> </span>A
+phyddle<span class="w"> </span>-s<span class="w"> </span>SFTEP
+</pre></div>
+</div>
+<p>whereas calling</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>phyddle<span class="w"> </span>-s<span class="w"> </span>SF
+</pre></div>
+</div>
+<p>commands phyddle to perform the <em>Simulate</em> and <em>Format</em> steps, but not the <em>Train</em>,
+<em>Estimate</em>, and <em>Plot</em> steps.</p>
+</section>
+</section>
+<section id="pipeline">
+<span id="id3"></span><h2>Pipeline<a class="headerlink" href="#pipeline" title="Link to this heading"></a></h2>
+<p>A standard phyddle analysis runs five steps – <em>Simulate</em>, <em>Format</em>, <em>Train</em>,
+<em>Estimate</em>, and <em>Plot</em> – in order.</p>
+<section id="step-directories">
+<span id="setting-description-dir"></span><h3>Step directories<a class="headerlink" href="#step-directories" title="Link to this heading"></a></h3>
+<p>In general, each phyddle analysis will store all work within a single
+project directory. Work from each step, however, is stored into different
+subdirectories.</p>
+<p>Customizing the input and output directories among steps allows users to
+quickly explore alternative pipeline designs while leaving previous
+pipeline results in place.</p>
+<p>The project directory can be set using <code class="docutils literal notranslate"><span class="pre">dir</span></code>. During analysis, phyddle will
+create subdirectories for each step using default names, as needed. For example,
+if <code class="docutils literal notranslate"><span class="pre">dir</span></code> is set to the local directory <code class="docutils literal notranslate"><span class="pre">./</span></code>, then a full phyddle analysis
+would use the following directories for the analysis:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>./simulate<span class="w">        </span><span class="c1"># default sim_dir</span>
+./empirical<span class="w">       </span><span class="c1"># default emp_dir</span>
+./format<span class="w">          </span><span class="c1"># default fmt_dir</span>
+./train<span class="w">           </span><span class="c1"># default trn_dir</span>
+./estimate<span class="w">        </span><span class="c1"># default est_dir</span>
+./plot<span class="w">            </span><span class="c1"># default plt_dir</span>
+./log<span class="w">             </span><span class="c1"># default log_dir</span>
+</pre></div>
+</div>
+<p>Individual step directories can be overriden with custom directory locations.
+For example, setting <code class="docutils literal notranslate"><span class="pre">dir</span></code> to <code class="docutils literal notranslate"><span class="pre">./</span></code> but setting <code class="docutils literal notranslate"><span class="pre">emp_dir</span></code> to
+<code class="docutils literal notranslate"><span class="pre">/Users/mlandis/datasets/viburnum</span></code> and <code class="docutils literal notranslate"><span class="pre">plt_dir</span></code> to
+<code class="docutils literal notranslate"><span class="pre">/Users/mlandis/projects/viburnum/results</span></code> would cause
+phyddle to use the following directories:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>./simulate<span class="w">                                </span><span class="c1"># default sim_dir</span>
+/Users/mlandis/datasets/viburnum<span class="w">          </span><span class="c1"># custom emp_dir</span>
+./format<span class="w">                                  </span><span class="c1"># default fmt_dir</span>
+./train<span class="w">                                   </span><span class="c1"># default trn_dir</span>
+./estimate<span class="w">                                </span><span class="c1"># default est_dir</span>
+/Users/mlandis/projects/viburnum/results<span class="w">  </span><span class="c1"># custom plt_dir</span>
+./log<span class="w">                                     </span><span class="c1"># default log_dir</span>
+</pre></div>
+</div>
+</section>
+<section id="step-prefixes">
+<span id="setting-description-prefix"></span><h3>Step prefixes<a class="headerlink" href="#step-prefixes" title="Link to this heading"></a></h3>
+<p>Standard phyddle analyses assume that the files generated by each pipeline
+step begin with the filename prefix <code class="docutils literal notranslate"><span class="pre">'out'</span></code>.</p>
+<p>The filename prefix for all pipeline steps can be changed using the <code class="docutils literal notranslate"><span class="pre">prefix</span></code>
+settings. Changing the filename prefix allows you to generate alternative
+pipeline filesets without overwriting previous results.</p>
+<p>As with the pipeline directory settings (above), prefixes for individual
+pipeline steps can be overridden with custom prefixes. This allows you to compare
+pipeline performance using different settings, while saving previous work. For
+example,</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>phyddle<span class="w"> </span>-c<span class="w"> </span>config.py<span class="w"> </span><span class="se">\ </span><span class="w">               </span><span class="c1"># load config</span>
+<span class="w">        </span>-s<span class="w"> </span>TE<span class="w"> </span><span class="se">\ </span><span class="w">                      </span><span class="c1"># run Train and Estimate steps</span>
+<span class="w">        </span>--prefix<span class="w"> </span>new<span class="w"> </span><span class="se">\ </span><span class="w">               </span><span class="c1"># T &amp; E output has prefix &#39;new&#39;</span>
+<span class="w">        </span>--fmt_prefix<span class="w"> </span>out<span class="w"> </span><span class="se">\ </span><span class="w">           </span><span class="c1"># Format input has prefix &#39;out&#39;</span>
+<span class="w">        </span>--num_epochs<span class="w"> </span><span class="m">50</span><span class="w"> </span><span class="se">\ </span><span class="w">            </span><span class="c1"># Train for 50 epochs</span>
+<span class="w">        </span>--trn_batch_size<span class="w"> </span><span class="m">4096</span><span class="w">         </span><span class="c1"># Use batch sizes of 4096 samples</span>
+</pre></div>
+</div>
+<p>By default the <a class="reference internal" href="#format"><span class="std std-ref">Format</span></a> and <a class="reference internal" href="#estimate"><span class="std std-ref">Estimate</span></a> steps run in a greedy manner,
+against the simulated datasets identified by <code class="docutils literal notranslate"><span class="pre">dir</span></code> (or <code class="docutils literal notranslate"><span class="pre">sim_dir</span></code>) and
+<code class="docutils literal notranslate"><span class="pre">prefix</span></code> (or <code class="docutils literal notranslate"><span class="pre">sim_prefix</span></code>), and against the empirical datasets identified
+by <code class="docutils literal notranslate"><span class="pre">dir</span></code> (or <code class="docutils literal notranslate"><span class="pre">emp_dir</span></code>) and <code class="docutils literal notranslate"><span class="pre">prefix</span></code> (or <code class="docutils literal notranslate"><span class="pre">emp_prefix</span></code>), should those
+datasets exist.</p>
+<p>Setting <code class="docutils literal notranslate"><span class="pre">--no_sim</span></code> during a command-line run will instruct phyddle to skip
+the Format and Estimate steps for the simulated datasets (i.e. the train and
+test datasets).</p>
+<p>Setting <code class="docutils literal notranslate"><span class="pre">--no_emp</span></code> during a command-line run will instruct phyddle to skip
+the Format and Estimate steps for the empirical datasets.</p>
+<p>In particular, the <code class="docutils literal notranslate"><span class="pre">--no_sim</span></code> flag in particular is useful when you only
+need to format new empirical datasets, but do not need to reformat existing
+simulated (i.e. training/test) datasets. The flag helps eliminate redundant
+formatting tasks during pipeline development.</p>
+</section>
+<section id="simulate">
+<span id="id4"></span><h3>Simulate<a class="headerlink" href="#simulate" title="Link to this heading"></a></h3>
+<p><a class="reference internal" href="#simulate"><span class="std std-ref">Simulate</span></a> instructs phyddle to simulate your training dataset. Any
+simulator that can be called from command-line can be used to generate training
+datasets with phyddle. This allows researchers to use their favorite simulator
+with phyddle for phylogenetic modeling tasks.</p>
+<p>As a worked example, suppose we have an R script called <code class="docutils literal notranslate"><span class="pre">sim_bisse.R</span></code> containing
+the following code</p>
+<div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="c1">#!/usr/bin/env Rscript</span>
+<span class="nf">library</span><span class="p">(</span><span class="n">castor</span><span class="p">)</span>
+<span class="nf">library</span><span class="p">(</span><span class="n">ape</span><span class="p">)</span>
+
+<span class="c1"># disable warnings</span>
+<span class="nf">options</span><span class="p">(</span><span class="n">warn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">-1</span><span class="p">)</span>
+
+<span class="c1"># example command string to simulate for &quot;sim.1&quot; through &quot;sim.10&quot;</span>
+<span class="c1"># cd ~/projects/phyddle/workspace/example</span>
+<span class="c1"># Rscript sim_bisse.R ./simulate example 1 10</span>
+
+<span class="c1"># arguments</span>
+<span class="n">args</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="nf">commandArgs</span><span class="p">(</span><span class="n">trailingOnly</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">TRUE</span><span class="p">)</span>
+<span class="n">out_path</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="n">args</span><span class="p">[</span><span class="m">1</span><span class="p">]</span>
+<span class="n">out_prefix</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="n">args</span><span class="p">[</span><span class="m">2</span><span class="p">]</span>
+<span class="n">start_idx</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="nf">as.numeric</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="m">3</span><span class="p">])</span>
+<span class="n">batch_size</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="nf">as.numeric</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="m">4</span><span class="p">])</span>
+<span class="n">rep_idx</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="n">start_idx</span><span class="o">:</span><span class="p">(</span><span class="n">start_idx</span><span class="o">+</span><span class="n">batch_size</span><span class="m">-1</span><span class="p">)</span>
+<span class="n">num_rep</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="nf">length</span><span class="p">(</span><span class="n">rep_idx</span><span class="p">)</span>
+<span class="n">get_mle</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span>
+
+<span class="c1"># filesystem</span>
+<span class="n">tmp_fn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">paste0</span><span class="p">(</span><span class="n">out_path</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;/&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">out_prefix</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;.&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">rep_idx</span><span class="p">)</span><span class="w">  </span><span class="c1"># sim path prefix</span>
+<span class="n">phy_fn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">paste0</span><span class="p">(</span><span class="n">tmp_fn</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;.tre&quot;</span><span class="p">)</span><span class="w">               </span><span class="c1"># newick file</span>
+<span class="n">dat_fn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">paste0</span><span class="p">(</span><span class="n">tmp_fn</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;.dat.csv&quot;</span><span class="p">)</span><span class="w">           </span><span class="c1"># csv of data</span>
+<span class="n">lbl_fn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">paste0</span><span class="p">(</span><span class="n">tmp_fn</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;.labels.csv&quot;</span><span class="p">)</span><span class="w">        </span><span class="c1"># csv of labels (e.g. params)</span>
+
+<span class="c1"># dataset setup</span>
+<span class="n">num_states</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">2</span>
+<span class="n">tree_width</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">500</span>
+<span class="n">label_names</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="nf">paste0</span><span class="p">(</span><span class="s">&quot;log10_birth_&quot;</span><span class="p">,</span><span class="m">1</span><span class="o">:</span><span class="n">num_states</span><span class="p">),</span>
+<span class="w">                </span><span class="s">&quot;log10_death&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;log10_state_rate&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;sample_frac&quot;</span><span class="p">)</span>
+
+<span class="c1"># simulate each replicate</span>
+<span class="kr">for</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="kr">in</span><span class="w"> </span><span class="m">1</span><span class="o">:</span><span class="n">num_rep</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+
+<span class="w">    </span><span class="c1"># set RNG seed</span>
+<span class="w">    </span><span class="nf">set.seed</span><span class="p">(</span><span class="n">rep_idx</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+<span class="w">    </span><span class="c1"># rejection sample</span>
+<span class="w">    </span><span class="n">num_taxa</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0</span>
+<span class="w">    </span><span class="kr">while</span><span class="w"> </span><span class="p">(</span><span class="n">num_taxa</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="m">10</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+
+<span class="w">        </span><span class="c1"># simulation conditions</span>
+<span class="w">        </span><span class="n">max_taxa</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">runif</span><span class="p">(</span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="m">10</span><span class="p">,</span><span class="w"> </span><span class="m">5000</span><span class="p">)</span>
+<span class="w">        </span><span class="n">max_time</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">runif</span><span class="p">(</span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="m">100</span><span class="p">)</span>
+<span class="w">        </span><span class="n">sample_frac</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1.0</span>
+<span class="w">        </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="n">max_taxa</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">tree_width</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="n">sample_frac</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tree_width</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">max_taxa</span>
+<span class="w">        </span><span class="p">}</span>
+
+<span class="w">        </span><span class="c1"># simulate parameters</span>
+<span class="w">        </span><span class="n">Q</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">get_random_mk_transition_matrix</span><span class="p">(</span><span class="n">num_states</span><span class="p">,</span><span class="w"> </span><span class="n">rate_model</span><span class="o">=</span><span class="s">&quot;ER&quot;</span><span class="p">,</span>
+<span class="w">                                            </span><span class="n">max_rate</span><span class="o">=</span><span class="m">0.1</span><span class="p">)</span>
+<span class="w">        </span><span class="n">birth</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">runif</span><span class="p">(</span><span class="n">num_states</span><span class="p">,</span><span class="w"> </span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">)</span>
+<span class="w">        </span><span class="n">death</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">min</span><span class="p">(</span><span class="n">birth</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nf">runif</span><span class="p">(</span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="m">1.0</span><span class="p">)</span>
+<span class="w">        </span><span class="n">death</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">rep</span><span class="p">(</span><span class="n">death</span><span class="p">,</span><span class="w"> </span><span class="n">num_states</span><span class="p">)</span>
+<span class="w">        </span><span class="n">parameters</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">list</span><span class="p">(</span>
+<span class="w">            </span><span class="n">birth_rates</span><span class="o">=</span><span class="n">birth</span><span class="p">,</span>
+<span class="w">            </span><span class="n">death_rates</span><span class="o">=</span><span class="n">death</span><span class="p">,</span>
+<span class="w">            </span><span class="n">transition_matrix_A</span><span class="o">=</span><span class="n">Q</span>
+<span class="w">        </span><span class="p">)</span>
+
+<span class="w">        </span><span class="c1"># simulate tree/data</span>
+<span class="w">        </span><span class="n">res_sim</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">simulate_dsse</span><span class="p">(</span>
+<span class="w">                </span><span class="n">Nstates</span><span class="o">=</span><span class="n">num_states</span><span class="p">,</span>
+<span class="w">                </span><span class="n">parameters</span><span class="o">=</span><span class="n">parameters</span><span class="p">,</span>
+<span class="w">                </span><span class="n">sampling_fractions</span><span class="o">=</span><span class="n">sample_frac</span><span class="p">,</span>
+<span class="w">                </span><span class="n">max_extant_tips</span><span class="o">=</span><span class="n">max_taxa</span><span class="p">,</span>
+<span class="w">                </span><span class="n">max_time</span><span class="o">=</span><span class="n">max_time</span><span class="p">,</span>
+<span class="w">                </span><span class="n">include_labels</span><span class="o">=</span><span class="bp">T</span><span class="p">,</span>
+<span class="w">                </span><span class="n">no_full_extinction</span><span class="o">=</span><span class="bp">T</span><span class="p">)</span>
+
+<span class="w">        </span><span class="c1"># check if tree is valid</span>
+<span class="w">        </span><span class="n">num_taxa</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">length</span><span class="p">(</span><span class="n">res_sim</span><span class="o">$</span><span class="n">tree</span><span class="o">$</span><span class="n">tip.label</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1"># save tree</span>
+<span class="w">    </span><span class="n">tree_sim</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">res_sim</span><span class="o">$</span><span class="n">tree</span>
+<span class="w">    </span><span class="nf">write.tree</span><span class="p">(</span><span class="n">tree_sim</span><span class="p">,</span><span class="w"> </span><span class="n">file</span><span class="o">=</span><span class="n">phy_fn</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+<span class="w">    </span><span class="c1"># save data</span>
+<span class="w">    </span><span class="n">state_sim</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">res_sim</span><span class="o">$</span><span class="n">tip_states</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="m">1</span>
+<span class="w">    </span><span class="n">df_state</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">data.frame</span><span class="p">(</span><span class="n">taxa</span><span class="o">=</span><span class="n">tree_sim</span><span class="o">$</span><span class="n">tip.label</span><span class="p">,</span><span class="w"> </span><span class="n">data</span><span class="o">=</span><span class="n">state_sim</span><span class="p">)</span>
+<span class="w">    </span><span class="nf">write.csv</span><span class="p">(</span><span class="n">df_state</span><span class="p">,</span><span class="w"> </span><span class="n">file</span><span class="o">=</span><span class="n">dat_fn</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="w"> </span><span class="n">row.names</span><span class="o">=</span><span class="bp">F</span><span class="p">,</span><span class="w"> </span><span class="n">quote</span><span class="o">=</span><span class="bp">F</span><span class="p">)</span>
+
+<span class="w">    </span><span class="c1"># save learned labels (e.g. estimated data-generating parameters)</span>
+<span class="w">    </span><span class="n">label_sim</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="n">birth</span><span class="p">[</span><span class="m">1</span><span class="p">],</span><span class="w"> </span><span class="n">birth</span><span class="p">[</span><span class="m">2</span><span class="p">],</span><span class="w"> </span><span class="n">death</span><span class="p">[</span><span class="m">1</span><span class="p">],</span><span class="w"> </span><span class="n">Q</span><span class="p">[</span><span class="m">1</span><span class="p">,</span><span class="m">2</span><span class="p">],</span><span class="w"> </span><span class="n">sample_frac</span><span class="p">)</span>
+<span class="w">    </span><span class="n">label_sim</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">log</span><span class="p">(</span><span class="n">label_sim</span><span class="p">,</span><span class="w"> </span><span class="n">base</span><span class="o">=</span><span class="m">10</span><span class="p">)</span>
+<span class="w">    </span><span class="nf">names</span><span class="p">(</span><span class="n">label_sim</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">label_names</span>
+<span class="w">    </span><span class="n">df_label</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">data.frame</span><span class="p">(</span><span class="nf">t</span><span class="p">(</span><span class="n">label_sim</span><span class="p">))</span>
+<span class="w">    </span><span class="nf">write.csv</span><span class="p">(</span><span class="n">df_label</span><span class="p">,</span><span class="w"> </span><span class="n">file</span><span class="o">=</span><span class="n">lbl_fn</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="w"> </span><span class="n">row.names</span><span class="o">=</span><span class="bp">F</span><span class="p">,</span><span class="w"> </span><span class="n">quote</span><span class="o">=</span><span class="bp">F</span><span class="p">)</span>
+
+<span class="p">}</span>
+
+
+<span class="c1"># done!</span>
+<span class="nf">quit</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>This particular script has a few important features. First, the simulator is
+entirely responsible for simulating the dataset. Second, the script assumes it
+will be provided runtime arguments (<code class="docutils literal notranslate"><span class="pre">args`</span></code>) to generate filenames and to
+determine how many simulated datasets will be generated when the script is run
+(more details in next paragraph). Third, output for the Newick string is stored
+into a <code class="docutils literal notranslate"><span class="pre">.tre</span></code> file, for the character matrix data into a <code class="docutils literal notranslate"><span class="pre">.dat.csv</span></code> file,
+and for the training labels into a comma-separated <code class="docutils literal notranslate"><span class="pre">.csv</span></code> file. Visit
+<a class="reference internal" href="#fmt-input-files"><span class="std std-ref">Input datasets</span></a> to learn more about input format requirements.</p>
+<p>Now that we understand the script, we need to configure phyddle to call it
+properly. This is done by setting the <code class="docutils literal notranslate"><span class="pre">sim_command</span></code> argument equal to a
+command string of the form <code class="docutils literal notranslate"><span class="pre">MY_COMMAND</span> <span class="pre">[MY_COMMAND_ARGUMENTS]</span></code>. During
+simulation, phyddle executes the command string against different filepath
+locations. More specifically, phyddle will execute the command
+<code class="docutils literal notranslate"><span class="pre">MY_COMMAND</span> <span class="pre">[MY_COMMAND_ARGUMENTS]</span> <span class="pre">[SIM_DIR]</span> <span class="pre">[SIM_PREFIX]</span></code>, where <code class="docutils literal notranslate"><span class="pre">SIM_DIR</span></code>
+is the path to the directory locating the individual simulated datasets, and
+<code class="docutils literal notranslate"><span class="pre">SIM_PREFIX</span></code> is a common prefix shared by individual simulation files. As
+part of the Simulate step, phyddle will execute the command string to generate
+the complete simulated dataset of replicated training examples.</p>
+<p>In this case, we assume that <cite>sim_bisse.R</cite> is an R script that is located in
+the same directory as <cite>config.py</cite> and can be executed using the <cite>Rscript</cite>
+command. The correct <cite>sim_command</cite> value to run this script is:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="s1">&#39;sim_command&#39;</span> <span class="p">:</span> <span class="s1">&#39;Rscript ./sim_bisse.R&#39;</span>
+</pre></div>
+</div>
+<p>Assuming <code class="docutils literal notranslate"><span class="pre">sim_dir</span> <span class="pre">=</span> <span class="pre">'./simulate'</span></code>, <code class="docutils literal notranslate"><span class="pre">sim_prefix</span> <span class="pre">=</span> <span class="pre">'sim'</span></code>
+<code class="docutils literal notranslate"><span class="pre">sim_batch_size</span> <span class="pre">=</span> <span class="pre">10</span></code>, phyddle will execute the commands during simulation</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>Rscript<span class="w"> </span>sim_one.R<span class="w"> </span>./simulate/<span class="w"> </span>sim<span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">10</span>
+Rscript<span class="w"> </span>sim_one.R<span class="w"> </span>./simulate/<span class="w"> </span>sim<span class="w"> </span><span class="m">10</span><span class="w"> </span><span class="m">10</span>
+Rscript<span class="w"> </span>sim_one.R<span class="w"> </span>./simulate/<span class="w"> </span>sim<span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="m">10</span>
+...
+</pre></div>
+</div>
+<p>for every replication index between <code class="docutils literal notranslate"><span class="pre">start_idx</span></code> and <code class="docutils literal notranslate"><span class="pre">end_idx</span></code> in
+increments of <code class="docutils literal notranslate"><span class="pre">sim_batch_size</span></code>, where the R script itself is responsible
+for generating the <code class="docutils literal notranslate"><span class="pre">sim_batch_size</span></code> replicates per batch. In fact,
+executing <code class="docutils literal notranslate"><span class="pre">Rscript</span> <span class="pre">sim_bisse.R</span> <span class="pre">./simulate/</span> <span class="pre">sim</span> <span class="pre">1</span> <span class="pre">10</span></code>
+from terminal is an ideal way to validate that your custom simulator is
+compatible with the phyddle requirements.</p>
+</section>
+<section id="format">
+<span id="id5"></span><h3>Format<a class="headerlink" href="#format" title="Link to this heading"></a></h3>
+<p><a class="reference internal" href="#format"><span class="std std-ref">Format</span></a> converts simulated and/or empirical data for a project into a
+tensor format that phyddle uses to train neural networks in the <a class="reference internal" href="#train"><span class="std std-ref">Train</span></a>
+step. <a class="reference internal" href="#format"><span class="std std-ref">Format</span></a> performs two main tasks:</p>
+<ol class="arabic simple">
+<li><p>Encode all individual raw datasets in the simulate and empirical project
+directory into individual tensor representations</p></li>
+<li><p>Combines all the individual tensors into larger, singular tensors that can
+be processed by the neural network</p></li>
+</ol>
+<p>For each example, <a class="reference internal" href="#format"><span class="std std-ref">Format</span></a> encodes the raw data into two input
+tensors and one output tensor:</p>
+<ul class="simple">
+<li><p>One input tensor is the <strong>phylogenetic-state tensor</strong>. Loosely speaking,
+these tensors contain information associated with clades across rows and
+information about relevant branch lengths and states per taxon across columns.
+The phylogenetic-state tensors used by phyddle are based on the compact
+bijective ladderized vector (<strong>CBLV</strong>) format of Voznica et al. (2022) and
+the compact diversity-reordered vector (<strong>CDV</strong>) format of
+Lambert et al. (2022) that incorporates tip states (<strong>CBLV+S</strong> and <strong>CDV+S</strong>)
+using the technique described in Thompson et al. (2022).
+Visit <a class="reference internal" href="#tensor-formats"><span class="std std-ref">Tensor formats</span></a> to learn more.</p></li>
+<li><p>The second input is the <strong>auxiliary data tensor</strong>. This tensor contains
+summary statistics for the phylogeny and character data matrix and “known”
+parameters for the data generating process. Visit <a class="reference internal" href="#aux-data"><span class="std std-ref">Auxiliary data</span></a> to learn
+more.</p></li>
+<li><p>The output tensor reports <strong>labels</strong> that are generally unknown data
+generating parameters to be estimated using the neural network. Depending on
+the estimation task, all or only some model parameters might be treated as
+labels for training and estimation.</p></li>
+</ul>
+<p>For most purposes within phyddle, it is safe to think of a tensor as an
+n-dimensional array, such as a 1-d vector or a 2-d matrix. The tensor encoding
+ensures training examples share a standard shape (e.g. numbers of rows and
+columns) that helps the neural network to detect predictable data patterns.
+Learn more about the formats of phyddle tensors on the
+<a class="reference internal" href="#tensor-formats"><span class="std std-ref">Tensor Formats</span></a> page.</p>
+<p>During tensor-encoding, <a class="reference internal" href="#format"><span class="std std-ref">Format</span></a> processes the tree, data matrix, and
+model parameters for each replicate. This is done in parallel, when the setting
+<code class="docutils literal notranslate"><span class="pre">use_parallel</span></code> is set to <code class="docutils literal notranslate"><span class="pre">True</span></code>. Simulated data are processed using CBLV+S
+format if <code class="docutils literal notranslate"><span class="pre">tree_encode</span></code> is set to <code class="docutils literal notranslate"><span class="pre">'serial'</span></code>. If <code class="docutils literal notranslate"><span class="pre">tree_encode</span></code> is set to
+<code class="docutils literal notranslate"><span class="pre">'extant'</span></code> then all non-extant taxa are pruned, saved as <code class="docutils literal notranslate"><span class="pre">pruned.tre</span></code>, then
+encoded using CDV+S. Standard CBLV+S and CDV+S formats are used when
+<code class="docutils literal notranslate"><span class="pre">brlen_encode</span></code> is <code class="docutils literal notranslate"><span class="pre">'height_only'</span></code>, while additional branch length
+information is added as rows when <code class="docutils literal notranslate"><span class="pre">brlen_encode</span></code> is set to
+<code class="docutils literal notranslate"><span class="pre">'height_brlen'</span></code>. Each tree is then encoded into a phylogenetic-state tensor
+with a maximum of <code class="docutils literal notranslate"><span class="pre">tree_width</span></code> sampled taxa. Trees that contain more taxa are
+downsampled to <code class="docutils literal notranslate"><span class="pre">tree_width</span></code> taxa. The number of taxa in each original dataset
+is recorded in the summary statistics, allowing the trained network to
+make estimates on trees that are larger or smaller than th exact <code class="docutils literal notranslate"><span class="pre">tree_width</span></code>
+size.</p>
+<p>The phylogenetic-state tensors and auxiliary data tensors are then created. If
+<code class="docutils literal notranslate"><span class="pre">save_phyenc_csv</span></code> is set, then individual csv files are saved for each
+dataset, which is especially useful for formatting new empirical datasets into
+an accepted phyddle format.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">param_est</span></code> setting identifies which “unknown”
+parameters in the labels tensor you want to treat as downstream estimation
+targets. The <code class="docutils literal notranslate"><span class="pre">param_data</span></code> setting identifies which of those parameters you
+want to treat as “known” auxiliary data.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Settings in config.py</span>
+
+<span class="c1"># &quot;unknown&quot; parameters to estimate</span>
+<span class="s1">&#39;param_est&#39;</span> <span class="p">:</span> <span class="p">{</span>
+    <span class="s1">&#39;log10_birth_rate&#39;</span> <span class="p">:</span> <span class="s1">&#39;num&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;log10_death_rate&#39;</span> <span class="p">:</span> <span class="s1">&#39;num&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;log10_transition_matrix&#39;</span> <span class="p">:</span> <span class="s1">&#39;num&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;model_type&#39;</span> <span class="p">:</span> <span class="s1">&#39;cat&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;root_state&#39;</span> <span class="p">:</span> <span class="s1">&#39;cat&#39;</span>
+<span class="p">}</span>
+
+<span class="c1"># &quot;known&quot; parameters to use as auxiliary data</span>
+<span class="s1">&#39;param_data&#39;</span> <span class="p">:</span> <span class="p">{</span>
+    <span class="s1">&#39;sample_frac&#39;</span> <span class="p">:</span> <span class="s1">&#39;num&#39;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Information for <code class="docutils literal notranslate"><span class="pre">param_est</span></code> and <code class="docutils literal notranslate"><span class="pre">param_data</span></code> are each stored as dictionaries.
+The keys are the names of the parameters (labels) generated by the <a class="reference internal" href="#simulate"><span class="std std-ref">Simulate</span></a>
+step. The values are the data types of the parameters. Data types may be either
+<code class="docutils literal notranslate"><span class="pre">'num'</span></code> for numerical parameters, or <code class="docutils literal notranslate"><span class="pre">'cat'</span></code> for categorical parameters.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Numerical parameters have ordered values that are negative, positive,
+or zero. We recommend that you transform bounded numerical parameters into
+unbounded values for use with phyddle. For example, although an evolutionary
+rate parameter is non-negative, the log of that rate can be negative,
+positive, or zero.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Categorical parameters have unordered values. They are encoded using
+base-0 sequential integers. For example, the nucleotides for an ancestral
+state estimation task would use <code class="docutils literal notranslate"><span class="pre">0,</span> <span class="pre">1,</span> <span class="pre">2,</span> <span class="pre">3</span></code> to represent A, C, G, T.</p>
+</div>
+<p>Lastly, Format creates a test dataset containing proportion <code class="docutils literal notranslate"><span class="pre">test_prop</span></code> of
+all simulated examples, and a second training dataset that contains all
+remaining <code class="docutils literal notranslate"><span class="pre">1.0</span> <span class="pre">-</span> <span class="pre">test_prop</span></code> examples.</p>
+<p>Formatted tensors are then saved to disk either in simple comma-separated
+value format or in a compressed HDF5 format. For example, suppose we set
+<code class="docutils literal notranslate"><span class="pre">fmt_dir</span></code> to <code class="docutils literal notranslate"><span class="pre">'./format'</span></code>, <code class="docutils literal notranslate"><span class="pre">fmt_prefix</span></code> to <code class="docutils literal notranslate"><span class="pre">'out'</span></code>,
+and <code class="docutils literal notranslate"><span class="pre">tree_encode</span></code> to <code class="docutils literal notranslate"><span class="pre">'serial'</span></code>. If we set <code class="docutils literal notranslate"><span class="pre">tensor_format</span> <span class="pre">==</span> <span class="pre">'hdf5'</span></code>,
+it produces:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>./format/out.empirical.hdf5
+./format/out.test.hdf5
+./format/out.train.hdf5
+</pre></div>
+</div>
+<p>or if <code class="docutils literal notranslate"><span class="pre">tensor_format</span> <span class="pre">==</span> <span class="pre">'csv'</span></code>:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>./format/out.empirical.aux_data.csv
+./format/out.empirical.labels.csv
+./format/out.empirical.phy_data.csv
+./format/out.test.aux_data.csv
+./format/out.test.labels.csv
+./format/out.test.phy_data.csv
+./format/out.train.aux_data.csv
+./format/out.train.labels.csv
+./format/out.train.phy_data.csv
+</pre></div>
+</div>
+<p><a class="reference internal" href="#format"><span class="std std-ref">Format</span></a> behaves the same way for simulated vs. empirical datasets,
+except in two key ways. First, simulated datasets will be split into datasets
+used to train the neural network and test its accuracy (in proportions defined
+by <code class="docutils literal notranslate"><span class="pre">test_prop</span></code>), whereas empirical datasets are left whole. Second, simulated
+datasets will contain labels for all data-generating parameters, meaning both
+the “unknown” parameters that we want to estimate and the “known” parameters
+that contribute to the data-generating process, but could be measured in the
+real world. For example, the birth rate might be an “unknown” parameter we want
+to estimate, while the missing proportion of species is a “known” parameter
+that we can provide the network if we know e.g. only 10% of described
+plant species are in the dataset.</p>
+<p>When searching for empirical and simulated datasets, <a class="reference internal" href="#format"><span class="std std-ref">Format</span></a> uses
+<code class="docutils literal notranslate"><span class="pre">emp_dir</span></code> and <code class="docutils literal notranslate"><span class="pre">sim_dir</span></code> to locate the datasets. The <code class="docutils literal notranslate"><span class="pre">emp_prefix</span></code> and
+<code class="docutils literal notranslate"><span class="pre">sim_prefix</span></code> settings are used to identify the datasets. <a class="reference internal" href="#format"><span class="std std-ref">Format</span></a>
+assumes that empirical datasets follow the naming pattern of
+<code class="docutils literal notranslate"><span class="pre">&lt;prefix&gt;.&lt;rep_idx&gt;.&lt;ext&gt;</span></code> described for <a class="reference internal" href="#simulate"><span class="std std-ref">Simulate</span></a>. For example,
+setting <code class="docutils literal notranslate"><span class="pre">emp_dir</span></code> to <code class="docutils literal notranslate"><span class="pre">'../dnds/empirical'</span></code> and <code class="docutils literal notranslate"><span class="pre">emp_prefix</span></code>
+to <code class="docutils literal notranslate"><span class="pre">'mammal_gene'</span></code> will cause <a class="reference internal" href="#format"><span class="std std-ref">Format</span></a> to search for files with
+these names:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>../dnds/empirical/mammal_gene.1.tre
+../dnds/empirical/mammal_gene.1.dat.csv
+../dnds/empirical/mammal_gene.1.labels.csv<span class="w">  </span><span class="c1"># if using known params</span>
+../dnds/empirical/mammal_gene.2.tre
+../dnds/empirical/mammal_gene.2.dat.csv
+../dnds/empirical/mammal_gene.2.labels.csv<span class="w">  </span><span class="c1"># if using known params</span>
+...
+</pre></div>
+</div>
+<p>Using the <code class="docutils literal notranslate"><span class="pre">--no_emp</span></code> or <code class="docutils literal notranslate"><span class="pre">--no_sim</span></code> flags will instruct <a class="reference internal" href="#format"><span class="std std-ref">Format</span></a> to
+skip processing the empirical and simulated datasets, respectively. In
+addition, <a class="reference internal" href="#format"><span class="std std-ref">Format</span></a> will report that it is skipping the empirical and
+simulated datasets if they do not exist.</p>
+<p>Once complete, the formatted files can then be processed by the
+<a class="reference internal" href="#train"><span class="std std-ref">Train</span></a> step and <a class="reference internal" href="#estimate"><span class="std std-ref">Estimate</span></a> steps.</p>
+</section>
+<section id="train">
+<span id="id6"></span><h3>Train<a class="headerlink" href="#train" title="Link to this heading"></a></h3>
+<p><a class="reference internal" href="#train"><span class="std std-ref">Train</span></a> builds a neural network and trains it to make model-based
+estimates using the simulated training example tensors compiled by the
+<a class="reference internal" href="#format"><span class="std std-ref">Format</span></a> step.</p>
+<p>The <a class="reference internal" href="#train"><span class="std std-ref">Train</span></a> step performs six main tasks:</p>
+<ol class="arabic simple">
+<li><p>Load the input training example tensor.</p></li>
+<li><p>Shuffle the input tensor and split it into training, test, validation, and calibration subsets.</p></li>
+<li><p>Build and configure the neural network</p></li>
+<li><p>Use supervised learning to train neural network to make accurate estimates (predictions)</p></li>
+<li><p>Record network training performance to file</p></li>
+<li><p>Save the trained network to file</p></li>
+</ol>
+<p>Each network is trained for one set of prediction tasks for the exact model
+as specified for the <a class="reference internal" href="#simulate"><span class="std std-ref">Simulate</span></a> step. Each network is trained to
+expect a specific set of <a class="reference internal" href="#format"><span class="std std-ref">Format</span></a> settings (see above).
+Important <a class="reference internal" href="#format"><span class="std std-ref">Format</span></a> settings include <code class="docutils literal notranslate"><span class="pre">tree_width</span></code>, <code class="docutils literal notranslate"><span class="pre">num_char</span></code>,
+<code class="docutils literal notranslate"><span class="pre">num_states</span></code>, <code class="docutils literal notranslate"><span class="pre">char_encode</span></code>, <code class="docutils literal notranslate"><span class="pre">tree_encode</span></code>, <code class="docutils literal notranslate"><span class="pre">brlen_encode</span></code>,
+<code class="docutils literal notranslate"><span class="pre">param_est</span></code>, and <code class="docutils literal notranslate"><span class="pre">param_known</span></code>.</p>
+<p>When the training dataset is read in, its examples are randomly shuffled by
+replicate index. It then sets aside some examples for a validation dataset
+(<code class="docutils literal notranslate"><span class="pre">prop_val</span></code>) and others for a calibration dataset (<code class="docutils literal notranslate"><span class="pre">prop_cal</span></code>). Note,
+the <a class="reference internal" href="#format"><span class="std std-ref">Format</span></a> step will have previously set aside some proportion of test
+number of examples (<code class="docutils literal notranslate"><span class="pre">prop_test</span></code>) to measure final network accuracy
+during the later <a class="reference internal" href="#estimate"><span class="std std-ref">Estimate</span></a> step. The <code class="docutils literal notranslate"><span class="pre">prop_val</span></code> and <code class="docutils literal notranslate"><span class="pre">prop_cal</span></code>
+are themselves proportions of the <code class="docutils literal notranslate"><span class="pre">1.0</span> <span class="pre">-</span> <span class="pre">prop_test</span></code> training example
+proportion.</p>
+<p>phyddle uses <cite>PyTorch &lt;https://pytorch.org/&gt;</cite> to build and train the network.
+The phylogenetic-state tensor is processed by convolutional and pooling layers,
+while the auxiliary data is processed by dense layers. All input layers are
+concatenated then pushed into three branches terminating in output layers
+to produce point estimates and upper and lower estimation intervals. Here
+is a simplified schematic of the network architecture:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Simplified network architecture:
+
+                     Phylo. Data                  Aux. Data
+                        Input                       Input
+                          |                           |
+            .-------------+-------------.             |
+           v              v              v            v
+    Conv1D-plain   Conv1D-dilate   Conv1D-stride    Dense
+       + Pool         + Pool          + Pool          |
+           .              |              |            |
+            `-------------+----+---------+-----------&#39;
+                               |
+                               v
+                             Concat
+                            + Dense
+                               |
+            .-----------+------+-----+-----------.
+           v            v            v            v
+         Lower        Point        Upper        Categ.
+        quantile     estimate     quantile    estimates
+</pre></div>
+</div>
+<p>The number of layers (depth) and nodes (width) can be controlled through the
+<code class="docutils literal notranslate"><span class="pre">phy_channel_plain</span></code>, <code class="docutils literal notranslate"><span class="pre">phy_channel_stride</span></code>, <code class="docutils literal notranslate"><span class="pre">phy_channel_dilate</span></code>,
+<code class="docutils literal notranslate"><span class="pre">aux_channel</span></code>, and <code class="docutils literal notranslate"><span class="pre">lbl_channel</span></code> settings. For example, the default
+value for <code class="docutils literal notranslate"><span class="pre">lbl_channel</span></code> is <code class="docutils literal notranslate"><span class="pre">[128,</span> <span class="pre">64,</span> <span class="pre">32],</span></code>, which creates three dense
+layers with 128, 64, and 32 output channels, in that order. The default value
+for <code class="docutils literal notranslate"><span class="pre">phy_channel_plain</span></code> is <code class="docutils literal notranslate"><span class="pre">[64,</span> <span class="pre">96,</span> <span class="pre">128]</span></code>, which creates three
+sets of convolutional and average-pooling layers with 64, 96, and 128
+output channels. Stride, dilation, and sizes for convolutional kernels can
+be adjusted using <code class="docutils literal notranslate"><span class="pre">phy_kernel_plain</span></code>, <code class="docutils literal notranslate"><span class="pre">phy_kernel_stride</span></code>,
+<code class="docutils literal notranslate"><span class="pre">phy_kernel_dilate</span></code>, <code class="docutils literal notranslate"><span class="pre">phy_stride_stride</span></code>, and <code class="docutils literal notranslate"><span class="pre">phy_dilate_dilate</span></code>.</p>
+<p>Parameter point estimates use a loss function (e.g. <code class="docutils literal notranslate"><span class="pre">loss_numerical</span></code>
+set to <code class="docutils literal notranslate"><span class="pre">'mse'</span></code>). Lower and upper quantile estimates for numerical labels
+are hard-coded to use a pinball loss function. Categorical label estimates are
+hard-coded to use the cross-entropy loss function (one per cat. label).
+Most layers share the the activation function defined by <code class="docutils literal notranslate"><span class="pre">activation_func</span></code>,
+which uses  rectified linear units (ReLUs) by default. The output channels
+for each categorical variable uses a softmax activation function.</p>
+<p>Calibrated prediction intervals (CPIs) are estimated using the conformalized
+quantile regression technique of Romano et al. (2019). CPIs target a
+particular estimation interval, e.g. set <code class="docutils literal notranslate"><span class="pre">cpi_coverage</span></code> to <code class="docutils literal notranslate"><span class="pre">0.80</span></code> so
+80% of test estimations are expected contain the true simulating value.
+More accurate CPIs can be obtained using two-sided conformalized quantile
+regression by setting <code class="docutils literal notranslate"><span class="pre">cpi_asymmetric</span></code> to <code class="docutils literal notranslate"><span class="pre">True</span></code>, though this often
+requires larger numbers of calibration examples, determined through
+<code class="docutils literal notranslate"><span class="pre">prop_cal</span></code>.</p>
+<p>The network is trained iteratively for <code class="docutils literal notranslate"><span class="pre">num_epoch</span></code> training cycles using
+batch stochastic gradient descent, with batch sizes given by <code class="docutils literal notranslate"><span class="pre">trn_batch_size</span></code>.
+Different optimizers can be used to update network weight and bias
+parameters (e.g. <code class="docutils literal notranslate"><span class="pre">optimizer</span> <span class="pre">==</span> <span class="pre">'adam'</span></code>). The initial learning rate can be
+adjusted with <code class="docutils literal notranslate"><span class="pre">learning_rate</span></code>. Network performance is also
+evaluated against a validation dataset, which contains <code class="docutils literal notranslate"><span class="pre">prop_val</span></code> of
+all training examples, and not used for minimizing the loss function.
+To prevent overtraining, phyddle will terminate training if the validation
+loss does not improve for <code class="docutils literal notranslate"><span class="pre">num_early_stop</span></code> consecutive epochs (see
+<a class="reference internal" href="#safe-usage"><span class="std std-ref">Safe Usage</span></a>).</p>
+<p>Training is automatically parallelized using CPUs and GPUs, dependent on
+how Tensorflow was installed and system hardware. Output files are stored
+in the directory assigned to <code class="docutils literal notranslate"><span class="pre">trn_dir</span></code>.</p>
+</section>
+<section id="estimate">
+<span id="id7"></span><h3>Estimate<a class="headerlink" href="#estimate" title="Link to this heading"></a></h3>
+<p><a class="reference internal" href="#estimate"><span class="std std-ref">Estimate</span></a> loads the simulated and empirical test datasets created by
+<a class="reference internal" href="#format"><span class="std std-ref">Format</span></a> stored in <code class="docutils literal notranslate"><span class="pre">fmt_dir</span></code> with prefix <code class="docutils literal notranslate"><span class="pre">fmt_prefix</span></code>. For example,
+if <code class="docutils literal notranslate"><span class="pre">fmt_dir</span> <span class="pre">==</span> <span class="pre">'./format'</span></code>, <code class="docutils literal notranslate"><span class="pre">fmt_prefix</span> <span class="pre">==</span> <span class="pre">'out'</span></code>,
+and <code class="docutils literal notranslate"><span class="pre">tensor_format</span> <span class="pre">==</span> <span class="pre">'hdf5'</span></code> then <a class="reference internal" href="#estimate"><span class="std std-ref">Estimate</span></a> will process the
+following files, if they exist:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>./out.test.hdf5
+./out.empirical.hdf5
+</pre></div>
+</div>
+<p>This step then loads a pretrained network for a given <code class="docutils literal notranslate"><span class="pre">tree_width</span></code> and
+uses it to estimate parameter values and calibrated prediction intervals
+(CPIs) for both the empirical dataset and the (simulated) test dataset.
+Estimates are then stored as separate files into the <code class="docutils literal notranslate"><span class="pre">est_dir</span></code> directory.</p>
+<p>Using the <code class="docutils literal notranslate"><span class="pre">--no_emp</span></code> or <code class="docutils literal notranslate"><span class="pre">--no_sim</span></code> flags will instruct <a class="reference internal" href="#estimate"><span class="std std-ref">Estimate</span></a> to
+skip processing the empirical and simulated datasets, respectively. In
+addition, <a class="reference internal" href="#estimate"><span class="std std-ref">Estimate</span></a> will report that it is skipping the empirical and
+simulated datasets if they do not exist.</p>
+<p>When <a class="reference internal" href="#estimate"><span class="std std-ref">Estimate</span></a> is involves empirical data, the step will report
+any input datasets our output estimates that have unusually extreme
+values relative to the training dataset. This is useful for identifying
+out-of-distribution errors (see <a class="reference internal" href="#safe-usage"><span class="std std-ref">Safe Usage</span></a>).</p>
+</section>
+<section id="plot">
+<span id="id8"></span><h3>Plot<a class="headerlink" href="#plot" title="Link to this heading"></a></h3>
+<p><a class="reference internal" href="#plot"><span class="std std-ref">Plot</span></a> collects all results from the <a class="reference internal" href="#format"><span class="std std-ref">Format</span></a>, <a class="reference internal" href="#train"><span class="std std-ref">Train</span></a>, and
+<a class="reference internal" href="#estimate"><span class="std std-ref">Estimate</span></a> steps to compile a set of useful figures, listed below. When
+results from <a class="reference internal" href="#estimate"><span class="std std-ref">Estimate</span></a> are available, the step will integrate it into
+other figures to contextualize where that input dataset and estimated
+labels fall with respect to the training dataset.</p>
+<p>Importantly, Plot will report instances where training, test, and empirical
+input datasets and output estimates are unusually different. This informs
+users of poor network behavior (see <a class="reference internal" href="#safe-usage"><span class="std std-ref">Safe Usage</span></a>).</p>
+<p>Plots are stored within <code class="docutils literal notranslate"><span class="pre">plot_dir</span></code>.
+Colors for plot elements can be modified with <code class="docutils literal notranslate"><span class="pre">plot_train_color</span></code>,
+<code class="docutils literal notranslate"><span class="pre">plot_label_color</span></code>, <code class="docutils literal notranslate"><span class="pre">plot_test_color</span></code>, <code class="docutils literal notranslate"><span class="pre">plot_val_color</span></code>,
+<code class="docutils literal notranslate"><span class="pre">plot_aux_color</span></code>, and <code class="docutils literal notranslate"><span class="pre">plot_est_color</span></code> using hex codes or common color
+names supported by <a class="reference external" href="https://matplotlib.org/stable/gallery/color/named_colors.html">Matplotlib</a>.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">summary.pdf</span></code> contains all figures in a single plot</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">summary.csv</span></code> records important results in plain text format</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">density_&lt;dataset_name&gt;_aux_data.pdf</span></code> - densities of all values in the auxiliary dataset;
+red line for empirical dataset; run for training and empirical datasets</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">density_&lt;dataset_name&gt;_label.pdf</span></code> - densities of all values in the auxiliary dataset;
+red line for empirical dataset; run for training and empirical datasets</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pca_&lt;dataset_name&gt;_aux_data.pdf</span></code> - pairwise PCA of all values in the auxiliary dataset;
+red dot for empirical dataset; run for training and empirical datasets</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pca_&lt;dataset_name&gt;_label.pdf</span></code> - pairwise PCA of all values in the auxiliary dataset;
+red dot for empirical dataset; run for training and empirical datasets</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">train_history.pdf</span></code> - loss performance across epochs for test/validation
+datasets for entire network</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;dataset_name&gt;_estimate_&lt;num_label_name&gt;.pdf</span></code> - point estimates and calibrated
+estimation intervals of numerical parameters for test or training datasets</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;dataset_name&gt;_estimate_&lt;cat_label_name&gt;.pdf</span></code> - confusion matrix of categorical
+parameters for test or training dataset</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">empirical_estimate_num_&lt;N&gt;.pdf</span></code> - simple plot of point estimates and
+calibrated prediction intervals for each empirical dataset</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">empirical_estimate_cat_&lt;N&gt;.pdf</span></code> - simple bar plot for each empirical dataset</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">network_architecture.pdf</span></code> - visualization of Tensorflow architecture</p></li>
+</ul>
+<p>The <a class="reference internal" href="tutorial.html#tutorial"><span class="std std-ref">Tutorial</span></a> and <a class="reference internal" href="#safe-usage"><span class="std std-ref">Safe Usage</span></a> pages display examples of figures
+and explain how to interpret them.</p>
+</section>
+</section>
+<section id="workspace">
+<span id="id9"></span><h2>Workspace<a class="headerlink" href="#workspace" title="Link to this heading"></a></h2>
+<p>This section describes how phyddle organizes files and directories in its
+workspace.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>We strongly recommend that beginning users follow this general workspace
+filesystem design. Advanced users should find it is easy to customize
+locations for config files, simulation scripts, and output directories.</p>
+</div>
+<p>We recommend using the default directory structure for new projects
+to simplify project management. By default, <code class="docutils literal notranslate"><span class="pre">dir</span></code> is set to <code class="docutils literal notranslate"><span class="pre">./</span></code> and
+<code class="docutils literal notranslate"><span class="pre">prefix</span></code> is set to <code class="docutils literal notranslate"><span class="pre">out</span></code>. Output for each step is then stored in a
+subdirectory named after the step and beginning with the appropriate prefix.</p>
+<p>For example, results from <a class="reference internal" href="#simulate"><span class="std std-ref">Simulate</span></a> are stored in the
+<code class="docutils literal notranslate"><span class="pre">simulate</span></code> subdirectory of the <code class="docutils literal notranslate"><span class="pre">dir`</span></code> directory. If the <code class="docutils literal notranslate"><span class="pre">sim_dir</span></code>
+setting is provided, <a class="reference internal" href="#simulate"><span class="std std-ref">Simulate</span></a> results are stored into that exact
+directory. For example, if <code class="docutils literal notranslate"><span class="pre">dir</span></code> is set to the local directory <code class="docutils literal notranslate"><span class="pre">./</span></code>,
+then <a class="reference internal" href="#simulate"><span class="std std-ref">Simulate</span></a> results are saved to <code class="docutils literal notranslate"><span class="pre">./simulate</span></code>. If <code class="docutils literal notranslate"><span class="pre">sim_dir</span></code> is
+set to <code class="docutils literal notranslate"><span class="pre">../new_project/new_simulations</span></code> then <a class="reference internal" href="#simulate"><span class="std std-ref">Simulate</span></a> results are
+stored there regardless of the <code class="docutils literal notranslate"><span class="pre">dir</span></code> setting.</p>
+<p>Similarly, if <code class="docutils literal notranslate"><span class="pre">prefix</span></code> is set to <code class="docutils literal notranslate"><span class="pre">out</span></code>, then all
+simulated datasets begin with the prefix <code class="docutils literal notranslate"><span class="pre">out</span></code>. If the setting <code class="docutils literal notranslate"><span class="pre">sim_prefix</span></code>
+is set to <code class="docutils literal notranslate"><span class="pre">sim</span></code>, then files generated by <a class="reference internal" href="#simulate"><span class="std std-ref">Simulate</span></a> begin with the
+prefix <code class="docutils literal notranslate"><span class="pre">sim</span></code>.</p>
+<p>Briefly, the <code class="docutils literal notranslate"><span class="pre">workspace</span></code> directory of a typical phyddle project contains
+two important files</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">config.py</span></code> that specifies default settings for phyddle analyses in this project</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sim_one.R</span></code> (or a similar name) that defines a valid <a class="reference internal" href="#simulate"><span class="std std-ref">simulation</span></a> script</p></li>
+</ul>
+<p>and seven subdirectories for the pipeline analysis</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">simulate</span></code> contains raw data generated by simulation</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">format</span></code> contains data formatted into tensors for training networks</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">train</span></code> contains trained networks and diagnostics</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">estimate</span></code> contains new test datasets their estimations</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">plot</span></code> contains figures of training and validation procedures</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">empirical</span></code> contains raw data for your empirical analysis</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">log</span></code> contains runtime logs for a phyddle project</p></li>
+</ul>
+<p>This section will assume all steps are using the <code class="docutils literal notranslate"><span class="pre">example</span></code> project
+bundled with phyddle was generated using the command <code class="docutils literal notranslate"><span class="pre">phyddle</span> <span class="pre">--make_cfg</span></code>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">phyddle</span> <span class="o">-</span><span class="n">c</span> <span class="o">./</span><span class="n">workspace</span><span class="o">/</span><span class="n">example</span><span class="o">/</span><span class="n">config</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">end_idx</span> <span class="mi">25000</span>
+</pre></div>
+</div>
+<p>This corresponds to a 3-region equal-rates GeoSSE model. All directories have
+the complete file set, except <code class="docutils literal notranslate"><span class="pre">./simulate</span></code> contains only
+20 original examples.</p>
+<p>A standard configuration for a project named <code class="docutils literal notranslate"><span class="pre">example</span></code> would store pipeline
+work into these directories:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>./simulate<span class="w">       </span><span class="c1"># output of Simulate step</span>
+./empirical<span class="w">      </span><span class="c1"># your empirical dataset</span>
+./format<span class="w">         </span><span class="c1"># output of Format step</span>
+./train<span class="w">          </span><span class="c1"># output of Train step</span>
+./estimate<span class="w">       </span><span class="c1"># output of Estimate step</span>
+./plot<span class="w">           </span><span class="c1"># output of Plot step</span>
+./log<span class="w">            </span><span class="c1"># logs for phyddle analyses</span>
+</pre></div>
+</div>
+<p>Soon, we give an overview of the standard files and formats corresponding to
+each pipeline directory. First, we describe a commands that help with workspace
+management.</p>
+<p>You can easily save and share your project workspace with the following command:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>workspace/example<span class="w">                         </span><span class="c1"># current directory is root of</span>
+<span class="w">                                             </span><span class="c1">#     example project directory</span>
+
+phyddle<span class="w"> </span>--save_proj<span class="w"> </span>example_lite.tar.gz<span class="w">      </span><span class="c1"># save project workspace, but</span>
+<span class="w">                                             </span><span class="c1">#     skip simulated training data</span>
+<span class="w">                                         </span><span class="c1">#     (faster, smaller)</span>
+</pre></div>
+</div>
+<p>The resulting zip file (tarball) will contain the config file, the simulation script,
+and all workspace directories for pipeline steps. Note, the raw and formatted
+simulated training example datasets tend to be very large, and require substantial
+time and storage to archive, so they are not fully saved by default. To fully save
+all workspace project data, add the following options:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>phyddle<span class="w"> </span>--save_proj<span class="w"> </span>example_full.tar.gz<span class="w"> </span><span class="se">\ </span><span class="w">   </span><span class="c1"># save full project, and</span>
+<span class="w">        </span>--save_train_fmt<span class="w"> </span>T<span class="w"> </span><span class="se">\ </span><span class="w">                </span><span class="c1">#     include simulated training data</span>
+<span class="w">        </span>--save_num_sim<span class="w"> </span><span class="m">1000000</span><span class="w">               </span><span class="c1">#     (slower, larger)</span>
+</pre></div>
+</div>
+<p>If you share the project with a collaborator or save it on a server, you can load
+the project for use with the command:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>mkdir<span class="w"> </span>-p<span class="w"> </span>~/new_workspace/new_project<span class="w">         </span><span class="c1"># create new project directory</span>
+<span class="nb">cd</span><span class="w"> </span>~/new_workspace/new_project<span class="w">               </span><span class="c1"># enter new project directory</span>
+phyddle<span class="w"> </span>--load_proj<span class="w"> </span>example_lite.tar.gz<span class="w">      </span><span class="c1"># load project in directory</span>
+phyddle<span class="w"> </span>-s<span class="w"> </span>S<span class="w"> </span>--sim_more<span class="w"> </span><span class="m">10000</span><span class="w">                </span><span class="c1"># (e.g.) simulate 10,000 training examples</span>
+</pre></div>
+</div>
+<p>Lastly, you can quickly remove all existing workspace directories, while preserving
+the config file and simulation scripts, with the following command:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>workspace/example<span class="w">                         </span><span class="c1"># enter directory to clean</span>
+phyddle<span class="w"> </span>--clean_proj<span class="w">                         </span><span class="c1"># remove all local workspace directories</span>
+</pre></div>
+</div>
+<p>These are powerful commands, so be careful when using them. They can remove
+or overwrite files that you want to keep. Master these commands in a safe test
+directory before applying them to important workspace projects.</p>
+<section id="id10">
+<h3><code class="docutils literal notranslate"><span class="pre">simulate</span></code><a class="headerlink" href="#id10" title="Link to this heading"></a></h3>
+<p>The <a class="reference internal" href="#simulate"><span class="std std-ref">Simulate</span></a> step generates raw data from a simulating model that cannot
+yet be fed to the neural network for training. A typical simulation will
+produce the following files</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>./sim.0.tre<span class="w">              </span><span class="c1"># tree file</span>
+./sim.0.dat.csv<span class="w">          </span><span class="c1"># data file</span>
+./sim.0.labels.csv<span class="w">       </span><span class="c1"># data-generating params</span>
+</pre></div>
+</div>
+<p>Each tree file contains a simple Newick string. Each data file contains state
+data either in Nexus format (<cite>.dat.nex</cite>) or simple comma-separated value format
+(<cite>.dat.csv</cite>) depending on the setting for <code class="docutils literal notranslate"><span class="pre">char_format</span></code>.</p>
+<p>Visit the <a class="reference internal" href="#fmt-input-files"><span class="std std-ref">Input datasets</span></a> section to learn about the exact format for these files.</p>
+</section>
+<section id="id11">
+<h3><code class="docutils literal notranslate"><span class="pre">format</span></code><a class="headerlink" href="#id11" title="Link to this heading"></a></h3>
+<p>Applying <a class="reference internal" href="#format"><span class="std std-ref">Format</span></a> to a directory of simulated datasets will output
+tensors containing the entire set of training examples, stored to, e.g.
+<code class="docutils literal notranslate"><span class="pre">./format</span></code>. If the <code class="docutils literal notranslate"><span class="pre">tensor_format</span></code> setting is <code class="docutils literal notranslate"><span class="pre">'csv'</span></code>
+(Comma-Separated Value, or CSV format), the formatted files are:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>./out.empirical.phy_data.csv
+./out.empirical.aux_data.csv
+./out.empirical.labels.csv
+./out.test.phy_data.csv
+./out.test.aux_data.csv
+./out.test.labels.csv
+./out.train.phy_data.csv
+./out.train.aux_data.csv
+./out.train.labels.csv
+</pre></div>
+</div>
+<p>where the <cite>phy_data.csv</cite> files contain one flattened Compact Phylogenetic Vector +
+States (CPV+S) entry per row, the <cite>aux_data.csv</cite> files contain one vector of
+auxiliary data (summary statistics and known parameters) values per row, and
+<cite>labels.csv</cite> contains one vector of label (estimated parameters) per row. Each
+row for each of the CSV files will correspond to a single, matched simulated
+training example. All files are stored in standard comma-separated value
+format, making them easily read by standard CSV-reading functions.</p>
+<p>If the <code class="docutils literal notranslate"><span class="pre">tensor_format</span></code> setting is <code class="docutils literal notranslate"><span class="pre">'hdf5'</span></code>, the resulting files are:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>./out.test.hdf5
+./out.train.hdf5
+./out.empirical.hdf5
+</pre></div>
+</div>
+<p>where each HDF5 file contains all phylogenetic-state (CPV+S) data, auxiliary
+data, and label data. Individual simulated training examples share the same
+set of ordered examples across three internal datasets stored in the file. HDF5
+format is not as easily readable as CSV format. However, phyddle uses gzip
+to automatically (de)compress records, which often leads to files that are
+over twenty times smaller than equivalent uncompressed CSV formatted tensors.</p>
+<p>Visit <a class="reference internal" href="#tensor-formats"><span class="std std-ref">Tensor formats</span></a> and <a class="reference internal" href="#aux-data"><span class="std std-ref">Auxiliary data</span></a> sections to learn more about how these data are formatted.</p>
+</section>
+<section id="id12">
+<h3><code class="docutils literal notranslate"><span class="pre">train</span></code><a class="headerlink" href="#id12" title="Link to this heading"></a></h3>
+<p>Training a network creates the following files in the <code class="docutils literal notranslate"><span class="pre">workspace/example/train</span></code>
+directory:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>./out.cpi_adjustments.csv
+./out.train_aux_data_norm.csv
+./out.train_est.labels_cat.csv
+./out.train_est.labels_num.csv
+./out.train_history.csv
+./out.train_label_est_nocalib.csv
+./out.train_label_norm.csv
+./out.train_true.labels_cat.csv
+./out.train_true.labels_num.csv
+./out.trained_model.pkl
+</pre></div>
+</div>
+<p>Descriptions of the files are as follows, with the prefix omitted for brevity:
+* <code class="docutils literal notranslate"><span class="pre">trained_model.pkl</span></code>: a saved file containing the trained PyTorch model
+* <code class="docutils literal notranslate"><span class="pre">train_label_norm.csv</span></code> and <code class="docutils literal notranslate"><span class="pre">train_aux_data_norm.csv</span></code>: the location-scale values from the training dataset to (de)normalize the labels and auxiliary data from any dataset
+* <code class="docutils literal notranslate"><span class="pre">train_true.labels.csv</span></code>: the true values of labels for the training and test datasets, where columns correspond to estimated labels (e.g. model parameters)
+* <code class="docutils literal notranslate"><span class="pre">train_est.labels.csv</span></code>: the trained network estimates of labels for the training and test datasets, with calibrated prediction intervals, where columns correspond to point estimates and estimates for lower CPI and upper CPI bounds for each named label (e.g. model parameter)
+* <code class="docutils literal notranslate"><span class="pre">train_label_est_nocalib.csv</span></code>: the trained network estimates of labels for the training and test datasets, with uncalibrated prediction intervals
+* <code class="docutils literal notranslate"><span class="pre">train_history.csv</span></code>: the metrics across training epochs monitored during network training
+* <code class="docutils literal notranslate"><span class="pre">cpi_adjustments.csv</span></code>: calibrated prediction interval adjustments, where columns correspond to parameters, the first row contains lower bound adjustments, and the second row contains upper bound adjustments</p>
+</section>
+<section id="id13">
+<h3><code class="docutils literal notranslate"><span class="pre">estimate</span></code><a class="headerlink" href="#id13" title="Link to this heading"></a></h3>
+<p>The <a class="reference internal" href="#estimate"><span class="std std-ref">Estimate</span></a> step will load empirical and simulated test datasets
+generated by the <a class="reference internal" href="#format"><span class="std std-ref">Format</span></a> step, and then make new predictions using
+the network trained during the <a class="reference internal" href="#train"><span class="std std-ref">Train</span></a> step. Estimation will produce
+the following estimates, so long as the formatted input datasets can
+be opened in the filesystem:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>./out.empirical_est.labels_num.csv<span class="w">   </span><span class="c1"># output: estimated labels for empirical data</span>
+./out.empirical_est.labels_cat.csv<span class="w">   </span><span class="c1"># output: estimated labels for empirical data</span>
+./out.test_est.labels_cat.csv<span class="w">            </span><span class="c1"># output: estimated labels for test data</span>
+./out.test_est.labels_num.csv<span class="w">            </span><span class="c1"># output: estimated labels for test data</span>
+./out.test_true.labels_cat.csv<span class="w">           </span><span class="c1"># output: true labels for test data</span>
+./out.test_true.labels_num.csv<span class="w">           </span><span class="c1"># output: true labels for test data</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">out.empirical_est_labels.csv</span></code> and <code class="docutils literal notranslate"><span class="pre">out.test_est.labels.csv</span></code> files
+report the point estimates and lower and upper calibrated prediction
+intervals (CPIs) for all parameters targeted by the <code class="docutils literal notranslate"><span class="pre">param_est</span></code> setting.
+Estimates for parameters appear across columns, where columns are grouped
+first by label (e.g. parameter) and then statistic (e.g. value, lower-bound,
+upper-bound). For example:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>cat<span class="w"> </span>out.empirical_est.labels.csv
+w_0_value,w_0_lower,w_0_upper,e_0_value,e_0_lower,e_0_upper,d_0_1_value,d_0_1_lower,d_0_1_upper,b_0_1_value,b_0_1_lower,b_0_1_upper
+<span class="m">0</span>.2867125345651129,0.1937433853918723,0.45733220552078013,0.02445545359384659,0.002880695707341881,0.10404499205878459,0.4502031713887769,0.1966340488593367,0.5147956690178682,0.06199703190510973,0.0015074254823161301,0.27544015163806645
+</pre></div>
+</div>
+<p>The <cite>test_est.labels.csv</cite> and <cite>test_true.labels.csv</cite> files contain estimated
+and true label values for the simulated test dataset that were left aside
+during training. It is crucial that estimation accuracy against the test
+dataset is not used to inform the training process. If you view the test
+results and use it to modify <a class="reference internal" href="#train"><span class="std std-ref">Train</span></a> settings, you should first
+randomly re-sample the training and test datasets from the <a class="reference internal" href="#format"><span class="std std-ref">Format</span></a> step.
+This helps prevent overfitting and ensures that the test dataset is truly
+independent of the training procedure.</p>
+</section>
+<section id="id14">
+<h3><code class="docutils literal notranslate"><span class="pre">plot</span></code><a class="headerlink" href="#id14" title="Link to this heading"></a></h3>
+<p>The <a class="reference internal" href="#plot"><span class="std std-ref">Plot</span></a> step generates visualizations for results previously generated
+by <a class="reference internal" href="#format"><span class="std std-ref">Format</span></a>, <a class="reference internal" href="#train"><span class="std std-ref">Train</span></a>, and (when available) <a class="reference internal" href="#estimate"><span class="std std-ref">Estimate</span></a>.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>./out.empirical_estimate_cat_<span class="o">{</span>i<span class="o">}</span>.pdf<span class="w">  </span><span class="c1"># categorical estimates for empirical data</span>
+./out.empirical_estimate_num_<span class="o">{</span>i<span class="o">}</span>.pdf<span class="w">  </span><span class="c1"># numerical estimates for empirical data</span>
+./out.test_estimate_<span class="o">{</span>param<span class="o">}</span><span class="w">           </span><span class="c1"># estimation accuracy for test dataset</span>
+./out.train_estimate_<span class="o">{</span>param<span class="o">}</span><span class="w">          </span><span class="c1"># estimation accuracy for training dataset</span>
+./out.train_density_aux_data.pdf<span class="w">      </span><span class="c1"># aux. data densities from Simulate/Format steps</span>
+./out.train_density_labels.pdf<span class="w">        </span><span class="c1"># label densities from Simulate/Format steps</span>
+./out.train_pca_labels_num.pdf<span class="w">        </span><span class="c1"># label PCA of Simulate/Format steps</span>
+./out.train_aux_data.pdf<span class="w">              </span><span class="c1"># aux. data PCA of Simulate/Format steps</span>
+./out.train_history_<span class="o">{</span>stat<span class="o">}</span>.pdf<span class="w">        </span><span class="c1"># training history for entire network</span>
+./out.network_architecture.pdf<span class="w">        </span><span class="c1"># neural network architecture</span>
+./out.summary.pdf<span class="w">                     </span><span class="c1"># compiled report with all figures</span>
+./out.summary.csv<span class="w">                     </span><span class="c1"># compiled text file with numerical results</span>
+</pre></div>
+</div>
+<p>The <a class="reference internal" href="tutorial.html#tutorial"><span class="std std-ref">Tutorial</span></a> and <a class="reference internal" href="#safe-usage"><span class="std std-ref">Safe Usage</span></a> pages display examples of figures
+and explain how to interpret them.</p>
+</section>
+<section id="empirical">
+<h3><code class="docutils literal notranslate"><span class="pre">empirical</span></code><a class="headerlink" href="#empirical" title="Link to this heading"></a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">empirical</span></code> directory is used to store raw data for empirical analyses.
+The network from <a class="reference internal" href="#train"><span class="std std-ref">Train</span></a> is only trained to make accurate predictions
+for datasets with the same format as the <code class="docutils literal notranslate"><span class="pre">simulate</span></code> directory. That means
+empirical datasets must have the same file types and formats as entries in
+the <code class="docutils literal notranslate"><span class="pre">simulate</span></code> directory. One difference is that empirical <code class="docutils literal notranslate"><span class="pre">labels.csv</span></code>
+files will only contain entries for “known” parameters, as specified by
+<code class="docutils literal notranslate"><span class="pre">param_data</span></code> in the configuration; they will not contain the “unknown”
+parameters to be estimated, specified by <code class="docutils literal notranslate"><span class="pre">param_est</span></code>.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>./empirical/viburnum.0.tre<span class="w">         </span><span class="c1"># tree file</span>
+./empirical/viburnum.0.dat.csv<span class="w">     </span><span class="c1"># data file</span>
+./empirical/viburnum.0.labels.csv<span class="w">  </span><span class="c1"># data-generating params</span>
+</pre></div>
+</div>
+</section>
+<section id="log">
+<h3><code class="docutils literal notranslate"><span class="pre">log</span></code><a class="headerlink" href="#log" title="Link to this heading"></a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">log</span></code> directory contains logs for each phyddle analysis. Log files
+are named according to the date and time of the analysis, and contain
+runtime information that may be useful for debugging or reproducing results.</p>
+<p>Visit <a class="reference internal" href="#overview"><span class="std std-ref">Overview</span></a> to learn more about the files.</p>
+</section>
+</section>
+<section id="formats">
+<span id="id15"></span><h2>Formats<a class="headerlink" href="#formats" title="Link to this heading"></a></h2>
+<p>This page describes different internal datatype formats and file formats used
+by phyddle.</p>
+<section id="input-datasets">
+<span id="fmt-input-files"></span><h3>Input datasets<a class="headerlink" href="#input-datasets" title="Link to this heading"></a></h3>
+<p>phyddle can make phylogenetic model predictions against input datasets with
+previously trained networks. Valid phyddle input datasets contain a set of
+files with a shared filename prefix. For example, a dataset with the prefix
+<code class="docutils literal notranslate"><span class="pre">out.3</span></code> would contain a tree file <code class="docutils literal notranslate"><span class="pre">out.0.tre</span></code>, a character matrix file
+<code class="docutils literal notranslate"><span class="pre">out.3.dat.nex</span></code>, and (when applicable) a ‘known parameters’ file
+<code class="docutils literal notranslate"><span class="pre">out.3.labels.csv</span></code>. Simulated training datasets and real biological
+datasets follow the same format.</p>
+<p>Trees are encoded as raw data in simple Newick format. Trees are assumed to be
+rooted, bifurcating, time-calibrated trees. Trees may be ultrametric or
+non-ultrametric trees. Ultrametric trees should only be analyzed using
+<cite>treetype == ‘extant’</cite>. Non-ultrametric trees, such as those containing
+serially sampled viruses or fossils should be analyzed using
+<cite>treetype == ‘serial’</cite>. Here is an example of an extant tree with N=8 taxa.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>cat<span class="w"> </span>./simulate/out.0.tre
+<span class="o">((((</span><span class="m">1</span>:0.35994691486501296,2:0.35994691486501296<span class="o">)</span>:1.389952711060852,<span class="o">(</span><span class="m">3</span>:1.5810568349100933,<span class="o">(</span><span class="m">4</span>:0.5830569936279364,5:0.5830569936279364<span class="o">)</span>:0.9979998412821569<span class="o">)</span>:0.1688427910157717<span class="o">)</span>:5.655066077200624,6:7.404965703126489<span class="o">)</span>:0.3108578683347094,<span class="o">(</span><span class="m">7</span>:0.7564319839861859,8:0.7564319839861859<span class="o">)</span>:6.959391587475013<span class="o">)</span>:2.2841764285388018<span class="p">;</span>
+</pre></div>
+</div>
+<p>Character data may be encoded in Nexus format (<cite>char_format = ‘nex’</cite>). Here is an
+example of a matrix with N=8 taxa and M=3 binary characters.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>cat<span class="w"> </span>./simulate/out.0.dat.nex
+<span class="c1">#NEXUS</span>
+Begin<span class="w"> </span>DATA<span class="p">;</span>
+Dimensions<span class="w"> </span><span class="nv">NTAX</span><span class="o">=</span><span class="m">8</span><span class="w"> </span><span class="nv">NCHAR</span><span class="o">=</span><span class="m">3</span>
+Format<span class="w"> </span><span class="nv">MISSING</span><span class="o">=</span>?<span class="w"> </span><span class="nv">GAP</span><span class="o">=</span>-<span class="w"> </span><span class="nv">DATATYPE</span><span class="o">=</span>STANDARD<span class="w"> </span><span class="nv">SYMBOLS</span><span class="o">=</span><span class="s2">&quot;01&quot;</span><span class="p">;</span>
+Matrix
+<span class="w">    </span><span class="m">1</span><span class="w">  </span><span class="m">001</span>
+<span class="w">    </span><span class="m">2</span><span class="w">  </span><span class="m">010</span>
+<span class="w">    </span><span class="m">3</span><span class="w">  </span><span class="m">100</span>
+<span class="w">    </span><span class="m">4</span><span class="w">  </span><span class="m">100</span>
+<span class="w">    </span><span class="m">5</span><span class="w">  </span><span class="m">001</span>
+<span class="w">    </span><span class="m">6</span><span class="w">  </span><span class="m">001</span>
+<span class="w">    </span><span class="m">7</span><span class="w">  </span><span class="m">100</span>
+<span class="w">    </span><span class="m">8</span><span class="w">  </span><span class="m">010</span>
+<span class="p">;</span>
+END<span class="p">;</span>
+</pre></div>
+</div>
+<p>Character data may also be encoded in csv format (<cite>char_format = ‘csv’</cite>). For
+example:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>cat<span class="w"> </span>./simulate/out.0.dat.nex
+taxa,char1,char2,char3
+<span class="m">1</span>,0,0,1
+<span class="m">2</span>,0,1,0
+<span class="m">3</span>,1,0,0
+<span class="m">4</span>,1,0,0
+<span class="m">5</span>,0,0,1
+<span class="m">6</span>,0,0,1
+<span class="m">7</span>,1,0,0
+<span class="m">8</span>,0,1,0
+</pre></div>
+</div>
+<p>This would represent a character matrix with 8 taxa and 3 characters with 2 states
+per character. phyddle will warn the user if there is a mismatch between the
+number of characters and states present in the character matrix and the numbers
+specified in the config file.</p>
+<p>Some models will accept “known” data-generating parameters as input. For example,
+if not all taxa were included in the phylogeny, a model might accept a sampling
+fraction label as input. Any labels that are marked under the <code class="docutils literal notranslate"><span class="pre">param_data</span></code>
+setting will be encoded into the auxiliary data tensor during formatting. Example:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>cat<span class="w"> </span>./simulate/out.0.labels.csv
+birth_1,birth_2,death,state_rate,sample_frac
+<span class="m">0</span>.5728,0.9082,0.1155,0.0372,0.1114
+</pre></div>
+</div>
+<p>where the setting <code class="docutils literal notranslate"><span class="pre">param_data</span> <span class="pre">==</span> <span class="pre">['sample_frac']</span></code> would ensure that only the
+<code class="docutils literal notranslate"><span class="pre">sample_frac</span></code> entry is included in auxiliary data.</p>
+</section>
+<section id="tensor-formats">
+<span id="id16"></span><h3>Tensor formats<a class="headerlink" href="#tensor-formats" title="Link to this heading"></a></h3>
+<p>Phylogenetic data (e.g. from a Newick file) and character matrix data (e.g.
+from a Nexus file) are encoded into compact phylogenetic state tensors.
+Internally, phyddle uses <code class="docutils literal notranslate"><span class="pre">`dendropy.Tree`</span></code> to represent phylogenies,
+<code class="docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> to represent character matrices (verify), and
+<code class="docutils literal notranslate"><span class="pre">numpy.ndarray</span></code> to store phylogenetic-state tensors.</p>
+<p>There are two types of phylogenetic-state tensors in phyddle: the compact
+bijective ladderized vector + states (CBLV+S) and the compact diversity vector +
+states (CDV+S). CBLV+S is used for trees that contain serially sampled
+(non-ultrametric) taxa whereas CDV+S is used for trees that contain only extant
+(ultrametric) taxa. The <code class="docutils literal notranslate"><span class="pre">tree_width</span></code> of the encoding defines the maximum number
+of taxa the phylogenetic-state tensor may contain. The <code class="docutils literal notranslate"><span class="pre">tree_encode</span></code> setting
+determines if the tree is a <code class="docutils literal notranslate"><span class="pre">'serial'</span></code> tree encoded with CBLV+S or an
+<code class="docutils literal notranslate"><span class="pre">'extant'</span></code> tree encoded with CDV+S. Setting <code class="docutils literal notranslate"><span class="pre">brlen_encode</span></code> and
+<code class="docutils literal notranslate"><span class="pre">char_encode</span></code> alter how information is stored into the
+phylogenetic-state tensor.</p>
+<p>A phyddle code data to produce the examples below is available here:
+<a class="reference external" href="https://github.com/mlandis/phyddle/blob/main/docs/source/code/cpvs_example">link</a>.</p>
+<section id="cblv-s">
+<h4>CBLV+S<a class="headerlink" href="#cblv-s" title="Link to this heading"></a></h4>
+<p>This is an example for the CBLV+S encoding of 5 taxa with 2 characters. This
+is the Newick string:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="o">(((</span>A:2,B:1<span class="o">)</span>:1,<span class="o">(</span>C:3,D:2<span class="o">)</span>:3<span class="o">)</span>:1,E:2<span class="o">)</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>This is the Nexus file:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1">#NEXUS</span>
+Begin<span class="w"> </span>DATA<span class="p">;</span>
+Dimensions<span class="w"> </span><span class="nv">NTAX</span><span class="o">=</span><span class="m">5</span><span class="w"> </span><span class="nv">NCHAR</span><span class="o">=</span><span class="m">2</span>
+Format<span class="w"> </span><span class="nv">MISSING</span><span class="o">=</span>?<span class="w"> </span><span class="nv">GAP</span><span class="o">=</span>-<span class="w"> </span><span class="nv">DATATYPE</span><span class="o">=</span>STANDARD<span class="w"> </span><span class="nv">SYMBOLS</span><span class="o">=</span><span class="s2">&quot;01&quot;</span><span class="p">;</span>
+Matrix
+<span class="w">    </span>A<span class="w">  </span><span class="m">01</span>
+<span class="w">    </span>B<span class="w">  </span><span class="m">11</span>
+<span class="w">    </span>C<span class="w">  </span><span class="m">10</span>
+<span class="w">    </span>D<span class="w">  </span><span class="m">10</span>
+<span class="w">    </span>E<span class="w">  </span><span class="m">01</span>
+<span class="p">;</span>
+END<span class="p">;</span>
+</pre></div>
+</div>
+<p>These data can be encoded in different ways, based on the <code class="docutils literal notranslate"><span class="pre">char_encode</span></code>
+setting. When <code class="docutils literal notranslate"><span class="pre">char_encode</span> <span class="pre">==</span> <span class="pre">'integer'</span></code> then the encoding will treat
+each character as a row in the resulting data matrix, and assign the
+appropriate integer-valued state to that character for each taxon.
+Alternatively, when <code class="docutils literal notranslate"><span class="pre">char_encode</span> <span class="pre">==</span> <span class="pre">'one_hot'</span></code> then the encoding will
+treat every distinct state-character combination as its own row in the
+resulting data matrix, then mark each species as <code class="docutils literal notranslate"><span class="pre">1</span></code> for a cell when a
+species has that character-state and <code class="docutils literal notranslate"><span class="pre">0</span></code> if not. One-hot encoding is
+applied individually to each homologous character (fewer distinct combinations)
+not against the entire character set (more distinct combinations).</p>
+<p>Ladderizing clades by maximum root-to-tip distance orders the taxa C, D, A,
+B, then E, which correspond to the first five entries of the CBLV+S tensor.
+When <code class="docutils literal notranslate"><span class="pre">brlen_encode</span></code> is set to <code class="docutils literal notranslate"><span class="pre">'height_only'</span></code> the un-rescaled CBLV+S file
+would look like this:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># NOTE: The CBLV+S tensor is shown in this orientation for readability.</span>
+<span class="c1">#       phyddle stores the tensor as the transpose of this in memory,</span>
+<span class="c1">#       meaning rows correspond to taxa, and columns correspond to branch</span>
+<span class="c1">#       length information.</span>
+
+<span class="c1"># C,D,A,B,E,-,-,-,-,-</span>
+<span class="w">  </span><span class="m">7</span>,2,3,1,2,0,0,0,0,0<span class="w">  </span><span class="c1"># tip-to-node distance</span>
+<span class="w">  </span><span class="m">0</span>,4,1,2,0,0,0,0,0,0<span class="w">  </span><span class="c1"># node-to-root distance</span>
+<span class="w">  </span><span class="m">1</span>,1,0,1,0,0,0,0,0,0<span class="w">  </span><span class="c1"># character 1</span>
+<span class="w">  </span><span class="m">0</span>,0,1,1,1,0,0,0,0,0<span class="w">  </span><span class="c1"># character 2</span>
+</pre></div>
+</div>
+<p>and like this when <code class="docutils literal notranslate"><span class="pre">brlen_encode</span></code> is set to <code class="docutils literal notranslate"><span class="pre">'height_brlen'</span></code>:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># C,D,A,B,E,-,-,-,-,-</span>
+<span class="w">  </span><span class="m">7</span>,2,3,1,2,0,0,0,0,0<span class="w">  </span><span class="c1"># tip-to-node distance</span>
+<span class="w">  </span><span class="m">0</span>,4,1,2,0,0,0,0,0,0<span class="w">  </span><span class="c1"># node-to-root distance</span>
+<span class="w">  </span><span class="m">3</span>,2,2,1,2,0,0,0,0,0<span class="w">  </span><span class="c1"># tip edge length</span>
+<span class="w">  </span><span class="m">0</span>,3,1,1,0,0,0,0,0,0<span class="w">  </span><span class="c1"># node edge length</span>
+<span class="w">  </span><span class="m">1</span>,1,0,1,0,0,0,0,0,0<span class="w">  </span><span class="c1"># character 1</span>
+<span class="w">  </span><span class="m">0</span>,0,1,1,1,0,0,0,0,0<span class="w">  </span><span class="c1"># character 2</span>
+</pre></div>
+</div>
+<p>By default, all branch length-related entries are rescaled from 0 to 1 as proportion
+to tree height (formatted to ease reading):</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1">#    C,   D,   A,   B,   E,   -,   -,   -,   -,   -</span>
+<span class="w">  </span><span class="m">1</span>.00,0.29,0.43,0.14,0.29,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span><span class="w">  </span><span class="c1"># tip-to-node distance</span>
+<span class="w">  </span><span class="m">0</span>.00,0.57,0.14,0.29,0.00,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span><span class="w">  </span><span class="c1"># node-to-root distance</span>
+<span class="w">  </span><span class="m">0</span>.43,0.29,0.29,0.14,0.29,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span><span class="w">  </span><span class="c1"># tip edge length</span>
+<span class="w">  </span><span class="m">0</span>.00,0.43,0.14,0.14,0.00,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span><span class="w">  </span><span class="c1"># node edge length</span>
+<span class="w">     </span><span class="m">1</span>,<span class="w">   </span><span class="m">1</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">1</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span><span class="w">  </span><span class="c1"># character 1</span>
+<span class="w">     </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">1</span>,<span class="w">   </span><span class="m">1</span>,<span class="w">   </span><span class="m">1</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span><span class="w">  </span><span class="c1"># character 2</span>
+</pre></div>
+</div>
+</section>
+<section id="cdv-s">
+<h4>CDV+S<a class="headerlink" href="#cdv-s" title="Link to this heading"></a></h4>
+<p>CDV+S is used to encode phylogenetic-state information for trees of only
+extant taxa. CDV+S has a similar structure to CBLV+S, except in two
+principal ways. First, CDV+S uses total subclade diversity rather than
+tip node with max distance-from-root-node to determine how to ladderize
+the tree, which in turn determines which columns are associated with which
+tip nodes. Second, because CDV+S is used for extant-only trees, it does not
+need to report the redundant information about tip-to-node distances, as
+the tip-to-root distances are equal among all tips (by definition). This
+means that CDV+S does not contain a row with tip-to-node distances (the
+first row of CBLV+S).</p>
+<p>For example, the following Newick string for an ultrametric tree</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="o">(((</span>A:5,B:5<span class="o">)</span>:1,<span class="o">(</span>C:3,D:3<span class="o">)</span>:3<span class="o">)</span>:1,E:7<span class="o">)</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>and associating the same character data as above with taxa A through E
+yields the following CDV+S tensor:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># NOTE: The CDV+S tensor is shown in this orientation for readability.</span>
+<span class="c1">#       phyddle stores the tensor as the transpose of this in memory,</span>
+<span class="c1">#       meaning rows correspond to taxa, and columns correspond to branch</span>
+<span class="c1">#       length information.</span>
+
+<span class="c1"># B,A,C,D,E,-,-,-,-,-</span>
+<span class="w">  </span><span class="m">2</span>,1,4,0,0,0,0,0,0,0<span class="w">  </span><span class="c1"># node-to-root distance</span>
+<span class="w">  </span><span class="m">5</span>,5,3,3,7,0,0,0,0,0<span class="w">  </span><span class="c1"># tip edge length</span>
+<span class="w">  </span><span class="m">1</span>,1,3,0,0,0,0,0,0,0<span class="w">  </span><span class="c1"># node edge length</span>
+<span class="w">  </span><span class="m">1</span>,0,1,1,0,0,0,0,0,0<span class="w">  </span><span class="c1"># character 1</span>
+<span class="w">  </span><span class="m">1</span>,1,0,0,1,0,0,0,0,0<span class="w">  </span><span class="c1"># character 2</span>
+</pre></div>
+</div>
+<p>By default, all branch length-related entries are rescaled from 0 to 1 as proportion
+to tree height (formatted to ease reading):</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1">#    B,   A,   C,   D,   E,-,-,-,-,-</span>
+<span class="w">  </span><span class="m">0</span>.29,0.14,0.57,0.00,0.00,0,0,0,0,0<span class="w">  </span><span class="c1"># node-to-root distance</span>
+<span class="w">  </span><span class="m">0</span>.71,0.71,0.43,0.43,1.00,0,0,0,0,0<span class="w">  </span><span class="c1"># tip edge length</span>
+<span class="w">  </span><span class="m">0</span>.14,0.14,0.43,0.00,0.00,0,0,0,0,0<span class="w">  </span><span class="c1"># node edge length</span>
+<span class="w">     </span><span class="m">1</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">1</span>,<span class="w">   </span><span class="m">1</span>,<span class="w">   </span><span class="m">0</span>,0,0,0,0,0<span class="w">  </span><span class="c1"># character 1</span>
+<span class="w">     </span><span class="m">1</span>,<span class="w">   </span><span class="m">1</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">1</span>,0,0,0,0,0<span class="w">  </span><span class="c1"># character 2</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="auxiliary-data">
+<span id="aux-data"></span><h3>Auxiliary data<a class="headerlink" href="#auxiliary-data" title="Link to this heading"></a></h3>
+<p>The auxiliary data tensor contains a panel of summary statistics extracted
+from the inputted phylogeny and character data matrix for a given dataset:
+Currently, phyddle generates the following summary statistics:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">log10_tree_length</span>       <span class="c1"># sum of branch lengths</span>
+<span class="n">log10_root_age</span>          <span class="c1"># longest root-to-tip distance</span>
+<span class="n">log10_brlen_mean</span>        <span class="c1"># mean of branch lengths</span>
+<span class="n">log10_age_mean</span>          <span class="c1"># mean of internal node ages</span>
+<span class="n">age_var</span>                 <span class="c1"># variance of internal node ages</span>
+<span class="n">brlen_var</span>               <span class="c1"># variance of branch lengths</span>
+<span class="n">log10_B1</span>                <span class="c1"># B1 tree measure (Dendropy)</span>
+<span class="n">colless</span>                 <span class="c1"># Colless tree measure (Dendropy)</span>
+<span class="n">treeness</span>                <span class="c1"># treeness measure (Dendropy)</span>
+<span class="n">N_bar</span>                   <span class="c1"># N_bar tree measure (Dendropy)</span>
+<span class="n">f_dat_0</span>                 <span class="c1"># frequency of taxa with character in state 0</span>
+<span class="n">f_dat_1</span>                 <span class="c1"># frequency of taxa with character in state 1</span>
+<span class="n">n_dat_0</span>                 <span class="c1"># count of taxa with character in state 0</span>
+<span class="n">n_dat_1</span>                 <span class="c1"># count of taxa with character in state 0</span>
+<span class="n">num_taxa</span>                <span class="c1"># number of terminal taxa in tree/data</span>
+<span class="n">prop_taxa</span>               <span class="c1"># proportion of taxa retained after downsampling to tree_width</span>
+<span class="o">...</span>
+</pre></div>
+</div>
+<p>The auxiliary data tensor can also contain specified parameter values that shape the
+data-generating process and can be treated as “known” rather than needing to
+be estimated. For example, the epidemiologists may assume they know the rate of
+infection recovery (gamma) based on public health or clinical data. Parameters
+may be treated as data by providing the labels for those parameters in the
+<code class="docutils literal notranslate"><span class="pre">param_data</span></code> entry of the config file. For example, setting <code class="docutils literal notranslate"><span class="pre">'param_data'</span> <span class="pre">:</span>
+<span class="pre">[</span> <span class="pre">'sample_frac'</span> <span class="pre">]</span></code> could be used to inform phyddle that the recovery
+rate and susceptible population sizes for location 0 are known for a
+phylogenetic SIR analysis.</p>
+</section>
+</section>
+<section id="safe-usage">
+<span id="id17"></span><h2>Safe Usage<a class="headerlink" href="#safe-usage" title="Link to this heading"></a></h2>
+<p>We designed phyddle to be user-friendly. However, we caution users that
+deep learning approaches can easily produce nonsensical and/or misleading
+results when irresponsibly. Below, we describe several issues that newcomers
+to deep learning might encounter, along with how to diagnose and solve them.</p>
+<section id="poor-accuracy-or-coverage">
+<h3>Poor accuracy or coverage<a class="headerlink" href="#poor-accuracy-or-coverage" title="Link to this heading"></a></h3>
+<p>Neural networks are trained to make accurate predictions, such as point
+estimates and prediction intervals. Poor accuracy or coverage is a
+common problem and easily detected, but it can arise for many reasons.</p>
+<p>To diagnose poor accuracy or coverage, run the <em>Plot</em> step. Review the
+scatter plots of true versus estimated labels for the Train and Test datasets.
+Accurate predictions for numerical labels should fall along the 1:1 line, with
+a slope close to 1.0. Coverage levels should be close to the target level.
+For categorical variables, the confusion matrix should show high values along
+the diagonal and small values elsewhere. phyddle will print warnings if
+accuracy or coverage is poor in the Training or Test datasets.</p>
+<p>To correct the issue, undertraining, overtraining, small
+training datasets, poor network architecture, or other issues may be
+at play. The following sections provide ideas to fix the issue.</p>
+<figure class="sphinx-subfigure align-center" id="poor-accuracy-covg">
+<div class="sphinx-subfigure-grid ss-layout-default-AB_CD ss-layout-sm-A_B_C_D outline" style="display: grid; gap: 8px; grid-gap: 8px;">
+<div class="sphinx-subfigure-area" style="display: flex; flex-direction: column; justify-content: center; align-items: center; grid-area: A;">
+<a class="reference internal image-reference" href="_images/out.train_estimate_log_birth_1.png"><img alt="Accurate numerical estimates" src="_images/out.train_estimate_log_birth_1.png" style="height: 300px;" />
+</a>
+<span class="caption">Accurate numerical estimates</span>
+</div>
+<div class="sphinx-subfigure-area" style="display: flex; flex-direction: column; justify-content: center; align-items: center; grid-area: B;">
+<a class="reference internal image-reference" href="_images/out.train_estimate_log_birth_1_bad.png"><img alt="Inaccurate numerical estimates" src="_images/out.train_estimate_log_birth_1_bad.png" style="height: 300px;" />
+</a>
+<span class="caption">Inaccurate numerical estimates</span>
+</div>
+<div class="sphinx-subfigure-area" style="display: flex; flex-direction: column; justify-content: center; align-items: center; grid-area: C;">
+<a class="reference internal image-reference" href="_images/out.train_estimate_model_type.png"><img alt="Accurate categorical estimates" src="_images/out.train_estimate_model_type.png" style="height: 300px;" />
+</a>
+<span class="caption">Accurate categorical estimates</span>
+</div>
+<div class="sphinx-subfigure-area" style="display: flex; flex-direction: column; justify-content: center; align-items: center; grid-area: D;">
+<a class="reference internal image-reference" href="_images/out.train_estimate_model_type_bad.png"><img alt="Inaccurate categorical estimates" src="_images/out.train_estimate_model_type_bad.png" style="height: 300px;" />
+</a>
+<span class="caption">Inaccurate categorical estimates</span>
+</div>
+</div>
+</figure>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</section>
+<section id="undertraining-and-overtraining">
+<h3>Undertraining and overtraining<a class="headerlink" href="#undertraining-and-overtraining" title="Link to this heading"></a></h3>
+<p>The loss score for the training dataset will typically decrease as the
+number of training epochs increases. This is because typically neural networks
+have thousands of weight and bias parameters to adjust, and small adjustments
+can easily squeeze at marginal improvements to the loss score.</p>
+<p>An undertrained network will not make accurate predictions for training, test,
+or validation datasets. This is because the optimizer was not able to
+learn the optimal network parameters before training concluded.
+On the other hand, an overtrained network will only make accurate predictions
+for the training dataset, while making inaccurate predictions against
+non-training datasets, such as the test and validation datasets.</p>
+<p>To diagnose undertraining problems, review the training history plot. If the
+loss score for both the training and validation datasets is still decreasing by
+the end of the training period, then the network is undertrained.</p>
+<p>To correct for undertraining, double the number of training epochs or use larger
+batch sizes of training examples.</p>
+<p>To diagnose overtraining problems, run the <em>Plot</em> step. Review the training
+history plot. If you see that the loss score for the training dataset
+continuously decreases while the loss score for the validation dataset
+increases (making a ‘U’ shape) then the network is overtrained.</p>
+<p>To correct for overtraining, you can either specify a shorter number of training
+epochs, decrease the training batch sizes, or use stronger early stopping
+rules. To prevent overtraining, the  default behavior in phyddle is to stop
+training when the validation loss score increases for 3 consecutive epochs.</p>
+<figure class="sphinx-subfigure align-center" id="undertraining">
+<div class="sphinx-subfigure-grid ss-layout-default-ABC outline" style="display: grid; gap: 8px; grid-gap: 8px;">
+<div class="sphinx-subfigure-area" style="display: flex; flex-direction: column; justify-content: center; align-items: center; grid-area: A;">
+<a class="reference internal image-reference" href="_images/out.train_history_loss_combined.png"><img alt="Good training" src="_images/out.train_history_loss_combined.png" style="height: 200px;" />
+</a>
+<span class="caption">Good training</span>
+</div>
+<div class="sphinx-subfigure-area" style="display: flex; flex-direction: column; justify-content: center; align-items: center; grid-area: B;">
+<a class="reference internal image-reference" href="_images/out.train_history_loss_combined_undertrain.png"><img alt="Undertraining" src="_images/out.train_history_loss_combined_undertrain.png" style="height: 200px;" />
+</a>
+<span class="caption">Undertraining</span>
+</div>
+<div class="sphinx-subfigure-area" style="display: flex; flex-direction: column; justify-content: center; align-items: center; grid-area: C;">
+<a class="reference internal image-reference" href="_images/out.train_history_loss_combined_overtrain.png"><img alt="Overtraining" src="_images/out.train_history_loss_combined_overtrain.png" style="height: 200px;" />
+</a>
+<span class="caption">Overtraining</span>
+</div>
+</div>
+</figure>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</section>
+<section id="small-training-datasets">
+<h3>Small training datasets<a class="headerlink" href="#small-training-datasets" title="Link to this heading"></a></h3>
+<p>Supervised learning requires large training datasets to train networks to
+perform accurately. Most of the workspace examples are designed to work
+well with ~50,0000 training examples. Small training datasets do not contain
+enough examples to densly represent general relationships between input and
+output patterns. In this case, the trained network will have poor prediction
+accuracy against the training, test, and validation datasets – even if the
+network was trained to its optimal level.</p>
+<p>To diagnose this issue, run the <em>Plot</em> step. Verify that the training history
+plot does not show evidence for overtraining or undertraining. Next, verify
+the network has poor prediction accuracy for the training and test datasets.</p>
+<p>To fix the issue, simulate twice as many datasets, retrain the network,
+and then assess whether accuracy improved. If it does, continue simulating
+data until prediction accuracy for the training and test datasets stabilizes.</p>
+</section>
+<section id="suboptimal-network-size">
+<h3>Suboptimal network size<a class="headerlink" href="#suboptimal-network-size" title="Link to this heading"></a></h3>
+<p>Neural networks are composed of layers of nodes that are interconnected
+through series of activation functions that are optimized during training.
+In general, increasing network depth (more layers) and width (more nodes)
+allows a network to easily express a broader variety of relationships between
+inputs and outputs (higher capacity), which can increase accuracy when
+properly trained. However, because larger networks have more parameters
+to optimize, they are also prone to overtraining.</p>
+<p>To diagnose issues with network size, run the <em>Plot</em> step. If the network
+is too small, the network will underperform across all prediction tasks.
+The training history plot will show rapid convergence towards
+the optimal loss score, but the final loss score will be higher than expected.
+In addition, prediction accuracy for the training and test datasets will be
+in agreement. If the network is too large, then the training history will
+show evidence of overtraining, and the prediction accuracy for the training
+dataset will be high, with degraded accuracy for the test dataset.</p>
+<p>To fix the issue, compare the prediction accuracy of networks trained with
+different depths and widths. To do this, modify the numbers of layers and nodes
+through the configuration file, train the new network, and compare differences
+in accuracy and training time with other network designs.</p>
+</section>
+<section id="out-of-distribution-examples">
+<h3>Out-of-distribution examples<a class="headerlink" href="#out-of-distribution-examples" title="Link to this heading"></a></h3>
+<p>Supervised learning uses large datasets, composed of pairs of input (features)
+and output (labels), to train neural networks to accurately predict labels from
+new datasets. Properly trained network should perform well at making predictions
+for inputs similar to those in the training dataset. For example, the
+training, test, validation, and calibration examples are all samples from
+the same distribution of data (i.e. through the model-based simulator).
+New empirical datasets might look like these data (in-distribution) or they
+might look radically different (out-of-distribution). Out-of-distribution
+examples are do not resemble any training examples, so the network cannot
+be trusted to make accurate predictions from them.</p>
+<p>To diagnose this issue, run the <em>Estimate</em> and <em>Plot</em> steps. The <em>Estimate</em>
+step will report any empirical datasets and variables that are outliers
+with respect to the training dataset. The <em>Plot</em> step will generate PCA
+plots and histograms of variables for the training and empirical datasets;
+inspect the plots to identify empirical examples that are outliers.</p>
+<p>To solve the problem, verify the empirical datasets are formatted in the
+same way as the training dataset. For example, make sure phylogenetic branch
+lengths and traits are measured in the same units, and that discrete trait
+labels use the same encoding. If they are formatted correctly, then you
+will need to simulate a new and more-variable training dataset that will
+include the range of expected input and output variables from the empirical
+data. For example, if your empirical trees are roughly 20 to 50 million years
+in height, consider simulating training trees that are between 5 and 100
+million years in height.</p>
+<figure class="sphinx-subfigure align-center" id="out-of-distribution-aux">
+<div class="sphinx-subfigure-grid ss-layout-default-AB_CD ss-layout-sm-A_B_C_D outline" style="display: grid; gap: 8px; grid-gap: 8px;">
+<div class="sphinx-subfigure-area" style="display: flex; flex-direction: column; justify-content: center; align-items: center; grid-area: A;">
+<a class="reference internal image-reference" href="_images/out.train_pca_aux_data.png"><img alt="Within-distribution" src="_images/out.train_pca_aux_data.png" style="height: 300px;" />
+</a>
+<span class="caption">Within-distribution</span>
+</div>
+<div class="sphinx-subfigure-area" style="display: flex; flex-direction: column; justify-content: center; align-items: center; grid-area: B;">
+<a class="reference internal image-reference" href="_images/out.train_pca_aux_data_bad.png"><img alt="Out-of-distribution" src="_images/out.train_pca_aux_data_bad.png" style="height: 300px;" />
+</a>
+<span class="caption">Out-of-distribution</span>
+</div>
+<div class="sphinx-subfigure-area" style="display: flex; flex-direction: column; justify-content: center; align-items: center; grid-area: C;">
+<a class="reference internal image-reference" href="_images/out.train_density_aux_data.png"><img alt="Within-distribution" src="_images/out.train_density_aux_data.png" style="height: 300px;" />
+</a>
+<span class="caption">Within-distribution</span>
+</div>
+<div class="sphinx-subfigure-area" style="display: flex; flex-direction: column; justify-content: center; align-items: center; grid-area: D;">
+<a class="reference internal image-reference" href="_images/out.train_density_aux_data_bad.png"><img alt="Out-of-distribution" src="_images/out.train_density_aux_data_bad.png" style="height: 300px;" />
+</a>
+<span class="caption">Out-of-distribution</span>
+</div>
+</div>
+</figure>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</section>
+<section id="simulator-errors">
+<h3>Simulator errors<a class="headerlink" href="#simulator-errors" title="Link to this heading"></a></h3>
+<p>phyddle uses simulated examples to train neural networks. This means
+that the quality of the training data is only as good as the simulator
+that generates it. Untested simulators often contain coding or mathematical
+errors. We stress that if the simulator generates erroneous datasets,
+then the network will be trained to confidently make erroneous predictions!</p>
+<p>Diagnosing the issue is not easy. A network trained on a bad simulator will
+still make accurate predictions for the training, test, and validation datasets.
+However, predictions for empirical datasets will remain bad despite attempts
+to adjust the size or variability of training examples, network architecture,
+or training settings.</p>
+<p>Use other simulators, estimation methods, and theory to validate
+the correctness of your simulator. One good option is to find a special case
+of your model that is identical to a second more-tractable model: e.g. reduce
+your time-heterogeneous SSE model to a pure birth process. In these cases,
+you can compare the output of your simulator to the output from a second
+peer-reviewed simulator. Simulate data with both simulators under the
+same model conditions, and verify they produce similar distributions of output:
+e.g. both simulators yield trees with similar tree height distributions.
+Another option is to use or derive theory to verify that your simulator produces the
+expected output: e.g. show your simulator generates the correct expected number
+of species for a given set of parameters and duration of evolutionary time.
+In cases where your model has a tractable likelihood, the estimates
+of your trained network should agree with those from a likelihood-based
+estimator. Likelihood-based Bayesian coverage experiments for extremely small
+datasets (e.g. 3 species, 2 characters) are sufficient to show the simulator
+is correct.</p>
+</section>
+<section id="unintended-signal">
+<h3>Unintended signal<a class="headerlink" href="#unintended-signal" title="Link to this heading"></a></h3>
+<p>Neural networks are designed to learn patterns from data, which means they can
+also learn unintended patterns. In particular, phyddle networks are only
+expected to make accurate predictions for new empirical datasets that follow
+the same format as the simulated datasets. Unless handled carefully by the
+analyst, simulated and empirical datasets might differ in terms of scale
+(e.g. thousands vs. billions of years for tree height), transformation
+(e.g. log vs. linear trait measurements), character encoding
+(e.g. the simulator sorts nucleotide sites by variability, but the empirical
+preserves its ordering), state encoding (e.g. the simulator uses state 0, but
+the empirical data uses state 1 to represent a widespread species in regions A
+and B), or other ways. While phyddle will internally rescale traits and tree
+heights internally to mitigate some issues, it cannot automatically correct
+for biases that might arise due to encodings or transformations.</p>
+<p>To diagnose the issue, run the <em>Estimate</em> and <em>Plot</em> steps with the empirical
+data included. If the data representation is grossly mismatched, the issue
+may appear as an out-of-distribution error, and you may see that the empirical
+data are outliers in the PCA plots and/or histograms. Identifying the issue
+for subtle differences in data representation may require a deep understanding
+of the model and the data.</p>
+<p>To correct the issue, you need to ensure that the empirical data are
+represented in the same way as the simulated data. For example, if your
+simulator log-transforms traits before saving the simulation to file, you
+must do the same for your empirical dataset. A good strategy for this is to
+write code for necessary data adjustments (e.g. log-transformations,
+shuffling character order) and that same code for both the simulated and
+empirical data.</p>
+</section>
+<section id="model-design">
+<h3>Model design<a class="headerlink" href="#model-design" title="Link to this heading"></a></h3>
+<p>There are many subtle factors related to model design that can impact
+the performance of estimation tasks. For example, models with
+non-identifiable parameters can be difficult or impossible
+to estimate – e.g. estimating compound parameters for
+evolutionary distance rather than separate parameters for rate and time.
+In other cases, the parameterization of the model can impact learning
+efficiency – e.g. using birth and death rates versus diversification
+and turnover parameters is known to influence how easily maximum likelihood
+methods estimate birth-death model parameters.</p>
+<p>There are far too many issues related to model design to describe here.
+In general, it is safe to assume that deep learning methods will face
+similar difficulties as likelihood-based methods for standard model
+estimation tasks. If theory shows that a model is non-identifiable, neither
+method would precisely estimate all of that model’s parameters.</p>
+<p>Designing models is complicated and benefits from mathematical expertise
+and experience. We recommend that biologists who are creating novel models
+for the first time consult with theoreticians identify potential flaws
+in the model design.</p>
+</section>
+<section id="nonsensical-results">
+<h3>Nonsensical results<a class="headerlink" href="#nonsensical-results" title="Link to this heading"></a></h3>
+<p>When applying a statistical model or inference method to analyze an
+empirical dataset, it’s critical to verify that the results are sensible.
+Models and methods cannot put the results it finds into a broader
+scientific context. For example, inferring a net diversification rate of
+1,000 species per species per Myr for a bird clade might be an
+earth-shattering result that fundamentally changes our understanding
+of vertebrate evolution. Or perhaps the model is poorly designed.
+Or perhaps the simulator contained a bug. Or perhaps the network was
+overtrained. Or perhaps the dataset contained an error.</p>
+<p>We urge biologists to use their knowledge of the empirical system
+and the model properties to interpret results. Do not hesitate to question
+the results of any statistical analysis, with phyddle or otherwise, especially
+if they cannot be explained clearly and convincingly. If you suspect your
+results cannot be trusted, explore whether results are robust to adjustments
+in the dataset or analysis settings, and to what extent the results can
+be replicated with other methods.</p>
+</section>
+</section>
+<section id="assorted-tricks">
+<span id="tricks"></span><h2>Assorted tricks<a class="headerlink" href="#assorted-tricks" title="Link to this heading"></a></h2>
+<p>Here are a few tricks for using phyddle using a Unix-based terminal. These
+commands assume a standard phyddle workspace directory structure.</p>
+<p><strong>Make a new config file</strong></p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create and modify new config file</span>
+phyddle<span class="w"> </span>--make_cfg
+
+<span class="c1"># Rename new config</span>
+mv<span class="w"> </span>config_default.py<span class="w"> </span>my_new_config.py
+
+<span class="c1"># Design new config</span>
+edit<span class="w"> </span>my_new_config.py
+
+<span class="c1"># Run using new config</span>
+phyddle<span class="w"> </span>-c<span class="w"> </span>my_new_config.py
+</pre></div>
+</div>
+<p><strong>Run a pipeline with modified command-line settings</strong></p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Run full pipeline while changing calibration and validation proportions</span>
+phyddle<span class="w"> </span>-c<span class="w"> </span>config.py<span class="w"> </span>--cal_prop<span class="w"> </span><span class="m">0</span>.10<span class="w"> </span>--val_prop<span class="w"> </span><span class="m">0</span>.10
+</pre></div>
+</div>
+<p><strong>Re-run part of the pipeline with modified command-line settings</strong></p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Re-run pipeline Train, Estimate, and Plot steps with new training settings</span>
+phyddle<span class="w"> </span>-c<span class="w"> </span>config.py<span class="w"> </span>-s<span class="w"> </span>TEP<span class="w"> </span>--num_epoch<span class="w"> </span><span class="m">10</span><span class="w"> </span>--trn_batch_size<span class="w"> </span><span class="m">64</span>
+</pre></div>
+</div>
+<p><strong>Redirect input/output across pipeline steps</strong></p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Run full pipeline</span>
+phyddle<span class="w"> </span>-c<span class="w"> </span>config.py
+
+<span class="c1"># Re-run Train, Estimate, Plot steps with new settings, saved to other_project</span>
+phyddle<span class="w"> </span>-c<span class="w"> </span>config.py<span class="w"> </span><span class="se">\</span>
+<span class="w">        </span>-s<span class="w"> </span>TEP<span class="w"> </span><span class="se">\</span>
+<span class="w">        </span>--trn_dir<span class="w"> </span>../other_project/train<span class="w"> </span><span class="se">\</span>
+<span class="w">        </span>--est_dir<span class="w"> </span>../other_project/estimate<span class="w"> </span><span class="se">\</span>
+<span class="w">        </span>--plt_dir<span class="w"> </span>../other_project/plot<span class="w"> </span><span class="se">\</span>
+<span class="w">        </span>--num_epochs<span class="w"> </span><span class="m">40</span><span class="w"> </span><span class="se">\</span>
+<span class="w">        </span>--trn_batch_size<span class="w"> </span><span class="m">512</span>
+
+<span class="c1"># Alternatively, point `dir` to other project point Format to this project</span>
+<span class="w">  </span>phyddle<span class="w"> </span>-c<span class="w"> </span>config.py<span class="w"> </span><span class="se">\</span>
+<span class="w">          </span>-s<span class="w"> </span>TEP<span class="w"> </span><span class="se">\</span>
+<span class="w">          </span>--dir<span class="w"> </span>../other_project<span class="w"> </span><span class="se">\</span>
+<span class="w">          </span>--fmt_dir<span class="w"> </span>./format<span class="w"> </span><span class="se">\</span>
+<span class="w">          </span>--num_epochs<span class="w"> </span><span class="m">40</span><span class="w"> </span><span class="se">\</span>
+<span class="w">          </span>--trn_batch_size<span class="w"> </span><span class="m">512</span>
+</pre></div>
+</div>
+<p><strong>Process alternative empirical data using previously trained network</strong></p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Run full pipeline</span>
+phyddle<span class="w"> </span>-c<span class="w"> </span>config.py
+
+<span class="c1"># Format, Estimate, and Plot empirical data against trained network</span>
+phyddle<span class="w"> </span>-c<span class="w"> </span>config.py<span class="w"> </span><span class="se">\</span>
+<span class="w">        </span>-s<span class="w"> </span>FEP<span class="w"> </span><span class="se">\</span>
+<span class="w">        </span>--no_sim<span class="w"> </span><span class="se">\</span>
+<span class="w">        </span>--emp_dir<span class="w"> </span>../other_project/empirical<span class="w"> </span><span class="se">\</span>
+<span class="w">        </span>--est_dir<span class="w"> </span>./new_estimate<span class="w"> </span><span class="se">\</span>
+<span class="w">        </span>--plt_dir<span class="w"> </span>./new_plot
+</pre></div>
+</div>
+<p><strong>Simulate new training examples</strong></p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Simulate training examples 0 to 999, storing results</span>
+<span class="c1"># workspace/simulate/my_project</span>
+phyddle<span class="w"> </span>-s<span class="w"> </span>S<span class="w"> </span>-c<span class="w"> </span>config.py<span class="w"> </span>--start_idx<span class="w"> </span><span class="m">0</span><span class="w"> </span>--end_idx<span class="w"> </span><span class="m">1000</span>
+
+<span class="c1"># Simulate 4000 more training examples, 0 to 4999</span>
+phyddle<span class="w"> </span>-s<span class="w"> </span>S<span class="w"> </span>-c<span class="w"> </span>config.py<span class="w"> </span>--sim_more<span class="w"> </span><span class="m">4000</span>
+
+<span class="c1"># Perform remaining Format, Train, Estimate, Plot steps</span>
+phyddle<span class="w"> </span>-s<span class="w"> </span>FTEP<span class="w"> </span>-c<span class="w"> </span>config.py
+
+<span class="c1"># ...or, to Simulate more and re-run all steps</span>
+phyddle<span class="w"> </span>-c<span class="w"> </span>config.py<span class="w"> </span>--sim_more<span class="w"> </span><span class="m">4000</span>
+</pre></div>
+</div>
+<p><strong>Run an analysis for a tree without character data</strong></p>
+<p>To analyze a model that only generates trees but not character data (e.g.
+a birth-death process), design your simulator to write to file a character
+matrix with the same taxon set, but with zeroes for all character state
+information. When training, only the trees will contain variation
+that can be used to estimate model parameters. Future versions of phyddle
+will allow for the direct analysis of trees without character data, without
+needing this workaround.</p>
+<p><strong>Run an analysis for data without a tree</strong></p>
+<p>To analyze a model that only generates data but no tree (e.g. a normal
+distribution), design your simulator to write a two-taxon tree
+(<code class="docutils literal notranslate"><span class="pre">(A:1,B:1);</span></code>) to the tree file, a two-taxon character matrix with zeroes
+for states to the character matrix file (see above), and all data of actual
+interest into the labels file. Then, identify all variables of interst in
+<code class="docutils literal notranslate"><span class="pre">param_data</span></code>. When training, only the known parameters will contain
+variation that can be used to estimate model parameters. Future versions of
+phyddle will allow for the direct analysis of data without trees and
+character data, without needing this workaround.</p>
+<p><strong>Quick access to workspace directories from console via GUI</strong></p>
+<p>On Mac OS X, you can press the Option key and click a directory path to open
+a Finder window to that directory.</p>
+<a class="reference internal image-reference" href="_images/click_directory.png"><img alt="_images/click_directory.png" class="align-center" src="_images/click_directory.png" style="width: 497.4px; height: 354.0px;" />
+</a>
+</section>
+<section id="example-run">
+<span id="example"></span><h2>Example run<a class="headerlink" href="#example-run" title="Link to this heading"></a></h2>
+<p>The output of phyddle pipeline analysis will resemble this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>┏━━━━━━━━━━━━━━━━━━━━━━┓
+┃   phyddle   v0.1.1   ┃
+┣━━━━━━━━━━━━━━━━━━━━━━┫
+┃                      ┃
+┗━┳━▪ Simulating... ▪━━┛
+  ┃
+  ┗━━━▪ output:  ./simulate
+
+▪ Start time of 20:37:07
+▪ Simulating raw data
+Simulating: 100%|█████████████████████████| 100/100 [00:20&lt;00:00,  4.94it/s]
+▪ Total counts of simulated files:
+  ▪ 31030 phylogeny files
+  ▪ 31030 data files
+  ▪ 31030 labels files
+▪ End time of 20:37:31 (+00:00:24)
+... done!
+┃                      ┃
+┗━┳━▪ Formatting... ▪━━┛
+  ┃
+  ┣━━━▪ input:   ./empirical
+  ┃              ./simulate
+  ┗━━━▪ output:  ./format
+
+▪ Start time of 20:37:32
+▪ Collecting simulated data
+▪ Encoding simulated data as tensors
+Encoding: 100%|██████████████████████| 31030/31030 [04:36&lt;00:00, 112.08it/s]
+Encoding found 31030 of 31030 valid examples.
+▪ Splitting into train and test datasets
+▪ Combining and writing simulated data as tensors
+Making train hdf5 dataset: 29479 examples for tree width = 500
+Making test hdf5 dataset: 1551 examples for tree width = 500
+▪ Collecting empirical data
+▪ Encoding empirical data as tensors
+Encoding: 100%|█████████████████████████████| 10/10 [00:50&lt;00:00,  5.08s/it]
+Encoding found 10 of 10 valid examples.
+▪ Combining and writing empirical data as tensors
+Making empirical hdf5 dataset: 10 examples for tree width = 500
+▪ End time of 20:43:21 (+00:05:49)
+... done!
+┗━┳━▪ Training...   ▪━━┛
+  ┃
+  ┣━━━▪ input:   ./format
+  ┗━━━▪ output:  ./train
+
+▪ Start time of 20:45:09
+▪ Loading input:
+  ▪ 22111 training examples
+  ▪  5895 calibration examples
+  ▪  1473 validation examples
+▪ Training targets:
+  ▪ log10_birth_1     [type: num]
+  ▪ log10_birth_2     [type: num]
+  ▪ log10_death       [type: num]
+  ▪ log10_state_rate  [type: num]
+▪ Building network
+▪ Training network
+Training epoch 1 of 10: 100%|███████████████| 44/44 [00:50&lt;00:00,  1.14s/it]
+    Train        --   loss: 1.0648
+    Validation   --   loss: 0.9459
+
+Training epoch 2 of 10: 100%|███████████████| 44/44 [00:49&lt;00:00,  1.13s/it]
+    Train        --   loss: 0.8429  abs: -0.2219  rel: -20.84%
+    Validation   --   loss: 0.8125  abs: -0.1333  rel: -14.10%
+
+Training epoch 3 of 10: 100%|███████████████| 44/44 [00:49&lt;00:00,  1.12s/it]
+    Train        --   loss: 0.7646  abs: -0.0782  rel: -9.28%
+    Validation   --   loss: 0.7716  abs: -0.0410  rel: -5.04%
+
+Training epoch 4 of 10: 100%|███████████████| 44/44 [00:49&lt;00:00,  1.12s/it]
+    Train        --   loss: 0.7218  abs: -0.0429  rel: -5.61%
+    Validation   --   loss: 0.7275  abs: -0.0441  rel: -5.71%
+
+Training epoch 5 of 10: 100%|███████████████| 44/44 [00:48&lt;00:00,  1.11s/it]
+    Train        --   loss: 0.6917  abs: -0.0300  rel: -4.16%
+    Validation   --   loss: 0.6930  abs: -0.0345  rel: -4.74%
+
+Training epoch 6 of 10: 100%|███████████████| 44/44 [00:48&lt;00:00,  1.11s/it]
+    Train        --   loss: 0.6657  abs: -0.0261  rel: -3.77%
+    Validation   --   loss: 0.6874  abs: -0.0056  rel: -0.81%
+
+Training epoch 7 of 10: 100%|███████████████| 44/44 [00:49&lt;00:00,  1.13s/it]
+    Train        --   loss: 0.6417  abs: -0.0240  rel: -3.61%
+    Validation   --   loss: 0.6621  abs: -0.0253  rel: -3.68%
+
+Training epoch 8 of 10: 100%|███████████████| 44/44 [00:50&lt;00:00,  1.14s/it]
+    Train        --   loss: 0.6264  abs: -0.0153  rel: -2.38%
+    Validation   --   loss: 0.6549  abs: -0.0072  rel: -1.09%
+
+Training epoch 9 of 10: 100%|███████████████| 44/44 [00:49&lt;00:00,  1.13s/it]
+    Train        --   loss: 0.6144  abs: -0.0119  rel: -1.91%
+    Validation   --   loss: 0.6376  abs: -0.0173  rel: -2.64%
+
+Training epoch 10 of 10: 100%|██████████████| 44/44 [00:49&lt;00:00,  1.14s/it]
+    Train        --   loss: 0.6078  abs: -0.0067  rel: -1.08%
+    Validation   --   loss: 0.6307  abs: -0.0069  rel: -1.08%
+
+▪ Processing results
+▪ Saving results
+▪ End time of 20:53:47 (+00:08:38)
+▪ ... done!
+┃                      ┃
+┗━┳━▪ Estimating... ▪━━┛
+  ┃
+  ┣━━━▪ input:   ./format
+  ┃              ./train
+  ┗━━━▪ output:  ./estimate
+
+▪ Start time of 20:53:47
+▪ Estimation targets:
+  ▪ log10_birth_1     [type: num]
+  ▪ log10_birth_2     [type: num]
+  ▪ log10_death       [type: num]
+  ▪ log10_state_rate  [type: num]
+▪ Loading simulated test input
+▪ Making simulated test estimates
+▪ Loading empirical input
+▪ Making empirical estimates
+▪ End time of 20:53:49 (+00:00:02)
+... done!
+┃                      ┃
+┗━┳━▪ Plotting...   ▪━━┛
+  ┃
+  ┣━━━▪ input:   ./format
+  ┃              ./train
+  ┃              ./estimate
+  ┗━━━▪ output:  ./plot
+
+▪ Start time of 20:55:18
+▪ Loading input
+▪ Generating individual plots
+▪ Combining plots
+▪ Making csv report
+▪ End time of 20:55:35 (+00:00:17)
+... done!
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="tutorial.html" class="btn btn-neutral float-left" title="Tutorial" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="examples.html" class="btn btn-neutral float-right" title="Examples" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
