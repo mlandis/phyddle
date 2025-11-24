@@ -1325,11 +1325,14 @@ class Plotter:
 
         # fill in plot
         i = 0
+
         for i in range(num_labels):
 
             # get estimated value
             p = label_names[i]
-            est_cats_p = [x for x in est_label.columns if p in x]
+            p_numeric = label_names[i] + "_"
+            est_cats_p = [x for x in est_label.columns if p_numeric in x]
+
             ests_p = est_label[est_cats_p].copy()
 
             # bar plot
@@ -1350,7 +1353,7 @@ class Plotter:
             # axs[i][0].title.set_text(f'{p}')
 
         # plot values as text
-        fig.suptitle(title)
+        fig.suptitle(title, y = ( fig_height * (num_labels - 1 + .98)) / num_labels / fig.get_size_inches()[1] )
         # plt.xticks(np.arange(num_labels), label_names)
         # plt.xlim( -0.5, num_labels )
         # plt.ylim( )
