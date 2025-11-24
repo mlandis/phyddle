@@ -1616,8 +1616,8 @@ def encode_cpvs(phy, dat, dat_asr, node_name, asr_est, asr_rotate, tree_width, t
     cpvs = None
     # ANNA need to do for both of these
     if tree_type == 'serial':
-        cpvs = encode_cblvs(phy, dat, dat_asr, asr_est, tree_width,
-                            tree_encode_type, rescale)
+        cpvs = encode_cblvs(phy, dat, dat_asr, node_name, asr_est, asr_rotate, tree_width,
+                            tree_encode_type, idx, prefix, rescale)
     elif tree_type == 'extant':
         cpvs = encode_cdvs(phy, dat, dat_asr, node_name, asr_est, asr_rotate, tree_width,
                            tree_encode_type, idx, prefix, rescale)
@@ -1694,23 +1694,6 @@ def encode_cdvs(phy, dat, dat_asr, node_name, asr_est, asr_rotate, tree_width, t
                 reorder = 1
             nd.annotations.add_new(name="reordered", value=reorder)
 
-
-   # # Order the tips when both sisters are tips based on the state
-   # for parent in phy.internal_nodes():
-   #     children = parent.child_nodes()
-   #     if children[0].is_leaf() and children[1].is_leaf():
-   #         child0_dat = dat[children[0].taxon.label].to_list()
-   #         child1_dat = dat[children[1].taxon.label].to_list()
-
-   #         # This is list
-   #         if (child0_dat > child1_dat):
-   #             # Rotate the node
-   #             parent.set_child_nodes([children[1], children[0]])
-
-   #             # Keep track of how to change ancestral state
-   #             parent.annotations[0]._value += 1
-   #             parent.annotations[0]._value = parent.annotations[0]._value % 2 
-
     name= prefix +  ".form.tre"
     phy.write_to_path(name, schema="newick")
 
@@ -1728,6 +1711,7 @@ def encode_cdvs(phy, dat, dat_asr, node_name, asr_est, asr_rotate, tree_width, t
             if tree_encode_type == 'height_brlen':
                 heights[height_idx,2] = nd.edge.length
             height_idx += 1
+
             if not dat_asr.empty: 
 
                 # This equals zero if the nodes are not rotated
@@ -1768,7 +1752,8 @@ def encode_cdvs(phy, dat, dat_asr, node_name, asr_est, asr_rotate, tree_width, t
     return phylo_tensor, anc_states, anc_names, node_index
 
 
-def encode_cblvs(phy, dat, dat_asr, asr_est, tree_width, tree_encode_type, rescale=True):
+def encode_cblvs(phy, dat, dat_asr, node_name, asr_est, asr_rotate, tree_width, 
+        tree_encode_type, idx, prefix, rescale=True):
     """
     Encode Compact Bijective Ladderized Vector + States (CBLV+S) array
 
@@ -1801,6 +1786,19 @@ def encode_cblvs(phy, dat, dat_asr, asr_est, tree_width, tree_encode_type, resca
     elif tree_encode_type == 'height_brlen':
         num_tree_col = 4
 
+    # ANNA need to have a different number of characters
+    if not dat_asr.empty:
+        anc_states     = np.zeros((tree_width - 1, 1))
+    else: 
+        anc_states = np.empty((0))
+    if asr_est: 
+        anc_names = pd.DataFrame(columns=['original', 'new'])
+    else : 
+        anc_names = pd.DataFrame()
+
+    anc_state_idx  = 0
+    node_index = -1
+
     # initialize workspace
     phy.calc_node_root_distances(return_leaf_distances_only=False)
     heights    = np.zeros( (tree_width, num_tree_col) )
@@ -1816,9 +1814,17 @@ def encode_cblvs(phy, dat, dat_asr, asr_est, tree_width, tree_encode_type, resca
             children                  = nd.child_nodes()
             ch_max_root_distance      = [ ch.max_root_distance for ch in children ]
             ch_max_root_distance_rank = np.argsort( ch_max_root_distance )[::-1]  # [0,1] or [1,0]
-            children_reordered        = [ children[i] for i in ch_max_root_distance_rank ]
             nd.max_root_distance      = max(ch_max_root_distance)
+            children_reordered = [ children[i] for i in ch_max_root_distance_rank ]
             nd.set_children(children_reordered)
+            reorder = 0
+
+            if children != children_reordered:
+                reorder = 1
+            nd.annotations.add_new(name="reordered", value=reorder)
+
+    name= prefix +  ".form.tre"
+    phy.write_to_path(name, schema="newick")
 
     # inorder traversal to fill matrix
     last_int_node = phy.seed_node
@@ -1836,14 +1842,47 @@ def encode_cblvs(phy, dat, dat_asr, asr_est, tree_width, tree_encode_type, resca
                 heights[height_idx+1,3] = nd.edge.length
             last_int_node = nd
             height_idx += 1
-        # ANNA need to add ancestral states
+
+        # Ancestral states
+            if not dat_asr.empty: 
+
+                # This equals zero if the nodes are not rotated
+                switch = nd.annotations[0]._value
+                
+                # Check to make sure there are the right number of columns (3 = state, parent1, parent 2) 
+                # Change label based on rotation
+                if switch > 0 and dat_asr[nd.label][1] in asr_rotate: 
+                    anc_states[anc_state_idx:] = asr_rotate[dat_asr[nd.label][1]]
+                else:
+                    anc_states[anc_state_idx,:] = dat_asr[nd.label].to_list()[0]
+
+
+            # ANNA Require node names not be integers
+            # If there is a node name for the single node ASR
+            if (node_name != ""):
+                if dat_asr.empty:
+                    if str(nd.label) == node_name:
+                        node_index = anc_state_idx
+                    anc_state_idx += 1
+
+            if asr_est: 
+                anc_names.loc[anc_state_idx,'original'] = nd.label
+                anc_names.loc[anc_state_idx,'new'] = str(anc_state_idx)
+                # This should only get increased once as you either estimate a
+                # single node or all of them, not both together
+                anc_state_idx += 1
+
+    if (node_name != ""):
+        if dat_asr.empty:
+            if (node_index == -1):
+                print_err("Node for ancestral state reconstruction not found", exit=True)
 
     # stack the phylo and states tensors
     if rescale:
         heights = heights / np.max(heights)
     phylo_tensor = np.hstack( [heights, states] )
 
-    return phylo_tensor
+    return phylo_tensor, anc_states, anc_names, node_index
 
 
 def make_prune_phy(phy, prune_fn, rel_extant_age_tol=1e-10):
