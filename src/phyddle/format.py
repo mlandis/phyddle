@@ -790,7 +790,7 @@ class Formatter:
         # create compact phylo-state vector, CPV+S = {CBLV+S, CDV+S}
         cpvs_data_all = util.encode_cpvs(phy, dat, dat_asr, node_name, self.asr_est, self.asr_rotate, tree_width=self.tree_width, 
                                      tree_encode_type=self.brlen_encode,
-                                     tree_type=self.tree_encode, idx=idx)
+                                     tree_type=self.tree_encode, idx=idx, prefix=tmp_fn)
         cpvs_data = cpvs_data_all[0]
         cpvs_data_asr = cpvs_data_all[1]
         cpvs_names = cpvs_data_all[2]
@@ -798,12 +798,12 @@ class Formatter:
 
         if self.asr_one: 
             labels.loc[0, "asr_node_label"] = cpvs_node_index
-            labels['asr_node_label'] = labels['asr_node_label'].astype(float)
+            labels['asr_node_label'] = labels['asr_node_label'].astype(int)
 
         asr_1_cat = np.array(-1)
 
         # ANNA: Model specific
-        if self.asr_1_cat:
+        if self.asr_1_cat and mode == 'sim':
             n_anc_state = self.max_num_taxa - 1
             n_states = pow(self.num_states, 1/n_anc_state)
 

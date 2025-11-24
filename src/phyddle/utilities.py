@@ -1576,7 +1576,7 @@ END;
 
 
 def encode_cpvs(phy, dat, dat_asr, node_name, asr_est, asr_rotate, tree_width, tree_type,
-                tree_encode_type, idx, rescale=True):
+                tree_encode_type, idx, prefix, rescale=True):
     """
     Encode Compact Phylogenetic Vector + States (CPV+S) array
 
@@ -1620,13 +1620,13 @@ def encode_cpvs(phy, dat, dat_asr, node_name, asr_est, asr_rotate, tree_width, t
                             tree_encode_type, rescale)
     elif tree_type == 'extant':
         cpvs = encode_cdvs(phy, dat, dat_asr, node_name, asr_est, asr_rotate, tree_width,
-                           tree_encode_type, idx, rescale)
+                           tree_encode_type, idx, prefix, rescale)
     else:
         ValueError(f'Unrecognized {tree_type}')
 
     return cpvs
 
-def encode_cdvs(phy, dat, dat_asr, node_name, asr_est, asr_rotate, tree_width, tree_encode_type, idx, rescale=True):
+def encode_cdvs(phy, dat, dat_asr, node_name, asr_est, asr_rotate, tree_width, tree_encode_type, idx, prefix, rescale=True):
     """
     Encode Compact Diversity-reordered Vector + States (CDV+S) array
 
@@ -1711,7 +1711,7 @@ def encode_cdvs(phy, dat, dat_asr, node_name, asr_est, asr_rotate, tree_width, t
    #             parent.annotations[0]._value += 1
    #             parent.annotations[0]._value = parent.annotations[0]._value % 2 
 
-    name="simulate/sim." + f'{idx}' + ".form.tre"
+    name= prefix +  ".form.tre"
     phy.write_to_path(name, schema="newick")
 
     # inorder traversal to fill matrix
@@ -1756,6 +1756,10 @@ def encode_cdvs(phy, dat, dat_asr, node_name, asr_est, asr_rotate, tree_width, t
                 # single node or all of them, not both together
                 anc_state_idx += 1
 
+    if (node_name != ""):
+        if dat_asr.empty:
+            if (node_index == -1):
+                print_err("Node for ancestral state reconstruction not found", exit=True)
     # stack the phylo and states tensors
     if rescale:
         heights = heights / np.max(heights)
