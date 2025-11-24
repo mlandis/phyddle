@@ -126,6 +126,7 @@ class Formatter:
         self.prop_test          = float(args['prop_test'])
         self.log_offset         = float(args['log_offset'])
         self.save_phyenc_csv    = bool(args['save_phyenc_csv'])
+        self.shuffle_test       = bool(args['shuffle_test'])
         
         # set number of processors
         if self.num_proc <= 0:
@@ -439,7 +440,8 @@ class Formatter:
         num_samples = len(rep_idx)
         
         # shuffle examples
-        # np.random.shuffle(rep_idx)
+        if (self.shuffle_test):
+            np.random.shuffle(rep_idx)
         
         # split examples
         num_test = int(num_samples * self.prop_test)

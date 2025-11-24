@@ -175,6 +175,7 @@ def settings_registry():
         'char_format':         {'step': 'FTE',   'type': str,   'section': 'Format',  'default': 'nexus',         'help': 'File format for character data', 'choices': ['csv', 'nexus']},
         'tensor_format':       {'step': 'FTEP',  'type': str,   'section': 'Format',  'default': 'hdf5',          'help': 'File format for training example tensors', 'choices': ['csv', 'hdf5']},
         'save_phyenc_csv':     {'step': 'F',     'type': str,   'section': 'Format',  'default': 'F',             'help': 'Save encoded phylogenetic tensor encoding to csv?', 'bool': True},
+        'shuffle_test':        {'step': 'F',     'type': str,   'section': 'Format',  'default': 'T',             'help': 'Shuffle which phylogeneties are in the test vs training dataset', 'bool': True},
 
         # training options
         'num_epochs':           {'step': 'TEP',    'type': int,    'section': 'Train',  'default': 50,             'help': 'Number of training epochs'},
