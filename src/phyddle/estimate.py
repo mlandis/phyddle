@@ -70,9 +70,13 @@ class Estimator:
         self.no_emp             = bool(args['no_emp'])
         
         # filesystem
+        self.sim_prefix         = str(args['sim_prefix'])
         self.trn_prefix         = str(args['trn_prefix'])
         self.fmt_prefix         = str(args['fmt_prefix'])
         self.est_prefix         = str(args['est_prefix'])
+        self.emp_prefix         = str(args['emp_prefix'])
+        self.sim_dir            = str(args['sim_dir'])
+        self.emp_dir            = str(args['emp_dir'])
         self.trn_dir            = str(args['trn_dir'])
         self.fmt_dir            = str(args['fmt_dir'])
         self.est_dir            = str(args['est_dir'])
@@ -96,6 +100,11 @@ class Estimator:
         self.max_asr_est        = int(args['max_asr_est'])
         if self.max_asr_est == -1: 
             self.max_asr_est = self.tree_width - 1
+        self.asr_nexus_emp      = bool(args['asr_nexus_emp'])
+        self.asr_nexus_test     = bool(args['asr_nexus_test'])
+        self.map_triplet_states = dict(args['map_triplet_states'])
+        self.map_tip_states     = dict(args['map_tip_states'])
+        self.rb_nexus           = bool(args['rb_nexus'])
         
         # error checking
         self.warn_aux_outlier   = float(args['warn_aux_outlier'])
@@ -469,7 +478,6 @@ class Estimator:
         labels_est_num = label_est[0:3]
         labels_est_cat = label_est[3]
 
-#ANNA
         # force categorical dimensionality (had problems for categ)
         for k,v in labels_est_cat.items():
             labels_est_cat[k] = torch.reshape(input=labels_est_cat[k],
@@ -524,13 +532,29 @@ class Estimator:
             self.est_aux_data_raw = util.denormalize(self.aux_data,
                                                      self.train_aux_data_mean_sd,
                                                      exp=False)
-            #ANNA
             if self.has_label_num:
                 self.est_labels_num_raw = util.denormalize(labels_est_num,
                                                           self.train_labels_num_mean_sd,
                                                           exp=False)[0,:,:]
 
-        # done
+        # For the mariginal estimation methods for ancestral state reconstruction
+        if self.asr_est and not self.asr_1_cat: 
+
+            # If nexus files are desired, check for valid datasets
+            if (mode == 'emp' and self.asr_nexus_emp) or (mode == 'sim' and self.asr_nexus_test):
+                idx = df_est_labels_cat['idx']
+                ASR_found = self.has_valid_ASR_dataset(idx, mode)
+
+                # Write the trees
+                if ASR_found:
+                    if (self.rb_nexus):
+                        if self.map_triplet_states:
+                            self.print_annotated_tree_rb_clado(df_est_labels_cat, idx, mode)
+                        else:
+                            self.print_annotated_tree_rb(df_est_labels_cat, idx, mode)
+                    else:
+                        self.print_annotated_tree(df_est_labels_cat, idx, mode)
+
         return
     
     def format_label_cat(self, x):
@@ -593,4 +617,500 @@ class Estimator:
                     for j in range(outliers.shape[0]):
                         util.print_str(f'             index {outlier_idx[j]} : value {outliers[j]}')
         
-##################################################
+    # Write a nexus format tree with all ancestral states and their probabilities annotated
+    def print_annotated_tree(self, df_est_labels_cat, idx, mode):
+
+        dat_dir = ''
+        dat_prefix = ''
+        if mode == 'sim':
+            dat_dir = self.sim_dir
+            dat_prefix = self.sim_prefix
+        elif mode == 'emp':
+            dat_dir = self.emp_dir
+            dat_prefix = self.emp_prefix
+        row_est = 0
+
+        for f in idx:    
+            tre_fn = f'{dat_dir}/{dat_prefix}.{f}.form.tre'
+            nd_fn = f'{dat_dir}/{dat_prefix}.{f}.node_labels.csv'
+            dat_fn = f'{dat_dir}/{dat_prefix}.{f}.dat.csv'
+
+            phy = util.read_tree(tre_fn)
+            dat = pd.read_csv(dat_fn, delimiter=',')
+            dat_nd_asr = pd.read_csv(nd_fn, delimiter=',', index_col=False)
+
+            # Iterate over internal nodes to add annotations
+            # It would probably be more efficient to traverse the 
+            # tree and then find the row by name
+            for i, row in dat_nd_asr.iterrows():
+
+                # Find the node index in phyddle that matches the original name in dat
+                for node in phy.preorder_node_iter(): 
+                   if node.label == row['original']: 
+
+                        # Get the probabilities for each cateogory 
+                        label_nd = f'asr_{row['new']}_'
+                        est_cats_p = [x for x in df_est_labels_cat.columns if label_nd in x]
+
+                        nd_est = df_est_labels_cat[est_cats_p].iloc[row_est]
+
+                        # Sort by probability 
+                        label_sort = nd_est.sort_values(ascending =  False)
+
+                        num = 1
+                        # Add annotation for each state
+                        for i, state in label_sort.items():
+
+                            # Name of the most ith most probable state
+                            state_num = i.split('_')
+                            value = state_num[len(state_num) -1]
+                            label_name = f'anc_state_{num}' 
+                            label_prob = f'anc_state_{num}_pp' 
+
+                            node.annotations.add_new(name=label_name, value = value)
+                            node.annotations.add_new(name=label_prob, value = state)
+
+                            num = num + 1
+
+                        break
+
+            row_est = row_est + 1
+
+            # Annotate the tip states
+            for i, row in dat.iterrows():
+
+                taxon = str(row.iloc[0])
+                num = 1
+                node = phy.find_node_with_taxon_label(taxon)
+
+                i = 1
+                while i < len(row):
+                    node.annotations.add_new(name=dat.columns[i], value = row.iloc[i])
+                    i = i + 1
+
+            name = f'{dat_dir}/{dat_prefix}.{f}.est.tre'
+            phy.write_to_path(name, schema="nexus", suppress_annotations = False)
+
+    # Add annotations to nodes in RevBayes/Gadgets format for a character
+    # that can change at cladogensis
+    def add_annotation_rb(self, label_sort, parent_states, node, node_ann):
+
+        # Is the node to annotate the same the node the inferences are for
+        # This is to annotate the start state for the daughters
+        if node == node_ann:
+            daughter = False
+        else:
+            daughter = True
+
+        num = 1
+        # Add annotation for each state
+        # label_sort is a reverse sorted array of probabilities
+        for i, prob in label_sort.items():
+        
+            if num < 4: 
+                # Name of the most probable state
+                state_num = parent_states[i]
+                if daughter:
+                    label_name = f'start_state_{num}' 
+                    label_prob = f'start_state_{num}_pp' 
+
+                else:
+                    label_name = f'end_state_{num}' 
+                    label_prob = f'end_state_{num}_pp' 
+        
+                node_ann.annotations.add_new(name=label_name, value = state_num) 
+                node_ann.annotations.add_new(name=label_prob, value = prob)
+
+                # If the root, make start and end the same
+                # This appears to be required for RevGagets
+                if (node.parent_node is None): 
+                    label_name = f'start_state_{num}' 
+                    label_prob = f'start_state_{num}_pp' 
+                    node_ann.annotations.add_new(name=label_name, value = state_num) 
+                    node_ann.annotations.add_new(name=label_prob, value = prob)
+
+            else: 
+                if daughter: 
+                    label_prob = f'start_state_other_pp' 
+                else : 
+                    label_prob = f'end_state_other_pp' 
+
+                prob = sum(label_sort[(4-1):(len(label_sort)-1)])
+                node_ann.annotations.add_new(name=label_prob, value = prob)
+
+                # If the root, make start and end the same 
+                if (node.parent_node is None): 
+                    label_prob = f'start_state_other_pp' 
+                    prob = sum(label_sort[(4-1):(len(label_sort)-1)])
+                    node_ann.annotations.add_new(name=label_prob, value = prob)
+
+                break
+        
+            num = num + 1
+        
+        # If there were not at least 4 states to infer, add NA annotations for
+        # the rest of the states
+        while num < 5:
+            if num < 4:
+                if daughter: 
+                    label_name = f'start_state_{num}' 
+                    label_prob = f'start_state_{num}_pp' 
+
+                else:
+                    label_name = f'end_state_{num}' 
+                    label_prob = f'end_state_{num}_pp' 
+
+                node_ann.annotations.add_new(name=label_name, value = 'NA')
+                node_ann.annotations.add_new(name=label_prob, value = 0.0)
+        
+            else:
+                if daughter: 
+                    label_prob = f'start_state_other_pp' 
+                else:
+                    label_prob = f'end_state_other_pp' 
+
+                prob = sum(label_sort[(4-1):(len(label_sort)-1)])
+                node_ann.annotations.add_new(name=label_prob, value = prob)
+        
+            num = num + 1
+
+    # Write a RevBayes/RevGadgets nexus format tree with three ancestral states and plus the other states
+    # and their probabilities annotated. This is for a character that can change at cladogenesis
+    def print_annotated_tree_rb_clado(self, df_est_labels_cat, idx, mode):
+
+        dat_dir = ''
+        dat_prefix = ''
+        if mode == 'sim':
+            dat_dir = self.sim_dir
+            dat_prefix = self.sim_prefix
+        elif mode == 'emp':
+            dat_dir = self.emp_dir
+            dat_prefix = self.emp_prefix
+        row_est = 0
+
+        for f in idx:    
+            tre_fn = f'{dat_dir}/{dat_prefix}.{f}.form.tre'
+            nd_fn = f'{dat_dir}/{dat_prefix}.{f}.node_labels.csv'
+            dat_fn = f'{dat_dir}/{dat_prefix}.{f}.dat.csv'
+
+            phy = util.read_tree(tre_fn)
+            ntips = len(phy.leaf_nodes())
+            dat = pd.read_csv(dat_fn, delimiter=',')
+            dat_nd_asr = pd.read_csv(nd_fn, delimiter=',', index_col=False)
+
+            # Create list of all the states using the mapping of the encoded
+            # triplets to the states
+            parents = []
+            left    = []
+            right   = []
+            for key, value in self.map_triplet_states.items():
+                parents.append(value[0])
+                left.append(value[1])
+                right.append(value[2])
+
+            # Sort the list of states numerically
+            parent_states = sorted(set(parents))
+            left_states = sorted(set(left))
+            right_states = sorted(set(right))
+
+            # Iterate over internal nodes to add annotations
+            # It would probably be more efficient to traverse the 
+            # tree and then find the row by name
+            for i, row in dat_nd_asr.iterrows():
+
+                # Find the node index in phyddle that matches the original name in dat
+                for node in phy.preorder_node_iter():  
+                   if node.label == row['original']: 
+
+                        # Annotations for RevGadgets 
+                        node.annotations.add_new(name="index", value = i + ntips)
+                        node.annotations.add_new(name="posterior", value = 1.0)
+
+                        # Get the probabilities for each cateogory 
+                        label_nd = f'asr_{row['new']}_'
+                        est_cats_p = [x for x in df_est_labels_cat.columns if label_nd in x]
+                        nd_est = df_est_labels_cat[est_cats_p].iloc[row_est]
+
+                        # Create series to hold the probabilites of each state
+                        prob_parent = pd.Series(np.zeros(len(parent_states)), name = str(parent_states))
+                        prob_left   = pd.Series(np.zeros(len(left_states)), name = str(left_states))
+                        prob_right  = pd.Series(np.zeros(len(right_states)), name = str(right_states))
+
+                        for label, value in nd_est.items():
+                           # This is the number of the category used in phyddle
+                           cat =  int(label.split('_')[-1])
+
+                           # Sum the probabilities associated with a state in the parent 
+                           # This assumes states are 0 - 2
+                           for i in range(len(parent_states)):
+                               if parent_states[i] == self.map_triplet_states[cat][0]:
+                                    prob_parent[i] = prob_parent[i] + value
+                                    break
+
+                           # Sum the probabilities associated with a state in the left daughter
+                           for i in range(len(left_states)):
+                               if left_states[i] == self.map_triplet_states[cat][1]:
+                                    prob_left[i] = prob_left[i] + value
+                                    break
+
+                           # Sum the probabilities associated with a state in the right daughter
+                           for i in range(len(right_states)):
+                               if right_states[i] == self.map_triplet_states[cat][2]:
+                                    prob_right[i] = prob_right[i] + value
+                                    break
+
+
+                        # Sort by probability 
+                        label_sort_p = prob_parent.sort_values(ascending =  False)
+                        label_sort_l = prob_left.sort_values(ascending =  False)
+                        label_sort_r = prob_right.sort_values(ascending =  False)
+
+                        # Add annotation for each state
+                        children = node.child_nodes()
+                        self.add_annotation_rb(label_sort_p, parent_states, node, node)
+                        self.add_annotation_rb(label_sort_l, left_states, node, children[0])
+                        self.add_annotation_rb(label_sort_r, right_states, node, children[1])
+
+            row_est = row_est + 1
+
+            if not self.map_tip_states and dat.shape[1] > 2: 
+               util.print_err("More than one character at tips. map_tip_states is required for RevBayes formatting.")
+
+            # Annotate the tip states
+            for i, row in dat.iterrows():
+                taxon = str(row.iloc[0])
+                node = phy.find_node_with_taxon_label(taxon)
+
+                num = 1
+                label_name = f'end_state_{num}' 
+                label_prob = f'end_state_{num}_pp' 
+
+                # Annotations for RevGagets
+                node.annotations.add_new(name="index", value = i)
+                node.annotations.add_new(name="posterior", value = 1.0)
+
+                # Remove the node name, just get the character data
+                tip_dat = row.drop(row.index[0])
+
+                # If there are more than two characters at the tips and a mapping of those data to a single state was
+                # provided
+                if len(row) > 2 and self.map_tip_states:
+                    found = False
+
+                    # Find the mapping of the multiple characters to a single integer
+                    for key, value in self.map_tip_states.items():
+                        if (tip_dat == value).all():
+                            found = True
+                            node.annotations.add_new(name=label_name, value = key)
+                            break
+
+                    if not found: 
+                        util.print_err(f'The tip states {tip_dat} for taxa {taxon} are not found in map_tip_states')
+
+                # Annotate a character state
+                else : 
+                    node.annotations.add_new(name=label_name, value = row.iloc[1])
+
+                node.annotations.add_new(name=label_prob, value = 1.0)
+                num = num + 1
+
+                # Add NA annotations 
+                while num < 4:
+                    label_name = f'end_state_{num}' 
+                    label_prob = f'end_state_{num}_pp' 
+                    node = phy.find_node_with_taxon_label(taxon)
+                    node.annotations.add_new(name=label_name, value = 'NA')
+                    node.annotations.add_new(name=label_prob, value = 0.0)
+                    num = num + 1
+
+                label_prob = f'end_state_other_pp' 
+                node.annotations.add_new(name=label_prob, value = 0.0)
+
+            name = f'{dat_dir}/{dat_prefix}.{f}.est.tre'
+            phy.write_to_path(name, schema="nexus", suppress_annotations = False)
+
+    # Write a RevBayes/RevGadgets nexus format tree with three ancestral states and plus the other states
+    # and their probabilities annotated. This is for a character that does not change at cladogenesis
+    def print_annotated_tree_rb(self, df_est_labels_cat, idx, mode):
+
+        dat_dir = ''
+        dat_prefix = ''
+        if mode == 'sim':
+            dat_dir = self.sim_dir
+            dat_prefix = self.sim_prefix
+        elif mode == 'emp':
+            dat_dir = self.emp_dir
+            dat_prefix = self.emp_prefix
+        row_est = 0
+
+        for f in idx:    
+            tre_fn = f'{dat_dir}/{dat_prefix}.{f}.form.tre'
+            nd_fn = f'{dat_dir}/{dat_prefix}.{f}.node_labels.csv'
+            dat_fn = f'{dat_dir}/{dat_prefix}.{f}.dat.csv'
+
+            phy = util.read_tree(tre_fn)
+            ntips = len(phy.leaf_nodes())
+            dat = pd.read_csv(dat_fn, delimiter=',')
+            dat_nd_asr = pd.read_csv(nd_fn, delimiter=',', index_col=False)
+
+            # Iterate over internal nodes to add annotations
+            # It would probably be more efficient to traverse the 
+            # tree and then find the row by name
+            for i, row in dat_nd_asr.iterrows():
+
+                # Find the node index in phyddle that matches the original name in dat
+                for node in phy.preorder_node_iter():  
+                   if node.label == row['original']: 
+
+                        # Annotations for RevGadgets
+                        node.annotations.add_new(name="index", value = i + ntips)
+                        node.annotations.add_new(name="posterior", value = 1.0)
+                        
+                        # Get the probabilities for each cateogory 
+                        label_nd = f'asr_{row['new']}_'
+                        est_cats_p = [x for x in df_est_labels_cat.columns if label_nd in x]
+
+                        nd_est = df_est_labels_cat[est_cats_p].iloc[row_est]
+
+                        # Sort by probability 
+                        label_sort = nd_est.sort_values(ascending =  False)
+
+                        num = 1
+                        # Add annotation for each state
+                        for i, state in label_sort.items():
+
+                            if num < 4: 
+                                # Name of the most probable state
+                                state_num = i.split('_')
+                                value = state_num[len(state_num) -1]
+                                label_name = f'anc_state_{num}' 
+                                label_prob = f'anc_state_{num}_pp' 
+
+                                node.annotations.add_new(name=label_name, value = value)
+                                node.annotations.add_new(name=label_prob, value = state)
+
+                            else: 
+                                label_prob = f'anc_state_other_pp' 
+                                prob = sum(label_sort[(4-1):(len(label_sort)-1)])
+
+                                node.annotations.add_new(name=label_prob, value = prob)
+
+                                break
+                            
+
+                            num = num + 1
+
+                        # Add NA annotations if fewer than 4 states
+                        while num < 5:
+                            if num < 4:
+                                label_name = f'anc_state_{num}' 
+                                label_prob = f'anc_state_{num}_pp' 
+
+                                node.annotations.add_new(name=label_name, value = 'NA')
+                                node.annotations.add_new(name=label_prob, value = 0.0)
+
+                            else:
+                                label_prob = f'anc_state_other_pp' 
+                                prob = sum(label_sort[(4-1):(len(label_sort)-1)])
+
+                                node.annotations.add_new(name=label_prob, value = prob)
+
+                            num = num + 1
+
+                        break
+
+            row_est = row_est + 1
+
+
+            if not self.map_tip_states and (dat.shape)[1] > 2: 
+               util.print_err("More than one character at tips. map_tip_states is required for RevBayes formatting.")
+
+            # Annotate the tip states
+            for i, row in dat.iterrows():
+                taxon = str(row.iloc[0])
+                num = 1
+                label_name = f'anc_state_{num}' 
+                label_prob = f'anc_state_{num}_pp' 
+                node = phy.find_node_with_taxon_label(taxon)
+
+                node.annotations.add_new(name="index", value = i)
+                node.annotations.add_new(name="posterior", value = 1.0)
+
+                # Remove the node name, just get the character data
+                tip_dat = row.drop(row.index[0])
+
+                if len(row) > 2 and self.map_tip_states:
+                    found = False
+
+                    # Find the mapping of the multiple characters to a single integer
+                    for key, value in self.map_tip_states.items():
+                        if (tip_dat == value).all():
+                            found = True
+                            node.annotations.add_new(name=label_name, value = key)
+                            break
+
+                    if not found: 
+                        util.print_err(f'The tip states {tip_dat} for taxa {taxon} are not found in map_tip_states')
+                else : 
+                    node.annotations.add_new(name=label_name, value = row.iloc[1])
+
+                node.annotations.add_new(name=label_prob, value = 1.0)
+                num = num + 1
+
+                # Add NA annotations to the tips
+                while num < 4:
+                    label_name = f'anc_state_{num}' 
+                    label_prob = f'anc_state_{num}_pp' 
+                    node = phy.find_node_with_taxon_label(taxon)
+                    node.annotations.add_new(name=label_name, value = 'NA')
+                    node.annotations.add_new(name=label_prob, value = 0.0)
+                    num = num + 1
+
+                label_prob = f'anc_state_other_pp' 
+                node.annotations.add_new(name=label_prob, value = 0.0)
+
+            name = f'{dat_dir}/{dat_prefix}.{f}.est.tre'
+            phy.write_to_path(name, schema="nexus", suppress_annotations = False)
+
+    def has_valid_ASR_dataset(self, idx, mode='sim'):
+        """Determines if all the files are present to make nexus file for a tree. For all idx in idx
+        
+        Args:
+            mode (str): 'sim' or 'emp' for simulated or empirical analysis.
+        
+        Returns:
+            bool: True if empirical analysis is being performed.
+        """
+        
+        assert mode in ['sim', 'emp']
+        dat_dir = ''
+        dat_prefix = ''
+        if mode == 'sim':
+            dat_dir = self.sim_dir
+            dat_prefix = self.sim_prefix
+        elif mode == 'emp':
+            dat_dir = self.emp_dir
+            dat_prefix = self.emp_prefix
+            
+        # check if empirical directory exists
+        if not os.path.exists(dat_dir):
+            return False
+        
+        # check that all datasets are complete
+        for f in idx:
+            has_tre = os.path.exists(f'{dat_dir}/{dat_prefix}.{f}.form.tre')
+            has_dat = os.path.exists(f'{dat_dir}/{dat_prefix}.{f}.dat.csv')
+            has_nd_lbl = os.path.exists(f'{dat_dir}/{dat_prefix}.{f}.node_labels.csv')
+            
+            if (not has_nd_lbl):
+                util.print_warn(f'Cannot find \'{dat_dir}/{dat_prefix}.{f}.node_labels.csv\' but dataset is included in estimates')
+                return False
+            if (not has_tre):
+                util.print_warn(f'Cannot find \'{dat_dir}/{dat_prefix}.{f}.form.csv\' but dataset is included in estimates')
+                return False
+            if (not has_dat):
+                util.print_warn(f'Cannot find \'{dat_dir}/{dat_prefix}.{f}.dat.csv\' but dataset is included in estimates')
+                return False
+    
+        return True 
+        

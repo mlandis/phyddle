@@ -167,10 +167,10 @@ def settings_registry():
         'char_encode':         {'step': 'FTE',   'type': str,   'section': 'Format',  'default': 'one_hot',       'help': 'Encoding strategy for character data', 'choices': ['one_hot', 'integer', 'numeric']},
         'param_est':           {'step': 'FTE',   'type': dict,  'section': 'Format',  'default': dict(),          'help': 'Model parameters and variables to estimate'},
         'param_data':          {'step': 'FTE',   'type': dict,  'section': 'Format',  'default': dict(),          'help': 'Model parameters and variables treated as data'},
-        'asr_est':             {'step': 'FTE',   'type': str,   'section': 'Format',  'default': 'F',             'help': 'Infer ancestral states', 'bool': True},
-        'asr_one':             {'step': 'FTE',   'type': str,   'section': 'Format',  'default': 'F',             'help': 'Infer ancestral states', 'bool': True},
-        'asr_1_cat':           {'step': 'FTE',   'type': str,   'section': 'Format',  'default': 'F',             'help': 'Infer ancestral states', 'bool': True},
-        'max_asr_est':         {'step': 'FTE',   'type': int,   'section': 'Format',  'default': -1,             'help': 'Infer ancestral states', 'int': -1},
+        'asr_est':             {'step': 'FTE',   'type': str,   'section': 'Format',  'default': 'F',             'help': 'Infer ancestral state for each node (marginal)', 'bool': True},
+        'asr_one':             {'step': 'FTE',   'type': str,   'section': 'Format',  'default': 'F',             'help': 'Infer the ancestral state for a single node', 'bool': True},
+        'asr_1_cat':           {'step': 'FTE',   'type': str,   'section': 'Format',  'default': 'F',             'help': 'Infer ancestral states as a single categorical variable for the whole tree (not recommended due to poor scaling)', 'bool': True},
+        'max_asr_est':         {'step': 'FTE',   'type': int,   'section': 'Format',  'default': -1,              'help': 'Maximum number of ancestral states to infer', 'int': -1},
         'asr_rotate':          {'step': 'FTE',   'type': dict,  'section': 'Format',  'default': dict(),          'help': 'States that are equivalent if daughters are rotated'},
         'char_format':         {'step': 'FTE',   'type': str,   'section': 'Format',  'default': 'nexus',         'help': 'File format for character data', 'choices': ['csv', 'nexus']},
         'tensor_format':       {'step': 'FTEP',  'type': str,   'section': 'Format',  'default': 'hdf5',          'help': 'File format for training example tensors', 'choices': ['csv', 'hdf5']},
@@ -205,6 +205,12 @@ def settings_registry():
         # estimating options
         'warn_aux_outlier':     {'step': 'FEP',    'type': float,  'section': 'Estimate',  'default': 0.0001,      'help': 'Percentile to detect extreme empirical auxiliary (abs.) values.'},
         'warn_lbl_outlier':     {'step': 'FEP',    'type': float,  'section': 'Estimate',  'default': 0.01,        'help': 'Percentile to detect extreme empirical label (abs.) values.'},
+        'asr_nexus_test':       {'step': 'E',      'type': str,    'section': 'Estimate',  'default': 'F',         'help': 'Write ancestral state reconstruction to nexus file for test data', 'bool': True},
+        'asr_nexus_emp':        {'step': 'E',      'type': str,    'section': 'Estimate',  'default': 'T',         'help': 'Write ancestral state reconstruction to nexus file for empirical data', 'bool': True},
+        'map_triplet_states':   {'step': 'E',      'type': dict,  'section': 'Estimate',  'default': dict(),       'help': 'Relabeling of encoding from one value for each triplet at cladogenesis to parent, left daughter, right daughter for the nexus file'},
+        'map_tip_states':       {'step': 'E',      'type': dict,  'section': 'Estimate',  'default': dict(),       'help': 'Relabeling of tip data with multiple characters to a single character for the nexus format'},
+        'rb_nexus':             {'step': 'E',      'type': str,  'section': 'Estimate',  'default': 'F',           'help': 'Nexus format tree should be in RevGadgets compatible format', 'bool' : True},
+
 
         # plotting options
         'plot_train_color'  : {'step': 'P', 'type': str,    'section': 'Plot', 'default': 'blue',       'help': 'Plotting color for training data elements'},
