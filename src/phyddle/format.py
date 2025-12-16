@@ -377,6 +377,25 @@ class Formatter:
                            '       valid examples that are compatible with \n'
                            '       the configuration.\n')
             sys.exit()
+
+        if self.asr_1_cat and mode == 'sim':
+            n_anc_state = self.max_num_taxa - 1
+            n_states = pow(self.num_states, 1/n_anc_state)
+
+            if n_states % 1 != 0: 
+                self.logger.write_log('fmt', f'The number of states ({self.num_states}) for inferring asr_1_cat should be equal to the  maximum number of tip{self.max_num_taxa } to the power of the number of possible tip states')
+                raise Exception('The number of states ({num_states}) for inferring asr_1_cat should be equal to the  maximum number of tip{self.max_num_taxa } to the power of the number of possible tip states', )
+                    
+            anc_state_comb = util.generate_combinations_matrix(range(int(n_states)), n_anc_state)
+            row_index = np.arange(len(anc_state_comb))[:,np.newaxis]
+            map_file = f'{self.fmt_dir}/state_mapping.csv'
+            header = f'state'
+
+            for i in range(len(anc_state_comb[1])):
+                header = f'{header},node_{i}'
+
+            combined_array = np.hstack((row_index, anc_state_comb))
+            np.savetxt(map_file, combined_array, delimiter=",", fmt='%s', header = header)
             
         # save all replicate output by index
         self.rep_data = {}
@@ -812,7 +831,6 @@ class Formatter:
             if n_states % 1 != 0: 
                 self.logger.write_log('fmt', f'The number of states ({self.num_states}) for inferring asr_1_cat should be equal to the  maximum number of tip{self.max_num_taxa } to the power of the number of possible tip states')
                 raise Exception('The number of states ({num_states}) for inferring asr_1_cat should be equal to the  maximum number of tip{self.max_num_taxa } to the power of the number of possible tip states', )
-                 #raise Exception('error in find_tree_width()', num_taxa, max_taxa)
                     
             anc_state_comb = util.generate_combinations_matrix(range(int(n_states)), n_anc_state)
             
