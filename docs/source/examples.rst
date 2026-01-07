@@ -48,7 +48,7 @@ Early Burst, and Lévy process models. Estimates model parameters, ancestral
 trait value (at root), and model type.
 
 | *Config:* `config.py <https://github.com/mlandis/phyddle/tree/main/workspace/levy_r/config.py>`__
-| *Simulator script:* `sim_bisse.R <https://raw.githubusercontent.com/mlandis/phyddle/refs/heads/main/workspace/levy_r/sim_levy.R>`__ 
+| *Simulator script:* `sim_levy.R <https://raw.githubusercontent.com/mlandis/phyddle/refs/heads/main/workspace/levy_r/sim_levy.R>`__ 
 | *Dependencies:* `R <https://www.r-project.org/>`__, `ape <https://cran.r-project.org/web/packages/ape/>`__, `castor <https://cran.r-project.org/web/packages/castor/index.html>`__, `statmod <https://cran.r-project.org/web/packages/statmod/index.html>`__, `pulsR <https://github.com/Schraiber/pulsR>`__
 
 
@@ -66,10 +66,10 @@ ancestral location state.
 
 | *Exponential phase*
 |   *Config:* `config.py <https://github.com/mlandis/phyddle/tree/main/workspace/sirm_exp_phase_master/config.py>`__
-|   *Simulator script:* `sim_bisse.R <https://raw.githubusercontent.com/mlandis/phyddle/refs/heads/main/workspace/sirm_exp_phase_master/sim_sirm_exp.py>`__ 
+|   *Simulator script:* `sim_sirm_exp.py <https://raw.githubusercontent.com/mlandis/phyddle/refs/heads/main/workspace/sirm_exp_phase_master/sim_sirm_exp.py>`__ 
 | *All phases*
 |   *Config:* `config.py <https://github.com/mlandis/phyddle/tree/main/workspace/sirm_all_phases_master/config.py>`__
-|   *Simulator script:* `sim_bisse.R <https://raw.githubusercontent.com/mlandis/phyddle/refs/heads/main/workspace/sirm_all_phases_master/sim_sirm_all_phases.py>`__ 
+|   *Simulator script:* `sim_sirm_all_phases.py <https://raw.githubusercontent.com/mlandis/phyddle/refs/heads/main/workspace/sirm_all_phases_master/sim_sirm_all_phases.py>`__ 
 | *Dependencies:* `BEAST2 <http://www.beast2.org/>`__, `MASTER <https://tgvaughan.github.io/MASTER/>`__, `masterpy <https://pypi.org/project/masterpy/>`__
 
 
@@ -104,7 +104,7 @@ of the same type have equal rates (e.g. :math:`d_{ij} = d_{kl}`).
 Estimates model parameters.
 
 | *Config:* `config.py <https://github.com/mlandis/phyddle/tree/main/workspace/geosse_revbayes/config.py>`__
-| *Simulator script:* `sim_bisse.R <https://raw.githubusercontent.com/mlandis/phyddle/refs/heads/main/workspace/geosse_revbayes/sim_geosse.Rev>`__ 
+| *Simulator script:* `sim_geosse.Rev <https://raw.githubusercontent.com/mlandis/phyddle/refs/heads/main/workspace/geosse_revbayes/sim_geosse.Rev>`__ 
 | *Dependencies:* `RevBayes <https://revbayes.github.io/>`__
 
 .. _example_mol_revbayes:
@@ -118,5 +118,5 @@ molecular sequences under a Kimura (1980) substitution model with
 transition-transversion biases. Estimates model parameters.
 
 | *Config:* `config.py <https://github.com/mlandis/phyddle/tree/main/workspace/mol_revbayes/config.py>`__
-| *Simulator script:* `sim_bisse.R <https://raw.githubusercontent.com/mlandis/phyddle/refs/heads/main/workspace/mol_revbayes/sim_mol.Rev>`__ 
+| *Simulator script:* `sim_mol.Rev <https://raw.githubusercontent.com/mlandis/phyddle/refs/heads/main/workspace/mol_revbayes/sim_mol.Rev>`__ 
 | *Dependencies:* `RevBayes <https://revbayes.github.io/>`__

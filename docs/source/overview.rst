@@ -1370,9 +1370,9 @@ Input datasets
 phyddle can make phylogenetic model predictions against input datasets with
 previously trained networks. Valid phyddle input datasets contain a set of
 files with a shared filename prefix. For example, a dataset with the prefix
-``out.3`` would contain a tree file ``out.0.tre``, a character matrix file
-``out.3.dat.nex``, and (when applicable) a 'known parameters' file
-``out.3.labels.csv``. Simulated training datasets and real biological
+``out.0`` would contain a tree file ``out.0.tre``, a character matrix file
+``out.0.dat.nex``, and (when applicable) a 'known parameters' file
+``out.0.labels.csv``. Simulated training datasets and real biological
 datasets follow the same format.
 
 Trees are encoded as raw data in simple Newick format. Trees are assumed to be
