@@ -1670,6 +1670,7 @@ Ancestral State Reconstruction
 
 Ancestral states can be estimated with phyddle.
 To do so, the internal nodes must be named in the input phylogenies.
+There is no required format for the names, though characters used in Newick formatting such as paratheses, commas, and brackets should not be used in internal node names.
 In addition to the standard files needed for an analysis, such as the ``.dat.cvs``  ``.labels.csv``,  and ``.tre`` files , a file ``prefix.idx.anc_state.csv`` is required for each simulated dataset. 
 This should contain the node names in the first column and the ancestral state in the second column, separated by a comma.
 This file should be produced by the simulation script. 
@@ -1690,7 +1691,7 @@ Below is an example for a tree with 9 internal nodes and a binary character. In 
   node4,1
 
 Downsampling is not implemented with ancestral state reconstruction since different ancestral nodes will be present with different samples. 
-If any of the trees are larger than ``tree_width``, subsample the trees in the simulation script.
+If any of the trees are larger than the specified maximum tree size (``tree_width``), subsample the trees in the simulation script.
 
 Ancestral state can be estimated three ways with phyddle.  
 Only one ancestral state estimation option should be specified at a time. 
@@ -1702,7 +1703,7 @@ With a maximum tree size (``tree_width``)  of n, there will be n-1 categorical v
 to ancestral states.
 To use the marginal estimation method, set ``asr_est = 'T'`` in the config file. 
 This will create ``tree_width - 1`` categorical variables to estimate, one for each internal node
-in the tree, plus additional zero-padded states if the tree is smaller than ``tree_width``.
+in the tree, plus additional zero-padded states for non-existent internal nodes if the tree is smaller than ``tree_width``.
 These are labeled ``asr_0``, ``asr_1``, etc. 
 The additional zero-padded states can generally be ignored, though they are included in 
 the plot summaries and may need to be removed to assess performance for variable sized trees.
@@ -1712,7 +1713,7 @@ Joint Estimation
 ^^^^^^^^^^^^^^^^
 For the joint estimation method, a single cateogorical variable is estimated for the
 entire tree. 
-There are (n-1)^s categories, where n is the number of tips (``max_num_taxa``) and s is the number of possible states for the character. 
+There are s^(n-1) categories, where n is the number of tips (``max_num_taxa``) and s is the number of possible states for the character. 
 To use the joint estimation method, set ``asr_est = 'T'`` and ``asr_1_cat = 'T'``  in the config file. 
 ``num_states`` should be equal to (n-1)^s. 
 For example, for a binary character on trees with 4 tips the config file should include
@@ -1733,11 +1734,11 @@ Single Node Estimation
 ^^^^^^^^^^^^^^^^^^^^^^
 In the single node estimation method, the name of single node is given as input 
 and the ancestral state for that node alone is estimated. To estimate with this method, 
-set ``asr_one = 'T'`` in the config file. Additionally, the parameters to estimate
-should include ``asr_node_state`` and the parameters to treat as data should include ``asr_node_label``.
-Note that ``asr_node_label`` should be listed as a numeric variable. This is because phyddle
-takes the original node name and finds the index of the node in the formatted tree, which is
-a numeric variable, not a string.
+set ``asr_one = 'T'`` in the config file. 
+Additionally, the parameters to estimate should include ``asr_node_state`` and the parameters to treat as data should include ``asr_node_label``, as shown below. 
+``asr_node_label`` is the name of the node in the tree file and ``asr_node_state`` is the ancestral state of the node. 
+Note that ``asr_node_label`` should be listed as a numeric variable, even though it is a string. 
+This is because phyddle takes the original node name and finds the index of the node in the formatted tree, which is a numeric variable, not a string.
 
 This method may not scale with tree size as only a single node per tree is used for training. 
 This may result in requiring much larger training datasets than the other methods.
@@ -1762,6 +1763,11 @@ Models with state changes at cladogenesis
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 For some models, such as GeoSSE, states may change at cladogenesis.
 This means the parent and daughters may not all have the same states. 
+GeoSSE models ranges as a collection of one or more discete regions. 
+In this example, there are two regions, A and B and a lineage may be in region A, region B, or both regions A and B. 
+The GeoSSE model allows parents and daughters to have different states immediately before and immediately after cladogenesis, but limits the possible combination of parent and daughter states.
+The 8 allowed transitions with 2 regions are listed below. 
+For full description of the model, see Goldberg et al. 2011. 
 In principle, only the parent state could be estimated or the three states could be encoded as a single state without discriminating between which daughter is left vs right. 
 In practice, this does not appear to work very well. 
 Instead, the user can assign ancestral states that differentiate the left vs right daughters. 
@@ -1780,27 +1786,30 @@ For example, the ancestral states for a GeoSSE model could be encoded as follows
 
 
 Note that  AB->A,B and AB->B,A have different ancestral states, since the states A and B are in different daughters.
-These 0-7 states should then be used in the ``prefix.idx.anc_state.csv`` file. 
+Phyddle does not need to mapping of the numbers 0-7 to the geographic ranges.
+It only uses the 0-7 encoding. 
+These 0-7 states should then be used in the ``prefix.idx.anc_state.csv`` file, rather than the actual states ranges. 
 The order of the states is arbitrary, and should be specified in the simulation script.
-When using encoding that depends on the left vs right orientation of the daughters, the user must specify which states are the same with the nodes rotated using ``asr_rotate`` in the config file.
-This is because phyddle rotates nodes in the tree during formatting.
+In the above example, states 2 and 3 are different, since the left daughter is in state A for 2 but the right daughter is in state A for state 3. 
+However, phyddle rotates the internal nodes in the tree during formatting.
+Thus, the user must specify which states are the same with the nodes rotated using ``asr_rotate`` in the config file.
 In the example, the pairs of states (2,3), (4,5), and (6,7) have the same parent and daughter states with the daughters rotated.
 
 .. code-block::
 
   'asr_rotate'        : {2 : 3,
                          3 : 2,
-                         4 : 4,
+                         4 : 5,
                          5 : 4,
                          6 : 7,
                          7 : 6 },
 
 .. warning::
     
-   Many simulation methods where states can change at cladogenesis have at default for which state is assigned to the left vs right daughter. 
-   While this should not cause issues for likelihood based methods, this may cause issues for ancestral state estimation as not all patterns will be present in the data, particulary at the tips. To address this, the nodes in the tree can be randomly rotated before writing the tree to file.
+   Many simulation methods where states can change at cladogenesis have a default for how states are inherited. For example, in a GeoSSE model if a parent with range AB has a daughters with range A and  a daughter with range B, the left daughter may always be in range A and the right daughter may always be in range B. 
+   While this should not cause issues for likelihood based methods, this may cause issues for ancestral state estimation using machine learning as not all patterns will be present in the data, particulary at the tips. To address this, the nodes in the tree can be randomly rotated before writing the tree to file.
 
-Interpretting the output
+Interpreting the output
 ^^^^^^^^^^^^^^^^^^^^^^^^
 Phyddle always estimates the same variables given a particular trained network. 
 To allow for different node names on different trees, each internal node is assigned an index from 0 to n-1, where  n is the number of taxa, according to an inorder traversal on the formatted tree. 
