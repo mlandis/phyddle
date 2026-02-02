@@ -171,8 +171,9 @@ def settings_registry():
         'save_phyenc_csv':     {'step': 'F',     'type': str,   'section': 'Format',  'default': 'F',             'help': 'Save encoded phylogenetic tensor encoding to csv?', 'bool': True},
 
         # training options
-        'num_epochs':           {'step': 'TEP',    'type': int,    'section': 'Train',  'default': 50,             'help': 'Number of training epochs'},
-        'num_early_stop':       {'step': 'TEP',    'type': int,    'section': 'Train',  'default': 3,              'help': 'Number of consecutive validation loss gains before early stopping'},
+        'num_epochs':           {'step': 'T',      'type': int,    'section': 'Train',  'default': 200,            'help': 'Number of training epochs'},
+        'num_early_stop':       {'step': 'T',      'type': int,    'section': 'Train',  'default': 10,             'help': 'Number of validation loss gains before early stopping'},
+        'early_stop_rule':      {'step': 'T',      'type': str,    'section': 'Train',  'default': 'total',        'help': 'Use total or consecutive number of validation loss gains to trigger early stopping', 'choices': ['total', 'consecutive']},
         'trn_batch_size':       {'step': 'TEP',    'type': int,    'section': 'Train',  'default': 512,            'help': 'Training batch sizes'},
         'prop_test':            {'step': 'FT',     'type': float,  'section': 'Train',  'default': 0.05,           'help': 'Proportion of data used as test examples (assess trained network performance)'},
         'prop_val':             {'step': 'T',      'type': float,  'section': 'Train',  'default': 0.05,           'help': 'Proportion of data used as validation examples (diagnose network overtraining)'},
