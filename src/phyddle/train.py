@@ -784,12 +784,12 @@ class CnnTrainer(Trainer):
                 
                 diff_trn_loss_str = '{0:+.4f}'.format(diff_trn_loss)
                 diff_val_loss_str = '{0:+.4f}'.format(diff_val_loss)
-                
-                val_loss_best_str = '{0:.4f}'.format(best_val_loss_combined)
+
                 trn_loss_best_str = '{0:.4f}'.format(best_trn_loss_combined)
-                
-                val_loss_prev_str = '{0:.4f}'.format(prev_val_loss_combined)
-                trn_loss_prev_str = '{0:.4f}'.format(prev_trn_loss_combined)
+                val_loss_best_str = '{0:.4f}'.format(best_val_loss_combined)
+
+                #val_loss_prev_str = '{0:.4f}'.format(prev_val_loss_combined)
+                #trn_loss_prev_str = '{0:.4f}'.format(prev_trn_loss_combined)
                 
                 rat_trn_loss_str  = '{0:+.2f}'.format(rat_trn_loss).rjust(4, ' ')
                 rat_val_loss_str  = '{0:+.2f}'.format(rat_val_loss).rjust(4, ' ')
@@ -798,13 +798,6 @@ class CnnTrainer(Trainer):
                 val_color = 31 if diff_val_loss > 0 else 32  # red, green, or yellow
                 trn_best_color = 31 if trn_loss_combined > best_trn_loss_combined else 32
                 val_best_color = 31 if val_loss_combined > best_val_loss_combined else 32
-                # val_color = 32 # red
-                # if diff_val_loss == 0:
-                #     val_color = 33
-                # elif diff_val_loss > 0:
-                #     val_color = 31
-                
-                
                 
                 trn_loss_change_str =  f'abs: {util.phyddle_str(diff_trn_loss_str, style=0, color=trn_color)}  '
                 trn_loss_change_str += f'rel: {util.phyddle_str(rat_trn_loss_str, style=0, color=trn_color)}%  '
@@ -855,39 +848,6 @@ class CnnTrainer(Trainer):
         
         # restore best model state
         self.model.load_state_dict(self.best_model_state)
-        
-        # val_lbls_hat       = self.model(val_phy_dat, val_aux_dat)
-        # 
-        # # collect validation metrics
-        # val_loss_list = list()
-        # val_loss_value = 0.
-        # val_loss_lower = 0.
-        # val_loss_upper = 0.
-        # val_loss_combined = 0.
-        # if self.has_label_num:
-        #     val_loss_value = loss_value_func(val_lbls_hat[0], val_lbl_num).item()
-        #     val_loss_lower = loss_lower_func(val_lbls_hat[1], val_lbl_num).item()
-        #     val_loss_upper = loss_upper_func(val_lbls_hat[2], val_lbl_num).item()
-        #     val_loss_list += [ val_loss_value, val_loss_lower, val_loss_upper ]
-        # # val_loss_combined  = val_loss_value + val_loss_lower + val_loss_upper
-        # if self.has_label_cat:
-        #     val_loss_categ = loss_categ_func(val_lbls_hat[3], val_lbl_cat).item()
-        #     val_loss_list += [ val_loss_categ ]
-        # 
-        # # val_loss_combined = sum(val_loss_list)
-        # if loss_aggregation == 'sum':
-        #     # val_loss_combined = torch.stack(val_loss_list).sum()
-        #     val_loss_combined = np.sum(val_loss_list)
-        # elif loss_aggregation == 'geometric':
-        #     val_loss_combined = np.exp(np.mean(np.log(val_loss_list)))
-        #     # val_loss_combined = torch.exp(torch.mean(torch.log(torch.stack(val_loss_list))))
-        # elif loss_aggretation == 'median':
-        #     # val_loss_combined = torch.median(torch.stack(val_loss_list))
-        #     val_loss_combined = np.median(val_loss_list)
-        # 
-        # print("**********")    
-        # print(val_loss_combined, best_val_loss_combined)
-        
         
         return
     
