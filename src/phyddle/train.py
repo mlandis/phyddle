@@ -768,7 +768,9 @@ class CnnTrainer(Trainer):
                 # val_loss_combined = torch.median(torch.stack(val_loss_list))
                 val_loss_combined = np.median(val_loss_list)
             elif self.loss_aggregation == 'weighted_sum':
-                val_loss_combined = uncertainty_weight(val_loss_list).detach().numpy()
+                #if self.device = 'cud
+                #val_loss_combined = uncertainty_weight(val_loss_list).detach().numpy()
+                val_loss_combined = uncertainty_weight(val_loss_list).cpu().detach().numpy()
 
 
             val_mse_value = 0.
