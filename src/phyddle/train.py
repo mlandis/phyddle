@@ -610,7 +610,7 @@ class CnnTrainer(Trainer):
         # uncertainty weighting
         #num_tasks = 3 * self.num_param_num + self.num_param_cat
         task_shapes = [ (self.num_param_num), (self.num_param_num), (self.num_param_num), (self.num_param_cat) ]
-        uncertainty_weight = network.UncertaintyWeighting(task_shapes)
+        uncertainty_weight = network.UncertaintyWeighting(task_shapes, self.TORCH_DEVICE)
         # optimizer = torch.optim.Adam(
         #     list(model.parameters()) + list(uncertainty_weight.parameters()),
         #     lr=0.001
@@ -715,7 +715,7 @@ class CnnTrainer(Trainer):
                 elif self.loss_aggregation == 'median':
                     loss_combined = torch.median(torch.stack(loss_list))
                 elif self.loss_aggregation == 'weighted_sum':
-                    loss_combined = uncertainty_weight(torch.stack(loss_list), self.TORCH_DEVICE)
+                    loss_combined = uncertainty_weight(torch.stack(loss_list))
 
                 # collect history stats
                 if self.has_label_num:
@@ -768,7 +768,7 @@ class CnnTrainer(Trainer):
                 # val_loss_combined = torch.median(torch.stack(val_loss_list))
                 val_loss_combined = np.median(val_loss_list)
             elif self.loss_aggregation == 'weighted_sum':
-                val_loss_combined = uncertainty_weight(val_loss_list, self.TORCH_DEVICE).detach().numpy()
+                val_loss_combined = uncertainty_weight(val_loss_list).detach().numpy()
 
 
             val_mse_value = 0.
