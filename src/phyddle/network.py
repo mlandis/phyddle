@@ -367,8 +367,9 @@ class UncertaintyWeighting(nn.Module):
     def __init__(self, task_shapes, device):
         super().__init__()        
         # Log variance for numerical stability
+        self.device = device
         self.log_vars = nn.ParameterList([
-            nn.Parameter(torch.zeros(shape, device=device)) for shape in task_shapes
+            nn.Parameter(torch.zeros(shape, device=self.device)) for shape in task_shapes
         ])
 
     def forward(self, losses):
@@ -378,7 +379,7 @@ class UncertaintyWeighting(nn.Module):
         """
         total = 0
         for i, loss in enumerate(losses):
-            precision = torch.exp(-self.log_vars[i], device=device)
+            precision = torch.exp(-self.log_vars[i], device=self.device)
             weighted = precision.unsqueeze(0) * loss + self.log_vars[i].unsqueeze(0)
             total += weighted.mean()
 
