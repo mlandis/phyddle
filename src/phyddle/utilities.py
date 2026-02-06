@@ -1607,7 +1607,7 @@ def encode_cpvs(phy, dat, dat_asr, node_name, asr_est, asr_rotate, tree_width, t
     """
     # taxon labels must match for each phy and dat replicate
     phy_labels = set([ n.taxon.label for n in phy.leaf_nodes() ])
-    dat_labels = set( dat.columns.to_list()[1:] )   # skip first element 'taxa'
+    dat_labels = set( dat.columns.to_list()[0:] )   # skip first element 'taxa'
 
     if not dat_asr.empty:
         dat_asr_labels = set( dat.columns.to_list()[1:] )   # skip first element 'taxa'
@@ -1854,7 +1854,10 @@ def encode_cblvs(phy, dat, dat_asr, node_name, asr_est, asr_rotate, tree_width,
             if not dat_asr.empty: 
 
                 # This equals zero if the nodes are not rotated
-                switch = nd.annotations[0]._value
+                index = len(nd.annotations)
+                #for annotation in node.annotations:
+                #    if annotation.name == 'reordered':
+                switch = nd.annotations[index - 1]._value
                 
                 # Check to make sure there are the right number of columns (3 = state, parent1, parent 2) 
                 # Change label based on rotation

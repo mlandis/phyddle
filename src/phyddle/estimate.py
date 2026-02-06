@@ -86,6 +86,7 @@ class Estimator:
         self.tree_encode        = str(args['tree_encode'])
         self.char_encode        = str(args['char_encode'])
         self.brlen_encode       = str(args['brlen_encode'])
+        self.char_format        = str(args['char_format'])
         self.tensor_format      = str(args['tensor_format'])
         self.num_char           = int(args['num_char'])
         self.num_states         = int(args['num_states'])
@@ -950,7 +951,19 @@ class Estimator:
 
             phy = util.read_tree(tre_fn)
             ntips = len(phy.leaf_nodes())
-            dat = pd.read_csv(dat_fn, delimiter=',')
+
+            if self.char_format == 'nexus':
+                dat = util.convert_nexus_to_array(dat_fn,
+                                                       self.char_encode,
+                                                       self.num_states)
+                dat = dat.transpose()
+
+            elif self.char_format == 'csv':
+                dat = pd.read_csv(dat_fn, delimiter=',')
+                # dat = util.convert_csv_to_array(dat_fn,
+                #                                      self.char_encode,
+                #                                      self.num_states)
+
             dat_nd_asr = pd.read_csv(nd_fn, delimiter=',', index_col=False)
 
             # Iterate over internal nodes to add annotations
@@ -1025,25 +1038,34 @@ class Estimator:
             if not self.map_tip_states and (dat.shape)[1] > 2: 
                util.print_err("More than one character at tips. map_tip_states is required for RevBayes formatting.")
 
+            j = 1
             # Annotate the tip states
             for i, row in dat.iterrows():
-                taxon = str(row.iloc[0])
+                if self.char_format == 'nexus':
+                    taxon = str(row.name)
+                else:
+                    taxon = str(row.iloc[0])
                 num = 1
                 label_name = f'anc_state_{num}' 
                 label_prob = f'anc_state_{num}_pp' 
                 node = phy.find_node_with_taxon_label(taxon)
 
-                node.annotations.add_new(name="index", value = i)
+                node.annotations.add_new(name="index", value = j)
                 node.annotations.add_new(name="posterior", value = 1.0)
 
                 # Remove the node name, just get the character data
-                tip_dat = row.drop(row.index[0])
+                 
+                if self.char_format == 'csv':
+                    tip_dat = row.drop(row.index[0])
+                else:
+                    tip_dat = row.T
 
                 if len(row) > 2 and self.map_tip_states:
                     found = False
 
                     # Find the mapping of the multiple characters to a single integer
                     for key, value in self.map_tip_states.items():
+                    
                         if (tip_dat == value).all():
                             found = True
                             node.annotations.add_new(name=label_name, value = key)
@@ -1068,6 +1090,7 @@ class Estimator:
 
                 label_prob = f'anc_state_other_pp' 
                 node.annotations.add_new(name=label_prob, value = 0.0)
+                j = j + 1
 
             name = f'{dat_dir}/{dat_prefix}.{f}.est.tre'
             phy.write_to_path(name, schema="nexus", suppress_annotations = False)
