@@ -105,6 +105,7 @@ class Trainer:
         self.cpi_coverage       = float(args['cpi_coverage'])
         self.cpi_asymmetric     = bool(args['cpi_asymmetric'])
         self.loss_numerical     = str(args['loss_numerical'])
+        self.loss_aggregation   = str(args['loss_aggregation'])
         self.use_cuda           = bool(args['use_cuda'])
         self.num_early_stop     = int(args['num_early_stop'])
         self.early_stop_rule          = str(args['early_stop_rule'])
@@ -604,12 +605,29 @@ class CnnTrainer(Trainer):
         loss_lower_func = network.QuantileLoss(alpha=q_lower)
         loss_upper_func = network.QuantileLoss(alpha=q_upper)
         loss_categ_func = network.CrossEntropyLoss()
-        loss_aggregation = 'sum'
+        # loss_aggregation = 'weighted'
+        
+        # uncertainty weighting
+        #num_tasks = 3 * self.num_param_num + self.num_param_cat
+        task_shapes = [ (self.num_param_num), (self.num_param_num), (self.num_param_num), (self.num_param_cat) ]
+        uncertainty_weight = network.UncertaintyWeighting(task_shapes)
+        # optimizer = torch.optim.Adam(
+        #     list(model.parameters()) + list(uncertainty_weight.parameters()),
+        #     lr=0.001
+        # )
         
         # optimizer
-        optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
+        #optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
+        optimizer = torch.optim.Adam(
+            list(self.model.parameters()) + list(uncertainty_weight.parameters()),
+            lr=self.learning_rate
+        )
         if self.optimizer == 'adam':
-            optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
+            #optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
+            optimizer = torch.optim.Adam(
+                list(self.model.parameters()) + list(uncertainty_weight.parameters()),
+                lr=self.learning_rate
+            )
         if self.optimizer == 'adamw':
             optimizer = torch.optim.AdamW(self.model.parameters(), lr=self.learning_rate)
         elif self.optimizer == 'adagrad':
@@ -690,12 +708,14 @@ class CnnTrainer(Trainer):
                     loss_list += [ loss_categ ]
                 # loss_combined = torch.stack(loss_list).sum()
                 
-                if loss_aggregation == 'sum':
+                if self.loss_aggregation == 'sum':
                     loss_combined = torch.stack(loss_list).sum()
-                elif loss_aggregation == 'geometric':
+                elif self.loss_aggregation == 'geometric':
                     loss_combined = torch.exp(torch.mean(torch.log(torch.stack(loss_list))))
-                elif loss_aggretation == 'median':
+                elif self.loss_aggregation == 'median':
                     loss_combined = torch.median(torch.stack(loss_list))
+                elif self.loss_aggregation == 'weighted_sum':
+                    loss_combined = uncertainty_weight(torch.stack(loss_list))
 
                 # collect history stats
                 if self.has_label_num:
@@ -738,16 +758,19 @@ class CnnTrainer(Trainer):
                 val_loss_list += [ val_loss_categ ]
             
             # val_loss_combined = sum(val_loss_list)
-            if loss_aggregation == 'sum':
+            if self.loss_aggregation == 'sum':
                 # val_loss_combined = torch.stack(val_loss_list).sum()
                 val_loss_combined = np.sum(val_loss_list)
-            elif loss_aggregation == 'geometric':
+            elif self.loss_aggregation == 'geometric':
                 val_loss_combined = np.exp(np.mean(np.log(val_loss_list)))
                 # val_loss_combined = torch.exp(torch.mean(torch.log(torch.stack(val_loss_list))))
-            elif loss_aggretation == 'median':
+            elif self.loss_aggregation == 'median':
                 # val_loss_combined = torch.median(torch.stack(val_loss_list))
                 val_loss_combined = np.median(val_loss_list)
-                
+            elif self.loss_aggregation == 'weighted_sum':
+                val_loss_combined = uncertainty_weight(val_loss_list).detach().numpy()
+
+
             val_mse_value = 0.
             val_mae_value = 0.
             val_mape_value = 0.
@@ -867,7 +890,13 @@ class CnnTrainer(Trainer):
         assert len(metric_names) == len(metric_vals)
         
         for i,(j,k) in enumerate(zip(metric_names, metric_vals)):
-            self.train_history.loc[len(self.train_history.index)] = [ epoch, dataset_name, j, k ]
+            self.train_history.loc[len(self.train_history.index)] = [
+                epoch,
+                dataset_name,
+                j.item() if isinstance(j, torch.Tensor) else j,
+                k.item() if isinstance(k, torch.Tensor) else k
+            ]
+            #self.train_history.loc[len(self.train_history.index)] = [ epoch, dataset_name, j, k ]
         
         return
 

@@ -362,3 +362,24 @@ class CrossEntropyLoss(nn.Module):
             
         return torch.sum(torch.stack(loss_list))
 
+class UncertaintyWeighting(nn.Module):
+    """Learn weights for loss scores of different targets"""
+    def __init__(self, task_shapes):
+        super().__init__()
+        # Log variance for numerical stability
+        self.log_vars = nn.ParameterList([
+            nn.Parameter(torch.zeros(shape)) for shape in task_shapes
+        ])
+
+    def forward(self, losses):
+        """
+        loss weights are learned and applied at a granular, elementwise level
+        losses has dimensionality [task_shapes]
+        """
+        total = 0
+        for i, loss in enumerate(losses):
+            precision = torch.exp(-self.log_vars[i])
+            weighted = precision.unsqueeze(0) * loss + self.log_vars[i].unsqueeze(0)
+            total += weighted.mean()
+
+        return total
