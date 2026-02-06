@@ -362,21 +362,13 @@ class CrossEntropyLoss(nn.Module):
             
         return torch.sum(torch.stack(loss_list))
 
-class UncertaintyWeighting(nn.Module):
+class UncertaintyWeighting(nn.Module, device):
     """Learn weights for loss scores of different targets"""
     def __init__(self, task_shapes):
-        super().__init__()
-
-        self.TORCH_DEVICE_STR = (
-            "cuda"
-            if torch.cuda.is_available() and self.use_cuda
-            else "cpu"
-        )
-        self.TORCH_DEVICE = torch.device(self.TORCH_DEVICE_STR)
-        
+        super().__init__()        
         # Log variance for numerical stability
         self.log_vars = nn.ParameterList([
-            nn.Parameter(torch.zeros(shape, device=self.TORCH_DEVICE)) for shape in task_shapes
+            nn.Parameter(torch.zeros(shape, device=device)) for shape in task_shapes
         ])
 
     def forward(self, losses):
@@ -386,7 +378,7 @@ class UncertaintyWeighting(nn.Module):
         """
         total = 0
         for i, loss in enumerate(losses):
-            precision = torch.exp(-self.log_vars[i], device=self.TORCH_DEVICE)
+            precision = torch.exp(-self.log_vars[i], device=device)
             weighted = precision.unsqueeze(0) * loss + self.log_vars[i].unsqueeze(0)
             total += weighted.mean()
 
