@@ -362,9 +362,9 @@ class CrossEntropyLoss(nn.Module):
             
         return torch.sum(torch.stack(loss_list))
 
-class UncertaintyWeighting(nn.Module, device):
+class UncertaintyWeighting(nn.Module):
     """Learn weights for loss scores of different targets"""
-    def __init__(self, task_shapes):
+    def __init__(self, task_shapes, device):
         super().__init__()        
         # Log variance for numerical stability
         self.log_vars = nn.ParameterList([
