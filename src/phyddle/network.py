@@ -379,7 +379,7 @@ class UncertaintyWeighting(nn.Module):
         """
         total = 0
         for i, loss in enumerate(losses):
-            precision = torch.exp(-self.log_vars[i], device=self.device)
+            precision = torch.exp(-self.log_vars[i])
             weighted = precision.unsqueeze(0) * loss + self.log_vars[i].unsqueeze(0)
             total += weighted.mean()
 
