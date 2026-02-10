@@ -12,6 +12,7 @@ License:   MIT
 
 # standard imports
 import os
+import copy
 
 # external imports
 import h5py
@@ -110,9 +111,12 @@ class Trainer:
         self.cpi_coverage       = float(args['cpi_coverage'])
         self.cpi_asymmetric     = bool(args['cpi_asymmetric'])
         self.loss_numerical     = str(args['loss_numerical'])
+        self.loss_aggregation   = str(args['loss_aggregation'])
         self.use_cuda           = bool(args['use_cuda'])
         self.num_early_stop     = int(args['num_early_stop'])
+        self.early_stop_rule    = str(args['early_stop_rule'])
         self.learning_rate      = float(args['learning_rate'])
+        self.weight_decay       = float(args['weight_decay'])
         self.activation_func    = str(args['activation_func'])
         self.optimizer          = str(args['optimizer'])
 
@@ -130,6 +134,7 @@ class Trainer:
             else:
                 for i in range(self.max_asr_est):
                     self.param_est["asr_" + str(i)] =  "cat"
+        self.best_model_state   = None
         
         # set CPUs
         if self.num_proc <= 0:
@@ -615,14 +620,31 @@ class CnnTrainer(Trainer):
         loss_lower_func = network.QuantileLoss(alpha=q_lower)
         loss_upper_func = network.QuantileLoss(alpha=q_upper)
         loss_categ_func = network.CrossEntropyLoss()
-        loss_aggregation = 'sum'
+        # loss_aggregation = 'weighted'
+        
+        # uncertainty weighting
+        #num_tasks = 3 * self.num_param_num + self.num_param_cat
+        task_shapes = [ (self.num_param_num), (self.num_param_num), (self.num_param_num), (self.num_param_cat) ]
+        uncertainty_weight = network.UncertaintyWeighting(task_shapes, self.TORCH_DEVICE)
+        # optimizer = torch.optim.Adam(
+        #     list(model.parameters()) + list(uncertainty_weight.parameters()),
+        #     lr=0.001
+        # )
         
         # optimizer
-        optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
+        #optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
+        optimizer = torch.optim.Adam(
+            list(self.model.parameters()) + list(uncertainty_weight.parameters()),
+            lr=self.learning_rate, weight_decay=self.weight_decay
+        )
         if self.optimizer == 'adam':
-            optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
+            #optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
+            optimizer = torch.optim.Adam(
+                list(self.model.parameters()) + list(uncertainty_weight.parameters()),
+                lr=self.learning_rate, weight_decay=self.weight_decay
+            )
         if self.optimizer == 'adamw':
-            optimizer = torch.optim.AdamW(self.model.parameters(), lr=self.learning_rate)
+            optimizer = torch.optim.AdamW(self.model.parameters(), lr=self.learning_rate, weight_decay=self.weight_decay)
         elif self.optimizer == 'adagrad':
             optimizer = torch.optim.Adagrad(self.model.parameters(), lr=self.learning_rate)
         elif self.optimizer == 'adadelta':
@@ -652,6 +674,10 @@ class CnnTrainer(Trainer):
                         'loss_combined', 'mse_value', 'mae_value', 'medape_value']
         prev_trn_loss_combined = None
         prev_val_loss_combined = None
+        best_val_loss_combined = 1e100
+        best_trn_loss_combined = 1e100
+        best_val_epoch = 0
+        
         for i in range(self.num_epochs):
             # print('-----')
             trn_loss_value = 0.
@@ -697,12 +723,14 @@ class CnnTrainer(Trainer):
                     loss_list += [ loss_categ ]
                 # loss_combined = torch.stack(loss_list).sum()
                 
-                if loss_aggregation == 'sum':
+                if self.loss_aggregation == 'sum':
                     loss_combined = torch.stack(loss_list).sum()
-                elif loss_aggregation == 'geometric':
+                elif self.loss_aggregation == 'geometric':
                     loss_combined = torch.exp(torch.mean(torch.log(torch.stack(loss_list))))
-                elif loss_aggretation == 'median':
+                elif self.loss_aggregation == 'median':
                     loss_combined = torch.median(torch.stack(loss_list))
+                elif self.loss_aggregation == 'weighted_sum':
+                    loss_combined = uncertainty_weight(torch.stack(loss_list))
 
                 # collect history stats
                 if self.has_label_num:
@@ -733,6 +761,7 @@ class CnnTrainer(Trainer):
             val_loss_value = 0.
             val_loss_lower = 0.
             val_loss_upper = 0.
+            val_loss_combined = 0.
             if self.has_label_num:
                 val_loss_value = loss_value_func(val_lbls_hat[0], val_lbl_num).item()
                 val_loss_lower = loss_lower_func(val_lbls_hat[1], val_lbl_num).item()
@@ -744,16 +773,21 @@ class CnnTrainer(Trainer):
                 val_loss_list += [ val_loss_categ ]
             
             # val_loss_combined = sum(val_loss_list)
-            if loss_aggregation == 'sum':
+            if self.loss_aggregation == 'sum':
                 # val_loss_combined = torch.stack(val_loss_list).sum()
                 val_loss_combined = np.sum(val_loss_list)
-            elif loss_aggregation == 'geometric':
+            elif self.loss_aggregation == 'geometric':
                 val_loss_combined = np.exp(np.mean(np.log(val_loss_list)))
                 # val_loss_combined = torch.exp(torch.mean(torch.log(torch.stack(val_loss_list))))
-            elif loss_aggretation == 'median':
+            elif self.loss_aggregation == 'median':
                 # val_loss_combined = torch.median(torch.stack(val_loss_list))
                 val_loss_combined = np.median(val_loss_list)
-                
+            elif self.loss_aggregation == 'weighted_sum':
+                #if self.device = 'cud
+                #val_loss_combined = uncertainty_weight(val_loss_list).detach().numpy()
+                val_loss_combined = uncertainty_weight(val_loss_list).cpu().detach().numpy()
+
+
             val_mse_value = 0.
             val_mae_value = 0.
             val_mape_value = 0.
@@ -766,6 +800,17 @@ class CnnTrainer(Trainer):
                                 val_loss_combined, val_mse_value, val_mae_value,
                                 val_mape_value ]
 
+
+            # update best loss scores
+            if trn_loss_combined < best_trn_loss_combined:
+                best_trn_loss_combined = trn_loss_combined
+
+            if val_loss_combined < best_val_loss_combined:
+                best_val_loss_combined = val_loss_combined
+                best_val_epoch = i
+                #print('found best', best_val_loss_combined)
+                self.best_model_state = copy.deepcopy(self.model.state_dict())
+            
             # raw training metrics for epoch
             trn_loss_str = f'    Train        --   loss: {"{0:.4f}".format(trn_loss_combined)}'
             val_loss_str = f'    Validation   --   loss: {"{0:.4f}".format(val_loss_combined)}'
@@ -779,24 +824,48 @@ class CnnTrainer(Trainer):
                 
                 diff_trn_loss_str = '{0:+.4f}'.format(diff_trn_loss)
                 diff_val_loss_str = '{0:+.4f}'.format(diff_val_loss)
+
+                trn_loss_best_str = '{0:.4f}'.format(best_trn_loss_combined)
+                val_loss_best_str = '{0:.4f}'.format(best_val_loss_combined)
+
+                #val_loss_prev_str = '{0:.4f}'.format(prev_val_loss_combined)
+                #trn_loss_prev_str = '{0:.4f}'.format(prev_trn_loss_combined)
+                
                 rat_trn_loss_str  = '{0:+.2f}'.format(rat_trn_loss).rjust(4, ' ')
                 rat_val_loss_str  = '{0:+.2f}'.format(rat_val_loss).rjust(4, ' ')
             
-                trn_color = 31 if diff_trn_loss >= 0 else 32  # green or red
-                val_color = 31 if diff_val_loss >= 0 else 32  # green or red
-                trn_loss_change_str  = f'  abs: {util.phyddle_str(diff_trn_loss_str, style=0, color=trn_color)}'
-                trn_loss_change_str += f'  rel: {util.phyddle_str(rat_trn_loss_str, style=0, color=trn_color)}%'
-                val_loss_change_str  = f'  abs: {util.phyddle_str(diff_val_loss_str, style=0, color=val_color)}'
-                val_loss_change_str += f'  rel: {util.phyddle_str(rat_val_loss_str, style=0, color=val_color)}%'
-
+                trn_color = 31 if diff_trn_loss > 0 else 32  # red or green
+                val_color = 31 if diff_val_loss > 0 else 32  # red, green, or yellow
+                trn_best_color = 31 if trn_loss_combined > best_trn_loss_combined else 32
+                val_best_color = 31 if val_loss_combined > best_val_loss_combined else 32
+                
+                trn_loss_change_str =  f'abs: {util.phyddle_str(diff_trn_loss_str, style=0, color=trn_color)}  '
+                trn_loss_change_str += f'rel: {util.phyddle_str(rat_trn_loss_str, style=0, color=trn_color)}%  '
+                trn_loss_change_str += f'best: {util.phyddle_str(trn_loss_best_str, style=0, color=trn_best_color)}'
+                trn_loss_change_str = '   [' + trn_loss_change_str + ']'
+                
+                
+                val_loss_change_str =  f'abs: {util.phyddle_str(diff_val_loss_str, style=0, color=val_color)}  '
+                val_loss_change_str += f'rel: {util.phyddle_str(rat_val_loss_str, style=0, color=val_color)}%  '
+                val_loss_change_str += f'best: {util.phyddle_str(val_loss_best_str, style=0, color=val_best_color)}'
+                val_loss_change_str = '   [' + val_loss_change_str + ']'
+                
                 trn_loss_str += trn_loss_change_str
                 val_loss_str += val_loss_change_str
 
-                if diff_val_loss >= 0:
-                    val_bad_count += 1
-                else:
-                    val_bad_count = 0
+                if self.early_stop_rule == 'total':
+                    if val_loss_combined > best_val_loss_combined:
+                        val_bad_count += 1
+                    else:
+                        val_bad_count = 0
+                        
+                elif self.early_stop_rule == 'consecutive':
+                    if val_loss_combined > prev_val_loss_combined:
+                        val_bad_count += 1
+                    else:
+                        val_bad_count = 0
 
+                
             prev_trn_loss_combined = trn_loss_combined
             prev_val_loss_combined = val_loss_combined
 
@@ -811,11 +880,15 @@ class CnnTrainer(Trainer):
 
             # early stopping
             if val_bad_count >= self.num_early_stop and self.num_early_stop > 0:
-                print(f'Early stop: validation loss increased for num_early_stop={self.num_early_stop} consecutive epochs')
+                print(f'Early stop: validation loss increased for num_early_stop={self.num_early_stop} epochs ({self.early_stop_rule})')
+                print(f'Restoring network parameters from training epoch {best_val_epoch+1}')
                 break
 
         # print(self.train_history)
-
+        
+        # restore best model state
+        self.model.load_state_dict(self.best_model_state)
+        
         return
     
     def update_train_history(self, epoch, metric_names, metric_vals, dataset_name='train',):
@@ -834,7 +907,13 @@ class CnnTrainer(Trainer):
         assert len(metric_names) == len(metric_vals)
         
         for i,(j,k) in enumerate(zip(metric_names, metric_vals)):
-            self.train_history.loc[len(self.train_history.index)] = [ epoch, dataset_name, j, k ]
+            self.train_history.loc[len(self.train_history.index)] = [
+                epoch,
+                dataset_name,
+                j.item() if isinstance(j, torch.Tensor) else j,
+                k.item() if isinstance(k, torch.Tensor) else k
+            ]
+            #self.train_history.loc[len(self.train_history.index)] = [ epoch, dataset_name, j, k ]
         
         return
 

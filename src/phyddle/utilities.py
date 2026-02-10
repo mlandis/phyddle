@@ -178,17 +178,20 @@ def settings_registry():
         'shuffle_test':        {'step': 'F',     'type': str,   'section': 'Format',  'default': 'T',             'help': 'Shuffle which phylogeneties are in the test vs training dataset', 'bool': True},
 
         # training options
-        'num_epochs':           {'step': 'TEP',    'type': int,    'section': 'Train',  'default': 50,             'help': 'Number of training epochs'},
-        'num_early_stop':       {'step': 'TEP',    'type': int,    'section': 'Train',  'default': 3,              'help': 'Number of consecutive validation loss gains before early stopping'},
+        'num_epochs':           {'step': 'T',      'type': int,    'section': 'Train',  'default': 200,            'help': 'Number of training epochs'},
+        'num_early_stop':       {'step': 'T',      'type': int,    'section': 'Train',  'default': 10,             'help': 'Number of validation loss gains before early stopping'},
+        'early_stop_rule':      {'step': 'T',      'type': str,    'section': 'Train',  'default': 'total',        'help': 'Use total or consecutive number of validation loss gains to trigger early stopping', 'choices': ['total', 'consecutive']},
         'trn_batch_size':       {'step': 'TEP',    'type': int,    'section': 'Train',  'default': 512,            'help': 'Training batch sizes'},
-        'prop_test':            {'step': 'FT',     'type': float,  'section': 'Train',  'default': 0.05,           'help': 'Proportion of data used as test examples (assess trained network performance)'},
-        'prop_val':             {'step': 'T',      'type': float,  'section': 'Train',  'default': 0.05,           'help': 'Proportion of data used as validation examples (diagnose network overtraining)'},
+        'prop_test':            {'step': 'FT',     'type': float,  'section': 'Train',  'default': 0.10,           'help': 'Proportion of data used as test examples (assess trained network performance)'},
+        'prop_val':             {'step': 'T',      'type': float,  'section': 'Train',  'default': 0.10,           'help': 'Proportion of data used as validation examples (diagnose network overtraining)'},
         'prop_cal':             {'step': 'T',      'type': float,  'section': 'Train',  'default': 0.20,           'help': 'Proportion of data used as calibration examples (calibrate CPIs)'},
         'cpi_coverage':         {'step': 'T',      'type': float,  'section': 'Train',  'default': 0.95,           'help': 'Expected coverage percent for calibrated prediction intervals (CPIs)'},
         'cpi_asymmetric':       {'step': 'T',      'type': str,    'section': 'Train',  'default': 'T',            'help': 'Use asymmetric (True) or symmetric (False) adjustments for CPIs?', 'bool': True},
         'loss_numerical':       {'step': 'T',      'type': str,    'section': 'Train',  'default': 'mse',          'help': 'Loss function for real value estimates', 'choices': ['mse', 'mae']},
+        'loss_aggregation':     {'step': 'T',      'type': str,    'section': 'Train',  'default': 'sum',          'help': 'Loss function for real value estimates', 'choices': ['sum', 'weighted_sum']},
         'optimizer':            {'step': 'T',      'type': str,    'section': 'Train',  'default': 'adam',         'help': 'Method used for optimizing neural network', 'choices': ['adam', 'adadelta', 'adagrad', 'adamw', 'rmsprop', 'sgd']},
         'learning_rate':        {'step': 'T',      'type': float,  'section': 'Train',  'default': 0.001,          'help': 'Learning rate for optimizer'},
+        'weight_decay':         {'step': 'T',      'type': float,  'section': 'Train',  'default': 0.0,            'help': 'Weight decay (L2 penalty) for optimizer regularization'},
         'activation_func':      {'step': 'T',      'type': str,    'section': 'Train',  'default': 'relu',         'help': 'Activation function for all internal layers', 'choices': ['relu', 'leaky_relu', 'elu', 'tanh', 'sigmoid']}, 
         'log_offset':           {'step': 'FTEP',   'type': float,  'section': 'Train',  'default': 1.0,            'help': 'Offset size c when taking ln(x+c) for zero-valued variables'},
         'phy_channel_plain':    {'step': 'T',      'type': list,   'section': 'Train',  'default': [64, 96, 128],  'help': 'Output channel sizes for plain convolutional layers for phylogenetic state input'},
@@ -698,6 +701,8 @@ def check_args(args):
         print_err("prop_val must be between 0 and 1", exit=True)
     if args['prop_cal'] < 0. or args['prop_cal'] > 1.:
         print_err("prop_cal must be between 0 and 1", exit=True)
+    if args['weight_decay'] < 0.:
+        print_err( "weight_decay must be >- 0", exit=True)
     if args['plot_pca_noise'] < 0.:
         print_err("plot_pca_noise must be >= 0", exit=True)
        # ANNA error checking
@@ -1607,10 +1612,34 @@ def encode_cpvs(phy, dat, dat_asr, node_name, asr_est, asr_rotate, tree_width, t
     """
     # taxon labels must match for each phy and dat replicate
     phy_labels = set([ n.taxon.label for n in phy.leaf_nodes() ])
-    dat_labels = set( dat.columns.to_list()[0:] )   # skip first element 'taxa'
 
     if not dat_asr.empty:
-        dat_asr_labels = set( dat.columns.to_list()[1:] )   # skip first element 'taxa'
+        #dat_asr_labels = set( dat.columns.to_list()[1:] )   # skip first element 'taxa'
+        if dat_asr.columns.to_list()[0] == "taxa":
+            dat_asr_labels = set(dat_asr.columns.to_list()[1:])
+        else:
+            dat_asr_labels = set(dat_asr.columns.to_list())
+
+    # OLD
+    #dat_labels = set( dat.columns.to_list()[1:] )   # skip first element 'taxa'
+    
+    # For some datasets, the first element in dat.columns is the colum label "taxa".
+    # Check and remove. 
+    if dat.columns.to_list()[0] == "taxa":
+        dat_labels = set(dat.columns.to_list()[1:])
+    else:
+        dat_labels = set(dat.columns.to_list())
+
+# this alternative, more general, approach might be slow for large datasets
+#    try:
+#        int(dat.columns.to_list()[0])
+#        # If no error caught, first element is a taxon label so keep
+#        dat_labels = set(dat.columns.to_list())
+#    except ValueError:
+#        # If conversion fails because first element is "taxa" etc. then remove
+#        dat_labels = set(dat.columns.to_list()[1:])
+
+
     phy_missing = phy_labels.difference(dat_labels)
 
 

@@ -1,12 +1,12 @@
 # phyddle 0.3.0
 
-Phylogenetic model exploration with deep learning.
+Software for exploring phylogenetic models with deep learning [[manuscript](https://doi.org/10.1093/sysbio/syaf036)]
 
 ## User guide
 Visit https://phyddle.org to learn how to use the software.
 
-## Overview
 
+## Overview
 <img align="right" src="https://phyddle.org/_images/phyddle_pipeline.png" width="35%">
 
 A standard phyddle analysis performs the following tasks for you:
@@ -77,11 +77,21 @@ phyddle
 
 phyddle uses third-party simulators to generate training datasets. Example workflows assume that [R](https://cran.r-project.org), [RevBayes](https://revbayes.github.io), [Phylojunction](https://phylojunction.org/build/html/index.html), or [BEAST](https://www.beast2.org/) with [MASTER](https://github.com/tgvaughan/MASTER) (plugin) is installed on your machine and can be executed as a command from terminal. The documentation explains how to configure R for use with phyddle.
 
+## Need help?
+Visit the [Discussions](https://github.com/mlandis/phyddle/discussions) page to interact with other phyddle users and receive help.
+
+## Citation
+If you used phyddle, please cite:
+> MJ Landis, A Thompson. 2025. phyddle: software for exploring phylogenetic models with deep learning. Systematic Biology (in press). doi:10.1093/sysbio/syaf036.<br>
+
+> A Thompson, B Liebeskind, EJ Scully, MJ Landis. 2024. Deep learning and likelihood approaches for viral phylogeography converge on the same answers whether the inference model is right or wrong. Systematic Biology 73:183-206. 
+
 ## Note on code stability
 
 Code on the [main](https://github.com/mlandis/phyddle/tree/main) branch is tested and stable with respect to the standard use cases. Code on the [development](https://github.com/mlandis/phyddle/tree/development) branch contains new features, but is not as rigorously tested. Most phyddle development occurs on a 16-core Intel Macbook Pro laptop and a 64-core Intel Ubuntu server. Any feedback is appreciated! [michael.landis@wustl.edu](mailto:michael.landis@wustl.edu)
 
-## About
-Thanks for your interest in phyddle. The phyddle project emerged from a phylogenetic deep learning study led by Ammon Thompson ([paper](https://doi.org/10.1093/sysbio/syad074)). The goal of phyddle is to provide its users with a generalizable pipeline workflow for phylogenetic modeling and deep learning. This hopefully will make it easier for phylogenetic model enthusiasts and developers to explore and apply models that do not have tractable likelihood functions. It's also intended for use by methods developers who want to characterize how deep learning methods perform under different conditions for standard phylogenetic estimation tasks.
 
-The phyddle project is developed by [Michael Landis](https://landislab.org) and [Ammon Thompson](https://scholar.google.com/citations?user=_EpmmTwAAAAJ&hl=en&oi=ao).
+## About
+Thanks for your interest in phyddle. The phyddle project emerged from a phylogenetic deep learning study led by Ammon Thompson ([paper](https://doi.org/10.1093/sysbio/syad074)). The goal of phyddle is to provide its users with a generalizable pipeline workflow for phylogenetic modeling and deep learning. This hopefully will make it easier for phylogenetic model enthusiasts and developers to explore and apply models that do not have tractable likelihood functions. It's also intended for use by methods developers who want to characterize how deep learning methods perform under different conditions for standard phylogenetic estimation tasks. Read more about phyddle at https://doi.org/10.1093/sysbio/syaf036.
+
+The phyddle project is developed by [Michael Landis](https://landislab.org) and [Ammon Thompson](https://scholar.google.com/citatio:wqns?user=_EpmmTwAAAAJ&hl=en&oi=ao).

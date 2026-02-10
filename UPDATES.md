@@ -1,3 +1,14 @@
+**phyddle v0.3.1** -- xx.xx.xx
+
+ * Train allows you use "total" or "consecutive" count of decreasing performance to stop training, configured with "early_stop_rule"
+ * Train can now use "sum" or (learned) "weighted_sum" for multitarget training, configured with "loss_aggregation"
+ * Plot now uses x_est ~ x_true instead of x_true ~ x_est to show parameter estimation accuracy
+ * Plot handles fixed variables for KDE better now
+ * Format handles presence/absence of "taxa" header in data file more gracefully
+ * Estimate more reliably predicts shape of categorical labels (rare crashes before)
+ * Increased default proportion of validation/test examples from 0.05 to 0.10.
+ * Fix issues with dependencies
+
 **phyddle v0.3.0** -- 25.02.27
 
   * Includes new safety features, settings, bug fixes, and documentation

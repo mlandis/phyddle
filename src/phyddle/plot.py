@@ -1108,8 +1108,10 @@ class Plotter:
             #     stat_slope = reg.coef_[0][0]
             #     stat_intercept = reg.intercept_[0]
             # else:
-            reg = LinearRegression().fit(lbl_est.reshape(-1, 1),
-                                         lbl_true.reshape(-1, 1))
+            # reg = LinearRegression().fit(lbl_est.reshape(-1, 1),
+            #                              lbl_true.reshape(-1, 1))
+            reg = LinearRegression().fit(lbl_true.reshape(-1, 1),
+                                         lbl_est.reshape(-1, 1))
             stat_slope = reg.coef_[0][0]
             stat_intercept = reg.intercept_[0]
             
@@ -1158,9 +1160,7 @@ class Plotter:
                      linewidth=0.5, zorder=4)
 
             # regression line
-            # plt.axline((0, stat_intercept), slope=(stat_slope, 0), color=color,
-            #            alpha=1.0, zorder=0, linestyle='dotted')
-            plt.axline((stat_intercept, 0), slope=1. / stat_slope, color=color,
+            plt.axline((0, stat_intercept), slope=stat_slope, color=color,
                        alpha=1.0, zorder=0, linestyle='dotted')
 
             # 1:1 line

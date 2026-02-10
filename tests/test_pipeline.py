@@ -328,17 +328,18 @@ def check_trn():
 
     # compare aux data, labels, and CPIs
     lbl_error = np.max(np.abs(lbl_test - lbl_valid))
+
     cpi_error = np.max(np.abs(cpi_test - cpi_valid))
     aux_norm_error = np.max(np.abs(aux_norm_test - aux_norm_valid))
     lbl_norm_error = np.max(np.abs(lbl_norm_test - lbl_norm_valid))
     if lbl_error > ERROR_TOL:
-        print('lbl_error < ERROR_TOL: ', lbl_error)
+        print('lbl_error > ERROR_TOL: ', lbl_error)
     if cpi_error > ERROR_TOL:
-        print('cpi_error < ERROR_TOL: ', cpi_error)
+        print('cpi_error > ERROR_TOL: ', cpi_error)
     if aux_norm_error > ERROR_TOL:
-        print('aux_norm_error < ERROR_TOL: ', aux_norm_error)
+        print('aux_norm_error > ERROR_TOL: ', aux_norm_error)
     if lbl_norm_error > ERROR_TOL:
-        print('lbl_norm_error < ERROR_TOL: ', lbl_norm_error)
+        print('lbl_norm_error > ERROR_TOL: ', lbl_norm_error)
     assert( lbl_error < ERROR_TOL )
     assert( cpi_error < ERROR_TOL )
     assert( aux_norm_error < ERROR_TOL )
@@ -418,8 +419,8 @@ def check_est():
 
     # compare test and valid estimate labels
     lbl_error = np.max(np.abs(est_lbl_test - est_lbl_valid))
-    if lbl_error < ERROR_TOL:
-        print('lbl_error < ERROR_TOL: ', lbl_error)
+    if lbl_error > ERROR_TOL:
+        print('lbl_error > ERROR_TOL: ', lbl_error)
     assert( lbl_error < ERROR_TOL)
 
     # load test output for Estimate
@@ -432,8 +433,8 @@ def check_est():
 
     # compare test and valid estimate labels
     lbl_error = np.max(np.abs(est_lbl_test - est_lbl_valid))
-    if lbl_error < ERROR_TOL:
-        print('lbl_error < ERROR_TOL: ', lbl_error)
+    if lbl_error > ERROR_TOL:
+        print('lbl_error > ERROR_TOL: ', lbl_error)
     assert( lbl_error < ERROR_TOL)
 
     # success
