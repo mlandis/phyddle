@@ -108,8 +108,9 @@ class Trainer:
         self.loss_aggregation   = str(args['loss_aggregation'])
         self.use_cuda           = bool(args['use_cuda'])
         self.num_early_stop     = int(args['num_early_stop'])
-        self.early_stop_rule          = str(args['early_stop_rule'])
+        self.early_stop_rule    = str(args['early_stop_rule'])
         self.learning_rate      = float(args['learning_rate'])
+        self.weight_decay       = float(args['weight_decay'])
         self.activation_func    = str(args['activation_func'])
         self.optimizer          = str(args['optimizer'])
 
@@ -620,16 +621,16 @@ class CnnTrainer(Trainer):
         #optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
         optimizer = torch.optim.Adam(
             list(self.model.parameters()) + list(uncertainty_weight.parameters()),
-            lr=self.learning_rate
+            lr=self.learning_rate, weight_decay=self.weight_decay
         )
         if self.optimizer == 'adam':
             #optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
             optimizer = torch.optim.Adam(
                 list(self.model.parameters()) + list(uncertainty_weight.parameters()),
-                lr=self.learning_rate
+                lr=self.learning_rate, weight_decay=self.weight_decay
             )
         if self.optimizer == 'adamw':
-            optimizer = torch.optim.AdamW(self.model.parameters(), lr=self.learning_rate)
+            optimizer = torch.optim.AdamW(self.model.parameters(), lr=self.learning_rate, weight_decay=self.weight_decay)
         elif self.optimizer == 'adagrad':
             optimizer = torch.optim.Adagrad(self.model.parameters(), lr=self.learning_rate)
         elif self.optimizer == 'adadelta':

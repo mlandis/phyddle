@@ -184,6 +184,7 @@ def settings_registry():
         'loss_aggregation':     {'step': 'T',      'type': str,    'section': 'Train',  'default': 'sum',          'help': 'Loss function for real value estimates', 'choices': ['sum', 'weighted_sum']},
         'optimizer':            {'step': 'T',      'type': str,    'section': 'Train',  'default': 'adam',         'help': 'Method used for optimizing neural network', 'choices': ['adam', 'adadelta', 'adagrad', 'adamw', 'rmsprop', 'sgd']},
         'learning_rate':        {'step': 'T',      'type': float,  'section': 'Train',  'default': 0.001,          'help': 'Learning rate for optimizer'},
+        'weight_decay':         {'step': 'T',      'type': float,  'section': 'Train',  'default': 0.0,            'help': 'Weight decay (L2 penalty) for optimizer regularization'},
         'activation_func':      {'step': 'T',      'type': str,    'section': 'Train',  'default': 'relu',         'help': 'Activation function for all internal layers', 'choices': ['relu', 'leaky_relu', 'elu', 'tanh', 'sigmoid']}, 
         'log_offset':           {'step': 'FTEP',   'type': float,  'section': 'Train',  'default': 1.0,            'help': 'Offset size c when taking ln(x+c) for zero-valued variables'},
         'phy_channel_plain':    {'step': 'T',      'type': list,   'section': 'Train',  'default': [64, 96, 128],  'help': 'Output channel sizes for plain convolutional layers for phylogenetic state input'},
@@ -687,6 +688,8 @@ def check_args(args):
         print_err("prop_val must be between 0 and 1", exit=True)
     if args['prop_cal'] < 0. or args['prop_cal'] > 1.:
         print_err("prop_cal must be between 0 and 1", exit=True)
+    if args['weight_decay'] < 0.:
+        print_err( "weight_decay must be >- 0", exit=True)
     if args['plot_pca_noise'] < 0.:
         print_err("plot_pca_noise must be >= 0", exit=True)
         

@@ -6,6 +6,7 @@
  * Plot handles fixed variables for KDE better now
  * Format handles presence/absence of "taxa" header in data file more gracefully
  * Estimate more reliably predicts shape of categorical labels (rare crashes before)
+ * Increased default proportion of validation/test examples from 0.05 to 0.10.
  * Fix issues with dependencies
 
 **phyddle v0.3.0** -- 25.02.27
