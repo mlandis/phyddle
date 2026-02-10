@@ -252,152 +252,190 @@ adjusted with the command line using the ``--help`` option:
 
 .. code-block::
 
-	usage: phyddle [-h] [-c] [-s] [-v] [--make_cfg ] [--save_proj ] [--load_proj ]
-               [--clean_proj ] [--save_num_sim] [--save_train_fmt]
-               [--output_precision] [--use_parallel] [--use_cuda] [--num_proc]
-               [--no_emp] [--no_sim] [--dir] [--sim_dir] [--emp_dir]
-               [--fmt_dir] [--trn_dir] [--est_dir] [--plt_dir] [--log_dir]
-               [--prefix] [--sim_prefix] [--emp_prefix] [--fmt_prefix]
-               [--trn_prefix] [--est_prefix] [--plt_prefix] [--sim_command]
-               [--sim_logging {clean,compress,verbose}] [--start_idx]
-               [--end_idx] [--sim_more] [--sim_batch_size] [--encode_all_sim]
-               [--num_char] [--num_states] [--min_num_taxa] [--max_num_taxa]
-               [--downsample_taxa {uniform}] [--tree_width]
-               [--tree_encode {extant,serial}]
-               [--brlen_encode {height_only,height_brlen}]
-               [--char_encode {one_hot,integer,numeric}] [--param_est]
-               [--param_data] [--char_format {csv,nexus}]
-               [--tensor_format {csv,hdf5}] [--save_phyenc_csv] [--num_epochs]
-               [--num_early_stop] [--trn_batch_size] [--prop_test]
-               [--prop_val] [--prop_cal] [--cpi_coverage] [--cpi_asymmetric]
-               [--loss_numerical {mse,mae}] [--optimizer {adam}]
-               [--log_offset] [--phy_channel_plain] [--phy_channel_stride]
-               [--phy_channel_dilate] [--aux_channel] [--lbl_channel]
-               [--phy_kernel_plain] [--phy_kernel_stride]
-               [--phy_kernel_dilate] [--phy_stride_stride]
-               [--phy_dilate_dilate] [--plot_train_color] [--plot_test_color]
-               [--plot_val_color] [--plot_label_color] [--plot_aux_color]
-               [--plot_emp_color] [--plot_num_scatter] [--plot_min_emp]
-               [--plot_num_emp] [--plot_pca_noise]
-
-    Software to fiddle around with deep learning for phylogenetic models
-    
-    options:
-      -h, --help            show this help message and exit
-      -c, --cfg             Config file name
-      -s, --step            Pipeline step(s) defined with (S)imulate, (F)ormat,
-                            (T)rain, (E)stimate, (P)lot, or (A)ll
-      -v, --verbose         Verbose output to screen?
-      --make_cfg            Write default config file
-      --save_proj           Save and zip a project for sharing
-      --load_proj           Unzip a shared project
-      --clean_proj          Remove step directories for a project
-      --save_num_sim        Number of simulated examples to save with --save_proj
-      --save_train_fmt      Save formatted training examples with --save_proj?
-                            (not recommended)
-      --output_precision    Number of digits (precision) for numbers in output
-                            files
-      --use_parallel        Use parallelization? (recommended)
-      --use_cuda            Use CUDA parallelization? (recommended; requires
-                            Nvidia GPU)
-      --num_proc            Number of cores for multiprocessing (-N for all but N)
-      --no_emp              Disable Format/Estimate steps for empirical data?
-      --no_sim              Disable Format/Estimate steps for simulated data?
-      --dir                 Parent directory for all step directories unless step
-                            directory given
-      --sim_dir             Directory for raw simulated data
-      --emp_dir             Directory for raw empirical data
-      --fmt_dir             Directory for tensor-formatted data
-      --trn_dir             Directory for trained networks and training output
-      --est_dir             Directory for new datasets and estimates
-      --plt_dir             Directory for plotted results
-      --log_dir             Directory for logs of analysis metadata
-      --prefix              Prefix for all output unless step prefix given
-      --sim_prefix          Prefix for raw simulated data
-      --emp_prefix          Prefix for raw empirical data
-      --fmt_prefix          Prefix for tensor-formatted data
-      --trn_prefix          Prefix for trained networks and training output
-      --est_prefix          Prefix for estimate results
-      --plt_prefix          Prefix for plotted results
-      --sim_command         Simulation command to run single job (see documentation)
-      --sim_logging {clean,compress,verbose}
-                            Simulation logging style
-      --start_idx           Start replicate index for simulated training dataset
-      --end_idx             End replicate index for simulated training dataset
-      --sim_more            Add more simulations with auto-generated indices
-      --sim_batch_size      Number of replicates per simulation command
-      --encode_all_sim      Encode all simulated replicates into tensor?
-      --num_char            Number of characters
-      --num_states          Number of states per character
-      --min_num_taxa        Minimum number of taxa allowed when formatting
-      --max_num_taxa        Maximum number of taxa allowed when formatting
-      --downsample_taxa {uniform}
-                            Downsampling strategy taxon count
-      --tree_width          Width of phylo-state tensor
-      --tree_encode {extant,serial}
-                            Encoding strategy for tree
-      --brlen_encode {height_only,height_brlen}
-                            Encoding strategy for branch lengths
-      --char_encode {one_hot,integer,numeric}
-                            Encoding strategy for character data
-      --param_est           Model parameters and variables to estimate
-      --param_data          Model parameters and variables treated as data
-      --char_format {csv,nexus}
-                            File format for character data
-      --tensor_format {csv,hdf5}
-                            File format for training example tensors
-      --save_phyenc_csv     Save encoded phylogenetic tensor encoding to csv?
-      --num_epochs          Number of training epochs
-      --num_early_stop      Number of consecutive validation loss gains before
-                            early stopping
-      --trn_batch_size      Training batch sizes
-      --prop_test           Proportion of data used as test examples (assess
-                            trained network performance)
-      --prop_val            Proportion of data used as validation examples
-                            (diagnose network overtraining)
-      --prop_cal            Proportion of data used as calibration examples
-                            (calibrate CPIs)
-      --cpi_coverage        Expected coverage percent for calibrated prediction
-                            intervals (CPIs)
-      --cpi_asymmetric      Use asymmetric (True) or symmetric (False) adjustments
-                            for CPIs?
-      --loss_numerical {mse,mae}
-                            Loss function for real value estimates
-      --optimizer {adam}    Method used for optimizing neural network
-      --log_offset          Offset size c when taking ln(x+c) for zero-valued
-                            variables
-      --phy_channel_plain   Output channel sizes for plain convolutional layers
-                            for phylogenetic state input
-      --phy_channel_stride
-                            Output channel sizes for stride convolutional layers
-                            for phylogenetic state input
-      --phy_channel_dilate
-                            Output channel sizes for dilate convolutional layers
-                            for phylogenetic state input
-      --aux_channel         Output channel sizes for dense layers for auxiliary
-                            data input
-      --lbl_channel         Output channel sizes for dense layers for label
-                            outputs
-      --phy_kernel_plain    Kernel sizes for plain convolutional layers for
-                            phylogenetic state input
-      --phy_kernel_stride   Kernel sizes for stride convolutional layers for
-                            phylogenetic state input
-      --phy_kernel_dilate   Kernel sizes for dilate convolutional layers for
-                            phylogenetic state input
-      --phy_stride_stride   Stride sizes for stride convolutional layers for
-                            phylogenetic state input
-      --phy_dilate_dilate   Dilation sizes for dilate convolutional layers for
-                            phylogenetic state input
-      --plot_train_color    Plotting color for training data elements
-      --plot_test_color     Plotting color for test data elements
-      --plot_val_color      Plotting color for validation data elements
-      --plot_label_color    Plotting color for label elements
-      --plot_aux_color      Plotting color for auxiliary data elements
-      --plot_emp_color      Plotting color for empirical elements
-      --plot_num_scatter    Number of examples in scatter plot
-      --plot_min_emp        Minimum number of empirical datasets to plot densities
-      --plot_num_emp        Number of empirical results to plot
-      --plot_pca_noise      Scale of Gaussian noise to add to PCA plot
+      usage: phyddle [-h] [-c] [-s] [-v] [--make_cfg ] [--save_proj ] [--load_proj ]
+                     [--clean_proj ] [--save_num_sim] [--save_train_fmt]
+                     [--output_precision] [--dir] [--sim_dir] [--emp_dir] [--fmt_dir]
+                     [--trn_dir] [--est_dir] [--plt_dir] [--log_dir] [--prefix]
+                     [--sim_prefix] [--emp_prefix] [--fmt_prefix] [--trn_prefix]
+                     [--est_prefix] [--plt_prefix] [--use_parallel] [--use_cuda]
+                     [--num_proc] [--no_emp] [--no_sim] [--sim_command]
+                     [--sim_logging {clean,compress,verbose}] [--start_idx] [--end_idx]
+                     [--sim_more] [--sim_batch_size] [--encode_all_sim] [--num_char]
+                     [--num_states] [--num_trees] [--min_num_taxa] [--max_num_taxa]
+                     [--downsample_taxa {uniform}] [--rel_extant_age_tol] [--tree_width]
+                     [--tree_encode {extant,serial}]
+                     [--brlen_encode {height_only,height_brlen}]
+                     [--char_encode {one_hot,integer,numeric}] [--param_est]
+                     [--param_data] [--asr_est] [--asr_one] [--asr_1_cat]
+                     [--max_asr_est] [--asr_rotate] [--char_format {csv,nexus}]
+                     [--tensor_format {csv,hdf5}] [--save_phyenc_csv] [--shuffle_test]
+                     [--num_epochs] [--num_early_stop] [--trn_batch_size] [--prop_test]
+                     [--prop_val] [--prop_cal] [--cpi_coverage] [--cpi_asymmetric]
+                     [--loss_numerical {mse,mae}]
+                     [--optimizer {adam,adadelta,adagrad,adamw,rmsprop,sgd}]
+                     [--learning_rate]
+                     [--activation_func {relu,leaky_relu,elu,tanh,sigmoid}]
+                     [--log_offset] [--phy_channel_plain] [--phy_channel_stride]
+                     [--phy_channel_dilate] [--aux_channel] [--lbl_channel]
+                     [--phy_kernel_plain] [--phy_kernel_stride] [--phy_kernel_dilate]
+                     [--phy_stride_stride] [--phy_dilate_dilate] [--warn_aux_outlier]
+                     [--warn_lbl_outlier] [--asr_nexus_test] [--asr_nexus_emp]
+                     [--map_triplet_states] [--map_tip_states] [--rb_nexus]
+                     [--plot_train_color] [--plot_test_color] [--plot_val_color]
+                     [--plot_label_color] [--plot_phy_color] [--plot_aux_color]
+                     [--plot_emp_color] [--plot_num_scatter] [--plot_min_emp]
+                     [--plot_num_emp] [--plot_pca_noise]
+      
+      Phylogenetic model exploration with deep learning.models. Visit
+      https://phyddle.org for documentation.
+      
+      options:
+        -h, --help            show this help message and exit
+        -c, --cfg             Config file name
+        -s, --step            Pipeline step(s) defined with (S)imulate, (F)ormat,
+                              (T)rain, (E)stimate, (P)lot, or (A)ll
+        -v, --verbose         Verbose output to screen?
+        --make_cfg            Write default config file
+        --save_proj           Save and zip a project for sharing
+        --load_proj           Unzip a shared project
+        --clean_proj          Remove step directories for a project
+        --save_num_sim        Number of simulated examples to save with --save_proj
+        --save_train_fmt      Save formatted training examples with --save_proj? (not
+                              recommended)
+        --output_precision    Number of digits (precision) for numbers in output files
+        --dir                 Parent directory for all step directories unless step
+                              directory given
+        --sim_dir             Directory for raw simulated data
+        --emp_dir             Directory for raw empirical data
+        --fmt_dir             Directory for tensor-formatted data
+        --trn_dir             Directory for trained networks and training output
+        --est_dir             Directory for new datasets and estimates
+        --plt_dir             Directory for plotted results
+        --log_dir             Directory for logs of analysis metadata
+        --prefix              Prefix for all output unless step prefix given
+        --sim_prefix          Prefix for raw simulated data
+        --emp_prefix          Prefix for raw empirical data
+        --fmt_prefix          Prefix for tensor-formatted data
+        --trn_prefix          Prefix for trained networks and training output
+        --est_prefix          Prefix for estimate results
+        --plt_prefix          Prefix for plotted results
+        --use_parallel        Use parallelization? (recommended)
+        --use_cuda            Use CUDA parallelization? (recommended; requires Nvidia
+                              GPU)
+        --num_proc            Number of cores for multiprocessing (-N for all but N)
+        --no_emp              Disable Format/Estimate steps for empirical data?
+        --no_sim              Disable Format/Estimate steps for simulated data?
+        --sim_command         Simulation command to run single job (see documentation)
+        --sim_logging {clean,compress,verbose}
+                              Simulation logging style
+        --start_idx           Start replicate index for simulated training dataset
+        --end_idx             End replicate index for simulated training dataset
+        --sim_more            Add more simulations with auto-generated indices
+        --sim_batch_size      Number of replicates per simulation command
+        --encode_all_sim      Encode all simulated replicates into tensor?
+        --num_char            Number of characters
+        --num_states          Number of states per character
+        --num_trees           Number of trees per dataset
+        --min_num_taxa        Minimum number of taxa allowed when formatting
+        --max_num_taxa        Maximum number of taxa allowed when formatting
+        --downsample_taxa {uniform}
+                              Downsampling strategy taxon count
+        --rel_extant_age_tol 
+                              Relative tolerance to determine if terminal taxa are
+                              extant (rel. age < tol).
+        --tree_width          Width of phylo-state tensor
+        --tree_encode {extant,serial}
+                              Encoding strategy for tree
+        --brlen_encode {height_only,height_brlen}
+                              Encoding strategy for branch lengths
+        --char_encode {one_hot,integer,numeric}
+                              Encoding strategy for character data
+        --param_est           Model parameters and variables to estimate
+        --param_data          Model parameters and variables treated as data
+        --asr_est             Infer ancestral state for each node (marginal)
+        --asr_one             Infer the ancestral state for a single node
+        --asr_1_cat           Infer ancestral states as a single categorical variable
+                              for the whole tree (not recommended due to poor scaling)
+        --max_asr_est         Maximum number of ancestral states to infer
+        --asr_rotate          States that are equivalent if daughters are rotated
+        --char_format {csv,nexus}
+                              File format for character data
+        --tensor_format {csv,hdf5}
+                              File format for training example tensors
+        --save_phyenc_csv     Save encoded phylogenetic tensor encoding to csv?
+        --shuffle_test        Shuffle which phylogeneties are in the test vs training
+                              dataset
+        --num_epochs          Number of training epochs
+        --num_early_stop      Number of consecutive validation loss gains before early
+                              stopping
+        --trn_batch_size      Training batch sizes
+        --prop_test           Proportion of data used as test examples (assess trained
+                              network performance)
+        --prop_val            Proportion of data used as validation examples (diagnose
+                              network overtraining)
+        --prop_cal            Proportion of data used as calibration examples (calibrate
+                              CPIs)
+        --cpi_coverage        Expected coverage percent for calibrated prediction
+                              intervals (CPIs)
+        --cpi_asymmetric      Use asymmetric (True) or symmetric (False) adjustments for
+                              CPIs?
+        --loss_numerical {mse,mae}
+                              Loss function for real value estimates
+        --optimizer {adam,adadelta,adagrad,adamw,rmsprop,sgd}
+                              Method used for optimizing neural network
+        --learning_rate       Learning rate for optimizer
+        --activation_func {relu,leaky_relu,elu,tanh,sigmoid}
+                              Activation function for all internal layers
+        --log_offset          Offset size c when taking ln(x+c) for zero-valued
+                              variables
+        --phy_channel_plain   Output channel sizes for plain convolutional layers for
+                              phylogenetic state input
+        --phy_channel_stride 
+                              Output channel sizes for stride convolutional layers for
+                              phylogenetic state input
+        --phy_channel_dilate 
+                              Output channel sizes for dilate convolutional layers for
+                              phylogenetic state input
+        --aux_channel         Output channel sizes for dense layers for auxiliary data
+                              input
+        --lbl_channel         Output channel sizes for dense layers for label outputs
+        --phy_kernel_plain    Kernel sizes for plain convolutional layers for
+                              phylogenetic state input
+        --phy_kernel_stride   Kernel sizes for stride convolutional layers for
+                              phylogenetic state input
+        --phy_kernel_dilate   Kernel sizes for dilate convolutional layers for
+                              phylogenetic state input
+        --phy_stride_stride   Stride sizes for stride convolutional layers for
+                              phylogenetic state input
+        --phy_dilate_dilate   Dilation sizes for dilate convolutional layers for
+                              phylogenetic state input
+        --warn_aux_outlier    Percentile to detect extreme empirical auxiliary (abs.)
+                              values.
+        --warn_lbl_outlier    Percentile to detect extreme empirical label (abs.)
+                              values.
+        --asr_nexus_test      Write ancestral state reconstruction to nexus file for
+                              test data
+        --asr_nexus_emp       Write ancestral state reconstruction to nexus file for
+                              empirical data
+        --map_triplet_states 
+                              Relabeling of encoding from one value for each triplet at
+                              cladogenesis to parent, left daughter, right daughter for
+                              the nexus file
+        --map_tip_states      Relabeling of tip data with multiple characters to a
+                              single character for the nexus format
+        --rb_nexus            Nexus format tree should be in RevGadgets compatible
+                              format
+        --plot_train_color    Plotting color for training data elements
+        --plot_test_color     Plotting color for test data elements
+        --plot_val_color      Plotting color for validation data elements
+        --plot_label_color    Plotting color for label elements
+        --plot_phy_color      Plotting color for phylogenetic data elements
+        --plot_aux_color      Plotting color for auxiliary data elements
+        --plot_emp_color      Plotting color for empirical elements
+        --plot_num_scatter    Number of examples in scatter plot
+        --plot_min_emp        Minimum number of empirical datasets to plot densities
+        --plot_num_emp        Number of empirical results to plot
+        --plot_pca_noise      Scale of Gaussian noise to add to PCA plot
 
 
 Note: the ``step`` setting controls which steps should be applied.
@@ -1625,6 +1663,264 @@ rate and susceptible population sizes for location 0 are known for a
 phylogenetic SIR analysis. 
 
 
+.. _Ancestral_State_Reconstruction:
+
+Ancestral State Reconstruction
+------------------------------
+
+Ancestral states can be estimated with phyddle.
+To do so, the internal nodes must be named in the input phylogenies.
+There is no required format for the names, though characters used in Newick formatting such as paratheses, commas, and brackets should not be used in internal node names.
+In addition to the standard files needed for an analysis, such as the ``.dat.cvs``  ``.labels.csv``,  and ``.tre`` files , a file ``prefix.idx.anc_state.csv`` is required for each simulated dataset. 
+This should contain the node names in the first column and the ancestral state in the second column, separated by a comma.
+This file should be produced by the simulation script. 
+The ancestral states should be numeric and zero indexed. 
+Phyddle will still run if the state are not zero indexed, but the states will be zero indexed internally which will be reflected in the output.
+Below is an example for a tree with 9 internal nodes and a binary character. In this example, node9 has a true history of being in state 0 and node8 is in state 1. 
+
+.. code-block::
+
+  node9,0
+  node8,1
+  node1,1
+  node2,1
+  node5,0
+  node3,0
+  node6,1
+  node7,1
+  node4,1
+
+Downsampling is not implemented with ancestral state reconstruction since different ancestral nodes will be present with different samples. 
+If any of the trees are larger than the specified maximum tree size (``tree_width``), subsample the trees in the simulation script.
+
+Ancestral state can be estimated three ways with phyddle.  
+Only one ancestral state estimation option should be specified at a time. 
+
+Marginal Estimation (preferred method)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The marginal estimation method estimates the ancestral state for each node in the phylogeny as a categorical variable. 
+With a maximum tree size (``tree_width``)  of n, there will be n-1 categorical variables corresponding 
+to ancestral states.
+To use the marginal estimation method, set ``asr_est = 'T'`` in the config file. 
+This will create ``tree_width - 1`` categorical variables to estimate, one for each internal node
+in the tree, plus additional zero-padded states for non-existent internal nodes if the tree is smaller than ``tree_width``.
+These are labeled ``asr_0``, ``asr_1``, etc. 
+The additional zero-padded states can generally be ignored, though they are included in 
+the plot summaries and may need to be removed to assess performance for variable sized trees.
+We suggest that the marginal method is used since it scales better than the other options to estimate ancestrals states.
+
+Joint Estimation
+^^^^^^^^^^^^^^^^
+For the joint estimation method, a single cateogorical variable is estimated for the
+entire tree. 
+There are s^(n-1) categories, where n is the number of tips (``max_num_taxa``) and s is the number of possible states for the character. 
+To use the joint estimation method, set ``asr_est = 'T'`` and ``asr_1_cat = 'T'``  in the config file. 
+``num_states`` should be equal to (n-1)^s. 
+For example, for a binary character on trees with 4 tips the config file should include
+
+.. code-block::
+
+  'num_char'          : 1,                # number of evolutionary characters
+  'num_states'        : 8,                # number of states per character
+  'asr_est'           : 'T',              # estimate ancestral states
+  'asr_1_cat'         : 'T',              # estimate a single categorical variable for ancestral states
+
+  'min_num_taxa'       : 4,               # Minimum number of taxa allowed when formatting
+  'max_num_taxa'       : 4,               # Maximum number of taxa allowed when formatting
+
+This method is not expected to work well with more than a small number of taxa or states since the number of categories scales exponentially.
+
+Single Node Estimation
+^^^^^^^^^^^^^^^^^^^^^^
+In the single node estimation method, the name of single node is given as input 
+and the ancestral state for that node alone is estimated. To estimate with this method, 
+set ``asr_one = 'T'`` in the config file. 
+Additionally, the parameters to estimate should include ``asr_node_state`` and the parameters to treat as data should include ``asr_node_label``, as shown below. 
+``asr_node_label`` is the name of the node in the tree file and ``asr_node_state`` is the ancestral state of the node. 
+Note that ``asr_node_label`` should be listed as a numeric variable, even though it is a string. 
+This is because phyddle takes the original node name and finds the index of the node in the formatted tree, which is a numeric variable, not a string.
+
+This method may not scale with tree size as only a single node per tree is used for training. 
+This may result in requiring much larger training datasets than the other methods.
+
+.. code-block::
+
+  'asr_one'           : 'T',
+  'param_est'         : {'asr_node_state'     : 'cat'},
+  'param_data'        : {'asr_node_label'     : 'num'},
+
+
+The internal node name and the true ancestral should be provided in the ``labels.csv`` file, as shown below.
+In the example, the ancestral state should be estimated for node1 and the true ancestral state is 1.
+The true state can be left out for empirical data.
+
+.. code-block::
+
+  asr_node_label,asr_node_state
+  node1,1
+
+Models with state changes at cladogenesis
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+For some models, such as GeoSSE, states may change at cladogenesis.
+This means the parent and daughters may not all have the same states. 
+GeoSSE models ranges as a collection of one or more discete regions. 
+In this example, there are two regions, A and B and a lineage may be in region A, region B, or both regions A and B. 
+The GeoSSE model allows parents and daughters to have different states immediately before and immediately after cladogenesis, but limits the possible combination of parent and daughter states.
+The 8 allowed transitions with 2 regions are listed below. 
+For full description of the model, see Goldberg et al. 2011. 
+In principle, only the parent state could be estimated or the three states could be encoded as a single state without discriminating between which daughter is left vs right. 
+In practice, this does not appear to work very well. 
+Instead, the user can assign ancestral states that differentiate the left vs right daughters. 
+For example, the ancestral states for a GeoSSE model could be encoded as follows, where the first value represents the encoding for the ancestral state and to the left of the colon are the states in the order parent->left,right.
+
+.. code-block::
+ 
+   0: A  -> A ,  A
+   1: B  -> B ,  B
+   2: AB -> A ,  B
+   3: AB -> B ,  A
+   4: AB -> AB,  A
+   5: AB -> A , AB
+   6: AB -> AB,  B
+   7: AB -> B , AB
+
+
+Note that  AB->A,B and AB->B,A have different ancestral states, since the states A and B are in different daughters.
+Phyddle does not need to mapping of the numbers 0-7 to the geographic ranges.
+It only uses the 0-7 encoding. 
+These 0-7 states should then be used in the ``prefix.idx.anc_state.csv`` file, rather than the actual states ranges. 
+The order of the states is arbitrary, and should be specified in the simulation script.
+In the above example, states 2 and 3 are different, since the left daughter is in state A for 2 but the right daughter is in state A for state 3. 
+However, phyddle rotates the internal nodes in the tree during formatting.
+Thus, the user must specify which states are the same with the nodes rotated using ``asr_rotate`` in the config file.
+In the example, the pairs of states (2,3), (4,5), and (6,7) have the same parent and daughter states with the daughters rotated.
+
+.. code-block::
+
+  'asr_rotate'        : {2 : 3,
+                         3 : 2,
+                         4 : 5,
+                         5 : 4,
+                         6 : 7,
+                         7 : 6 },
+
+.. warning::
+    
+   Many simulation methods where states can change at cladogenesis have a default for how states are inherited. For example, in a GeoSSE model if a parent with range AB has a daughters with range A and  a daughter with range B, the left daughter may always be in range A and the right daughter may always be in range B. 
+   While this should not cause issues for likelihood based methods, this may cause issues for ancestral state estimation using machine learning as not all patterns will be present in the data, particulary at the tips. To address this, the nodes in the tree can be randomly rotated before writing the tree to file.
+
+Interpreting the output
+^^^^^^^^^^^^^^^^^^^^^^^^
+Phyddle always estimates the same variables given a particular trained network. 
+To allow for different node names on different trees, each internal node is assigned an index from 0 to n-1, where  n is the number of taxa, according to an inorder traversal on the formatted tree. 
+This ordering may also improved phyddle's performance.
+For both the marginal and joint estimation methods, the mapping of the the original internal node names to the phyddle node indeces are written to a file in the ``sim_dir`` with the suffix ``node_label.csv``, such as shown below for an original tree with 9 internal nodes. 
+
+.. code-block::
+
+  original,new
+  node9,0
+  node8,1
+  node1,2
+  node2,3
+  node5,4
+  node3,5
+  node6,6
+  node7,7
+  node4,8
+
+For this example, the variable ``asr_0`` will correspond to the ancestral state at node9 in the original tree. 
+Then, when using with the marginal estimation strategy, the variables to estimate are ``asr_0``, ``asr_1``, ... ``asr_(n-1)`` where n is the ``tree_width``.
+In the joint estimation strategy, a file ``state_mapping.csv`` will be written in the ``fmt_dir``. 
+This file contains the states inferred by phyddle and that internal nodes states with which they corespond. 
+For example, with a 4 tip tree and 2 states, the file is 
+
+.. code-block::
+
+  # state,node_0,node_1,node_2
+  0,0,0,0
+  1,0,0,1
+  2,0,1,0
+  3,0,1,1
+  4,1,0,0
+  5,1,0,1
+  6,1,1,0
+  7,1,1,1
+
+For example, if state 1 is inferred by phyddle, the internal nodes with indeces 0 and 1 have ancestral state 0 and the internal node with index 2 has ancestral state 1. 
+
+With the single node strategy, the variable to estimate is called ``asr_node_state`` and understanding the indexing is not required for the user. 
+
+One way to view the output is to look at the output files that phyddle produces for all analyses, such as the plots in ``plt_dir`` and the csv in ``est_dir``. 
+Note that in the plots for the simulated data, the performance is averaged across all trees. 
+When the trees are smaller than the ``tree_width``, zero-padding is used for the additional nodes. 
+This means that if the trees are variably size, the network is estimating the location of the zero-padding for smaller tree instead of an actual ancestral state for some estimated variables. 
+This may appear to inflate the performance for larger node numbers in the test dataset.
+To avoid this, the user may wish to use the csv files in ``est_dir`` and remove the estimates that do not correspond to real nodes on the tree. 
+To look at individual trees, the user can match the node names with the node indeces used in phyddle  using ``node_label.csv`` file to find the estimates in the output csv file.
+If the option ``asr_rotate`` was used, the results should be viewed on the formatted tree, which has the suffix ``form.tre`` rather than the original tree.
+This option is for models where the left vs right orientation of the daughters changes the ancestral state reconstruction.
+
+Producing nexus files
+^^^^^^^^^^^^^^^^^^^^^
+
+Viewing the standard phyddle output files may be tedious since the mapping between the node names and the indeces in phyddle will be different for every tree.
+As a more user friendly way to view results on a single tree at a time, phyddle can write the inferred ancestral states to a nexus file when the marginal inference method is used. 
+By default, nexus files are created for the empirical data, but not the test data.
+The defaults can be changed using ``asr_nexus_emp`` and ``asr_nexus_test``.
+The trees are written to either ``emp_dir`` and/or ``sim_dir`` to files with the suffix ``est.tre``.
+The ancestral states are written as annotations in the tree.
+``anc_state_1`` corresponds to the ancestral state with the highest probability, ``anc_state_2`` to the state with the second highest probability, etc. 
+``anc_state_1_pp`` is the probability of the state with the highest probability. 
+The other states are labeled similarly. 
+These labels will match the numbering used internally in phyddle, which are zero indexed. 
+If the training data had ancestral states labeled as 1 or 2, the inferred ancestral states will be 0 or 1. 
+The tip states are annotated with the labels used in ``dat.csv``.
+
+RevBayes/RevGadgets compatible nexus files can be produced instead of the above format by specifying ``rb_nexus = 'T'`` in the config file. 
+This format only records up to 3 ancestral states per node and add the probability of additional ancestral states to an other state category. 
+If there are data for multiple characters at the tips, the option ``map_tip_states`` must be included to use the RevBayes compatible nexus files. 
+This option specifies a dictionary where the key is the desired state number and the value is the data at the tips in the same order specified in the ``.dat.csv`` file. 
+For example, in the ``.dat.csv`` beginning as shown below, each species is either present or absent in region1 and region2. 
+Note that no species is present in neither region in this example. 
+
+.. code-block::
+
+  taxa,region1,region2
+  sp1,1,1
+  sp2,1,0
+  sp3,0,1
+  ...
+
+Then ``map_tip_states`` dictionary should have 3 states corresponding the 3 possible patterns of presence and absence.
+
+.. code-block::
+
+   'map_tip_states'    : {0 : [1, 0],
+                          1 : [0, 1],
+                          2 : [1, 1]},
+
+For models where states can change at cladogenesis, rather than annotating the states at the node as a triplet, the start and end state can be annotated on each branch. 
+To do this, use ``map_triplet_states`` in the config file.
+This specifies a dictionary where the key is the label in training data and the value is the parent, left daughter, and right daughter. 
+The values should be numeric, separated by commas, and enclosed in parenthesis, as shown below.
+The keys should match how the simulation script encoded the node labels, except if the original labels were not zero indexed. 
+If the original labels were not zero indexed, they should be shifted to start a 0 and go to n-1 for n possible categories. 
+In this example, the ancestral states in ``.anc_state.csv`` were integers between 0 and 7. 
+
+.. code-block::
+
+    'map_triplet_states' : { 0: (0, 0, 0),       # A  -> A ,  A
+                             1: (1, 1, 1),       # B  -> B ,  B
+                             2: (2, 0, 1),       # AB -> A ,  B
+                             3: (2, 1, 0),       # AB -> B ,  A
+                             4: (2, 2, 0),       # AB -> AB,  A
+                             5: (2, 0, 2),       # AB -> A , AB
+                             6: (2, 2, 1),       # AB -> AB,  B
+                             7: (2, 1, 2)},      # AB -> B', AB
+
+In the example, nodes inferred to be in categories 2-7 had parents in state 2 (AB).
+This format can be used with plotting functions within RevGadgets, such as ``plotAncStatesPie``.
 
 .. _Safe_Usage:
 

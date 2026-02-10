@@ -50,6 +50,7 @@ Setting|Step(s)|Type|Description
 ``char_format``|–FTE–|*str*|File format for character data
 ``tensor_format``|–FTEP|*str*|File format for training example tensors
 ``save_phyenc_csv``|–F–––|*str*|Save encoded phylogenetic tensor encoding to csv?
+``max_asr_est``|–FTEP|*int*|Maximum number of ancestral states to infer
 ``num_epochs``|––TEP|*int*|Number of training epochs
 ``num_early_stop``|––TEP|*int*|Number of consecutive validation loss gains before early stopping
 ``trn_batch_size``|––TEP|*int*|Training batch sizes
@@ -81,3 +82,12 @@ Setting|Step(s)|Type|Description
 ``plot_min_emp``|––––P|*int*|Minimum number of empirical datasets to plot densities
 ``plot_num_emp``|––––P|*int*|Number of empirical results to plot
 ``plot_pca_noise``|––––P|*float*|Scale of Gaussian noise to add to PCA plot
+``asr_1_cat``|–FTEP|*str*|Infer ancestral states as a single categorical variable for the whole tree 
+``asr_est``|–FTEP|*str*|Infer ancestral state for each node (marginal)?
+``asr_nexus_test``|–––E–|*str*|Write ancestral state reconstruction to nexus file for test data
+``asr_nexus_emp``|–––E–|*str*|Write ancestral state reconstruction to nexus file for empirical data
+``asr_one``|–FTEP|*str*|Infer the ancestral state for a single node
+``asr_rotate``|–FTE–|*dict*|States that are equivalent if daughters are rotated
+``map_triplet_states``|–––E–|*dict*|Relabeling of encoding from one value for each triplet at cladogenesis to parent, left daughter, right daughter for the nexus file with ancestral states
+``map_tip_states``|–––E–|*dict*|Relabeling of tip data with multiple characters to a single character for the nexus format
+``rb_nexus``|–––E–|*str*|Should nexus tree be in RevGadgets compatible format?
