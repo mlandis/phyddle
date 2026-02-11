@@ -1373,7 +1373,7 @@ class Plotter:
         # figure colors
         colors = {'train': train_color,
                   'validation': val_color}
-
+             
         # plot for all metrics
         for j, v2 in enumerate(metric_names):
 
@@ -1407,6 +1407,33 @@ class Plotter:
                 ax.legend(handles=legend_handles,
                           labels=legend_labels,
                           loc='upper right')
+
+                # # best validation loss_combined score?
+                # df_tmp = history.loc[(history.metric == 'loss_combined') &
+                #                      (history.dataset == 'validation')]
+                best_val_loss = round(np.min( df.value ), ndigits=3)
+                best_val_idx = np.argmin( df.value )
+            
+                if v3 == 'validation':
+                    ax.scatter( [best_val_idx], [best_val_loss],
+                                edgecolor=colors['validation'],
+                                facecolor='white',
+                                zorder=5,
+                                s=20)
+
+                    ax.annotate(f'Best loss:\n' + \
+                                f'Best epoch:',
+                                xy=(0.74, 0.82),
+                                xycoords='axes fraction',
+                                size=8)
+                    
+                    ax.annotate(f'{best_val_loss}\n' + \
+                                f'{best_val_idx}',
+                                xy=(0.90, 0.82),
+                                xycoords='axes fraction',
+                                size=8)
+
+
 
             # save figure
             save_fn = f'{prefix}_{v2}.pdf'
