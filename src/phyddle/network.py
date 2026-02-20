@@ -362,10 +362,25 @@ class CrossEntropyLoss(nn.Module):
             
         return torch.sum(torch.stack(loss_list))
 
+class HeteroscedasticMSELoss(nn.Module):
+    """
+    Computes heteroscedastic mean-squared error for loss score
+    """
+    def __init__(self):
+        super(HeteroscedasticMSELoss, self).__init__()
+        return
+
+    #def forward(self, predictions, targets):
+    def forward(self, x_avg, x_log_var, y_truth):
+        a = 1/(2*torch.exp(x_log_var))
+        b = torch.pow(y_truth - x_avg, 2)
+        c = 1/2 * x_log_var
+        return torch.mean(a * b + c)
+
 class UncertaintyWeighting(nn.Module):
     """Learn weights for loss scores of different targets"""
     def __init__(self, task_shapes, device):
-        super().__init__()        
+        super().__init__()
         # Log variance for numerical stability
         self.device = device
         self.log_vars = nn.ParameterList([
