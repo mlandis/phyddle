@@ -126,6 +126,8 @@ class Estimator:
         self.train_aux_data_mean_sd     = None       # init in load_train_input()
         self.train_labels_num_mean_sd   = None       # init in load_train_input()
         self.cpi_adjustments            = None       # init in load_train_input()
+        self.cpi_symmetric              = True       # init in load_train_input()
+        self.cpi_method                 = "acp"
         self.phy_data                   = None       # init in load_format_input()
         self.aux_data                   = None       # init in load_format_input()
         self.idx_data                   = None       # init in load_format_input()
@@ -467,8 +469,18 @@ class Estimator:
             
             if labels_est_num.ndim == 2:
                 labels_est_num.shape = (labels_est_num.shape[0], 1, labels_est_num.shape[1])
-            labels_est_num[1,:,:] = labels_est_num[1,:,:] + self.cpi_adjustments[0,:]
-            labels_est_num[2,:,:] = labels_est_num[2,:,:] + self.cpi_adjustments[1,:]
+
+            if self.cpi_method == "acp":
+                print("ACP")
+                dx = np.sqrt(np.exp(labels_est_num[1,:,:])) * self.cpi_adjustments[0,:]
+                labels_est_num[1,:,:] = labels_est_num[0,:,:] - dx
+                labels_est_num[2,:,:] = labels_est_num[0,:,:] + dx
+            elif self.cpi_method == "cqr" and self.cpi_asymmetric:
+                labels_est_num[1,:,:] = labels_est_num[1,:,:] + self.cpi_adjustments[0,:]
+                labels_est_num[2,:,:] = labels_est_num[2,:,:] + self.cpi_adjustments[1,:]
+            elif self.cpi_method == "cqr" and not self.cpi_asymmetric:
+                labels_est_num[1,:,:] = labels_est_num[1,:,:] - self.cpi_adjustments[0,:]
+                labels_est_num[2,:,:] = labels_est_num[2,:,:] + self.cpi_adjustments[1,:]
             
             # denormalize test label estimates
             denorm_est_labels_num = util.denormalize(labels_est_num,

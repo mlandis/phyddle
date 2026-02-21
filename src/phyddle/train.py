@@ -1027,10 +1027,13 @@ class CnnTrainer(Trainer):
                 labels_num_est_calib[1,:,:] = labels_num_est_calib[0,:,:] - dx
                 labels_num_est_calib[2,:,:] = labels_num_est_calib[0,:,:] + dx
                 #labels_num_est_calib[2,:,:] = labels_num_est_calib[2,:,:] + self.cpi_adjustments[1,:]
-            elif self.cpi_method == "cqr":
+            elif self.cpi_method == "cqr" and self.cpi_asymmetric:
                 labels_num_est_calib[1,:,:] = labels_num_est_calib[1,:,:] + self.cpi_adjustments[0,:]
                 labels_num_est_calib[2,:,:] = labels_num_est_calib[2,:,:] + self.cpi_adjustments[1,:]
-            
+            elif self.cpi_method == "cqr" and not self.cpi_asymmetric:
+                labels_num_est_calib[1,:,:] = labels_num_est_calib[1,:,:] - self.cpi_adjustments[0,:]
+                labels_num_est_calib[2,:,:] = labels_num_est_calib[2,:,:] + self.cpi_adjustments[1,:]
+                
             # denormalize calibrated estimates
             self.train_label_num_est_calib = labels_num_est_calib
 
