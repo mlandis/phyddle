@@ -372,10 +372,18 @@ class HeteroscedasticMSELoss(nn.Module):
 
     #def forward(self, predictions, targets):
     def forward(self, x_avg, x_log_var, y_truth):
-        a = 1/(2*torch.exp(x_log_var))
-        b = torch.pow(y_truth - x_avg, 2)
-        c = 1/2 * x_log_var
-        return torch.mean(a * b + c)
+        #a = 1/(2*torch.exp(x_log_var))
+        #b = torch.pow(y_truth - x_avg, 2)
+        #c = 1/2 * x_log_var
+        #z = torch.mean(a * b + c)
+        #print(z)
+        #return z
+        # mean(1/2 * (sigma^-2 * (true - mu)^2 + sigma^2))
+        precision = torch.exp(-x_log_var)
+        loss = precision * (y_truth - x_avg) ** 2 + x_log_var     
+        return 0.5 * loss.mean()    
+
+        #return torch.mean(a * b + c)
 
 class UncertaintyWeighting(nn.Module):
     """Learn weights for loss scores of different targets"""

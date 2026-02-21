@@ -180,6 +180,7 @@ def settings_registry():
         'prop_cal':             {'step': 'T',      'type': float,  'section': 'Train',  'default': 0.20,           'help': 'Proportion of data used as calibration examples (calibrate CPIs)'},
         'cpi_coverage':         {'step': 'T',      'type': float,  'section': 'Train',  'default': 0.95,           'help': 'Expected coverage percent for calibrated prediction intervals (CPIs)'},
         'cpi_asymmetric':       {'step': 'T',      'type': str,    'section': 'Train',  'default': 'T',            'help': 'Use asymmetric (True) or symmetric (False) adjustments for CPIs?', 'bool': True},
+        'cpi_method':           {'step': 'T',      'type': str,    'section': 'Train',  'default': 'cqr',          'help': 'What method for conformalized prediction intervals?', 'choices':['cqr','acp']},
         'loss_numerical':       {'step': 'T',      'type': str,    'section': 'Train',  'default': 'mse',          'help': 'Loss function for real value estimates', 'choices': ['mse', 'mae']},
         'loss_aggregation':     {'step': 'T',      'type': str,    'section': 'Train',  'default': 'sum',          'help': 'Loss function for real value estimates', 'choices': ['sum', 'weighted_sum']},
         'optimizer':            {'step': 'T',      'type': str,    'section': 'Train',  'default': 'adam',         'help': 'Method used for optimizing neural network', 'choices': ['adam', 'adadelta', 'adagrad', 'adamw', 'rmsprop', 'sgd']},

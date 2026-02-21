@@ -88,6 +88,10 @@ class Estimator:
         self.param_est          = dict(args['param_est'])
         self.log_offset         = float(args['log_offset'])
         self.use_cuda           = bool(args['use_cuda'])
+
+        # CPIs
+        self.cpi_method         = str(args['cpi_method'])
+        self.cpi_asymmetric     = bool(args['cpi_asymmetric'])
         
         # error checking
         self.warn_aux_outlier   = float(args['warn_aux_outlier'])
@@ -126,8 +130,6 @@ class Estimator:
         self.train_aux_data_mean_sd     = None       # init in load_train_input()
         self.train_labels_num_mean_sd   = None       # init in load_train_input()
         self.cpi_adjustments            = None       # init in load_train_input()
-        self.cpi_symmetric              = True       # init in load_train_input()
-        self.cpi_method                 = "acp"
         self.phy_data                   = None       # init in load_format_input()
         self.aux_data                   = None       # init in load_format_input()
         self.idx_data                   = None       # init in load_format_input()
