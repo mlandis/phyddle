@@ -1081,6 +1081,8 @@ class Plotter:
             stat_cover = np.logical_and(lbl_lower < lbl_true,
                                         lbl_upper > lbl_true)
             stat_not_cover = np.logical_not(stat_cover)
+            stat_width = np.mean(lbl_upper - lbl_lower)
+            stat_var_width = np.var(lbl_upper - lbl_lower)
             f_stat_cover = sum(stat_cover) / len(stat_cover) * 100
             f_stat_cover_target = self.cpi_coverage * 100
 
@@ -1106,6 +1108,8 @@ class Plotter:
             s_intercept = '{:.2E}'.format(stat_intercept)
             s_cover = '{:.1f}%'.format(f_stat_cover)
             s_cover_target = '{:.1f}%'.format(f_stat_cover_target)
+            s_width = '{:.2E}'.format(stat_width)
+            s_var_width = '{:.2E}'.format(stat_var_width)
 
             bad_slope_str = '<' if stat_slope < 1.0 else '>'
             bad_cover_str = '<' if f_stat_cover < f_stat_cover_target else '>'
@@ -1165,7 +1169,8 @@ class Plotter:
             stat_str = [f'MAE: {s_mae}', f'MSE: {s_mse}',
                         f'RMSE: {s_rmse}', f'Intercept: {s_intercept}',
                         f'Slope: {s_slope}', f'Coverage: {s_cover}',
-                        f'Coverage target: {s_cover_target}']
+                        f'Coverage target: {s_cover_target}', 
+                        f'Mean width: {s_width}', f'Var. width: {s_var_width}']
 
             for j, s in enumerate(stat_str):
                 plt.annotate(s, xy=(0.01, 0.99 - j * dx),

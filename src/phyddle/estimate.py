@@ -475,6 +475,7 @@ class Estimator:
             if self.cpi_method == "acp":
                 print("ACP")
                 dx = np.sqrt(np.exp(labels_est_num[1,:,:])) * self.cpi_adjustments[0,:]
+                #dx = np.sqrt(labels_est_num[1,:,:]) * self.cpi_adjustments[0,:]
                 labels_est_num[1,:,:] = labels_est_num[0,:,:] - dx
                 labels_est_num[2,:,:] = labels_est_num[0,:,:] + dx
             elif self.cpi_method == "cqr" and self.cpi_asymmetric:
