@@ -807,7 +807,7 @@ class Formatter:
 
         # Find node name- this is for doing one node at a time
         if self.asr_one: 
-            node_name = str(labels["asr_node_label"][0])
+            node_name = str(labels["asr_node_id"][0])
         else: 
             node_name = ""
     
@@ -822,8 +822,8 @@ class Formatter:
         cpvs_node_index = cpvs_data_all[3]
 
         if self.asr_one: 
-            labels.loc[0, "asr_node_label"] = cpvs_node_index
-            labels['asr_node_label'] = labels['asr_node_label'].astype(int)
+            labels.loc[0, "asr_node_id"] = cpvs_node_index
+            labels['asr_node_id'] = labels['asr_node_id'].astype(int)
 
         asr_1_cat = np.array(-1)
 

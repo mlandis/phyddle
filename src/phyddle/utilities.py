@@ -210,9 +210,9 @@ def settings_registry():
         'warn_lbl_outlier':     {'step': 'FEP',    'type': float,  'section': 'Estimate',  'default': 0.01,        'help': 'Percentile to detect extreme empirical label (abs.) values.'},
         'asr_nexus_test':       {'step': 'E',      'type': str,    'section': 'Estimate',  'default': 'F',         'help': 'Write ancestral state reconstruction to nexus file for test data', 'bool': True},
         'asr_nexus_emp':        {'step': 'E',      'type': str,    'section': 'Estimate',  'default': 'T',         'help': 'Write ancestral state reconstruction to nexus file for empirical data', 'bool': True},
-        'map_triplet_states':   {'step': 'E',      'type': dict,  'section': 'Estimate',  'default': dict(),       'help': 'Relabeling of encoding from one value for each triplet at cladogenesis to parent, left daughter, right daughter for the nexus file'},
-        'map_tip_states':       {'step': 'E',      'type': dict,  'section': 'Estimate',  'default': dict(),       'help': 'Relabeling of tip data with multiple characters to a single character for the nexus format'},
-        'rb_nexus':             {'step': 'E',      'type': str,  'section': 'Estimate',  'default': 'F',           'help': 'Nexus format tree should be in RevGadgets compatible format', 'bool' : True},
+        'asr_map_triplet_states':   {'step': 'E',      'type': dict,  'section': 'Estimate',  'default': dict(),       'help': 'Relabeling of encoding from one value for each triplet at cladogenesis to parent, left daughter, right daughter for the nexus file'},
+        'asr_map_tip_states':       {'step': 'E',      'type': dict,  'section': 'Estimate',  'default': dict(),       'help': 'Relabeling of tip data with multiple characters to a single character for the nexus format'},
+        'asr_rb_nexus':             {'step': 'E',      'type': str,  'section': 'Estimate',  'default': 'F',           'help': 'Nexus format tree should be in RevGadgets compatible format', 'bool' : True},
 
 
         # plotting options

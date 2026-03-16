@@ -103,9 +103,9 @@ class Estimator:
             self.max_asr_est = self.tree_width - 1
         self.asr_nexus_emp      = bool(args['asr_nexus_emp'])
         self.asr_nexus_test     = bool(args['asr_nexus_test'])
-        self.map_triplet_states = dict(args['map_triplet_states'])
-        self.map_tip_states     = dict(args['map_tip_states'])
-        self.rb_nexus           = bool(args['rb_nexus'])
+        self.map_triplet_states = dict(args['asr_map_triplet_states'])
+        self.map_tip_states     = dict(args['asr_map_tip_states'])
+        self.rb_nexus           = bool(args['asr_rb_nexus'])
         
         # error checking
         self.warn_aux_outlier   = float(args['warn_aux_outlier'])
