@@ -299,7 +299,7 @@ class Formatter:
                       os.path.exists(f'{dat_dir}/{f}.dat.nex')
             has_tre = os.path.exists(f'{dat_dir}/{f}.tre')
             has_lbl = os.path.exists(f'{dat_dir}/{f}.labels.csv')
-            # ANNA need to add path
+            has_asr = os.path.exists(f'{dat_dir}/{f}.anc_state.csv')
             
             # no labels needed for empirical datasets with no param_data
             if mode == 'emp' and len(self.param_data) == 0:
@@ -309,7 +309,8 @@ class Formatter:
                 return False
             # if the 1-3 files exist, then we have 1+ valid datasets
             if (has_dat or not self.use_input_dat) and (has_tre or self.use_input_tre) and has_lbl:
-                return True
+                if (self.asr_est and has_asr) or (not self.asr_est or mode == 'emp'):
+                    return True
     
         return False
 
@@ -702,6 +703,9 @@ class Formatter:
         if not os.path.exists(lbl_fn) and mode == 'sim':
             self.logger.write_log('fmt', f'Cannot find {lbl_fn}')
             return
+        if self.asr_est and mode == 'sim' and not os.path.exists(asr_est_fn):
+            self.logger.write_log('fmt', f'Cannot find {asr_est_fn}')
+            return
        
         # read in nexus data file as numpy array
         dat = None
@@ -724,10 +728,10 @@ class Formatter:
         if self.asr_est and mode == "sim" :
             dat_asr = util.convert_csv_to_array(asr_est_fn, 
                                                  self.char_encode)#,
-                                                 #self.num_states)
         else:
             dat_asr = pd.DataFrame()
             #ANNA Need to read in number of states, error checking on data dimensions
+                                                 #self.num_states)
 
         
         # get tree file
@@ -867,7 +871,6 @@ class Formatter:
             if dat_asr.empty:
                 param_est.to_csv(par_est_fn, index=False, float_format=util.PANDAS_FLOAT_FMT_STR)
             elif self.asr_1_cat: 
-                # ANNA i'm a little confused by what is the value vs the name
                 asr_df = pd.DataFrame([asr_1_cat]).T.add_prefix('asr_')
                 all_est = pd.concat([param_est.T, asr_df.T]).T
                 all_est.to_csv(par_est_fn, index=False, float_format=util.PANDAS_FLOAT_FMT_STR)

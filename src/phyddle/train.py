@@ -85,7 +85,7 @@ class Trainer:
         self.num_states         = int(args['num_states'])
         self.tree_width         = int(args['tree_width'])
         self.asr_est            = bool(args['asr_est'])
-        self.asr_1_cat            = bool(args['asr_1_cat'])
+        self.asr_1_cat          = bool(args['asr_1_cat'])
         self.max_asr_est        = int(args['max_asr_est'])
         if self.max_asr_est == -1: 
             self.max_asr_est = self.tree_width - 1
@@ -417,7 +417,7 @@ class CnnTrainer(Trainer):
         
         # data dimensions
         num_sample             = full_phy_data.shape[0]
-        self.num_param_num    = full_labels_num.shape[1]
+        self.num_param_num     = full_labels_num.shape[1]
         self.num_param_cat     = full_labels_cat.shape[1]
         self.num_aux_data      = full_aux_data.shape[1]
         
