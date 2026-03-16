@@ -106,9 +106,9 @@ getHistory <- function(tree1, phy_file) {
   
   # Select half of the nodes in the tree to rotate
   # This is needed for phyddle to have examples of both orderings
-  nodes_to_rotate <- sample((num_tips + 1):(num_tips + num_nodes),
-                            size = floor(num_nodes * 0.5),
-                            replace = FALSE)
+
+  rotate_vec <- which(runif(num_tips - 1) > .5 )
+  nodes_to_rotate <- num_tips + rotate_vec
   
   for (node in nodes_to_rotate) {
     

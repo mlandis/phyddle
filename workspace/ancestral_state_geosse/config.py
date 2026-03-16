@@ -28,10 +28,8 @@ args = {
     'sim_command'       : f'Rscript simple_simulate.R', # exact command string, argument is output file prefix
     'sim_logging'       : 'verbose',        # verbose, compressed, or clean
     'start_idx'         : 1,                # first simulation replicate index
-    'end_idx'           : 10000,             # last simulation replicate index
-    #'end_idx'           : 250000,             # last simulation replicate index
-    'sim_batch_size'    : 100,
-    #'sim_batch_size'    : 5000,
+    'end_idx'           : 250000,             # last simulation replicate index
+    'sim_batch_size'    : 5000,
 
     #-------------------------------#
     # Format Step settings          #
@@ -78,17 +76,17 @@ args = {
     # Estimate Step settings        #
     #-------------------------------#
 
-    'map_tip_states'    : {0 : [1, 0],
-                       1 : [0, 1],
-                       2 : [1, 1]},
+    'asr_map_tip_states'    : {0 : [1, 0],
+                               1 : [0, 1],
+                               2 : [1, 1]},
 
-    'map_triplet_states' : { 0: (0, 0, 0),       # A  -> A ,  A
-                         1: (1, 1, 1),       # B  -> B ,  B
-                         2: (2, 0, 1),       # AB -> A ,  B
-                         3: (2, 1, 0),       # AB -> B ,  A
-                         4: (2, 2, 0),       # AB -> AB,  A
-                         5: (2, 0, 2),       # AB -> A , AB
-                         6: (2, 2, 1),       # AB -> AB,  B
-                         7: (2, 1, 2)},      # AB -> B', AB
-    'rb_nexus' : 'T'
+    'asr_map_triplet_states' : { 0: (0, 0, 0),       # A  -> A ,  A
+                                 1: (1, 1, 1),       # B  -> B ,  B
+                                 2: (2, 0, 1),       # AB -> A ,  B
+                                 3: (2, 1, 0),       # AB -> B ,  A
+                                 4: (2, 2, 0),       # AB -> AB,  A
+                                 5: (2, 0, 2),       # AB -> A , AB
+                                 6: (2, 2, 1),       # AB -> AB,  B
+                                 7: (2, 1, 2)},      # AB -> B', AB
+    'asr_rb_nexus' : 'T'
  }
