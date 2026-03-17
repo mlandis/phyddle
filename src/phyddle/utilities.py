@@ -197,9 +197,9 @@ def settings_registry():
         'phy_kernel_dilate':    {'step': 'T',      'type': list,   'section': 'Train',  'default': [3, 5],         'help': 'Kernel sizes for dilate convolutional layers for phylogenetic state input'},
         'phy_stride_stride':    {'step': 'T',      'type': list,   'section': 'Train',  'default': [3, 6],         'help': 'Stride sizes for stride convolutional layers for phylogenetic state input'},
         'phy_dilate_dilate':    {'step': 'T',      'type': list,   'section': 'Train',  'default': [3, 5],         'help': 'Dilation sizes for dilate convolutional layers for phylogenetic state input'},
-        'phy_dropout_prop':     {'step': 'T',      'type': float,   'section': 'Train',  'default': 0.2,            'help': 'Dropout proportion for convolutional layers for phylogenetic state input'},
-        'aux_dropout_prop':     {'step': 'T',      'type': float,   'section': 'Train',  'default': 0.6,            'help': 'Dropout proportion for dense layers for auxiliary data input'},
-        'lbl_dropout_prop':     {'step': 'T',      'type': float,   'section': 'Train',  'default': 0.3,            'help': 'Dropout proportion for dense layers for label outputs'},
+        'phy_dropout_prop':     {'step': 'T',      'type': float,   'section': 'Train',  'default': 0.0,            'help': 'Dropout proportion for convolutional layers for phylogenetic state input'},
+        'aux_dropout_prop':     {'step': 'T',      'type': float,   'section': 'Train',  'default': 0.0,            'help': 'Dropout proportion for dense layers for auxiliary data input'},
+        'lbl_dropout_prop':     {'step': 'T',      'type': float,   'section': 'Train',  'default': 0.0,            'help': 'Dropout proportion for dense layers for label outputs'},
         
 
         # estimating options
