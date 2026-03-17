@@ -116,7 +116,7 @@ class ParameterEstimationNetwork(nn.Module):
             self.fwd_func = func.sigmoid
 
         # create (stateless) dropout layers
-        self.phy_dropout = nn.Dropout(p=self.phy_dropout_prop)
+        self.phy_dropout = nn.Dropout1d(p=self.phy_dropout_prop)
         self.aux_dropout = nn.Dropout(p=self.aux_dropout_prop)
         self.lbl_dropout = nn.Dropout(p=self.lbl_dropout_prop)
 
