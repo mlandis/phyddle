@@ -89,6 +89,9 @@ class ParameterEstimationNetwork(nn.Module):
         self.phy_dilate_dilate_size = list(args['phy_dilate_dilate'])
         self.aux_out_size           = list(args['aux_channel'])
         self.lbl_channel            = list(args['lbl_channel'])
+        self.phy_dropout_prop       = float(args['phy_dropout_prop'])
+        self.aux_dropout_prop       = float(args['aux_dropout_prop'])
+        self.lbl_dropout_prop       = float(args['lbl_dropout_prop'])
         self.activation_func        = args['activation_func']
         self.use_cuda               = args['use_cuda']
 
@@ -111,6 +114,11 @@ class ParameterEstimationNetwork(nn.Module):
             self.fwd_func = func.tanh
         elif self.activation_func == 'sigmoid':
             self.fwd_func = func.sigmoid
+
+        # create (stateless) dropout layers
+        self.phy_dropout = nn.Dropout(p=self.phy_dropout_prop)
+        self.aux_dropout = nn.Dropout(p=self.aux_dropout_prop)
+        self.lbl_dropout = nn.Dropout(p=self.lbl_dropout_prop)
 
         # standard convolution and pooling layers for CPV+S
         self.phy_std_in_size = [ self.phy_dat_width ] + self.phy_std_out_size[:-1]
@@ -241,26 +249,25 @@ class ParameterEstimationNetwork(nn.Module):
         # standard conv + pool layers
         x_std = phy_dat
         for i in range(len(self.phy_std)-1):
-            # AMT: Segfault when using Tesla T4 GPU. Occures on next line, second pass of the loop 
-            x_std = self.fwd_func(self.phy_std[i](x_std))
+            x_std = self.phy_dropout( self.fwd_func(self.phy_std[i](x_std)) )
         x_std = self.phy_std[-1](x_std)
         
         # stride conv + pool layers
         x_stride = phy_dat
         for i in range(len(self.phy_stride)-1 ):
-            x_stride = self.fwd_func(self.phy_stride[i](x_stride))
+            x_stride = self.phy_dropout( self.fwd_func(self.phy_stride[i](x_stride)) )
         x_stride = self.phy_stride[-1](x_stride)
         
         # dilation conv + pool layers
         x_dilate = phy_dat
         for i in range(len(self.phy_dilate)-1):
-            x_dilate = self.fwd_func(self.phy_dilate[i](x_dilate))
+            x_dilate = self.phy_dropout( self.fwd_func(self.phy_dilate[i](x_dilate)) )
         x_dilate = self.phy_dilate[-1](x_dilate)
         
         # dense aux. dat layers
         x_aux = aux_dat
         for i in range(len(self.aux_ffnn)):
-            x_aux = self.fwd_func(self.aux_ffnn[i](x_aux))
+            x_aux = self.aux_dropout( self.fwd_func(self.aux_ffnn[i](x_aux)) )
         x_aux = x_aux.unsqueeze(dim=2)
 
         # Concatenate phylo and aux layers
@@ -270,19 +277,19 @@ class ParameterEstimationNetwork(nn.Module):
             # Point estimate path
             x_point = x_concat
             for i in range(len(self.point_ffnn)-1):
-                x_point = self.fwd_func(self.point_ffnn[i](x_point))
+                x_point = self.lbl_dropout( self.fwd_func(self.point_ffnn[i](x_point)) )
             x_point = self.point_ffnn[-1](x_point)
     
             # Lower quantile path
             x_lower = x_concat
             for i in range(len(self.lower_ffnn)-1):
-                x_lower = self.fwd_func(self.lower_ffnn[i](x_lower))
+                x_lower = self.lbl_dropout( self.fwd_func(self.lower_ffnn[i](x_lower)) )
             x_lower = self.lower_ffnn[-1](x_lower)
     
             # Upper quantile path
             x_upper = x_concat
             for i in range(len(self.upper_ffnn)-1):
-                x_upper = self.fwd_func(self.upper_ffnn[i](x_upper))
+                x_upper = self.lbl_dropout( self.fwd_func(self.upper_ffnn[i](x_upper)) )
             x_upper = self.upper_ffnn[-1](x_upper)
         else:
             # DataParallel and CUDA apparently require that torch.empty structures
@@ -303,7 +310,7 @@ class ParameterEstimationNetwork(nn.Module):
                 k_str = f'{k}_categ_ffnn'
                 k_mod_list = getattr(self, k_str)
                 for i in range(len(k_mod_list)-1):
-                    x_categ[k] = self.fwd_func(k_mod_list[i](x_categ[k]))
+                    x_categ[k] = self.lbl_dropout( self.fwd_func(k_mod_list[i](x_categ[k])) )
                 # x_categ[k] = func.softmax(k_mod_list[-1](x_categ[k]), dim=1)
                 x_categ[k] = k_mod_list[-1](x_categ[k])
                 setattr(self, k_str, k_mod_list)

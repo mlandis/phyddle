@@ -197,6 +197,10 @@ def settings_registry():
         'phy_kernel_dilate':    {'step': 'T',      'type': list,   'section': 'Train',  'default': [3, 5],         'help': 'Kernel sizes for dilate convolutional layers for phylogenetic state input'},
         'phy_stride_stride':    {'step': 'T',      'type': list,   'section': 'Train',  'default': [3, 6],         'help': 'Stride sizes for stride convolutional layers for phylogenetic state input'},
         'phy_dilate_dilate':    {'step': 'T',      'type': list,   'section': 'Train',  'default': [3, 5],         'help': 'Dilation sizes for dilate convolutional layers for phylogenetic state input'},
+        'phy_dropout_prop':     {'step': 'T',      'type': list,   'section': 'Train',  'default': 0.2,            'help': 'Dropout proportion for convolutional layers for phylogenetic state input'},
+        'aux_dropout_prop':     {'step': 'T',      'type': list,   'section': 'Train',  'default': 0.6,            'help': 'Dropout proportion for dense layers for auxiliary data input'},
+        'lbl_dropout_prop':     {'step': 'T',      'type': list,   'section': 'Train',  'default': 0.3,            'help': 'Dropout proportion for dense layers for label outputs'},
+        
 
         # estimating options
         'warn_aux_outlier':     {'step': 'FEP',    'type': float,  'section': 'Estimate',  'default': 0.0001,      'help': 'Percentile to detect extreme empirical auxiliary (abs.) values.'},
@@ -692,6 +696,13 @@ def check_args(args):
         print_err( "weight_decay must be >- 0", exit=True)
     if args['plot_pca_noise'] < 0.:
         print_err("plot_pca_noise must be >= 0", exit=True)
+        
+    if args['phy_dropout_prop'] < 0. or args['phy_dropout_prop'] >= 1.:
+        print_err("phy_dropout_prop must be greater than or equal to 0 and less than 1", exit=True)
+    if args['aux_dropout_prop'] < 0. or args['aux_dropout_prop'] >= 1.:
+        print_err("aux_dropout_prop must be greater than or equal to 0 and less than 1", exit=True)
+    if args['lbl_dropout_prop'] < 0. or args['lbl_dropout_prop'] >= 1.:
+        print_err("lbl_dropout_prop must be greater than or equal to 0 and less than 1", exit=True)
         
     for k in args['param_est'].keys():
         if k in args['param_data']:
