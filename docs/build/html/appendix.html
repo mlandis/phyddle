@@ -8,7 +8,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Appendix &mdash; phyddle 0.3.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="_static/css/custom.css?v=d2c2efc5" />
 
   
@@ -16,12 +16,12 @@
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="_static/documentation_options.js?v=e259d695"></script>
-      <script src="_static/doctools.js?v=9bcbadda"></script>
-      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="prev" title="Overview" href="overview.html" /> 
+    <link rel="prev" title="Examples" href="examples.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -49,6 +49,8 @@
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="advanced_features.html">Advanced Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Appendix</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#glossary">Glossary</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#table-of-settings">Table of Settings</a></li>
@@ -678,17 +680,17 @@ analysis steps.</p>
 <td><p><em>dict</em></p></td>
 <td><p>States that are equivalent if daughters are rotated</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">map_triplet_states</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">asr_map_triplet_states</span></code></p></td>
 <td><p>–––E–</p></td>
 <td><p><em>dict</em></p></td>
 <td><p>Relabeling of encoding from one value for each triplet at cladogenesis to parent, left daughter, right daughter for the nexus file with ancestral states</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">map_tip_states</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">asr_map_tip_states</span></code></p></td>
 <td><p>–––E–</p></td>
 <td><p><em>dict</em></p></td>
 <td><p>Relabeling of tip data with multiple characters to a single character for the nexus format</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">rb_nexus</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">asr_rb_nexus</span></code></p></td>
 <td><p>–––E–</p></td>
 <td><p><em>str</em></p></td>
 <td><p>Should nexus tree be in RevGadgets compatible format?</p></td>
@@ -700,19 +702,21 @@ analysis steps.</p>
 <span id="id2"></span><h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
 <p>EE Goldberg, LT Lancaster, RH Ree. 2011. Phylogenetic inference of reciprocal
 effects between geographic range evolution and diversification. Syst
-Biol 60:451-465. doi: <a class="reference external" href="https://doi.org/10.1093/sysbio/syr046">https://doi.org/10.1093/sysbio/syr046</a></p>
+Biol 60:451-465.
+doi: <a class="reference external" href="https://doi.org/10.1093/sysbio/syr046">https://doi.org/10.1093/sysbio/syr046</a></p>
 <p>S Lambert, J Voznica, H Morlon. 2022. Deep learning from phylogenies for
-diversification analyses. bioRxiv. 2022.09.27.509667.
-doi: <a class="reference external" href="https://doi.org/10.1101/2022.09.27.509667">https://doi.org/10.1101/2022.09.27.509667</a></p>
+diversification analyses. Syst Biol 72:1262–1279.
+doi: <a class="reference external" href="https://doi.org/10.1093/sysbio/syad044">https://doi.org/10.1093/sysbio/syad044</a></p>
 <p>MJ Landis, A Thompson. 2024. phyddle: software for phylogenetic model
-exploration with deep learning. bioRxiv 2024.08.06.606717.</p>
+exploration with deep learning. Syst Biol (in press).
+doi: <a class="reference external" href="https://doi.org/10.1093/sysbio/syaf036">https://doi.org/10.1093/sysbio/syaf036</a></p>
 <p>Y Romano, E Patterson, E Candes. Conformalized quantile regression.
 Adv NIPS, 32, 2019.
 doi: <a class="reference external" href="https://doi.org/10.1101/2024.08.06.606717">https://doi.org/10.1101/2024.08.06.606717</a></p>
-<p>A Thompson, B Liebeskind, EJ Scully, MJ Landis. 2023. Deep learning approaches
+<p>A Thompson, B Liebeskind, EJ Scully, MJ Landis. 2024. Deep learning approaches
 to viral phylogeography are fast and as robust as likelihood methods
-to model misspecification. bioRxiv 2023.02.08.527714.
-doi: <a class="reference external" href="https://doi.org/10.1101/2023.02.08.527714">https://doi.org/10.1101/2023.02.08.527714</a></p>
+to model misspecification. Syst Biol 73:183-206.
+doi: <a class="reference external" href="https://doi.org/10.1093/sysbio/syad074">https://doi.org/10.1093/sysbio/syad074</a></p>
 <p>TG Vaughan, AJ Drummond. 2013. A stochastic simulator of birth–death
 master equations with application to phylodynamics. Mol Biol Evol 30:1480–1493.
 doi: <a class="reference external" href="https://doi.org/10.1093/molbev/mst057">https://doi.org/10.1093/molbev/mst057</a></p>
@@ -725,7 +729,7 @@ doi: <a class="reference external" href="https://doi.org/10.1038/s41467-022-3151
 <span id="id3"></span><h2>About<a class="headerlink" href="#about" title="Link to this heading"></a></h2>
 <p>Thanks for your interest in phyddle. The phyddle project emerged from a
 phylogenetic deep learning study led by Ammon Thompson
-(<a class="reference external" href="https://www.biorxiv.org/content/10.1101/2023.02.08.527714v2">paper</a>).
+(<a class="reference external" href="https://doi.org/10.1093/sysbio/syad074">paper</a>).
 The goal of phyddle is to provide its users with a generalizable pipeline
 workflow for phylogenetic modeling and deep learning. This hopefully will make
 it easier for phylogenetic model enthusiasts and developers to explore and
@@ -749,7 +753,7 @@ troubleshooting support using phyddle.</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="overview.html" class="btn btn-neutral float-left" title="Overview" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="examples.html" class="btn btn-neutral float-left" title="Examples" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>
