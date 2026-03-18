@@ -25,7 +25,7 @@ args = {
     #-------------------------------#
     # Simulate Step settings        #
     #-------------------------------#
-    'sim_command'       : f'Rscript simple_simulate.R', # exact command string, argument is output file prefix
+    'sim_command'       : f'Rscript sim_geosse.R', # exact command string, argument is output file prefix
     'sim_logging'       : 'verbose',        # verbose, compressed, or clean
     'start_idx'         : 1,                # first simulation replicate index
     'end_idx'           : 250000,             # last simulation replicate index
@@ -46,12 +46,12 @@ args = {
     'brlen_encode'      : 'height_brlen',   # how to encode phylo brlen? height_only or height_brlen
     'char_encode'       : 'integer',        # how to encode discrete states? one_hot or integer
     'asr_est'           : 'T', 
-    'asr_rotate'        : {3 : 4,
-                           4 : 3,
-                           5 : 6,
-                           6 : 5,
-                           7 : 8,
-                           8 : 7 },
+    'asr_rotate'        : {2 : 3,
+                           3 : 2,
+                           4 : 5,
+                           5 : 4,
+                           6 : 7,
+                           7 : 6 },
 
     'tensor_format'     : 'hdf5',           # save as compressed HDF5 or raw csv
     'char_format'       : 'csv',
