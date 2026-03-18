@@ -88,6 +88,6 @@ Setting|Step(s)|Type|Description
 ``asr_nexus_emp``|–––E–|*str*|Write ancestral state reconstruction to nexus file for empirical data
 ``asr_one``|–FTEP|*str*|Infer the ancestral state for a single node
 ``asr_rotate``|–FTE–|*dict*|States that are equivalent if daughters are rotated
-``map_triplet_states``|–––E–|*dict*|Relabeling of encoding from one value for each triplet at cladogenesis to parent, left daughter, right daughter for the nexus file with ancestral states
-``map_tip_states``|–––E–|*dict*|Relabeling of tip data with multiple characters to a single character for the nexus format
-``rb_nexus``|–––E–|*str*|Should nexus tree be in RevGadgets compatible format?
+``asr_map_triplet_states``|–––E–|*dict*|Relabeling of encoding from one value for each triplet at cladogenesis to parent, left daughter, right daughter for the nexus file with ancestral states
+``asr_map_tip_states``|–––E–|*dict*|Relabeling of tip data with multiple characters to a single character for the nexus format
+``asr_rb_nexus``|–––E–|*str*|Should nexus tree be in RevGadgets compatible format?
