@@ -74,15 +74,13 @@ getHistory <- function(tree1, phy_file) {
   }
   
   # Create a matrix to store the parent, children trios of states at internal nodes
-  state_table <- matrix(NA, nrow = nrow(parent_child_matrix), ncol = 5)
+  state_table <- matrix(NA, nrow = nrow(parent_child_matrix), ncol = 3)
   rownames(state_table) <- rownames(parent_child_matrix)
-  colnames(state_table) <- c("parent", "child1", "child2", "child1_lb", "child2_lb")
+  colnames(state_table) <- c("parent", "child1", "child2")
   
   for(i in 1:nrow(parent_child_matrix)) {
     state_table[i,2] <- mat_startState[parent_child_matrix[i,1]]
     state_table[i,3] <- mat_startState[parent_child_matrix[i,2]]
-    state_table[i,4] <- parent_child_matrix[i,1]
-    state_table[i,5] <- parent_child_matrix[i,2]
       
     # If the node is not the root
     if (!is.na( mat_endState[rownames(parent_child_matrix)[i]])) {
@@ -135,9 +133,6 @@ getHistory <- function(tree1, phy_file) {
     state_table[nodeName, 2] <- state_table[nodeName , 3]
     state_table[nodeName, 3] <- tmp
     
-    tmp <- state_table[nodeName , 4]
-    state_table[nodeName, 4] <- state_table[nodeName , 5]
-    state_table[nodeName, 5] <- tmp
   }
   
   comb_state <- apply(state_table, 1, combine_states)
