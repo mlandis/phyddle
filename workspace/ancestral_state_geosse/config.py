@@ -40,7 +40,7 @@ args = {
     'min_num_taxa'      : 52,               # min number of taxa for valid sim
     'max_num_taxa'      : 52,              # max number of taxa for valid sim
 
-    'rel_extant_age_tol': 1E-8,
+    'rel_extant_age_tol': 1E-6,
     'tree_width'        : 52,              # tree width category used to train network
     'tree_encode'       : 'extant',         # use model with serial or extant tree
     'brlen_encode'      : 'height_brlen',   # how to encode phylo brlen? height_only or height_brlen

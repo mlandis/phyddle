@@ -16,10 +16,10 @@ args = {
     #-------------------------------#
     # Simulate Step settings        #
     #-------------------------------#
-    'sim_command'       : 'Rscript ../../sim_tree.R 10 50', # exact command string, argument is output file prefix
+    'sim_command'       : 'Rscript sim_tree.R', # exact command string, argument is output file prefix
 
     'start_idx'          : 1,                         # Start index for simulated training replicates
-    'end_idx'            : 250000,                      # End index for simulated training replicates
+    'end_idx'            : 50000,                      # End index for simulated training replicates
     'sim_batch_size'     : 2500,                        # Number of replicates per simulation command
 
     #-------------------------------#
