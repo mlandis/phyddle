@@ -26,10 +26,13 @@ lastState <- function(mat) {
   mat[dim(mat)[1], 2]
 }
 
+# Combines triplet of states into a string
 combine_states <- function(state_table) {
   paste0(state_table[1], state_table[2], state_table[3]) 
 }
 
+# Finds ancestral state triplets for every node in the extant only tree
+# Randomly rotates nodes in the tree
 getHistory <- function(tree1, phy_file) {
   # Fix the off by one indexing for how the history is recorded 
   tree1$hist$from <- tree1$hist$from - 1
@@ -102,9 +105,8 @@ getHistory <- function(tree1, phy_file) {
   }
 
   num_tips <- Ntip(tree)
-  num_nodes <- tree$Nnode
   
-  # Select half of the nodes in the tree to rotate
+  # Select nodes in the tree to rotate
   # This is needed for phyddle to have examples of both orderings
 
   rotate_vec <- which(runif(num_tips - 1) > .5 )
@@ -140,32 +142,31 @@ getHistory <- function(tree1, phy_file) {
   
   comb_state <- apply(state_table, 1, combine_states)
   newStates <- sapply(comb_state, switch, 
-        "111" = "1", 
-        "222" = "2", 
-        "012" = "3",
-        "021" = "4",
-        "001" = "5",
-        "010" = "6",
-        "002" = "7",
-        "020" = "8")
+        "111" = "0", 
+        "222" = "1", 
+        "012" = "2",
+        "021" = "3",
+        "001" = "4",
+        "010" = "5",
+        "002" = "6",
+        "020" = "7")
 
-  sub_tree <- newTree
-  write.tree(sub_tree, file = phy_file)
+  write.tree(newTree, file = phy_file)
 
-  return (cbind(newStates, state_table[,4:5]))
+  return (newStates)
 }
 
 label_names = c("sA", "sB", "sAB", "xA", "xB", "dA", "dB")
+max_tax <- 52
 
 nTrees <- start_idx - 1
 nullTrees <- 0
 noVarTree <- 0
 set.seed(nTrees)
 totTrees <- start_idx+batch_size-1
-params <- matrix (0, nrow = totTrees, ncol = 7)
-max_tax <- 52
 i <- 1
 
+# Simulate each replicate
 while (nTrees < totTrees) {
   
   # Draw all parameters 
@@ -181,6 +182,7 @@ while (nTrees < totTrees) {
   # Simulate tree
   tree <- tree.geosse(pars, max.taxa=max_tax, max.t=Inf, include.extinct=TRUE,
               x0=NA)
+
   # Find extant tips
   extant <-  which(str_detect(tree$tip.label, "sp"))
 
@@ -188,16 +190,16 @@ while (nTrees < totTrees) {
   if (is.null(tree) | sum(str_detect(tree$tip.label, "sp"))  != max_tax ) {
   	nullTrees <- nullTrees + 1
     
-  # Confirm at least two tip states present
+  # Confirm three tip states present
   } else if (length(table(tree$tip.state[extant])) < 3) {
     	noVarTree <- noVarTree + 1
     	
-    	# Write all relevant files for phyddle
+    # Write all relevant files for phyddle
     } else {
 
     	stateHistory <- getHistory(tree, phy_fn[i])
-    	# This file should actually be in the form
-    	# node, state(1-8), node l, node r
+    	# This file is in the form
+    	# node, state(0-7)
     	write.table(stateHistory, file = asr_true_fn[i],quote = FALSE, col.names = FALSE, sep = "," )  
     	
     	df_state = data.frame(taxa=tree$tip.label, data=tree$tip.state, region1 = 0, region2 = 0)
@@ -213,16 +215,16 @@ while (nTrees < totTrees) {
     	write.csv(df_state, file=dat_fn[i], row.names=F, quote=F)
     	  
     	# save learned labels (e.g. estimated data-generating parameters)
-    	pars <- c(log(pars, base = 10))
     	names(pars) = label_names
     	df_label = data.frame(t(pars))
     	write.csv(df_label, file=lbl_fn[i], row.names=F, quote=F)
     	
+	# Update counters
     	nTrees <- nTrees + 1
+    	i <- i+1
     	
     	# Set the seed to get the same trees independent of how phyddle is run
     	set.seed(nTrees)
-    	i <- i+1
     
   }
 }
