@@ -8,7 +8,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tutorial &mdash; phyddle 0.3.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="_static/css/custom.css?v=d2c2efc5" />
 
   
@@ -16,8 +16,8 @@
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="_static/documentation_options.js?v=e259d695"></script>
-      <script src="_static/doctools.js?v=9bcbadda"></script>
-      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -60,6 +60,8 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="advanced_features.html">Advanced Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="appendix.html">Appendix</a></li>
 </ul>
 
@@ -671,7 +673,7 @@ each parameter. The prediction interval represents the range of estimates that
 would likely contain the true model parameter value under a specified coverage
 level (e.g. 80% coverage means that ~80% of CPIs contain the true value).</p>
 <figure class="align-center">
-<a class="reference internal image-reference" href="_images/out.empirical_estimate_num_0.png"><img alt="_images/out.empirical_estimate_num_0.png" src="_images/out.empirical_estimate_num_0.png" style="width: 300px;" />
+<a class="reference internal image-reference" href="_images/out.empirical_estimate_num_0.png"><img alt="_images/out.empirical_estimate_num_0.png" src="_images/out.empirical_estimate_num_0.png" width="300" />
 </a>
 </figure>
 <div class="line-block">
@@ -683,7 +685,7 @@ simple bar plots reporting the probabilities across possible
 categories per variable. Higher probability means the network is more certain
 of the value of the variable.</p>
 <figure class="align-center">
-<a class="reference internal image-reference" href="_images/out.empirical_estimate_cat_0.png"><img alt="_images/out.empirical_estimate_cat_0.png" src="_images/out.empirical_estimate_cat_0.png" style="width: 300px;" />
+<a class="reference internal image-reference" href="_images/out.empirical_estimate_cat_0.png"><img alt="_images/out.empirical_estimate_cat_0.png" src="_images/out.empirical_estimate_cat_0.png" width="300" />
 </a>
 </figure>
 <div class="line-block">
@@ -701,7 +703,7 @@ range of evolutionary scenarios (e.g. fewer and more taxa,
 faster and slower rates), and then repeating the pipeline analysis. See
 <a class="reference internal" href="overview.html#safe-usage"><span class="std std-ref">Safe Usage</span></a> for more information.</p>
 <figure class="align-center">
-<a class="reference internal image-reference" href="_images/out.train_density_aux_data.png"><img alt="_images/out.train_density_aux_data.png" src="_images/out.train_density_aux_data.png" style="width: 500px;" />
+<a class="reference internal image-reference" href="_images/out.train_density_aux_data.png"><img alt="_images/out.train_density_aux_data.png" src="_images/out.train_density_aux_data.png" width="500" />
 </a>
 </figure>
 <div class="line-block">
@@ -713,7 +715,7 @@ a subsample of the empirical summary statistics to determine if they
 are outliers. Red dots that fall far outside the green density potentially
 represent out-of-distribution errors (see above).</p>
 <figure class="align-center">
-<a class="reference internal image-reference" href="_images/out.train_pca_aux_data.png"><img alt="_images/out.train_pca_aux_data.png" src="_images/out.train_pca_aux_data.png" style="width: 500px;" />
+<a class="reference internal image-reference" href="_images/out.train_pca_aux_data.png"><img alt="_images/out.train_pca_aux_data.png" src="_images/out.train_pca_aux_data.png" width="500" />
 </a>
 </figure>
 <div class="line-block">
@@ -726,7 +728,7 @@ red bars represent empirical examples. Any empirical estimates that
 are outliers with respect to the training data potentially
 represent out-of-distribution errors (see above).</p>
 <figure class="align-center">
-<a class="reference internal image-reference" href="_images/out.train_density_labels_num.png"><img alt="_images/out.train_density_labels_num.png" src="_images/out.train_density_labels_num.png" style="width: 500px;" />
+<a class="reference internal image-reference" href="_images/out.train_density_labels_num.png"><img alt="_images/out.train_density_labels_num.png" src="_images/out.train_density_labels_num.png" width="500" />
 </a>
 </figure>
 <div class="line-block">
@@ -737,7 +739,7 @@ the training labels as a PCA-transformed heatmap. Red dots that fall far
 outside the orange density potentially represent
 out-of-distribution errors (see above).</p>
 <figure class="align-center">
-<a class="reference internal image-reference" href="_images/out.train_pca_labels_num.png"><img alt="_images/out.train_pca_labels_num.png" src="_images/out.train_pca_labels_num.png" style="width: 500px;" />
+<a class="reference internal image-reference" href="_images/out.train_pca_labels_num.png"><img alt="_images/out.train_pca_labels_num.png" src="_images/out.train_pca_labels_num.png" width="500" />
 </a>
 </figure>
 <div class="line-block">
@@ -755,7 +757,7 @@ data is poor (e.g. estimated values are not correlated with the truth)
 then predictions from the network should not be trusted. See <a class="reference internal" href="overview.html#safe-usage"><span class="std std-ref">Safe Usage</span></a>
 for more information.</p>
 <figure class="align-center">
-<a class="reference internal image-reference" href="_images/out.train_estimate_log_birth_1.png"><img alt="_images/out.train_estimate_log_birth_1.png" src="_images/out.train_estimate_log_birth_1.png" style="width: 400px;" />
+<a class="reference internal image-reference" href="_images/out.train_estimate_log_birth_1.png"><img alt="_images/out.train_estimate_log_birth_1.png" src="_images/out.train_estimate_log_birth_1.png" width="400" />
 </a>
 </figure>
 <div class="line-block">
@@ -769,7 +771,7 @@ is markedly worse for the test data compared to the training data, then the
 predictions from the network should not be trusted. See <a class="reference internal" href="overview.html#safe-usage"><span class="std std-ref">Safe Usage</span></a>
 for more information.</p>
 <figure class="align-center">
-<a class="reference internal image-reference" href="_images/out.test_estimate_log_birth_1.png"><img alt="_images/out.test_estimate_log_birth_1.png" src="_images/out.test_estimate_log_birth_1.png" style="width: 400px;" />
+<a class="reference internal image-reference" href="_images/out.test_estimate_log_birth_1.png"><img alt="_images/out.test_estimate_log_birth_1.png" src="_images/out.test_estimate_log_birth_1.png" width="400" />
 </a>
 </figure>
 <div class="line-block">
@@ -785,7 +787,7 @@ data is poor (e.g. estimated values are not correlated with the truth)
 then predictions from the network should not be trusted. See <a class="reference internal" href="overview.html#safe-usage"><span class="std std-ref">Safe Usage</span></a>
 for more information.</p>
 <figure class="align-center">
-<a class="reference internal image-reference" href="_images/out.train_estimate_model_type.png"><img alt="_images/out.train_estimate_model_type.png" src="_images/out.train_estimate_model_type.png" style="width: 400px;" />
+<a class="reference internal image-reference" href="_images/out.train_estimate_model_type.png"><img alt="_images/out.train_estimate_model_type.png" src="_images/out.train_estimate_model_type.png" width="400" />
 </a>
 </figure>
 <div class="line-block">
@@ -798,7 +800,7 @@ if the network was trained properly. If performance is markedly worse for
 the test data compared to the training data, then the predictions from
 the network should not be trusted. See <a class="reference internal" href="overview.html#safe-usage"><span class="std std-ref">Safe Usage</span></a> for more information.</p>
 <figure class="align-center">
-<a class="reference internal image-reference" href="_images/out.test_estimate_model_type.png"><img alt="_images/out.test_estimate_model_type.png" src="_images/out.test_estimate_model_type.png" style="width: 400px;" />
+<a class="reference internal image-reference" href="_images/out.test_estimate_model_type.png"><img alt="_images/out.test_estimate_model_type.png" src="_images/out.test_estimate_model_type.png" width="400" />
 </a>
 </figure>
 <div class="line-block">
@@ -815,7 +817,7 @@ stabilize and then slowly begin to increase. If the validation loss score
 never stabilizes or it increases radically, that might indicate that
 the network is not properly trained. See <a class="reference internal" href="overview.html#safe-usage"><span class="std std-ref">Safe Usage</span></a> for more information.</p>
 <figure class="align-center">
-<a class="reference internal image-reference" href="_images/out.train_history_loss_combined.png"><img alt="_images/out.train_history_loss_combined.png" src="_images/out.train_history_loss_combined.png" style="width: 500px;" />
+<a class="reference internal image-reference" href="_images/out.train_history_loss_combined.png"><img alt="_images/out.train_history_loss_combined.png" src="_images/out.train_history_loss_combined.png" width="500" />
 </a>
 </figure>
 <p>This figure <code class="docutils literal notranslate"><span class="pre">out.network_architecture.pdf</span></code> represents the network
@@ -824,7 +826,7 @@ architecture used for training. The architecture is described in detail in
 the <a class="reference internal" href="overview.html#configuration"><span class="std std-ref">Configuration</span></a> file, should the user find the default architecture
 does not result in good performance for their modeling problem.</p>
 <figure class="align-center">
-<a class="reference internal image-reference" href="_images/out.network_architecture.png"><img alt="_images/out.network_architecture.png" src="_images/out.network_architecture.png" style="width: 500px;" />
+<a class="reference internal image-reference" href="_images/out.network_architecture.png"><img alt="_images/out.network_architecture.png" src="_images/out.network_architecture.png" width="500" />
 </a>
 </figure>
 <div class="line-block">

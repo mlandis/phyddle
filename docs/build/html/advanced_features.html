@@ -1,0 +1,1162 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Advanced Features &mdash; phyddle 0.3.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/custom.css?v=d2c2efc5" />
+
+  
+    <link rel="canonical" href="phyddle.org/advanced_features.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=e259d695"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Examples" href="examples.html" />
+    <link rel="prev" title="Overview" href="overview.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html">
+            
+              <img src="_static/phyddle_logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Advanced Features</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#ancestral-state-reconstruction">Ancestral State Reconstruction</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#preparing-training-data">Preparing training data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#marginal-estimation-preferred-method">Marginal Estimation (preferred method)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#joint-estimation">Joint Estimation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#single-node-estimation">Single Node Estimation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#models-with-state-changes-at-cladogenesis">Models with state changes at cladogenesis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#interpreting-the-output">Interpreting the output</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#indexing-nodes">Indexing Nodes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#output-files">Output files</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#producing-nexus-files">Producing nexus files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tutorial-markov-model">Tutorial: Markov model</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#simulation-script">Simulation Script</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#configure-the-pipeline">Configure the pipeline</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#viewing-results">Viewing results</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#tutorial-geosse-with-empirical">Tutorial: GeoSSE with Empirical</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id2">Simulation Script</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id3">Configure the pipeline</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix.html">Appendix</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">phyddle</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Advanced Features</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/advanced_features.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="advanced-features">
+<span id="advances-features"></span><h1>Advanced Features<a class="headerlink" href="#advanced-features" title="Link to this heading"></a></h1>
+<section id="ancestral-state-reconstruction">
+<span id="id1"></span><h2>Ancestral State Reconstruction<a class="headerlink" href="#ancestral-state-reconstruction" title="Link to this heading"></a></h2>
+<p>Ancestral states of discrete characters can be estimated with phyddle.
+Phyddle will take trees with tip states and ancestral states at internal node as training data.
+For empirical trees, phyddle takes the tip states and the tree as input and estimates the character state at every internal node.
+Phyddle supports ancestral state estimation of discrete characters only.
+It typically assumes that there is a single character (though see <a class="reference internal" href="#asr-cladogenic"><span class="std std-ref">Models with state changes at cladogenesis</span></a> to see how multiple regions may be used as tip states for a GeoSSE model).</p>
+<p>Below is an example of the final result of a phyddle ancestral state reconstruction analysis.
+The geographic range of a subclade of the genus <em>Liolaemus</em> was reconstructed using a GeoSSE model.
+Phyddle produces annotated tree files, which can be visualized with standard tree viewing/plotting software.</p>
+<figure class="align-center">
+<a class="reference internal image-reference" href="_images/lio_geosse_phyddle.png"><img alt="_images/lio_geosse_phyddle.png" src="_images/lio_geosse_phyddle.png" width="800" />
+</a>
+</figure>
+<section id="preparing-training-data">
+<h3>Preparing training data<a class="headerlink" href="#preparing-training-data" title="Link to this heading"></a></h3>
+<p>To estimate ancestral states, the internal nodes must be named in the input phylogenies.
+There is no required format for the names, though characters used in Newick formatting such as paratheses, commas, and brackets should not be used in internal node names.
+In addition to the standard files needed for an analysis, such as the <code class="docutils literal notranslate"><span class="pre">.dat.cvs</span></code>  <code class="docutils literal notranslate"><span class="pre">.labels.csv</span></code>,  and <code class="docutils literal notranslate"><span class="pre">.tre</span></code> files , a file <code class="docutils literal notranslate"><span class="pre">prefix.idx.anc_state.csv</span></code> is required for each simulated dataset.
+This should contain the node names in the first column and the ancestral state in the second column, separated by a comma.
+This file should be produced by the simulation script.
+The ancestral states should be numeric and zero indexed.
+Phyddle will still run if the state are not zero indexed, but the states will be zero indexed internally which will be reflected in the output.
+Below is an example for a tree with 9 internal nodes and a binary character. In this example, node9 has a true history of being in state 0 and node8 is in state 1.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">node9</span><span class="p">,</span><span class="mi">0</span>
+<span class="n">node8</span><span class="p">,</span><span class="mi">1</span>
+<span class="n">node1</span><span class="p">,</span><span class="mi">1</span>
+<span class="n">node2</span><span class="p">,</span><span class="mi">1</span>
+<span class="n">node5</span><span class="p">,</span><span class="mi">0</span>
+<span class="n">node3</span><span class="p">,</span><span class="mi">0</span>
+<span class="n">node6</span><span class="p">,</span><span class="mi">1</span>
+<span class="n">node7</span><span class="p">,</span><span class="mi">1</span>
+<span class="n">node4</span><span class="p">,</span><span class="mi">1</span>
+</pre></div>
+</div>
+<p>Downsampling is not implemented with ancestral state reconstruction since different ancestral nodes will be present with different samples.
+If any of the trees are larger than the specified maximum tree size (<code class="docutils literal notranslate"><span class="pre">tree_width</span></code>), trees should be subsampled in the simulation script.</p>
+<p>Ancestral state can be estimated three ways with phyddle.
+Only one ancestral state estimation option should be specified at a time.</p>
+</section>
+<section id="marginal-estimation-preferred-method">
+<h3>Marginal Estimation (preferred method)<a class="headerlink" href="#marginal-estimation-preferred-method" title="Link to this heading"></a></h3>
+<p>The marginal estimation method estimates the ancestral state for each node in the phylogeny as a categorical variable.
+With a maximum tree size (<code class="docutils literal notranslate"><span class="pre">tree_width</span></code>)  of n, there will be n-1 categorical variables corresponding
+to ancestral states.
+To use the marginal estimation method, set <code class="docutils literal notranslate"><span class="pre">asr_est</span> <span class="pre">=</span> <span class="pre">'T'</span></code> in the config file.
+This will create <code class="docutils literal notranslate"><span class="pre">tree_width</span> <span class="pre">-</span> <span class="pre">1</span></code> categorical variables to estimate, one for each internal node
+in the tree, plus additional zero-padded states for non-existent internal nodes if the tree is smaller than <code class="docutils literal notranslate"><span class="pre">tree_width</span></code>.
+These are labeled <code class="docutils literal notranslate"><span class="pre">asr_0</span></code>, <code class="docutils literal notranslate"><span class="pre">asr_1</span></code>, etc.
+The additional zero-padded states can generally be ignored, though they are included in
+the plot summaries and may need to be removed to assess performance for variable sized trees.
+We suggest that the marginal method is used since it scales better than the other options to estimate ancestrals states.</p>
+</section>
+<section id="joint-estimation">
+<h3>Joint Estimation<a class="headerlink" href="#joint-estimation" title="Link to this heading"></a></h3>
+<p>For the joint estimation method, a single cateogorical variable is estimated for the
+entire tree.
+There are s^(n-1) categories, where n is the number of tips (<code class="docutils literal notranslate"><span class="pre">max_num_taxa</span></code>) and s is the number of possible states for the character.
+To use the joint estimation method, set <code class="docutils literal notranslate"><span class="pre">asr_est</span> <span class="pre">=</span> <span class="pre">'T'</span></code> and <code class="docutils literal notranslate"><span class="pre">asr_1_cat</span> <span class="pre">=</span> <span class="pre">'T'</span></code>  in the config file.
+<code class="docutils literal notranslate"><span class="pre">num_states</span></code> should be equal to s^(n-1).
+For example, for a binary character on trees with 4 tips the config file should include</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s1">&#39;num_char&#39;</span>          <span class="p">:</span> <span class="mi">1</span><span class="p">,</span>                <span class="c1"># number of evolutionary characters</span>
+<span class="s1">&#39;num_states&#39;</span>        <span class="p">:</span> <span class="mi">8</span><span class="p">,</span>                <span class="c1"># number of states per character</span>
+<span class="s1">&#39;asr_est&#39;</span>           <span class="p">:</span> <span class="s1">&#39;T&#39;</span><span class="p">,</span>              <span class="c1"># estimate ancestral states</span>
+<span class="s1">&#39;asr_1_cat&#39;</span>         <span class="p">:</span> <span class="s1">&#39;T&#39;</span><span class="p">,</span>              <span class="c1"># estimate a single categorical variable for ancestral states</span>
+
+<span class="s1">&#39;min_num_taxa&#39;</span>      <span class="p">:</span> <span class="mi">4</span><span class="p">,</span>               <span class="c1"># Minimum number of taxa allowed when formatting</span>
+<span class="s1">&#39;max_num_taxa&#39;</span>      <span class="p">:</span> <span class="mi">4</span><span class="p">,</span>               <span class="c1"># Maximum number of taxa allowed when formatting</span>
+<span class="s1">&#39;tree_width&#39;</span>        <span class="p">:</span> <span class="mi">32</span><span class="p">,</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">num_states</span></code> is equal to (2 states)^(3 internal nodes) = 8.
+The <code class="docutils literal notranslate"><span class="pre">tree_width</span></code> may be larger than the maximum number of taxa.
+With only 4 tips, kernel default settings may have to be changed to use a smaller tree width.
+This method is not expected to work well with more than a small number of taxa or states since the number of categories scales exponentially.</p>
+</section>
+<section id="single-node-estimation">
+<h3>Single Node Estimation<a class="headerlink" href="#single-node-estimation" title="Link to this heading"></a></h3>
+<p>In the single node estimation method, the name of single node is given as input
+and the ancestral state for that node alone is estimated. To estimate with this method,
+set <code class="docutils literal notranslate"><span class="pre">asr_one</span> <span class="pre">=</span> <span class="pre">'T'</span></code> in the config file.
+Additionally, the parameters to estimate should include <code class="docutils literal notranslate"><span class="pre">asr_node_state</span></code> and the parameters to treat as data should include <code class="docutils literal notranslate"><span class="pre">asr_node_id</span></code>, as shown below.
+<code class="docutils literal notranslate"><span class="pre">asr_node_id</span></code> is the name of the node in the tree file and <code class="docutils literal notranslate"><span class="pre">asr_node_state</span></code> is the ancestral state of the node.
+Note that <code class="docutils literal notranslate"><span class="pre">asr_node_id</span></code> should be listed as a categorical variable, even though it is a string.
+Phyddle correctly handles the type of <code class="docutils literal notranslate"><span class="pre">asr_node_id</span></code> even though they appear not to match.</p>
+<p>This method may not scale well with tree size as only a single node per tree is used for training.
+This may result in requiring much larger training datasets than the other methods.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s1">&#39;asr_one&#39;</span>           <span class="p">:</span> <span class="s1">&#39;T&#39;</span><span class="p">,</span>
+<span class="s1">&#39;param_est&#39;</span>         <span class="p">:</span> <span class="p">{</span><span class="s1">&#39;asr_node_state&#39;</span>  <span class="p">:</span> <span class="s1">&#39;cat&#39;</span><span class="p">},</span>
+<span class="s1">&#39;param_data&#39;</span>        <span class="p">:</span> <span class="p">{</span><span class="s1">&#39;asr_node_id&#39;</span>     <span class="p">:</span> <span class="s1">&#39;cat&#39;</span><span class="p">},</span>
+</pre></div>
+</div>
+<p>The internal node name and the true ancestral should be provided in the <code class="docutils literal notranslate"><span class="pre">labels.csv</span></code> file, as shown below.
+In the example, the ancestral state should be estimated for node1 and the true ancestral state is 1.
+The true state can be left out for empirical data.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">asr_node_id</span><span class="p">,</span><span class="n">asr_node_state</span>
+<span class="n">node1</span><span class="p">,</span><span class="mi">1</span>
+</pre></div>
+</div>
+</section>
+<section id="models-with-state-changes-at-cladogenesis">
+<span id="asr-cladogenic"></span><h3>Models with state changes at cladogenesis<a class="headerlink" href="#models-with-state-changes-at-cladogenesis" title="Link to this heading"></a></h3>
+<p>For some models, such as GeoSSE, states may change at cladogenesis.
+This means the parent and daughters may not all have the same states.
+This description will use a GeoSSE model as an example, but other models with state changes at cladogenesis should work similarly.</p>
+<p>GeoSSE models ranges as a collection of one or more discete regions.
+In this example, there are two regions, A and B and a lineage may be in region A, region B, or both regions A and B.
+The GeoSSE model allows parents and daughters to have different states immediately before and immediately after cladogenesis, but limits the possible combination of parent and daughter states.
+The 8 allowed transitions with 2 regions are listed below.
+For full description of the model, see Goldberg et al. 2011.
+In principle, only the parent state could be estimated or the three states could be encoded as a single state without discriminating between which daughter is left vs right.
+In practice, this does not appear to work very well.</p>
+<p>Instead, the user can assign ancestral states that differentiate the left vs right daughters.
+Phyddle does not need to know anything about the underlying model to do inference.
+It takes as input categorical internal node states and tip states, where the categories are specified with integers.
+This allows for substantial flexibility, but requires the user to formulate the training data in terms of integers.
+Thus, the user needs to assign integer values to each possible combination of internal states.
+These should be generated by the simulation script and be used in the <code class="docutils literal notranslate"><span class="pre">anc_state.csv</span></code> files.
+For example, the ancestral states for a GeoSSE model could be encoded as follows, where the first value represents the encoding for the ancestral state and to the left of the colon are the states in the order parent-&gt;left,right.
+Note that  AB-&gt;A,B and AB-&gt;B,A have different ancestral states, since the states A and B are in different daughters.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mi">0</span><span class="p">:</span> <span class="n">A</span>  <span class="o">-&gt;</span> <span class="n">A</span> <span class="p">,</span>  <span class="n">A</span>
+<span class="mi">1</span><span class="p">:</span> <span class="n">B</span>  <span class="o">-&gt;</span> <span class="n">B</span> <span class="p">,</span>  <span class="n">B</span>
+<span class="mi">2</span><span class="p">:</span> <span class="n">AB</span> <span class="o">-&gt;</span> <span class="n">A</span> <span class="p">,</span>  <span class="n">B</span>
+<span class="mi">3</span><span class="p">:</span> <span class="n">AB</span> <span class="o">-&gt;</span> <span class="n">B</span> <span class="p">,</span>  <span class="n">A</span>
+<span class="mi">4</span><span class="p">:</span> <span class="n">AB</span> <span class="o">-&gt;</span> <span class="n">AB</span><span class="p">,</span>  <span class="n">A</span>
+<span class="mi">5</span><span class="p">:</span> <span class="n">AB</span> <span class="o">-&gt;</span> <span class="n">A</span> <span class="p">,</span> <span class="n">AB</span>
+<span class="mi">6</span><span class="p">:</span> <span class="n">AB</span> <span class="o">-&gt;</span> <span class="n">AB</span><span class="p">,</span>  <span class="n">B</span>
+<span class="mi">7</span><span class="p">:</span> <span class="n">AB</span> <span class="o">-&gt;</span> <span class="n">B</span> <span class="p">,</span> <span class="n">AB</span>
+</pre></div>
+</div>
+<p>Again, phyddle is never given the mapping of the numbers 0-7 to the geographic ranges.
+It only uses the 0-7 encoding.
+The order of the states is arbitrary.
+In the above example, states 2 and 3 are different, since the left daughter is in state A for 2 but the right daughter is in state A for state 3.
+However, phyddle rotates the internal nodes in the tree during formatting.
+Thus, the user must specify which states are the same with the nodes rotated using <code class="docutils literal notranslate"><span class="pre">asr_rotate</span></code> in the config file.
+In the example, the pairs of states (2,3), (4,5), and (6,7) have the same parent and daughter states with the daughters rotated.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s1">&#39;asr_rotate&#39;</span>        <span class="p">:</span> <span class="p">{</span><span class="mi">2</span> <span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+                       <span class="mi">3</span> <span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+                       <span class="mi">4</span> <span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+                       <span class="mi">5</span> <span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+                       <span class="mi">6</span> <span class="p">:</span> <span class="mi">7</span><span class="p">,</span>
+                       <span class="mi">7</span> <span class="p">:</span> <span class="mi">6</span> <span class="p">},</span>
+</pre></div>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Many simulation methods where states can change at cladogenesis have a default for how states are inherited. For example, in a GeoSSE model if a parent with range AB has a daughters with range A and  a daughter with range B, the left daughter may always be in range A and the right daughter may always be in range B.
+While this should not cause issues for likelihood based methods, this may cause issues for ancestral state estimation using machine learning as not all patterns will be present in the data, particulary at the tips. To address this, the nodes in the tree can be randomly rotated before writing the tree to file.</p>
+</div>
+</section>
+<section id="interpreting-the-output">
+<h3>Interpreting the output<a class="headerlink" href="#interpreting-the-output" title="Link to this heading"></a></h3>
+<p>There are two main ways to view the results.
+The first is to look at the raw tables of estimates from phyddle, which include the estimates of every state at every node.
+The other way is to use the annotated tree files, which may be easier.
+These can be opened with programs such as
+<a class="reference external" href="https://github.com/rambaut/figtree/">figtree</a> and <a class="reference external" href="https://github.com/revbayes/RevGadgets">RevGadgets</a>.
+If the user is only interested in ancestral states on empirical trees, they can safely skip to the <a class="reference internal" href="#nexus-files"><span class="std std-ref">Producing nexus files</span></a> section.</p>
+<section id="indexing-nodes">
+<span id="index-nodes"></span><h4>Indexing Nodes<a class="headerlink" href="#indexing-nodes" title="Link to this heading"></a></h4>
+<p>Before looking at the raw tables of output from phyddle, it is neccesary to understand how phyddle indexes the ancestral state variables.
+Phyddle always estimates the same variables given a particular trained network.
+To allow for different node names on different trees, each internal node is assigned an index from 0 to n-1, where  n is the number of taxa, according to an inorder traversal on the formatted tree.
+This ordering may also improved phyddle’s performance.
+For both the marginal and joint estimation methods, the mapping of the the original internal node names to the phyddle node indeces are written to a file in the <code class="docutils literal notranslate"><span class="pre">sim_dir</span></code> for the simulated with the suffix <code class="docutils literal notranslate"><span class="pre">node_label.csv</span></code>, such as shown below for an original tree with 9 internal nodes.
+For empirical data, these files will appear in the <code class="docutils literal notranslate"><span class="pre">emp_dir</span></code>.
+For this example, the variable <code class="docutils literal notranslate"><span class="pre">asr_0</span></code> will correspond to the ancestral state at node9 in the original tree.
+Then, when using with the marginal estimation strategy, the variables to estimate are <code class="docutils literal notranslate"><span class="pre">asr_0</span></code>, <code class="docutils literal notranslate"><span class="pre">asr_1</span></code>, … <code class="docutils literal notranslate"><span class="pre">asr_(n-1)</span></code> where n is the <code class="docutils literal notranslate"><span class="pre">tree_width</span></code>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">original</span><span class="p">,</span><span class="n">new</span>
+<span class="n">node9</span><span class="p">,</span><span class="mi">0</span>
+<span class="n">node8</span><span class="p">,</span><span class="mi">1</span>
+<span class="n">node1</span><span class="p">,</span><span class="mi">2</span>
+<span class="n">node2</span><span class="p">,</span><span class="mi">3</span>
+<span class="n">node5</span><span class="p">,</span><span class="mi">4</span>
+<span class="n">node3</span><span class="p">,</span><span class="mi">5</span>
+<span class="n">node6</span><span class="p">,</span><span class="mi">6</span>
+<span class="n">node7</span><span class="p">,</span><span class="mi">7</span>
+<span class="n">node4</span><span class="p">,</span><span class="mi">8</span>
+</pre></div>
+</div>
+<p>In the joint estimation strategy, a file <code class="docutils literal notranslate"><span class="pre">state_mapping.csv</span></code> will be written in the <code class="docutils literal notranslate"><span class="pre">fmt_dir</span></code>.
+This file contains the states inferred by phyddle and that internal nodes states with which they correspond.
+For example, with a 4 tip tree and 2 states, the file is</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># state,node_0,node_1,node_2</span>
+<span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span>
+<span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span>
+<span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span>
+<span class="mi">3</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span>
+<span class="mi">4</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span>
+<span class="mi">5</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span>
+<span class="mi">6</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span>
+<span class="mi">7</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span>
+</pre></div>
+</div>
+<p>For example, if state 1 is inferred by phyddle, the internal nodes with indeces 0 and 1 have ancestral state 0 and the internal node with index 2 has ancestral state 1.</p>
+<p>With the single node strategy, the variable to estimate is called <code class="docutils literal notranslate"><span class="pre">asr_node_state</span></code> and understanding the indexing is not required for the user.</p>
+</section>
+<section id="output-files">
+<span id="output-file"></span><h4>Output files<a class="headerlink" href="#output-files" title="Link to this heading"></a></h4>
+<p>One way to view the output is to look at the output files that phyddle produces for all analyses, such as the plots in <code class="docutils literal notranslate"><span class="pre">plt_dir</span></code> and the csv in <code class="docutils literal notranslate"><span class="pre">est_dir</span></code>.
+Note that in the plots for the simulated data, the performance is averaged across all trees.
+When the trees are smaller than the <code class="docutils literal notranslate"><span class="pre">tree_width</span></code>, zero-padding is used for the additional nodes.
+This means that if the trees are variably size, the network is estimating the location of the zero-padding for smaller tree instead of an actual ancestral state for some estimated variables.
+This may appear to inflate the performance for larger node numbers in the test dataset.</p>
+<p>To avoid this, the user may wish to use the csv files in <code class="docutils literal notranslate"><span class="pre">est_dir</span></code> and remove the estimates that do not correspond to real nodes on the tree.
+To look at individual trees, the user can match the node names with the node indeces used in phyddle  using <code class="docutils literal notranslate"><span class="pre">node_label.csv</span></code> file to find the estimates in the output csv file.
+If the option <code class="docutils literal notranslate"><span class="pre">asr_rotate</span></code> was used, the results should be viewed on the formatted tree, which has the suffix <code class="docutils literal notranslate"><span class="pre">form.tre</span></code> rather than the original tree.
+This option is for models where the left vs right orientation of the daughters changes the ancestral state reconstruction.</p>
+<p>For example for the marginal estimation strategy, the first part of the first two lines output in the file <code class="docutils literal notranslate"><span class="pre">estimate/prefix.test_est.labels_cat.csv</span></code> are shown below.
+The first row is the header.
+It is truncated for brevity.
+On the next line, the first value is the replicate index, <code class="docutils literal notranslate"><span class="pre">idx</span></code>.
+Then, the probabilities of states 0-7 are shown for node 0.
+Next, is the probability of state 0 for node 1.
+The probabilities of states 1-7 for node 1 and all the probabilities for the rest of the nodes are not shown for brevity.
+Note that the length of each row for a given analysis will be the same independent of the tree size.
+With variable tree sizes, estimates corresponding to nodes that do not exist the tree should be ignored.
+To determine which node is node 0, find the row in <code class="docutils literal notranslate"><span class="pre">node_label.csv</span></code> with a 0 in the second column.
+The first column will contain the node label from the input tree (see <a class="reference internal" href="#index-nodes"><span class="std std-ref">Indexing Nodes</span></a>).</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">idx</span><span class="p">,</span><span class="n">asr_0_0</span><span class="p">,</span><span class="n">asr_0_1</span><span class="p">,</span><span class="n">asr_0_2</span><span class="p">,</span><span class="n">asr_0_3</span><span class="p">,</span><span class="n">asr_0_4</span><span class="p">,</span><span class="n">asr_0_5</span><span class="p">,</span><span class="n">asr_0_6</span><span class="p">,</span><span class="n">asr_0_7</span><span class="p">,</span><span class="n">asr_1_0</span><span class="p">,</span><span class="o">...</span>
+<span class="mi">1</span><span class="p">,</span><span class="mf">3.1077805906534195e-02</span><span class="p">,</span><span class="mf">1.9622480869293213e-01</span><span class="p">,</span><span class="mf">2.8395557403564453e-01</span><span class="p">,</span><span class="mf">2.9170775786042213e-02</span><span class="p">,</span><span class="mf">5.0005137920379639e-02</span><span class="p">,</span><span class="mf">7.8246846795082092e-02</span><span class="p">,</span><span class="mf">2.7133193612098694e-01</span><span class="p">,</span><span class="mf">5.9987157583236694e-02</span><span class="p">,</span><span class="mf">1.8698431551456451e-01</span><span class="p">,</span><span class="o">...</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="producing-nexus-files">
+<span id="nexus-files"></span><h3>Producing nexus files<a class="headerlink" href="#producing-nexus-files" title="Link to this heading"></a></h3>
+<p>Viewing the standard phyddle output files may be tedious since the mapping between the node names and the indeces in phyddle will be different for every tree.
+As a more user friendly way to view results on a single tree at a time, phyddle can write the inferred ancestral states to a nexus file when the marginal inference method is used.
+By default, nexus files are created for the empirical data, but not the test data.
+The defaults can be changed using <code class="docutils literal notranslate"><span class="pre">asr_nexus_emp</span></code> and <code class="docutils literal notranslate"><span class="pre">asr_nexus_test</span></code>.
+The trees are written to either <code class="docutils literal notranslate"><span class="pre">emp_dir</span></code> and/or <code class="docutils literal notranslate"><span class="pre">sim_dir</span></code> to files with the suffix <code class="docutils literal notranslate"><span class="pre">est.tre</span></code>.
+The ancestral states are written as annotations in the tree.
+<code class="docutils literal notranslate"><span class="pre">anc_state_1</span></code> corresponds to the ancestral state with the highest probability, <code class="docutils literal notranslate"><span class="pre">anc_state_2</span></code> to the state with the second highest probability, etc.
+<code class="docutils literal notranslate"><span class="pre">anc_state_1_pp</span></code> is the probability of the state with the highest probability.
+The other states are labeled similarly.
+These labels will match the numbering used internally in phyddle, which are zero indexed.
+If the training data had ancestral states labeled as 1 or 2, the inferred ancestral states will be 0 or 1.
+The tip states are annotated with the labels used in <code class="docutils literal notranslate"><span class="pre">dat.csv</span></code>.</p>
+<p>RevBayes/RevGadgets compatible nexus files can be produced instead of the above format by specifying <code class="docutils literal notranslate"><span class="pre">asr_rb_nexus</span> <span class="pre">=</span> <span class="pre">'T'</span></code> in the config file.
+This format only records up to 3 ancestral states per node and adds the probability of additional ancestral states to an other state category.
+If there are data for multiple characters at the tips, the option <code class="docutils literal notranslate"><span class="pre">asr_map_tip_states</span></code> must be included to use the RevBayes compatible nexus files.
+This option specifies a dictionary where the key is the desired state number and the value is the data at the tips in the same order specified in the <code class="docutils literal notranslate"><span class="pre">.dat.csv</span></code> file.
+For example, in the <code class="docutils literal notranslate"><span class="pre">.dat.csv</span></code> beginning as shown below, each species is either present or absent in region1 and region2.
+Note that no species is present in neither region in this example.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">taxa</span><span class="p">,</span><span class="n">region1</span><span class="p">,</span><span class="n">region2</span>
+<span class="n">sp1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span>
+<span class="n">sp2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span>
+<span class="n">sp3</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span>
+<span class="o">...</span>
+</pre></div>
+</div>
+<p>Then <code class="docutils literal notranslate"><span class="pre">asr_map_tip_states</span></code> dictionary should have 3 states corresponding the 3 possible patterns of presence and absence. In the example below, state 2 will be recorded in the nexus files for tip species in both regions.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s1">&#39;asr_map_tip_states&#39;</span> <span class="p">:</span> <span class="p">{</span><span class="mi">0</span> <span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+                        <span class="mi">1</span> <span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+                        <span class="mi">2</span> <span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]},</span>
+</pre></div>
+</div>
+<p>For models where states can change at cladogenesis, rather than annotating the states at the node as a triplet, the start and end state can be annotated on each branch.
+To do this, use <code class="docutils literal notranslate"><span class="pre">asr_map_triplet_states</span></code> in the config file.
+This specifies a dictionary where the key is the label in training data and the value is the parent, left daughter, and right daughter.
+The values should be numeric, separated by commas, and enclosed in parenthesis, as shown below.
+The keys should match how the simulation script encoded the node labels, except if the original labels were not zero indexed.
+If the original labels were not zero indexed, they should be shifted to start a 0 and go to n-1 for n possible categories.
+In this example, the ancestral states in <code class="docutils literal notranslate"><span class="pre">.anc_state.csv</span></code> were integers between 0 and 7.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s1">&#39;asr_map_triplet_states&#39;</span> <span class="p">:</span> <span class="p">{</span> <span class="mi">0</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>       <span class="c1"># A  -&gt; A ,  A</span>
+                             <span class="mi">1</span><span class="p">:</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>       <span class="c1"># B  -&gt; B ,  B</span>
+                             <span class="mi">2</span><span class="p">:</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>       <span class="c1"># AB -&gt; A ,  B</span>
+                             <span class="mi">3</span><span class="p">:</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>       <span class="c1"># AB -&gt; B ,  A</span>
+                             <span class="mi">4</span><span class="p">:</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>       <span class="c1"># AB -&gt; AB,  A</span>
+                             <span class="mi">5</span><span class="p">:</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>       <span class="c1"># AB -&gt; A , AB</span>
+                             <span class="mi">6</span><span class="p">:</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>       <span class="c1"># AB -&gt; AB,  B</span>
+                             <span class="mi">7</span><span class="p">:</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)},</span>      <span class="c1"># AB -&gt; B&#39;, AB</span>
+</pre></div>
+</div>
+<p>In the example, nodes inferred to be in categories 2-7 had parents in state 2 (AB).
+This format can be used with plotting functions within RevGadgets, such as <code class="docutils literal notranslate"><span class="pre">plotAncStatesPie</span></code>.</p>
+</section>
+<section id="tutorial-markov-model">
+<h3>Tutorial: Markov model<a class="headerlink" href="#tutorial-markov-model" title="Link to this heading"></a></h3>
+<p>This tutorial walks through a phyddle analysis for ancestral state reconstruction
+with a Markov model using an R-based simulator. It assumes
+that you have access to the <code class="docutils literal notranslate"><span class="pre">./workspace</span></code> example projects bundled
+with the phyddle repository.
+This tutorial assumes you know how to run a phyddle analysis without ancestral state reconstruction.
+If you haven’t looked at the general <a class="reference internal" href="tutorial.html#tutorial"><span class="std std-ref">Tutorial</span></a>, start there and come back after you’ve familiarized yourself.</p>
+<p>This tutorial explains how to:</p>
+<ul class="simple">
+<li><p>Understand and modify the <a class="reference internal" href="overview.html#simulate"><span class="std std-ref">Simulate</span></a> script, <code class="docutils literal notranslate"><span class="pre">sim_tree.R</span></code></p></li>
+<li><p>Understand and modify the <a class="reference internal" href="overview.html#configuration"><span class="std std-ref">Configuration</span></a> files for ancestral state reconstruction, <code class="docutils literal notranslate"><span class="pre">config.py</span></code></p></li>
+</ul>
+<p>This project will use <code class="docutils literal notranslate"><span class="pre">R</span></code>, <code class="docutils literal notranslate"><span class="pre">castor</span></code>, <code class="docutils literal notranslate"><span class="pre">extraDistr</span></code>, and <code class="docutils literal notranslate"><span class="pre">dispRity</span></code> to simulate training
+datasets. Make sure they are installed:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># install R packages</span>
+Rscript<span class="w"> </span>-e<span class="w"> </span><span class="s1">&#39;install.packages(c(&quot;castor&quot;, &quot;extraDistr&quot;, &quot;dispRity&quot;), repos=&quot;https://cloud.r-project.org&quot;)&#39;</span>
+</pre></div>
+</div>
+<p>Then, to run a phyddle analysis for <code class="docutils literal notranslate"><span class="pre">ancestral_state_mk</span></code> using 50,000
+simulated training examples, type:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># enter bisse_r project directory</span>
+<span class="nb">cd</span><span class="w"> </span>workspace/ancestral_state_mk
+
+<span class="c1"># run phyddle analysis</span>
+phyddle<span class="w"> </span>-c<span class="w"> </span>config.py
+
+<span class="c1"># analysis runs</span>
+<span class="c1"># ...</span>
+
+<span class="c1"># view results summary</span>
+open<span class="w"> </span>plot/out.summary.pdf
+</pre></div>
+</div>
+<p>Great, we ran an analysis! But how does it work? Now we’ll walk through aspects of the pipeline that are different for ancestral state reconstruction, largely focusing on the simulation step.</p>
+<section id="simulation-script">
+<h4>Simulation Script<a class="headerlink" href="#simulation-script" title="Link to this heading"></a></h4>
+<p>First we load the required R packages and disable warnings.</p>
+<div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="c1">#!/usr/bin/env Rscript</span>
+<span class="nf">library</span><span class="p">(</span><span class="n">castor</span><span class="p">)</span>
+<span class="nf">library</span><span class="p">(</span><span class="n">dispRity</span><span class="p">)</span>
+<span class="nf">library</span><span class="p">(</span><span class="n">extraDistr</span><span class="p">)</span>
+
+<span class="c1"># disable warnings</span>
+<span class="nf">options</span><span class="p">(</span><span class="n">warn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">-1</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Next, we read in our command-line arguments:</p>
+<div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="c1"># arguments</span>
+<span class="n">args</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="nf">commandArgs</span><span class="p">(</span><span class="n">trailingOnly</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">TRUE</span><span class="p">)</span>
+<span class="n">out_path</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="n">args</span><span class="p">[</span><span class="m">1</span><span class="p">]</span>
+<span class="n">out_prefix</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="n">args</span><span class="p">[</span><span class="m">2</span><span class="p">]</span>
+<span class="n">start_idx</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="nf">as.numeric</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="m">3</span><span class="p">])</span>
+<span class="n">batch_size</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="nf">as.numeric</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="m">4</span><span class="p">])</span>
+<span class="n">rep_idx</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="n">start_idx</span><span class="o">:</span><span class="p">(</span><span class="n">start_idx</span><span class="o">+</span><span class="n">batch_size</span><span class="m">-1</span><span class="p">)</span>
+<span class="n">num_rep</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="nf">length</span><span class="p">(</span><span class="n">rep_idx</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>After that, we create filenames for the output that phyddle expects.
+Note we have an additional file in comparison to standard phyddle analyses, ending in <code class="docutils literal notranslate"><span class="pre">.anc_state.csv</span></code> we need to create.</p>
+<div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="c1"># filesystem</span>
+<span class="n">tmp_fn</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="nf">paste0</span><span class="p">(</span><span class="n">out_path</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;/&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">out_prefix</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;.&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">rep_idx</span><span class="p">)</span><span class="w">   </span><span class="c1"># sim path prefix</span>
+<span class="n">phy_fn</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="nf">paste0</span><span class="p">(</span><span class="n">tmp_fn</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;.tre&quot;</span><span class="p">)</span><span class="w">                            </span><span class="c1"># newick file</span>
+<span class="n">dat_fn</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="nf">paste0</span><span class="p">(</span><span class="n">tmp_fn</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;.dat.csv&quot;</span><span class="p">)</span><span class="w">                        </span><span class="c1"># csv of data</span>
+<span class="n">lbl_fn</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="nf">paste0</span><span class="p">(</span><span class="n">tmp_fn</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;.labels.csv&quot;</span><span class="p">)</span><span class="w">                     </span><span class="c1"># csv of labels (e.g. params)</span>
+<span class="n">asr_true_fn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">paste0</span><span class="p">(</span><span class="n">tmp_fn</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;.anc_state.csv&quot;</span><span class="p">)</span><span class="w">                  </span><span class="c1"># csv of labels (e.g. params)</span>
+</pre></div>
+</div>
+<p>Next we set the number of states of our character and the minimum and maximum tree size.</p>
+<div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="c1"># dataset setup</span>
+<span class="n">num_states</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">2</span>
+
+<span class="n">minTreeSize</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">10</span>
+<span class="n">maxTreeSize</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">50</span>
+
+<span class="c1"># Set minimum tree size</span>
+<span class="n">tree_width</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">minTreeSize</span>
+</pre></div>
+</div>
+<p>The main simulation loop then generates and saves one dataset per
+replicate index. Here is a simplified representation for a two-state
+Markov model for ancestral state estimation for how the simulation loop works:</p>
+<div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="c1"># simulate each replicate</span>
+<span class="kr">for</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="kr">in</span><span class="w"> </span><span class="m">1</span><span class="o">:</span><span class="n">num_rep</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+
+<span class="w">      </span><span class="c1"># set RNG seed</span>
+<span class="w">      </span><span class="c1"># ...</span>
+
+<span class="w">      </span><span class="c1"># rejection sample</span>
+<span class="w">      </span><span class="n">num_taxa</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0</span>
+<span class="w">      </span><span class="kr">while</span><span class="w"> </span><span class="p">(</span><span class="n">num_taxa</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">tree_width</span><span class="w"> </span><span class="m">+1</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+
+<span class="w">              </span><span class="c1"># Draw tree size</span>
+<span class="w">              </span><span class="c1"># ...</span>
+
+<span class="w">              </span><span class="c1"># Simulate birth rate</span>
+<span class="w">              </span><span class="c1"># ...</span>
+
+<span class="w">              </span><span class="c1"># Simulate death rate</span>
+<span class="w">              </span><span class="c1"># ...</span>
+
+<span class="w">              </span><span class="c1"># Simulate the tree</span>
+<span class="w">              </span><span class="c1"># ...</span>
+
+<span class="w">              </span><span class="c1"># check if tree is valid</span>
+<span class="w">              </span><span class="c1"># ...</span>
+<span class="w">      </span><span class="p">}</span>
+
+
+<span class="w">      </span><span class="c1"># save tree</span>
+<span class="w">      </span><span class="c1"># ...</span>
+
+<span class="w">      </span><span class="c1"># drop one of tips with zero branch length</span>
+<span class="w">      </span><span class="c1"># ...</span>
+
+<span class="w">      </span><span class="c1"># Label the internal nodes and write the tree to file</span>
+<span class="w">      </span><span class="c1"># ...</span>
+
+<span class="w">      </span><span class="c1"># simulate transition parameters and create Q matrix</span>
+<span class="w">      </span><span class="c1"># ...</span>
+
+<span class="w">      </span><span class="c1"># Simulate character data</span>
+<span class="w">      </span><span class="c1"># ...</span>
+
+<span class="w">      </span><span class="c1"># save tip data</span>
+<span class="w">      </span><span class="c1"># ...</span>
+
+<span class="w">      </span><span class="c1"># save learned labels (e.g. estimated data-generating parameters)</span>
+<span class="w">      </span><span class="c1"># ...</span>
+
+<span class="w">      </span><span class="c1"># save the ancestral states</span>
+<span class="w">      </span><span class="c1"># ...</span>
+
+<span class="p">}</span>
+
+
+<span class="c1"># done!</span>
+</pre></div>
+</div>
+<p>Now we’ll look at each part of the simulation loop.
+First, we set the seed so the simulations are reproducible.
+We do it based on the index so that the results will be indepdent
+of the batch set up. We also set the number of taxa to zero.
+The number to taxa is used to determine when to stop simulating trees
+for a given replicate.</p>
+<div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="c1"># set RNG seed</span>
+<span class="nf">set.seed</span><span class="p">(</span><span class="n">start_idx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="m">1</span><span class="p">)</span>
+
+<span class="c1"># rejection sample</span>
+<span class="n">num_taxa</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0</span>
+<span class="kr">while</span><span class="w"> </span><span class="p">(</span><span class="n">num_taxa</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">tree_width</span><span class="w"> </span><span class="m">+1</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</pre></div>
+</div>
+<p>Next we draw the tree size and the birth and death rates.</p>
+<div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="c1"># Draw tree size</span>
+<span class="n">tree_width</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">rdunif</span><span class="p">(</span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="n">minTreeSize</span><span class="p">,</span><span class="w"> </span><span class="n">maxTreeSize</span><span class="p">)</span>
+<span class="n">label_names</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="nf">paste0</span><span class="p">(</span><span class="s">&quot;anc_state_&quot;</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="o">:</span><span class="p">(</span><span class="n">tree_width</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="m">1</span><span class="p">)))</span>
+
+<span class="c1"># Simulate birth rate</span>
+<span class="n">log_birth</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">runif</span><span class="p">(</span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="m">-2</span><span class="p">,</span><span class="w"> </span><span class="m">0</span><span class="p">)</span>
+<span class="n">birth</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">10</span><span class="o">^</span><span class="n">log_birth</span>
+
+<span class="c1"># Simulate death rate</span>
+<span class="n">death</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">min</span><span class="p">(</span><span class="n">birth</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="m">10</span><span class="o">^</span><span class="nf">runif</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="m">-2</span><span class="p">,</span><span class="w"> </span><span class="m">0</span><span class="p">)</span>
+<span class="n">log_death</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">log</span><span class="p">(</span><span class="n">death</span><span class="p">[</span><span class="m">1</span><span class="p">],</span><span class="w"> </span><span class="n">base</span><span class="o">=</span><span class="m">10</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now we simulate the tree using castor.
+Note that we simulate one extra tip. We will later drop one of the tips
+from the last speciation event. This is to avoid having zero branch lengths
+from ending the simulation based on the number of taxa.
+Then we check how many taxa are in the tree.</p>
+<div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="c1"># Simulate the tree</span>
+<span class="n">res_sim</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">generate_tree_hbds</span><span class="p">(</span><span class="n">max_extant_tips</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tree_width</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="m">1</span><span class="p">,</span>
+<span class="w">                            </span><span class="n">include_extant</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">TRUE</span><span class="p">,</span>
+<span class="w">                            </span><span class="n">lambda</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">birth</span><span class="p">,</span>
+<span class="w">                            </span><span class="n">mu</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">death</span>
+<span class="w">                  </span><span class="p">)</span>
+
+<span class="c1"># check if tree is valid</span>
+<span class="n">num_taxa</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">length</span><span class="p">(</span><span class="n">res_sim</span><span class="o">$</span><span class="n">tree</span><span class="o">$</span><span class="n">tip.label</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Then we find the branches with zero branch lengths, which correspond to the last speciation event.
+We then drop one of the two branches.</p>
+<div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="c1"># save tree</span>
+<span class="n">tree</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">res_sim</span><span class="o">$</span><span class="n">tree</span>
+
+<span class="c1"># drop one of tips with zero branch length</span>
+<span class="n">edge</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="p">(</span><span class="nf">which</span><span class="p">(</span><span class="n">tree</span><span class="o">$</span><span class="n">edge.length</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="m">0</span><span class="p">)[</span><span class="m">1</span><span class="p">])</span>
+<span class="n">drop</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="p">(</span><span class="n">tree</span><span class="o">$</span><span class="n">edge</span><span class="p">[</span><span class="n">edge</span><span class="p">,</span><span class="m">2</span><span class="w"> </span><span class="p">])</span>
+<span class="n">tree_sim</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">drop.tip</span><span class="p">(</span><span class="n">res_sim</span><span class="o">$</span><span class="n">tree</span><span class="p">,</span><span class="w"> </span><span class="n">drop</span><span class="p">,</span><span class="w"> </span><span class="n">trim.internal</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">TRUE</span><span class="p">,</span><span class="w"> </span><span class="n">colapse.singles</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">TRUE</span><span class="w">  </span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now we label the internal nodes in the tree and save the tree.</p>
+<div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="c1"># Label the internal nodes and write the tree to file</span>
+<span class="n">tree_sim</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">makeNodeLabel</span><span class="p">(</span><span class="n">tree_sim</span><span class="p">,</span><span class="w"> </span><span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;number&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">prefix</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;node&quot;</span><span class="p">)</span>
+<span class="nf">write.tree</span><span class="p">(</span><span class="n">tree_sim</span><span class="p">,</span><span class="w"> </span><span class="n">file</span><span class="o">=</span><span class="n">phy_fn</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>Next we simulate the transition parameters for the Markov model
+and create the Q matrix
+We are using a symmetric Q matrix.</p>
+<div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="c1"># simulate transition parameters and create Q matrix</span>
+<span class="n">log_state_rate</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">runif</span><span class="p">(</span><span class="m">1</span><span class="p">,</span><span class="m">-3</span><span class="p">,</span><span class="m">0</span><span class="p">)</span>
+<span class="n">state_rate</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">10</span><span class="o">^</span><span class="n">log_state_rate</span>
+<span class="n">Q</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">matrix</span><span class="p">(</span><span class="n">state_rate</span><span class="p">,</span>
+<span class="w">           </span><span class="n">ncol</span><span class="o">=</span><span class="n">num_states</span><span class="p">,</span><span class="w"> </span><span class="n">nrow</span><span class="o">=</span><span class="n">num_states</span><span class="p">)</span>
+
+<span class="nf">diag</span><span class="p">(</span><span class="n">Q</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0</span>
+<span class="nf">diag</span><span class="p">(</span><span class="n">Q</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">-</span><span class="nf">rowSums</span><span class="p">(</span><span class="n">Q</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Using the Q matrix we just created, we simulate character data along the tree.</p>
+<div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="c1"># Simulate character data</span>
+<span class="n">characterData</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">simulate_mk_model</span><span class="p">(</span><span class="n">tree_sim</span><span class="p">,</span><span class="w"> </span><span class="n">Q</span><span class="p">,</span><span class="w"> </span><span class="n">root_probabilities</span><span class="o">=</span><span class="s">&quot;stationary&quot;</span><span class="p">,</span>
+<span class="w">              </span><span class="n">include_tips</span><span class="o">=</span><span class="kc">TRUE</span><span class="p">,</span><span class="w"> </span><span class="n">include_nodes</span><span class="o">=</span><span class="kc">TRUE</span><span class="p">,</span>
+<span class="w">              </span><span class="n">Nsimulations</span><span class="o">=</span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="n">drop_dims</span><span class="o">=</span><span class="kc">TRUE</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>We save the tip states. We want our states to be from 0-1, so we subtract 1 from the states.</p>
+<div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="c1"># save tip data</span>
+<span class="n">state_sim</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">characterData</span><span class="o">$</span><span class="n">tip_states</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="m">1</span>
+<span class="n">df_state</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">data.frame</span><span class="p">(</span><span class="n">taxa</span><span class="o">=</span><span class="n">tree_sim</span><span class="o">$</span><span class="n">tip.label</span><span class="p">,</span><span class="w"> </span><span class="n">data</span><span class="o">=</span><span class="n">state_sim</span><span class="p">)</span>
+<span class="nf">write.csv</span><span class="p">(</span><span class="n">df_state</span><span class="p">,</span><span class="w"> </span><span class="n">file</span><span class="o">=</span><span class="n">dat_fn</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="w"> </span><span class="n">row.names</span><span class="o">=</span><span class="bp">F</span><span class="p">,</span><span class="w"> </span><span class="n">quote</span><span class="o">=</span><span class="bp">F</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now we save the data generating parameters.
+In this analyses, phyddle does not actually use the data generating parameters as data or
+infer them. However, phyddle still requires the labels file exist.
+It may also be useful to look at the distributions of parameters after rejection sampling
+to see if the simulation settings seem reasonable.</p>
+<div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="c1"># save labels (e.g. data-generating parameters)</span>
+<span class="n">df_label</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">data.frame</span><span class="p">(</span><span class="nf">t</span><span class="p">(</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="n">birth</span><span class="p">,</span><span class="w"> </span><span class="n">death</span><span class="p">,</span><span class="w"> </span><span class="n">state_rate</span><span class="p">)))</span>
+<span class="nf">colnames</span><span class="p">(</span><span class="n">df_label</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">&quot;birth_rate&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;death_rate&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;state_rate&quot;</span><span class="p">)</span>
+<span class="nf">write.csv</span><span class="p">(</span><span class="n">df_label</span><span class="p">,</span><span class="w"> </span><span class="n">file</span><span class="o">=</span><span class="n">lbl_fn</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="w"> </span><span class="n">row.names</span><span class="o">=</span><span class="bp">F</span><span class="p">,</span><span class="w"> </span><span class="n">quote</span><span class="o">=</span><span class="bp">F</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Finally, we save the tip states. As with the tip data, we want our states to be from 0-1,
+so we subtract 1 from the states.
+We do not want a header for this file, so we use <code class="docutils literal notranslate"><span class="pre">write.table</span></code> instead of <code class="docutils literal notranslate"><span class="pre">write.csv</span></code>.</p>
+<div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="c1"># save the ancestral states</span>
+<span class="n">state_sim_node</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">characterData</span><span class="o">$</span><span class="n">node_states</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="m">1</span>
+<span class="n">df_asr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">data.frame</span><span class="p">(</span><span class="nf">t</span><span class="p">(</span><span class="n">state_sim_node</span><span class="p">))</span>
+<span class="nf">colnames</span><span class="p">(</span><span class="n">df_asr</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">paste</span><span class="p">(</span><span class="s">&quot;node&quot;</span><span class="p">,</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">1</span><span class="o">:</span><span class="p">(</span><span class="n">tree_width</span><span class="w"> </span><span class="m">-1</span><span class="p">)),</span><span class="w"> </span><span class="n">sep</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">)</span>
+<span class="nf">write.table</span><span class="p">(</span><span class="nf">t</span><span class="p">(</span><span class="n">df_asr</span><span class="p">),</span><span class="w"> </span><span class="n">file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">asr_true_fn</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="w"> </span><span class="n">quote</span><span class="w"> </span><span class="o">=</span><span class="bp">F</span><span class="p">,</span><span class="w"> </span><span class="n">col.names</span><span class="w"> </span><span class="o">=</span><span class="bp">F</span><span class="p">,</span><span class="w"> </span><span class="n">sep</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;,&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="configure-the-pipeline">
+<h4>Configure the pipeline<a class="headerlink" href="#configure-the-pipeline" title="Link to this heading"></a></h4>
+<p>The config file is very similar to the config files of other phyddle analyses.
+In this case, there is one additional line that turns ancestral state estimation on.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s1">&#39;asr_est&#39;</span>            <span class="p">:</span> <span class="s1">&#39;T&#39;</span><span class="p">,</span>
+</pre></div>
+</div>
+<p>Additionally, there is no <code class="docutils literal notranslate"><span class="pre">param_est</span></code>. While additional parameters could be included to estimate,
+it is not necessary to have any other parameters to estimate with ancestral state estimation.</p>
+</section>
+<section id="viewing-results">
+<h4>Viewing results<a class="headerlink" href="#viewing-results" title="Link to this heading"></a></h4>
+<p>While plots are generated for <code class="docutils literal notranslate"><span class="pre">asr_0</span></code> through <code class="docutils literal notranslate"><span class="pre">asr_48</span></code>, only <code class="docutils literal notranslate"><span class="pre">asr_0</span></code> through <code class="docutils literal notranslate"><span class="pre">asr_8</span></code> will accurately reflect how well phyddle is performing for estimating ancestral states.
+This is because <code class="docutils literal notranslate"><span class="pre">asr_9</span></code> through <code class="docutils literal notranslate"><span class="pre">asr_48</span></code> are for nodes that only exist in some trees.
+For trees without those nodes, phyddle should usually estimate 0 for those states.
+This may seem to artifically inflate phyddle’s performance.
+Postprocessing of the files in <code class="docutils literal notranslate"><span class="pre">estimate</span></code> can remove nodes that do not exist in a given tree.
+See <a class="reference internal" href="#output-file"><span class="std std-ref">Output files</span></a>  for a more comprehensive description.
+Alternatively, training with trees with a constant number of tips will remove this problem.</p>
+</section>
+</section>
+<section id="tutorial-geosse-with-empirical">
+<h3>Tutorial: GeoSSE with Empirical<a class="headerlink" href="#tutorial-geosse-with-empirical" title="Link to this heading"></a></h3>
+<p>This tutorial walks through a phyddle analysis for ancestral state reconstruction
+with a GeoSSE model using an R-based simulator. It assumes
+that you have access to the <code class="docutils literal notranslate"><span class="pre">./workspace</span></code> example projects bundled
+with the phyddle repository.
+This tutorial assumes you know how to run a phyddle analysis without ancestral state reconstruction.
+If you haven’t looked at the general <a class="reference internal" href="tutorial.html#tutorial"><span class="std std-ref">Tutorial</span></a>, start there and come back after you’ve familiarized yourself.</p>
+<p>This tutorial explains how to:</p>
+<ul class="simple">
+<li><p>Understand and modify the <a class="reference internal" href="overview.html#simulate"><span class="std std-ref">Simulate</span></a> script, <code class="docutils literal notranslate"><span class="pre">sim_geosse.R</span></code></p></li>
+<li><p>Understand and modify the <a class="reference internal" href="overview.html#configuration"><span class="std std-ref">Configuration</span></a> files for ancestral state reconstruction, <code class="docutils literal notranslate"><span class="pre">config.py</span></code></p></li>
+<li><p>Generate annotated phylogenies from <a class="reference internal" href="overview.html#estimate"><span class="std std-ref">Estimate</span></a></p></li>
+</ul>
+<p>This project will use <code class="docutils literal notranslate"><span class="pre">R</span></code>, <code class="docutils literal notranslate"><span class="pre">diversitree</span></code>, and <code class="docutils literal notranslate"><span class="pre">stringr</span></code> to simulate training
+datasets. Make sure they are installed:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># install R packages</span>
+Rscript<span class="w"> </span>-e<span class="w"> </span><span class="s1">&#39;install.packages(c(&quot;diversitree&quot;, &quot;stringr&quot;), repos=&quot;https://cloud.r-project.org&quot;)&#39;</span>
+</pre></div>
+</div>
+<p>Then, to run a phyddle analysis for <code class="docutils literal notranslate"><span class="pre">ancestral_state_geosse</span></code> using 250,000
+simulated training examples, type:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># enter bisse_r project directory</span>
+<span class="nb">cd</span><span class="w"> </span>workspace/ancestral_state_geosse
+
+<span class="c1"># run phyddle analysis</span>
+phyddle<span class="w"> </span>-c<span class="w"> </span>config.py
+
+<span class="c1"># analysis runs</span>
+<span class="c1"># ...</span>
+
+<span class="c1"># view results summary</span>
+open<span class="w"> </span>plot/sim.summary.pdf
+</pre></div>
+</div>
+<p>We’ve run an analysis, but now let’s break down how the set up is different than analyses without ancestral state reconstruction.
+This example is a bit more complicated than the ancestral state reconstruction with a Markov model since characters can change at the time of speciation.</p>
+<section id="id2">
+<h4>Simulation Script<a class="headerlink" href="#id2" title="Link to this heading"></a></h4>
+<p>Let’s look at the source code for <code class="docutils literal notranslate"><span class="pre">sim_geosse.R</span></code>.</p>
+<p>First, we load any libraries we want to use for our simulation.</p>
+<div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="nf">library</span><span class="p">(</span><span class="n">diversitree</span><span class="p">)</span>
+<span class="nf">library</span><span class="p">(</span><span class="n">stringr</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Next, we read in our command-line arguments:</p>
+<div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="n">args</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="nf">commandArgs</span><span class="p">(</span><span class="n">trailingOnly</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">TRUE</span><span class="p">)</span>
+<span class="n">out_path</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="n">args</span><span class="p">[</span><span class="m">1</span><span class="p">]</span>
+<span class="n">out_prefix</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="n">args</span><span class="p">[</span><span class="m">2</span><span class="p">]</span>
+<span class="n">start_idx</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="nf">as.numeric</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="m">3</span><span class="p">])</span>
+<span class="n">batch_size</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="nf">as.numeric</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="m">4</span><span class="p">])</span>
+<span class="n">rep_idx</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="n">start_idx</span><span class="o">:</span><span class="p">(</span><span class="n">start_idx</span><span class="o">+</span><span class="n">batch_size</span><span class="m">-1</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>After that, we create filenames for the output that phyddle expects:</p>
+<div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="c1">#filesystem</span>
+<span class="n">tmp_fn</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="nf">paste0</span><span class="p">(</span><span class="n">out_path</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;/&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">out_prefix</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;.&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">rep_idx</span><span class="p">)</span><span class="w">   </span><span class="c1"># sim path prefix</span>
+<span class="n">phy_fn</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="nf">paste0</span><span class="p">(</span><span class="n">tmp_fn</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;.tre&quot;</span><span class="p">)</span><span class="w">                            </span><span class="c1"># newick file</span>
+<span class="n">dat_fn</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="nf">paste0</span><span class="p">(</span><span class="n">tmp_fn</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;.dat.csv&quot;</span><span class="p">)</span><span class="w">                        </span><span class="c1"># csv of data</span>
+<span class="n">lbl_fn</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="nf">paste0</span><span class="p">(</span><span class="n">tmp_fn</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;.labels.csv&quot;</span><span class="p">)</span><span class="w">                     </span><span class="c1"># csv of labels (e.g. params)</span>
+<span class="n">asr_true_fn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">paste0</span><span class="p">(</span><span class="n">tmp_fn</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;.anc_state.csv&quot;</span><span class="p">)</span><span class="w">                  </span><span class="c1"># csv of ancestral states</span>
+</pre></div>
+</div>
+<p>After that, we create functions that are used to get the ancestral states from the diversitree output. We’ll return to this after looking at the main loop:</p>
+<div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get the first state along a branch (forward time)</span>
+<span class="n">firstState</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="w"> </span><span class="p">(</span><span class="n">mat</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kc">...</span>
+<span class="p">}</span>
+
+<span class="c1"># Get the last state along a branch (forward time)</span>
+<span class="n">lastState</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">mat</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kc">...</span>
+<span class="p">}</span>
+
+<span class="c1"># Combines triplet of states into a string</span>
+<span class="n">combine_states</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">state_table</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kc">...</span>
+<span class="p">}</span>
+
+<span class="c1"># Finds ancestral state triplets for every node in the extant only tree</span>
+<span class="c1"># Randomly rotates nodes in the tree</span>
+<span class="n">getHistory</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">tree1</span><span class="p">,</span><span class="w"> </span><span class="n">phy_file</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kc">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>First, we store the names of all the parameters and the tree size.
+This tree size is set to match the empirical tree size.</p>
+<div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="n">label_names</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">&quot;sA&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;sB&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;sAB&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;xA&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;xB&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;dA&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;dB&quot;</span><span class="p">)</span>
+<span class="n">max_tax</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">52</span>
+</pre></div>
+</div>
+<p>Now, we set some initial values for current tree index, the last tree index, and the seed.
+<code class="docutils literal notranslate"><span class="pre">i</span></code> is used for the index for the file names.
+We also keep track of the number of fully extinct trees and trees with only one tip states.
+Thoses are not strictly necessary to track, but are useful to see how many simulations are
+discarded.</p>
+<div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="n">nTrees</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">start_idx</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="m">1</span>
+<span class="n">nullTrees</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">0</span>
+<span class="n">noVarTree</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">0</span>
+<span class="nf">set.seed</span><span class="p">(</span><span class="n">nTrees</span><span class="p">)</span>
+<span class="n">totTrees</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">start_idx</span><span class="o">+</span><span class="n">batch_size</span><span class="m">-1</span>
+<span class="n">i</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">1</span>
+</pre></div>
+</div>
+<p>The main simulation loop then generates and saves one dataset per
+replicate index. Here is a simplified representation for a two-region
+GeoSSE model with ancestral state reconstruction for how the simulation loop works:</p>
+<div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="c1"># Simulate each replicate</span>
+<span class="kr">while</span><span class="w"> </span><span class="p">(</span><span class="n">nTrees</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">totTrees</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+
+<span class="w">  </span><span class="c1"># Draw all parameters</span>
+<span class="w">  </span><span class="c1"># ...</span>
+
+<span class="w">  </span><span class="c1"># Simulate tree</span>
+<span class="w">  </span><span class="c1"># ...</span>
+
+<span class="w">  </span><span class="c1"># Check if tree exists</span>
+<span class="w">    </span><span class="kr">if</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">       </span><span class="c1"># ...</span>
+
+<span class="w">    </span><span class="c1"># Confirm three tip states present</span>
+<span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="kr">else</span><span class="w"> </span><span class="kr">if</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="c1"># ...</span>
+
+<span class="w">    </span><span class="c1"># Write all relevant files for phyddle</span>
+<span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="kr">else</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="c1"># ...</span>
+
+<span class="w">        </span><span class="c1"># Update counters</span>
+<span class="w">        </span><span class="c1"># ...</span>
+
+<span class="w">        </span><span class="c1"># Set the seed to get the same trees independent of how phyddle is run</span>
+<span class="w">        </span><span class="c1"># ...</span>
+
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Now, we’ll go through all the parts of the simulation loop.
+First we draw all the parameters from an exponential distribution and save them.</p>
+<div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="c1"># Draw all parameters</span>
+<span class="n">sA</span><span class="w">  </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">rexp</span><span class="p">(</span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="o">/</span><span class="n">.</span><span class="m">1</span><span class="p">)</span>
+<span class="n">sB</span><span class="w">  </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">rexp</span><span class="p">(</span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="o">/</span><span class="n">.</span><span class="m">1</span><span class="p">)</span>
+<span class="n">xA</span><span class="w">  </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">rexp</span><span class="p">(</span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="o">/</span><span class="n">.</span><span class="m">1</span><span class="p">)</span>
+<span class="n">xB</span><span class="w">  </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">rexp</span><span class="p">(</span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="o">/</span><span class="n">.</span><span class="m">1</span><span class="p">)</span>
+<span class="n">dA</span><span class="w">  </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">rexp</span><span class="p">(</span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="o">/</span><span class="n">.</span><span class="m">1</span><span class="p">)</span>
+<span class="n">dB</span><span class="w">  </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">rexp</span><span class="p">(</span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="o">/</span><span class="n">.</span><span class="m">1</span><span class="p">)</span>
+<span class="n">sAB</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">rexp</span><span class="p">(</span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="o">/</span><span class="n">.</span><span class="m">1</span><span class="p">)</span>
+<span class="n">pars</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="n">sA</span><span class="p">,</span><span class="w"> </span><span class="n">sB</span><span class="p">,</span><span class="w"> </span><span class="n">sAB</span><span class="p">,</span><span class="w"> </span><span class="n">xA</span><span class="p">,</span><span class="w"> </span><span class="n">xB</span><span class="p">,</span><span class="w"> </span><span class="n">dA</span><span class="p">,</span><span class="w"> </span><span class="n">dB</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Then, we simulate the tree using the R package <code class="docutils literal notranslate"><span class="pre">diversitree</span></code>.</p>
+<div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="c1"># Simulate tree</span>
+<span class="n">tree</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">tree.geosse</span><span class="p">(</span><span class="n">pars</span><span class="p">,</span><span class="w"> </span><span class="n">max.taxa</span><span class="o">=</span><span class="n">max_tax</span><span class="p">,</span><span class="w"> </span><span class="n">max.t</span><span class="o">=</span><span class="kc">Inf</span><span class="p">,</span><span class="w"> </span><span class="n">include.extinct</span><span class="o">=</span><span class="kc">TRUE</span><span class="p">,</span>
+<span class="w">            </span><span class="n">x0</span><span class="o">=</span><span class="kc">NA</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Since the tree includes extinct tips, we find the extand tips using the tip names.
+Extant species start with “sp”.</p>
+<div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="c1"># Find extant tips</span>
+<span class="n">extant</span><span class="w"> </span><span class="o">&lt;-</span><span class="w">  </span><span class="nf">which</span><span class="p">(</span><span class="nf">str_detect</span><span class="p">(</span><span class="n">tree</span><span class="o">$</span><span class="n">tip.label</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;sp&quot;</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>We check if the tree exists (no full extinction), and there tree has the right number of taxa.
+If not, the <code class="docutils literal notranslate"><span class="pre">nullTrees</span></code> counter is incremented.
+This counter is not necessary, but may be useful to see if full extinction is common.
+This could indicate the parameter distributions should be changed.</p>
+<div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="c1"># Check if tree exists</span>
+<span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="nf">is.null</span><span class="p">(</span><span class="n">tree</span><span class="p">)</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="nf">sum</span><span class="p">(</span><span class="nf">str_detect</span><span class="p">(</span><span class="n">tree</span><span class="o">$</span><span class="n">tip.label</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;sp&quot;</span><span class="p">))</span><span class="w">  </span><span class="o">!=</span><span class="w"> </span><span class="n">max_tax</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">     </span><span class="n">nullTrees</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">nullTrees</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="m">1</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Next, we confirm all the tip states are present in the extant tree.
+If not, increment the counter for trees without sufficient tip state variation.</p>
+<div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="c1"># Confirm three tip states present</span>
+<span class="kr">else</span><span class="w"> </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="nf">length</span><span class="p">(</span><span class="nf">table</span><span class="p">(</span><span class="n">tree</span><span class="o">$</span><span class="n">tip.state</span><span class="p">[</span><span class="n">extant</span><span class="p">]))</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="m">3</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">     </span><span class="n">noVarTree</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">noVarTree</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="m">1</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Now that we confirmed the tree is a valid training example, we’ll write all the files that phyddle needs.
+First, we find the ancestral states for each internal node using the function <code class="docutils literal notranslate"><span class="pre">getHistory</span></code>.
+Then we write the ancestral states to file.</p>
+<div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="c1"># Write all relevant files for phyddle</span>
+<span class="kr">else</span><span class="w"> </span><span class="p">{</span>
+
+<span class="w">  </span><span class="n">stateHistory</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">getHistory</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span><span class="w"> </span><span class="n">phy_fn</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+<span class="w">  </span><span class="c1"># This file is in the form</span>
+<span class="w">  </span><span class="c1"># node, state(0-7)</span>
+<span class="w">  </span><span class="nf">write.table</span><span class="p">(</span><span class="n">stateHistory</span><span class="p">,</span><span class="w"> </span><span class="n">file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">asr_true_fn</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">quote</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">,</span><span class="w"> </span><span class="n">col.names</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">,</span><span class="w"> </span><span class="n">sep</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;,&quot;</span><span class="w"> </span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Next we make a dataframe to hold the tip states.
+Diversitree reports the tip states as 0 for both regions, 1 for region 1 (or A), and 2 for region 2 (or B).
+We want to save our tip state state as presence/absence for region 1 and region 2 as separate variables.
+If the state is 0 or 1, the species is present in region 1.
+If the state is 0 or 2, the species is present in region 2.</p>
+<div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="n">df_state</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">data.frame</span><span class="p">(</span><span class="n">taxa</span><span class="o">=</span><span class="n">tree</span><span class="o">$</span><span class="n">tip.label</span><span class="p">,</span><span class="w"> </span><span class="n">data</span><span class="o">=</span><span class="n">tree</span><span class="o">$</span><span class="n">tip.state</span><span class="p">,</span><span class="w"> </span><span class="n">region1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="n">region2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0</span><span class="p">)</span>
+<span class="c1"># In region one if state is either widespread or 1</span>
+<span class="n">df_state</span><span class="o">$</span><span class="n">region1</span><span class="p">[</span><span class="n">df_state</span><span class="o">$</span><span class="n">data</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">df_state</span><span class="o">$</span><span class="n">data</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="m">1</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">1</span>
+<span class="c1"># In region two if state is either widespread or 2</span>
+<span class="n">df_state</span><span class="o">$</span><span class="n">region2</span><span class="p">[</span><span class="n">df_state</span><span class="o">$</span><span class="n">data</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">df_state</span><span class="o">$</span><span class="n">data</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="m">2</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">1</span>
+</pre></div>
+</div>
+<p>Next, we find only the species that are extant, and include only the extant species in our dataframe.
+We also remove the original location column from the dataframe, since we only want the tip states in the form of ppresence/absence.
+Then we write the tip states to file.</p>
+<div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="n">extant</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">which</span><span class="p">(</span><span class="nf">str_detect</span><span class="p">(</span><span class="n">df_state</span><span class="o">$</span><span class="n">taxa</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;sp&quot;</span><span class="p">))</span>
+<span class="n">df_state</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">df_state</span><span class="p">[</span><span class="n">extant</span><span class="p">,</span><span class="w"> </span><span class="p">]</span>
+<span class="n">df_state</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">df_state</span><span class="p">[</span><span class="w"> </span><span class="p">,</span><span class="m">-2</span><span class="p">]</span>
+<span class="nf">write.csv</span><span class="p">(</span><span class="n">df_state</span><span class="p">,</span><span class="w"> </span><span class="n">file</span><span class="o">=</span><span class="n">dat_fn</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="w"> </span><span class="n">row.names</span><span class="o">=</span><span class="bp">F</span><span class="p">,</span><span class="w"> </span><span class="n">quote</span><span class="o">=</span><span class="bp">F</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now we write the parameters to file.
+In this phyddle analyses, we are not actually going to use the parameters.
+However, you could jointly infer the parameters or they may be helpful for understanding the results.</p>
+<div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="c1"># save learned labels (e.g. estimated data-generating parameters)</span>
+<span class="nf">names</span><span class="p">(</span><span class="n">pars</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">label_names</span>
+<span class="n">df_label</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">data.frame</span><span class="p">(</span><span class="nf">t</span><span class="p">(</span><span class="n">pars</span><span class="p">))</span>
+<span class="nf">write.csv</span><span class="p">(</span><span class="n">df_label</span><span class="p">,</span><span class="w"> </span><span class="n">file</span><span class="o">=</span><span class="n">lbl_fn</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="w"> </span><span class="n">row.names</span><span class="o">=</span><span class="bp">F</span><span class="p">,</span><span class="w"> </span><span class="n">quote</span><span class="o">=</span><span class="bp">F</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>We update the tree index and the file counter.</p>
+<div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="c1"># Update counters</span>
+<span class="n">nTrees</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">nTrees</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="m">1</span>
+<span class="n">i</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">i</span><span class="m">+1</span>
+</pre></div>
+</div>
+<p>Lastly, we update the seed. This is so that the same tree will be generated independent of how
+phyddle is run (with different batch sizes, for example).</p>
+<div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="c1"># Set the seed to get the same trees independent of how phyddle is run</span>
+<span class="nf">set.seed</span><span class="p">(</span><span class="n">nTrees</span><span class="p">)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Now that we’ve covered the big picture, we’ll return to the functions at the beginning.</p>
+<p>These functions find the first and last states along a branch.
+They use the history reported by diversitree.</p>
+<div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get the first state along a branch (forward time)</span>
+<span class="n">firstState</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="w"> </span><span class="p">(</span><span class="n">mat</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">mat</span><span class="p">[</span><span class="m">1</span><span class="p">,</span><span class="m">2</span><span class="p">]</span>
+<span class="p">}</span>
+
+<span class="c1"># Get the last state along a branch (forward time)</span>
+<span class="n">lastState</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">mat</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">mat</span><span class="p">[</span><span class="nf">dim</span><span class="p">(</span><span class="n">mat</span><span class="p">)[</span><span class="m">1</span><span class="p">],</span><span class="w"> </span><span class="m">2</span><span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>This function combines the states from the parent and two daughters into a string.
+This gives a convenient way to then assign 0-7 states from the triplets.</p>
+<div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="c1"># Combines triplet of states into a string</span>
+<span class="n">combine_states</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">state_table</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nf">paste0</span><span class="p">(</span><span class="n">state_table</span><span class="p">[</span><span class="m">1</span><span class="p">],</span><span class="w"> </span><span class="n">state_table</span><span class="p">[</span><span class="m">2</span><span class="p">],</span><span class="w"> </span><span class="n">state_table</span><span class="p">[</span><span class="m">3</span><span class="p">])</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Now, we’ll look at the function that finds the ancestral states.
+First, we adjust the indexing used by diversitree.
+This is because they node numbers are off by one from the tree.
+Then we get the  history using <code class="docutils literal notranslate"><span class="pre">history.from.sim.discrete</span></code>.</p>
+<div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="c1"># Finds ancestral state triplets for every node in the extant only tree</span>
+<span class="c1"># Randomly rotates nodes in the tree</span>
+<span class="n">getHistory</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">tree1</span><span class="p">,</span><span class="w"> </span><span class="n">phy_file</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="c1"># Fix the off by one indexing for how the history is recorded</span>
+<span class="w">  </span><span class="n">tree1</span><span class="o">$</span><span class="n">hist</span><span class="o">$</span><span class="n">from</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">tree1</span><span class="o">$</span><span class="n">hist</span><span class="o">$</span><span class="n">from</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="m">1</span>
+<span class="w">  </span><span class="n">tree1</span><span class="o">$</span><span class="n">hist</span><span class="o">$</span><span class="n">to</span><span class="w">   </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">tree1</span><span class="o">$</span><span class="n">hist</span><span class="o">$</span><span class="n">to</span><span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="m">1</span>
+<span class="w">  </span><span class="n">h</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">history.from.sim.discrete</span><span class="p">(</span><span class="n">tree1</span><span class="p">,</span><span class="w"> </span><span class="m">0</span><span class="o">:</span><span class="m">2</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Then we find the first and last state on every branch and copy the tree.
+We are going to rotate branches on the tree so, we don’t want to get rid of the original.</p>
+<div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="c1"># Find the first and last state for every branch</span>
+<span class="n">mat_startState</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">unlist</span><span class="p">(</span><span class="nf">lapply</span><span class="p">(</span><span class="n">h</span><span class="o">$</span><span class="n">history</span><span class="p">,</span><span class="w"> </span><span class="n">firstState</span><span class="p">))</span>
+<span class="n">mat_endState</span><span class="w">   </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">unlist</span><span class="p">(</span><span class="nf">lapply</span><span class="p">(</span><span class="n">h</span><span class="o">$</span><span class="n">history</span><span class="p">,</span><span class="w"> </span><span class="n">lastState</span><span class="p">))</span>
+
+<span class="c1"># Copy original tree</span>
+<span class="n">newTree</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">tree1</span>
+</pre></div>
+</div>
+<p>Next we make a matrix that has the parent, left daughter, and right daughter for every
+internal node in the tree. We do this by iterating over every edge in the edge matrix.
+If the node number in the edge matrix is less than the number of tips, the node is a tip
+and otherwise it is an internal node. The first branch with a given parent in the edge
+matrix is the left branch and the second is the right. This allows us to differentiate
+between left and right daughters.</p>
+<div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create a matrix to hold the names of the children at each node</span>
+<span class="n">parent_child_matrix</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">matrix</span><span class="p">(</span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="n">nrow</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tree</span><span class="o">$</span><span class="n">Nnode</span><span class="p">,</span><span class="w"> </span><span class="n">ncol</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">2</span><span class="p">,</span>
+<span class="w">                              </span><span class="n">dimnames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">list</span><span class="p">(</span><span class="n">tree</span><span class="o">$</span><span class="n">node.label</span><span class="p">,</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">&quot;child1&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;child2&quot;</span><span class="p">)))</span>
+
+<span class="c1"># For every branch (edge) in the edge matrix</span>
+<span class="c1"># find the children labels</span>
+<span class="kr">for</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="kr">in</span><span class="w"> </span><span class="m">1</span><span class="o">:</span><span class="nf">nrow</span><span class="p">(</span><span class="n">tree</span><span class="o">$</span><span class="n">edge</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">parent_node_num</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">tree</span><span class="o">$</span><span class="n">edge</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">]</span>
+<span class="w">  </span><span class="n">child_node_num</span><span class="w">  </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">tree</span><span class="o">$</span><span class="n">edge</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="m">2</span><span class="p">]</span>
+
+<span class="w">  </span><span class="c1"># Map node numbers to labels</span>
+<span class="w">  </span><span class="n">parent_label</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">ifelse</span><span class="p">(</span><span class="n">parent_node_num</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="nf">length</span><span class="p">(</span><span class="n">tree</span><span class="o">$</span><span class="n">tip.label</span><span class="p">),</span>
+<span class="w">                         </span><span class="n">tree</span><span class="o">$</span><span class="n">tip.label</span><span class="p">[</span><span class="n">parent_node_num</span><span class="p">],</span>
+<span class="w">                         </span><span class="n">tree</span><span class="o">$</span><span class="n">node.label</span><span class="p">[</span><span class="n">parent_node_num</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="nf">length</span><span class="p">(</span><span class="n">tree</span><span class="o">$</span><span class="n">tip.label</span><span class="p">)])</span>
+<span class="w">  </span><span class="n">child_label</span><span class="w">  </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">ifelse</span><span class="p">(</span><span class="n">child_node_num</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="nf">length</span><span class="p">(</span><span class="n">tree</span><span class="o">$</span><span class="n">tip.label</span><span class="p">),</span>
+<span class="w">                         </span><span class="n">tree</span><span class="o">$</span><span class="n">tip.label</span><span class="p">[</span><span class="n">child_node_num</span><span class="p">],</span>
+<span class="w">                         </span><span class="n">tree</span><span class="o">$</span><span class="n">node.label</span><span class="p">[</span><span class="n">child_node_num</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="nf">length</span><span class="p">(</span><span class="n">tree</span><span class="o">$</span><span class="n">tip.label</span><span class="p">)])</span>
+
+<span class="w">  </span><span class="c1"># Determine if child is left or right child</span>
+<span class="w">  </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="n">parent_child_matrix</span><span class="p">[</span><span class="n">parent_label</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">]</span><span class="w">  </span><span class="o">==</span><span class="w"> </span><span class="m">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">parent_child_matrix</span><span class="p">[</span><span class="n">parent_label</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">child_label</span>
+<span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="kr">else</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">parent_child_matrix</span><span class="p">[</span><span class="n">parent_label</span><span class="p">,</span><span class="w"> </span><span class="m">2</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">child_label</span>
+
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Now we make a matrix with to store the parent node, the two children, and the child labels
+and fill the matrix.</p>
+<div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create a matrix to store the parent, children trios of states at internal nodes</span>
+<span class="n">state_table</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">matrix</span><span class="p">(</span><span class="kc">NA</span><span class="p">,</span><span class="w"> </span><span class="n">nrow</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">nrow</span><span class="p">(</span><span class="n">parent_child_matrix</span><span class="p">),</span><span class="w"> </span><span class="n">ncol</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">3</span><span class="p">)</span>
+<span class="nf">rownames</span><span class="p">(</span><span class="n">state_table</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">rownames</span><span class="p">(</span><span class="n">parent_child_matrix</span><span class="p">)</span>
+<span class="nf">colnames</span><span class="p">(</span><span class="n">state_table</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">&quot;parent&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;child1&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;child2&quot;</span><span class="p">)</span>
+
+<span class="kr">for</span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="kr">in</span><span class="w"> </span><span class="m">1</span><span class="o">:</span><span class="nf">nrow</span><span class="p">(</span><span class="n">parent_child_matrix</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">state_table</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="m">2</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">mat_startState</span><span class="p">[</span><span class="n">parent_child_matrix</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="m">1</span><span class="p">]]</span>
+<span class="w">  </span><span class="n">state_table</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="m">3</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">mat_startState</span><span class="p">[</span><span class="n">parent_child_matrix</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="m">2</span><span class="p">]]</span>
+
+<span class="w">  </span><span class="c1"># If the node is not the root</span>
+<span class="w">  </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="nf">is.na</span><span class="p">(</span><span class="w"> </span><span class="n">mat_endState</span><span class="p">[</span><span class="nf">rownames</span><span class="p">(</span><span class="n">parent_child_matrix</span><span class="p">)[</span><span class="n">i</span><span class="p">]]))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">state_table</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="m">1</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">mat_endState</span><span class="p">[</span><span class="nf">rownames</span><span class="p">(</span><span class="n">parent_child_matrix</span><span class="p">)[</span><span class="n">i</span><span class="p">]]</span>
+
+<span class="w">  </span><span class="c1"># If the node is the root</span>
+<span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="kr">else</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1"># If the two daughters are the same, the root is the</span>
+<span class="w">    </span><span class="c1"># same state as the daughters</span>
+<span class="w">    </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="n">state_table</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="m">2</span><span class="p">]</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">state_table</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="m">3</span><span class="p">])</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="n">state_table</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="m">1</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">state_table</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="m">2</span><span class="p">]</span>
+
+<span class="w">      </span><span class="c1"># Otherwise, the root is widespread</span>
+<span class="w">      </span><span class="c1"># This is only for 2 regions</span>
+<span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="kr">else</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="n">state_table</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="m">1</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">0</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>We find the number of tips in the tree.
+Then we draw from unif(0,1) for every internal node in the tree.
+Nodes with draws that are greater than 0.5 will be rotated.
+Then we find the index of the nodes to rotate.
+Internal node indexes start at num_tips + 1</p>
+<div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="n">num_tips</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">Ntip</span><span class="p">(</span><span class="n">tree</span><span class="p">)</span>
+
+<span class="c1"># Selects nodes in the tree to rotate</span>
+<span class="c1"># This is needed for phyddle to have examples of both orderings</span>
+
+<span class="n">rotate_vec</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">which</span><span class="p">(</span><span class="nf">runif</span><span class="p">(</span><span class="n">num_tips</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="m">1</span><span class="p">)</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">.</span><span class="m">5</span><span class="w"> </span><span class="p">)</span>
+<span class="n">nodes_to_rotate</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">num_tips</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">rotate_vec</span>
+</pre></div>
+</div>
+<p>For every node we want to rotate, we first find the branch in the edge matrix.
+Then we rotate the branches and update the branch lengths.
+We also update the table of left vs right descendants.</p>
+<div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="kr">for</span><span class="w"> </span><span class="p">(</span><span class="n">node</span><span class="w"> </span><span class="kr">in</span><span class="w"> </span><span class="n">nodes_to_rotate</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+
+<span class="w">  </span><span class="c1"># Figure out which branches to rotate based on the parent index</span>
+<span class="w">  </span><span class="n">branchIndex</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">which</span><span class="p">(</span><span class="n">newTree</span><span class="o">$</span><span class="n">edge</span><span class="p">[,</span><span class="m">1</span><span class="p">]</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">node</span><span class="p">)</span>
+<span class="w">  </span><span class="n">one</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">branchIndex</span><span class="p">[</span><span class="m">1</span><span class="p">]</span>
+<span class="w">  </span><span class="n">two</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">branchIndex</span><span class="p">[</span><span class="m">2</span><span class="p">]</span>
+
+<span class="w">  </span><span class="c1"># Rotate branches</span>
+<span class="w">  </span><span class="n">tmp</span><span class="w"> </span><span class="o">&lt;-</span><span class="n">newTree</span><span class="o">$</span><span class="n">edge</span><span class="p">[</span><span class="n">one</span><span class="p">,</span><span class="w"> </span><span class="p">]</span>
+<span class="w">  </span><span class="n">newTree</span><span class="o">$</span><span class="n">edge</span><span class="p">[</span><span class="n">one</span><span class="p">,</span><span class="w"> </span><span class="p">]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">newTree</span><span class="o">$</span><span class="n">edge</span><span class="p">[</span><span class="n">two</span><span class="p">,</span><span class="w"> </span><span class="p">]</span>
+<span class="w">  </span><span class="n">newTree</span><span class="o">$</span><span class="n">edge</span><span class="p">[</span><span class="n">two</span><span class="p">,</span><span class="w"> </span><span class="p">]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">tmp</span>
+
+<span class="w">  </span><span class="c1"># Rotate lengths</span>
+<span class="w">  </span><span class="n">tmp</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">newTree</span><span class="o">$</span><span class="n">edge.length</span><span class="p">[</span><span class="n">one</span><span class="p">]</span>
+<span class="w">  </span><span class="n">newTree</span><span class="o">$</span><span class="n">edge.length</span><span class="p">[</span><span class="n">one</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">newTree</span><span class="o">$</span><span class="n">edge.length</span><span class="p">[</span><span class="n">two</span><span class="p">]</span>
+<span class="w">  </span><span class="n">newTree</span><span class="o">$</span><span class="n">edge.length</span><span class="p">[</span><span class="n">two</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">tmp</span>
+
+<span class="w">  </span><span class="c1"># Update the table of left/right descendants</span>
+<span class="w">  </span><span class="n">nodeName</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">newTree</span><span class="o">$</span><span class="n">node.label</span><span class="p">[</span><span class="n">node</span><span class="o">-</span><span class="n">num_tips</span><span class="p">]</span>
+<span class="w">  </span><span class="n">tmp</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">state_table</span><span class="p">[</span><span class="n">nodeName</span><span class="w"> </span><span class="p">,</span><span class="w"> </span><span class="m">2</span><span class="p">]</span>
+<span class="w">     </span><span class="n">state_table</span><span class="p">[</span><span class="n">nodeName</span><span class="p">,</span><span class="w"> </span><span class="m">2</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">state_table</span><span class="p">[</span><span class="n">nodeName</span><span class="w"> </span><span class="p">,</span><span class="w"> </span><span class="m">3</span><span class="p">]</span>
+<span class="w">  </span><span class="n">state_table</span><span class="p">[</span><span class="n">nodeName</span><span class="p">,</span><span class="w"> </span><span class="m">3</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">tmp</span>
+
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>We combine the triplet of states at each node into a single string.
+We then use the string to convert to 0-7 labels which will be used by phyddle.</p>
+<div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="n">comb_state</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">apply</span><span class="p">(</span><span class="n">state_table</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="n">combine_states</span><span class="p">)</span>
+<span class="n">newStates</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">sapply</span><span class="p">(</span><span class="n">comb_state</span><span class="p">,</span><span class="w"> </span><span class="kr">switch</span><span class="p">,</span>
+<span class="w">      </span><span class="s">&quot;111&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="s">&quot;222&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;1&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="s">&quot;012&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;2&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="s">&quot;021&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;3&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="s">&quot;001&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;4&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="s">&quot;010&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;5&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="s">&quot;002&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;6&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="s">&quot;020&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;7&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Lastly, we write the tree to file and return the states.</p>
+<div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="nf">write.tree</span><span class="p">(</span><span class="n">newTree</span><span class="p">,</span><span class="w"> </span><span class="n">file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">phy_file</span><span class="p">)</span>
+
+<span class="w">  </span><span class="kr">return</span><span class="w"> </span><span class="p">(</span><span class="n">newStates</span><span class="p">)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The simulation script could be written to use other R packages or other programs entirely.
+The key difference from the typical simulation script is that the additional file with the suffix <code class="docutils literal notranslate"><span class="pre">.anc_state.csv</span></code> must be written for every dataset.</p>
+</section>
+<section id="id3">
+<h4>Configure the pipeline<a class="headerlink" href="#id3" title="Link to this heading"></a></h4>
+<p>The config file is mostly the same as for more standard analyses. Here, we will only highlight ancestral state reconstruction specific options.</p>
+<p>First, <code class="docutils literal notranslate"><span class="pre">asr_est</span></code> should be true, which turns on estimation of ancestral states.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s1">&#39;asr_est&#39;</span>           <span class="p">:</span> <span class="s1">&#39;T&#39;</span><span class="p">,</span>
+</pre></div>
+</div>
+<p>For models encoded as triplets where states can change at cladogenesis, like GeoSSE models in our current example, <code class="docutils literal notranslate"><span class="pre">asr_rotate</span></code> should be specified. This tells phyddle which states have correspond to the parent state with the same two daughter states, but with the left and right nodes reversed.
+This can be seen from the Rscript above, where the 3 state encoding (0, 1, or 2 for each parent and daughter) is turned into the 8 state encoding for each node.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s1">&#39;asr_rotate&#39;</span>        <span class="p">:</span> <span class="p">{</span><span class="mi">2</span> <span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+                       <span class="mi">3</span> <span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+                       <span class="mi">4</span> <span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+                       <span class="mi">5</span> <span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+                       <span class="mi">6</span> <span class="p">:</span> <span class="mi">7</span><span class="p">,</span>
+                       <span class="mi">7</span> <span class="p">:</span> <span class="mi">6</span> <span class="p">},</span>
+</pre></div>
+</div>
+<p>The following options relate only to creating annotated output tree files.
+These trees are created during the estimation step.
+By default, annotated files are only created from the empirical trees.
+These trees are written to the empirical directory with the suffix <code class="docutils literal notranslate"><span class="pre">.est.tre</span></code>.
+They will not impact training.</p>
+<p>To write a nexus file that contains tip states when the original states were specified as presence/absence for two regions, we need to tell phyddle how to write the two variables in a single variable.
+This specifies that tips in region 1 only will be annotated with state 0, tips in region 2 only will be annotated with state 1, and tips in both regions will be annotated with state 2.
+These should match the labels in RevGadgets if it is used for plotting.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s1">&#39;asr_map_tip_states&#39;</span>    <span class="p">:</span> <span class="p">{</span><span class="mi">0</span> <span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+                           <span class="mi">1</span> <span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+                           <span class="mi">2</span> <span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]},</span>
+</pre></div>
+</div>
+<p>It may be easier to think about results as the probability of each of the three possible ranges as the ancestral state for the parent and each of the two daughters, rather than the probability of each of the 8 possible triplets of states.
+<code class="docutils literal notranslate"><span class="pre">asr_map_triplet_states</span></code> allows phyddle to annotate the internal nodes with the probability of each of the possible ranges.
+For example, the probability the parent was in AB is given by the sum of the probabilities of states 2 through 7.
+If this is not specified, phyddle will report the probabilities of each of the 8 states instead.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s1">&#39;asr_map_triplet_states&#39;</span> <span class="p">:</span> <span class="p">{</span> <span class="mi">0</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>       <span class="c1"># A  -&gt; A ,  A</span>
+                             <span class="mi">1</span><span class="p">:</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>       <span class="c1"># B  -&gt; B ,  B</span>
+                             <span class="mi">2</span><span class="p">:</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>       <span class="c1"># AB -&gt; A ,  B</span>
+                             <span class="mi">3</span><span class="p">:</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>       <span class="c1"># AB -&gt; B ,  A</span>
+                             <span class="mi">4</span><span class="p">:</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>       <span class="c1"># AB -&gt; AB,  A</span>
+                             <span class="mi">5</span><span class="p">:</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>       <span class="c1"># AB -&gt; A , AB</span>
+                             <span class="mi">6</span><span class="p">:</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>       <span class="c1"># AB -&gt; AB,  B</span>
+                             <span class="mi">7</span><span class="p">:</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)},</span>      <span class="c1"># AB -&gt; B&#39;, AB</span>
+</pre></div>
+</div>
+<p>This specifies that the nexus files for the empirical data should be in RevBayes format.
+This is required to use RevGadgets, but contains less information about the less probable states in come cases.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s1">&#39;asr_rb_nexus&#39;</span> <span class="p">:</span> <span class="s1">&#39;T&#39;</span>
+</pre></div>
+</div>
+<p>Using the R script plot_tree.R, which uses the pacakge RevGadgets, we can plot the empirical tree.
+The result should be similar to the figure at the beginning of <a class="reference internal" href="#ancestral-state-reconstruction"><span class="std std-ref">Ancestral State Reconstruction</span></a>, but may vary slightly with different trainings.</p>
+</section>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="overview.html" class="btn btn-neutral float-left" title="Overview" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="examples.html" class="btn btn-neutral float-right" title="Examples" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

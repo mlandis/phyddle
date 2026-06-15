@@ -8,7 +8,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>phyddle &mdash; phyddle 0.3.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="_static/css/custom.css?v=d2c2efc5" />
 
   
@@ -16,8 +16,8 @@
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="_static/documentation_options.js?v=e259d695"></script>
-      <script src="_static/doctools.js?v=9bcbadda"></script>
-      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -49,6 +49,8 @@
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="advanced_features.html">Advanced Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="appendix.html">Appendix</a></li>
 </ul>
 
@@ -78,13 +80,9 @@
              
   <section id="phyddle">
 <h1>phyddle<a class="headerlink" href="#phyddle" title="Link to this heading"></a></h1>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p><strong>This beta version of phyddle is still under development.</strong> Feedback is appreciated! <a class="reference external" href="mailto:michael&#46;landis&#37;&#52;&#48;wustl&#46;edu">michael<span>&#46;</span>landis<span>&#64;</span>wustl<span>&#46;</span>edu</a></p>
-</div>
 <p><strong>phyddle</strong> is software for phylogenetic model exploration with deep learning. As a command-line tool and/or as a Python package, phyddle is designed for simulation-based supervised learning to train neural networks for phylogenetic model estimation tasks.</p>
 <p>A standard phyddle analysis performs the following tasks for you:</p>
-<a class="reference internal image-reference" href="_images/phyddle_pipeline.png"><img alt="_images/phyddle_pipeline.png" class="align-right" src="_images/phyddle_pipeline.png" style="width: 350px;" />
+<a class="reference internal image-reference" href="_images/phyddle_pipeline.png"><img alt="_images/phyddle_pipeline.png" class="align-right" src="_images/phyddle_pipeline.png" width="350" />
 </a>
 <ul class="simple">
 <li><p><strong>Pipeline configuration</strong> applies analysis settings provided through a config file and/or command line arguments.</p></li>
@@ -94,9 +92,17 @@
 <li><p><strong>Estimate</strong> produces model estimates for a new dataset with the trained network.</p></li>
 <li><p><strong>Plot</strong> generates figures that summarize the training data (<em>Format</em>), the network and its training (<em>Train</em>), and any estimates for new datasets (<em>Estimate</em>).</p></li>
 </ul>
-<p>In addition, phyddle is distributed with example scripts to simulate phylogenetic training datasets using <a class="reference external" href="https://www.r-project.org/">R</a>, <a class="reference external" href="https://www.python.org/">Python</a>, <a class="reference external" href="http://revbayes.com">RevBayes</a>, <a class="reference external" href="https://phylojunction.org/build/html/index.html">PhyloJunction</a> and <a class="reference external" href="https://tgvaughan.github.io/MASTER/">MASTER</a>. See <a class="reference external" href="https://www.sphinx-doc.org/en/master/examples.html#examples" title="(in Sphinx v9.1.0)"><span>Projects using Sphinx</span></a> for more information.</p>
+<p>In addition, phyddle is distributed with example scripts to simulate phylogenetic training datasets using <a class="reference external" href="https://www.r-project.org/">R</a>, <a class="reference external" href="https://www.python.org/">Python</a>, <a class="reference external" href="http://revbayes.com">RevBayes</a>, <a class="reference external" href="https://phylojunction.org/build/html/index.html">PhyloJunction</a> and <a class="reference external" href="https://tgvaughan.github.io/MASTER/">MASTER</a>. See <a class="reference internal" href="examples.html#examples"><span class="std std-ref">Examples</span></a> for more information.</p>
 <p>To learn how to use phyddle, we recommend exploring the topics from top-to-bottom as listed on the left-hand side of this page.
 Visit the <a class="reference internal" href="quick_start.html#quick-start"><span class="std std-ref">Quick start</span></a> and <a class="reference internal" href="installation.html#installation"><span class="std std-ref">Installation</span></a> pages to get started.</p>
+<p>Visit the <a class="reference external" href="https://github.com/mlandis/phyddle/discussions">GitHub Discussions</a> page to interact with other phyddle users and receive help.</p>
+<div class="admonition-please-cite admonition">
+<p class="admonition-title">Please cite</p>
+<div class="line-block">
+<div class="line"><strong>[1]</strong> MJ Landis and A Thompson. 2025. phyddle: software for exploring phylogenetic models with deep learning. <em>Systematic Biology</em> (in press).</div>
+<div class="line"><strong>[2]</strong> Thompson, B Liebeskind, EJ Scully, MJ Landis. 2024. Deep learning and likelihood approaches for viral phylogeography converge on the same answers whether the inference model is right or wrong. <em>Systematic Biology</em> 73:183-206.</div>
+</div>
+</div>
 <div class="toctree-wrapper compound">
 </div>
 </section>

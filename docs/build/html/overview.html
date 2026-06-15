@@ -8,7 +8,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Overview &mdash; phyddle 0.3.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="_static/css/custom.css?v=d2c2efc5" />
 
   
@@ -16,12 +16,12 @@
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="_static/documentation_options.js?v=e259d695"></script>
-      <script src="_static/doctools.js?v=9bcbadda"></script>
-      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Appendix" href="appendix.html" />
+    <link rel="next" title="Advanced Features" href="advanced_features.html" />
     <link rel="prev" title="Tutorial" href="tutorial.html" /> 
 </head>
 
@@ -85,15 +85,6 @@
 <li class="toctree-l3"><a class="reference internal" href="#auxiliary-data">Auxiliary data</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#ancestral-state-reconstruction">Ancestral State Reconstruction</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#marginal-estimation-preferred-method">Marginal Estimation (preferred method)</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#joint-estimation">Joint Estimation</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#single-node-estimation">Single Node Estimation</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#models-with-state-changes-at-cladogenesis">Models with state changes at cladogenesis</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#interpreting-the-output">Interpreting the output</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#producing-nexus-files">Producing nexus files</a></li>
-</ul>
-</li>
 <li class="toctree-l2"><a class="reference internal" href="#safe-usage">Safe Usage</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#poor-accuracy-or-coverage">Poor accuracy or coverage</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#undertraining-and-overtraining">Undertraining and overtraining</a></li>
@@ -110,6 +101,8 @@
 <li class="toctree-l2"><a class="reference internal" href="#example-run">Example run</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="advanced_features.html">Advanced Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="appendix.html">Appendix</a></li>
 </ul>
 
@@ -155,7 +148,7 @@ Main sections: <a class="reference internal" href="#configuration"><span class="
 <a class="reference internal" href="#formats"><span class="std std-ref">Formats</span></a>, and <a class="reference internal" href="#safe-usage"><span class="std std-ref">Safe Usage</span></a>. Visit <a class="reference external" href="https://www.sphinx-doc.org/en/master/glossary.html#glossary" title="(in Sphinx v9.1.0)"><span>Glossary</span></a> to learn
 more about how phyddle defines different terms.</p>
 </div>
-<a class="reference internal image-reference" href="_images/phyddle_pipeline.png"><img alt="_images/phyddle_pipeline.png" class="align-right" src="_images/phyddle_pipeline.png" style="width: 350px;" />
+<a class="reference internal image-reference" href="_images/phyddle_pipeline.png"><img alt="_images/phyddle_pipeline.png" class="align-right" src="_images/phyddle_pipeline.png" width="350" />
 </a>
 <p>A phyddle pipeline analysis has five steps: <a class="reference internal" href="#simulate"><span class="std std-ref">Simulate</span></a>, <a class="reference internal" href="#format"><span class="std std-ref">Format</span></a>,
 <a class="reference internal" href="#train"><span class="std std-ref">Train</span></a>, <a class="reference internal" href="#estimate"><span class="std std-ref">Estimate</span></a>, and <a class="reference internal" href="#plot"><span class="std std-ref">Plot</span></a>. Standard analyses run all
@@ -401,7 +394,7 @@ adjusted with the command line using the <code class="docutils literal notransla
                [--phy_kernel_plain] [--phy_kernel_stride] [--phy_kernel_dilate]
                [--phy_stride_stride] [--phy_dilate_dilate] [--warn_aux_outlier]
                [--warn_lbl_outlier] [--asr_nexus_test] [--asr_nexus_emp]
-               [--map_triplet_states] [--map_tip_states] [--rb_nexus]
+               [--asr_map_triplet_states] [--asr_map_tip_states] [--asr_rb_nexus]
                [--plot_train_color] [--plot_test_color] [--plot_val_color]
                [--plot_label_color] [--plot_phy_color] [--plot_aux_color]
                [--plot_emp_color] [--plot_num_scatter] [--plot_min_emp]
@@ -538,13 +531,13 @@ options:
                         test data
   --asr_nexus_emp       Write ancestral state reconstruction to nexus file for
                         empirical data
-  --map_triplet_states
+  --asr_map_triplet_states
                         Relabeling of encoding from one value for each triplet at
                         cladogenesis to parent, left daughter, right daughter for
                         the nexus file
-  --map_tip_states      Relabeling of tip data with multiple characters to a
+  --asr_map_tip_states  Relabeling of tip data with multiple characters to a
                         single character for the nexus format
-  --rb_nexus            Nexus format tree should be in RevGadgets compatible
+  --asr_rb_nexus        Nexus format tree should be in RevGadgets compatible
                         format
   --plot_train_color    Plotting color for training data elements
   --plot_test_color     Plotting color for test data elements
@@ -764,7 +757,8 @@ will be provided runtime arguments (<code class="docutils literal notranslate"><
 determine how many simulated datasets will be generated when the script is run
 (more details in next paragraph). Third, output for the Newick string is stored
 into a <code class="docutils literal notranslate"><span class="pre">.tre</span></code> file, for the character matrix data into a <code class="docutils literal notranslate"><span class="pre">.dat.csv</span></code> file,
-and for the training labels into a comma-separated <code class="docutils literal notranslate"><span class="pre">.csv</span></code> file.</p>
+and for the training labels into a comma-separated <code class="docutils literal notranslate"><span class="pre">.csv</span></code> file. Visit
+<a class="reference internal" href="#fmt-input-files"><span class="std std-ref">Input datasets</span></a> to learn more about input format requirements.</p>
 <p>Now that we understand the script, we need to configure phyddle to call it
 properly. This is done by setting the <code class="docutils literal notranslate"><span class="pre">sim_command</span></code> argument equal to a
 command string of the form <code class="docutils literal notranslate"><span class="pre">MY_COMMAND</span> <span class="pre">[MY_COMMAND_ARGUMENTS]</span></code>. During
@@ -817,10 +811,12 @@ The phylogenetic-state tensors used by phyddle are based on the compact
 bijective ladderized vector (<strong>CBLV</strong>) format of Voznica et al. (2022) and
 the compact diversity-reordered vector (<strong>CDV</strong>) format of
 Lambert et al. (2022) that incorporates tip states (<strong>CBLV+S</strong> and <strong>CDV+S</strong>)
-using the technique described in Thompson et al. (2022).</p></li>
+using the technique described in Thompson et al. (2022).
+Visit <a class="reference internal" href="#tensor-formats"><span class="std std-ref">Tensor formats</span></a> to learn more.</p></li>
 <li><p>The second input is the <strong>auxiliary data tensor</strong>. This tensor contains
 summary statistics for the phylogeny and character data matrix and “known”
-parameters for the data generating process.</p></li>
+parameters for the data generating process. Visit <a class="reference internal" href="#aux-data"><span class="std std-ref">Auxiliary data</span></a> to learn
+more.</p></li>
 <li><p>The output tensor reports <strong>labels</strong> that are generally unknown data
 generating parameters to be estimated using the neural network. Depending on
 the estimation task, all or only some model parameters might be treated as
@@ -1221,6 +1217,7 @@ produce the following files</p>
 <p>Each tree file contains a simple Newick string. Each data file contains state
 data either in Nexus format (<cite>.dat.nex</cite>) or simple comma-separated value format
 (<cite>.dat.csv</cite>) depending on the setting for <code class="docutils literal notranslate"><span class="pre">char_format</span></code>.</p>
+<p>Visit the <a class="reference internal" href="#fmt-input-files"><span class="std std-ref">Input datasets</span></a> section to learn about the exact format for these files.</p>
 </section>
 <section id="id11">
 <h3><code class="docutils literal notranslate"><span class="pre">format</span></code><a class="headerlink" href="#id11" title="Link to this heading"></a></h3>
@@ -1258,6 +1255,7 @@ set of ordered examples across three internal datasets stored in the file. HDF5
 format is not as easily readable as CSV format. However, phyddle uses gzip
 to automatically (de)compress records, which often leads to files that are
 over twenty times smaller than equivalent uncompressed CSV formatted tensors.</p>
+<p>Visit <a class="reference internal" href="#tensor-formats"><span class="std std-ref">Tensor formats</span></a> and <a class="reference internal" href="#aux-data"><span class="std std-ref">Auxiliary data</span></a> sections to learn more about how these data are formatted.</p>
 </section>
 <section id="id12">
 <h3><code class="docutils literal notranslate"><span class="pre">train</span></code><a class="headerlink" href="#id12" title="Link to this heading"></a></h3>
@@ -1410,6 +1408,7 @@ END<span class="p">;</span>
 <p>Character data may also be encoded in csv format (<cite>char_format = ‘csv’</cite>). For
 example:</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>cat<span class="w"> </span>./simulate/out.0.dat.nex
+taxa,char1,char2,char3
 <span class="m">1</span>,0,0,1
 <span class="m">2</span>,0,1,0
 <span class="m">3</span>,1,0,0
@@ -1420,6 +1419,10 @@ example:</p>
 <span class="m">8</span>,0,1,0
 </pre></div>
 </div>
+<p>This would represent a character matrix with 8 taxa and 3 characters with 2 states
+per character. phyddle will warn the user if there is a mismatch between the
+number of characters and states present in the character matrix and the numbers
+specified in the config file.</p>
 <p>Some models will accept “known” data-generating parameters as input. For example,
 if not all taxa were included in the phylogeny, a model might accept a sampling
 fraction label as input. Any labels that are marked under the <code class="docutils literal notranslate"><span class="pre">param_data</span></code>
@@ -1449,6 +1452,8 @@ determines if the tree is a <code class="docutils literal notranslate"><span cla
 <code class="docutils literal notranslate"><span class="pre">'extant'</span></code> tree encoded with CDV+S. Setting <code class="docutils literal notranslate"><span class="pre">brlen_encode</span></code> and
 <code class="docutils literal notranslate"><span class="pre">char_encode</span></code> alter how information is stored into the
 phylogenetic-state tensor.</p>
+<p>A phyddle code data to produce the examples below is available here:
+<a class="reference external" href="https://github.com/mlandis/phyddle/blob/main/docs/source/code/cpvs_example">link</a>.</p>
 <section id="cblv-s">
 <h4>CBLV+S<a class="headerlink" href="#cblv-s" title="Link to this heading"></a></h4>
 <p>This is an example for the CBLV+S encoding of 5 taxa with 2 characters. This
@@ -1507,7 +1512,7 @@ would look like this:</p>
 <span class="w">  </span><span class="m">0</span>,0,1,1,1,0,0,0,0,0<span class="w">  </span><span class="c1"># character 2</span>
 </pre></div>
 </div>
-<p>By default, all branch length entries are rescaled from 0 to 1 as proportion
+<p>By default, all branch length-related entries are rescaled from 0 to 1 as proportion
 to tree height (formatted to ease reading):</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1">#    C,   D,   A,   B,   E,   -,   -,   -,   -,   -</span>
 <span class="w">  </span><span class="m">1</span>.00,0.29,0.43,0.14,0.29,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span><span class="w">  </span><span class="c1"># tip-to-node distance</span>
@@ -1542,41 +1547,52 @@ yields the following CDV+S tensor:</p>
 <span class="c1">#       meaning rows correspond to taxa, and columns correspond to branch</span>
 <span class="c1">#       length information.</span>
 
-<span class="c1"># C,D,A,B,E,-,-,-,-,-</span>
-<span class="w">  </span><span class="m">0</span>,4,1,2,0,0,0,0,0,0<span class="w">  </span><span class="c1"># node-to-root distance</span>
-<span class="w">  </span><span class="m">3</span>,2,2,1,2,0,0,0,0,0<span class="w">  </span><span class="c1"># tip edge length</span>
-<span class="w">  </span><span class="m">0</span>,3,1,1,0,0,0,0,0,0<span class="w">  </span><span class="c1"># node edge length</span>
-<span class="w">  </span><span class="m">1</span>,1,0,1,0,0,0,0,0,0<span class="w">  </span><span class="c1"># character 1</span>
-<span class="w">  </span><span class="m">0</span>,0,1,1,1,0,0,0,0,0<span class="w">  </span><span class="c1"># character 2</span>
+<span class="c1"># B,A,C,D,E,-,-,-,-,-</span>
+<span class="w">  </span><span class="m">2</span>,1,4,0,0,0,0,0,0,0<span class="w">  </span><span class="c1"># node-to-root distance</span>
+<span class="w">  </span><span class="m">5</span>,5,3,3,7,0,0,0,0,0<span class="w">  </span><span class="c1"># tip edge length</span>
+<span class="w">  </span><span class="m">1</span>,1,3,0,0,0,0,0,0,0<span class="w">  </span><span class="c1"># node edge length</span>
+<span class="w">  </span><span class="m">1</span>,0,1,1,0,0,0,0,0,0<span class="w">  </span><span class="c1"># character 1</span>
+<span class="w">  </span><span class="m">1</span>,1,0,0,1,0,0,0,0,0<span class="w">  </span><span class="c1"># character 2</span>
+</pre></div>
+</div>
+<p>By default, all branch length-related entries are rescaled from 0 to 1 as proportion
+to tree height (formatted to ease reading):</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1">#    B,   A,   C,   D,   E,-,-,-,-,-</span>
+<span class="w">  </span><span class="m">0</span>.29,0.14,0.57,0.00,0.00,0,0,0,0,0<span class="w">  </span><span class="c1"># node-to-root distance</span>
+<span class="w">  </span><span class="m">0</span>.71,0.71,0.43,0.43,1.00,0,0,0,0,0<span class="w">  </span><span class="c1"># tip edge length</span>
+<span class="w">  </span><span class="m">0</span>.14,0.14,0.43,0.00,0.00,0,0,0,0,0<span class="w">  </span><span class="c1"># node edge length</span>
+<span class="w">     </span><span class="m">1</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">1</span>,<span class="w">   </span><span class="m">1</span>,<span class="w">   </span><span class="m">0</span>,0,0,0,0,0<span class="w">  </span><span class="c1"># character 1</span>
+<span class="w">     </span><span class="m">1</span>,<span class="w">   </span><span class="m">1</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">0</span>,<span class="w">   </span><span class="m">1</span>,0,0,0,0,0<span class="w">  </span><span class="c1"># character 2</span>
 </pre></div>
 </div>
 </section>
 </section>
 <section id="auxiliary-data">
-<h3>Auxiliary data<a class="headerlink" href="#auxiliary-data" title="Link to this heading"></a></h3>
+<span id="aux-data"></span><h3>Auxiliary data<a class="headerlink" href="#auxiliary-data" title="Link to this heading"></a></h3>
 <p>The auxiliary data tensor contains a panel of summary statistics extracted
-from the inputted phylogeny and character data matrix for a given dataset.
+from the inputted phylogeny and character data matrix for a given dataset:
 Currently, phyddle generates the following summary statistics:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">tree_length</span>       <span class="c1"># sum of branch lengths</span>
-<span class="n">num_taxa</span>          <span class="c1"># number of terminal taxa in tree/data</span>
-<span class="n">root_age</span>          <span class="c1"># longest root-to-tip distance</span>
-<span class="n">brlen_mean</span>        <span class="c1"># mean of branch lengths</span>
-<span class="n">brlen_var</span>         <span class="c1"># variance of branch lengths</span>
-<span class="n">brlen_skew</span>        <span class="c1"># skewness of branch lengths</span>
-<span class="n">age_mean</span>          <span class="c1"># mean of internal node ages</span>
-<span class="n">age_var</span>           <span class="c1"># variance of internal node ages</span>
-<span class="n">age_skew</span>          <span class="c1"># skewness of internal node ages</span>
-<span class="n">B1</span>                <span class="c1"># B1 tree measure (Dendropy)</span>
-<span class="n">N_bar</span>             <span class="c1"># N_bar tree measure (Dendropy)</span>
-<span class="n">colless</span>           <span class="c1"># Colless tree measure (Dendropy)</span>
-<span class="n">treeness</span>          <span class="c1"># treeness measure (Dendropy)</span>
-<span class="n">f_dat_0</span>           <span class="c1"># frequency of taxa with character in state 0</span>
-<span class="n">f_dat_1</span>           <span class="c1"># frequency of taxa with character in state 1</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">log10_tree_length</span>       <span class="c1"># sum of branch lengths</span>
+<span class="n">log10_root_age</span>          <span class="c1"># longest root-to-tip distance</span>
+<span class="n">log10_brlen_mean</span>        <span class="c1"># mean of branch lengths</span>
+<span class="n">log10_age_mean</span>          <span class="c1"># mean of internal node ages</span>
+<span class="n">age_var</span>                 <span class="c1"># variance of internal node ages</span>
+<span class="n">brlen_var</span>               <span class="c1"># variance of branch lengths</span>
+<span class="n">log10_B1</span>                <span class="c1"># B1 tree measure (Dendropy)</span>
+<span class="n">colless</span>                 <span class="c1"># Colless tree measure (Dendropy)</span>
+<span class="n">treeness</span>                <span class="c1"># treeness measure (Dendropy)</span>
+<span class="n">N_bar</span>                   <span class="c1"># N_bar tree measure (Dendropy)</span>
+<span class="n">f_dat_0</span>                 <span class="c1"># frequency of taxa with character in state 0</span>
+<span class="n">f_dat_1</span>                 <span class="c1"># frequency of taxa with character in state 1</span>
+<span class="n">n_dat_0</span>                 <span class="c1"># count of taxa with character in state 0</span>
+<span class="n">n_dat_1</span>                 <span class="c1"># count of taxa with character in state 0</span>
+<span class="n">num_taxa</span>                <span class="c1"># number of terminal taxa in tree/data</span>
+<span class="n">prop_taxa</span>               <span class="c1"># proportion of taxa retained after downsampling to tree_width</span>
 <span class="o">...</span>
 </pre></div>
 </div>
-<p>The auxiliary data tensor also contains any parameter values that shape the
-data-generating process, but can be treated as “known” rather than needing to
+<p>The auxiliary data tensor can also contain specified parameter values that shape the
+data-generating process and can be treated as “known” rather than needing to
 be estimated. For example, the epidemiologists may assume they know the rate of
 infection recovery (gamma) based on public health or clinical data. Parameters
 may be treated as data by providing the labels for those parameters in the
@@ -1586,236 +1602,8 @@ rate and susceptible population sizes for location 0 are known for a
 phylogenetic SIR analysis.</p>
 </section>
 </section>
-<section id="ancestral-state-reconstruction">
-<span id="id17"></span><h2>Ancestral State Reconstruction<a class="headerlink" href="#ancestral-state-reconstruction" title="Link to this heading"></a></h2>
-<p>Ancestral states can be estimated with phyddle.
-To do so, the internal nodes must be named in the input phylogenies.
-There is no required format for the names, though characters used in Newick formatting such as paratheses, commas, and brackets should not be used in internal node names.
-In addition to the standard files needed for an analysis, such as the <code class="docutils literal notranslate"><span class="pre">.dat.cvs</span></code>  <code class="docutils literal notranslate"><span class="pre">.labels.csv</span></code>,  and <code class="docutils literal notranslate"><span class="pre">.tre</span></code> files , a file <code class="docutils literal notranslate"><span class="pre">prefix.idx.anc_state.csv</span></code> is required for each simulated dataset.
-This should contain the node names in the first column and the ancestral state in the second column, separated by a comma.
-This file should be produced by the simulation script.
-The ancestral states should be numeric and zero indexed.
-Phyddle will still run if the state are not zero indexed, but the states will be zero indexed internally which will be reflected in the output.
-Below is an example for a tree with 9 internal nodes and a binary character. In this example, node9 has a true history of being in state 0 and node8 is in state 1.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">node9</span><span class="p">,</span><span class="mi">0</span>
-<span class="n">node8</span><span class="p">,</span><span class="mi">1</span>
-<span class="n">node1</span><span class="p">,</span><span class="mi">1</span>
-<span class="n">node2</span><span class="p">,</span><span class="mi">1</span>
-<span class="n">node5</span><span class="p">,</span><span class="mi">0</span>
-<span class="n">node3</span><span class="p">,</span><span class="mi">0</span>
-<span class="n">node6</span><span class="p">,</span><span class="mi">1</span>
-<span class="n">node7</span><span class="p">,</span><span class="mi">1</span>
-<span class="n">node4</span><span class="p">,</span><span class="mi">1</span>
-</pre></div>
-</div>
-<p>Downsampling is not implemented with ancestral state reconstruction since different ancestral nodes will be present with different samples.
-If any of the trees are larger than the specified maximum tree size (<code class="docutils literal notranslate"><span class="pre">tree_width</span></code>), subsample the trees in the simulation script.</p>
-<p>Ancestral state can be estimated three ways with phyddle.
-Only one ancestral state estimation option should be specified at a time.</p>
-<section id="marginal-estimation-preferred-method">
-<h3>Marginal Estimation (preferred method)<a class="headerlink" href="#marginal-estimation-preferred-method" title="Link to this heading"></a></h3>
-<p>The marginal estimation method estimates the ancestral state for each node in the phylogeny as a categorical variable.
-With a maximum tree size (<code class="docutils literal notranslate"><span class="pre">tree_width</span></code>)  of n, there will be n-1 categorical variables corresponding
-to ancestral states.
-To use the marginal estimation method, set <code class="docutils literal notranslate"><span class="pre">asr_est</span> <span class="pre">=</span> <span class="pre">'T'</span></code> in the config file.
-This will create <code class="docutils literal notranslate"><span class="pre">tree_width</span> <span class="pre">-</span> <span class="pre">1</span></code> categorical variables to estimate, one for each internal node
-in the tree, plus additional zero-padded states for non-existent internal nodes if the tree is smaller than <code class="docutils literal notranslate"><span class="pre">tree_width</span></code>.
-These are labeled <code class="docutils literal notranslate"><span class="pre">asr_0</span></code>, <code class="docutils literal notranslate"><span class="pre">asr_1</span></code>, etc.
-The additional zero-padded states can generally be ignored, though they are included in
-the plot summaries and may need to be removed to assess performance for variable sized trees.
-We suggest that the marginal method is used since it scales better than the other options to estimate ancestrals states.</p>
-</section>
-<section id="joint-estimation">
-<h3>Joint Estimation<a class="headerlink" href="#joint-estimation" title="Link to this heading"></a></h3>
-<p>For the joint estimation method, a single cateogorical variable is estimated for the
-entire tree.
-There are s^(n-1) categories, where n is the number of tips (<code class="docutils literal notranslate"><span class="pre">max_num_taxa</span></code>) and s is the number of possible states for the character.
-To use the joint estimation method, set <code class="docutils literal notranslate"><span class="pre">asr_est</span> <span class="pre">=</span> <span class="pre">'T'</span></code> and <code class="docutils literal notranslate"><span class="pre">asr_1_cat</span> <span class="pre">=</span> <span class="pre">'T'</span></code>  in the config file.
-<code class="docutils literal notranslate"><span class="pre">num_states</span></code> should be equal to (n-1)^s.
-For example, for a binary character on trees with 4 tips the config file should include</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s1">&#39;num_char&#39;</span>          <span class="p">:</span> <span class="mi">1</span><span class="p">,</span>                <span class="c1"># number of evolutionary characters</span>
-<span class="s1">&#39;num_states&#39;</span>        <span class="p">:</span> <span class="mi">8</span><span class="p">,</span>                <span class="c1"># number of states per character</span>
-<span class="s1">&#39;asr_est&#39;</span>           <span class="p">:</span> <span class="s1">&#39;T&#39;</span><span class="p">,</span>              <span class="c1"># estimate ancestral states</span>
-<span class="s1">&#39;asr_1_cat&#39;</span>         <span class="p">:</span> <span class="s1">&#39;T&#39;</span><span class="p">,</span>              <span class="c1"># estimate a single categorical variable for ancestral states</span>
-
-<span class="s1">&#39;min_num_taxa&#39;</span>       <span class="p">:</span> <span class="mi">4</span><span class="p">,</span>               <span class="c1"># Minimum number of taxa allowed when formatting</span>
-<span class="s1">&#39;max_num_taxa&#39;</span>       <span class="p">:</span> <span class="mi">4</span><span class="p">,</span>               <span class="c1"># Maximum number of taxa allowed when formatting</span>
-</pre></div>
-</div>
-<p>This method is not expected to work well with more than a small number of taxa or states since the number of categories scales exponentially.</p>
-</section>
-<section id="single-node-estimation">
-<h3>Single Node Estimation<a class="headerlink" href="#single-node-estimation" title="Link to this heading"></a></h3>
-<p>In the single node estimation method, the name of single node is given as input
-and the ancestral state for that node alone is estimated. To estimate with this method,
-set <code class="docutils literal notranslate"><span class="pre">asr_one</span> <span class="pre">=</span> <span class="pre">'T'</span></code> in the config file.
-Additionally, the parameters to estimate should include <code class="docutils literal notranslate"><span class="pre">asr_node_state</span></code> and the parameters to treat as data should include <code class="docutils literal notranslate"><span class="pre">asr_node_label</span></code>, as shown below.
-<code class="docutils literal notranslate"><span class="pre">asr_node_label</span></code> is the name of the node in the tree file and <code class="docutils literal notranslate"><span class="pre">asr_node_state</span></code> is the ancestral state of the node.
-Note that <code class="docutils literal notranslate"><span class="pre">asr_node_label</span></code> should be listed as a numeric variable, even though it is a string.
-This is because phyddle takes the original node name and finds the index of the node in the formatted tree, which is a numeric variable, not a string.</p>
-<p>This method may not scale with tree size as only a single node per tree is used for training.
-This may result in requiring much larger training datasets than the other methods.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s1">&#39;asr_one&#39;</span>           <span class="p">:</span> <span class="s1">&#39;T&#39;</span><span class="p">,</span>
-<span class="s1">&#39;param_est&#39;</span>         <span class="p">:</span> <span class="p">{</span><span class="s1">&#39;asr_node_state&#39;</span>     <span class="p">:</span> <span class="s1">&#39;cat&#39;</span><span class="p">},</span>
-<span class="s1">&#39;param_data&#39;</span>        <span class="p">:</span> <span class="p">{</span><span class="s1">&#39;asr_node_label&#39;</span>     <span class="p">:</span> <span class="s1">&#39;num&#39;</span><span class="p">},</span>
-</pre></div>
-</div>
-<p>The internal node name and the true ancestral should be provided in the <code class="docutils literal notranslate"><span class="pre">labels.csv</span></code> file, as shown below.
-In the example, the ancestral state should be estimated for node1 and the true ancestral state is 1.
-The true state can be left out for empirical data.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">asr_node_label</span><span class="p">,</span><span class="n">asr_node_state</span>
-<span class="n">node1</span><span class="p">,</span><span class="mi">1</span>
-</pre></div>
-</div>
-</section>
-<section id="models-with-state-changes-at-cladogenesis">
-<h3>Models with state changes at cladogenesis<a class="headerlink" href="#models-with-state-changes-at-cladogenesis" title="Link to this heading"></a></h3>
-<p>For some models, such as GeoSSE, states may change at cladogenesis.
-This means the parent and daughters may not all have the same states.
-GeoSSE models ranges as a collection of one or more discete regions.
-In this example, there are two regions, A and B and a lineage may be in region A, region B, or both regions A and B.
-The GeoSSE model allows parents and daughters to have different states immediately before and immediately after cladogenesis, but limits the possible combination of parent and daughter states.
-The 8 allowed transitions with 2 regions are listed below.
-For full description of the model, see Goldberg et al. 2011.
-In principle, only the parent state could be estimated or the three states could be encoded as a single state without discriminating between which daughter is left vs right.
-In practice, this does not appear to work very well.
-Instead, the user can assign ancestral states that differentiate the left vs right daughters.
-For example, the ancestral states for a GeoSSE model could be encoded as follows, where the first value represents the encoding for the ancestral state and to the left of the colon are the states in the order parent-&gt;left,right.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mi">0</span><span class="p">:</span> <span class="n">A</span>  <span class="o">-&gt;</span> <span class="n">A</span> <span class="p">,</span>  <span class="n">A</span>
-<span class="mi">1</span><span class="p">:</span> <span class="n">B</span>  <span class="o">-&gt;</span> <span class="n">B</span> <span class="p">,</span>  <span class="n">B</span>
-<span class="mi">2</span><span class="p">:</span> <span class="n">AB</span> <span class="o">-&gt;</span> <span class="n">A</span> <span class="p">,</span>  <span class="n">B</span>
-<span class="mi">3</span><span class="p">:</span> <span class="n">AB</span> <span class="o">-&gt;</span> <span class="n">B</span> <span class="p">,</span>  <span class="n">A</span>
-<span class="mi">4</span><span class="p">:</span> <span class="n">AB</span> <span class="o">-&gt;</span> <span class="n">AB</span><span class="p">,</span>  <span class="n">A</span>
-<span class="mi">5</span><span class="p">:</span> <span class="n">AB</span> <span class="o">-&gt;</span> <span class="n">A</span> <span class="p">,</span> <span class="n">AB</span>
-<span class="mi">6</span><span class="p">:</span> <span class="n">AB</span> <span class="o">-&gt;</span> <span class="n">AB</span><span class="p">,</span>  <span class="n">B</span>
-<span class="mi">7</span><span class="p">:</span> <span class="n">AB</span> <span class="o">-&gt;</span> <span class="n">B</span> <span class="p">,</span> <span class="n">AB</span>
-</pre></div>
-</div>
-<p>Note that  AB-&gt;A,B and AB-&gt;B,A have different ancestral states, since the states A and B are in different daughters.
-Phyddle does not need to mapping of the numbers 0-7 to the geographic ranges.
-It only uses the 0-7 encoding.
-These 0-7 states should then be used in the <code class="docutils literal notranslate"><span class="pre">prefix.idx.anc_state.csv</span></code> file, rather than the actual states ranges.
-The order of the states is arbitrary, and should be specified in the simulation script.
-In the above example, states 2 and 3 are different, since the left daughter is in state A for 2 but the right daughter is in state A for state 3.
-However, phyddle rotates the internal nodes in the tree during formatting.
-Thus, the user must specify which states are the same with the nodes rotated using <code class="docutils literal notranslate"><span class="pre">asr_rotate</span></code> in the config file.
-In the example, the pairs of states (2,3), (4,5), and (6,7) have the same parent and daughter states with the daughters rotated.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s1">&#39;asr_rotate&#39;</span>        <span class="p">:</span> <span class="p">{</span><span class="mi">2</span> <span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
-                       <span class="mi">3</span> <span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
-                       <span class="mi">4</span> <span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
-                       <span class="mi">5</span> <span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
-                       <span class="mi">6</span> <span class="p">:</span> <span class="mi">7</span><span class="p">,</span>
-                       <span class="mi">7</span> <span class="p">:</span> <span class="mi">6</span> <span class="p">},</span>
-</pre></div>
-</div>
-<div class="admonition warning">
-<p class="admonition-title">Warning</p>
-<p>Many simulation methods where states can change at cladogenesis have a default for how states are inherited. For example, in a GeoSSE model if a parent with range AB has a daughters with range A and  a daughter with range B, the left daughter may always be in range A and the right daughter may always be in range B.
-While this should not cause issues for likelihood based methods, this may cause issues for ancestral state estimation using machine learning as not all patterns will be present in the data, particulary at the tips. To address this, the nodes in the tree can be randomly rotated before writing the tree to file.</p>
-</div>
-</section>
-<section id="interpreting-the-output">
-<h3>Interpreting the output<a class="headerlink" href="#interpreting-the-output" title="Link to this heading"></a></h3>
-<p>Phyddle always estimates the same variables given a particular trained network.
-To allow for different node names on different trees, each internal node is assigned an index from 0 to n-1, where  n is the number of taxa, according to an inorder traversal on the formatted tree.
-This ordering may also improved phyddle’s performance.
-For both the marginal and joint estimation methods, the mapping of the the original internal node names to the phyddle node indeces are written to a file in the <code class="docutils literal notranslate"><span class="pre">sim_dir</span></code> with the suffix <code class="docutils literal notranslate"><span class="pre">node_label.csv</span></code>, such as shown below for an original tree with 9 internal nodes.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">original</span><span class="p">,</span><span class="n">new</span>
-<span class="n">node9</span><span class="p">,</span><span class="mi">0</span>
-<span class="n">node8</span><span class="p">,</span><span class="mi">1</span>
-<span class="n">node1</span><span class="p">,</span><span class="mi">2</span>
-<span class="n">node2</span><span class="p">,</span><span class="mi">3</span>
-<span class="n">node5</span><span class="p">,</span><span class="mi">4</span>
-<span class="n">node3</span><span class="p">,</span><span class="mi">5</span>
-<span class="n">node6</span><span class="p">,</span><span class="mi">6</span>
-<span class="n">node7</span><span class="p">,</span><span class="mi">7</span>
-<span class="n">node4</span><span class="p">,</span><span class="mi">8</span>
-</pre></div>
-</div>
-<p>For this example, the variable <code class="docutils literal notranslate"><span class="pre">asr_0</span></code> will correspond to the ancestral state at node9 in the original tree.
-Then, when using with the marginal estimation strategy, the variables to estimate are <code class="docutils literal notranslate"><span class="pre">asr_0</span></code>, <code class="docutils literal notranslate"><span class="pre">asr_1</span></code>, … <code class="docutils literal notranslate"><span class="pre">asr_(n-1)</span></code> where n is the <code class="docutils literal notranslate"><span class="pre">tree_width</span></code>.
-In the joint estimation strategy, a file <code class="docutils literal notranslate"><span class="pre">state_mapping.csv</span></code> will be written in the <code class="docutils literal notranslate"><span class="pre">fmt_dir</span></code>.
-This file contains the states inferred by phyddle and that internal nodes states with which they corespond.
-For example, with a 4 tip tree and 2 states, the file is</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># state,node_0,node_1,node_2</span>
-<span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span>
-<span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span>
-<span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span>
-<span class="mi">3</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span>
-<span class="mi">4</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span>
-<span class="mi">5</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span>
-<span class="mi">6</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span>
-<span class="mi">7</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span>
-</pre></div>
-</div>
-<p>For example, if state 1 is inferred by phyddle, the internal nodes with indeces 0 and 1 have ancestral state 0 and the internal node with index 2 has ancestral state 1.</p>
-<p>With the single node strategy, the variable to estimate is called <code class="docutils literal notranslate"><span class="pre">asr_node_state</span></code> and understanding the indexing is not required for the user.</p>
-<p>One way to view the output is to look at the output files that phyddle produces for all analyses, such as the plots in <code class="docutils literal notranslate"><span class="pre">plt_dir</span></code> and the csv in <code class="docutils literal notranslate"><span class="pre">est_dir</span></code>.
-Note that in the plots for the simulated data, the performance is averaged across all trees.
-When the trees are smaller than the <code class="docutils literal notranslate"><span class="pre">tree_width</span></code>, zero-padding is used for the additional nodes.
-This means that if the trees are variably size, the network is estimating the location of the zero-padding for smaller tree instead of an actual ancestral state for some estimated variables.
-This may appear to inflate the performance for larger node numbers in the test dataset.
-To avoid this, the user may wish to use the csv files in <code class="docutils literal notranslate"><span class="pre">est_dir</span></code> and remove the estimates that do not correspond to real nodes on the tree.
-To look at individual trees, the user can match the node names with the node indeces used in phyddle  using <code class="docutils literal notranslate"><span class="pre">node_label.csv</span></code> file to find the estimates in the output csv file.
-If the option <code class="docutils literal notranslate"><span class="pre">asr_rotate</span></code> was used, the results should be viewed on the formatted tree, which has the suffix <code class="docutils literal notranslate"><span class="pre">form.tre</span></code> rather than the original tree.
-This option is for models where the left vs right orientation of the daughters changes the ancestral state reconstruction.</p>
-</section>
-<section id="producing-nexus-files">
-<h3>Producing nexus files<a class="headerlink" href="#producing-nexus-files" title="Link to this heading"></a></h3>
-<p>Viewing the standard phyddle output files may be tedious since the mapping between the node names and the indeces in phyddle will be different for every tree.
-As a more user friendly way to view results on a single tree at a time, phyddle can write the inferred ancestral states to a nexus file when the marginal inference method is used.
-By default, nexus files are created for the empirical data, but not the test data.
-The defaults can be changed using <code class="docutils literal notranslate"><span class="pre">asr_nexus_emp</span></code> and <code class="docutils literal notranslate"><span class="pre">asr_nexus_test</span></code>.
-The trees are written to either <code class="docutils literal notranslate"><span class="pre">emp_dir</span></code> and/or <code class="docutils literal notranslate"><span class="pre">sim_dir</span></code> to files with the suffix <code class="docutils literal notranslate"><span class="pre">est.tre</span></code>.
-The ancestral states are written as annotations in the tree.
-<code class="docutils literal notranslate"><span class="pre">anc_state_1</span></code> corresponds to the ancestral state with the highest probability, <code class="docutils literal notranslate"><span class="pre">anc_state_2</span></code> to the state with the second highest probability, etc.
-<code class="docutils literal notranslate"><span class="pre">anc_state_1_pp</span></code> is the probability of the state with the highest probability.
-The other states are labeled similarly.
-These labels will match the numbering used internally in phyddle, which are zero indexed.
-If the training data had ancestral states labeled as 1 or 2, the inferred ancestral states will be 0 or 1.
-The tip states are annotated with the labels used in <code class="docutils literal notranslate"><span class="pre">dat.csv</span></code>.</p>
-<p>RevBayes/RevGadgets compatible nexus files can be produced instead of the above format by specifying <code class="docutils literal notranslate"><span class="pre">rb_nexus</span> <span class="pre">=</span> <span class="pre">'T'</span></code> in the config file.
-This format only records up to 3 ancestral states per node and add the probability of additional ancestral states to an other state category.
-If there are data for multiple characters at the tips, the option <code class="docutils literal notranslate"><span class="pre">map_tip_states</span></code> must be included to use the RevBayes compatible nexus files.
-This option specifies a dictionary where the key is the desired state number and the value is the data at the tips in the same order specified in the <code class="docutils literal notranslate"><span class="pre">.dat.csv</span></code> file.
-For example, in the <code class="docutils literal notranslate"><span class="pre">.dat.csv</span></code> beginning as shown below, each species is either present or absent in region1 and region2.
-Note that no species is present in neither region in this example.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">taxa</span><span class="p">,</span><span class="n">region1</span><span class="p">,</span><span class="n">region2</span>
-<span class="n">sp1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span>
-<span class="n">sp2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span>
-<span class="n">sp3</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span>
-<span class="o">...</span>
-</pre></div>
-</div>
-<p>Then <code class="docutils literal notranslate"><span class="pre">map_tip_states</span></code> dictionary should have 3 states corresponding the 3 possible patterns of presence and absence.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s1">&#39;map_tip_states&#39;</span>    <span class="p">:</span> <span class="p">{</span><span class="mi">0</span> <span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
-                       <span class="mi">1</span> <span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
-                       <span class="mi">2</span> <span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]},</span>
-</pre></div>
-</div>
-<p>For models where states can change at cladogenesis, rather than annotating the states at the node as a triplet, the start and end state can be annotated on each branch.
-To do this, use <code class="docutils literal notranslate"><span class="pre">map_triplet_states</span></code> in the config file.
-This specifies a dictionary where the key is the label in training data and the value is the parent, left daughter, and right daughter.
-The values should be numeric, separated by commas, and enclosed in parenthesis, as shown below.
-The keys should match how the simulation script encoded the node labels, except if the original labels were not zero indexed.
-If the original labels were not zero indexed, they should be shifted to start a 0 and go to n-1 for n possible categories.
-In this example, the ancestral states in <code class="docutils literal notranslate"><span class="pre">.anc_state.csv</span></code> were integers between 0 and 7.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s1">&#39;map_triplet_states&#39;</span> <span class="p">:</span> <span class="p">{</span> <span class="mi">0</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>       <span class="c1"># A  -&gt; A ,  A</span>
-                         <span class="mi">1</span><span class="p">:</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>       <span class="c1"># B  -&gt; B ,  B</span>
-                         <span class="mi">2</span><span class="p">:</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>       <span class="c1"># AB -&gt; A ,  B</span>
-                         <span class="mi">3</span><span class="p">:</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>       <span class="c1"># AB -&gt; B ,  A</span>
-                         <span class="mi">4</span><span class="p">:</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>       <span class="c1"># AB -&gt; AB,  A</span>
-                         <span class="mi">5</span><span class="p">:</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>       <span class="c1"># AB -&gt; A , AB</span>
-                         <span class="mi">6</span><span class="p">:</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>       <span class="c1"># AB -&gt; AB,  B</span>
-                         <span class="mi">7</span><span class="p">:</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)},</span>      <span class="c1"># AB -&gt; B&#39;, AB</span>
-</pre></div>
-</div>
-<p>In the example, nodes inferred to be in categories 2-7 had parents in state 2 (AB).
-This format can be used with plotting functions within RevGadgets, such as <code class="docutils literal notranslate"><span class="pre">plotAncStatesPie</span></code>.</p>
-</section>
-</section>
 <section id="safe-usage">
-<span id="id18"></span><h2>Safe Usage<a class="headerlink" href="#safe-usage" title="Link to this heading"></a></h2>
+<span id="id17"></span><h2>Safe Usage<a class="headerlink" href="#safe-usage" title="Link to this heading"></a></h2>
 <p>We designed phyddle to be user-friendly. However, we caution users that
 deep learning approaches can easily produce nonsensical and/or misleading
 results when irresponsibly. Below, we describe several issues that newcomers
@@ -2201,7 +1989,7 @@ character data, without needing this workaround.</p>
 <p><strong>Quick access to workspace directories from console via GUI</strong></p>
 <p>On Mac OS X, you can press the Option key and click a directory path to open
 a Finder window to that directory.</p>
-<a class="reference internal image-reference" href="_images/click_directory.png"><img alt="_images/click_directory.png" class="align-center" src="_images/click_directory.png" style="width: 497.4px; height: 354.0px;" />
+<a class="reference internal image-reference" href="_images/click_directory.png"><img alt="_images/click_directory.png" class="align-center" height="354" src="_images/click_directory.png" width="497" />
 </a>
 </section>
 <section id="example-run">
@@ -2353,7 +2141,7 @@ Training epoch 10 of 10: 100%|██████████████| 44/44 
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="tutorial.html" class="btn btn-neutral float-left" title="Tutorial" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="appendix.html" class="btn btn-neutral float-right" title="Appendix" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="advanced_features.html" class="btn btn-neutral float-right" title="Advanced Features" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
