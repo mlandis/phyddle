@@ -104,7 +104,7 @@ class Trainer:
         self.trn_batch_size     = int(args['trn_batch_size'])
         self.cpi_coverage       = float(args['cpi_coverage'])
         self.cpi_asymmetric     = bool(args['cpi_asymmetric'])
-        self.cpi_method          = "acp"
+        self.cpi_method         = str(args['cpi_method'])
         self.loss_numerical     = str(args['loss_numerical'])
         self.loss_aggregation   = str(args['loss_aggregation'])
         self.use_cuda           = bool(args['use_cuda'])
@@ -604,9 +604,11 @@ class CnnTrainer(Trainer):
         q_lower = q_tail
         q_upper = 1.0 - q_tail
         loss_value_func = self.make_loss_numerical_func()
-        #loss_lower_func = network.QuantileLoss(alpha=q_lower)
-        #loss_upper_func = network.QuantileLoss(alpha=q_upper)
-        loss_scale_func = network.HeteroscedasticMSELoss()
+        if self.cpi_method == 'cqr':
+            loss_lower_func = network.QuantileLoss(alpha=q_lower)
+            loss_upper_func = network.QuantileLoss(alpha=q_upper)
+        elif self.cpi_method == 'acp':
+            loss_scale_func = network.HeteroscedasticMSELoss()
         loss_categ_func = network.CrossEntropyLoss()
         # loss_aggregation = 'weighted'
         
@@ -702,14 +704,16 @@ class CnnTrainer(Trainer):
                 # calculating the loss between original and predicted data points
                 loss_list = list()
                 if self.has_label_num:
-                    # loss_value = loss_value_func(lbls_hat[0], lbl_num)
-                    # loss_lower = loss_lower_func(lbls_hat[1], lbl_num)
-                    # loss_upper = loss_upper_func(lbls_hat[2], lbl_num)
-                    # loss_list += [ loss_value, loss_lower, loss_upper ]
-                    loss_value = loss_scale_func(lbls_hat[0], lbls_hat[1], lbl_num )
-                    loss_lower = loss_value
-                    loss_upper = loss_value
-                    loss_list += [ loss_value ]
+                    if self.cpi_method == 'cqr':
+                        loss_value = loss_value_func(lbls_hat[0], lbl_num)
+                        loss_lower = loss_lower_func(lbls_hat[1], lbl_num)
+                        loss_upper = loss_upper_func(lbls_hat[2], lbl_num)
+                        loss_list += [ loss_value, loss_lower, loss_upper ]
+                    elif self.cpi_method == 'acp':
+                        loss_value = loss_scale_func(lbls_hat[0], lbls_hat[1], lbl_num )
+                        loss_lower = loss_value
+                        loss_upper = loss_value
+                        loss_list += [ loss_value ]
                 if self.has_label_cat:
                     loss_categ = loss_categ_func(lbls_hat[3], lbl_cat)
                     loss_list += [ loss_categ ]
@@ -755,14 +759,16 @@ class CnnTrainer(Trainer):
             val_loss_upper = 0.
             val_loss_combined = 0.
             if self.has_label_num:
-                # val_loss_value = loss_value_func(val_lbls_hat[0], val_lbl_num).item()
-                # val_loss_lower = loss_lower_func(val_lbls_hat[1], val_lbl_num).item()
-                # val_loss_upper = loss_upper_func(val_lbls_hat[2], val_lbl_num).item()
-                # val_loss_list += [ val_loss_value, val_loss_lower, val_loss_upper ]
-                val_loss_value = loss_scale_func(val_lbls_hat[0], val_lbls_hat[1], val_lbl_num ).item()
-                val_loss_lower = val_loss_value
-                val_loss_upper = val_loss_value
-                val_loss_list += [ val_loss_value ]
+                if self.cpi_method == 'cqr':
+                    val_loss_value = loss_value_func(val_lbls_hat[0], val_lbl_num).item()
+                    val_loss_lower = loss_lower_func(val_lbls_hat[1], val_lbl_num).item()
+                    val_loss_upper = loss_upper_func(val_lbls_hat[2], val_lbl_num).item()
+                    val_loss_list += [ val_loss_value, val_loss_lower, val_loss_upper ]
+                elif self.cpi_method == 'acp':
+                    val_loss_value = loss_scale_func(val_lbls_hat[0], val_lbls_hat[1], val_lbl_num ).item()
+                    val_loss_lower = val_loss_value
+                    val_loss_upper = val_loss_value
+                    val_loss_list += [ val_loss_value ]
             # val_loss_combined  = val_loss_value + val_loss_lower + val_loss_upper
             if self.has_label_cat:
                 val_loss_categ = loss_categ_func(val_lbls_hat[3], val_lbl_cat).item()
@@ -1032,7 +1038,7 @@ class CnnTrainer(Trainer):
                 labels_num_est_calib[2,:,:] = labels_num_est_calib[2,:,:] + self.cpi_adjustments[1,:]
             elif self.cpi_method == "cqr" and not self.cpi_asymmetric:
                 labels_num_est_calib[1,:,:] = labels_num_est_calib[1,:,:] - self.cpi_adjustments[0,:]
-                labels_num_est_calib[2,:,:] = labels_num_est_calib[2,:,:] + self.cpi_adjustments[1,:]
+                labels_num_est_calib[2,:,:] = labels_num_est_calib[2,:,:] + self.cpi_adjustments[0,:]
                 
             # denormalize calibrated estimates
             self.train_label_num_est_calib = labels_num_est_calib
