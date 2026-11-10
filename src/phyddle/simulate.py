@@ -237,6 +237,7 @@ class Simulator:
         # dispatch jobs
         util.print_str('▪ Simulating raw data', verbose)
         if self.use_parallel:
+            util.print_str(f'  ▪ Using {self.num_proc} processors', verbose)
             # parallel jobs
             # Note, it's critical to call this as list(tqdm(pool.imap(...)))
             # - pool.imap runs the parallelization
@@ -347,7 +348,7 @@ class Simulator:
         valid_lbl = []
         valid_dat = []
         valid_all = []
-        print("checking valid")
+        #print("checking valid")
         for idx in sim_idx:
             
             # check if replicate has tree, labels, and data files
