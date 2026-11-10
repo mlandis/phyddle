@@ -110,6 +110,7 @@ class Trainer:
         self.trn_batch_size     = int(args['trn_batch_size'])
         self.cpi_coverage       = float(args['cpi_coverage'])
         self.cpi_asymmetric     = bool(args['cpi_asymmetric'])
+        self.cpi_method         = str(args['cpi_method'])
         self.loss_numerical     = str(args['loss_numerical'])
         self.loss_aggregation   = str(args['loss_aggregation'])
         self.use_cuda           = bool(args['use_cuda'])
@@ -456,6 +457,7 @@ class CnnTrainer(Trainer):
         self.norm_calib_labels_num = util.normalize(full_labels_num[calib_idx,:],
                                                      self.train_labels_num_mean_sd)
 
+
         # create phylogenetic data tensors
         train_phy_data_tensor = full_phy_data[train_idx,:,:]
         val_phy_data_tensor = full_phy_data[val_idx,:,:]
@@ -616,9 +618,18 @@ class CnnTrainer(Trainer):
         q_tail  = (1.0 - q_width) / 2
         q_lower = q_tail
         q_upper = 1.0 - q_tail
-        loss_value_func = self.make_loss_numerical_func()
-        loss_lower_func = network.QuantileLoss(alpha=q_lower)
-        loss_upper_func = network.QuantileLoss(alpha=q_upper)
+
+        if self.cpi_method == 'cqr':
+            loss_value_func = self.make_loss_numerical_func()
+            loss_lower_func = network.QuantileLoss(alpha=q_lower)
+            loss_upper_func = network.QuantileLoss(alpha=q_upper)
+        elif self.cpi_method == 'acp':
+            loss_scale_func = network.HeteroscedasticMSELoss2()
+            #loss_scale_func = network.HeteroscedasticMSELoss()
+
+        #loss_lower_func = network.QuantileLoss(alpha=q_lower)
+        #loss_upper_func = network.QuantileLoss(alpha=q_upper)
+        #loss_scale_func = network.HeteroscedasticMSELoss()
         loss_categ_func = network.CrossEntropyLoss()
         # loss_aggregation = 'weighted'
         
@@ -714,10 +725,16 @@ class CnnTrainer(Trainer):
                 # calculating the loss between original and predicted data points
                 loss_list = list()
                 if self.has_label_num:
-                    loss_value = loss_value_func(lbls_hat[0], lbl_num)
-                    loss_lower = loss_lower_func(lbls_hat[1], lbl_num)
-                    loss_upper = loss_upper_func(lbls_hat[2], lbl_num)
-                    loss_list += [ loss_value, loss_lower, loss_upper ]
+                    if self.cpi_method == 'cqr':
+                        loss_value = loss_value_func(lbls_hat[0], lbl_num)
+                        loss_lower = loss_lower_func(lbls_hat[1], lbl_num)
+                        loss_upper = loss_upper_func(lbls_hat[2], lbl_num)
+                        loss_list += [ loss_value, loss_lower, loss_upper ]
+                    elif self.cpi_method == 'acp':
+                        loss_value = loss_scale_func(lbls_hat[0], lbls_hat[1], lbl_num )
+                        loss_lower = loss_value
+                        loss_upper = loss_value
+                        loss_list += [ loss_value ]
                 if self.has_label_cat:
                     loss_categ = loss_categ_func(lbls_hat[3], lbl_cat)
                     loss_list += [ loss_categ ]
@@ -763,10 +780,16 @@ class CnnTrainer(Trainer):
             val_loss_upper = 0.
             val_loss_combined = 0.
             if self.has_label_num:
-                val_loss_value = loss_value_func(val_lbls_hat[0], val_lbl_num).item()
-                val_loss_lower = loss_lower_func(val_lbls_hat[1], val_lbl_num).item()
-                val_loss_upper = loss_upper_func(val_lbls_hat[2], val_lbl_num).item()
-                val_loss_list += [ val_loss_value, val_loss_lower, val_loss_upper ]
+                if self.cpi_method == 'cqr':
+                    val_loss_value = loss_value_func(val_lbls_hat[0], val_lbl_num).item()
+                    val_loss_lower = loss_lower_func(val_lbls_hat[1], val_lbl_num).item()
+                    val_loss_upper = loss_upper_func(val_lbls_hat[2], val_lbl_num).item()
+                    val_loss_list += [ val_loss_value, val_loss_lower, val_loss_upper ]
+                elif self.cpi_method == 'acp':
+                    val_loss_value = loss_scale_func(val_lbls_hat[0], val_lbls_hat[1], val_lbl_num ).item()
+                    val_loss_lower = val_loss_value
+                    val_loss_upper = val_loss_value
+                    val_loss_list += [ val_loss_value ]
             # val_loss_combined  = val_loss_value + val_loss_lower + val_loss_upper
             if self.has_label_cat:
                 val_loss_categ = loss_categ_func(val_lbls_hat[3], val_lbl_cat).item()
@@ -942,11 +965,32 @@ class CnnTrainer(Trainer):
 
         # make CPI adjustments
         norm_calib_label_num_est = torch.stack(calib_label_est[0:3]).cpu().detach().numpy()
-        norm_calib_num_est_quantiles = norm_calib_label_num_est[1:,:,:]
-        self.cpi_adjustments = self.get_cqr_constant(norm_calib_num_est_quantiles,
-                                                     self.norm_calib_labels_num,
-                                                     inner_quantile=self.cpi_coverage,
-                                                     asymmetric=self.cpi_asymmetric)
+
+        #print(np.mean(norm_calib_num_est_quantiles[
+        
+        self.cpi_adjustments = None
+        if self.cpi_method == "acp":
+            # MJL 260227: suspect it has to do with normalization...
+            #print(norm_calib_num_est_quantiles)
+            #norm_calib_num_est_quantiles = util.denormalize(norm_calib_num_est_quantiles,
+            #                                            self.train_labels_num_mean_sd)
+            #print(norm_calib_num_est_quantiles)
+            norm_calib_num_est_quantiles = norm_calib_label_num_est[0:2,:,:]
+            #print(norm_calib_num_est_quantiles.shape)
+            #print(np.mean(norm_calib_label_num_est[0,:,:]))
+            #print(np.var(norm_calib_label_num_est[0,:,:]))
+            #print(np.mean(self.norm_calib_labels_num))
+            #print(np.var(self.norm_calib_labels_num))
+            self.cpi_adjustments = self.get_acp_constant(norm_calib_num_est_quantiles,
+                                                         self.norm_calib_labels_num,
+                                                         coverage=self.cpi_coverage)
+        elif self.cpi_method == "cqr":
+            norm_calib_num_est_quantiles = norm_calib_label_num_est[1:,:,:]
+            self.cpi_adjustments = self.get_cqr_constant(norm_calib_num_est_quantiles,
+                                                         self.norm_calib_labels_num,
+                                                         inner_quantile=self.cpi_coverage,
+                                                         asymmetric=self.cpi_asymmetric)
+        
         self.cpi_adjustments = np.array(self.cpi_adjustments).reshape((2,-1))
 
         # restore device
@@ -1016,9 +1060,25 @@ class CnnTrainer(Trainer):
 
             # calibrate original estimates
             labels_num_est_calib = labels_num_est.copy()
-            labels_num_est_calib[1,:,:] = labels_num_est_calib[1,:,:] + self.cpi_adjustments[0,:]
-            labels_num_est_calib[2,:,:] = labels_num_est_calib[2,:,:] + self.cpi_adjustments[1,:]
-            
+            if self.cpi_method == "acp":
+                # MJL: This is terrible design, fix later.
+                #      Can we use just one data structure for bot acp and cqr??
+                dx = np.sqrt(np.exp(labels_num_est_calib[1,:,:])) * self.cpi_adjustments[0,:]
+                #dx = np.sqrt(labels_num_est_calib[1,:,:]) * self.cpi_adjustments[0,:]
+                #print(self.cpi_adjustments[0,:])
+                #print(dx.shape)
+                #print(labels_num_est_calib[0,:,:].shape)
+                #dx = np.sqrt(np.exp(labels_num_est_calib[1,:,:])) * 1.96
+                labels_num_est_calib[1,:,:] = labels_num_est_calib[0,:,:] - dx
+                labels_num_est_calib[2,:,:] = labels_num_est_calib[0,:,:] + dx
+                #labels_num_est_calib[2,:,:] = labels_num_est_calib[2,:,:] + self.cpi_adjustments[1,:]
+            elif self.cpi_method == "cqr" and self.cpi_asymmetric:
+                labels_num_est_calib[1,:,:] = labels_num_est_calib[1,:,:] + self.cpi_adjustments[0,:]
+                labels_num_est_calib[2,:,:] = labels_num_est_calib[2,:,:] + self.cpi_adjustments[1,:]
+            elif self.cpi_method == "cqr" and not self.cpi_asymmetric:
+                labels_num_est_calib[1,:,:] = labels_num_est_calib[1,:,:] - self.cpi_adjustments[0,:]
+                labels_num_est_calib[2,:,:] = labels_num_est_calib[2,:,:] + self.cpi_adjustments[0,:]
+                
             # denormalize calibrated estimates
             self.train_label_num_est_calib = labels_num_est_calib
 
@@ -1166,6 +1226,98 @@ class CnnTrainer(Trainer):
 
         return
 
+
+##################################################
+    
+    def get_acp_constant(self, ests, true, coverage=0.95):
+        
+        # dim 0: estimators [ mean, log-var ]
+        # dim 1: replicates [ 0, ..., num_calib ]
+        # dim 2: parameters, e.g. [ lambda_0, lambda_1, mu, q_state ]
+
+        q_score = np.empty((2, ests.shape[2]))
+        
+        alpha = 1.0 - coverage     # e.g. coverage of 80% means alpha of 20%
+        x_avg = ests[0]
+        x_log_var = ests[1]
+        x_stddev = np.sqrt(np.exp(x_log_var))
+
+        #x_avg = x_avg - np.mean(x_avg)
+        #x_avg = x_avg / np.sqrt(np.var(x_avg))
+        
+        # Get z-score for quantiles, for example:
+        # alpha = 0.95, then upper = 0.975 and lower = 0.025
+        # this means z_lower is ~ -1.96 and z_upper is ~ +1.96
+        #z_lower = stats.norm.ppf((1 - alpha) / 2, loc=0., scale=1.)
+        #z_upper = stats.norm.ppf((1 + alpha) / 2, loc=0., scale=1.)
+        
+        # loop over predicted features (e.g. model parameters)
+        for i in range(ests.shape[2]):
+            
+            # treat these as our "raw" lower/upper quantile predictions
+            #x_lower = x_avg[:,i] + z_lower * x_stddev[:,i]
+            #x_upper = x_avg[:,i] + z_upper * x_stddev[:,i]
+
+            # compute non-conformity scores
+            #s = np.amax(np.array((x_lower - true, true - x_upper)), axis=0)
+        
+            # compute non-conformity scores
+            #s = np.array(np.abs(true[:,i] - x_avg[:,i]) / x_stddev[:,i])
+            s = np.abs(true[:,i] - x_avg[:,i]) / x_stddev[:,i]
+
+            #print('true=', true[0:10,i])
+            #print('x_avg=', x_avg[0:10,i])
+            #print('x_stddev=', x_stddev[0:10,i])
+            #print('s=',s[0:10])
+            #s = np.sort(s)
+        
+            # get adjustments
+            #symm_p = (1 - alpha)/2 * (1 + 1/ests.shape[0])
+            symm_p = (1 - alpha) * (1 + 1/ests.shape[1])
+
+            #print(ests.shape)
+
+            # MJL 260227: Mean/var for truth is already standard normal
+            #             but not for estimates. Why????
+            #print('symm_p = ', symm_p)
+            #print('mean_true = ', np.mean(true[:,i]))
+            #print('var_true = ', np.var(true[:,i]))
+            #print('mean_log = ', np.mean(np.log(true[:,i])))
+            #print('mean_avg= ', np.mean(x_avg[:,i]))
+            #print('var_avg= ', np.var(x_avg[:,i]))
+            #print('mean_raw = ', np.mean(true[:,i] - x_avg[:,i]))
+            #print('mean_raw_log = ', np.mean(np.log(true[:,i]) - x_avg[:,i]))
+            #print('median_raw = ', np.median(true[:,i] - x_avg[:,i]))
+            #print('var_raw = ', np.var(true[:,i] - x_avg[:,i]))
+            #print('mean_std = ', np.mean((true[:,i] - x_avg[:,i]) / x_stddev[:,i]))
+            #print('var_std = ', np.var((true[:,i] - x_avg[:,i]) / x_stddev[:,i]))
+            #print('min_raw = ', np.min(true[:,i] - x_avg[:,i]))
+            #print('min_abs_raw = ', np.min(np.abs(true[:,i] - x_avg[:,i])))
+            #print('q_0.2 = ', np.quantile(true[:,i], 0.2), np.quantile(x_avg[:,i], 0.2) )
+            #print('q_0.8 = ', np.quantile(true[:,i], 0.8), np.quantile(x_avg[:,i], 0.8) )
+            #print('')
+
+            if symm_p < 0.:
+                self.logger.write_log('trn',
+                                      'get_cqr_constant: symm_p >= 0.')
+                symm_p = 0.
+            elif symm_p > 1.:
+                self.logger.write_log('trn',
+                                      'get_cqr_constant: symm_p <= 1.')
+                symm_p = 1.
+            
+            q_val = np.quantile(s, symm_p, method='higher')
+            #print(q_val)
+
+            #q_score_idx = int(np.ceil( (1.0 - alpha)*(ests.shape[1]+1) ))
+            #q_val = s[q_score_idx] # 1.96
+            #print(s[q_score_idx])
+
+            q_score[:,i] = np.array([q_val, q_val])
+            
+        return q_score
+
+
 ##################################################
         
     def get_cqr_constant(self, ests, true, inner_quantile=0.95, asymmetric=True):
@@ -1213,7 +1365,10 @@ class CnnTrainer(Trainer):
                 # Symmetric non-comformity score
                 s = np.amax(np.array((ests[0][:,i]-true[:,i], true[:,i]-ests[1][:,i])), axis=0)
                 # get adjustment constant: 1 - alpha/2's quantile of non-comformity scores
-                symm_p = inner_quantile * (1 + 1/ests.shape[1])
+                symm_p = (1 + inner_quantile)/2 * (1 + 1/ests.shape[1])
+                # MJL: Note to self, should be this?
+                # symm_p = inner_quantile * (1 + 1/ests.shape[0])
+                
                 if symm_p < 0.:
                     self.logger.write_log('trn',
                                           'get_cqr_constant: symm_p >= 0.')
