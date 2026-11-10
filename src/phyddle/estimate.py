@@ -88,6 +88,10 @@ class Estimator:
         self.param_est          = dict(args['param_est'])
         self.log_offset         = float(args['log_offset'])
         self.use_cuda           = bool(args['use_cuda'])
+
+        # CPIs
+        self.cpi_method         = str(args['cpi_method'])
+        self.cpi_asymmetric     = bool(args['cpi_asymmetric'])
         
         # CPIs
         self.cpi_asymmetric      = bool(args['cpi_asymmetric'])
@@ -474,6 +478,7 @@ class Estimator:
 
             if self.cpi_method == 'acp':
                 dx = np.sqrt(np.exp(labels_est_num[1,:,:])) * self.cpi_adjustments[0,:]
+                #dx = np.sqrt(labels_est_num[1,:,:]) * self.cpi_adjustments[0,:]
                 labels_est_num[1,:,:] = labels_est_num[0,:,:] - dx
                 labels_est_num[2,:,:] = labels_est_num[0,:,:] + dx
             elif self.cpi_method == 'cqr' and self.cpi_asymmetric:
