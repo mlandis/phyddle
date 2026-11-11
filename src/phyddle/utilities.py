@@ -2426,7 +2426,7 @@ class Logger:
         #    self.version = version(self.pkg_name)
         #except PackageNotFoundError:
         #    self.version = PHYDDLE_VERSION
-		self.version = PHYDDLE_VERSION
+        self.version = PHYDDLE_VERSION
         self.commit = '(to be done)'
         self.command = ' '.join(sys.argv)
         self.max_lines = 1e5
