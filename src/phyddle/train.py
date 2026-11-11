@@ -140,8 +140,10 @@ class Trainer:
         # set CPUs
         if self.num_proc <= 0:
             self.num_proc = cpu_count() + self.num_proc
-        if self.num_proc <= 0:
-            self.num_proc = 1
+        if self.num_proc > cpu_count():
+            self.num_proc = cpu_count()
+        #if self.num_proc <= 0:
+        #    self.num_proc = 1
 
         # get size of CPV+S tensors
         self.num_tree_col = util.get_num_tree_col(self.tree_encode,
@@ -211,7 +213,7 @@ class Trainer:
             device_info = '  ▪ using CUDA + GPU'
             device_info += ' [device: ' + torch.cuda.get_device_properties(0).name + ']'
         elif self.TORCH_DEVICE_STR == 'cpu':
-            num_cpu = os.cpu_count()
+            num_cpu = self.num_proc
             device_info = '  ▪ using CPUs [num: ' + str(num_cpu) + ']'
         if device_info != '':
             util.print_str(device_info, verbose)

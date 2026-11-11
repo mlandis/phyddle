@@ -131,6 +131,8 @@ class Formatter:
         # set number of processors
         if self.num_proc <= 0:
             self.num_proc = cpu_count() + self.num_proc
+        if self.num_proc > cpu_count():
+            self.num_proc = cpu_count()
 
         # are input characters, trees, or labels used?
         self.use_input_dat = (self.num_char > 0)
@@ -200,6 +202,7 @@ class Formatter:
     
             # encode each dataset into individual tensors
             util.print_str('▪ Encoding simulated data as tensors', verbose)
+            util.print_str(f'  ▪ using CPUs [num: {self.num_proc}]', verbose)
             self.encode_all(mode='sim')
     
             # split examples into training and test datasets

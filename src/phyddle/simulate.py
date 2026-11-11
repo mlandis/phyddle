@@ -102,6 +102,8 @@ class Simulator:
         # set number of processors
         if self.num_proc <= 0:
             self.num_proc = cpu_count() + self.num_proc
+        if self.num_proc > cpu_count():
+            self.num_proc = cpu_count()
 
         # create logger to track runtime info
         self.logger = util.Logger(args)
@@ -237,7 +239,7 @@ class Simulator:
         # dispatch jobs
         util.print_str('▪ Simulating raw data', verbose)
         if self.use_parallel:
-            util.print_str(f'  ▪ Using {self.num_proc} processors', verbose)
+            util.print_str(f'  ▪ using CPUs [num: {self.num_proc}]', verbose)
             # parallel jobs
             # Note, it's critical to call this as list(tqdm(pool.imap(...)))
             # - pool.imap runs the parallelization
