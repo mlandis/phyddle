@@ -14,7 +14,6 @@ License:   MIT
 # standard packages
 import argparse
 import os
-import pkg_resources
 import shutil
 import tarfile
 import platform
@@ -24,6 +23,7 @@ import time
 import dateutil
 import itertools
 from datetime import datetime
+from importlib.metadata import distributions, version, PackageNotFoundError
 
 # external packages
 import dendropy as dp
@@ -2422,7 +2422,11 @@ class Logger:
 
         # collect other info and set constants
         self.pkg_name = 'phyddle'
-        self.version = PHYDDLE_VERSION  # pkg_resources.get_distribution(self.pkg_name).version
+        #try:
+        #    self.version = version(self.pkg_name)
+        #except PackageNotFoundError:
+        #    self.version = PHYDDLE_VERSION
+        self.version = PHYDDLE_VERSION
         self.commit = '(to be done)'
         self.command = ' '.join(sys.argv)
         self.max_lines = 1e5
@@ -2531,16 +2535,17 @@ class Logger:
 
         # make dict of installed, imported packages
         d = {}
-        installed_packages = {d.key for d in pkg_resources.working_set}
+        installed_packages = {}
+        for dist in distributions():
+            dist_name = dist.metadata['Name']
+            if dist_name:  # skip broken/partial installs
+                clean_name = re.sub(r'[-_.]+', '-', dist_name).lower()
+                installed_packages[clean_name] = dist.version
+
         for name, mod in sorted(sys.modules.items()):
-            if name in installed_packages:
-                if hasattr(mod, '__version__'):
-                    d[name] = mod.__version__
-                else:
-                    try:
-                        d[name] = pkg_resources.get_distribution(name).version
-                    except Exception:
-                        pass
+            key = re.sub(r'[-_.]+', '-', name).lower()
+            if key in installed_packages:
+                d[name] = getattr(mod, '__version__', installed_packages[key])
 
         # convert into string
         s = '# SYSTEM SETTINGS\n'

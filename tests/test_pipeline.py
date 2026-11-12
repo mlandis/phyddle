@@ -44,6 +44,7 @@ ERROR_TOL = 1E-2
 torch.manual_seed(0)
 torch.set_deterministic_debug_mode(debug_mode='warn')
 torch.use_deterministic_algorithms(mode=True)
+os.environ.setdefault('CUBLAS_WORKSPACE_CONFIG', ':4096:8')
 
 #-----------------------------------------------------------------------------#
 

@@ -1078,7 +1078,7 @@ class Plotter:
             y_label = f'{p} {axis_labels[1]}'
 
             # estimates (x) and true values (y)
-            lbl_true = labels[p][:].to_numpy()
+            lbl_true = labels[p][:].to_numpy(copy=True)
             zero_true_idx = np.where(lbl_true == 0.0)
             if len(zero_true_idx) > 0:
                 tiny_val = np.max(lbl_true - np.min(lbl_true)) * 1E-6
