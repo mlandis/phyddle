@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" data-content_root="./">
 <head>
@@ -7,17 +5,21 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tutorial &mdash; phyddle 0.3.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
       <link rel="stylesheet" type="text/css" href="_static/css/custom.css?v=d2c2efc5" />
 
   
     <link rel="canonical" href="phyddle.org/tutorial.html" />
-      <script src="_static/jquery.js?v=5d32c60e"></script>
-      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=e259d695"></script>
-      <script src="_static/doctools.js?v=fd6eb6e6"></script>
-      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=e259d695"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -37,6 +39,9 @@
             
               <img src="_static/phyddle_logo.png" class="logo" alt="Logo"/>
           </a>
+              <div class="version">
+                0.3.0
+              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -229,11 +234,11 @@ phyddle with properly sized trees can speed up the <a class="reference internal"
 replicate index. Here is a simplified representation for a two-state
 SSE model for how the simulation loop works:</p>
 <div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="c1"># simulate each replicate</span>
-<span class="kr">for</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="kr">in</span><span class="w"> </span><span class="m">1</span><span class="o">:</span><span class="n">num_rep</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="nf">for </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="n">in</span><span class="w"> </span><span class="m">1</span><span class="o">:</span><span class="n">num_rep</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 
 <span class="w">    </span><span class="c1"># simulate until valid example</span>
 <span class="w">    </span><span class="n">sim_valid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="bp">F</span>
-<span class="w">    </span><span class="kr">while</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">sim_valid</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nf">while </span><span class="p">(</span><span class="o">!</span><span class="n">sim_valid</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 
 <span class="w">        </span><span class="c1"># simulation conditions</span>
 <span class="w">        </span><span class="c1"># ...</span>
@@ -279,7 +284,7 @@ stopping condition for a birth-death model. Note, we recorde the
 <span class="n">max_taxa</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">runif</span><span class="p">(</span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="m">10</span><span class="p">,</span><span class="w"> </span><span class="m">5000</span><span class="p">)</span>
 <span class="n">max_time</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">runif</span><span class="p">(</span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="m">100</span><span class="p">)</span>
 <span class="n">sample_frac</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1.0</span>
-<span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="n">max_taxa</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">tree_width</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="nf">if </span><span class="p">(</span><span class="n">max_taxa</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">tree_width</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="n">sample_frac</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tree_width</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">max_taxa</span>
 <span class="p">}</span>
 </pre></div>
@@ -300,9 +305,9 @@ birth rates can differ between states 0 and 1.</p>
 values are both training labels and model parameters that we want to
 estimate.</p>
 <div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="c1"># simulate model rates</span>
-<span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="n">model_type</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="m">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="nf">if </span><span class="p">(</span><span class="n">model_type</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="m">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="n">birth</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">rep</span><span class="p">(</span><span class="nf">runif</span><span class="p">(</span><span class="m">1</span><span class="p">),</span><span class="w"> </span><span class="m">2</span><span class="p">)</span>
-<span class="p">}</span><span class="w"> </span><span class="kr">else</span><span class="w"> </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="n">model_type</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="m">1</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="p">}</span><span class="w"> </span><span class="n">else</span><span class="w"> </span><span class="nf">if </span><span class="p">(</span><span class="n">model_type</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="m">1</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="n">birth</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">runif</span><span class="p">(</span><span class="m">2</span><span class="p">)</span>
 <span class="p">}</span>
 <span class="n">death</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">max</span><span class="p">(</span><span class="n">birth</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nf">rep</span><span class="p">(</span><span class="nf">runif</span><span class="p">(</span><span class="m">1</span><span class="p">),</span><span class="w"> </span><span class="m">2</span><span class="p">)</span>
@@ -673,8 +678,7 @@ each parameter. The prediction interval represents the range of estimates that
 would likely contain the true model parameter value under a specified coverage
 level (e.g. 80% coverage means that ~80% of CPIs contain the true value).</p>
 <figure class="align-center">
-<a class="reference internal image-reference" href="_images/out.empirical_estimate_num_0.png"><img alt="_images/out.empirical_estimate_num_0.png" src="_images/out.empirical_estimate_num_0.png" width="300" />
-</a>
+<a class="reference internal image-reference" href="_images/out.empirical_estimate_num_0.png"><img alt="_images/out.empirical_estimate_num_0.png" src="_images/out.empirical_estimate_num_0.png" style="width: 300px;" /></a>
 </figure>
 <div class="line-block">
 <div class="line"><br /></div>
@@ -685,8 +689,7 @@ simple bar plots reporting the probabilities across possible
 categories per variable. Higher probability means the network is more certain
 of the value of the variable.</p>
 <figure class="align-center">
-<a class="reference internal image-reference" href="_images/out.empirical_estimate_cat_0.png"><img alt="_images/out.empirical_estimate_cat_0.png" src="_images/out.empirical_estimate_cat_0.png" width="300" />
-</a>
+<a class="reference internal image-reference" href="_images/out.empirical_estimate_cat_0.png"><img alt="_images/out.empirical_estimate_cat_0.png" src="_images/out.empirical_estimate_cat_0.png" style="width: 300px;" /></a>
 </figure>
 <div class="line-block">
 <div class="line"><br /></div>
@@ -703,8 +706,7 @@ range of evolutionary scenarios (e.g. fewer and more taxa,
 faster and slower rates), and then repeating the pipeline analysis. See
 <a class="reference internal" href="overview.html#safe-usage"><span class="std std-ref">Safe Usage</span></a> for more information.</p>
 <figure class="align-center">
-<a class="reference internal image-reference" href="_images/out.train_density_aux_data.png"><img alt="_images/out.train_density_aux_data.png" src="_images/out.train_density_aux_data.png" width="500" />
-</a>
+<a class="reference internal image-reference" href="_images/out.train_density_aux_data.png"><img alt="_images/out.train_density_aux_data.png" src="_images/out.train_density_aux_data.png" style="width: 500px;" /></a>
 </figure>
 <div class="line-block">
 <div class="line"><br /></div>
@@ -715,8 +717,7 @@ a subsample of the empirical summary statistics to determine if they
 are outliers. Red dots that fall far outside the green density potentially
 represent out-of-distribution errors (see above).</p>
 <figure class="align-center">
-<a class="reference internal image-reference" href="_images/out.train_pca_aux_data.png"><img alt="_images/out.train_pca_aux_data.png" src="_images/out.train_pca_aux_data.png" width="500" />
-</a>
+<a class="reference internal image-reference" href="_images/out.train_pca_aux_data.png"><img alt="_images/out.train_pca_aux_data.png" src="_images/out.train_pca_aux_data.png" style="width: 500px;" /></a>
 </figure>
 <div class="line-block">
 <div class="line"><br /></div>
@@ -728,8 +729,7 @@ red bars represent empirical examples. Any empirical estimates that
 are outliers with respect to the training data potentially
 represent out-of-distribution errors (see above).</p>
 <figure class="align-center">
-<a class="reference internal image-reference" href="_images/out.train_density_labels_num.png"><img alt="_images/out.train_density_labels_num.png" src="_images/out.train_density_labels_num.png" width="500" />
-</a>
+<a class="reference internal image-reference" href="_images/out.train_density_labels_num.png"><img alt="_images/out.train_density_labels_num.png" src="_images/out.train_density_labels_num.png" style="width: 500px;" /></a>
 </figure>
 <div class="line-block">
 <div class="line"><br /></div>
@@ -739,8 +739,7 @@ the training labels as a PCA-transformed heatmap. Red dots that fall far
 outside the orange density potentially represent
 out-of-distribution errors (see above).</p>
 <figure class="align-center">
-<a class="reference internal image-reference" href="_images/out.train_pca_labels_num.png"><img alt="_images/out.train_pca_labels_num.png" src="_images/out.train_pca_labels_num.png" width="500" />
-</a>
+<a class="reference internal image-reference" href="_images/out.train_pca_labels_num.png"><img alt="_images/out.train_pca_labels_num.png" src="_images/out.train_pca_labels_num.png" style="width: 500px;" /></a>
 </figure>
 <div class="line-block">
 <div class="line"><br /></div>
@@ -757,8 +756,7 @@ data is poor (e.g. estimated values are not correlated with the truth)
 then predictions from the network should not be trusted. See <a class="reference internal" href="overview.html#safe-usage"><span class="std std-ref">Safe Usage</span></a>
 for more information.</p>
 <figure class="align-center">
-<a class="reference internal image-reference" href="_images/out.train_estimate_log_birth_1.png"><img alt="_images/out.train_estimate_log_birth_1.png" src="_images/out.train_estimate_log_birth_1.png" width="400" />
-</a>
+<a class="reference internal image-reference" href="_images/out.train_estimate_log_birth_1.png"><img alt="_images/out.train_estimate_log_birth_1.png" src="_images/out.train_estimate_log_birth_1.png" style="width: 400px;" /></a>
 </figure>
 <div class="line-block">
 <div class="line"><br /></div>
@@ -771,8 +769,7 @@ is markedly worse for the test data compared to the training data, then the
 predictions from the network should not be trusted. See <a class="reference internal" href="overview.html#safe-usage"><span class="std std-ref">Safe Usage</span></a>
 for more information.</p>
 <figure class="align-center">
-<a class="reference internal image-reference" href="_images/out.test_estimate_log_birth_1.png"><img alt="_images/out.test_estimate_log_birth_1.png" src="_images/out.test_estimate_log_birth_1.png" width="400" />
-</a>
+<a class="reference internal image-reference" href="_images/out.test_estimate_log_birth_1.png"><img alt="_images/out.test_estimate_log_birth_1.png" src="_images/out.test_estimate_log_birth_1.png" style="width: 400px;" /></a>
 </figure>
 <div class="line-block">
 <div class="line"><br /></div>
@@ -787,8 +784,7 @@ data is poor (e.g. estimated values are not correlated with the truth)
 then predictions from the network should not be trusted. See <a class="reference internal" href="overview.html#safe-usage"><span class="std std-ref">Safe Usage</span></a>
 for more information.</p>
 <figure class="align-center">
-<a class="reference internal image-reference" href="_images/out.train_estimate_model_type.png"><img alt="_images/out.train_estimate_model_type.png" src="_images/out.train_estimate_model_type.png" width="400" />
-</a>
+<a class="reference internal image-reference" href="_images/out.train_estimate_model_type.png"><img alt="_images/out.train_estimate_model_type.png" src="_images/out.train_estimate_model_type.png" style="width: 400px;" /></a>
 </figure>
 <div class="line-block">
 <div class="line"><br /></div>
@@ -800,8 +796,7 @@ if the network was trained properly. If performance is markedly worse for
 the test data compared to the training data, then the predictions from
 the network should not be trusted. See <a class="reference internal" href="overview.html#safe-usage"><span class="std std-ref">Safe Usage</span></a> for more information.</p>
 <figure class="align-center">
-<a class="reference internal image-reference" href="_images/out.test_estimate_model_type.png"><img alt="_images/out.test_estimate_model_type.png" src="_images/out.test_estimate_model_type.png" width="400" />
-</a>
+<a class="reference internal image-reference" href="_images/out.test_estimate_model_type.png"><img alt="_images/out.test_estimate_model_type.png" src="_images/out.test_estimate_model_type.png" style="width: 400px;" /></a>
 </figure>
 <div class="line-block">
 <div class="line"><br /></div>
@@ -817,8 +812,7 @@ stabilize and then slowly begin to increase. If the validation loss score
 never stabilizes or it increases radically, that might indicate that
 the network is not properly trained. See <a class="reference internal" href="overview.html#safe-usage"><span class="std std-ref">Safe Usage</span></a> for more information.</p>
 <figure class="align-center">
-<a class="reference internal image-reference" href="_images/out.train_history_loss_combined.png"><img alt="_images/out.train_history_loss_combined.png" src="_images/out.train_history_loss_combined.png" width="500" />
-</a>
+<a class="reference internal image-reference" href="_images/out.train_history_loss_combined.png"><img alt="_images/out.train_history_loss_combined.png" src="_images/out.train_history_loss_combined.png" style="width: 500px;" /></a>
 </figure>
 <p>This figure <code class="docutils literal notranslate"><span class="pre">out.network_architecture.pdf</span></code> represents the network
 architecture used for training. The architecture is described in detail in
@@ -826,8 +820,7 @@ architecture used for training. The architecture is described in detail in
 the <a class="reference internal" href="overview.html#configuration"><span class="std std-ref">Configuration</span></a> file, should the user find the default architecture
 does not result in good performance for their modeling problem.</p>
 <figure class="align-center">
-<a class="reference internal image-reference" href="_images/out.network_architecture.png"><img alt="_images/out.network_architecture.png" src="_images/out.network_architecture.png" width="500" />
-</a>
+<a class="reference internal image-reference" href="_images/out.network_architecture.png"><img alt="_images/out.network_architecture.png" src="_images/out.network_architecture.png" style="width: 500px;" /></a>
 </figure>
 <div class="line-block">
 <div class="line"><br /></div>

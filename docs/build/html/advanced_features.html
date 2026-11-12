@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" data-content_root="./">
 <head>
@@ -7,17 +5,21 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Advanced Features &mdash; phyddle 0.3.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
       <link rel="stylesheet" type="text/css" href="_static/css/custom.css?v=d2c2efc5" />
 
   
     <link rel="canonical" href="phyddle.org/advanced_features.html" />
-      <script src="_static/jquery.js?v=5d32c60e"></script>
-      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=e259d695"></script>
-      <script src="_static/doctools.js?v=fd6eb6e6"></script>
-      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=e259d695"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -37,6 +39,9 @@
             
               <img src="_static/phyddle_logo.png" class="logo" alt="Logo"/>
           </a>
+              <div class="version">
+                0.3.0
+              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -119,8 +124,7 @@ It typically assumes that there is a single character (though see <a class="refe
 The geographic range of a subclade of the genus <em>Liolaemus</em> was reconstructed using a GeoSSE model.
 Phyddle produces annotated tree files, which can be visualized with standard tree viewing/plotting software.</p>
 <figure class="align-center">
-<a class="reference internal image-reference" href="_images/lio_geosse_phyddle.png"><img alt="_images/lio_geosse_phyddle.png" src="_images/lio_geosse_phyddle.png" width="800" />
-</a>
+<a class="reference internal image-reference" href="_images/lio_geosse_phyddle.png"><img alt="_images/lio_geosse_phyddle.png" src="_images/lio_geosse_phyddle.png" style="width: 800px;" /></a>
 </figure>
 <section id="preparing-training-data">
 <h3>Preparing training data<a class="headerlink" href="#preparing-training-data" title="Link to this heading"></a></h3>
@@ -470,14 +474,14 @@ Note we have an additional file in comparison to standard phyddle analyses, endi
 replicate index. Here is a simplified representation for a two-state
 Markov model for ancestral state estimation for how the simulation loop works:</p>
 <div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="c1"># simulate each replicate</span>
-<span class="kr">for</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="kr">in</span><span class="w"> </span><span class="m">1</span><span class="o">:</span><span class="n">num_rep</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="nf">for </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="n">in</span><span class="w"> </span><span class="m">1</span><span class="o">:</span><span class="n">num_rep</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 
 <span class="w">      </span><span class="c1"># set RNG seed</span>
 <span class="w">      </span><span class="c1"># ...</span>
 
 <span class="w">      </span><span class="c1"># rejection sample</span>
 <span class="w">      </span><span class="n">num_taxa</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0</span>
-<span class="w">      </span><span class="kr">while</span><span class="w"> </span><span class="p">(</span><span class="n">num_taxa</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">tree_width</span><span class="w"> </span><span class="m">+1</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nf">while </span><span class="p">(</span><span class="n">num_taxa</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">tree_width</span><span class="w"> </span><span class="m">+1</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 
 <span class="w">              </span><span class="c1"># Draw tree size</span>
 <span class="w">              </span><span class="c1"># ...</span>
@@ -537,7 +541,7 @@ for a given replicate.</p>
 
 <span class="c1"># rejection sample</span>
 <span class="n">num_taxa</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0</span>
-<span class="kr">while</span><span class="w"> </span><span class="p">(</span><span class="n">num_taxa</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">tree_width</span><span class="w"> </span><span class="m">+1</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="nf">while </span><span class="p">(</span><span class="n">num_taxa</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">tree_width</span><span class="w"> </span><span class="m">+1</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 </pre></div>
 </div>
 <p>Next we draw the tree size and the birth and death rates.</p>
@@ -722,23 +726,23 @@ This example is a bit more complicated than the ancestral state reconstruction w
 </div>
 <p>After that, we create functions that are used to get the ancestral states from the diversitree output. We’ll return to this after looking at the main loop:</p>
 <div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get the first state along a branch (forward time)</span>
-<span class="n">firstState</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="w"> </span><span class="p">(</span><span class="n">mat</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="n">firstState</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">function </span><span class="p">(</span><span class="n">mat</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="kc">...</span>
 <span class="p">}</span>
 
 <span class="c1"># Get the last state along a branch (forward time)</span>
-<span class="n">lastState</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">mat</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="n">lastState</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">function</span><span class="p">(</span><span class="n">mat</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="kc">...</span>
 <span class="p">}</span>
 
 <span class="c1"># Combines triplet of states into a string</span>
-<span class="n">combine_states</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">state_table</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="n">combine_states</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">function</span><span class="p">(</span><span class="n">state_table</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="kc">...</span>
 <span class="p">}</span>
 
 <span class="c1"># Finds ancestral state triplets for every node in the extant only tree</span>
 <span class="c1"># Randomly rotates nodes in the tree</span>
-<span class="n">getHistory</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">tree1</span><span class="p">,</span><span class="w"> </span><span class="n">phy_file</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="n">getHistory</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">function</span><span class="p">(</span><span class="n">tree1</span><span class="p">,</span><span class="w"> </span><span class="n">phy_file</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="kc">...</span>
 <span class="p">}</span>
 </pre></div>
@@ -766,7 +770,7 @@ discarded.</p>
 replicate index. Here is a simplified representation for a two-region
 GeoSSE model with ancestral state reconstruction for how the simulation loop works:</p>
 <div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="c1"># Simulate each replicate</span>
-<span class="kr">while</span><span class="w"> </span><span class="p">(</span><span class="n">nTrees</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">totTrees</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="nf">while </span><span class="p">(</span><span class="n">nTrees</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">totTrees</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 
 <span class="w">  </span><span class="c1"># Draw all parameters</span>
 <span class="w">  </span><span class="c1"># ...</span>
@@ -775,15 +779,15 @@ GeoSSE model with ancestral state reconstruction for how the simulation loop wor
 <span class="w">  </span><span class="c1"># ...</span>
 
 <span class="w">  </span><span class="c1"># Check if tree exists</span>
-<span class="w">    </span><span class="kr">if</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nf">if </span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
 <span class="w">       </span><span class="c1"># ...</span>
 
 <span class="w">    </span><span class="c1"># Confirm three tip states present</span>
-<span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="kr">else</span><span class="w"> </span><span class="kr">if</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="n">else</span><span class="w"> </span><span class="nf">if </span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
 <span class="w">        </span><span class="c1"># ...</span>
 
 <span class="w">    </span><span class="c1"># Write all relevant files for phyddle</span>
-<span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="kr">else</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="n">else</span><span class="w"> </span><span class="p">{</span>
 <span class="w">        </span><span class="c1"># ...</span>
 
 <span class="w">        </span><span class="c1"># Update counters</span>
@@ -826,7 +830,7 @@ If not, the <code class="docutils literal notranslate"><span class="pre">nullTre
 This counter is not necessary, but may be useful to see if full extinction is common.
 This could indicate the parameter distributions should be changed.</p>
 <div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="c1"># Check if tree exists</span>
-<span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="nf">is.null</span><span class="p">(</span><span class="n">tree</span><span class="p">)</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="nf">sum</span><span class="p">(</span><span class="nf">str_detect</span><span class="p">(</span><span class="n">tree</span><span class="o">$</span><span class="n">tip.label</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;sp&quot;</span><span class="p">))</span><span class="w">  </span><span class="o">!=</span><span class="w"> </span><span class="n">max_tax</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="nf">if </span><span class="p">(</span><span class="nf">is.null</span><span class="p">(</span><span class="n">tree</span><span class="p">)</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="nf">sum</span><span class="p">(</span><span class="nf">str_detect</span><span class="p">(</span><span class="n">tree</span><span class="o">$</span><span class="n">tip.label</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;sp&quot;</span><span class="p">))</span><span class="w">  </span><span class="o">!=</span><span class="w"> </span><span class="n">max_tax</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">     </span><span class="n">nullTrees</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">nullTrees</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="m">1</span>
 <span class="p">}</span>
 </pre></div>
@@ -834,7 +838,7 @@ This could indicate the parameter distributions should be changed.</p>
 <p>Next, we confirm all the tip states are present in the extant tree.
 If not, increment the counter for trees without sufficient tip state variation.</p>
 <div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="c1"># Confirm three tip states present</span>
-<span class="kr">else</span><span class="w"> </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="nf">length</span><span class="p">(</span><span class="nf">table</span><span class="p">(</span><span class="n">tree</span><span class="o">$</span><span class="n">tip.state</span><span class="p">[</span><span class="n">extant</span><span class="p">]))</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="m">3</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="n">else</span><span class="w"> </span><span class="nf">if </span><span class="p">(</span><span class="nf">length</span><span class="p">(</span><span class="nf">table</span><span class="p">(</span><span class="n">tree</span><span class="o">$</span><span class="n">tip.state</span><span class="p">[</span><span class="n">extant</span><span class="p">]))</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="m">3</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">     </span><span class="n">noVarTree</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">noVarTree</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="m">1</span>
 <span class="p">}</span>
 </pre></div>
@@ -843,7 +847,7 @@ If not, increment the counter for trees without sufficient tip state variation.<
 First, we find the ancestral states for each internal node using the function <code class="docutils literal notranslate"><span class="pre">getHistory</span></code>.
 Then we write the ancestral states to file.</p>
 <div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="c1"># Write all relevant files for phyddle</span>
-<span class="kr">else</span><span class="w"> </span><span class="p">{</span>
+<span class="n">else</span><span class="w"> </span><span class="p">{</span>
 
 <span class="w">  </span><span class="n">stateHistory</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">getHistory</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span><span class="w"> </span><span class="n">phy_fn</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
 <span class="w">  </span><span class="c1"># This file is in the form</span>
@@ -898,12 +902,12 @@ phyddle is run (with different batch sizes, for example).</p>
 <p>These functions find the first and last states along a branch.
 They use the history reported by diversitree.</p>
 <div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get the first state along a branch (forward time)</span>
-<span class="n">firstState</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="w"> </span><span class="p">(</span><span class="n">mat</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="n">firstState</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">function </span><span class="p">(</span><span class="n">mat</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="n">mat</span><span class="p">[</span><span class="m">1</span><span class="p">,</span><span class="m">2</span><span class="p">]</span>
 <span class="p">}</span>
 
 <span class="c1"># Get the last state along a branch (forward time)</span>
-<span class="n">lastState</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">mat</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="n">lastState</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">function</span><span class="p">(</span><span class="n">mat</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="n">mat</span><span class="p">[</span><span class="nf">dim</span><span class="p">(</span><span class="n">mat</span><span class="p">)[</span><span class="m">1</span><span class="p">],</span><span class="w"> </span><span class="m">2</span><span class="p">]</span>
 <span class="p">}</span>
 </pre></div>
@@ -911,7 +915,7 @@ They use the history reported by diversitree.</p>
 <p>This function combines the states from the parent and two daughters into a string.
 This gives a convenient way to then assign 0-7 states from the triplets.</p>
 <div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="c1"># Combines triplet of states into a string</span>
-<span class="n">combine_states</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">state_table</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="n">combine_states</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">function</span><span class="p">(</span><span class="n">state_table</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="nf">paste0</span><span class="p">(</span><span class="n">state_table</span><span class="p">[</span><span class="m">1</span><span class="p">],</span><span class="w"> </span><span class="n">state_table</span><span class="p">[</span><span class="m">2</span><span class="p">],</span><span class="w"> </span><span class="n">state_table</span><span class="p">[</span><span class="m">3</span><span class="p">])</span>
 <span class="p">}</span>
 </pre></div>
@@ -922,7 +926,7 @@ This is because they node numbers are off by one from the tree.
 Then we get the  history using <code class="docutils literal notranslate"><span class="pre">history.from.sim.discrete</span></code>.</p>
 <div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="c1"># Finds ancestral state triplets for every node in the extant only tree</span>
 <span class="c1"># Randomly rotates nodes in the tree</span>
-<span class="n">getHistory</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">tree1</span><span class="p">,</span><span class="w"> </span><span class="n">phy_file</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="n">getHistory</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">function</span><span class="p">(</span><span class="n">tree1</span><span class="p">,</span><span class="w"> </span><span class="n">phy_file</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="c1"># Fix the off by one indexing for how the history is recorded</span>
 <span class="w">  </span><span class="n">tree1</span><span class="o">$</span><span class="n">hist</span><span class="o">$</span><span class="n">from</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">tree1</span><span class="o">$</span><span class="n">hist</span><span class="o">$</span><span class="n">from</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="m">1</span>
 <span class="w">  </span><span class="n">tree1</span><span class="o">$</span><span class="n">hist</span><span class="o">$</span><span class="n">to</span><span class="w">   </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">tree1</span><span class="o">$</span><span class="n">hist</span><span class="o">$</span><span class="n">to</span><span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="m">1</span>
@@ -951,7 +955,7 @@ between left and right daughters.</p>
 
 <span class="c1"># For every branch (edge) in the edge matrix</span>
 <span class="c1"># find the children labels</span>
-<span class="kr">for</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="kr">in</span><span class="w"> </span><span class="m">1</span><span class="o">:</span><span class="nf">nrow</span><span class="p">(</span><span class="n">tree</span><span class="o">$</span><span class="n">edge</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="nf">for </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="n">in</span><span class="w"> </span><span class="m">1</span><span class="o">:</span><span class="nf">nrow</span><span class="p">(</span><span class="n">tree</span><span class="o">$</span><span class="n">edge</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="n">parent_node_num</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">tree</span><span class="o">$</span><span class="n">edge</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">]</span>
 <span class="w">  </span><span class="n">child_node_num</span><span class="w">  </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">tree</span><span class="o">$</span><span class="n">edge</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="m">2</span><span class="p">]</span>
 
@@ -964,9 +968,9 @@ between left and right daughters.</p>
 <span class="w">                         </span><span class="n">tree</span><span class="o">$</span><span class="n">node.label</span><span class="p">[</span><span class="n">child_node_num</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="nf">length</span><span class="p">(</span><span class="n">tree</span><span class="o">$</span><span class="n">tip.label</span><span class="p">)])</span>
 
 <span class="w">  </span><span class="c1"># Determine if child is left or right child</span>
-<span class="w">  </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="n">parent_child_matrix</span><span class="p">[</span><span class="n">parent_label</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">]</span><span class="w">  </span><span class="o">==</span><span class="w"> </span><span class="m">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nf">if </span><span class="p">(</span><span class="n">parent_child_matrix</span><span class="p">[</span><span class="n">parent_label</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">]</span><span class="w">  </span><span class="o">==</span><span class="w"> </span><span class="m">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="n">parent_child_matrix</span><span class="p">[</span><span class="n">parent_label</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">child_label</span>
-<span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="kr">else</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="n">else</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="n">parent_child_matrix</span><span class="p">[</span><span class="n">parent_label</span><span class="p">,</span><span class="w"> </span><span class="m">2</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">child_label</span>
 
 <span class="w">  </span><span class="p">}</span>
@@ -980,24 +984,24 @@ and fill the matrix.</p>
 <span class="nf">rownames</span><span class="p">(</span><span class="n">state_table</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">rownames</span><span class="p">(</span><span class="n">parent_child_matrix</span><span class="p">)</span>
 <span class="nf">colnames</span><span class="p">(</span><span class="n">state_table</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">&quot;parent&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;child1&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;child2&quot;</span><span class="p">)</span>
 
-<span class="kr">for</span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="kr">in</span><span class="w"> </span><span class="m">1</span><span class="o">:</span><span class="nf">nrow</span><span class="p">(</span><span class="n">parent_child_matrix</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="nf">for</span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="n">in</span><span class="w"> </span><span class="m">1</span><span class="o">:</span><span class="nf">nrow</span><span class="p">(</span><span class="n">parent_child_matrix</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="n">state_table</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="m">2</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">mat_startState</span><span class="p">[</span><span class="n">parent_child_matrix</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="m">1</span><span class="p">]]</span>
 <span class="w">  </span><span class="n">state_table</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="m">3</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">mat_startState</span><span class="p">[</span><span class="n">parent_child_matrix</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="m">2</span><span class="p">]]</span>
 
 <span class="w">  </span><span class="c1"># If the node is not the root</span>
-<span class="w">  </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="nf">is.na</span><span class="p">(</span><span class="w"> </span><span class="n">mat_endState</span><span class="p">[</span><span class="nf">rownames</span><span class="p">(</span><span class="n">parent_child_matrix</span><span class="p">)[</span><span class="n">i</span><span class="p">]]))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nf">if </span><span class="p">(</span><span class="o">!</span><span class="nf">is.na</span><span class="p">(</span><span class="w"> </span><span class="n">mat_endState</span><span class="p">[</span><span class="nf">rownames</span><span class="p">(</span><span class="n">parent_child_matrix</span><span class="p">)[</span><span class="n">i</span><span class="p">]]))</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="n">state_table</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="m">1</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">mat_endState</span><span class="p">[</span><span class="nf">rownames</span><span class="p">(</span><span class="n">parent_child_matrix</span><span class="p">)[</span><span class="n">i</span><span class="p">]]</span>
 
 <span class="w">  </span><span class="c1"># If the node is the root</span>
-<span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="kr">else</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="n">else</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="c1"># If the two daughters are the same, the root is the</span>
 <span class="w">    </span><span class="c1"># same state as the daughters</span>
-<span class="w">    </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="n">state_table</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="m">2</span><span class="p">]</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">state_table</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="m">3</span><span class="p">])</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nf">if </span><span class="p">(</span><span class="n">state_table</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="m">2</span><span class="p">]</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">state_table</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="m">3</span><span class="p">])</span><span class="w"> </span><span class="p">{</span>
 <span class="w">      </span><span class="n">state_table</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="m">1</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">state_table</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="m">2</span><span class="p">]</span>
 
 <span class="w">      </span><span class="c1"># Otherwise, the root is widespread</span>
 <span class="w">      </span><span class="c1"># This is only for 2 regions</span>
-<span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="kr">else</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="n">else</span><span class="w"> </span><span class="p">{</span>
 <span class="w">      </span><span class="n">state_table</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="m">1</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">0</span>
 <span class="w">    </span><span class="p">}</span>
 <span class="w">  </span><span class="p">}</span>
@@ -1022,7 +1026,7 @@ Internal node indexes start at num_tips + 1</p>
 <p>For every node we want to rotate, we first find the branch in the edge matrix.
 Then we rotate the branches and update the branch lengths.
 We also update the table of left vs right descendants.</p>
-<div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="kr">for</span><span class="w"> </span><span class="p">(</span><span class="n">node</span><span class="w"> </span><span class="kr">in</span><span class="w"> </span><span class="n">nodes_to_rotate</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="nf">for </span><span class="p">(</span><span class="n">node</span><span class="w"> </span><span class="n">in</span><span class="w"> </span><span class="n">nodes_to_rotate</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 
 <span class="w">  </span><span class="c1"># Figure out which branches to rotate based on the parent index</span>
 <span class="w">  </span><span class="n">branchIndex</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">which</span><span class="p">(</span><span class="n">newTree</span><span class="o">$</span><span class="n">edge</span><span class="p">[,</span><span class="m">1</span><span class="p">]</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">node</span><span class="p">)</span>
@@ -1051,7 +1055,7 @@ We also update the table of left vs right descendants.</p>
 <p>We combine the triplet of states at each node into a single string.
 We then use the string to convert to 0-7 labels which will be used by phyddle.</p>
 <div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="n">comb_state</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">apply</span><span class="p">(</span><span class="n">state_table</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="n">combine_states</span><span class="p">)</span>
-<span class="n">newStates</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">sapply</span><span class="p">(</span><span class="n">comb_state</span><span class="p">,</span><span class="w"> </span><span class="kr">switch</span><span class="p">,</span>
+<span class="n">newStates</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">sapply</span><span class="p">(</span><span class="n">comb_state</span><span class="p">,</span><span class="w"> </span><span class="n">switch</span><span class="p">,</span>
 <span class="w">      </span><span class="s">&quot;111&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0&quot;</span><span class="p">,</span>
 <span class="w">      </span><span class="s">&quot;222&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;1&quot;</span><span class="p">,</span>
 <span class="w">      </span><span class="s">&quot;012&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;2&quot;</span><span class="p">,</span>
@@ -1065,7 +1069,7 @@ We then use the string to convert to 0-7 labels which will be used by phyddle.</
 <p>Lastly, we write the tree to file and return the states.</p>
 <div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="nf">write.tree</span><span class="p">(</span><span class="n">newTree</span><span class="p">,</span><span class="w"> </span><span class="n">file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">phy_file</span><span class="p">)</span>
 
-<span class="w">  </span><span class="kr">return</span><span class="w"> </span><span class="p">(</span><span class="n">newStates</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">return </span><span class="p">(</span><span class="n">newStates</span><span class="p">)</span>
 <span class="p">}</span>
 </pre></div>
 </div>
