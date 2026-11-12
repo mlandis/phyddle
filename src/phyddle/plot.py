@@ -111,12 +111,21 @@ class Plotter:
         self.plot_num_emp = int(args['plot_num_emp'])
         self.plot_pca_noise = float(args['plot_pca_noise'])
 
+        self.tree_width         = int(args['tree_width'])
+        self.asr_est            = bool(args['asr_est'])
+        self.asr_1_cat            = bool(args['asr_1_cat'])
+        self.max_asr_est        = int(args['max_asr_est'])
+        if self.max_asr_est == -1: 
+            self.max_asr_est = self.tree_width - 1
+
         # phy data dimension
         self.tree_width = int(args['tree_width'])
         self.brlen_encode = str(args['brlen_encode'])
         self.tree_encode = str(args['tree_encode'])
         self.num_tree_col = util.get_num_tree_col(self.tree_encode,
                                                   self.brlen_encode)
+
+
 
         # prefixes
         fmt_proj_prefix = f'{self.fmt_dir}/{self.fmt_prefix}'
@@ -182,6 +191,13 @@ class Plotter:
         self.save_report_fn = f'{plt_proj_prefix}.summary.csv'
 
         # cat vs. real parameter names
+        if self.asr_est:
+            if not self.asr_1_cat:
+                for i in range(self.max_asr_est):
+                    self.param_est["asr_" + str(i)] =  "cat"
+            else: 
+                    self.param_est["asr_0"] =  "cat"
+
         self.param_name_num = [k for k, v in self.param_est.items() if
                                v == 'num']
         self.param_name_cat = [k for k, v in self.param_est.items() if
@@ -569,7 +585,7 @@ class Plotter:
         # loop over cat. parameters
         for p in self.param_name_cat:
             # get true/est values
-            est_cats_p = [x for x in ests.columns if p in x]
+            est_cats_p = [x for x in ests.columns if (p + "_") in x]
             lbls_p = labels[p].copy()
             ests_p = ests[est_cats_p].copy()
 
@@ -790,17 +806,19 @@ class Plotter:
                 # input data
                 p = col_names[i]
                 x = sorted(dist_values[p])
-                # if np.var(x) == 0.0:
-                #     x = sp.stats.norm.rvs(size=len(x), loc=x, scale=x[0] * 1e-3)
-                # if np.var(x) == 0.0:
-                #     x = sp.stats.norm.rvs(size=len(x), loc=x, scale=1e-9)
-                
+
+                #if np.var(x) == 0.0:
+                #   x = sp.stats.norm.rvs(size=len(x), loc=x, scale=abs(x[0]) * 1e-3)
+    
                 mn = np.min(x)
                 mx = np.max(x)
-                # xs = np.linspace(mn, mx, 300)
+                if mn == mx: 
+                    xs = np.linspace(mn- mn*.01, mx + mx * .01, 300)
+                else:
+                    xs = np.linspace(mn, mx, 300)
 
-                # kde = sp.stats.gaussian_kde(x)
-                # ys = kde.pdf(xs)
+                #kde = sp.stats.gaussian_kde(x)
+                #ys = kde.pdf(xs)
                 # ax.plot(xs, ys, label="PDF", color=color)
 
                 p_point = p
@@ -1060,7 +1078,7 @@ class Plotter:
             y_label = f'{p} {axis_labels[1]}'
 
             # estimates (x) and true values (y)
-            lbl_true = labels[p][:].to_numpy()
+            lbl_true = labels[p][:].to_numpy(copy=True)
             zero_true_idx = np.where(lbl_true == 0.0)
             if len(zero_true_idx) > 0:
                 tiny_val = np.max(lbl_true - np.min(lbl_true)) * 1E-6
@@ -1081,6 +1099,8 @@ class Plotter:
             stat_cover = np.logical_and(lbl_lower < lbl_true,
                                         lbl_upper > lbl_true)
             stat_not_cover = np.logical_not(stat_cover)
+            stat_width = np.mean(lbl_upper - lbl_lower)
+            stat_var_width = np.var(lbl_upper - lbl_lower)
             f_stat_cover = sum(stat_cover) / len(stat_cover) * 100
             f_stat_cover_target = self.cpi_coverage * 100
 
@@ -1106,6 +1126,8 @@ class Plotter:
             s_intercept = '{:.2E}'.format(stat_intercept)
             s_cover = '{:.1f}%'.format(f_stat_cover)
             s_cover_target = '{:.1f}%'.format(f_stat_cover_target)
+            s_width = '{:.2E}'.format(stat_width)
+            s_var_width = '{:.2E}'.format(stat_var_width)
 
             bad_slope_str = '<' if stat_slope < 1.0 else '>'
             bad_cover_str = '<' if f_stat_cover < f_stat_cover_target else '>'
@@ -1165,7 +1187,8 @@ class Plotter:
             stat_str = [f'MAE: {s_mae}', f'MSE: {s_mse}',
                         f'RMSE: {s_rmse}', f'Intercept: {s_intercept}',
                         f'Slope: {s_slope}', f'Coverage: {s_cover}',
-                        f'Coverage target: {s_cover_target}']
+                        f'Coverage target: {s_cover_target}', 
+                        f'Mean width: {s_width}', f'Var. width: {s_var_width}']
 
             for j, s in enumerate(stat_str):
                 plt.annotate(s, xy=(0.01, 0.99 - j * dx),
@@ -1307,11 +1330,14 @@ class Plotter:
 
         # fill in plot
         i = 0
+
         for i in range(num_labels):
 
             # get estimated value
             p = label_names[i]
-            est_cats_p = [x for x in est_label.columns if p in x]
+            p_numeric = label_names[i] + "_"
+            est_cats_p = [x for x in est_label.columns if p_numeric in x]
+
             ests_p = est_label[est_cats_p].copy()
 
             # bar plot
@@ -1332,7 +1358,7 @@ class Plotter:
             # axs[i][0].title.set_text(f'{p}')
 
         # plot values as text
-        fig.suptitle(title)
+        fig.suptitle(title, y = ( fig_height * (num_labels - 1 + .98)) / num_labels / fig.get_size_inches()[1] )
         # plt.xticks(np.arange(num_labels), label_names)
         # plt.xlim( -0.5, num_labels )
         # plt.ylim( )
@@ -1373,7 +1399,7 @@ class Plotter:
         # figure colors
         colors = {'train': train_color,
                   'validation': val_color}
-
+             
         # plot for all metrics
         for j, v2 in enumerate(metric_names):
 
@@ -1407,6 +1433,33 @@ class Plotter:
                 ax.legend(handles=legend_handles,
                           labels=legend_labels,
                           loc='upper right')
+
+                # # best validation loss_combined score?
+                # df_tmp = history.loc[(history.metric == 'loss_combined') &
+                #                      (history.dataset == 'validation')]
+                best_val_loss = round(np.min( df.value ), ndigits=3)
+                best_val_idx = np.argmin( df.value )
+            
+                if v3 == 'validation':
+                    ax.scatter( [best_val_idx], [best_val_loss],
+                                edgecolor=colors['validation'],
+                                facecolor='white',
+                                zorder=5,
+                                s=20)
+
+                    ax.annotate(f'Best loss:\n' + \
+                                f'Best epoch:',
+                                xy=(0.74, 0.82),
+                                xycoords='axes fraction',
+                                size=8)
+                    
+                    ax.annotate(f'{best_val_loss}\n' + \
+                                f'{best_val_idx}',
+                                xy=(0.90, 0.82),
+                                xycoords='axes fraction',
+                                size=8)
+
+
 
             # save figure
             save_fn = f'{prefix}_{v2}.pdf'

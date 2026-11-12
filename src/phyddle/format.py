@@ -22,8 +22,6 @@ import numpy as np
 import pandas as pd
 from multiprocessing import Pool, set_start_method, cpu_count
 from tqdm import tqdm
-from sklearn.decomposition import PCA
-from sklearn.preprocessing import StandardScaler
 
 # phyddle imports
 from phyddle import utilities as util
@@ -118,13 +116,23 @@ class Formatter:
         self.tensor_format      = str(args['tensor_format'])
         self.param_est          = list(args['param_est'])
         self.param_data         = list(args['param_data'])
+        self.asr_est            = bool(args['asr_est'])
+        self.asr_1_cat          = bool(args['asr_1_cat'])
+        self.asr_one            = bool(args['asr_one'])
+        self.max_asr_est        = int(args['max_asr_est'])
+        if self.max_asr_est == -1: 
+            self.max_asr_est = self.tree_width - 1
+        self.asr_rotate         = dict(args['asr_rotate'])
         self.prop_test          = float(args['prop_test'])
         self.log_offset         = float(args['log_offset'])
         self.save_phyenc_csv    = bool(args['save_phyenc_csv'])
+        self.shuffle_test       = bool(args['shuffle_test'])
         
         # set number of processors
         if self.num_proc <= 0:
             self.num_proc = cpu_count() + self.num_proc
+        if self.num_proc > cpu_count():
+            self.num_proc = cpu_count()
 
         # are input characters, trees, or labels used?
         self.use_input_dat = (self.num_char > 0)
@@ -194,6 +202,7 @@ class Formatter:
     
             # encode each dataset into individual tensors
             util.print_str('▪ Encoding simulated data as tensors', verbose)
+            util.print_str(f'  ▪ using CPUs [num: {self.num_proc}]', verbose)
             self.encode_all(mode='sim')
     
             # split examples into training and test datasets
@@ -206,10 +215,10 @@ class Formatter:
 
             # clear out object data (improves multiprocessing.Pool speed)
             self.rep_data = None
-            
+
             # working on PCA pre-check
             # self.make_pca()
-            
+
             # done
             found_sim = True
 
@@ -229,9 +238,10 @@ class Formatter:
             util.print_str('▪ Combining and writing empirical data as tensors', verbose)
             self.split_idx = { 'empirical' : np.array(self.rep_idx) }
             self.write_tensor(mode='emp')
-            
+
             # clear out object data (improves multiprocessing.Pool speed)
             self.rep_data = None
+
             
             # done
             found_emp = True
@@ -292,10 +302,9 @@ class Formatter:
                       os.path.exists(f'{dat_dir}/{f}.dat.nex')
             has_tre = os.path.exists(f'{dat_dir}/{f}.tre')
             has_lbl = os.path.exists(f'{dat_dir}/{f}.labels.csv')
+            has_asr = os.path.exists(f'{dat_dir}/{f}.anc_state.csv')
             
             # no labels needed for empirical datasets with no param_data
-            # print(self.param_data)
-            # print(mode, len(self.param_data))
             if mode == 'emp' and len(self.param_data) == 0:
                 has_lbl = True
             elif mode == 'emp' and len(self.param_data) > 0 and not has_lbl:
@@ -303,7 +312,8 @@ class Formatter:
                 return False
             # if the 1-3 files exist, then we have 1+ valid datasets
             if (has_dat or not self.use_input_dat) and (has_tre or self.use_input_tre) and has_lbl:
-                return True
+                if (self.asr_est and has_asr) or (not self.asr_est or mode == 'emp'):
+                    return True
     
         return False
 
@@ -371,6 +381,25 @@ class Formatter:
                            '       valid examples that are compatible with \n'
                            '       the configuration.\n')
             sys.exit()
+
+        if self.asr_1_cat and mode == 'sim':
+            n_anc_state = self.max_num_taxa - 1
+            n_states = pow(self.num_states, 1/n_anc_state)
+
+            if n_states % 1 != 0: 
+                self.logger.write_log('fmt', f'The number of states ({self.num_states}) for inferring asr_1_cat should be equal to the  maximum number of tip{self.max_num_taxa } to the power of the number of possible tip states')
+                raise Exception('The number of states ({num_states}) for inferring asr_1_cat should be equal to the  maximum number of tip{self.max_num_taxa } to the power of the number of possible tip states', )
+                    
+            anc_state_comb = util.generate_combinations_matrix(range(int(n_states)), n_anc_state)
+            row_index = np.arange(len(anc_state_comb))[:,np.newaxis]
+            map_file = f'{self.fmt_dir}/state_mapping.csv'
+            header = f'state'
+
+            for i in range(len(anc_state_comb[1])):
+                header = f'{header},node_{i}'
+
+            combined_array = np.hstack((row_index, anc_state_comb))
+            np.savetxt(map_file, combined_array, delimiter=",", fmt='%s', header = header)
             
         # save all replicate output by index
         self.rep_data = {}
@@ -405,6 +434,7 @@ class Formatter:
             files = os.listdir(f'{self.emp_dir}')
             # files = [ f for f in files if f.startswith(self.emp_prefix) ]
         
+        # ANNA ? 
         if self.use_input_dat:
             files = [ f for f in files if '.dat.' in f ]
         elif self.use_input_tree:
@@ -433,7 +463,8 @@ class Formatter:
         num_samples = len(rep_idx)
         
         # shuffle examples
-        np.random.shuffle(rep_idx)
+        if (self.shuffle_test):
+            np.random.shuffle(rep_idx)
         
         # split examples
         num_test = int(num_samples * self.prop_test)
@@ -524,7 +555,6 @@ class Formatter:
         dat_lbl = hdf5_file.create_dataset('labels',
                                            (num_samples, num_par_est),
                                            dtype='f', compression='gzip')
-
         # Each entry is a dictionary of phylo-state, aux. data, and label
         res = [ self.rep_data[idx] for idx in rep_idx ]
         
@@ -663,6 +693,8 @@ class Formatter:
         aux_fn     = tmp_fn + '.aux_data.csv'
         lbl_fn     = tmp_fn + '.labels.csv'
         par_est_fn = tmp_fn + '.param_est.csv'
+        asr_est_fn = tmp_fn + '.anc_state.csv'
+        node_labels_fn = tmp_fn + '.node_labels.csv'
         
         # check if key files exist
         if not os.path.exists(dat_fn):
@@ -673,6 +705,9 @@ class Formatter:
             return
         if not os.path.exists(lbl_fn) and mode == 'sim':
             self.logger.write_log('fmt', f'Cannot find {lbl_fn}')
+            return
+        if self.asr_est and mode == 'sim' and not os.path.exists(asr_est_fn):
+            self.logger.write_log('fmt', f'Cannot find {asr_est_fn}')
             return
        
         # read in nexus data file as numpy array
@@ -691,6 +726,16 @@ class Formatter:
         expected_char_dim = util.get_num_char_col(self.char_encode,
                                                   self.num_char,
                                                   self.num_states)
+
+        #  read in ancestral state data for simulations
+        if self.asr_est and mode == "sim" :
+            dat_asr = util.convert_csv_to_array(asr_est_fn, 
+                                                 self.char_encode)#,
+        else:
+            dat_asr = pd.DataFrame()
+            #ANNA Need to read in number of states, error checking on data dimensions
+                                                 #self.num_states)
+
         
         # get tree file
         phy = util.read_tree(tre_fn)
@@ -711,6 +756,12 @@ class Formatter:
             util.print_err(msg)
             # program quits
 
+        # ANNA need error message for character data
+
+        # ANNA check internal node information,
+        # ANNA Chek if downsampling or temporarily add error
+        
+
         # prune tree, if needed
         num_taxa_before_prune = len(phy.leaf_nodes())
         if self.tree_encode == 'extant':
@@ -729,6 +780,9 @@ class Formatter:
 
         # get tree size
         num_taxa = len(phy.leaf_nodes())
+        if self.asr_est and num_taxa < num_taxa_orig: 
+            util.print_warn(f'Difficulty processing {tre_fn}.\n')
+            util.print_warn(f"Downsampling not implemented with ancestral state reconstruction")
 
         # tree size error checking
         if num_taxa < num_taxa_before_prune and mode == 'emp' and self.tree_encode == 'extant':
@@ -749,21 +803,62 @@ class Formatter:
             self.logger.write_log('fmt', f'Too few taxa (<{self.min_num_taxa}) for {tre_fn}')
             return
 
-        # create compact phylo-state vector, CPV+S = {CBLV+S, CDV+S}
-        cpvs_data = util.encode_cpvs(phy, dat, tree_width=self.tree_width,
-                                     tree_encode_type=self.brlen_encode,
-                                     tree_type=self.tree_encode, idx=idx)
+        # read in labels file
+        labels = None
+        if mode == 'sim' or len(self.param_data) > 0:
+            labels = pd.read_csv(lbl_fn, header=0)
 
+        # Find node name- this is for doing one node at a time
+        if self.asr_one: 
+            node_name = str(labels["asr_node_id"][0])
+        else: 
+            node_name = ""
+    
+        
+        # create compact phylo-state vector, CPV+S = {CBLV+S, CDV+S}
+        cpvs_data_all = util.encode_cpvs(phy, dat, dat_asr, node_name, self.asr_est, self.asr_rotate, tree_width=self.tree_width, 
+                                     tree_encode_type=self.brlen_encode,
+                                     tree_type=self.tree_encode, idx=idx, prefix=tmp_fn)
+        cpvs_data = cpvs_data_all[0]
+        cpvs_data_asr = cpvs_data_all[1]
+        cpvs_names = cpvs_data_all[2]
+        cpvs_node_index = cpvs_data_all[3]
+
+        if self.asr_one: 
+            labels.loc[0, "asr_node_id"] = cpvs_node_index
+            labels['asr_node_id'] = labels['asr_node_id'].astype(int)
+
+        asr_1_cat = np.array(-1)
+
+        # ANNA: Model specific
+        if self.asr_1_cat and mode == 'sim':
+            n_anc_state = self.max_num_taxa - 1
+            n_states = pow(self.num_states, 1/n_anc_state)
+
+            if n_states % 1 != 0: 
+                self.logger.write_log('fmt', f'The number of states ({self.num_states}) for inferring asr_1_cat should be equal to the  maximum number of tip{self.max_num_taxa } to the power of the number of possible tip states')
+                raise Exception('The number of states ({num_states}) for inferring asr_1_cat should be equal to the  maximum number of tip{self.max_num_taxa } to the power of the number of possible tip states', )
+                    
+            anc_state_comb = util.generate_combinations_matrix(range(int(n_states)), n_anc_state)
+            
+            for i in range(self.num_states):
+                row = cpvs_data_asr[0:n_anc_state].T
+                if (row == anc_state_comb[i]).all():
+                    asr_1_cat = i
+            if asr_1_cat  == -1:  
+                self.logger.write_log('fmt', f'Problem converting to 1 categorical variable for ancestral states. Check max tree size and number of num_states')
+                    
+            
         # save CPVS
         save_phyenc_csv_ = self.save_phyenc_csv or save_phyenc_csv
         if save_phyenc_csv_ and cpvs_data is not None:
             cpsv_str = util.ndarray_to_flat_str(cpvs_data.flatten()) + '\n'
             util.write_to_file(cpsv_str, cpsv_fn)
 
-        # read in labels file
-        labels = None
-        if mode == 'sim' or len(self.param_data) > 0:
-            labels = pd.read_csv(lbl_fn, header=0)
+        # Encode and save ancestral states
+        if (not dat_asr.empty) or (self.asr_est and mode == 'emp' ) :
+            cpvs_names.to_csv(node_labels_fn, index = False)
+
             
         # process parameters to estimate
         param_est = pd.DataFrame()
@@ -776,8 +871,19 @@ class Formatter:
                 if k not in param_est.columns:
                     util.print_warn(f"Estimated parameter '{k}' missing in labels. Skipped.")
             
+            if dat_asr.empty:
+                param_est.to_csv(par_est_fn, index=False, float_format=util.PANDAS_FLOAT_FMT_STR)
+            elif self.asr_1_cat: 
+                asr_df = pd.DataFrame([asr_1_cat]).T.add_prefix('asr_')
+                all_est = pd.concat([param_est.T, asr_df.T]).T
+                all_est.to_csv(par_est_fn, index=False, float_format=util.PANDAS_FLOAT_FMT_STR)
+                param_est = all_est
+            else:
+                asr_df = pd.DataFrame(cpvs_data_asr).T.add_prefix('asr_')
+                all_est = pd.concat([param_est.T,asr_df.T]).T
+                all_est.to_csv(par_est_fn, index=False, float_format=util.PANDAS_FLOAT_FMT_STR)
+                param_est = all_est
             # save param_est
-            param_est.to_csv(par_est_fn, index=False, float_format=util.PANDAS_FLOAT_FMT_STR)
     
             # set empty param dataframes as None
             if len(param_est.columns) == 0:

@@ -1,3 +1,18 @@
+**phyddle v0.3.1** -- 26.11.11
+
+ * Add support for ancestral state estimation (https://doi.org/10.64898/2026.03.19.712918); read the paper, documentation, and tutorial to use
+ * Add support for adaptive conformal prediction for generating calibrated prediction intervals, configured with `cpi_method` setting
+ * Train allows you use "total" or "consecutive" count of decreasing performance to stop training, configured with `early_stop_rule` setting
+ * Train can now use "sum" or (learned) "weighted_sum" for multitarget training, configured with `loss_aggregation` setting
+ * Train now supports dropout layers, configured with new `phy_dropout_prop`, `aux_dropout_prop`, and `lbl_dropout_prop` settings
+ * Plot now uses x_est ~ x_true instead of x_true ~ x_est to show parameter estimation accuracy
+ * Plot handles fixed variables for KDE better now, but still not perfect
+ * Format handles presence/absence of "taxa" header in data file more gracefully
+ * Estimate more reliably predicts shape of categorical labels (rare crashes before)
+ * Increased default proportion of validation/test examples from 0.05 to 0.10
+ * Simulate/Format/Train now report number of CPUs used
+ * Fix various issues with dependencies and library updates
+
 **phyddle v0.3.0** -- 25.02.27
 
   * Includes new safety features, settings, bug fixes, and documentation

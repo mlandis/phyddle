@@ -38,5 +38,6 @@ Visit the `GitHub Discussions <https://github.com/mlandis/phyddle/discussions>`_
     installation
     tutorial
     overview
+    advanced_features 
     examples
     appendix

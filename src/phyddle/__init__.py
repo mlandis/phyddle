@@ -14,7 +14,7 @@ License:   MIT
 from multiprocessing import set_start_method
 
 __project__ = 'phyddle'
-__version__ = '0.3.0'
+__version__ = '0.3.1'
 __author__ = 'Michael Landis and Ammon Thompson'
 __copyright__ = '(c) 2022-2025, Michael Landis and Ammon Thompson'
 __citation__ = 'MJ Landis, A Thompson. 2024. phyddle: software for phylogenetic model exploration with deep learning. bioRxiv 2024.08.06.606717.'

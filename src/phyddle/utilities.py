@@ -14,7 +14,6 @@ License:   MIT
 # standard packages
 import argparse
 import os
-import pkg_resources
 import shutil
 import tarfile
 import platform
@@ -22,7 +21,9 @@ import re
 import sys
 import time
 import dateutil
+import itertools
 from datetime import datetime
+from importlib.metadata import distributions, version, PackageNotFoundError
 
 # external packages
 import dendropy as dp
@@ -166,22 +167,33 @@ def settings_registry():
         'char_encode':         {'step': 'FTE',   'type': str,   'section': 'Format',  'default': 'one_hot',       'help': 'Encoding strategy for character data', 'choices': ['one_hot', 'integer', 'numeric']},
         'param_est':           {'step': 'FTE',   'type': dict,  'section': 'Format',  'default': dict(),          'help': 'Model parameters and variables to estimate'},
         'param_data':          {'step': 'FTE',   'type': dict,  'section': 'Format',  'default': dict(),          'help': 'Model parameters and variables treated as data'},
+        'asr_est':             {'step': 'FTE',   'type': str,   'section': 'Format',  'default': 'F',             'help': 'Infer ancestral state for each node (marginal)', 'bool': True},
+        'asr_one':             {'step': 'FTE',   'type': str,   'section': 'Format',  'default': 'F',             'help': 'Infer the ancestral state for a single node', 'bool': True},
+        'asr_1_cat':           {'step': 'FTE',   'type': str,   'section': 'Format',  'default': 'F',             'help': 'Infer ancestral states as a single categorical variable for the whole tree (not recommended due to poor scaling)', 'bool': True},
+        'max_asr_est':         {'step': 'FTE',   'type': int,   'section': 'Format',  'default': -1,              'help': 'Maximum number of ancestral states to infer', 'int': -1},
+        'asr_rotate':          {'step': 'FTE',   'type': dict,  'section': 'Format',  'default': dict(),          'help': 'States that are equivalent if daughters are rotated'},
         'char_format':         {'step': 'FTE',   'type': str,   'section': 'Format',  'default': 'nexus',         'help': 'File format for character data', 'choices': ['csv', 'nexus']},
         'tensor_format':       {'step': 'FTEP',  'type': str,   'section': 'Format',  'default': 'hdf5',          'help': 'File format for training example tensors', 'choices': ['csv', 'hdf5']},
         'save_phyenc_csv':     {'step': 'F',     'type': str,   'section': 'Format',  'default': 'F',             'help': 'Save encoded phylogenetic tensor encoding to csv?', 'bool': True},
+        'shuffle_test':        {'step': 'F',     'type': str,   'section': 'Format',  'default': 'T',             'help': 'Shuffle which phylogeneties are in the test vs training dataset', 'bool': True},
 
         # training options
-        'num_epochs':           {'step': 'TEP',    'type': int,    'section': 'Train',  'default': 50,             'help': 'Number of training epochs'},
-        'num_early_stop':       {'step': 'TEP',    'type': int,    'section': 'Train',  'default': 3,              'help': 'Number of consecutive validation loss gains before early stopping'},
+        'num_epochs':           {'step': 'T',      'type': int,    'section': 'Train',  'default': 200,            'help': 'Number of training epochs'},
+        'num_early_stop':       {'step': 'T',      'type': int,    'section': 'Train',  'default': 10,             'help': 'Number of validation loss gains before early stopping'},
+        'early_stop_rule':      {'step': 'T',      'type': str,    'section': 'Train',  'default': 'total',        'help': 'Use total or consecutive number of validation loss gains to trigger early stopping', 'choices': ['total', 'consecutive']},
         'trn_batch_size':       {'step': 'TEP',    'type': int,    'section': 'Train',  'default': 512,            'help': 'Training batch sizes'},
-        'prop_test':            {'step': 'FT',     'type': float,  'section': 'Train',  'default': 0.05,           'help': 'Proportion of data used as test examples (assess trained network performance)'},
-        'prop_val':             {'step': 'T',      'type': float,  'section': 'Train',  'default': 0.05,           'help': 'Proportion of data used as validation examples (diagnose network overtraining)'},
+        'prop_test':            {'step': 'FT',     'type': float,  'section': 'Train',  'default': 0.10,           'help': 'Proportion of data used as test examples (assess trained network performance)'},
+        'prop_val':             {'step': 'T',      'type': float,  'section': 'Train',  'default': 0.10,           'help': 'Proportion of data used as validation examples (diagnose network overtraining)'},
         'prop_cal':             {'step': 'T',      'type': float,  'section': 'Train',  'default': 0.20,           'help': 'Proportion of data used as calibration examples (calibrate CPIs)'},
-        'cpi_coverage':         {'step': 'T',      'type': float,  'section': 'Train',  'default': 0.95,           'help': 'Expected coverage percent for calibrated prediction intervals (CPIs)'},
+        'cpi_method':           {'step': 'T',      'type': str,    'section': 'Train',  'default': 'cqr',          'help': 'Method for computing conformalized prediction intervals (CPIs)', 'choices': ['cqr', 'acp']},
+        'cpi_coverage':         {'step': 'T',      'type': float,  'section': 'Train',  'default': 0.95,           'help': 'Expected coverage percent for CPIs'},
         'cpi_asymmetric':       {'step': 'T',      'type': str,    'section': 'Train',  'default': 'T',            'help': 'Use asymmetric (True) or symmetric (False) adjustments for CPIs?', 'bool': True},
+        'cpi_method':           {'step': 'T',      'type': str,    'section': 'Train',  'default': 'cqr',          'help': 'What method for conformalized prediction intervals?', 'choices':['cqr','acp']},
         'loss_numerical':       {'step': 'T',      'type': str,    'section': 'Train',  'default': 'mse',          'help': 'Loss function for real value estimates', 'choices': ['mse', 'mae']},
+        'loss_aggregation':     {'step': 'T',      'type': str,    'section': 'Train',  'default': 'sum',          'help': 'Loss function for real value estimates', 'choices': ['sum', 'weighted_sum']},
         'optimizer':            {'step': 'T',      'type': str,    'section': 'Train',  'default': 'adam',         'help': 'Method used for optimizing neural network', 'choices': ['adam', 'adadelta', 'adagrad', 'adamw', 'rmsprop', 'sgd']},
         'learning_rate':        {'step': 'T',      'type': float,  'section': 'Train',  'default': 0.001,          'help': 'Learning rate for optimizer'},
+        'weight_decay':         {'step': 'T',      'type': float,  'section': 'Train',  'default': 0.0,            'help': 'Weight decay (L2 penalty) for optimizer regularization'},
         'activation_func':      {'step': 'T',      'type': str,    'section': 'Train',  'default': 'relu',         'help': 'Activation function for all internal layers', 'choices': ['relu', 'leaky_relu', 'elu', 'tanh', 'sigmoid']}, 
         'log_offset':           {'step': 'FTEP',   'type': float,  'section': 'Train',  'default': 1.0,            'help': 'Offset size c when taking ln(x+c) for zero-valued variables'},
         'phy_channel_plain':    {'step': 'T',      'type': list,   'section': 'Train',  'default': [64, 96, 128],  'help': 'Output channel sizes for plain convolutional layers for phylogenetic state input'},
@@ -194,10 +206,20 @@ def settings_registry():
         'phy_kernel_dilate':    {'step': 'T',      'type': list,   'section': 'Train',  'default': [3, 5],         'help': 'Kernel sizes for dilate convolutional layers for phylogenetic state input'},
         'phy_stride_stride':    {'step': 'T',      'type': list,   'section': 'Train',  'default': [3, 6],         'help': 'Stride sizes for stride convolutional layers for phylogenetic state input'},
         'phy_dilate_dilate':    {'step': 'T',      'type': list,   'section': 'Train',  'default': [3, 5],         'help': 'Dilation sizes for dilate convolutional layers for phylogenetic state input'},
+        'phy_dropout_prop':     {'step': 'T',      'type': float,   'section': 'Train',  'default': 0.0,            'help': 'Dropout proportion for convolutional layers for phylogenetic state input'},
+        'aux_dropout_prop':     {'step': 'T',      'type': float,   'section': 'Train',  'default': 0.0,            'help': 'Dropout proportion for dense layers for auxiliary data input'},
+        'lbl_dropout_prop':     {'step': 'T',      'type': float,   'section': 'Train',  'default': 0.0,            'help': 'Dropout proportion for dense layers for label outputs'},
+        
 
         # estimating options
         'warn_aux_outlier':     {'step': 'FEP',    'type': float,  'section': 'Estimate',  'default': 0.0001,      'help': 'Percentile to detect extreme empirical auxiliary (abs.) values.'},
         'warn_lbl_outlier':     {'step': 'FEP',    'type': float,  'section': 'Estimate',  'default': 0.01,        'help': 'Percentile to detect extreme empirical label (abs.) values.'},
+        'asr_nexus_test':       {'step': 'E',      'type': str,    'section': 'Estimate',  'default': 'F',         'help': 'Write ancestral state reconstruction to nexus file for test data', 'bool': True},
+        'asr_nexus_emp':        {'step': 'E',      'type': str,    'section': 'Estimate',  'default': 'T',         'help': 'Write ancestral state reconstruction to nexus file for empirical data', 'bool': True},
+        'asr_map_triplet_states':   {'step': 'E',      'type': dict,  'section': 'Estimate',  'default': dict(),       'help': 'Relabeling of encoding from one value for each triplet at cladogenesis to parent, left daughter, right daughter for the nexus file'},
+        'asr_map_tip_states':       {'step': 'E',      'type': dict,  'section': 'Estimate',  'default': dict(),       'help': 'Relabeling of tip data with multiple characters to a single character for the nexus format'},
+        'asr_rb_nexus':             {'step': 'E',      'type': str,  'section': 'Estimate',  'default': 'F',           'help': 'Nexus format tree should be in RevGadgets compatible format', 'bool' : True},
+
 
         # plotting options
         'plot_train_color'  : {'step': 'P', 'type': str,    'section': 'Plot', 'default': 'blue',       'help': 'Plotting color for training data elements'},
@@ -685,8 +707,18 @@ def check_args(args):
         print_err("prop_val must be between 0 and 1", exit=True)
     if args['prop_cal'] < 0. or args['prop_cal'] > 1.:
         print_err("prop_cal must be between 0 and 1", exit=True)
+    if args['weight_decay'] < 0.:
+        print_err( "weight_decay must be >- 0", exit=True)
     if args['plot_pca_noise'] < 0.:
         print_err("plot_pca_noise must be >= 0", exit=True)
+       # ANNA error checking
+        
+    if args['phy_dropout_prop'] < 0. or args['phy_dropout_prop'] >= 1.:
+        print_err("phy_dropout_prop must be greater than or equal to 0 and less than 1", exit=True)
+    if args['aux_dropout_prop'] < 0. or args['aux_dropout_prop'] >= 1.:
+        print_err("aux_dropout_prop must be greater than or equal to 0 and less than 1", exit=True)
+    if args['lbl_dropout_prop'] < 0. or args['lbl_dropout_prop'] >= 1.:
+        print_err("lbl_dropout_prop must be greater than or equal to 0 and less than 1", exit=True)
         
     for k in args['param_est'].keys():
         if k in args['param_data']:
@@ -1170,6 +1202,8 @@ def write_to_file(s, fn):
 
     f = open(fn, 'w')
     f.write(s)
+    f.flush()
+    os.fsync(f.fileno())
     f.close()
     return
 
@@ -1195,7 +1229,7 @@ def read_tree(tre_fn):
     phy = None
     for schema in ['newick', 'nexus']:
         try:
-            phy_tmp = dp.Tree.get(path=tre_fn, schema=schema)
+            phy_tmp = dp.Tree.get(path=tre_fn, schema=schema, preserve_underscores=True)
         except:
             phy_tmp = None
 
@@ -1566,8 +1600,8 @@ END;
     return s
 
 
-def encode_cpvs(phy, dat, tree_width, tree_type,
-                tree_encode_type, idx, rescale=True):
+def encode_cpvs(phy, dat, dat_asr, node_name, asr_est, asr_rotate, tree_width, tree_type,
+                tree_encode_type, idx, prefix, rescale=True):
     """
     Encode Compact Phylogenetic Vector + States (CPV+S) array
 
@@ -1592,6 +1626,13 @@ def encode_cpvs(phy, dat, tree_width, tree_type,
     # taxon labels must match for each phy and dat replicate
     phy_labels = set([ n.taxon.label for n in phy.leaf_nodes() ])
 
+    if not dat_asr.empty:
+        #dat_asr_labels = set( dat.columns.to_list()[1:] )   # skip first element 'taxa'
+        if dat_asr.columns.to_list()[0] == "taxa":
+            dat_asr_labels = set(dat_asr.columns.to_list()[1:])
+        else:
+            dat_asr_labels = set(dat_asr.columns.to_list())
+
     # OLD
     #dat_labels = set( dat.columns.to_list()[1:] )   # skip first element 'taxa'
     
@@ -1614,6 +1655,7 @@ def encode_cpvs(phy, dat, tree_width, tree_type,
 
     phy_missing = phy_labels.difference(dat_labels)
 
+
     if len(phy_missing) != 0:
         phy_missing = sorted(list(phy_missing))
         err_msg = f'Missing taxon labels in dat but not in phy for replicate {idx}: '
@@ -1621,18 +1663,19 @@ def encode_cpvs(phy, dat, tree_width, tree_type,
         raise ValueError(err_msg)
 
     cpvs = None
+    # ANNA need to do for both of these
     if tree_type == 'serial':
-        cpvs = encode_cblvs(phy, dat, tree_width,
-                            tree_encode_type, rescale)
+        cpvs = encode_cblvs(phy, dat, dat_asr, node_name, asr_est, asr_rotate, tree_width,
+                            tree_encode_type, idx, prefix, rescale)
     elif tree_type == 'extant':
-        cpvs = encode_cdvs(phy, dat, tree_width,
-                           tree_encode_type, rescale)
+        cpvs = encode_cdvs(phy, dat, dat_asr, node_name, asr_est, asr_rotate, tree_width,
+                           tree_encode_type, idx, prefix, rescale)
     else:
         ValueError(f'Unrecognized {tree_type}')
 
     return cpvs
 
-def encode_cdvs(phy, dat, tree_width, tree_encode_type, rescale=True):
+def encode_cdvs(phy, dat, dat_asr, node_name, asr_est, asr_rotate, tree_width, tree_encode_type, idx, prefix, rescale=True):
     """
     Encode Compact Diversity-reordered Vector + States (CDV+S) array
 
@@ -1668,8 +1711,21 @@ def encode_cdvs(phy, dat, tree_width, tree_encode_type, rescale=True):
     phy.calc_node_root_distances(return_leaf_distances_only=False)
     heights    = np.zeros( (tree_width, num_tree_col) )
     states     = np.zeros( (tree_width, num_char_col) )
+
+    # ANNA need to have a different number of characters
+    if not dat_asr.empty:
+        anc_states     = np.zeros((tree_width - 1, 1))
+    else: 
+        anc_states = np.empty((0))
+    if asr_est: 
+        anc_names = pd.DataFrame(columns=['original', 'new'])
+    else : 
+        anc_names = pd.DataFrame()
+
     state_idx  = 0
+    anc_state_idx  = 0
     height_idx = 0
+    node_index = -1
 
     # postorder traversal to rotate nodes by clade-length
     for nd in phy.postorder_node_iter():
@@ -1682,11 +1738,18 @@ def encode_cdvs(phy, dat, tree_width, tree_encode_type, rescale=True):
             ch_treelen_rank    = np.argsort( ch_treelen )[::-1]
             children_reordered = [ children[i] for i in ch_treelen_rank ]
             nd.set_children(children_reordered)
+            reorder = 0
+            if children != children_reordered:
+                reorder = 1
+            nd.annotations.add_new(name="reordered", value=reorder)
+
+    name= prefix +  ".form.tre"
+    phy.write_to_path(name, schema="newick")
 
     # inorder traversal to fill matrix
     phy.seed_node.edge.length = 0
-    for nd in phy.inorder_node_iter():
 
+    for nd in phy.inorder_node_iter():
         if nd.is_leaf():
             if tree_encode_type == 'height_brlen':
                 heights[height_idx,1] = nd.edge.length
@@ -1698,15 +1761,48 @@ def encode_cdvs(phy, dat, tree_width, tree_encode_type, rescale=True):
                 heights[height_idx,2] = nd.edge.length
             height_idx += 1
 
+            if not dat_asr.empty: 
+
+                # This equals zero if the nodes are not rotated
+                switch = nd.annotations[0]._value
+                
+                # Check to make sure there are the right number of columns (3 = state, parent1, parent 2) 
+                # Change label based on rotation
+                if switch > 0 and dat_asr[nd.label][1] in asr_rotate: 
+                    anc_states[anc_state_idx:] = asr_rotate[dat_asr[nd.label][1]]
+                else:
+                    anc_states[anc_state_idx,:] = dat_asr[nd.label].to_list()[0]
+
+
+            # ANNA Require node names not be integers
+            # If there is a node name for the single node ASR
+            if (node_name != ""):
+                if dat_asr.empty:
+                    if str(nd.label) == node_name:
+                        node_index = anc_state_idx
+                    anc_state_idx += 1
+
+            if asr_est: 
+                anc_names.loc[anc_state_idx,'original'] = nd.label
+                anc_names.loc[anc_state_idx,'new'] = str(anc_state_idx)
+                # This should only get increased once as you either estimate a
+                # single node or all of them, not both together
+                anc_state_idx += 1
+
+    if (node_name != ""):
+        if dat_asr.empty:
+            if (node_index == -1):
+                print_err("Node for ancestral state reconstruction not found", exit=True)
     # stack the phylo and states tensors
     if rescale:
         heights = heights / np.max(heights)
     phylo_tensor = np.hstack( [heights, states] )
 
-    return phylo_tensor
+    return phylo_tensor, anc_states, anc_names, node_index
 
 
-def encode_cblvs(phy, dat, tree_width, tree_encode_type, rescale=True):
+def encode_cblvs(phy, dat, dat_asr, node_name, asr_est, asr_rotate, tree_width, 
+        tree_encode_type, idx, prefix, rescale=True):
     """
     Encode Compact Bijective Ladderized Vector + States (CBLV+S) array
 
@@ -1739,6 +1835,19 @@ def encode_cblvs(phy, dat, tree_width, tree_encode_type, rescale=True):
     elif tree_encode_type == 'height_brlen':
         num_tree_col = 4
 
+    # ANNA need to have a different number of characters
+    if not dat_asr.empty:
+        anc_states     = np.zeros((tree_width - 1, 1))
+    else: 
+        anc_states = np.empty((0))
+    if asr_est: 
+        anc_names = pd.DataFrame(columns=['original', 'new'])
+    else : 
+        anc_names = pd.DataFrame()
+
+    anc_state_idx  = 0
+    node_index = -1
+
     # initialize workspace
     phy.calc_node_root_distances(return_leaf_distances_only=False)
     heights    = np.zeros( (tree_width, num_tree_col) )
@@ -1754,9 +1863,17 @@ def encode_cblvs(phy, dat, tree_width, tree_encode_type, rescale=True):
             children                  = nd.child_nodes()
             ch_max_root_distance      = [ ch.max_root_distance for ch in children ]
             ch_max_root_distance_rank = np.argsort( ch_max_root_distance )[::-1]  # [0,1] or [1,0]
-            children_reordered        = [ children[i] for i in ch_max_root_distance_rank ]
             nd.max_root_distance      = max(ch_max_root_distance)
+            children_reordered = [ children[i] for i in ch_max_root_distance_rank ]
             nd.set_children(children_reordered)
+            reorder = 0
+
+            if children != children_reordered:
+                reorder = 1
+            nd.annotations.add_new(name="reordered", value=reorder)
+
+    name= prefix +  ".form.tre"
+    phy.write_to_path(name, schema="newick")
 
     # inorder traversal to fill matrix
     last_int_node = phy.seed_node
@@ -1775,12 +1892,49 @@ def encode_cblvs(phy, dat, tree_width, tree_encode_type, rescale=True):
             last_int_node = nd
             height_idx += 1
 
+        # Ancestral states
+            if not dat_asr.empty: 
+
+                # This equals zero if the nodes are not rotated
+                index = len(nd.annotations)
+                #for annotation in node.annotations:
+                #    if annotation.name == 'reordered':
+                switch = nd.annotations[index - 1]._value
+                
+                # Check to make sure there are the right number of columns (3 = state, parent1, parent 2) 
+                # Change label based on rotation
+                if switch > 0 and dat_asr[nd.label][1] in asr_rotate: 
+                    anc_states[anc_state_idx:] = asr_rotate[dat_asr[nd.label][1]]
+                else:
+                    anc_states[anc_state_idx,:] = dat_asr[nd.label].to_list()[0]
+
+
+            # ANNA Require node names not be integers
+            # If there is a node name for the single node ASR
+            if (node_name != ""):
+                if dat_asr.empty:
+                    if str(nd.label) == node_name:
+                        node_index = anc_state_idx
+                    anc_state_idx += 1
+
+            if asr_est: 
+                anc_names.loc[anc_state_idx,'original'] = nd.label
+                anc_names.loc[anc_state_idx,'new'] = str(anc_state_idx)
+                # This should only get increased once as you either estimate a
+                # single node or all of them, not both together
+                anc_state_idx += 1
+
+    if (node_name != ""):
+        if dat_asr.empty:
+            if (node_index == -1):
+                print_err("Node for ancestral state reconstruction not found", exit=True)
+
     # stack the phylo and states tensors
     if rescale:
         heights = heights / np.max(heights)
     phylo_tensor = np.hstack( [heights, states] )
 
-    return phylo_tensor
+    return phylo_tensor, anc_states, anc_names, node_index
 
 
 def make_prune_phy(phy, prune_fn, rel_extant_age_tol=1e-10):
@@ -2268,7 +2422,11 @@ class Logger:
 
         # collect other info and set constants
         self.pkg_name = 'phyddle'
-        self.version = PHYDDLE_VERSION  # pkg_resources.get_distribution(self.pkg_name).version
+        #try:
+        #    self.version = version(self.pkg_name)
+        #except PackageNotFoundError:
+        #    self.version = PHYDDLE_VERSION
+        self.version = PHYDDLE_VERSION
         self.commit = '(to be done)'
         self.command = ' '.join(sys.argv)
         self.max_lines = 1e5
@@ -2377,16 +2535,17 @@ class Logger:
 
         # make dict of installed, imported packages
         d = {}
-        installed_packages = {d.key for d in pkg_resources.working_set}
+        installed_packages = {}
+        for dist in distributions():
+            dist_name = dist.metadata['Name']
+            if dist_name:  # skip broken/partial installs
+                clean_name = re.sub(r'[-_.]+', '-', dist_name).lower()
+                installed_packages[clean_name] = dist.version
+
         for name, mod in sorted(sys.modules.items()):
-            if name in installed_packages:
-                if hasattr(mod, '__version__'):
-                    d[name] = mod.__version__
-                else:
-                    try:
-                        d[name] = pkg_resources.get_distribution(name).version
-                    except Exception:
-                        pass
+            key = re.sub(r'[-_.]+', '-', name).lower()
+            if key in installed_packages:
+                d[name] = getattr(mod, '__version__', installed_packages[key])
 
         # convert into string
         s = '# SYSTEM SETTINGS\n'
@@ -2398,6 +2557,28 @@ class Logger:
             s += f'{k}\t{v}\n'
 
         return s
+
+def generate_combinations_matrix(elements, m):
+    """
+    Generates a matrix where each row represents a unique combination
+    of 'm' elements chosen from 'elements' with replacement.
+
+    Args:
+        elements (list): A list of distinct elements to choose from.
+        m (int): The length of each combination (number of columns in the matrix).
+
+    Returns:
+        list of lists: A matrix where each sublist is a combination.
+    """
+    if not elements:
+        return []
+
+    # Generate all combinations with replacement
+    all_combinations = list(itertools.product(elements, repeat=m))
+
+    # Convert the combinations into a matrix (list of lists)
+    matrix = [list(combo) for combo in all_combinations]
+    return matrix
 
 ##################################################
 

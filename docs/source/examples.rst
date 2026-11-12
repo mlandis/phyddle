@@ -120,3 +120,31 @@ transition-transversion biases. Estimates model parameters.
 | *Config:* `config.py <https://github.com/mlandis/phyddle/tree/main/workspace/mol_revbayes/config.py>`__
 | *Simulator script:* `sim_mol.Rev <https://raw.githubusercontent.com/mlandis/phyddle/refs/heads/main/workspace/mol_revbayes/sim_mol.Rev>`__ 
 | *Dependencies:* `RevBayes <https://revbayes.github.io/>`__
+
+
+.. _example_ASR_mk:
+
+Ancestral state reconstruction with Markov model with R
+-------------------------------------------------------
+
+*Description:* Simulates trees under a birth-death model. Simulates
+a binary character with a Markov model with equal forward and backward
+transition rates. Estimates ancestral states.
+
+| *Config:* `config.py <https://github.com/mlandis/phyddle/blob/devAncState/workspace/ancestral_state_mk/config.py>`__
+| *Simulator script:* `sim_tree.R <https://github.com/mlandis/phyddle/blob/devAncState/workspace/ancestral_state_mk/sim_tree.R>`__ 
+| *Dependencies:* `R <https://www.r-project.org/>`__, `castor <https://cran.r-project.org/web/packages/castor/index.html>`__, `dispRity <https://cran.r-project.org/web/packages/dispRity/index.html>`__, `extraDistr <https://cran.r-project.org/web/packages/extraDistr/index.html>`__
+
+
+.. _example_ASR_geosse:
+
+Ancestral state reconstruction with GeoSSE model with R
+-------------------------------------------------------
+
+*Description:* Simulates trees under a GeoSSE model with two 
+regions. Estimates ancestral states for the parent and two daughters at internal nodes.
+
+| *Config:* `config.py <https://github.com/mlandis/phyddle/blob/devAncState/workspace/ancestral_state_geosse/config.py>`__
+| *Simulator script:* `sim_geosse.R <https://github.com/mlandis/phyddle/blob/devAncState/workspace/ancestral_state_geosse/sim_geosse.R>`__ 
+| *Dependencies:* `R <https://www.r-project.org/>`__, `diversitree <https://cran.r-project.org/web/packages/diversitree/index.html>`__, `stringr <https://cran.r-project.org/web/packages/stringr/index.html>`__
+

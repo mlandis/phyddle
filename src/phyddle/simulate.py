@@ -102,6 +102,8 @@ class Simulator:
         # set number of processors
         if self.num_proc <= 0:
             self.num_proc = cpu_count() + self.num_proc
+        if self.num_proc > cpu_count():
+            self.num_proc = cpu_count()
 
         # create logger to track runtime info
         self.logger = util.Logger(args)
@@ -237,6 +239,7 @@ class Simulator:
         # dispatch jobs
         util.print_str('▪ Simulating raw data', verbose)
         if self.use_parallel:
+            util.print_str(f'  ▪ using CPUs [num: {self.num_proc}]', verbose)
             # parallel jobs
             # Note, it's critical to call this as list(tqdm(pool.imap(...)))
             # - pool.imap runs the parallelization
@@ -304,10 +307,10 @@ class Simulator:
             idx (int): The index of the simulation iteration.
         """
         # get filesystem info for generic job
-        # tmp_fn     = f'{self.sim_dir}/{self.sim_prefix}.{idx}'
+        tmp_fn     = f'{self.sim_dir}/{self.sim_prefix}.{idx}'
         cmd_str    = f'{self.sim_command} {self.sim_dir} {self.sim_prefix} {idx} {self.sim_batch_size}'
-        # stdout_fn  = f'{tmp_fn}.stdout.log'
-        # stderr_fn  = f'{tmp_fn}.stderr.log'
+        stdout_fn  = f'{tmp_fn}.stdout.log'
+        stderr_fn  = f'{tmp_fn}.stderr.log'
         # run generic job
         num_attempt = 10
         valid = False
@@ -318,12 +321,12 @@ class Simulator:
                 # run command
                 cmd_res = subprocess.run(cmd_str_tok, capture_output=True)
                 # save stdout
-                # cmd_stdout = cmd_res.stdout.decode('UTF-8')
-                # util.write_to_file(cmd_stdout, stdout_fn)
-                # save stderr
-                # cmd_stderr = cmd_res.stderr.decode('UTF-8')
-                # if cmd_stderr != '':
-                #    util.write_to_file(cmd_stderr, stderr_fn)
+                cmd_stdout = cmd_res.stdout.decode('UTF-8')
+                util.write_to_file(cmd_stdout, stdout_fn)
+                ## save stderr
+                cmd_stderr = cmd_res.stderr.decode('UTF-8')
+                if cmd_stderr != '':
+                   util.write_to_file(cmd_stderr, stderr_fn)
                 # done simulating
                 valid = True
             except subprocess.CalledProcessError:
@@ -347,6 +350,7 @@ class Simulator:
         valid_lbl = []
         valid_dat = []
         valid_all = []
+        #print("checking valid")
         for idx in sim_idx:
             
             # check if replicate has tree, labels, and data files
