@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Installation &mdash; phyddle 0.3.0 documentation</title>
+  <title>Installation &mdash; phyddle 0.3.1 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
       <link rel="stylesheet" type="text/css" href="_static/css/custom.css?v=d2c2efc5" />
@@ -17,7 +17,7 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=e259d695"></script>
+        <script src="_static/documentation_options.js?v=4621528c"></script>
         <script src="_static/doctools.js?v=9a2dae69"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
@@ -40,7 +40,7 @@
               <img src="_static/phyddle_logo.png" class="logo" alt="Logo"/>
           </a>
               <div class="version">
-                0.3.0
+                0.3.1
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -94,13 +94,19 @@ and can be installed using <code class="docutils literal notranslate"><span clas
 phyddle
 </pre></div>
 </div>
-<h2>Conda package</h2><p>phyddle is also available as a <a class="reference external" href="https://anaconda.org/landismj/phyddle">conda package</a>,
-and can be installed with the following commands:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>create<span class="w"> </span>-n<span class="w"> </span>phyddle<span class="w"> </span>-c<span class="w"> </span>bioconda<span class="w"> </span>-c<span class="w"> </span>pytorch<span class="w"> </span>-c<span class="w"> </span>landismj<span class="w"> </span>phyddle
-conda<span class="w"> </span>install<span class="w"> </span>-c<span class="w"> </span>bioconda<span class="w"> </span>-c<span class="w"> </span>pytorch<span class="w"> </span>-c<span class="w"> </span>landismj<span class="w"> </span>phyddle
-<span class="c1"># ... install ...</span>
-conda<span class="w"> </span>activate<span class="w"> </span>phyddle
-phyddle
+<h2>uv package</h2><p>Using uv, phyddle and its dependencies can be run through a virtual environment with the following commands:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># new project</span>
+uv<span class="w"> </span>init<span class="w"> </span>my-phyddle-project
+<span class="nb">cd</span><span class="w"> </span>my-phyddle-project
+
+<span class="c1"># pin a Python version</span>
+uv<span class="w"> </span>python<span class="w"> </span>pin<span class="w"> </span><span class="m">3</span>.14
+
+<span class="c1"># add phyddle</span>
+uv<span class="w"> </span>add<span class="w"> </span>phyddle
+
+<span class="c1"># check it works</span>
+uv<span class="w"> </span>run<span class="w"> </span>phyddle<span class="w"> </span>--help
 </pre></div>
 </div>
 <h2>GitHub repository</h2><p>To download the phyddle source code to your computer, you can either clone

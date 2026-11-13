@@ -23,18 +23,24 @@ and can be installed using ``pip``.
 
 .. raw:: html
 
-   <h2>Conda package</h2>
+   <h2>uv package</h2>
 
-phyddle is also available as a `conda package <https://anaconda.org/landismj/phyddle>`_,
-and can be installed with the following commands:
+Using uv, phyddle and its dependencies can be run through a virtual environment with the following commands:
 
 .. code-block:: shell
 
-    conda create -n phyddle -c bioconda -c pytorch -c landismj phyddle
-    conda install -c bioconda -c pytorch -c landismj phyddle
-    # ... install ...
-    conda activate phyddle
-    phyddle
+    # new project
+    uv init my-phyddle-project
+    cd my-phyddle-project
+
+    # pin a Python version
+    uv python pin 3.14
+
+    # add phyddle
+    uv add phyddle
+
+    # check it works
+    uv run phyddle --help
 
 
 .. raw:: html
