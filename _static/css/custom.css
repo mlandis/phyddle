@@ -1,0 +1,53 @@
+.wy-table-responsive table td, .wy-table-responsive table th { white-space: normal; }
+
+/* Sidebar header (and top-bar for mobile) */
+.wy-side-nav-search, .wy-nav-top {
+    background: #FFFFFF;
+}
+
+/* Sidebar */
+.wy-nav-side {
+    background: #FFFFFF;
+}
+
+
+.version {
+    color: #16639a !important;
+}
+
+/* not sure */
+.wy-body-for-nav {
+	background: #FFFFFF;
+}
+
+/* background panel color */
+.wy-nav-content-wrap {
+	background: #FFFFFF;
+}
+
+/* center content panel color */
+.wy-nav-content {
+	background: #FFFFFF;
+    max-width: 1200px !important;
+}
+
+.wy-nav-side {
+	color: #DDDDDD;
+}
+
+/* color for menu item text */
+.wy-menu-vertical a {
+    color: #16639a;
+}
+
+/* mouseover color for menu items */
+.wy-menu-vertical a:hover {
+    background-color: #BBBBBB;
+}
+
+/* line wrapping for code blocks */
+pre {                                 
+    white-space: pre-wrap !important; 
+    word-break: break-all;            
+}
+
