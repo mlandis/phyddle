@@ -328,19 +328,19 @@ class Estimator:
 
         # denormalization factors for new aux data
         train_aux_data_norm = pd.read_csv(train_norm_aux_data_fn, sep=',', index_col=False)
-        train_aux_data_means = train_aux_data_norm['mean'].T.to_numpy().flatten()
-        train_aux_data_sd = train_aux_data_norm['sd'].T.to_numpy().flatten()
+        train_aux_data_means = train_aux_data_norm['mean'].T.to_numpy(copy=True).flatten()
+        train_aux_data_sd = train_aux_data_norm['sd'].T.to_numpy(copy=True).flatten()
         self.train_aux_data_mean_sd = (train_aux_data_means, train_aux_data_sd)
         
         if self.has_label_num:
             # denormalization factors for labels
             train_norm_labels_num = pd.read_csv(train_norm_labels_num_fn, sep=',', index_col=False)
-            train_num_labels_mean = train_norm_labels_num['mean'].T.to_numpy().flatten()
-            train_num_labels_sd = train_norm_labels_num['sd'].T.to_numpy().flatten()
+            train_num_labels_mean = train_norm_labels_num['mean'].T.to_numpy(copy=True).flatten()
+            train_num_labels_sd = train_norm_labels_num['sd'].T.to_numpy(copy=True).flatten()
             self.train_labels_num_mean_sd = (train_num_labels_mean, train_num_labels_sd)
             
             # read in CQR interval adjustments
-            self.cpi_adjustments = pd.read_csv(model_cpi_fn, sep=',', index_col=False).to_numpy()
+            self.cpi_adjustments = pd.read_csv(model_cpi_fn, sep=',', index_col=False).to_numpy(copy=True)
             
         # done
         return
@@ -379,14 +379,14 @@ class Estimator:
         label_names = None
         if self.tensor_format == 'csv':
             phy_data = pd.read_csv(phy_data_fn, header=None,
-                                        on_bad_lines='skip').to_numpy()
+                                        on_bad_lines='skip').to_numpy(copy=True)
             aux_data = pd.read_csv(aux_data_fn, header=None,
-                                        on_bad_lines='skip').to_numpy()
+                                        on_bad_lines='skip').to_numpy(copy=True)
             idx_data = pd.read_csv(idx_data_fn,
                                         on_bad_lines='skip')
             if mode == 'sim':
                 labels = pd.read_csv(labels_fn, header=None,
-                                            on_bad_lines='skip').to_numpy()
+                                            on_bad_lines='skip').to_numpy(copy=True)
                 label_names = labels[0,:]
                 labels = labels[1:,:].astype('float64')
             aux_data = aux_data[1:,:].astype('float64')
@@ -394,12 +394,12 @@ class Estimator:
 
         elif self.tensor_format == 'hdf5':
             hdf5_file = h5py.File(hdf5_fn, 'r')
-            phy_data = pd.DataFrame(hdf5_file['phy_data']).to_numpy()
-            aux_data = pd.DataFrame(hdf5_file['aux_data']).to_numpy()
+            phy_data = pd.DataFrame(hdf5_file['phy_data']).to_numpy(copy=True)
+            aux_data = pd.DataFrame(hdf5_file['aux_data']).to_numpy(copy=True)
             idx_data = pd.DataFrame(hdf5_file['idx'], columns=['idx'])
             # idx_data = idx_data[:,:].astype('int')
             if mode == 'sim':
-                labels = pd.DataFrame(hdf5_file['labels']).to_numpy()
+                labels = pd.DataFrame(hdf5_file['labels']).to_numpy(copy=True)
             label_names = [ s.decode() for s in hdf5_file['label_names'][0,:] ]
             aux_data_names = [ s.decode() for s in hdf5_file['aux_data_names'][0,:] ]
             hdf5_file.close()

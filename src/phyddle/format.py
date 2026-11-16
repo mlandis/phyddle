@@ -39,7 +39,7 @@ try:
 except RuntimeError:
     pass
 
-##################################################
+####.to_numpydsad(#.to_numpy(#############################################
 
 
 def load(args):
@@ -52,7 +52,7 @@ def load(args):
         args (dict): Contains phyddle settings.
     
     Returns:
-        Simulator: A new Simulator object.
+        Formatter: A new Formatter object.
     """
     # settings
     sys.setrecursionlimit(10000)
@@ -628,7 +628,7 @@ class Formatter:
                 if is_first:
                     s += ','.join(aux_data_names) + '\n'
                     is_first = False
-                s += util.ndarray_to_flat_str(x.to_numpy()) + '\n'
+                s += util.ndarray_to_flat_str(x.to_numpy(copy=True)) + '\n'
                 outfile.write(s)
                     
         # labels tensor
@@ -640,7 +640,7 @@ class Formatter:
                 if is_first:
                     s += ','.join(par_est_names) + '\n'
                     is_first = False
-                s += util.ndarray_to_flat_str(x.to_numpy()) + '\n'
+                s += util.ndarray_to_flat_str(x.to_numpy(copy=True)) + '\n'
                 outfile.write(s)
             
         # replicate index
@@ -1316,23 +1316,23 @@ class Formatter:
         # read data
         if self.tensor_format == 'csv':
             phy_data = pd.read_csv(phy_data_fn, header=None,
-                                   on_bad_lines='skip').to_numpy()
+                                   on_bad_lines='skip').to_numpy(copy=True)
             aux_data = pd.read_csv(aux_data_fn, header=None,
-                                   on_bad_lines='skip').to_numpy()
+                                   on_bad_lines='skip').to_numpy(copy=True)
             idx_data = pd.read_csv(idx_data_fn,
                                    on_bad_lines='skip')
             labels = pd.read_csv(labels_fn, header=None,
-                                 on_bad_lines='skip').to_numpy()
+                                 on_bad_lines='skip').to_numpy(copy=True)
             label_names = labels[0,:]
             labels = labels[1:,:].astype('float64')
             aux_data = aux_data[1:,:].astype('float64')
             aux_data_names = aux_data[0,:]
         elif self.tensor_format == 'hdf5':
             hdf5_file = h5py.File(hdf5_fn, 'r')
-            phy_data = pd.DataFrame(hdf5_file['phy_data']).to_numpy()
-            aux_data = pd.DataFrame(hdf5_file['aux_data']).to_numpy()
+            phy_data = pd.DataFrame(hdf5_file['phy_data']).to_numpy(copy=True)
+            aux_data = pd.DataFrame(hdf5_file['aux_data']).to_numpy(copy=True)
             idx_data = pd.DataFrame(hdf5_file['idx'], columns=['idx'])
-            labels = pd.DataFrame(hdf5_file['labels']).to_numpy()
+            labels = pd.DataFrame(hdf5_file['labels']).to_numpy(copy=True)
             label_names = [ s.decode() for s in hdf5_file['label_names'][0,:] ]
             aux_data_names = [ s.decode() for s in hdf5_file['aux_data_names'][0,:] ]
             hdf5_file.close()

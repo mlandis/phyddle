@@ -1083,10 +1083,10 @@ class Plotter:
             if len(zero_true_idx) > 0:
                 tiny_val = np.max(lbl_true - np.min(lbl_true)) * 1E-6
                 lbl_true[zero_true_idx] = tiny_val
-            lbl_est = ests[f'{p}_value'][:].to_numpy()
-            lbl_lower = ests[f'{p}_lower'][:].to_numpy()
-            lbl_upper = ests[f'{p}_upper'][:].to_numpy()
-            lbl_true = labels[p][:].to_numpy()
+            lbl_est = ests[f'{p}_value'][:].to_numpy(copy=True)
+            lbl_lower = ests[f'{p}_lower'][:].to_numpy(copy=True)
+            lbl_upper = ests[f'{p}_upper'][:].to_numpy(copy=True)
+            lbl_true = labels[p][:].to_numpy(copy=True)
 
             # accuracy stats
             stat_mae = np.mean(np.abs(lbl_est - lbl_true))

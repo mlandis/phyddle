@@ -391,13 +391,13 @@ class CnnTrainer(Trainer):
         full_labels   = None
         if self.tensor_format == 'csv':
             full_phy_data = pd.read_csv(input_phy_data_fn, header=None,
-                                        on_bad_lines='skip').to_numpy()
+                                        on_bad_lines='skip').to_numpy(copy=True)
             full_aux_data = pd.read_csv(input_aux_data_fn, header=None,
-                                        on_bad_lines='skip').to_numpy()
+                                        on_bad_lines='skip').to_numpy(copy=True)
             full_labels   = pd.read_csv(input_labels_fn, header=None,
-                                        on_bad_lines='skip').to_numpy()
+                                        on_bad_lines='skip').to_numpy(copy=True)
             full_idx_data = pd.read_csv(input_idx_data_fn,
-                                        on_bad_lines='skip').to_numpy()
+                                        on_bad_lines='skip').to_numpy(copy=True)
             # extract headers
             self.aux_data_names = full_aux_data[0,:].tolist()
             self.label_names    = full_labels[0,:].tolist()
@@ -408,10 +408,10 @@ class CnnTrainer(Trainer):
             hdf5_file = h5py.File(input_hdf5_fn, 'r')
             self.aux_data_names = [ s.decode() for s in hdf5_file['aux_data_names'][0,:] ]
             self.label_names    = [ s.decode() for s in hdf5_file['label_names'][0,:] ]
-            full_phy_data       = pd.DataFrame(hdf5_file['phy_data']).to_numpy()
-            full_aux_data       = pd.DataFrame(hdf5_file['aux_data']).to_numpy()
-            full_idx_data       = pd.DataFrame(hdf5_file['idx']).to_numpy()
-            full_labels         = pd.DataFrame(hdf5_file['labels']).to_numpy()
+            full_phy_data       = pd.DataFrame(hdf5_file['phy_data']).to_numpy(copy=True)
+            full_aux_data       = pd.DataFrame(hdf5_file['aux_data']).to_numpy(copy=True)
+            full_idx_data       = pd.DataFrame(hdf5_file['idx']).to_numpy(copy=True)
+            full_labels         = pd.DataFrame(hdf5_file['labels']).to_numpy(copy=True)
             hdf5_file.close()
         
 
