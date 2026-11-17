@@ -1743,8 +1743,9 @@ def encode_cdvs(phy, dat, dat_asr, node_name, asr_est, asr_rotate, tree_width, t
                 reorder = 1
             nd.annotations.add_new(name="reordered", value=reorder)
 
-    name= prefix +  ".form.tre"
-    phy.write_to_path(name, schema="newick")
+    if len(asr_rotate) > 0 and asr_est == True:
+            form_name = prefix +  '.form.tre'
+            phy.write_to_path(form_name, schema='newick')
 
     # inorder traversal to fill matrix
     phy.seed_node.edge.length = 0
@@ -1872,8 +1873,9 @@ def encode_cblvs(phy, dat, dat_asr, node_name, asr_est, asr_rotate, tree_width,
                 reorder = 1
             nd.annotations.add_new(name="reordered", value=reorder)
 
-    name= prefix +  ".form.tre"
-    phy.write_to_path(name, schema="newick")
+    if len(asr_rotate) > 0 and asr_est == True:
+        form_name = prefix +  '.form.tre'
+        phy.write_to_path(form_name, schema='newick')
 
     # inorder traversal to fill matrix
     last_int_node = phy.seed_node
