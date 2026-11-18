@@ -603,12 +603,13 @@ class CnnTrainer(Trainer):
         train_loader = torch.utils.data.DataLoader(dataset=self.train_dataset,
                                                    batch_size=self.trn_batch_size)
         num_trn_batches = int(np.ceil(self.train_dataset.phy_data.shape[0] / self.trn_batch_size))
-        
+        num_trn_total = len(train_loader.dataset)
 
         # validation dataset (use same batch size as train)
         val_loader = torch.utils.data.DataLoader(dataset=self.val_dataset,
                                                  batch_size=self.trn_batch_size)
         num_val_batches = int(np.ceil(self.val_dataset.phy_data.shape[0] / self.trn_batch_size))
+        num_val_total = len(val_loader.dataset)
         
         # val_phy_dat  = torch.Tensor(self.val_dataset.phy_data).to(self.TORCH_DEVICE)
         # val_aux_dat  = torch.Tensor(self.val_dataset.aux_data).to(self.TORCH_DEVICE)
@@ -757,14 +758,15 @@ class CnnTrainer(Trainer):
                     loss_combined = uncertainty_weight(torch.stack(loss_list))
 
                 # collect history stats
+                f_trn_prop = phy_dat.size(0) / num_trn_total
                 if self.has_label_num:
-                    trn_loss_value    += loss_value.item() / num_trn_batches
-                    trn_loss_lower    += loss_lower.item() / num_trn_batches
-                    trn_loss_upper    += loss_upper.item() / num_trn_batches
-                    trn_mse_value     += (torch.mean((lbl_num - lbls_hat[0])**2)).item() / num_trn_batches
-                    trn_mae_value     += (torch.mean(torch.abs(lbl_num - lbls_hat[0]))).item() / num_trn_batches
-                    trn_mape_value    += 100. * (torch.median(torch.abs((lbl_num - lbls_hat[0])/lbl_num))).item() / num_trn_batches
-                trn_loss_combined += loss_combined.item() / num_trn_batches
+                    trn_loss_value    += loss_value.item() * f_trn_prop
+                    trn_loss_lower    += loss_lower.item() * f_trn_prop
+                    trn_loss_upper    += loss_upper.item() * f_trn_prop
+                    trn_mse_value     += (torch.mean((lbl_num - lbls_hat[0])**2)).item() * f_trn_prop
+                    trn_mae_value     += (torch.mean(torch.abs(lbl_num - lbls_hat[0]))).item() * f_trn_prop
+                    trn_mape_value    += 100. * (torch.median(torch.abs((lbl_num - lbls_hat[0])/lbl_num))).item() * f_trn_prop
+                trn_loss_combined += loss_combined.item() * f_trn_prop
                 
                 # backward pass to update gradients
                 loss_combined.backward()
@@ -830,14 +832,15 @@ class CnnTrainer(Trainer):
                         loss_combined = uncertainty_weight(torch.stack(loss_list))
     
                     # collect history stats
+                    f_val_prop = phy_dat.size(0) / num_val_total
                     if self.has_label_num:
-                        val_loss_value    += loss_value.item() / num_val_batches
-                        val_loss_lower    += loss_lower.item() / num_val_batches
-                        val_loss_upper    += loss_upper.item() / num_val_batches
-                        val_mse_value     += (torch.mean((lbl_num - lbls_hat[0])**2)).item() / num_val_batches
-                        val_mae_value     += (torch.mean(torch.abs(lbl_num - lbls_hat[0]))).item() / num_val_batches
-                        val_mape_value    += 100. * (torch.median(torch.abs((lbl_num - lbls_hat[0])/lbl_num))).item() / num_val_batches
-                    val_loss_combined += loss_combined.item() / num_val_batches
+                        val_loss_value    += loss_value.item() * f_val_prop
+                        val_loss_lower    += loss_lower.item() * f_val_prop
+                        val_loss_upper    += loss_upper.item() * f_val_prop
+                        val_mse_value     += (torch.mean((lbl_num - lbls_hat[0])**2)).item() * f_val_prop
+                        val_mae_value     += (torch.mean(torch.abs(lbl_num - lbls_hat[0]))).item() * f_val_prop
+                        val_mape_value    += 100. * (torch.median(torch.abs((lbl_num - lbls_hat[0])/lbl_num))).item() * f_val_prop
+                    val_loss_combined += loss_combined.item() * f_val_prop
 
             # re-enable training
             self.model.train()
@@ -846,61 +849,6 @@ class CnnTrainer(Trainer):
                                   val_loss_combined, val_mse_value,
                                   val_mae_value, val_mape_value ]
             
-            if False:
-                # forward pass of validation to estimate labels
-                val_lbls_hat       = self.model(val_phy_dat, val_aux_dat)
-                
-                # collect validation metrics
-                val_loss_list = list()
-                val_loss_value = 0.
-                val_loss_lower = 0.
-                val_loss_upper = 0.
-                val_loss_combined = 0.
-                if self.has_label_num:
-                    if self.cpi_method == 'cqr':
-                        val_loss_value = loss_value_func(val_lbls_hat[0], val_lbl_num).item()
-                        val_loss_lower = loss_lower_func(val_lbls_hat[1], val_lbl_num).item()
-                        val_loss_upper = loss_upper_func(val_lbls_hat[2], val_lbl_num).item()
-                        val_loss_list += [ val_loss_value, val_loss_lower, val_loss_upper ]
-                    elif self.cpi_method == 'acp':
-                        val_loss_value = loss_scale_func(val_lbls_hat[0], val_lbls_hat[1], val_lbl_num ).item()
-                        val_loss_lower = val_loss_value
-                        val_loss_upper = val_loss_value
-                        val_loss_list += [ val_loss_value ]
-                # val_loss_combined  = val_loss_value + val_loss_lower + val_loss_upper
-                if self.has_label_cat:
-                    val_loss_categ = loss_categ_func(val_lbls_hat[3], val_lbl_cat).item()
-                    val_loss_list += [ val_loss_categ ]
-                
-                # val_loss_combined = sum(val_loss_list)
-                if self.loss_aggregation == 'sum':
-                    # val_loss_combined = torch.stack(val_loss_list).sum()
-                    val_loss_combined = np.sum(val_loss_list)
-                elif self.loss_aggregation == 'geometric':
-                    val_loss_combined = np.exp(np.mean(np.log(val_loss_list)))
-                    # val_loss_combined = torch.exp(torch.mean(torch.log(torch.stack(val_loss_list))))
-                elif self.loss_aggregation == 'median':
-                    # val_loss_combined = torch.median(torch.stack(val_loss_list))
-                    val_loss_combined = np.median(val_loss_list)
-                elif self.loss_aggregation == 'weighted_sum':
-                    #if self.device = 'cud
-                    #val_loss_combined = uncertainty_weight(val_loss_list).detach().numpy()
-                    val_loss_combined = uncertainty_weight(val_loss_list).cpu().detach().numpy()
-    
-    
-                val_mse_value = 0.
-                val_mae_value = 0.
-                val_mape_value = 0.
-                if self.has_label_num:
-                    val_mse_value      = (torch.mean((val_lbl_num - val_lbls_hat[0])**2)).item()
-                    val_mae_value      = (torch.mean(torch.abs(val_lbl_num - val_lbls_hat[0]))).item()
-                    val_mape_value     = 100. * (torch.median(torch.abs((val_lbl_num - val_lbls_hat[0]) / val_lbl_num))).item()
-                    
-                val_metric_vals = [ val_loss_value, val_loss_lower, val_loss_upper,
-                                    val_loss_combined, val_mse_value, val_mae_value,
-                                    val_mape_value ]
-
-
             # update best loss scores
             if trn_loss_combined < best_trn_loss_combined:
                 best_trn_loss_combined = trn_loss_combined
@@ -1027,23 +975,58 @@ class CnnTrainer(Trainer):
 
         # temporarily switch to CPU
         # self.model.to('cpu')
+        if True:
+            # calibration dataset (use same batch size as train)
+            calib_loader = torch.utils.data.DataLoader(dataset=self.calib_dataset,
+                                                       batch_size=self.trn_batch_size)
+            #num_calib_batches = int(np.ceil(self.calib_dataset.phy_data.shape[0] / self.trn_batch_size))
+            #num_calib_total = len(calib_loader.dataset)
+            
+            # collect datasets
+            calib_batches = []
+            # evaluation mode
+            self.model.eval()
+            # do not update gradients
+            with torch.no_grad():
+                for j, (phy_dat, aux_dat, idx_dat, lbl_num, lbl_cat) in enumerate(calib_loader):
 
-        # make initial CPI estimates
-        num_calib_examples = self.calib_phy_data_tensor.shape[0]
-        calib_loader = torch.utils.data.DataLoader(dataset=self.calib_dataset,
-                                                   batch_size=num_calib_examples)
-        calib_batch = next(iter(calib_loader))
-        calib_phy_dat, calib_aux_dat = calib_batch[0], calib_batch[1]
-        # calib_phy_dat = calib_phy_dat.to('cpu')
-        # calib_aux_dat = calib_aux_dat.to('cpu')
-        
-        # get calib estimates
-        calib_label_est = self.model(calib_phy_dat, calib_aux_dat)
-
-        # make CPI adjustments
-        norm_calib_label_num_est = torch.stack(calib_label_est[0:3]).cpu().detach().numpy()
-
-        #print(np.mean(norm_calib_num_est_quantiles[
+                    # send labels to device
+                    phy_dat = phy_dat.to(self.TORCH_DEVICE)
+                    aux_dat = aux_dat.to(self.TORCH_DEVICE)
+                    
+                    # forward pass of training data to estimate labels
+                    calib_label_est = self.model(calib_phy_dat, calib_aux_dat)
+                    
+                    # detach from device
+                    calib_batch_one = torch.stack(calib_label_est[0:3]).cpu().detach().numpy()
+                    
+                    # collect results
+                    calib_batches.append(calib_batch_one)
+                    
+            # build up dataset
+            norm_calib_label_num_est = np.concatenate(calib_batches, axis=1)
+            #norm_calib_label_num_est = torch.stack(calib_label_est[0:3]).cpu().detach().numpy()
+            #lbls_hat = self.model(phy_dat, aux_dat)
+                
+            self.model.train()
+            
+        if False: 
+            # make initial CPI estimates
+            num_calib_examples = self.calib_phy_data_tensor.shape[0]
+            calib_loader = torch.utils.data.DataLoader(dataset=self.calib_dataset,
+                                                       batch_size=num_calib_examples)
+            calib_batch = next(iter(calib_loader))
+            calib_phy_dat, calib_aux_dat = calib_batch[0], calib_batch[1]
+            # calib_phy_dat = calib_phy_dat.to('cpu')
+            # calib_aux_dat = calib_aux_dat.to('cpu')
+            
+            # get calib estimates
+            calib_label_est = self.model(calib_phy_dat, calib_aux_dat)
+    
+            # make CPI adjustments
+            norm_calib_label_num_est = torch.stack(calib_label_est[0:3]).cpu().detach().numpy()
+    
+            #print(np.mean(norm_calib_num_est_quantiles[
         
         self.cpi_adjustments = None
         if self.cpi_method == "acp":
