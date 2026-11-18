@@ -527,7 +527,8 @@ class Estimator:
             #labels_est_num = torch.stack(labels_est_num).cpu().detach().numpy()
             
             if labels_est_num.ndim == 2:
-                labels_est_num.shape = (labels_est_num.shape[0], 1, labels_est_num.shape[1])
+                #labels_est_num.shape = (labels_est_num.shape[0], 1, labels_est_num.shape[1])
+                labels_est_num = labels_est_num.reshape(labels_est_num.shape[0], 1, labels_est_num.shape[1])
 
             if self.cpi_method == 'acp':
                 dx = np.sqrt(np.exp(labels_est_num[1,:,:])) * self.cpi_adjustments[0,:]
