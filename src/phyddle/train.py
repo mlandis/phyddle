@@ -602,14 +602,19 @@ class CnnTrainer(Trainer):
         # training dataset
         train_loader = torch.utils.data.DataLoader(dataset=self.train_dataset,
                                                    batch_size=self.trn_batch_size)
-        num_batches = int(np.ceil(self.train_dataset.phy_data.shape[0] / self.trn_batch_size))
+        num_trn_batches = int(np.ceil(self.train_dataset.phy_data.shape[0] / self.trn_batch_size))
+        
 
-        # validation dataset
-        val_phy_dat  = torch.Tensor(self.val_dataset.phy_data).to(self.TORCH_DEVICE)
-        val_aux_dat  = torch.Tensor(self.val_dataset.aux_data).to(self.TORCH_DEVICE)
-        val_idx_dat  = torch.Tensor(self.val_dataset.idx_data).to(self.TORCH_DEVICE)
-        val_lbl_num  = torch.Tensor(self.val_dataset.labels_num).to(self.TORCH_DEVICE)
-        val_lbl_cat  = torch.LongTensor(self.val_dataset.labels_cat).to(self.TORCH_DEVICE)
+        # validation dataset (use same batch size as train)
+        val_loader = torch.utils.data.DataLoader(dataset=self.val_dataset,
+                                                 batch_size=self.trn_batch_size)
+        num_val_batches = int(np.ceil(self.val_dataset.phy_data.shape[0] / self.trn_batch_size))
+        
+        # val_phy_dat  = torch.Tensor(self.val_dataset.phy_data).to(self.TORCH_DEVICE)
+        # val_aux_dat  = torch.Tensor(self.val_dataset.aux_data).to(self.TORCH_DEVICE)
+        # val_idx_dat  = torch.Tensor(self.val_dataset.idx_data).to(self.TORCH_DEVICE)
+        # val_lbl_num  = torch.Tensor(self.val_dataset.labels_num).to(self.TORCH_DEVICE)
+        # val_lbl_cat  = torch.LongTensor(self.val_dataset.labels_cat).to(self.TORCH_DEVICE)
         val_bad_count = 0
 
         # model device
@@ -703,7 +708,7 @@ class CnnTrainer(Trainer):
 
             train_msg = f'Training epoch {i+1} of {self.num_epochs}'
             for j, (phy_dat, aux_dat, idx_dat, lbl_num, lbl_cat) in tqdm(enumerate(train_loader),
-                                                                 total=num_batches,
+                                                                 total=num_trn_batches,
                                                                  desc=train_msg,
                                                                  smoothing=0):
                 
@@ -714,7 +719,7 @@ class CnnTrainer(Trainer):
                 # send labels to device
                 phy_dat = phy_dat.to(self.TORCH_DEVICE)
                 aux_dat = aux_dat.to(self.TORCH_DEVICE)
-                idx_dat = idx_dat.to(self.TORCH_DEVICE)
+                #idx_dat = idx_dat.to(self.TORCH_DEVICE)
                 lbl_num = lbl_num.to(self.TORCH_DEVICE)
                 lbl_cat = lbl_cat.to(self.TORCH_DEVICE)
                 
@@ -753,13 +758,13 @@ class CnnTrainer(Trainer):
 
                 # collect history stats
                 if self.has_label_num:
-                    trn_loss_value    += loss_value.item() / num_batches
-                    trn_loss_lower    += loss_lower.item() / num_batches
-                    trn_loss_upper    += loss_upper.item() / num_batches
-                    trn_mse_value     += (torch.mean((lbl_num - lbls_hat[0])**2)).item() / num_batches
-                    trn_mae_value     += (torch.mean(torch.abs(lbl_num - lbls_hat[0]))).item() / num_batches
-                    trn_mape_value    += 100. * (torch.median(torch.abs((lbl_num - lbls_hat[0])/lbl_num))).item() / num_batches
-                trn_loss_combined += loss_combined.item() / num_batches
+                    trn_loss_value    += loss_value.item() / num_trn_batches
+                    trn_loss_lower    += loss_lower.item() / num_trn_batches
+                    trn_loss_upper    += loss_upper.item() / num_trn_batches
+                    trn_mse_value     += (torch.mean((lbl_num - lbls_hat[0])**2)).item() / num_trn_batches
+                    trn_mae_value     += (torch.mean(torch.abs(lbl_num - lbls_hat[0]))).item() / num_trn_batches
+                    trn_mape_value    += 100. * (torch.median(torch.abs((lbl_num - lbls_hat[0])/lbl_num))).item() / num_trn_batches
+                trn_loss_combined += loss_combined.item() / num_trn_batches
                 
                 # backward pass to update gradients
                 loss_combined.backward()
@@ -772,58 +777,128 @@ class CnnTrainer(Trainer):
                                   trn_loss_combined, trn_mse_value,
                                   trn_mae_value, trn_mape_value ]
 
-            # forward pass of validation to estimate labels
-            val_lbls_hat       = self.model(val_phy_dat, val_aux_dat)
-            
-            # collect validation metrics
-            val_loss_list = list()
+            # VALIDATION
+            # metrics
             val_loss_value = 0.
             val_loss_lower = 0.
             val_loss_upper = 0.
             val_loss_combined = 0.
-            if self.has_label_num:
-                if self.cpi_method == 'cqr':
-                    val_loss_value = loss_value_func(val_lbls_hat[0], val_lbl_num).item()
-                    val_loss_lower = loss_lower_func(val_lbls_hat[1], val_lbl_num).item()
-                    val_loss_upper = loss_upper_func(val_lbls_hat[2], val_lbl_num).item()
-                    val_loss_list += [ val_loss_value, val_loss_lower, val_loss_upper ]
-                elif self.cpi_method == 'acp':
-                    val_loss_value = loss_scale_func(val_lbls_hat[0], val_lbls_hat[1], val_lbl_num ).item()
-                    val_loss_lower = val_loss_value
-                    val_loss_upper = val_loss_value
-                    val_loss_list += [ val_loss_value ]
-            # val_loss_combined  = val_loss_value + val_loss_lower + val_loss_upper
-            if self.has_label_cat:
-                val_loss_categ = loss_categ_func(val_lbls_hat[3], val_lbl_cat).item()
-                val_loss_list += [ val_loss_categ ]
-            
-            # val_loss_combined = sum(val_loss_list)
-            if self.loss_aggregation == 'sum':
-                # val_loss_combined = torch.stack(val_loss_list).sum()
-                val_loss_combined = np.sum(val_loss_list)
-            elif self.loss_aggregation == 'geometric':
-                val_loss_combined = np.exp(np.mean(np.log(val_loss_list)))
-                # val_loss_combined = torch.exp(torch.mean(torch.log(torch.stack(val_loss_list))))
-            elif self.loss_aggregation == 'median':
-                # val_loss_combined = torch.median(torch.stack(val_loss_list))
-                val_loss_combined = np.median(val_loss_list)
-            elif self.loss_aggregation == 'weighted_sum':
-                #if self.device = 'cud
-                #val_loss_combined = uncertainty_weight(val_loss_list).detach().numpy()
-                val_loss_combined = uncertainty_weight(val_loss_list).cpu().detach().numpy()
-
-
             val_mse_value = 0.
-            val_mae_value = 0.
             val_mape_value = 0.
-            if self.has_label_num:
-                val_mse_value      = (torch.mean((val_lbl_num - val_lbls_hat[0])**2)).item()
-                val_mae_value      = (torch.mean(torch.abs(val_lbl_num - val_lbls_hat[0]))).item()
-                val_mape_value     = 100. * (torch.median(torch.abs((val_lbl_num - val_lbls_hat[0]) / val_lbl_num))).item()
+            val_mae_value = 0.
+            # evaluation mode
+            self.model.eval()
+            # do not update gradients
+            with torch.no_grad():
+                for j, (phy_dat, aux_dat, idx_dat, lbl_num, lbl_cat) in enumerate(val_loader):
+    
+                    # send labels to device
+                    phy_dat = phy_dat.to(self.TORCH_DEVICE)
+                    aux_dat = aux_dat.to(self.TORCH_DEVICE)
+                    #idx_dat = idx_dat.to(self.TORCH_DEVICE)
+                    lbl_num = lbl_num.to(self.TORCH_DEVICE)
+                    lbl_cat = lbl_cat.to(self.TORCH_DEVICE)
+    
+                    # forward pass of training data to estimate labels
+                    lbls_hat = self.model(phy_dat, aux_dat)
+    
+                    # calculating the loss between original and predicted data points
+                    loss_list = list()
+                    if self.has_label_num:
+                        if self.cpi_method == 'cqr':
+                            loss_value = loss_value_func(lbls_hat[0], lbl_num)
+                            loss_lower = loss_lower_func(lbls_hat[1], lbl_num)
+                            loss_upper = loss_upper_func(lbls_hat[2], lbl_num)
+                            loss_list += [ loss_value, loss_lower, loss_upper ]
+                        elif self.cpi_method == 'acp':
+                            loss_value = loss_scale_func(lbls_hat[0], lbls_hat[1], lbl_num )
+                            loss_lower = loss_value
+                            loss_upper = loss_value
+                            loss_list += [ loss_value ]
+                    if self.has_label_cat:
+                        loss_categ = loss_categ_func(lbls_hat[3], lbl_cat)
+                        loss_list += [ loss_categ ]
+                    # loss_combined = torch.stack(loss_list).sum()
+    
+                    if self.loss_aggregation == 'sum':
+                        loss_combined = torch.stack(loss_list).sum()
+                    elif self.loss_aggregation == 'geometric':
+                        loss_combined = torch.exp(torch.mean(torch.log(torch.stack(loss_list))))
+                    elif self.loss_aggregation == 'median':
+                        loss_combined = torch.median(torch.stack(loss_list))
+                    elif self.loss_aggregation == 'weighted_sum':
+                        loss_combined = uncertainty_weight(torch.stack(loss_list))
+    
+                    # collect history stats
+                    if self.has_label_num:
+                        val_loss_value    += loss_value.item() / num_val_batches
+                        val_loss_lower    += loss_lower.item() / num_val_batches
+                        val_loss_upper    += loss_upper.item() / num_val_batches
+                        val_mse_value     += (torch.mean((lbl_num - lbls_hat[0])**2)).item() / num_val_batches
+                        val_mae_value     += (torch.mean(torch.abs(lbl_num - lbls_hat[0]))).item() / num_val_batches
+                        val_mape_value    += 100. * (torch.median(torch.abs((lbl_num - lbls_hat[0])/lbl_num))).item() / num_val_batches
+                    val_loss_combined += loss_combined.item() / num_val_batches
+
+            # re-enable training
+            self.model.train()
+            
+            val_metric_vals = [ val_loss_lower, val_loss_upper, val_loss_value,
+                                  val_loss_combined, val_mse_value,
+                                  val_mae_value, val_mape_value ]
+            
+            if False:
+                # forward pass of validation to estimate labels
+                val_lbls_hat       = self.model(val_phy_dat, val_aux_dat)
                 
-            val_metric_vals = [ val_loss_value, val_loss_lower, val_loss_upper,
-                                val_loss_combined, val_mse_value, val_mae_value,
-                                val_mape_value ]
+                # collect validation metrics
+                val_loss_list = list()
+                val_loss_value = 0.
+                val_loss_lower = 0.
+                val_loss_upper = 0.
+                val_loss_combined = 0.
+                if self.has_label_num:
+                    if self.cpi_method == 'cqr':
+                        val_loss_value = loss_value_func(val_lbls_hat[0], val_lbl_num).item()
+                        val_loss_lower = loss_lower_func(val_lbls_hat[1], val_lbl_num).item()
+                        val_loss_upper = loss_upper_func(val_lbls_hat[2], val_lbl_num).item()
+                        val_loss_list += [ val_loss_value, val_loss_lower, val_loss_upper ]
+                    elif self.cpi_method == 'acp':
+                        val_loss_value = loss_scale_func(val_lbls_hat[0], val_lbls_hat[1], val_lbl_num ).item()
+                        val_loss_lower = val_loss_value
+                        val_loss_upper = val_loss_value
+                        val_loss_list += [ val_loss_value ]
+                # val_loss_combined  = val_loss_value + val_loss_lower + val_loss_upper
+                if self.has_label_cat:
+                    val_loss_categ = loss_categ_func(val_lbls_hat[3], val_lbl_cat).item()
+                    val_loss_list += [ val_loss_categ ]
+                
+                # val_loss_combined = sum(val_loss_list)
+                if self.loss_aggregation == 'sum':
+                    # val_loss_combined = torch.stack(val_loss_list).sum()
+                    val_loss_combined = np.sum(val_loss_list)
+                elif self.loss_aggregation == 'geometric':
+                    val_loss_combined = np.exp(np.mean(np.log(val_loss_list)))
+                    # val_loss_combined = torch.exp(torch.mean(torch.log(torch.stack(val_loss_list))))
+                elif self.loss_aggregation == 'median':
+                    # val_loss_combined = torch.median(torch.stack(val_loss_list))
+                    val_loss_combined = np.median(val_loss_list)
+                elif self.loss_aggregation == 'weighted_sum':
+                    #if self.device = 'cud
+                    #val_loss_combined = uncertainty_weight(val_loss_list).detach().numpy()
+                    val_loss_combined = uncertainty_weight(val_loss_list).cpu().detach().numpy()
+    
+    
+                val_mse_value = 0.
+                val_mae_value = 0.
+                val_mape_value = 0.
+                if self.has_label_num:
+                    val_mse_value      = (torch.mean((val_lbl_num - val_lbls_hat[0])**2)).item()
+                    val_mae_value      = (torch.mean(torch.abs(val_lbl_num - val_lbls_hat[0]))).item()
+                    val_mape_value     = 100. * (torch.median(torch.abs((val_lbl_num - val_lbls_hat[0]) / val_lbl_num))).item()
+                    
+                val_metric_vals = [ val_loss_value, val_loss_lower, val_loss_upper,
+                                    val_loss_combined, val_mse_value, val_mae_value,
+                                    val_mape_value ]
 
 
             # update best loss scores
