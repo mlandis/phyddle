@@ -975,58 +975,41 @@ class CnnTrainer(Trainer):
 
         # temporarily switch to CPU
         # self.model.to('cpu')
-        if True:
-            # calibration dataset (use same batch size as train)
-            calib_loader = torch.utils.data.DataLoader(dataset=self.calib_dataset,
-                                                       batch_size=self.trn_batch_size)
-            #num_calib_batches = int(np.ceil(self.calib_dataset.phy_data.shape[0] / self.trn_batch_size))
-            #num_calib_total = len(calib_loader.dataset)
-            
-            # collect datasets
-            calib_batches = []
-            # evaluation mode
-            self.model.eval()
-            # do not update gradients
-            with torch.no_grad():
-                for j, (phy_dat, aux_dat, idx_dat, lbl_num, lbl_cat) in enumerate(calib_loader):
+        
+        # calibration dataset (use same batch size as train)
+        calib_loader = torch.utils.data.DataLoader(dataset=self.calib_dataset,
+                                                   batch_size=self.trn_batch_size)
+        #num_calib_batches = int(np.ceil(self.calib_dataset.phy_data.shape[0] / self.trn_batch_size))
+        #num_calib_total = len(calib_loader.dataset)
+        
+        # collect datasets
+        calib_batches = []
+        # evaluation mode
+        self.model.eval()
+        # do not update gradients
+        with torch.no_grad():
+            for j, (phy_dat, aux_dat, idx_dat, lbl_num, lbl_cat) in enumerate(calib_loader):
 
-                    # send labels to device
-                    phy_dat = phy_dat.to(self.TORCH_DEVICE)
-                    aux_dat = aux_dat.to(self.TORCH_DEVICE)
-                    
-                    # forward pass of training data to estimate labels
-                    lbls_hat = self.model(phy_dat, aux_dat)
-                    
-                    # detach from device
-                    calib_batch_one = torch.stack(lbls_hat[0:3]).cpu().detach().numpy()
-                    
-                    # collect results
-                    calib_batches.append(calib_batch_one)
-                    
-            # build up dataset
-            norm_calib_label_num_est = np.concatenate(calib_batches, axis=1)
-            #norm_calib_label_num_est = torch.stack(calib_label_est[0:3]).cpu().detach().numpy()
-            #lbls_hat = self.model(phy_dat, aux_dat)
+                # send labels to device
+                phy_dat = phy_dat.to(self.TORCH_DEVICE)
+                aux_dat = aux_dat.to(self.TORCH_DEVICE)
                 
-            self.model.train()
+                # forward pass of training data to estimate labels
+                lbls_hat = self.model(phy_dat, aux_dat)
+                
+                # detach from device
+                calib_batch_one = torch.stack(lbls_hat[0:3]).cpu().detach().numpy()
+                
+                # collect results
+                calib_batches.append(calib_batch_one)
+                
+        # build up dataset
+        norm_calib_label_num_est = np.concatenate(calib_batches, axis=1)
+        #norm_calib_label_num_est = torch.stack(calib_label_est[0:3]).cpu().detach().numpy()
+        
+        # restore train mode
+        self.model.train()
             
-        if False: 
-            # make initial CPI estimates
-            num_calib_examples = self.calib_phy_data_tensor.shape[0]
-            calib_loader = torch.utils.data.DataLoader(dataset=self.calib_dataset,
-                                                       batch_size=num_calib_examples)
-            calib_batch = next(iter(calib_loader))
-            calib_phy_dat, calib_aux_dat = calib_batch[0], calib_batch[1]
-            # calib_phy_dat = calib_phy_dat.to('cpu')
-            # calib_aux_dat = calib_aux_dat.to('cpu')
-            
-            # get calib estimates
-            calib_label_est = self.model(calib_phy_dat, calib_aux_dat)
-    
-            # make CPI adjustments
-            norm_calib_label_num_est = torch.stack(calib_label_est[0:3]).cpu().detach().numpy()
-    
-            #print(np.mean(norm_calib_num_est_quantiles[
         
         self.cpi_adjustments = None
         if self.cpi_method == "acp":
@@ -1425,9 +1408,9 @@ class CnnTrainer(Trainer):
                 # Symmetric non-comformity score
                 s = np.amax(np.array((ests[0][:,i]-true[:,i], true[:,i]-ests[1][:,i])), axis=0)
                 # get adjustment constant: 1 - alpha/2's quantile of non-comformity scores
-                symm_p = (1 + inner_quantile)/2 * (1 + 1/ests.shape[1])
+                # symm_p = (1 + inner_quantile)/2 * (1 + 1/ests.shape[1])
                 # MJL: Note to self, should be this?
-                # symm_p = inner_quantile * (1 + 1/ests.shape[0])
+                symm_p = inner_quantile * (1 + 1/ests.shape[0])
                 
                 if symm_p < 0.:
                     self.logger.write_log('trn',

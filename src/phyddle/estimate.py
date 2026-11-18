@@ -93,6 +93,7 @@ class Estimator:
         self.param_est          = dict(args['param_est'])
         self.log_offset         = float(args['log_offset'])
         self.use_cuda           = bool(args['use_cuda'])
+        self.trn_batch_size     = int(args['trn_batch_size'])
 
         # anc states
         self.asr_est            = bool(args['asr_est'])
@@ -471,18 +472,48 @@ class Estimator:
         out_true_labels_num_fn = f'{path_prefix}_true.labels_num.csv'
         out_est_labels_cat_fn = f'{path_prefix}_est.labels_cat.csv'
         out_true_labels_cat_fn = f'{path_prefix}_true.labels_cat.csv'
-    
-        # load model
-        self.mymodel = torch.load(model_arch_fn, map_location=self.TORCH_DEVICE, weights_only=False)
-        self.mymodel.to(self.TORCH_DEVICE)
+   
+		# prepare batches
+		num_est = self.phy_data.shape[0]
+		batch_size = 100 # self.trn_batch_size
+		est_num_batches = []
+		est_cat_batches = {}
 
-        # get estimates
-        label_est = self.mymodel(torch.Tensor(self.phy_data).to(self.TORCH_DEVICE),
-                                 torch.Tensor(self.aux_data).to(self.TORCH_DEVICE))
-        
-        # real vs. cat estimates
-        labels_est_num = label_est[0:3]
-        labels_est_cat = label_est[3]
+		# load model
+		self.mymodel = torch.load(model_arch_fn, map_location=self.TORCH_DEVICE, weights_only=False)
+		self.mymodel.to(self.TORCH_DEVICE)
+
+		# evaluation mode
+		self.mymodel.eval()
+
+		# do not update gradients
+		with torch.no_grad():
+
+			# move data to device
+			phy_dat = torch.Tensor(self.phy_data).to(self.TORCH_DEVICE)
+			aux_dat = torch.Tensor(self.aux_data).to(self.TORCH_DEVICE)
+
+			# process batches
+			for j in range(0, num_est, batch_size): 
+
+				# get batch indices
+				k = min(num_est, j+batch_size)
+
+				# get estimates
+				lbls_hat = self.mymodel(phy_dat[j:k], aux_dat[j:k])
+
+				# collect numerical results
+				est_num_batches.append(torch.stack(lbls_hat[0:3]).cpu()) #.numpy())
+
+				# collect categorical results
+				for key in lbls_hat[3].keys():
+					if key not in est_cat_batches:
+						est_cat_batches[key] = []
+					est_cat_batches[key].append(lbls_hat[3][key].cpu()) #.numpy())
+
+		# build up estimates
+		labels_est_num = torch.cat(est_num_batches, dim=1)
+		labels_est_cat = {k: torch.cat(v, dim=0) for k,v in est_cat_batches.items()}
 
         # force categorical dimensionality (had problems for categ)
         for k,v in labels_est_cat.items():
@@ -493,7 +524,7 @@ class Estimator:
         if self.has_label_num:
             
             # move Tensor from device to numpy
-            labels_est_num = torch.stack(labels_est_num).cpu().detach().numpy()
+            #labels_est_num = torch.stack(labels_est_num).cpu().detach().numpy()
             
             if labels_est_num.ndim == 2:
                 labels_est_num.shape = (labels_est_num.shape[0], 1, labels_est_num.shape[1])
