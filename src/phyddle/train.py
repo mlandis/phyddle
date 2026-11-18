@@ -995,10 +995,10 @@ class CnnTrainer(Trainer):
                     aux_dat = aux_dat.to(self.TORCH_DEVICE)
                     
                     # forward pass of training data to estimate labels
-                    calib_label_est = self.model(calib_phy_dat, calib_aux_dat)
+                    lbls_hat = self.model(phy_dat, aux_dat)
                     
                     # detach from device
-                    calib_batch_one = torch.stack(calib_label_est[0:3]).cpu().detach().numpy()
+                    calib_batch_one = torch.stack(lbls_hat[0:3]).cpu().detach().numpy()
                     
                     # collect results
                     calib_batches.append(calib_batch_one)

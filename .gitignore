@@ -91,6 +91,8 @@ docs/source/tables/make_phyddle_settings_table.sh
 workspace/levy_r/config_modeltest.py
 workspace/levy_r/plot_tree.R
 
+tests/workspace/valid/simulate/out.*.stdout.log
+tests/workspace/valid/simulate/out.*.stderr.log
 
 
 docs/example.zip
