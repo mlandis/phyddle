@@ -1408,9 +1408,8 @@ class CnnTrainer(Trainer):
                 # Symmetric non-comformity score
                 s = np.amax(np.array((ests[0][:,i]-true[:,i], true[:,i]-ests[1][:,i])), axis=0)
                 # get adjustment constant: 1 - alpha/2's quantile of non-comformity scores
-                # symm_p = (1 + inner_quantile)/2 * (1 + 1/ests.shape[1])
                 # MJL: Note to self, should be this?
-                symm_p = inner_quantile * (1 + 1/ests.shape[0])
+                symm_p = inner_quantile * (1 + 1/ests.shape[1])
                 
                 if symm_p < 0.:
                     self.logger.write_log('trn',

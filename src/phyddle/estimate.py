@@ -473,47 +473,47 @@ class Estimator:
         out_est_labels_cat_fn = f'{path_prefix}_est.labels_cat.csv'
         out_true_labels_cat_fn = f'{path_prefix}_true.labels_cat.csv'
    
-		# prepare batches
-		num_est = self.phy_data.shape[0]
-		batch_size = 100 # self.trn_batch_size
-		est_num_batches = []
-		est_cat_batches = {}
+        # prepare batches
+        num_est = self.phy_data.shape[0]
+        batch_size = 100 # self.trn_batch_size
+        est_num_batches = []
+        est_cat_batches = {}
 
-		# load model
-		self.mymodel = torch.load(model_arch_fn, map_location=self.TORCH_DEVICE, weights_only=False)
-		self.mymodel.to(self.TORCH_DEVICE)
+        # load model
+        self.mymodel = torch.load(model_arch_fn, map_location=self.TORCH_DEVICE, weights_only=False)
+        self.mymodel.to(self.TORCH_DEVICE)
 
-		# evaluation mode
-		self.mymodel.eval()
+        # evaluation mode
+        self.mymodel.eval()
 
-		# do not update gradients
-		with torch.no_grad():
+        # do not update gradients
+        with torch.no_grad():
 
-			# move data to device
-			phy_dat = torch.Tensor(self.phy_data).to(self.TORCH_DEVICE)
-			aux_dat = torch.Tensor(self.aux_data).to(self.TORCH_DEVICE)
+            # move data to device
+            phy_dat = torch.Tensor(self.phy_data).to(self.TORCH_DEVICE)
+            aux_dat = torch.Tensor(self.aux_data).to(self.TORCH_DEVICE)
 
-			# process batches
-			for j in range(0, num_est, batch_size): 
+            # process batches
+            for j in range(0, num_est, batch_size): 
 
-				# get batch indices
-				k = min(num_est, j+batch_size)
+                # get batch indices
+                k = min(num_est, j+batch_size)
 
-				# get estimates
-				lbls_hat = self.mymodel(phy_dat[j:k], aux_dat[j:k])
+                # get estimates
+                lbls_hat = self.mymodel(phy_dat[j:k], aux_dat[j:k])
 
-				# collect numerical results
-				est_num_batches.append(torch.stack(lbls_hat[0:3]).cpu()) #.numpy())
+                # collect numerical results
+                est_num_batches.append(torch.stack(lbls_hat[0:3]).cpu()) #.numpy())
 
-				# collect categorical results
-				for key in lbls_hat[3].keys():
-					if key not in est_cat_batches:
-						est_cat_batches[key] = []
-					est_cat_batches[key].append(lbls_hat[3][key].cpu()) #.numpy())
+                # collect categorical results
+                for key in lbls_hat[3].keys():
+                    if key not in est_cat_batches:
+                        est_cat_batches[key] = []
+                    est_cat_batches[key].append(lbls_hat[3][key].cpu()) #.numpy())
 
-		# build up estimates
-		labels_est_num = torch.cat(est_num_batches, dim=1)
-		labels_est_cat = {k: torch.cat(v, dim=0) for k,v in est_cat_batches.items()}
+        # build up estimates
+        labels_est_num = torch.cat(est_num_batches, dim=1)
+        labels_est_cat = {k: torch.cat(v, dim=0) for k,v in est_cat_batches.items()}
 
         # force categorical dimensionality (had problems for categ)
         for k,v in labels_est_cat.items():
