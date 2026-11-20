@@ -60,13 +60,19 @@ S Lambert, J Voznica, H Morlon. 2022. Deep learning from phylogenies for
 diversification analyses. Syst Biol 72:1262–1279.
 doi: https://doi.org/10.1093/sysbio/syad044
 
-MJ Landis, A Thompson. 2024. phyddle: software for phylogenetic model
-exploration with deep learning. Syst Biol (in press).
+MJ Landis, A Thompson. 2025. phyddle: software for exploring phylogenetic models with deep learning. Syst Biol 74:1007-1019.
 doi: https://doi.org/10.1093/sysbio/syaf036
+
+AA Nagel, MJ Landis. 2026. Ancestral state reconstruction with discrete characters using deep learning. Syst Biol (in press).
+doi: https://doi.org/10.1093/sysbio/syag087
+
 
 Y Romano, E Patterson, E Candes. Conformalized quantile regression.
 Adv NIPS, 32, 2019.
 doi: https://doi.org/10.1101/2024.08.06.606717
+
+AC Soewongsono, MJ Landis. 2026. Phylogenetic estimation of diversity-dependent biogeographic rates using deep learning. Syst Biol (in press).
+doi: https://doi.org/10.1093/sysbio/syag085
 
 A Thompson, B Liebeskind, EJ Scully, MJ Landis. 2024. Deep learning approaches
 to viral phylogeography are fast and as robust as likelihood methods

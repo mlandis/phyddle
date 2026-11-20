@@ -25,11 +25,17 @@ Visit the :ref:`Quick_Start` and :ref:`Installation` pages to get started.
 Visit the `GitHub Discussions <https://github.com/mlandis/phyddle/discussions>`_ page to interact with other phyddle users and receive help.
 
 .. admonition:: Please cite
+   :class: cite-box
 
-   | **[1]** MJ Landis and A Thompson. 2025. phyddle: software for exploring phylogenetic models with deep learning. *Systematic Biology* 74:1007-1019.
-   | **[2]** A Thompson, B Liebeskind, EJ Scully, MJ Landis. 2024. Deep learning and likelihood approaches for viral phylogeography converge on the same answers whether the inference model is right or wrong. *Systematic Biology* 73:183-206.
-   | **[3]** AA Nagel and MJ Landis. 2026. Ancestral state reconstruction with discrete characters using deep learning. *Systematic Biology* (in press) doi:10.1093/sysbio/syag087.
-   | **[4]** AC Soewongsono and MJ Landis. 2026. Phylogenetic estimation of diversity-dependent biogeographic rates using deep learning. *Systematic Biology* (in press) doi:10.1093/sysbio/syag085.
+   **General use**
+      * MJ Landis and A Thompson. 2025. phyddle: software for exploring phylogenetic models with deep learning. *Systematic Biology* 74:1007-1019.
+
+   **Ancestral state estimation**
+      * AA Nagel and MJ Landis. 2026. Ancestral state reconstruction with discrete characters using deep learning. *Systematic Biology* (in press). doi:10.1093/sysbio/syag087
+
+   **Other studies**
+      * A Thompson, B Liebeskind, EJ Scully, MJ Landis. 2024. Deep learning and likelihood approaches for viral phylogeography converge on the same answers whether the inference model is right or wrong. *Systematic Biology* 73:183-206.
+      * AC Soewongsono and MJ Landis. 2026. Phylogenetic estimation of diversity-dependent biogeographic rates using deep learning. *Systematic Biology* (in press). doi:10.1093/sysbio/syag085
 
 
 
