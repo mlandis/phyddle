@@ -26,8 +26,10 @@ Visit the `GitHub Discussions <https://github.com/mlandis/phyddle/discussions>`_
 
 .. admonition:: Please cite
 
-   | **[1]** MJ Landis and A Thompson. 2025. phyddle: software for exploring phylogenetic models with deep learning. *Systematic Biology* (in press).
-   | **[2]** Thompson, B Liebeskind, EJ Scully, MJ Landis. 2024. Deep learning and likelihood approaches for viral phylogeography converge on the same answers whether the inference model is right or wrong. *Systematic Biology* 73:183-206. 
+   | **[1]** MJ Landis and A Thompson. 2025. phyddle: software for exploring phylogenetic models with deep learning. *Systematic Biology* 74:1007-1019.
+   | **[2]** A Thompson, B Liebeskind, EJ Scully, MJ Landis. 2024. Deep learning and likelihood approaches for viral phylogeography converge on the same answers whether the inference model is right or wrong. *Systematic Biology* 73:183-206.
+   | **[3]** AA Nagel and MJ Landis. 2026. Ancestral state reconstruction with discrete characters using deep learning. *Systematic Biology* (in press) doi:10.1093/sysbio/syag087.
+   | **[4]** AC Soewongsono and MJ Landis. 2026. Phylogenetic estimation of diversity-dependent biogeographic rates using deep learning. *Systematic Biology* (in press) doi:10.1093/sysbio/syag085.
 
 
 
