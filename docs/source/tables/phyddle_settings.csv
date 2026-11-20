@@ -9,11 +9,6 @@ Setting|Step(s)|Type|Description
 ``save_num_sim``|–––––|*int*|Number of simulated examples to save with --save_proj
 ``save_train_fmt``|–––––|*str*|Save formatted training examples with --save_proj? (not recommended)
 ``output_precision``|SFTEP|*int*|Number of digits (precision) for numbers in output files
-``use_parallel``|SF–––|*str*|Use parallelization? (recommended)
-``use_cuda``|––TE–|*str*|Use CUDA parallelization? (recommended; requires Nvidia GPU)
-``num_proc``|SFT––|*int*|Number of cores for multiprocessing (-N for all but N)
-``no_emp``|–––––|––|Disable Format/Estimate steps for empirical data?
-``no_sim``|–––––|––|Disable Format/Estimate steps for simulated data?
 ``dir``|SFTEP|*str*|Parent directory for all step directories unless step directory given
 ``sim_dir``|SF–––|*str*|Directory for raw simulated data
 ``emp_dir``|SF–––|*str*|Directory for raw empirical data
@@ -29,6 +24,11 @@ Setting|Step(s)|Type|Description
 ``trn_prefix``|–FTEP|*str*|Prefix for trained networks and training output
 ``est_prefix``|––TEP|*str*|Prefix for estimate results
 ``plt_prefix``|––––P|*str*|Prefix for plotted results
+``use_parallel``|SF–––|*str*|Use parallelization? (recommended)
+``use_cuda``|––TE–|*str*|Use CUDA parallelization? (recommended; requires Nvidia GPU)
+``num_proc``|SFT––|*int*|Number of cores for multiprocessing (-N for all but N)
+``no_emp``|–––––|––|Disable Format/Estimate steps for empirical data?
+``no_sim``|–––––|––|Disable Format/Estimate steps for simulated data?
 ``sim_command``|S––––|*str*|Simulation command to run single job (see documentation)
 ``sim_logging``|S––––|*str*|Simulation logging style
 ``start_idx``|SF–––|*int*|Start replicate index for simulated training dataset
@@ -36,31 +36,44 @@ Setting|Step(s)|Type|Description
 ``sim_more``|S––––|*int*|Add more simulations with auto-generated indices
 ``sim_batch_size``|S––––|*int*|Number of replicates per simulation command
 ``encode_all_sim``|–F–––|*str*|Encode all simulated replicates into tensor?
-``num_char``|–FTE–|*int*|Number of characters
+``num_char``|SFTE–|*int*|Number of characters
 ``num_states``|–FTE–|*int*|Number of states per character
+``num_trees``|SFTE–|*int*|Number of trees per dataset
 ``min_num_taxa``|–F–––|*int*|Minimum number of taxa allowed when formatting
 ``max_num_taxa``|–F–––|*int*|Maximum number of taxa allowed when formatting
 ``downsample_taxa``|–FTE–|*str*|Downsampling strategy taxon count
+``rel_extant_age_tol``|–FTE–|*float*|Relative tolerance to determine if terminal taxa are extant (rel. age < tol).
 ``tree_width``|–FTEP|*int*|Width of phylo-state tensor
-``tree_encode``|–FTE–|*str*|Encoding strategy for tree
-``brlen_encode``|–FTE–|*str*|Encoding strategy for branch lengths
+``tree_encode``|–FTEP|*str*|Encoding strategy for tree
+``brlen_encode``|–FTEP|*str*|Encoding strategy for branch lengths
 ``char_encode``|–FTE–|*str*|Encoding strategy for character data
 ``param_est``|–FTE–|*dict*|Model parameters and variables to estimate
 ``param_data``|–FTE–|*dict*|Model parameters and variables treated as data
+``asr_est``|–FTE–|*str*|Infer ancestral state for each node (marginal)
+``asr_one``|–FTE–|*str*|Infer the ancestral state for a single node
+``asr_1_cat``|–FTE–|*str*|Infer ancestral states as a single categorical variable for the whole tree (not recommended due to poor scaling)
+``max_asr_est``|–FTE–|*int*|Maximum number of ancestral states to infer
+``asr_rotate``|–FTE–|*dict*|States that are equivalent if daughters are rotated
 ``char_format``|–FTE–|*str*|File format for character data
 ``tensor_format``|–FTEP|*str*|File format for training example tensors
 ``save_phyenc_csv``|–F–––|*str*|Save encoded phylogenetic tensor encoding to csv?
-``max_asr_est``|–FTEP|*int*|Maximum number of ancestral states to infer
-``num_epochs``|––TEP|*int*|Number of training epochs
-``num_early_stop``|––TEP|*int*|Number of consecutive validation loss gains before early stopping
+``shuffle_test``|–F–––|*str*|Shuffle which phylogenies are in the test vs. training dataset
+``num_epochs``|––T––|*int*|Number of training epochs
+``num_early_stop``|––T––|*int*|Number of validation loss gains before early stopping
+``early_stop_rule``|––T––|*str*|Use total or consecutive number of validation loss gains to trigger early stopping
 ``trn_batch_size``|––TEP|*int*|Training batch sizes
 ``prop_test``|–FT––|*float*|Proportion of data used as test examples (assess trained network performance)
 ``prop_val``|––T––|*float*|Proportion of data used as validation examples (diagnose network overtraining)
 ``prop_cal``|––T––|*float*|Proportion of data used as calibration examples (calibrate CPIs)
-``cpi_coverage``|––T––|*float*|Expected coverage percent for calibrated prediction intervals (CPIs)
-``cpi_asymmetric``|––T––|*str*|Use asymmetric (True) or symmetric (False) adjustments for CPIs?
+``cpi_method``|––T––|*str*|What method for calibrated prediction intervals (CPIs)?
+``cpi_coverage``|––T––|*float*|Expected coverage percent for CPIs
+``cpi_asymmetric``|––T––|*str*|CQR only: Use asymmetric (True) or symmetric (False) adjustments for CPIs?
 ``loss_numerical``|––T––|*str*|Loss function for real value estimates
+``loss_aggregation``|––T––|*str*|Loss function for real value estimates
 ``optimizer``|––T––|*str*|Method used for optimizing neural network
+``learning_rate``|––T––|*float*|Learning rate for optimizer
+``weight_decay``|––T––|*float*|Weight decay (L2 penalty) for optimizer regularization
+``activation_func``|––T––|*str*|Activation function for all internal layers
 ``log_offset``|–FTEP|*float*|Offset size c when taking ln(x+c) for zero-valued variables
 ``phy_channel_plain``|––T––|*int[]*|Output channel sizes for plain convolutional layers for phylogenetic state input
 ``phy_channel_stride``|––T––|*int[]*|Output channel sizes for stride convolutional layers for phylogenetic state input
@@ -72,22 +85,24 @@ Setting|Step(s)|Type|Description
 ``phy_kernel_dilate``|––T––|*int[]*|Kernel sizes for dilate convolutional layers for phylogenetic state input
 ``phy_stride_stride``|––T––|*int[]*|Stride sizes for stride convolutional layers for phylogenetic state input
 ``phy_dilate_dilate``|––T––|*int[]*|Dilation sizes for dilate convolutional layers for phylogenetic state input
+``phy_dropout_prop``|––T––|*float*|Dropout proportion for convolutional layers for phylogenetic state input
+``aux_dropout_prop``|––T––|*float*|Dropout proportion for dense layers for auxiliary data input
+``lbl_dropout_prop``|––T––|*float*|Dropout proportion for dense layers for label outputs
+``warn_aux_outlier``|–F–EP|*float*|Percentile to detect extreme empirical auxiliary (abs.) values.
+``warn_lbl_outlier``|–F–EP|*float*|Percentile to detect extreme empirical label (abs.) values.
+``asr_nexus_test``|–––E–|*str*|Write ancestral state reconstruction to nexus file for test data
+``asr_nexus_emp``|–––E–|*str*|Write ancestral state reconstruction to nexus file for empirical data
+``asr_map_triplet_states``|–––E–|*dict*|Relabeling of encoding from one value for each triplet at cladogenesis to parent, left daughter, right daughter for the nexus file
+``asr_map_tip_states``|–––E–|*dict*|Relabeling of tip data with multiple characters to a single character for the nexus format
+``asr_rb_nexus``|–––E–|*str*|Nexus format tree should be in RevGadgets compatible format
 ``plot_train_color``|––––P|*str*|Plotting color for training data elements
 ``plot_test_color``|––––P|*str*|Plotting color for test data elements
 ``plot_val_color``|––––P|*str*|Plotting color for validation data elements
 ``plot_label_color``|––––P|*str*|Plotting color for label elements
+``plot_phy_color``|––––P|*str*|Plotting color for phylogenetic data elements
 ``plot_aux_color``|––––P|*str*|Plotting color for auxiliary data elements
 ``plot_emp_color``|––––P|*str*|Plotting color for empirical elements
 ``plot_num_scatter``|––––P|*int*|Number of examples in scatter plot
 ``plot_min_emp``|––––P|*int*|Minimum number of empirical datasets to plot densities
 ``plot_num_emp``|––––P|*int*|Number of empirical results to plot
 ``plot_pca_noise``|––––P|*float*|Scale of Gaussian noise to add to PCA plot
-``asr_1_cat``|–FTEP|*str*|Infer ancestral states as a single categorical variable for the whole tree 
-``asr_est``|–FTEP|*str*|Infer ancestral state for each node (marginal)?
-``asr_nexus_test``|–––E–|*str*|Write ancestral state reconstruction to nexus file for test data
-``asr_nexus_emp``|–––E–|*str*|Write ancestral state reconstruction to nexus file for empirical data
-``asr_one``|–FTEP|*str*|Infer the ancestral state for a single node
-``asr_rotate``|–FTE–|*dict*|States that are equivalent if daughters are rotated
-``asr_map_triplet_states``|–––E–|*dict*|Relabeling of encoding from one value for each triplet at cladogenesis to parent, left daughter, right daughter for the nexus file with ancestral states
-``asr_map_tip_states``|–––E–|*dict*|Relabeling of tip data with multiple characters to a single character for the nexus format
-``asr_rb_nexus``|–––E–|*str*|Should nexus tree be in RevGadgets compatible format?
