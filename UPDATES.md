@@ -1,3 +1,11 @@
+**phyddle v0.3.2** -- 26.11.19
+
+* Test/validation/calibration datasets are now processed in batches, allowing larger datasets to be processed
+* Plot now skips PCA plots for datasets that contain no variation (e.g. if all training examples use the same fixed tree)
+* Corrected calibration symmetric adjustment factor for conformalized quantile prediction (introduced in v0.3.1)
+* Updated remaining code to be compatible with pandas v3.0.0+
+* Minor updates to documentation
+
 **phyddle v0.3.1** -- 26.11.11
 
  * Add support for ancestral state estimation (https://doi.org/10.64898/2026.03.19.712918); read the paper, documentation, and tutorial to use
