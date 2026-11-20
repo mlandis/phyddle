@@ -1,4 +1,4 @@
-# phyddle 0.3.1
+# phyddle 0.3.2
 
 Software for exploring phylogenetic models with deep learning [[manuscript](https://doi.org/10.1093/sysbio/syaf036)]
 
