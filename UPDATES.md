@@ -2,7 +2,8 @@
 
 * Test/validation/calibration datasets are now processed in batches, allowing larger datasets to be processed
 * Plot now skips PCA plots for datasets that contain no variation (e.g. if all training examples use the same fixed tree)
-* Corrected calibration symmetric adjustment factor for conformalized quantile prediction (introduced in v0.3.1)
+* Corrected bug from last update when `cpi_method` is `cqr` and `cpi_asymmetric` is `F`
+* Format now only creates `.form.tre` files if `asr_est` is `T` and `asr_rotate` is `T`
 * Updated remaining code to be compatible with pandas v3.0.0+
 * Minor updates to documentation
 
